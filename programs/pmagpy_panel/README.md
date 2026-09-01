@@ -6,7 +6,7 @@ MagIC 3-native core:
 | legacy GUI | successor | core | branch |
 |---|---|---|---|
 | Demag GUI | `programs/pmagpy_directions` | `pmagpy/demag.py` | `demag_gui_playground` |
-| Thellier GUI | `programs/pmagpy_intensity` (also called `pmagpy_paleointensity`; the two names are still settling) | to come | `pmagpy_intensity` |
+| Thellier GUI | `programs/pmagpy_intensity` | `pmagpy/paleointensity.py`, `pmagpy/pint_stats.py`, `pmagpy/bicep.py`, `pmagpy/tdt.py` | `pmagpy_intensity` |
 
 They are meant to be **one application in two subjects**, not two applications
 that resemble each other: an analyst who has used one should already know how
@@ -44,6 +44,14 @@ demagnetization step or a Thellier step *is*, it does not belong here.
 * **`nets.py`** — equal-area primitives. `net_figure()` builds a square,
   toolbar-less figure and `keep_circular()` guards it; `declutter_labels()`
   thins labels where symbols pile up.
+* **`chooser.py`** — the widgets around `datasets.py`: the dataset block for the
+  side column and the "open a different one" dialog (system folder chooser,
+  recent list, path field, in-page browser). `modal(*extra)` takes whatever the
+  application wants to add underneath — PmagPy Intensity appends a ThellierTool
+  importer. It is given a session that answers `directory`, `output_dir`,
+  `status` and `load(path)`, and a `count` callable, so it knows nothing about
+  either science; `test_chooser.py` drives it with a stub session and asserts
+  exactly that.
 * **`datasets.py`** — choosing, remembering and validating a MagIC directory:
   `env()`, `looks_like_magic_dir()`, `default_output_dir()`, the recent list,
   and the native folder chooser (macOS/Linux/Windows, with a stub hook for
@@ -146,6 +154,7 @@ Each of these was found the hard way in Directions; none is obvious.
 
 ```bash
 pytest pmagpy/test/test_demag.py pmagpy/test/test_demag_geo.py -q   # cores (run in CI)
+pytest programs/pmagpy_panel/test_chooser.py -q                     # the toolkit itself
 pytest programs/pmagpy_directions/test_app.py -q                    # app (needs panel/bokeh)
 # browser suite: serve the app, then
 python ui_test.py http://localhost:5100/pmagpy_directions screenshots/app

@@ -294,7 +294,9 @@ class StepNetPlot:
                              fill_color="fill", line_color=POINT_EDGE)
         self.fig.scatter("x", "y", source=self.sel, marker="circle", size=12, fill_color=None,
                          line_color=SEGMENT_COLOR, line_width=2)
-        m = self.fig.scatter("x", "y", source=self.mean, marker="star", size=16,
+        # the toolkit's convention: a circle is a measured direction, a square is
+        # a mean, and a derived symbol takes the dark edge
+        m = self.fig.scatter("x", "y", source=self.mean, marker="square", size=11,
                              fill_color=MEAN_COLOR, line_color=POINT_EDGE)
         self.fig.add_tools(HoverTool(renderers=[r, m], tooltips=[("", "@label")]))
         keep_circular(self.fig)

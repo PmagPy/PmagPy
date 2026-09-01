@@ -23,14 +23,16 @@ from pmagpy import bicep as bicep_core
 from pmagpy import pint_stats as ps
 from pmagpy import tdt as tdt_reader
 
+from pmagpy_panel.chooser import DirectoryChooser
 from pmagpy_panel.widgets import HeightSplitter, Hotkeys
 from pmagpy_panel.theme import (BUTTON_GROUP_CSS, CHECKBOX_CSS, INPUT_CSS, KPI_ITEM, MUTED_STYLE,
                                 SECTION_STYLE, STATS_TABLE_CSS, TABLE_ROW_CSS, kpi)
 from . import publication as pub
 from .plots import (AraiPlot, ChecksPlot, DecayPlot, GroupPlot, SpecimenZijderveldPlot,
                     StepNetPlot)
-from .session import (AUTOSAVE_NAME, REDO_NAME, SESSION_NAME, Session, env, load_recent,
-                      looks_like_magic_dir, native_choose_directory, native_chooser_available)
+from .session import (AUTOSAVE_NAME, RECENT_FILE, REDO_NAME, SESSION_NAME, Session, env,
+                      load_recent, looks_like_magic_dir, native_choose_directory,
+                      native_chooser_available)
 
 SIDE_PLOT = 380
 PASS_COLOR = "#1a7f5a"
@@ -87,31 +89,19 @@ class LazyView:
 class DataView:
     """Switch between MagIC directories, and import ThellierTool files.
 
-    The behaviour is the shared one in ``pmagpy_panel.datasets``; only the
-    layout is here. (PmagPy Directions has an equivalent block; once both have
-    settled, the widget belongs in ``pmagpy_panel.widgets``.)
+    The directory chooser is ``pmagpy_panel.chooser.DirectoryChooser``, shared
+    with PmagPy Directions; what is added here is the ``.tdt`` importer, which
+    is this subject's own.
     """
 
     def __init__(self, session: Session, chooser=native_choose_directory, chooser_available=None):
-        import sys
         self.s = session
-        self.on_loaded = None
-        self.chooser = chooser
-        self.chooser_available = native_chooser_available() if chooser_available is None \
-            else chooser_available
-        self.summary = pn.pane.HTML("", sizing_mode="stretch_width")
-        self.change_btn = pn.widgets.Button(name="Change data…", button_type="primary", width=140)
-        app = {"darwin": "Finder", "win32": "Explorer"}.get(sys.platform, "the system dialog")
-        self.native_btn = pn.widgets.Button(name=f"Browse with {app}…", button_type="primary",
-                                            width=220, disabled=not self.chooser_available)
-        self.native_btn.on_click(self._browse_native)
-        self.recent = pn.widgets.Select(name="Recent directories", options=[], size=6,
-                                        sizing_mode="stretch_width")
-        self.path = pn.widgets.TextInput(
-            name="MagIC directory (must contain measurements.txt)", value=session.directory,
-            sizing_mode="stretch_width")
-        self.load_btn = pn.widgets.Button(name="Load", button_type="success", width=120)
-        self.message = pn.pane.HTML("", sizing_mode="stretch_width")
+        self.chooser = DirectoryChooser(
+            session, recent_file=RECENT_FILE, chooser=chooser,
+            chooser_available=chooser_available,
+            count=lambda s: f"{len(s.data.specimens) if s.data else 0} specimens",
+            note=("Interpretations are auto-saved per dataset; switching datasets restores "
+                  "what you had there."))
         self.tdt_path = pn.widgets.TextInput(
             name="ThellierTool .tdt file or a directory of them", sizing_mode="stretch_width")
         self.tdt_units = pn.widgets.Select(name="moment units", options=["Am^2", "emu", "mA/m"],
@@ -129,59 +119,10 @@ class DataView:
                                               sizing_mode="stretch_width", show_index=False)
         self.check_btn.on_click(self._check_tdt)
         self.convert_btn.on_click(self._convert_tdt)
-        self.recent.param.watch(lambda e: setattr(self.path, "value", e.new) if e.new else None,
-                                "value")
-        self.load_btn.on_click(self._load)
-        session.param.watch(lambda e: self._refresh(), ["directory", "output_dir"])
-        self._refresh()
 
-    def _refresh(self):
-        s = self.s
-        n = len(s.data.specimens) if s.data else 0
-        name = os.path.basename(s.directory.rstrip("/")) or "(none)"
-        self.summary.object = kpi([f"<b>{name}</b>",
-                                   f'<span style="{MUTED_STYLE}">{n} specimens</span>',
-                                   f'<span style="{MUTED_STYLE}" title="{s.directory}">'
-                                   f'{_shorten(s.directory)}</span>'])
-        self.recent.options = {_shorten(d, 70): d for d in load_recent()}
-        self.path.value = s.directory
-
-    def _browse_native(self, event=None):
-        self.native_btn.disabled = True
-        self.message.object = f'<div style="{MUTED_STYLE}">Choose a folder in the dialog…</div>'
-        start = self.path.value.strip() or self.s.directory
-        doc = pn.state.curdoc
-
-        def worker():
-            chosen = self.chooser(start)
-
-            def apply():
-                self.native_btn.disabled = not self.chooser_available
-                if chosen:
-                    self.path.value = chosen
-                    self._load()
-                else:
-                    self.message.object = f'<div style="{MUTED_STYLE}">No folder chosen.</div>'
-            if doc is not None and getattr(doc, "session_context", None) is not None:
-                doc.add_next_tick_callback(apply)
-            else:
-                apply()
-        threading.Thread(target=worker, daemon=True).start()
-
-    def _load(self, event=None):
-        directory = self.path.value.strip()
-        if not directory:
-            return
-        if not looks_like_magic_dir(directory):
-            self.message.object = (f'<div style="color:{FAIL_COLOR}">'
-                                   f'{directory} has no measurements.txt</div>')
-            return
-        if self.s.load(directory):
-            self.message.object = f'<div style="color:{PASS_COLOR}">{self.s.status}</div>'
-            if self.on_loaded:
-                self.on_loaded()
-        else:
-            self.message.object = f'<div style="color:{FAIL_COLOR}">{self.s.status}</div>'
+    # the application layer and the tests speak to the chooser through these
+    def __getattr__(self, name):
+        return getattr(self.__dict__["chooser"], name)
 
     # ----- ThellierTool import ---------------------------------------------
     def _tdt_files(self):
@@ -218,8 +159,7 @@ class DataView:
         if not files:
             return
         target = self.tdt_path.value.strip()
-        out = os.path.join(target if os.path.isdir(target) else os.path.dirname(target),
-                           "magic3")
+        out = os.path.join(target if os.path.isdir(target) else os.path.dirname(target), "magic3")
         result = tdt_reader.to_magic(files, out, volume_cc=self.tdt_volume.value,
                                      moment_units=self.tdt_units.value,
                                      lab_dec=self.tdt_dec.value, lab_inc=self.tdt_inc.value,
@@ -228,18 +168,14 @@ class DataView:
             self.tdt_report.object = (f'<div style="color:{FAIL_COLOR}">conversion refused; '
                                       f'fix the errors above</div>')
             return
-        self.path.value = out
-        self._load()
+        self.chooser.path.value = out
+        self.chooser._load()
 
+    # ----- layout -----------------------------------------------------------
     def sidebar(self):
-        return pn.Column(pn.pane.HTML(f'<div style="{SECTION_STYLE}">Data</div>'),
-                         self.summary, self.change_btn, sizing_mode="stretch_width")
+        return self.chooser.sidebar()
 
     def modal(self):
-        magic = pn.Column(
-            pn.pane.HTML(f'<div style="{SECTION_STYLE}">Open a MagIC 3 directory</div>'),
-            self.native_btn, self.recent, self.path, self.load_btn, self.message,
-            sizing_mode="stretch_width")
         importer = pn.Column(
             pn.pane.HTML(f'<div style="{SECTION_STYLE}">Import ThellierTool (.tdt) files</div>'),
             pn.pane.HTML(f'<div style="{MUTED_STYLE}">Every file is checked before anything is '
@@ -248,8 +184,7 @@ class DataView:
             pn.Row(self.tdt_units, self.tdt_volume, self.tdt_dec, self.tdt_inc),
             self.tdt_aniso, pn.Row(self.check_btn, self.convert_btn), self.tdt_report,
             self.tdt_table, sizing_mode="stretch_width")
-        return pn.Column(magic, pn.layout.Divider(), importer, width=760,
-                         sizing_mode="stretch_height")
+        return self.chooser.modal(importer)
 
 
 # ---------------------------------------------------------------------------
