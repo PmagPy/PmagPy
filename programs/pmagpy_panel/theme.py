@@ -190,10 +190,12 @@ def style_figure(fig, hide_axes: bool = False):
     return fig
 
 
-def asset_data_uri(name: str) -> str:
-    """Embed an image from the package's assets/ as a data URI (templates take URLs)."""
+def asset_data_uri(path: str) -> str:
+    """Embed an image as a data URI (Panel templates take URLs, not files).
+
+    Takes a full path: assets belong to an application, not to this toolkit,
+    so there is no directory for it to guess at.
+    """
     import base64
-    import os
-    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", name)
     with open(path, "rb") as fh:
         return "data:image/png;base64," + base64.b64encode(fh.read()).decode("ascii")

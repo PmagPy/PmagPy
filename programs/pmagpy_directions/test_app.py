@@ -18,7 +18,7 @@ matplotlib.use("Agg")
 import pmagpy.demag as dc  # noqa: E402
 from pmagpy_directions import publication as pub  # noqa: E402
 from pmagpy_directions.session import AUTOSAVE_NAME, Session  # noqa: E402
-from pmagpy_directions.theme import ComponentColors, lighten  # noqa: E402
+from pmagpy_panel.theme import ComponentColors, lighten  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
@@ -399,6 +399,21 @@ class TestColors:
         # a name that disappears loses its picker
         s.delete_components([c for c in s.data.components if c.name == name])
         assert name not in interps.pickers
+
+
+class TestApp:
+    def test_template_assembles_with_its_own_assets(self, tmp_path):
+        """The whole application builds, logo included.
+
+        The pieces were all covered and the assembly was not, so when the theme
+        moved to pmagpy_panel and took the logo's path with it, only the browser
+        suite noticed. Assets belong to an application, not to the toolkit.
+        """
+        from pmagpy_directions.app import create_app
+        template = create_app(_DMAG, output_dir=str(tmp_path))
+        assert template.title == "PmagPy Directions"
+        assert template.logo.startswith("data:image/png;base64,")
+        assert template.session.data is not None
 
 
 class TestSpecimenView:
