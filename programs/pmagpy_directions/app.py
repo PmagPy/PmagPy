@@ -37,11 +37,12 @@ def create_app(directory: str, output_dir: str | None = None):
     for i, view in lazy.items():
         view.set_active(i == tabs.active)
 
-    # the side column follows the active tab: specimen steps, or the list of what is
-    # plotted; the Fits and Export tabs use the full width (no specimen context needed)
-    side_panels = {0: specimen.sidebar(), 2: means.sidebar(), 3: poles.sidebar()}
+    # the side column follows the active tab: specimen steps, or what is plotted —
+    # the fits the table lists on Fits, the plotted fits on Means, the VGPs on Poles.
+    # Only Export uses the full width (it writes tables, it plots nothing)
+    side_panels = {0: specimen.sidebar(), 1: interps.sidebar(), 2: means.sidebar(), 3: poles.sidebar()}
     side_holder = pn.Column(side_panels[0], sizing_mode="stretch_width")
-    full_width_tabs = {1, 4}
+    full_width_tabs = {4}
 
     def _on_tab(event):
         for i, view in lazy.items():

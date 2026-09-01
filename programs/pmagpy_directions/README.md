@@ -70,11 +70,13 @@ honoured). The launcher's default port is `PMAGPY_DIRECTIONS_PORT` (5100).
 
 The tabs follow the analysis: *Specimen*, *Fits*, *Means*, *Poles*,
 *Export*. The side column follows the active tab: specimen
-navigation and the step logger on *Specimen*; the list of plotted fits
+navigation and the step logger on *Specimen*; an equal-area plot of the fits
+the table lists on *Fits*; the list of plotted fits
 (with *Go to specimen* and good/bad toggling) on *Means*; the plotted
-VGPs on *Poles*; *Fits* and *Export* use the full width. It is resizable —
-drag the grey handle between it and the plots (the new width is applied when
-you release; double-click resets it). On the Zijderveld plot, drag = zoom
+VGPs on *Poles*; only *Export* uses the full width. It is resizable —
+drag the grey handle between it and the plots: both panels follow the
+cursor and the boundary stops where the plots would be squeezed
+(double-click resets it). On the Zijderveld plot, drag = zoom
 box, tap = pick a step, and box-select is one click away in the toolbar.
 
 Performance notes: the loaded dataset (interpretations included) is shared by
@@ -145,6 +147,14 @@ specimen, delete or flag in bulk, copy the current fit's bounds to all
 specimens of the site or of the study. One colour picker per fit name:
 fits with the same name share a colour everywhere (logger, plots, tables,
 exported figures), and the choice is kept in the `.redo` file.
+The side column plots what the table shows on an equal-area net, in the
+fits' own colours: the rows ticked for a bulk action, or — with none
+ticked — every fit the header filters leave listed, so that filtering by
+site or component draws that set as you type. Planes are drawn as great
+circles and fits flagged bad are left out, both reported under the net.
+Symbols thin and circles fade as the set grows, so a whole study stays
+readable. The table paginates locally: a header filter typed in the
+browser is only visible to the application that way.
 
 **Export pane.** Writes MagIC 3 `specimens.txt` (one row per coordinate
 system chosen), `measurements.txt` with the good/bad flags, `samples.txt`

@@ -399,6 +399,44 @@ class TestColors:
         assert name not in interps.pickers
 
 
+class TestInterpretationsView:
+    def test_side_plot_follows_the_table(self, tmp_path):
+        """The Fits side column plots the ticked rows, or everything the filters leave listed."""
+        from pmagpy_directions.views import InterpretationsView
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        view = InterpretationsView(s)
+        good = [c for c in s.data.components if c.quality == "g"]
+
+        # nothing ticked: every listed (unfiltered) fit is on the net
+        plotted = len(view.plot.src.data["x"]) + len(view.plot.circles.data["xs"])
+        assert plotted == len(good) and "listed" in view.plot_note.object
+        assert view.plot.fig.name == "equal_area_net"
+
+        # ticking rows narrows the plot to those fits
+        rows = [i for i, c in enumerate(s.data.components) if c.quality == "g"][:3]
+        view.table.selection = rows
+        assert len(view.plot.src.data["x"]) + len(view.plot.circles.data["xs"]) == len(rows)
+        assert "ticked in the table" in view.plot_note.object
+        specs = set(view.plot.src.data["label"])
+        assert specs <= {s.data.components[i].specimen for i in rows}
+
+        # a header filter narrows it as well, once the ticks are cleared
+        view.table.selection = []
+        one = s.data.components[rows[0]].specimen
+        view.table.filters = [{"field": "specimen", "type": "=", "value": one}]
+        listed = len(view.plot.src.data["x"]) + len(view.plot.circles.data["xs"])
+        assert 0 < listed < len(good)
+        assert set(view.plot.src.data["label"]) <= {one}
+
+        # planes are drawn as great circles, flagged fits are left out and reported
+        view.table.filters = []
+        flagged = next(c for c in s.data.components if c.quality == "g")
+        flagged.quality = "b"
+        s._changed()
+        assert len(view.plot.src.data["x"]) + len(view.plot.circles.data["xs"]) == len(good) - 1
+        assert "1 flagged bad" in view.plot_note.object
+
+
 class TestSwitchingDatasets:
     def test_views_follow_a_dataset_switch(self, tmp_path):
         from pmagpy_directions.views import InterpretationsView, MeansView, PolesView, SpecimenView

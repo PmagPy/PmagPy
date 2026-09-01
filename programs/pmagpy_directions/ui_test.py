@@ -128,13 +128,16 @@ with sync_playwright() as p:
         time.sleep(5)
         page.screenshot(path=f"{prefix}_{tab.lower()}.png")
         check(True, f"{tab} tab rendered")
-        if tab in ("Means", "Poles"):
+        if tab in ("Means", "Poles", "Fits"):
             check_nets_circular(page, f"{tab} tab")
         visible = page.locator(".step-logger tr[data-i]").count() > 0 or page.get_by_role("button", name="Change data…").count() > 0
-        if tab in ("Fits", "Export"):
+        if tab == "Export":
             check(not visible, f"{tab} tab hides the side column")
         else:
-            check(visible or tab != "Means", f"{tab} tab keeps a side column")
+            check(visible, f"{tab} tab keeps a side column")
+        if tab == "Fits":
+            # the side column plots what the table lists, and says how many
+            check(page.get_by_text("fits listed").count() > 0, "Fits tab: side column reports the plotted fits")
         if tab == "Poles":
             n_land = page.evaluate("""() => {
               const doc = Bokeh.documents[0];

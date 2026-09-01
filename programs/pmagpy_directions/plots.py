@@ -343,11 +343,11 @@ class DirectionsPlot:
         self.fig.title.text = title
         self.fig.height = size + 28          # room for the title row above the square frame
         self.src = ColumnDataSource(dict(x=[], y=[], fill=[], line=[], label=[], comp=[]))
-        pts = self.fig.scatter("x", "y", source=self.src, size=8, fill_color="fill", line_color="line",
-                               line_width=0.8)
-        self.fig.add_tools(HoverTool(renderers=[pts], tooltips=[("", "@label"), ("component", "@comp")]))
+        self.points = self.fig.scatter("x", "y", source=self.src, size=8, fill_color="fill", line_color="line",
+                                       line_width=0.8)
+        self.fig.add_tools(HoverTool(renderers=[self.points], tooltips=[("", "@label"), ("component", "@comp")]))
         self.circles = ColumnDataSource(dict(xs=[], ys=[], color=[]))
-        self.fig.multi_line("xs", "ys", source=self.circles, color="color", line_width=1, alpha=0.8)
+        self.great = self.fig.multi_line("xs", "ys", source=self.circles, color="color", line_width=1, alpha=0.8)
         # one star + α95 circle per component mean, in the component's colour
         self.mean = ColumnDataSource(dict(x=[], y=[], color=[], name=[]))
         self.a95 = ColumnDataSource(dict(xs=[], ys=[], color=[]))
@@ -373,6 +373,10 @@ class DirectionsPlot:
             gx, gy = dc.great_circle_xy(pdec, pinc)
             gxs.append(list(gx)); gys.append(list(gy)); gcol.append(color)
         self.circles.data = dict(xs=gxs, ys=gys, color=gcol)
+        # a whole study's worth of directions is a crowd: thin the symbols and fade the
+        # great circles so that the distribution stays readable instead of a hairball
+        self.points.glyph.size = 8 if len(dirs) <= 150 else (6 if len(dirs) <= 400 else 4.5)
+        self.great.glyph.line_alpha = 0.8 if len(gxs) <= 15 else max(0.12, 10 / len(gxs))
         mx, my, mcol, mname, axs, ays, acol = [], [], [], [], [], [], []
         for mean, color in means:
             if mean is None or np.isnan(mean.get("dir_dec", np.nan)):

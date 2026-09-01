@@ -25,6 +25,7 @@ COORD_OPTIONS = {v: k for k, v in dc.COORD_NAMES.items()}
 MEAN_COLUMNS = ["dir_dec", "dir_inc", "dir_alpha95", "dir_k", "dir_r", "dir_n_specimens", "dir_n_samples",
                 "dir_n_sites", "dir_n_specimens_lines", "dir_n_specimens_planes", "vgp_lat", "vgp_lon",
                 "vgp_dp", "vgp_dm"]
+SIDE_PLOT = 380      # equal-area net in the side column, inside its 450 px default width
 
 
 def next_tick(fn):
@@ -752,7 +753,10 @@ class InterpretationsView(LazyView):
         self.s = session
         self.table = pn.widgets.Tabulator(pd.DataFrame(), height=560, show_index=False, disabled=True,
                                           selectable="checkbox", sizing_mode="stretch_width",
-                                          pagination="remote", page_size=25, header_filters=True,
+                                          # local pagination: with "remote" the header
+                                          # filters are applied in the browser only and
+                                          # current_view (so the side plot) never sees them
+                                          pagination="local", page_size=25, header_filters=True,
                                           stylesheets=[
                                               ".tabulator-footer { text-align: left !important; } "
                                               ".tabulator-footer .tabulator-footer-contents "
@@ -775,8 +779,33 @@ class InterpretationsView(LazyView):
         self._syncing = False
         self.colors_row = pn.Row(pn.pane.HTML(f'<span style="{MUTED_STYLE}">color of fit in plots</span>',
                                               margin=(14, 8, 0, 0)))
+        # the side column plots what the table shows: the ticked rows, or — with none
+        # ticked — every fit the header filters leave listed
+        self.plot = DirectionsPlot("Fits", size=SIDE_PLOT)
+        self.plot_note = pn.pane.HTML("", sizing_mode="stretch_width")
+        # A header filter typed in the browser reaches `table.filters`, but Panel
+        # suppresses watchers while it syncs the table's own state back, so the change
+        # arrives silently: the value is polled instead while the tab is on show.
+        # (The watcher still covers ticking and programmatic filters.)
+        self._filters_seen = []
+        self._poll = None
+        self.table.param.watch(self._redraw_plot, ["selection", "filters"])
         session.param.watch(self._lazy_redraw, ["coord", "version"])
         self.redraw()
+
+    def set_active(self, active: bool):
+        super().set_active(active)
+        if active and self._poll is None and pn.state.curdoc is not None:
+            self._poll = pn.state.add_periodic_callback(self._poll_filters, period=350)
+        elif not active and self._poll is not None:
+            self._poll.stop()
+            self._poll = None
+
+    def _poll_filters(self):
+        current = list(self.table.filters or [])
+        if current != self._filters_seen:
+            self._filters_seen = current
+            self._redraw_plot()
 
     def _sync_pickers(self, names):
         self._syncing = True
@@ -802,6 +831,51 @@ class InterpretationsView(LazyView):
     def _selected(self):
         comps = self.s.data.components
         return [comps[i] for i in self.table.selection if i < len(comps)]
+
+    def _plotted(self):
+        """The fits the side column draws: the ticked rows, or all the filters leave listed.
+
+        Returns (components, what) — ``what`` names the source for the caption.
+        """
+        sel = self._selected()
+        if sel:
+            return sel, "ticked"
+        comps = self.s.data.components
+        # current_view is the filtered (and sorted) frame, indexed as the value frame,
+        # which is built row for row from data.components
+        view = getattr(self.table, "current_view", None)
+        if view is None or len(view) == len(comps):
+            return list(comps), "listed"
+        return [comps[i] for i in view.index if isinstance(i, (int, np.integer)) and i < len(comps)], "listed"
+
+    def _redraw_plot(self, *events):
+        if self.s.data is None:
+            return
+        comps, what = self._plotted()
+        coord = self.s.active_coord
+        dirs, planes, flagged = [], [], 0
+        for comp in comps:
+            if comp.quality != "g":            # flagged bad: excluded here as in the means
+                flagged += 1
+                continue
+            res = self.s.data.fit(comp, coord)
+            if res is None:
+                continue
+            color = self.s.color_of(comp.name)
+            if res.direction_type == "p":
+                planes.append((res.dir_dec, res.dir_inc, color))
+            else:
+                dirs.append((res.dir_dec, res.dir_inc, comp.specimen, comp.name, color))
+        n = len(dirs) + len(planes)
+        self.plot.update(dirs, planes, [], title=dc.COORD_NAMES[coord])
+        parts = [f"<b>{n}</b> fit{'s' if n != 1 else ''} ticked in the table" if what == "ticked"
+                 else f"<b>{n}</b> of {len(self.s.data.components)} fits listed"]
+        if planes:
+            parts.append(f"{len(planes)} planes as great circles" if len(planes) > 1
+                         else "1 plane as a great circle")
+        if flagged:
+            parts.append(f"{flagged} flagged bad, not plotted")
+        self.plot_note.object = f'<span style="{MUTED_STYLE}">{" · ".join(parts)}</span>'
 
     def _goto(self, event=None):
         sel = self._selected()
@@ -849,6 +923,11 @@ class InterpretationsView(LazyView):
                                    f'<b>{info["interpreted"]}</b> of {info["specimens"]} specimens interpreted',
                                    f'<b>{info["sites"]}</b> sites'])
         self._sync_pickers(info["components"])
+        self._redraw_plot()
+
+    def sidebar(self):
+        return pn.Column(section("Fits plotted · tick rows or filter the table"),
+                         plot_box(self.plot.fig, SIDE_PLOT), self.plot_note)
 
     def panel(self):
         return pn.Column(pn.Row(self.summary, self.colors_row),
