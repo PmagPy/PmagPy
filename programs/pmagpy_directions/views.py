@@ -408,7 +408,8 @@ class SpecimenView:
         return pn.Column(
             pn.Row(pn.pane.Bokeh(self.zij.fig, margin=0), self.plot_col, margin=0),
             self.plot_size,
-            pn.Row(section("Fits · click a row to select it"), self.hint, margin=0),
+            # left margin as the table below: the heading lines up with what it labels
+            pn.Row(section("Fits · click a row to select it"), self.hint, margin=(0, 0, 0, 5)),
             pn.Row(self.comp_name, self.fit_type_sel, self.tmin_sel, self.tmax_sel,
                    self.add_btn, self.del_btn),
             self.comp_table,

@@ -78,7 +78,10 @@ def create_app(directory: str, output_dir: str | None = None):
     # is dragged wider, and the panel would grow over it instead
     main_area = pn.Column(tabs, sizing_mode="stretch_both",
                           styles={"overflow-y": "auto", "overflow-x": "auto",
-                                  "min-width": "0", "max-height": "calc(100vh - 60px)"})
+                                  "min-width": "0", "max-height": "calc(100vh - 60px)",
+                                  # clear of the drag handle: without it the pane starts
+                                  # under the bar and text set flush left runs into it
+                                  "padding-left": "8px"})
     # the splitter resizes both panels in the browser: the widths it writes survive the
     # re-renders of a tab switch, so the drag needs no round trip to the server at all
     body = pn.Row(side_area, main_area, sizing_mode="stretch_both")
