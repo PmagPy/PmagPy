@@ -251,3 +251,6 @@ data_files/aarm_magic/samples.txt
 data_files/aarm_magic/sites.txt
 data_files/aarm_magic/locations.txt
 data_files/k15_magic/*.txt
+
+# the BiCEP Stan program, written from pmagpy/bicep.py on demand
+pmagpy/stan/
