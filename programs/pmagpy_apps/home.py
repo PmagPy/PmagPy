@@ -317,12 +317,13 @@ def _bar(name: str, fact: str, href: Optional[str], shut: str = "—") -> str:
 
 
 def aside_html(inv: Inventory, recent: List[str]) -> str:
-    if inv.is_magic:
-        rows = "".join(f'<tr><td class="file">{t}.txt</td><td class="n">{fmt(inv.tables[t].rows)}{" rows" if i == 0 else ""}</td></tr>'
-                       for i, t in enumerate(n for n in ("measurements", "specimens", "samples", "sites", "locations",
-                                                         "ages", "criteria", "images") if n in inv.tables))
-        first = f'<div class="section">Tables</div><div class="box"><table>{rows}</table></div>'
-    else:
+    """Files beside the tables, and the recent list on a landing. Empty when there is neither.
+
+    The tables themselves are not listed: the counts line above already says
+    what is in them.
+    """
+    first = ""
+    if not inv.is_magic:
         shown = inv.files[:6]
         rows = "".join(f'<tr><td class="file" title="{_esc(f.name)}">{_esc(f.name)}</td><td class="n">{_esc(f.role)}</td></tr>' for f in shown)
         if len(inv.files) > len(shown):
@@ -331,11 +332,19 @@ def aside_html(inv: Inventory, recent: List[str]) -> str:
             rows = f'<tr><td class="none">{inv.folders} folder{"s" if inv.folders != 1 else ""}, no files</td></tr>'
         body = f"<table>{rows}</table>" if rows else '<div class="none">none</div>'
         first = f'<div class="section">Files</div><div class="box">{body}</div>'
+    elif inv.files:
+        rows = "".join(f'<tr><td class="file" title="{_esc(f.name)}">{_esc(f.name)}</td><td class="n">{_esc(f.role)}</td></tr>'
+                       for f in inv.files[:6])
+        if len(inv.files) > 6:
+            rows += f'<tr><td class="file" style="color:var(--muted)">and {len(inv.files) - 6} more</td><td class="n"></td></tr>'
+        first = f'<div class="section">Other files</div><div class="box"><table>{rows}</table></div>'
     items = "".join(
         f'<li><a href="{_esc(home_link(d))}">{_esc(os.path.basename(d.rstrip(os.sep)) or d)}</a>'
         f'<span class="p" title="{_esc(d)}">{_esc(shorten_home(d))}</span></li>'
         for d in recent if d != inv.directory)
     second = (f'<div class="section">Recent</div><div class="box"><ul class="recent">{items}</ul></div>' if items else "")
+    if not first and not second:
+        return ""
     return f'<div class="home">{first}{second}</div>'
 
 
@@ -352,6 +361,7 @@ class HomeView:
         self.strip = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width")
         self.bars = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width")
         self.aside = pn.pane.HTML("", stylesheets=[CSS], width=340, sizing_mode="fixed")
+        self.spacer = pn.Spacer(width=28, sizing_mode="fixed")
         self.change_btn = pn.widgets.Button(name="Change directory…", button_type="primary", width=170,
                                             margin=(30, 0, 0, 0))
         session.param.watch(lambda e: self.refresh(), "directory")
@@ -364,14 +374,14 @@ class HomeView:
         self.strip.object = strip_html(inv)
         self.bars.object = bars_html(inv)
         self.aside.object = aside_html(inv, self.s.recent() if self.s.landing else [])
+        self.aside.visible = self.spacer.visible = bool(self.aside.object)     # no column when there is nothing to put in it
         self.change_btn.button_type = "primary" if inv.is_magic else "default"
 
     def panel(self) -> pn.Column:
         return pn.Column(
             pn.Row(self.heading, self.change_btn, sizing_mode="stretch_width"),
             self.facts, self.strip,
-            pn.Row(self.bars, pn.Spacer(width=28, sizing_mode="fixed"), self.aside, sizing_mode="stretch_width",
-                   margin=(28, 0, 0, 0)),
+            pn.Row(self.bars, self.spacer, self.aside, sizing_mode="stretch_width", margin=(28, 0, 0, 0)),
             sizing_mode="stretch_width", max_width=1100, margin=(18, 40, 40, 40),
         )
 

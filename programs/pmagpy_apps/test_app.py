@@ -82,7 +82,20 @@ class TestThreeStates:
         assert 'href="/pmagpy_directions?dir=' in bars                  # Directions is built and has demag steps
         assert "no FORC measurements in this directory" in bars
         assert "Thellier experiments · IZZI, ZI, IZ · not built yet" in bars
-        assert "25,470 rows" in home.aside_html(inv, [])
+        aside = home.aside_html(inv, [])
+        assert "Tables" not in aside and "measurements.txt" not in aside     # the counts line already says it
+        assert "Other files" in aside and "extra_specimens.txt" in aside
+
+    def test_a_tidy_magic_directory_has_no_aside_at_all(self, tmp_path):
+        for name in ("measurements", "specimens", "sites"):
+            shutil.copy(os.path.join(MCMURDO, f"{name}.txt"), tmp_path)
+        inv = take_inventory(str(tmp_path))
+        assert inv.is_magic and home.aside_html(inv, []) == ""
+        session = home.HubSession(str(tmp_path), landing=False)
+        view = home.HomeView(session)
+        assert view.aside.visible is False and view.spacer.visible is False
+        session.load(MCMURDO)
+        assert view.aside.visible is True
 
     def test_lab_files_waiting_to_convert(self, tmp_path):
         inv = take_inventory(cit_only(tmp_path))
