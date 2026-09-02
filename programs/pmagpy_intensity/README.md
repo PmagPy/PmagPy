@@ -4,9 +4,10 @@ A Panel application for Thellier-type paleointensity, built on MagIC Data
 Model 3 and on the Standard Paleointensity Definitions. It is the successor to
 `thellier_gui.py`, and it is the paleointensity half of a pair: PmagPy
 Directions does demagnetization, this does intensity, and the two share a
-toolkit so that an analyst who knows one already knows the other. They are told
-apart by colour — Directions is navy, this is plum — and by nothing else, which
-is the intention.
+toolkit so that an analyst who knows one already knows the other. Each
+application in the family has a colour — this one is `#F4633A`, the header you
+see and its door on the PmagPy Apps hub — and they are told apart by that and
+by nothing else, which is the intention.
 
 ```bash
 python programs/pmagpy_intensity/launch.py --dir data_files/3_0/Megiddo
@@ -15,6 +16,18 @@ python programs/pmagpy_intensity/launch.py --dir data_files/3_0/Megiddo
 That starts a server on <http://localhost:5101/pmagpy_intensity> and opens a
 browser at it. There is no build step and nothing to install beyond PmagPy's
 own dependencies; the science runs in the same Python that serves the page.
+
+Or start the whole family at once and pick a dataset there:
+
+```bash
+pmagpy-apps
+```
+
+That serves the **PmagPy Apps** hub at <http://localhost:5010/> with this
+application beside it, so a directory is opened once and every application
+works on it. The hub takes the inventory of a directory and only opens the
+doors the measurements support — Intensity's door opens when the directory has
+Thellier experiments in it.
 
 * **[What it does](#what-it-does)** · [Tabs](#the-seven-tabs) ·
   [Keyboard](#keyboard) · [Files it writes](#files-it-writes)
@@ -221,6 +234,10 @@ interpretations `specimens.txt` already holds. It says which it used.
 
 ### Settings
 
+The directory can also be asked for on the URL — `?dir=/path/to/study` — which
+is how the hub opens this application, and what a reload or a bookmark comes
+back to.
+
 | variable | does |
 |---|---|
 | `PMAGPY_INTENSITY_DIR` | the directory to open at start-up |
@@ -391,8 +408,9 @@ pytest pmagpy/test/test_pint_stats.py pmagpy/test/test_paleointensity.py \
        pmagpy/test/test_tdt.py pmagpy/test/test_bicep.py \
        pmagpy/test/test_intensity_environment.py -q
 
-# the application
+# the application, and the shared toolkit and hub it now sits in
 pytest programs/pmagpy_intensity/test_app.py -q
+pytest programs/pmagpy_panel programs/pmagpy_apps -q
 
 # the browser suite: start the app, then
 python programs/pmagpy_intensity/ui_test.py \
@@ -411,5 +429,8 @@ autosave in the data directory; delete it afterwards.
 | `views.py` | the tabs. |
 | `plots.py` | the Bokeh figures. |
 | `publication.py` | the matplotlib figures, callable without the GUI. |
-| `app.py` | assembles the template. |
+| `app.py` | `build_body(session)` — the `shell.Body` the hub mounts — and `create_app()`, which wraps the same body in a page of its own. |
 | `launch.py` | four lines over `pmagpy_panel.launch`. |
+
+`build_body` is the contract: anything that only works inside `create_app` will
+not work under the hub.

@@ -27,7 +27,7 @@ force-pushed to, or committed to directly. **No pull request has been opened.**
 | new core | 5 483 lines across four modules, no UI import anywhere |
 | shared MagIC 3 layer | 535 lines, extracted from `demag.py`, which lost 324 |
 | application | 3 673 lines |
-| tests | 283 core, 63 application, 14 toolkit, 43 browser checks — all passing |
+| tests | 283 core, 63 application, 73 toolkit and hub, 43 browser checks — all passing |
 | statistics | the SPD v1.2.0 set in full, plus Ziggie |
 | validated against | 20 SPD calibration specimens × 48 statistics; 359 published Megiddo interpretations; synthetic known-field BiCEP sites |
 
@@ -166,13 +166,19 @@ collapsible SPD category headings, with the prose that belongs to one statistic
 (definition, equation, threshold, citation, or the reason it has no value)
 shown for the row you select.
 
-**The two applications are told apart by colour.** `theme.for_app(app_id)`
-derives a whole application's chrome from one accent: navy for PmagPy
-Directions, plum for PmagPy Intensity, listed together in `theme.ACCENTS` so a
-third cannot collide. Chrome only — a data mark's colour still says what the
-data is, never which application drew it.
+**The applications are told apart by colour.** This began here as a per-app
+accent derived through `theme.for_app`; the shared branch then settled the
+question its own way, and this one follows it. `pmagpy_panel.APP_COLORS` gives
+each application a colour by `app_id` — Directions `#00A8C8`, Intensity
+`#F4633A`, Rock magnetism `#A8CF3A`, FORC `#FFB627`, Anisotropy `#8E6BBE` —
+`AppInfo.color` reads it and `shell.template` paints the header, the same
+colour as that application's door on the hub. Buttons keep the family blue
+everywhere, so a control looks the same in every application, and nothing in
+this application names a hex value.
 
 ### 2.5 What was shared rather than duplicated
+
+Twice over, and the second time the other direction.
 
 `pmagpy/magic_project.py` — 535 lines of MagIC 3 project infrastructure — was
 extracted from `demag.py` rather than written twice; `demag.py` lost 324 lines
@@ -183,7 +189,17 @@ either overwriting the other.
 `programs/pmagpy_panel/chooser.py` was moved out of PmagPy Directions when this
 application needed the same dialog, with its own tests driving it from a stub
 session — and a test asserting the toolkit's code never learns what a specimen
-or a Thellier step is. PmagPy Directions now uses the moved version.
+or a Thellier step is.
+
+Then it came back. The shared branch took `magic_project.py`, the chooser and
+the validator's cell-level report from here, and declared itself canonical for
+them; it also grew a hub (`programs/pmagpy_apps`), a `shell` module and a
+per-application colour, and this branch has adopted all of it. What that cost
+is worth recording, because it is the argument for the arrangement: the
+chooser's system dialog became a coroutine rather than a worker thread, and
+this application had to change **one test**; `app.py` became a
+`build_body(session) -> shell.Body` plus a four-line `create_app`, and the
+application is now mountable in the hub without knowing the hub exists.
 
 Details in [`docs/panel_architecture.md`](panel_architecture.md).
 
@@ -347,13 +363,22 @@ the panel and carried into the export. Nobody gets it without asking.
   the published table was computed with them. A study reporting `Z*` should say
   which definition it used.
 
-### 5.7 The shared layer is not yet on the other branch
+### 5.7 Two streams on one shared layer — resolved once, and it will happen again
 
-`pmagpy/magic_project.py`, `pmagpy_panel/chooser.py` and `test_chooser.py` exist
-on this branch only. Until they land on `demag_gui_playground`, that branch's
-`demag.py` carries the 324 lines this one extracted, and the two will conflict
-in a way that is easy to resolve badly. **This should be merged early**, not at
-the end.
+This was listed here as an open risk: `magic_project.py` and the shared chooser
+existed on this branch only, and `demag_gui_playground` still carried the 324
+lines this one had extracted. It is **closed**. That branch took
+`magic_project.py`, `chooser.py` and the validator's cell-level report from
+here and is canonical for them; this branch has taken its hub, `shell`,
+`runtime` and per-application colour in return, and every suite passes on the
+merge.
+
+What remains is the standing risk rather than a defect: two streams land on one
+shared layer, and the cores both call into `pmagpy/pmag.py`, where an edit will
+not conflict — it will quietly change results. Fetch and merge often, and run
+the suites *after* pulling as well as before pushing. This merge was six
+commits of shared-layer change and cost one test; leaving it a month would not
+have been one test.
 
 ---
 

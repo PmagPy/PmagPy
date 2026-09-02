@@ -6,6 +6,7 @@ publication figures. Run with an environment that has panel and bokeh::
 
     pytest programs/pmagpy_intensity/test_app.py -q
 """
+import asyncio
 import json
 import os
 import shutil
@@ -594,20 +595,19 @@ class TestDataView:
         shutil.copy(os.path.join(SMALL, "measurements.txt"), other)
         session = Session(src, out)
         view = DataView(session, chooser=lambda start=None: str(other), chooser_available=True)
-        view._browse_native()
-        import time
-        for _ in range(100):
-            if session.directory == str(other):
-                break
-            time.sleep(0.05)
+        # the toolkit's system dialog is a coroutine now, so the server keeps
+        # serving while it is open
+        asyncio.run(view._browse_native())
         assert session.directory == str(other)
 
     def test_a_directory_without_measurements_is_refused(self, workdir, tmp_path):
         src, out = workdir
         session = Session(src, out)
         view = DataView(session, chooser_available=False)
-        view.path.value = str(tmp_path / "empty")
-        view._load()
+        empty = tmp_path / "empty"
+        empty.mkdir()                       # a directory, just not a MagIC one
+        view.path.value = str(empty)
+        view.load()
         assert "measurements.txt" in view.message.object
         assert session.directory == src
 

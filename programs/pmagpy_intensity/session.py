@@ -29,7 +29,10 @@ AUTOSAVE_NAME = f"{pint.APP_ID}_autosave.json"
 SESSION_NAME = f"{pint.APP_ID}_session.json"
 REDO_NAME = f"{pint.APP_ID}.redo"
 LEGACY_REDO_NAMES = ("thellier_gui.redo", "thellier_GUI.redo")
-RECENT_FILE = env("RECENT", os.path.join(os.path.expanduser("~"), f".{pint.APP_ID}_recent.json"))
+# the recent list is shared by every PmagPy application; the per-application file
+# earlier builds of this one kept seeds it once
+RECENT_FILE = env("RECENT", datasets.shared_recent_file(
+    migrate_from=[os.path.join(os.path.expanduser("~"), f".{pint.APP_ID}_recent.json")]))
 
 looks_like_magic_dir = datasets.looks_like_magic_dir
 
@@ -50,6 +53,11 @@ def native_choose_directory(start: Optional[str] = None,
 
 def native_chooser_available() -> bool:
     return datasets.native_chooser_available(stub=env("CHOOSER_STUB"))
+
+
+def session_directory(default: str) -> str:
+    """The directory this session opens: ``?dir=`` on the URL, then ``PMAGPY_INTENSITY_DIR``, then `default`."""
+    return datasets.session_directory(APP.env_prefixes, default)
 
 
 def default_output_dir(directory: str) -> str:

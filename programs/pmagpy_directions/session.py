@@ -13,7 +13,7 @@ import param
 
 import pmagpy.demag as dc
 
-from pmagpy_panel import AppInfo, datasets
+from pmagpy_panel import AppInfo, datasets, runtime
 from pmagpy_panel.theme import ComponentColors
 
 APP = AppInfo(name="PmagPy Directions", app_id=dc.APP_ID,
@@ -29,7 +29,10 @@ def env(name: str, default: str = "") -> str:
 AUTOSAVE_NAME = f"{dc.APP_ID}_autosave.redo"
 LEGACY_AUTOSAVE_NAMES = ("demag_v3_autosave.redo",)          # written by earlier builds of this app
 REDO_NAME = f"{dc.APP_ID}.redo"
-RECENT_FILE = env("RECENT", os.path.join(os.path.expanduser("~"), f".{dc.APP_ID}_recent.json"))
+# the recent list is shared by every PmagPy application; the per-application file
+# earlier builds kept seeds it once
+RECENT_FILE = env("RECENT", datasets.shared_recent_file(
+    migrate_from=[os.path.join(os.path.expanduser("~"), f".{dc.APP_ID}_recent.json")]))
 
 # this application's bindings of the shared helpers: the same behaviour for both
 # applications, pointed at this one's recent list, output setting and test hook
@@ -47,12 +50,17 @@ def remember_recent(directory: str, limit: int = 12) -> list[str]:
 
 def native_choose_directory(start: Optional[str] = None, prompt: str = "Choose a MagIC directory") -> Optional[str]:
     """The system folder chooser; ``PMAGPY_DIRECTIONS_CHOOSER_STUB`` answers it in tests."""
-    return datasets.native_choose_directory(start, prompt, stub=env("CHOOSER_STUB"))
+    return runtime.native_choose_directory(start, prompt, stub=env("CHOOSER_STUB"))
 
 
 def native_chooser_available() -> bool:
     """True when a system folder dialog can be shown for this session (local browser)."""
-    return datasets.native_chooser_available(stub=env("CHOOSER_STUB"))
+    return runtime.native_chooser_available(stub=env("CHOOSER_STUB"))
+
+
+def session_directory(default: str) -> str:
+    """The directory this session opens: ``?dir=`` on the URL, then ``PMAGPY_DIRECTIONS_DIR``, then `default`."""
+    return datasets.session_directory(APP.env_prefixes, default)
 
 
 def default_output_dir(directory: str) -> str:

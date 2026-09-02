@@ -1,63 +1,77 @@
-# What PmagPy Intensity and PmagPy Directions share
+# What PmagPy Intensity shares with the rest of the family
 
-Two of PmagPy's wxPython GUIs are being replaced by Panel applications over a
-MagIC 3-native core:
+PmagPy's wxPython GUIs are being replaced by Panel applications over MagIC
+3-native cores, served together by a hub:
 
 | legacy | successor | subject |
 |---|---|---|
+| `pmag_gui.py` | `programs/pmagpy_apps` | the hub: a directory, its inventory, import, download, and the doors to the rest |
 | `demag_gui.py` | `programs/pmagpy_directions` | demagnetization: directions, components, means |
 | `thellier_gui.py` | `programs/pmagpy_intensity` | Thellier-type paleointensity |
 
-They are meant to be one application in two subjects rather than two
-applications that happen to resemble each other. This note says which code is
-literally the same, which is deliberately not, and how a change in one reaches
-the other.
+Rock magnetism, FORC and anisotropy have their colours and their doors on the
+hub but are not built yet. The applications are meant to be one program in
+several subjects rather than several programs that happen to resemble each
+other. This note says which code Intensity shares, which is deliberately its
+own, and how a change in one reaches the others.
 
 ---
 
-## The four layers
+## The layers
 
 ```
-                pmagpy_directions              pmagpy_intensity
-   application  ├── session.py                 ├── session.py
-   3673–4135    ├── views.py                   ├── views.py
-   lines each   ├── plots.py                   ├── plots.py
-                ├── publication.py             ├── publication.py
-                └── app.py, launch.py          └── app.py, launch.py
-                            │                              │
-                            └──────────┬───────────────────┘
-                                       ▼
-   presentation             programs/pmagpy_panel/   (1185 lines)
-                            theme · widgets · nets · chooser · datasets · launch
-                                       │
-                                       ▼
-   MagIC 3 project          pmagpy/magic_project.py  (535 lines)
-                            tables · hierarchy · metadata · merge · validate · backup
-                                       │
-                    ┌──────────────────┴──────────────────┐
-                    ▼                                     ▼
-   science          pmagpy/demag.py                pmagpy/paleointensity.py
-                    (1617)                         pmagpy/pint_stats.py
-                                                   pmagpy/bicep.py, tdt.py  (5483)
-                                       │
-                                       ▼
-                            pmagpy/pmag.py, ipmag.py, contribution_builder
+   hub          programs/pmagpy_apps/  (1722 lines)
+                home · inventory · convert · download          mounts a Body
+                            │                                        ▲
+   application  ┌───────────┴───────────┐                            │
+                pmagpy_directions       pmagpy_intensity  ───────────┘
+                ├── session.py          ├── session.py
+                ├── views.py            ├── views.py
+                ├── plots.py            ├── plots.py
+                ├── publication.py      ├── publication.py
+                └── app.py, launch.py   └── app.py, launch.py
+                (4092 lines)            (3946 lines)
+                            └───────────┬───────────┘
+                                        ▼
+   presentation             programs/pmagpy_panel/   (2056 lines)
+                            theme · APP_COLORS · shell · widgets · nets
+                            chooser · datasets · runtime · launch
+                                        │
+                                        ▼
+   MagIC 3 project          pmagpy/magic_project.py  (805 lines)
+                            tables · hierarchy · metadata · merge · validate
+                            backup · find and download a contribution
+                                        │
+                     ┌──────────────────┴──────────────────┐
+                     ▼                                     ▼
+   science           pmagpy/demag.py                pmagpy/paleointensity.py
+                     (1617)                         pmagpy/pint_stats.py
+                                                    pmagpy/bicep.py, tdt.py  (5483)
+                                        │
+                                        ▼
+                            pmagpy/pmag.py, contribution_builder, convert_registry
 ```
 
-The arrows point one way and there is no arrow between the two applications.
+The arrows point one way and there is no arrow between two applications.
 `programs/` is excluded from the pip package (`setup.py` excludes
-`programs.*`), so nothing under `programs/` may be imported by `pmagpy`, and
-neither application may import the other. Both rules are enforced by tests, and
-the second is the one that matters day to day: when one application needs
-something the other has, the answer is never to import it, it is to move it
-down a layer.
+`programs.*`), so nothing under `programs/` may be imported by `pmagpy`, and no
+application may import another. Both rules are enforced by tests, and the
+second is the one that matters day to day: when one application needs something
+another has, the answer is never to import it, it is to move it down a layer.
+
+The hub is the one exception in shape rather than in direction: it does not
+import an application's *code*, it mounts the `shell.Body` the application
+builds. An application never knows whether its host is the hub or a page of its
+own.
 
 ---
 
 ## Layer 1 — `pmagpy/magic_project.py`, shared verbatim
 
-535 lines, extracted from `demag.py` when the second core needed them; `demag.py`
-lost 324 lines and behaves identically. Both cores import it and neither has its
+805 lines. The first 535 were extracted from `demag.py` when the second core
+needed them — `demag.py` lost 324 lines and behaves identically — and the rest
+is finding and downloading a public MagIC contribution, which the hub added.
+Both cores import it and neither has its
 own copy.
 
 | what | why it is shared |
@@ -90,12 +104,15 @@ docstrings and comments and asserts that the code never says *specimen*,
 
 | module | what both applications get |
 |---|---|
-| `theme.py` | the palette, the CSS, Bokeh figure styling, `ComponentColors` (a component keeps its colour in every table, plot and figure), `kpi()`, `lighten()`, `style_figure()`, `asset_data_uri()` — and `Theme`/`for_app(app_id)`, which derives an application's tabs, checkboxes, button groups, table rows and `raw_css` from a single accent |
+| `theme.py` | the palette, the CSS, Bokeh figure styling, `ComponentColors` (a component keeps its colour in every table, plot and figure), `kpi()`, `lighten()`, `style_figure()`, `asset_data_uri()` |
+| `__init__.py` | `AppInfo` (name, `app_id`, env prefixes, colour), `FAMILY_COLOR`, and **`APP_COLORS`** — one colour per application, read by `AppInfo.color`, so neither an application nor the hub names a hex value |
+| `shell.py` | the page: an application builds a `Body` (info, main, side, header, modal) and a host wraps it — `template()` for a page of its own, the hub for a mounted one. `Workspace` is the side column, drag handle and main pane, with the heights that let the two scroll independently |
+| `runtime.py` | how the family is running: the session's URL, the system folder dialog, where the hub is — the only platform-specific code |
 | `widgets.py` | the `JSComponent`s: `Splitter` (the side-column boundary, which moves both panes), `HeightSplitter` (resizes the plots), `Hotkeys` (forwards key presses) |
 | `nets.py` | `net_figure()` — a square, toolbar-less equal-area figure with `frame_align=False` — `keep_circular()`, and `declutter_labels()` |
 | `chooser.py` | the dataset block in the side column and the "open a different one" dialog: system folder chooser, recent list, path field, in-page browser |
 | `datasets.py` | `env()`, `looks_like_magic_dir()`, `default_output_dir()`, the recent list, the native folder dialog on three platforms |
-| `launch.py` | the one-command launcher: stop the previous server, serve in dev mode, wait for the app to answer, open a browser |
+| `launch.py` | the one-command launcher: stop the previous server, serve in dev mode, wait for the app to answer, open a browser. It also serves the whole family on one port, one served file per importable application on the hub's Analyze list |
 
 Nothing here holds global state. An application passes its own identity —
 `AppInfo(name, app_id, env_prefixes)` — to whatever needs it, which is why both
@@ -121,11 +138,14 @@ asserted in both browser suites.
   a direction that was computed rather than measured. Derived symbols take the
   dark edge; a mean is drawn on top of what it averages.
 * **Colour carries identity, not category** — a component keeps its colour
-  everywhere it appears. The one colour that differs between the two
-  applications is the *chrome* accent: navy for Directions, plum for Intensity,
-  both listed in `theme.ACCENTS` so a third cannot collide. Two of these
-  windows side by side have to be tellable apart at a glance; a data mark's
-  colour never says which application drew it.
+  everywhere it appears. The one colour that differs between applications is
+  the *chrome*: `APP_COLORS` gives each one its own — Directions `#00A8C8`,
+  Intensity `#F4633A`, Rock magnetism `#A8CF3A`, FORC `#FFB627`, Anisotropy
+  `#8E6BBE` — and `shell.template` paints the header with it (white or dark
+  text by luminance), the same colour as that application's door on the hub.
+  **Buttons keep the family blue everywhere**, so a control looks the same
+  whichever application you are in, and a data mark's colour never says which
+  application drew it.
 * **Layout.** A side column that changes with the task, a drag handle, then the
   main pane; only a tab that plots nothing takes the full width.
 * **Tables** get the height of what they hold, use `TABLE_ROW_CSS` so hovered
@@ -147,9 +167,9 @@ asserted in both browser suites.
 | the session | components, fits, coordinate system | interpretations, bounds, criteria, correction switches |
 | the plots | Zijderveld, equal-area, decay, means net | Arai, Zijderveld, net, decay, checks, group dot plot |
 | the tabs | its own | its own |
-| the port | 5100 | 5101 |
+| the port | 5100 | 5101 (5010 for the family on one port) |
 | identity | `pmagpy_directions` | `pmagpy_intensity` |
-| accent | navy `#1f4e9c` | plum `#6a2c5a` |
+| colour | `#00A8C8` | `#F4633A` |
 
 A shared "analysis session" base class was considered and rejected. The two
 sessions look similar in outline — a directory, a current specimen, a version
@@ -192,7 +212,7 @@ that it now affects both.
 |---|---|---|
 | science, directions | `pmagpy/test/test_demag.py`, `test_demag_geo.py` | in CI |
 | science, intensity | `test_pint_stats.py` (69), `test_paleointensity.py` (120), `test_tdt.py` (37), `test_bicep.py` (34), `test_intensity_environment.py` (23) | 283 |
-| toolkit | `programs/pmagpy_panel/test_chooser.py` | 14 |
+| toolkit and hub | `programs/pmagpy_panel/`, `programs/pmagpy_apps/` | 73 |
 | application | `programs/pmagpy_directions/test_app.py` (43), `programs/pmagpy_intensity/test_app.py` (63) | 106 |
 | browser | `ui_test.py` in each application | 43 checks (intensity) |
 
@@ -204,18 +224,29 @@ server and Playwright.
 
 ## Where the toolkit came from, and where it is going
 
-`pmagpy_panel` was extracted from PmagPy Directions as the second application
-was built, one module at a time, each time the second application needed
-something the first already had: `theme`, then `widgets`, then `nets`, then
-`datasets` and `launch`, then `chooser`. Nothing was designed for reuse in
-advance and nothing was moved speculatively. Two things remain candidates —
-the plot-resize handle wiring, which both applications spell out at about
-fifteen lines each, and the "flag a row good/bad" table idiom — and both are
-waiting for a third use to say what the shared shape actually is.
+`pmagpy_panel` was extracted from PmagPy Directions one module at a time, each
+time a second application needed something the first already had: `theme`, then
+`widgets`, then `nets`, then `datasets` and `launch`, then `chooser`. Nothing
+was designed for reuse in advance and nothing was moved speculatively.
 
-Three pieces of this architecture still have to land on
-`demag_gui_playground`: `pmagpy/magic_project.py` (until it does, that branch's
-`demag.py` carries the 324 lines it was extracted from), and
-`pmagpy_panel/chooser.py` with `test_chooser.py`. Both are already used by
-PmagPy Directions on the `pmagpy_intensity` branch, where `views.py` delegates
-its data pane to the shared chooser.
+It has since moved twice more, and the second time in the other direction.
+`magic_project.py`, `chooser.py` and the validator's cell-level report were
+taken *from* this branch onto the shared one, which is now canonical for them;
+and the shared branch's own additions — the `pmagpy_apps` hub, `shell`,
+`runtime`, and one colour per application — came back here. Two things are
+worth keeping from that:
+
+* **`shell.Body` is the contract that made the hub possible.** An application
+  builds a body — its identity, its main pane, its side column, its status
+  line, its dialog — and a host wraps it: `shell.template()` for a page of its
+  own, the hub for a mounted one. Nothing in an application knows which it has,
+  so `build_body` is where an application's page must be assembled and
+  `create_app` may hold nothing but the wrapping.
+* **Adopting the shared layer cost this application one test.** The chooser's
+  system dialog became a coroutine; `app.py` became `build_body` plus four
+  lines. That is the return on the arrangement, and the argument for moving the
+  next thing down rather than copying it.
+
+Two candidates remain, and both are waiting for a third use to say what the
+shared shape is: the plot-resize handle wiring, which both applications spell
+out at about fifteen lines each, and the "flag a row good/bad" table idiom.

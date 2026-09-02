@@ -26,21 +26,12 @@ from pmagpy import tdt as tdt_reader
 
 from pmagpy_panel.chooser import DirectoryChooser, shorten
 from pmagpy_panel.widgets import HeightSplitter, Hotkeys
-from pmagpy_panel import theme as _theme
-from pmagpy_panel.theme import INPUT_CSS, KPI_ITEM, MUTED_STYLE, SECTION_STYLE, STATS_TABLE_CSS, kpi
+from pmagpy_panel.theme import (ACCENT, BUTTON_GROUP_CSS, CHECKBOX_CSS, INPUT_CSS, KPI_ITEM,
+                                MUTED_STYLE, SECTION_STYLE, STATS_TABLE_CSS, TABLE_ROW_CSS, kpi)
 from . import publication as pub
 from .plots import (AraiPlot, ChecksPlot, DecayPlot, GroupPlot, SpecimenZijderveldPlot,
                     StepNetPlot)
-from .session import (AUTOSAVE_NAME, RECENT_FILE, REDO_NAME, SESSION_NAME, Session, env,
-                      load_recent, looks_like_magic_dir, native_choose_directory,
-                      native_chooser_available)
-
-# this application's accent, not the toolkit's default -- see pmagpy_intensity/__init__
-THEME = _theme.for_app(pint.APP_ID)
-ACCENT = THEME.accent
-BUTTON_GROUP_CSS = THEME.button_group_css
-CHECKBOX_CSS = THEME.checkbox_css
-TABLE_ROW_CSS = THEME.table_row_css
+from .session import AUTOSAVE_NAME, RECENT_FILE, REDO_NAME, SESSION_NAME, Session, env
 
 #: The four companion figures are a 2 x 2 block beside the Arai plot, and a
 #: block only reads as one if its tiles line up. Each figure declares what it
@@ -133,19 +124,19 @@ class LazyView:
 # ---------------------------------------------------------------------------
 # Choosing a dataset
 # ---------------------------------------------------------------------------
-class DataView:
+class DataView(DirectoryChooser):
     """Switch between MagIC directories, and import ThellierTool files.
 
-    The directory chooser is ``pmagpy_panel.chooser.DirectoryChooser``, shared
-    with PmagPy Directions; what is added here is the ``.tdt`` importer, which
-    is this subject's own.
+    The widgets and the behaviour are the toolkit's
+    :class:`~pmagpy_panel.chooser.DirectoryChooser`, shared with the hub and
+    PmagPy Directions; what this adds is what the application counts, what the
+    dialog says, and the ``.tdt`` importer, which is this subject's own.
     """
 
-    def __init__(self, session: Session, chooser=native_choose_directory, chooser_available=None):
-        self.s = session
-        self.chooser = DirectoryChooser(
+    def __init__(self, session: Session, chooser=None, chooser_available=None):
+        super().__init__(
             session, recent_file=RECENT_FILE, chooser=chooser,
-            chooser_available=chooser_available,
+            chooser_available=chooser_available, chooser_stub=env("CHOOSER_STUB"),
             count=lambda s: f"{len(s.data.specimens) if s.data else 0} specimens",
             note=("Interpretations are auto-saved per dataset; switching datasets restores "
                   "what you had there."))
@@ -166,10 +157,6 @@ class DataView:
                                               sizing_mode="stretch_width", show_index=False)
         self.check_btn.on_click(self._check_tdt)
         self.convert_btn.on_click(self._convert_tdt)
-
-    # the application layer and the tests speak to the chooser through these
-    def __getattr__(self, name):
-        return getattr(self.__dict__["chooser"], name)
 
     # ----- ThellierTool import ---------------------------------------------
     def _tdt_files(self):
@@ -215,14 +202,11 @@ class DataView:
             self.tdt_report.object = (f'<div style="color:{FAIL_COLOR}">conversion refused; '
                                       f'fix the errors above</div>')
             return
-        self.chooser.path.value = out
-        self.chooser._load()
+        self.path.value = out
+        self.load()
 
     # ----- layout -----------------------------------------------------------
-    def sidebar(self):
-        return self.chooser.sidebar()
-
-    def modal(self):
+    def modal(self, *extra, width: int = 760):
         importer = pn.Column(
             pn.pane.HTML(f'<div style="{SECTION_STYLE}">Import ThellierTool (.tdt) files</div>'),
             pn.pane.HTML(f'<div style="{MUTED_STYLE}">Every file is checked before anything is '
@@ -231,7 +215,7 @@ class DataView:
             pn.Row(self.tdt_units, self.tdt_volume, self.tdt_dec, self.tdt_inc),
             self.tdt_aniso, pn.Row(self.check_btn, self.convert_btn), self.tdt_report,
             self.tdt_table, sizing_mode="stretch_width")
-        return self.chooser.modal(importer)
+        return super().modal(importer, *extra, width=width)
 
 
 # ---------------------------------------------------------------------------

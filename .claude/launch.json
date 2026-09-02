@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "pmagpy-apps",
+      "runtimeExecutable": "/opt/anaconda3/bin/python",
+      "runtimeArgs": ["/Users/yimingzhang/Github/PmagPy/programs/pmagpy_apps/launch.py", "--port", "5010", "--no-show"],
+      "port": 5010,
+      "url": "http://localhost:5010"
+    }
+  ]
+}

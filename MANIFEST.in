@@ -4,3 +4,6 @@ recursive-include images *.txt *.ico
 recursive-include programs/images *.txt *.ico
 recursive-include dialogs/help_files *.html
 recursive-include pmagpy/maps *.json
+recursive-include programs/pmagpy_panel *.py
+recursive-include programs/pmagpy_apps *.py *.png
+recursive-include programs/pmagpy_directions *.py *.png

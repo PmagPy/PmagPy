@@ -5,11 +5,14 @@ They use a stub session rather than either application's, which is the point:
 the toolkit must not know what a demagnetization step or a Thellier step is,
 and a test that needs one of the applications to run would prove it did.
 
+Adapted from Yiming Zhang's tests on the intensity branch; the system dialog is
+now a coroutine, so the native-chooser tests run it with ``asyncio.run``.
+
     pytest programs/pmagpy_panel/test_chooser.py -q
 """
+import asyncio
 import os
 import shutil
-import time
 
 import param
 import pytest
@@ -110,21 +113,30 @@ def test_the_native_chooser_loads_what_it_returns(tmp_path, magic_dir):
     shutil.copy(os.path.join(DATA, "measurements.txt"), other)
     view = DirectoryChooser(session, recent_file=str(tmp_path / "recent.json"),
                             chooser=lambda start=None: str(other), chooser_available=True)
-    view._browse_native()
-    for _ in range(100):
-        if session.directory == str(other):
-            break
-        time.sleep(0.05)
+    asyncio.run(view._browse_native())
     assert session.directory == str(other)
     assert view.path.value == str(other)
 
 
 def test_a_cancelled_chooser_leaves_the_session_alone(chooser, magic_dir):
     session, view = chooser
-    view._browse_native()
-    time.sleep(0.5)
+    asyncio.run(view._browse_native())
     assert session.directory == magic_dir
     assert "No folder chosen" in view.message.object
+
+
+def test_the_hub_may_open_any_directory_at_all(tmp_path):
+    """Home starts empty directories on their way; require_measurements=False lets them in."""
+    session = StubSession(str(tmp_path))
+    view = DirectoryChooser(session, recent_file=str(tmp_path / "recent.json"),
+                            chooser_available=False, require_measurements=False)
+    empty = tmp_path / "new_study"
+    empty.mkdir()
+    view.path.value = str(empty)
+    assert view.load() is True and session.loads == [str(empty)]
+    assert "measurements.txt" not in view.path.name
+    view.path.value = str(tmp_path / "nowhere")
+    assert view.load() is False and "is not a directory" in view.message.object
 
 
 def test_the_button_is_disabled_where_no_dialog_can_be_shown(tmp_path, magic_dir):

@@ -2,19 +2,25 @@
 Finding, choosing and remembering a MagIC directory.
 
 None of this knows what an application does with the data once it has it, so
-both applications share it. Every function takes what it needs as an argument —
+every application shares it. Every function takes what it needs as an argument —
 the environment prefixes to answer to, the file to keep the recent list in —
-rather than reading a module-level configuration, so that two applications can
-live in one process without one deciding where the other looks.
+rather than reading a module-level configuration, so that several applications
+can live in one process without one deciding where the other looks.
+
+The system folder dialog itself is platform knowledge and lives in
+:mod:`pmagpy_panel.runtime`; it is re-exported here for the callers that
+learned it under this name.
 """
 from __future__ import annotations
 
 import json
 import os
-import shutil
-import subprocess
 import sys
-from typing import Optional, Sequence
+from typing import Sequence
+
+from .runtime import native_choose_directory, native_chooser_available, query_param  # noqa: F401
+
+SHARED_RECENT_FILE = os.path.join(os.path.expanduser("~"), ".pmagpy", "recent_magic_dirs.json")
 
 
 def env(name: str, prefixes: Sequence[str], default: str = "") -> str:
@@ -24,6 +30,17 @@ def env(name: str, prefixes: Sequence[str], default: str = "") -> str:
         if value:
             return value
     return default
+
+
+def session_directory(prefixes: Sequence[str], default: str) -> str:
+    """The MagIC directory this session should open.
+
+    In order: ``?dir=`` on the URL that opened the session (so the hub, a
+    bookmark or a script can point one browser tab at one dataset), then the
+    ``<prefix>DIR`` environment setting the launcher writes, then `default`.
+    """
+    chosen = query_param("dir") or env("DIR", prefixes)
+    return os.path.abspath(os.path.expanduser(chosen)) if chosen else default
 
 
 def looks_like_magic_dir(directory: str) -> bool:
@@ -54,6 +71,7 @@ def remember_recent(path: str, directory: str, limit: int = 12) -> list:
     recent.insert(0, directory)
     recent = recent[:limit]
     try:
+        os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
         with open(path, "w") as fh:
             json.dump(recent, fh, indent=1)
     except OSError:
@@ -61,63 +79,40 @@ def remember_recent(path: str, directory: str, limit: int = 12) -> list:
     return recent
 
 
-def native_choose_directory(start: Optional[str] = None, prompt: str = "Choose a MagIC directory",
-                            stub: str = "") -> Optional[str]:
-    """Open the operating system's folder chooser on the machine running the server.
+def shared_recent_file(migrate_from: Sequence[str] = ()) -> str:
+    """The recent list every application shares, ``~/.pmagpy/recent_magic_dirs.json``.
 
-    macOS uses an AppleScript ``choose folder`` dialog shown in the frontmost
-    application, Linux uses ``zenity`` when available, Windows the .NET
-    FolderBrowserDialog. Returns the chosen absolute path, or None when the
-    dialog was cancelled or no chooser is available (remote sessions).
-
-    Args:
-        stub: a directory to return instead of showing anything, so that a test
-            can answer the dialog from the server side.
+    A directory opened in one application is then already in the others' lists.
+    The first time it is asked for, the list is seeded from the per-application
+    files earlier builds kept (`migrate_from`, most recent first), which are left
+    in place.
     """
-    if stub:
-        return stub
-    start = start if start and os.path.isdir(start) else os.path.expanduser("~")
+    path = SHARED_RECENT_FILE
+    if os.path.exists(path):
+        return path
+    seeds = [d for old in migrate_from for d in load_recent(old)]
+    if not seeds:
+        return path
     try:
-        if sys.platform == "darwin":
-            script = (
-                'tell application (path to frontmost application as text)\n'
-                f'  set f to choose folder with prompt "{prompt}" default location POSIX file "{start}"\n'
-                "end tell\n"
-                "POSIX path of f"
-            )
-            out = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, timeout=600)
-            if out.returncode != 0:
-                return None
-            return out.stdout.strip().rstrip("/") or None
-        if sys.platform.startswith("linux"):
-            out = subprocess.run(["zenity", "--file-selection", "--directory", f"--title={prompt}",
-                                  f"--filename={start}/"], capture_output=True, text=True, timeout=600)
-            return out.stdout.strip() or None if out.returncode == 0 else None
-        if sys.platform.startswith("win"):
-            ps = ("Add-Type -AssemblyName System.Windows.Forms; $d = New-Object System.Windows.Forms.FolderBrowserDialog;"
-                  f"$d.Description = '{prompt}'; $d.SelectedPath = '{start}';"
-                  "if ($d.ShowDialog() -eq 'OK') { Write-Output $d.SelectedPath }")
-            out = subprocess.run(["powershell", "-NoProfile", "-Command", ps], capture_output=True, text=True, timeout=600)
-            return out.stdout.strip() or None
-    except (OSError, subprocess.SubprocessError):
-        return None
-    return None
-
-
-def native_chooser_available(stub: str = "") -> bool:
-    """True when a system folder dialog can be shown for this session (local browser)."""
-    if stub:
-        return True
-    try:
-        import panel as pn
-        req = pn.state.curdoc.session_context.request if pn.state.curdoc else None
-        remote_ip = getattr(req, "remote_ip", None) if req else None
-        if remote_ip and remote_ip not in ("127.0.0.1", "::1", "localhost"):
-            return False
-    except Exception:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w") as fh:
+            json.dump(list(dict.fromkeys(seeds)), fh, indent=1)
+    except OSError:
         pass
-    if sys.platform == "darwin":
-        return shutil.which("osascript") is not None
-    if sys.platform.startswith("linux"):
-        return shutil.which("zenity") is not None and bool(os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"))
-    return sys.platform.startswith("win")
+    return path
+
+
+def example_dir(name: str) -> str:
+    """The MagIC example dataset ``data_files/3_0/<name>`` that ships with PmagPy.
+
+    Found beside the code in a checkout (which is also what an editable install
+    is), or under ``sys.prefix`` where a wheel install puts ``data_files``. Empty
+    when neither has it.
+    """
+    here = os.path.dirname(os.path.abspath(__file__))
+    repo = os.path.dirname(os.path.dirname(here))
+    for base in (os.path.join(repo, "data_files"), os.path.join(sys.prefix, "data_files")):
+        candidate = os.path.join(base, "3_0", name)
+        if looks_like_magic_dir(candidate):
+            return candidate
+    return ""

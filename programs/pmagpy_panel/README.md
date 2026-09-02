@@ -6,27 +6,31 @@ MagIC 3-native core:
 | legacy GUI | successor | core | branch |
 |---|---|---|---|
 | Demag GUI | `programs/pmagpy_directions` | `pmagpy/demag.py` | `demag_gui_playground` |
-| Thellier GUI | `programs/pmagpy_intensity` | `pmagpy/paleointensity.py`, `pmagpy/pint_stats.py`, `pmagpy/bicep.py`, `pmagpy/tdt.py` | `pmagpy_intensity` |
+| Thellier GUI | `programs/pmagpy_intensity` (also called `pmagpy_paleointensity`; the two names are still settling) | to come | `pmagpy_intensity` |
 
 They are meant to be **one application in two subjects**, not two applications
 that resemble each other: an analyst who has used one should already know how
 the other behaves, and a fix to a shared behaviour should reach both. This
 package is where that shared part lives, and this file is the contract between
 the two efforts. If you are working on either application — or pointing an
-agent at one — start here.
+agent at one — start here. The family is called **PmagPy Apps**; the plan for
+its next members — the hub that replaces `pmag_gui.py`, and rock-magnetism and
+anisotropy applications — is in [HUB_PLAN.md](HUB_PLAN.md).
 
 ## Where code goes
 
 | layer | where | rule |
 |---|---|---|
 | science | `pmagpy/demag.py`, and the paleointensity core beside it | no UI import at all; usable from a notebook or a script |
-| MagIC tables | `pmagpy/magic_project.py` — on the `pmagpy_intensity` branch, not yet merged here | reading, merging and writing contributions: `merge_results`, `carry_metadata`, `trim_to_model`, `validate_directory`, taken out of `demag.py`. Shared by both cores |
+| MagIC tables | `pmagpy/magic_project.py` | reading, merging and writing contributions: `MagicProject`, `merge_results`, `trim_to_model`, `validate_directory`, taken out of `demag.py`. Shared by both cores; this branch is its home, the intensity branch adopts it from here |
 | presentation | `programs/pmagpy_panel/` (**here**) | how a PmagPy Panel application looks and behaves |
 | the application | `programs/<app>/` | only what is specific to that subject: its panes, its plots, its session |
 
-Both `programs/` packages are excluded from the pip package (`setup.py` excludes
-`programs.*`), so nothing here may be imported by `pmagpy`. The dependency
-arrows point one way: application → toolkit → `pmagpy` → nothing of ours.
+The `programs/` packages install as top-level packages (`setup.py` maps
+`pmagpy_panel`, `pmagpy_apps` and `pmagpy_directions` to their directories;
+the wx programs stay excluded), and nothing here may be imported by `pmagpy`.
+The dependency arrows point one way: hub → application → toolkit → `pmagpy` →
+nothing of ours.
 
 When you find yourself about to copy something out of `pmagpy_directions`,
 that is the signal to move it here instead. Equally: if a thing knows what a
@@ -38,39 +42,102 @@ demagnetization step or a Thellier step *is*, it does not belong here.
   `ComponentColors`, which keeps a component's colour the same everywhere it
   appears. Also `kpi()`, `SECTION_STYLE`, `lighten()`, `style_figure()`,
   `asset_data_uri()`.
-  **Each application has its own accent**: `theme.for_app(app_id)` returns a
-  `Theme` whose tabs, checkboxes, button groups, table rows and `raw_css` are
-  all derived from one colour — navy for Directions, plum for Intensity, listed
-  together in `ACCENTS` so a third application cannot pick one already in use.
-  The module-level `TABS_CSS`, `CHECKBOX_CSS`, `TABLE_ROW_CSS`,
-  `BUTTON_GROUP_CSS` and `RAW_CSS` are the default (navy) theme's, so anything
-  that has not asked for its own keeps what it had. The accent is **chrome
-  only**: a data mark's colour says what the data is, never which application
-  drew it.
 * **`widgets.py`** — the custom `JSComponent`s: `Splitter` (the vertical
   boundary between the side column and the main pane, which moves *both*),
   `HeightSplitter` (resizes the plots), `Hotkeys` (forwards key presses).
 * **`nets.py`** — equal-area primitives. `net_figure()` builds a square,
   toolbar-less figure and `keep_circular()` guards it; `declutter_labels()`
   thins labels where symbols pile up.
-* **`chooser.py`** — the widgets around `datasets.py`: the dataset block for the
-  side column and the "open a different one" dialog (system folder chooser,
-  recent list, path field, in-page browser). `modal(*extra)` takes whatever the
-  application wants to add underneath — PmagPy Intensity appends a ThellierTool
-  importer. It is given a session that answers `directory`, `output_dir`,
-  `status` and `load(path)`, and a `count` callable, so it knows nothing about
-  either science; `test_chooser.py` drives it with a stub session and asserts
-  exactly that.
-* **`datasets.py`** — choosing, remembering and validating a MagIC directory:
-  `env()`, `looks_like_magic_dir()`, `default_output_dir()`, the recent list,
-  and the native folder chooser (macOS/Linux/Windows, with a stub hook for
-  tests).
+* **`shell.py`** — the page every application is built on. An application
+  returns a `Body` (its side column, main pane, header line and modal); a host
+  wraps it — `shell.template()` for a standalone page, the hub when it mounts
+  the application — and fills the body's `open_modal`/`close_modal`/`show_side`
+  hooks. `Workspace` is the side column + drag handle + main pane;
+  `status_line()` follows a session's `status`; `asset_url()` names a file in
+  the application's static directory (the favicon must be a URL, not a data URI).
+* **`runtime.py`** — the one place that knows *how* the family is running:
+  `query_param()` (the `?dir=` of this session), `is_local_session()`, the
+  system folder dialog as a blocking call (`native_choose_directory`) and as a
+  coroutine (`choose_directory`, for `async` widget callbacks — no thread),
+  `hub_url()` and `open_ui()`. A packaged build (HUB_PLAN.md §8) changes this
+  file and nothing else.
+* **`datasets.py`** — a MagIC directory as a thing to choose, remember and
+  validate: `env()`, `looks_like_magic_dir()`, `default_output_dir()`,
+  `session_directory()` (`?dir=` → environment → default), the recent list
+  shared by every application (`~/.pmagpy/recent_magic_dirs.json`, seeded once
+  from the old per-application files), `example_dir()`.
+* **`chooser.py`** — `DirectoryChooser`: the "which dataset is open" block for
+  a side column and the open-a-directory dialog (system folder chooser, recent
+  list, path field, in-page browser). Given any session that answers
+  `directory`, `status` and `load(path) -> bool`; `require_measurements=False`
+  for the hub, which opens empty directories too. Began as Yiming Zhang's on
+  the intensity branch.
+* **`forms.py`** — `Form`: widgets generated from `pmagpy.convert_registry.Field`
+  descriptions and read back as one dict (`values()`, `missing()` for required
+  fields left blank). The Convert page is built from it, so a converter added to
+  the registry gets its form without any UI code; Orientation will use it for
+  its conventions too.
 * **`launch.py`** — the one-command launcher: stops a previous server, serves
-  in dev mode, waits for the app to answer before opening a browser.
+  in dev mode with each application's `assets/` as a static directory, waits
+  for the app to answer before opening a browser. With `index=True` it serves
+  the family under a hub and tells the applications where the hub is.
+* **`conftest.py`** — puts `programs/` and the repo root on `sys.path` for the
+  toolkit's own tests (`test_shell.py`).
 
 Nothing here holds global state. An application passes its own identity —
 `AppInfo(name, app_id, env_prefixes)` — to the helpers that need it, so both
 applications can be imported into one process, which the tests do.
+
+## Running the family
+
+```bash
+pip install -e '.[apps]'      # once per environment, from the checkout
+pmagpy-apps                   # serves the hub at / with every application beside it
+```
+
+`pmagpy-apps` is `programs/pmagpy_apps/launch.py`; the hub is on port 5010 and
+opens an application with `/pmagpy_directions?dir=<directory>`. Each
+application still runs on its own (`python programs/pmagpy_directions/launch.py`,
+port 5100). The editable install is what lets the group test an unmerged
+branch without a PyPI release — HUB_PLAN.md §8, rung 0.
+
+The hub's Home (`pmagpy_apps/home.py`) is drawn from `pmagpy_apps/inventory.py`,
+which describes a directory with no UI attached — counts, experiment kinds from
+the LP- method codes, the contribution's id and DOI, what has been interpreted,
+metadata gaps, and a guess at the format of lab files awaiting conversion. To
+list a new application on Home add an `Application` to `home.APPLICATIONS` with
+the experiment kinds it opens; the door opens once its package imports.
+
+"Download from MagIC…" (`pmagpy_apps/download.py`) fills a folder with a public
+contribution given its ID or the paper's DOI and reopens Home on it. The
+EarthRef calls are in `pmagpy.magic_project` (`find_contributions`,
+`fetch_contribution`, `unpack_contribution`, `download_contribution`) and work
+from a script too:
+
+```python
+from pmagpy import magic_project as mp
+mp.download_contribution("10.1130/G53450.1", "~/MagIC/Ordovician_Eastern_Laurentia", report=print)
+```
+
+"Convert files…" turns the page over to Convert (`pmagpy_apps/convert.py`):
+the format the inventory guessed is preselected, the files that format takes
+are chosen, and the form is generated from the registry's `fields`. The run
+happens off the event loop; the converters' output sits under the result, and
+Home fills in when the tables are written. Every converter is described once in
+`pmagpy/convert_registry.py` — the function, its keywords, what to ask, an
+example file — and the same call works from a script:
+
+```python
+from pmagpy import convert_registry as reg
+result = reg.convert_files(reg.FORMATS["jr6_jr6"], ["AF.jr6", "TRM.jr6"],
+                           {"location": "Negev", "samp_con": "1"}, dir_path="~/MagIC/Negev", report=print)
+result.ok, result.tables      # True, {'measurements': 1154, 'specimens': 98, 'samples': 30, 'sites': 10, 'locations': 1}
+```
+
+To add an instrument: write its converter in `pmagpy/convert_2_magic.py`, put an
+example file under `data_files/convert_2_magic/`, and register one `Format` —
+`pmagpy/test/test_convert_registry.py` converts every example, and the Convert
+page offers the format the next time it loads.
 
 ## Starting the second application
 
@@ -103,6 +170,24 @@ sys.exit(launch.main(APP, env_prefix="PMAGPY_INTENSITY_", default_port=5101))
 
 Pick a different default port from Directions' 5100 so the two can run at once.
 
+Each application has a colour, kept in `pmagpy_panel.APP_COLORS` by `app_id`
+(Directions `#00A8C8`, Intensity `#F4633A`, Rock magnetism `#A8CF3A`, FORC
+`#FFB627`, Anisotropy `#8E6BBE`); `AppInfo.color` reads it, `shell.template`
+paints the header with it (white or dark text as the colour needs — a light
+header wants a dark logo, so ship one), and the hub's Analyze door for the
+application is the same colour. Buttons keep the family blue everywhere.
+
+`app.py` should expose `build_body(session) -> shell.Body` and a `create_app()`
+that wraps it with `shell.template(body, logo=LOGO, hub_url=runtime.hub_url())`
+— see `pmagpy_directions/app.py`. The body is what the hub will mount; anything
+that only works inside `create_app` will not work under the hub. Do not write a
+"which dataset is open" block or an open-directory dialog: subclass or compose
+`chooser.DirectoryChooser`, giving it your session and a `count` callable
+(Directions' `DataView` is eleven lines), and hang anything subject-specific —
+an importer for another program's files — off `modal(*extra)`. To appear in
+the hub, add the served file to `pmagpy_apps/launch.py::application_files()`
+and an `Application` to `pmagpy_apps/home.py::APPLICATIONS`.
+
 ## Conventions worth keeping identical
 
 These are what make the two feel like one program.
@@ -113,9 +198,7 @@ These are what make the two feel like one program.
   plane). Derived symbols take the dark edge (`#2b2b2b`); the mean is drawn on
   top of what it averages.
 * **Colour carries identity, not category.** A component keeps its colour in
-  every table, plot and exported figure (`ComponentColors`). The *chrome*
-  accent is the exception and the point: it says which application you are in,
-  and it is the only colour that differs between the two.
+  every table, plot and exported figure (`ComponentColors`).
 * **Layout.** A side column of controls and context, a drag handle, then the
   main pane; only a tab that plots nothing takes the full width. The main pane
   is inset from the handle so text set flush left does not run into it.
@@ -165,18 +248,23 @@ Each of these was found the hard way in Directions; none is obvious.
   and `flex-wrap` never fires however the window is resized — the pane scrolls
   instead. Size a block of figures for the width you expect to have and give
   the analyst a handle, a size slider or both; do not expect CSS wrapping to
-  rescue a layout that does not fit.
+  rescue a layout that does not fit. (Found in Intensity, laying the four
+  companion plots out beside the Arai plot.)
 * **A figure's chrome is not a constant you can guess.** Bokeh fits the frame
   into whatever the declared outer box leaves after the axes, labels, toolbar
   and legend — so an allowance that is too small *silently squashes the frame*
-  rather than failing. `pmagpy_intensity/plots.py` keeps a measured
+  rather than failing. Two of Intensity's plots ran for a while with 70 px of
+  frame inside a 204 px box. `pmagpy_intensity/plots.py` keeps a measured
   `CHROME_W`/`CHROME_H` per figure class for exactly this reason.
+* **A Tabulator only keeps its visible rows in the DOM.** A browser probe that
+  greps the page for a value in row forty will not find it; read the column off
+  the model's `source.data` instead.
 
 ## Tests
 
 ```bash
 pytest pmagpy/test/test_demag.py pmagpy/test/test_demag_geo.py -q   # cores (run in CI)
-pytest programs/pmagpy_panel/test_chooser.py -q                     # the toolkit itself
+pytest programs/pmagpy_panel programs/pmagpy_apps -q                # toolkit and hub (needs panel/bokeh)
 pytest programs/pmagpy_directions/test_app.py -q                    # app (needs panel/bokeh)
 # browser suite: serve the app, then
 python ui_test.py http://localhost:5100/pmagpy_directions screenshots/app

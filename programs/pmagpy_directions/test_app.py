@@ -207,7 +207,7 @@ class TestLoggerRows:
 class TestDataView:
     def test_native_chooser_loads_the_chosen_directory(self, workdir, tmp_path):
         pytest.importorskip("panel")
-        import time
+        import asyncio
         from pmagpy_directions.views import DataView
         src, out = workdir
         s = Session(src, out)
@@ -217,23 +217,18 @@ class TestDataView:
             stray.unlink()
         view = DataView(s, chooser=lambda start: str(other), chooser_available=True)
         assert not view.native_btn.disabled
-        view._browse_native()
-        for _ in range(100):                      # the chooser runs in a worker thread
-            if s.directory == str(other) and view.path.value == str(other):
-                break
-            time.sleep(0.1)
+        asyncio.run(view._browse_native())      # the dialog is a coroutine; the server keeps serving meanwhile
         assert s.directory == str(other)
         assert view.path.value == str(other)
 
     def test_cancelled_chooser_keeps_the_session(self, workdir):
         pytest.importorskip("panel")
-        import time
+        import asyncio
         from pmagpy_directions.views import DataView
         src, out = workdir
         s = Session(src, out)
         view = DataView(s, chooser=lambda start: None, chooser_available=True)
-        view._browse_native()
-        time.sleep(0.5)
+        asyncio.run(view._browse_native())
         assert s.directory == src and "No folder chosen" in view.message.object
 
     def test_chooser_unavailable_disables_button(self, workdir):

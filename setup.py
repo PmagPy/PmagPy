@@ -14,6 +14,18 @@ packages = find_packages(exclude=['programs', 'programs.*', 'pmagpy_tests',
                                   'pmagpy_tests.examples.my_project_with_errors'])
 packages.append('pmag_env')
 
+# The Panel applications and their shared toolkit live under programs/ but are
+# importable as top-level packages (never through `programs`, whose __init__
+# pins a GUI matplotlib backend for the wx programs). Mapping them here puts them
+# in the wheel and in editable installs without moving a directory.
+# Install with: pip install -e '.[apps]'  ->  the `pmagpy-apps` command
+app_packages = {
+    'pmagpy_panel': 'programs/pmagpy_panel',
+    'pmagpy_apps': 'programs/pmagpy_apps',
+    'pmagpy_directions': 'programs/pmagpy_directions',
+}
+packages.extend(app_packages)
+
 
 def do_walk(data_path):
     """
@@ -108,15 +120,20 @@ setup(
     # Install with: pip install pmagpy[maps]
     extras_require={
         'maps': ['cartopy', 'shapely'],
+        # the Panel applications (PmagPy Apps, PmagPy Directions, ...)
+        'apps': ['panel>=1.5', 'bokeh>=3.4', 'param>=2.0'],
     },
 
     packages=packages,
+    package_dir=app_packages,
+    package_data={name: ['assets/*.png'] for name in app_packages},
     include_package_data=True,
     data_files=formatted,
 
     entry_points={
         'console_scripts': [
             'pmagpy=pmagpy:main',
+            'pmagpy-apps=pmagpy_apps.launch:main',
         ],
     },
 )

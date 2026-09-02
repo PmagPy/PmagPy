@@ -15,11 +15,10 @@ import pmagpy.demag as dc
 
 from . import publication as pub
 from .logger import StepLogger
-from pmagpy_panel.chooser import DirectoryChooser
 from pmagpy_panel.widgets import HeightSplitter, Hotkeys
 from .plots import DecayPlot, DirectionsPlot, PoleMapPlot, StepEqualAreaPlot, ZijderveldPlot
-from .session import (REDO_NAME, AUTOSAVE_NAME, RECENT_FILE, Session, env, load_recent,
-                      looks_like_magic_dir, native_choose_directory, native_chooser_available)
+from .session import REDO_NAME, AUTOSAVE_NAME, RECENT_FILE, Session, env
+from pmagpy_panel.chooser import DirectoryChooser
 from pmagpy_panel.theme import (BUTTON_GROUP_CSS, CHECKBOX_CSS, INPUT_CSS, KPI_ITEM, MUTED_STYLE, SECTION_STYLE,
                     STATS_TABLE_CSS, TABLE_ROW_CSS, kpi, lighten)
 
@@ -1194,17 +1193,15 @@ class ExportView:
                 problems.append("needs a column from: " + ", ".join(result["missing_groups"]))
             if result["bad_cols"]:
                 problems.append(f'{len(result["bad_rows"])} row(s) with bad values in: ' + ", ".join(result["bad_cols"]))
-            items = result["failing_items"]
-            examples = []
-            try:
-                for _, item in items.head(3).iterrows():
-                    issues = item.get("issues", {})
-                    examples.append(f"{item.name}: " + "; ".join(str(v) for v in dict(issues).values()))
-            except Exception:
-                pass
+            # cell-level, so the analyst can go to the cell rather than the table
+            cells = result["failing_items"]
+            examples = [f'{c["row"]} · {c["column"]}: {c["problem"]}' if c["row"] else f'{c["column"]}: {c["problem"]}'
+                        for c in cells[:6]]
+            if len(cells) > 6:
+                examples.append(f"… and {len(cells) - 6} more")
             detail = "".join(f'<div style="{MUTED_STYLE};margin-left:18px">{e}</div>' for e in examples)
             rows.append(f'<div><span style="color:#c0392b">✗</span> <b>{table}</b>: ' + "; ".join(problems) + detail
-                        + f'<div style="{MUTED_STYLE};margin-left:18px">full list in {table}_errors.txt</div></div>')
+                        + '</div>')
         self.report.object = "".join(rows) or f'<div style="{MUTED_STYLE}">no tables to validate</div>'
 
     # --- .redo ----------------------------------------------------------------
@@ -1313,41 +1310,18 @@ class ExportView:
 
 
 # ===========================================================================
-class DataView:
+class DataView(DirectoryChooser):
     """Switch between MagIC directories.
 
-    The widgets and the behaviour are ``pmagpy_panel.chooser.DirectoryChooser``,
-    shared with PmagPy Intensity; this only says what this application counts
-    and what it wants the dialog to say.
+    The widgets and the behaviour are the toolkit's :class:`DirectoryChooser`,
+    shared with the hub and the other applications; this only says what this
+    application counts and what it wants the dialog to say.
     """
 
-    def __init__(self, session: Session, chooser=native_choose_directory, chooser_available=None):
-        self.s = session
-        self.chooser = DirectoryChooser(
-            session, recent_file=RECENT_FILE, chooser=chooser,
-            chooser_available=chooser_available,
+    def __init__(self, session: Session, chooser=None, chooser_available=None):
+        super().__init__(
+            session, recent_file=RECENT_FILE, chooser=chooser, chooser_available=chooser_available,
+            chooser_stub=env("CHOOSER_STUB"),
             count=lambda s: f"{len(s.data.specimens) if s.data else 0} specimens",
-            note=("Fits are auto-saved per dataset; switching datasets restores what you "
-                  "had there."))
+            note="Fits are auto-saved per dataset; switching datasets restores what you had there.")
 
-    # the application layer and the tests speak to the chooser through these
-    def __getattr__(self, name):
-        return getattr(self.__dict__["chooser"], name)
-
-    def __setattr__(self, name, value):
-        if name in ("s", "chooser") or "chooser" not in self.__dict__:
-            object.__setattr__(self, name, value)
-        elif hasattr(self.__dict__["chooser"], name):
-            setattr(self.__dict__["chooser"], name, value)
-        else:
-            object.__setattr__(self, name, value)
-
-    def sidebar(self):
-        return self.chooser.sidebar()
-
-    def modal(self):
-        return self.chooser.modal()
-
-
-def _shorten(path: str, n: int = 48) -> str:
-    return path if len(path) <= n else "…" + path[-(n - 1):]

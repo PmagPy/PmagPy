@@ -845,24 +845,49 @@ class TestPersistence:
 # ---------------------------------------------------------------------------
 class TestNoDataModel2:
     MODULES = ("pmagpy.paleointensity", "pmagpy.pint_stats", "pmagpy.magic_project", "pmagpy.tdt")
+    #: Data Model 2 machinery: not at all, anywhere.
     FORBIDDEN = ("builder2", "validate_upload2", "controlled_vocabularies2",
-                 "map_magic", "convert_2_magic2", "ipmag")
+                 "map_magic", "convert_2_magic2")
+    #: ``ipmag`` is where the Data Model 2 helpers #789 wants retired live, and it
+    #: is also where ``download_magic`` -- a MagIC 3 unpacker -- lives. Importing
+    #: it *inside a function* is allowed, because then analysing a study never
+    #: loads it: ``magic_project.download_contribution`` does exactly that. At
+    #: module scope it would be a load-time dependency of the whole core, which is
+    #: the thing that must not happen. ``test_intensity_environment.py`` proves the
+    #: other half -- that importing the core does not pull ``ipmag`` in -- and
+    #: ``TestNoLegacyDependency`` there bans the DM2 call names themselves.
+    FORBIDDEN_AT_IMPORT = ("ipmag",)
+
+    @staticmethod
+    def _imports(path: str):
+        """(every imported name, the ones imported at module scope)."""
+        import ast
+        tree = ast.parse(open(path, encoding="utf-8").read())
+        deferred = {n for node in ast.walk(tree)
+                    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                    for inner in ast.walk(node) for n in [inner]}
+        every, at_import = set(), set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                names = {a.name for a in node.names}
+            elif isinstance(node, ast.ImportFrom) and node.module:
+                names = {node.module} | {f"{node.module}.{a.name}" for a in node.names}
+            else:
+                continue
+            every |= names
+            if node not in deferred:
+                at_import |= names
+        return every, at_import
 
     def test_the_new_core_imports_no_data_model_2_helper(self):
-        import ast
         for module in self.MODULES:
             path = os.path.join(REPO, *module.split(".")) + ".py"
-            tree = ast.parse(open(path, encoding="utf-8").read())
-            imported = set()
-            for node in ast.walk(tree):
-                if isinstance(node, ast.Import):
-                    imported.update(a.name for a in node.names)
-                elif isinstance(node, ast.ImportFrom) and node.module:
-                    imported.add(node.module)
-                    imported.update(f"{node.module}.{a.name}" for a in node.names)
+            every, at_import = self._imports(path)
             for banned in self.FORBIDDEN:
-                assert not any(banned in name for name in imported), \
-                    f"{module} imports {banned}"
+                assert not any(banned in name for name in every), f"{module} imports {banned}"
+            for banned in self.FORBIDDEN_AT_IMPORT:
+                assert not any(banned in name for name in at_import), \
+                    f"{module} imports {banned} at module scope"
 
     def test_the_new_core_mentions_no_2_5_column_name(self):
         legacy = ("er_specimen_name", "magic_method_codes", "measurement_magn_moment",
