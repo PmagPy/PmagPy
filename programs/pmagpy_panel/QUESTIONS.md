@@ -732,3 +732,37 @@ the bottom; struck through once settled.
     old short forms as aliases? (c) `--dir` defaults to the working
     directory and files not found there are looked for in `--dir` — the
     scripts' `-WD`/`-ID` split is collapsed into that; fine?
+
+55. **AMS reduced from Kappabridge positions** (2026-09-02; closes the "not
+    yet" in HUB_PLAN step 4). `anisotropy.reduce_measurements(m, "AMS")` fits
+    the `LP-AN-MS` rows — one scalar susceptibility per `meas_orient_phi/
+    theta` — with Jelinek's design (`pmag.design(15)` for the standard order;
+    any six or more non-antipodal directions otherwise) and reproduces the
+    tensors `k15_magic` wrote with `pmag.dok15_s` to 1e-8; the Reduce tab
+    offers "AMS" when a directory has them and greys out the baseline box.
+    Things I changed or chose along the way:
+    - *Degrees of freedom by type.* `specimen_hext` used 3n − 6 for every
+      tensor (right for a remanence: three components per position). For AMS
+      a position is one number, so nf = n − 6 (as `dok15_s`, `aniso_magic`
+      and Safyr use). A stored 15-position AMS tensor's F-critical and
+      confidence ellipses were therefore ~13 % too small in the Eigenvectors
+      tab for a single specimen; `specimen_hext(..., aniso_type)` now picks
+      nf from `aniso_type`. Are there AMS tensors in MagIC whose
+      `aniso_s_n_measurements` counts something other than positions (e.g.
+      KLY4S files reporting 15 with Safyr's own σ) that this would misjudge?
+    - *k15_magic fixes.* Each position's `method_codes` is now
+      `LP-X:LP-AN-MS` (was `LP-X`, so the hub could not tell an AMS run from
+      a bulk reading), and `experiment` is `specimen:LP-AN-MS` (it was
+      `998.:LP-AN-MS` — `rec[0]` of the last data line, a susceptibility).
+      The `measurement` names are still `1`…`15` per specimen (not unique
+      across the table, which MagIC's validator dislikes) — rename to
+      `specimen:LP-AN-MS-1` etc.?
+    - *Method codes on a reduced AMS row*: `LP-AN-MS:AE-H`, like the AARM/ATRM
+      rows (`LP-AN-ARM:AE-H`); k15_magic wrote `LP-X:AE-H:LP-AN-MS`. Add
+      `LP-X`?
+    - *Only the fifteen-position scheme is assumed* when `meas_orient_*` are
+      blank; a 6- or 9-row susceptibility table without directions is
+      refused (the remanence 6-scheme is antipodal and rank-3 for scalars).
+    - Rotation to geographic/tilt coordinates of the reduced tensor is left
+      to the table layer as for AARM/ATRM (k15_magic writes -1, 0 and 100
+      rows itself); the Reduce tab writes only the specimen-frame row.

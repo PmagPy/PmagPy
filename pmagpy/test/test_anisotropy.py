@@ -421,8 +421,8 @@ class TestReduce:
         assert list(some["specimen"]) == ["ak01a"]
         none, problems = aniso.reduce_measurements(measurements, "AARM")
         assert none.empty and problems == {}
-        with pytest.raises(ValueError):
-            aniso.reduce_measurements(measurements, "AMS")
+        with pytest.raises(ValueError, match="AIRM"):
+            aniso.reduce_measurements(measurements, "AIRM")
 
     def test_an_alteration_check_becomes_aniso_alt(self):
         megiddo = os.path.join(HERE, "..", "..", "data_files", "3_0", "Megiddo")
@@ -437,6 +437,115 @@ class TestReduce:
         assert fit["alteration"] == pytest.approx(100 * abs(first - again) / np.mean([first, again]), rel=1e-6)
         record = aniso.tensor_record(fit, "ATRM")
         assert record["aniso_alt"] == pytest.approx(fit["alteration"], abs=0.01) and record["aniso_s_n_measurements"] == 6
+
+
+K15 = os.path.join(HERE, "..", "..", "data_files", "convert_2_magic", "k15_magic", "k15_example.dat")
+
+
+@pytest.fixture(scope="module")
+def k15_tables(tmp_path_factory):
+    """The k15 example converted by ``k15_magic``: 8 specimens × 15 Kappabridge positions in
+    measurements.txt, and the tensors ``pmag.dok15_s`` wrote to specimens.txt."""
+    from pmagpy import convert_registry as reg
+    d = str(tmp_path_factory.mktemp("k15"))
+    result = reg.convert_files(reg.FORMATS["k15"], [K15], {"location": "Trinidad"}, d, record=False)
+    assert result.ok, result.message
+    m = pd.read_csv(os.path.join(d, "measurements.txt"), sep="\t", header=1, dtype=str)
+    sp = pd.read_csv(os.path.join(d, "specimens.txt"), sep="\t", header=1, dtype=str)
+    return m, sp
+
+
+class TestSusceptibility:
+    def test_the_fifteen_position_design_is_jelineks(self):
+        A, B, H = aniso.susceptibility_design(aniso.POSITION_SCHEMES[15])
+        legacy_A, legacy_B = pmag.design(15)
+        assert_allclose(A, legacy_A, atol=1e-12)
+        assert_allclose(B, legacy_B, atol=1e-12)
+        assert A.shape == (15, 6) and B.shape == (6, 15)
+        with pytest.raises(ValueError, match="six"):
+            aniso.susceptibility_design(aniso.POSITION_SCHEMES[15][:5])
+        with pytest.raises(ValueError, match="determine"):
+            aniso.susceptibility_design([(d, 0.0) for d in (0, 30, 60, 90, 120, 150)])
+
+    def test_a_known_tensor_is_recovered_from_scalar_susceptibilities(self):
+        s = np.array([0.30, 0.35, 0.35, 0.01, -0.02, 0.005])
+        a = np.array([[s[0], s[3], s[5]], [s[3], s[1], s[4]], [s[5], s[4], s[2]]])
+        # six positions must not pair up antipodally: k(h) = k(-h), so the remanence 6-scheme is rank 3
+        six = [(0., 0.), (90., 0.), (0., 90.), (45., 0.), (90., 45.), (0., 45.)]
+        assert_allclose(aniso.susceptibility_design(six)[0], pmag.design(6)[0], atol=1e-12)
+        with pytest.raises(ValueError, match="determine"):
+            aniso.susceptibility_design(aniso.POSITION_SCHEMES[6])
+        for scheme in (aniso.POSITION_SCHEMES[15], six):
+            A, B, H = aniso.susceptibility_design(scheme)
+            chi = 3e-3 * np.einsum("ij,jk,ik->i", H, a, H)                    # k_i = h_i · a · h_i, scaled
+            fit = aniso.fit_susceptibility_tensor(chi, scheme)
+            assert_allclose(fit["s"], s, atol=1e-12)
+            assert fit["s_mean"] == pytest.approx(3e-3 / 3) and fit["nf"] == len(scheme) - 6
+            assert fit["hext"] is None
+            if fit["nf"]:
+                assert fit["sigma"] == pytest.approx(0, abs=1e-12)
+            else:
+                assert np.isnan(fit["sigma"])                                # six positions leave no residual
+        with pytest.raises(ValueError, match="15 measurement positions"):
+            aniso.fit_susceptibility_tensor(np.ones(14), aniso.POSITION_SCHEMES[15])
+
+    def test_k15_measurements_reduce_to_the_tensors_dok15_s_wrote(self, k15_tables):
+        m, sp = k15_tables
+        assert aniso.protocol_counts(m) == {"AMS": 8}
+        assert list(m["experiment"].unique()[:2]) == ["tr245f:LP-AN-MS", "tr245g:LP-AN-MS"]     # not "998.:LP-AN-MS"
+        tensors, problems = aniso.reduce_measurements(m, "AMS")
+        assert problems == {} and len(tensors) == 8
+        stored = sp[sp["aniso_s"].notna() & (sp["aniso_tilt_correction"] == "-1")].set_index("specimen")
+        for _, row in tensors.iterrows():
+            ref = stored.loc[row["specimen"]]
+            assert_allclose(aniso.parse_s(row["aniso_s"]), aniso.parse_s(ref["aniso_s"]), atol=1e-8)
+            assert row["aniso_s_sigma"] == pytest.approx(float(ref["aniso_s_sigma"]), abs=1e-8)
+            assert row["aniso_s_mean"] == pytest.approx(float(ref["aniso_s_mean"]), rel=1e-6)   # bulk susceptibility
+        first = tensors.iloc[0]
+        assert first["aniso_type"] == "AMS" and first["aniso_s_unit"] == "SI" and first["aniso_s_n_measurements"] == 15
+        assert first["method_codes"] == "LP-AN-MS:AE-H" and first["aniso_tilt_correction"] == -1
+        assert "aniso_alt" not in tensors.columns
+        # the rows are put back in position order, and the scheme stands in for missing directions
+        shuffled, _ = aniso.reduce_measurements(m.sample(frac=1, random_state=1), "AMS")
+        assert list(shuffled.set_index("specimen").loc[tensors["specimen"], "aniso_s"]) == list(tensors["aniso_s"])
+        unoriented, _ = aniso.reduce_measurements(m.drop(columns=["meas_orient_phi", "meas_orient_theta"]), "AMS")
+        assert list(unoriented["aniso_s"]) == list(tensors["aniso_s"])
+        # baseline means nothing for a Kappabridge; a subset is a subset
+        assert aniso.specimen_tensor(m[m["specimen"] == "tr245f"], "AMS", baseline=False)["n_baselines"] == 0
+        some, _ = aniso.reduce_measurements(m, "AMS", specimens=["tr245g"])
+        assert list(some["specimen"]) == ["tr245g"]
+
+    def test_hext_uses_the_susceptibility_degrees_of_freedom(self, k15_tables):
+        m, sp = k15_tables
+        assert aniso.degrees_of_freedom(15, "AMS") == 9 and aniso.degrees_of_freedom(9, "AARM") == 21
+        assert aniso.degrees_of_freedom(15) == 39
+        tensors, _ = aniso.reduce_measurements(m, "AMS")
+        row = tensors.iloc[0]
+        by_type = aniso.specimen_hext(row["aniso_s"], row["aniso_s_sigma"], 15, "AMS")
+        as_k15 = pmag.dohext(9, float(row["aniso_s_sigma"]), list(aniso.parse_s(row["aniso_s"])))
+        assert float(by_type["F_crit"]) == pytest.approx(float(as_k15["F_crit"]))
+        assert by_type["e12"] == pytest.approx(float(as_k15["e12"]))
+        assert row["description"] == f"Critical F: {float(as_k15['F_crit']):.4f}"
+        # read as a remanence (3n - 6 = 39) the same scatter would look tighter
+        remanence = aniso.specimen_hext(row["aniso_s"], row["aniso_s_sigma"], 15)
+        assert float(remanence["F_crit"]) < float(by_type["F_crit"]) and remanence["e12"] < by_type["e12"]
+        with pytest.raises(ValueError, match="more positions"):
+            aniso.specimen_hext(row["aniso_s"], row["aniso_s_sigma"], 6, "AMS")
+
+    def test_a_bulk_susceptibility_row_is_not_an_anisotropy(self):
+        # KLY4S / SUFAR files carry the instrument's tensor and one bulk measurement flagged LP-AN-MS
+        bulk = pd.DataFrame({"specimen": ["a", "a"], "method_codes": ["LP-X:AE-H:LP-AN-MS", "LP-X"],
+                             "susc_chi_volume": ["1e-3", "1.1e-3"]})
+        assert len(aniso.ams_rows(bulk)) == 1 and aniso.protocol_counts(bulk) == {}
+        tensors, problems = aniso.reduce_measurements(bulk, "AMS")
+        assert tensors.empty and problems == {"a": "1 susceptibility positions; a tensor needs at least six"}
+        seven = pd.DataFrame({"specimen": ["b"] * 7, "experiment": ["b:LP-AN-MS"] * 7, "susc_chi_volume": ["1e-3"] * 7})
+        with pytest.raises(ValueError, match="fifteen-position"):
+            aniso.specimen_tensor(seven, "AMS")
+        assert aniso.protocol_counts(pd.DataFrame({"specimen": []})) == {} and aniso.protocol_counts(None) == {}
+        mass = pd.DataFrame({"specimen": ["c"], "experiment": ["c:LP-AN-MS"], "susc_chi_mass": ["2e-6"],
+                             "susc_chi_volume": [""]})
+        assert aniso.susceptibility_values(mass).iloc[0] == 2e-6
 
 
 class TestAddTensors:

@@ -6816,7 +6816,7 @@ def k15(k15file, dir_path='.', input_dir_path='',
             AnisRec[software_col] = version_num
             SiteRec[software_col] = version_num
             ResRec[software_col] = version_num
-            MeasRec[method_col] = "LP-X"
+            MeasRec[method_col] = "LP-X:LP-AN-MS"   # each position is a susceptibility in an AMS experiment
             MeasRec[quality_col] = "g"
             MeasRec[meas_standard_col] = "u"
             MeasRec[citation_col] = "This study"
@@ -6894,10 +6894,12 @@ def k15(k15file, dir_path='.', input_dir_path='',
                     NewMeas[meas_orient_theta_col] = '%7.1f' % (Incs[i])
                     NewMeas[chi_vol_col] = '%12.10f' % (k15[i])
                     NewMeas[meas_name_col] = '%i' % (i + 1)
+                    # rec is the last data line here, so rec[0] is a susceptibility, not the specimen
+                    experiment = MeasRec[spec_name_col] + ":LP-AN-MS"
                     if data_model_num == 2:
-                        NewMeas["magic_experiment_name"] = rec[0] + ":LP-AN-MS"
+                        NewMeas["magic_experiment_name"] = experiment
                     else:
-                        NewMeas["experiment"] = rec[0] + ":LP-AN-MS"
+                        NewMeas["experiment"] = experiment
                     MeasRecs.append(NewMeas)
                 if SampRec[samp_name_col] not in samplist:
                     SampRecs.append(SampRec)

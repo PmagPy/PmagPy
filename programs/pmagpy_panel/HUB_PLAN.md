@@ -743,8 +743,18 @@ Intensity were built.
    (`Session.version`) and every tab follows. A directory with anisotropy
    measurements and no `specimens.txt` now opens, on that tab. Reproduces
    `aarm_magic` (McMurdo, 17/18) and `atrm_magic` (30 specimens) to 1e-7;
-   differences are logged in QUESTIONS 43. Not yet: the 15-position AMS
-   reduction of Kappabridge measurements without `aniso_s`. The §4
+   differences are logged in QUESTIONS 43. **AMS from Kappabridge positions
+   built 2026-09-02**: `susceptibility_design`/`fit_susceptibility_tensor`
+   (Jelinek's scalar design, `pmag.design(15)` for the standard scheme, nf =
+   n − 6) and `specimen_susceptibility_tensor` reduce the `LP-AN-MS` rows —
+   one `susc_chi_*` along `meas_orient_phi/theta`, the fifteen-position
+   scheme when the table does not say — through the same `reduce_measurements`
+   /`ReduceView`/`TableSave` path (`baseline` greyed out for AMS); reproduces
+   `k15_magic`'s `dok15_s` tensors to 1e-8. `specimen_hext` now takes
+   `aniso_type` so a stored AMS tensor's F-critical and ellipses use n − 6
+   rather than the remanence 3n − 6 (they were ~13 % too tight); `k15_magic`
+   writes `LP-X:LP-AN-MS` on each position and the specimen's name in
+   `experiment` (it wrote a susceptibility value there). QUESTIONS 55. The §4
    MagIC-layer fixes landed 2026-09-02. *Next*: the notebook switch-over in
    RockmagPy-notebooks (QUESTIONS 12).
 5. **The rest of Pmag GUI, one decision at a time** — see the table below.

@@ -167,11 +167,14 @@ class TestEigenvectorsView:
         stats = view.stats
         row = session.selection().iloc[0]
         assert stats["n"] == 1 and stats.get("specimen_hext") and stats["bootstrap"] is None
-        expected = anisotropy.specimen_hext(row["s"], float(row["aniso_s_sigma"]), int(row["aniso_s_n_measurements"]))
+        expected = anisotropy.specimen_hext(row["s"], float(row["aniso_s_sigma"]), int(row["aniso_s_n_measurements"]),
+                                            row["aniso_type"])
         assert stats["hext"]["F"] == pytest.approx(expected["F"])
+        assert stats["hext"]["e12"] == pytest.approx(expected["e12"])
         assert "from this specimen's measurement scatter" in view.table.object
         text = code_text(view)
-        assert "hext = aniso.specimen_hext(row['s'], row['aniso_s_sigma'], row['aniso_s_n_measurements'])" in text
+        assert ("hext = aniso.specimen_hext(row['s'], row['aniso_s_sigma'], row['aniso_s_n_measurements'], "
+                "row['aniso_type'])") in text
         assert "group_statistics" not in text
         view.set_parameters(bootstrap=True)                                  # nothing to bootstrap from one tensor
         assert view.stats["bootstrap"] is None and not view.cdf_box.visible
@@ -403,6 +406,47 @@ class TestReduceView:
         # saving the same tensors again replaces them in place
         view.save.save()
         assert len(pd.read_csv(path, sep="\t", skiprows=1)) == 18
+
+    def test_kappabridge_positions_reduce_as_ams_without_a_baseline(self, tmp_path):
+        """A k15 conversion with its specimens.txt taken away: fifteen susceptibilities per specimen."""
+        from pmagpy import convert_registry as reg
+        k15 = os.path.join(REPO, "data_files", "convert_2_magic", "k15_magic", "k15_example.dat")
+        d = str(tmp_path)
+        assert reg.convert_files(reg.FORMATS["k15"], [k15], {"location": "Trinidad"}, d, record=False).ok
+        stored = pd.read_csv(os.path.join(d, "specimens.txt"), sep="\t", skiprows=1)
+        stored = stored[stored["aniso_tilt_correction"] == -1].set_index("specimen")
+        os.remove(os.path.join(d, "specimens.txt"))
+        assert ss.can_open(d)
+        s = ss.Session(d)
+        assert s.status == f"{d}: no tensors yet — 8 specimens with AMS measurements (Reduce)"
+        assert s.protocols() == {"AMS": 8}
+        view = ReduceView(s)
+        assert view.protocol.options == ["AMS"] and view.protocol.value == "AMS"
+        assert view.baseline.disabled                                        # no zero-field step to subtract
+        assert "tensors, problems = aniso.reduce_measurements(measurements, 'AMS')" in code_text(view)
+        assert "baseline" not in code_text(view)
+        shown = view.table.value
+        assert len(shown) == 8 and "aniso_alt" not in shown.columns
+        assert (shown["aniso_s_n_measurements"] == 15).all()
+        row = view.tensors.set_index("specimen").loc["tr245f"]
+        np.testing.assert_allclose(anisotropy.parse_s(row["aniso_s"]), anisotropy.parse_s(stored.loc["tr245f", "aniso_s"]),
+                                   atol=1e-8)
+        assert row["aniso_s_unit"] == "SI" and row["aniso_type"] == "AMS"
+        path = view.save.save()
+        specimens = pd.read_csv(path, sep="\t", skiprows=1)
+        assert len(specimens) == 8 and set(specimens["aniso_type"]) == {"AMS"}
+        assert set(specimens["method_codes"]) == {"LP-AN-MS:AE-H"} and set(specimens["aniso_s_unit"]) == {"SI"}
+        assert list(specimens["sample"]) == list(specimens["specimen"])      # k15 names the sample on each row
+        assert s.status.startswith("8 specimens with tensors (AMS)")
+        # one specimen's Hext statistics use the nine degrees of freedom of fifteen scalars
+        s.level = "sample"
+        s.group = "tr245f"                                                  # the sample is the specimen here
+        eigen = EigenvectorsView(s)
+        assert eigen.stats["n"] == 1 and eigen.stats.get("specimen_hext")
+        expected = anisotropy.specimen_hext(row["aniso_s"], float(row["aniso_s_sigma"]), 15, "AMS")
+        assert eigen.stats["hext"]["e12"] == pytest.approx(expected["e12"], abs=1e-3)
+        assert eigen.stats["hext"]["e12"] != pytest.approx(
+            anisotropy.specimen_hext(row["aniso_s"], float(row["aniso_s_sigma"]), 15)["e12"], abs=1e-3)
 
     def test_tensors_already_in_the_table_are_counted_and_replaced(self, copy_dir, aarm_measurements):
         with open(os.path.join(copy_dir, "measurements.txt"), "w") as fh:

@@ -146,17 +146,9 @@ class Session(param.Parameterized):
                 f" / {frames['g']} geographic / {frames['t']} tilt-corrected")
 
     def protocols(self) -> dict:
-        """Specimens with measurements of each reducible protocol, ``{'AARM': n, 'ATRM': n}``."""
-        m = self.measurements
-        if m is None or not len(m) or "method_codes" not in m.columns:
-            return {}
-        out = {}
-        codes = m["method_codes"].fillna("").astype(str)
-        for kind, protocol in anisotropy.PROTOCOLS.items():
-            n = int(m.loc[codes.str.contains(protocol["code"], regex=False), "specimen"].nunique())
-            if n:
-                out[kind] = n
-        return out
+        """Specimens with measurements of each reducible type, ``{'AMS': n, 'AARM': n, 'ATRM': n}``
+        (:func:`anisotropy.protocol_counts`)."""
+        return anisotropy.protocol_counts(self.measurements)
 
     def set_tables(self, specimens: pd.DataFrame, samples: Optional[pd.DataFrame] = None,
                    sites: Optional[pd.DataFrame] = None, status: str = "") -> None:

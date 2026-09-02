@@ -285,8 +285,10 @@ class EigenvectorsView:
             stats = {"n": 1, "s": np.asarray(row["s"], float), "hext": None, "bootstrap": None}
             stats.update(anisotropy.eigenparameters(row["s"]))
             sigma, n = row.get("aniso_s_sigma"), row.get("aniso_s_n_measurements")
-            if self.hext.value and pd.notna(sigma) and pd.notna(n) and float(sigma) > 0 and 3 * int(n) - 6 > 0:
-                stats["hext"] = anisotropy.specimen_hext(row["s"], float(sigma), int(n))
+            aniso_type = str(row.get("aniso_type") or "")
+            if self.hext.value and pd.notna(sigma) and pd.notna(n) and float(sigma) > 0 \
+                    and anisotropy.degrees_of_freedom(int(n), aniso_type) > 0:
+                stats["hext"] = anisotropy.specimen_hext(row["s"], float(sigma), int(n), aniso_type)
                 stats["specimen_hext"] = True
             return stats
         return None
@@ -396,7 +398,8 @@ class EigenvectorsView:
             if stats is not None and stats.get("specimen_hext"):
                 lines += ["row = tensors.iloc[0]",
                           "params = aniso.eigenparameters(row['s'])",
-                          "hext = aniso.specimen_hext(row['s'], row['aniso_s_sigma'], row['aniso_s_n_measurements'])"]
+                          "hext = aniso.specimen_hext(row['s'], row['aniso_s_sigma'], row['aniso_s_n_measurements'], "
+                          "row['aniso_type'])"]
             self.code.set(lines)
             return
         kwargs = dict(hext=self.hext.value, bootstrap=self.bootstrap.value)
@@ -535,12 +538,15 @@ class SpecimensView:
 
 
 class ReduceView:
-    """Anisotropy tensors from the directory's remanence-acquisition measurements.
+    """Anisotropy tensors from the directory's anisotropy measurements.
 
     ``anisotropy.reduce_measurements`` fits one tensor per specimen from its
     ``LP-AN-ARM`` (AARM) or ``LP-AN-TRM`` (ATRM) steps — the in-field moments,
     less the zero-field baseline measured before them when asked, against
-    the field directions the table records — and the result is offered to
+    the field directions the table records — or from its ``LP-AN-MS`` (AMS)
+    Kappabridge positions, one susceptibility each along ``meas_orient_phi/
+    theta`` (the fifteen-position scheme when the table does not say; no
+    baseline applies). The result is offered to
     ``specimens.txt`` through :class:`TableSave` (``add_tensors_to_specimens_table``:
     an existing tensor of the same type is replaced, a new specimen gets a
     row). A directory with measurements but no specimens table starts here.
@@ -610,15 +616,17 @@ class ReduceView:
             self.tensors, self.failed = pd.DataFrame(), {}
             self.table.value = pd.DataFrame(columns=self.COLUMNS)
             self.problems.object = ""
-            self.summary.object = muted("no AARM or ATRM measurements in this directory — the tensors in "
+            self.summary.object = muted("no AMS, AARM or ATRM measurements in this directory — the tensors in "
                                         "specimens.txt are what there is to look at")
-            self.code.set(lines + ["# nothing to reduce: no LP-AN-ARM / LP-AN-TRM rows in measurements"])
+            self.code.set(lines + ["# nothing to reduce: no LP-AN-MS / LP-AN-ARM / LP-AN-TRM rows in measurements"])
             self.save.decline("nothing to reduce")
+            self.baseline.disabled = False
             return
-        baseline = bool(self.baseline.value)
-        self.tensors, self.failed = anisotropy.reduce_measurements(s.measurements, kind, baseline=baseline)
+        self.baseline.disabled = kind == "AMS"          # a Kappabridge position has no zero-field step
+        kwargs = {} if kind == "AMS" else {"baseline": bool(self.baseline.value)}
+        self.tensors, self.failed = anisotropy.reduce_measurements(s.measurements, kind, **kwargs)
         lines.append(code.assign("tensors, problems", code.call("aniso.reduce_measurements", code.Name("measurements"),
-                                                                 kind, baseline=baseline)))
+                                                                 kind, **kwargs)))
         self.code.set(lines)
         shown = self.tensors.copy()
         for i in (1, 2, 3):

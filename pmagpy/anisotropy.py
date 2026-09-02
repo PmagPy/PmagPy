@@ -304,14 +304,25 @@ def frames_present(specimens: pd.DataFrame) -> dict:
 
 
 # ----------------------------------------------------------------------------- statistics
-def specimen_hext(s, sigma: float, n_measurements: int) -> dict:
+def degrees_of_freedom(n_measurements: int, aniso_type: str = '') -> int:
+    """The degrees of freedom of a specimen's tensor fit: ``n - 6`` for AMS, whose
+    Kappabridge positions each measure one scalar susceptibility (``pmag.dok15_s``,
+    the legacy ``aniso_magic``), ``3 n - 6`` for a remanence anisotropy, whose
+    positions each measure a three-component moment (``ipmag.aarm_magic``,
+    ``atrm_magic``)."""
+    n = int(n_measurements)
+    return n - 6 if str(aniso_type).upper() == 'AMS' else 3 * n - 6
+
+
+def specimen_hext(s, sigma: float, n_measurements: int, aniso_type: str = '') -> dict:
     """Hext statistics of one specimen's tensor from its own measurement scatter.
 
     Args:
         s: the six-element tensor.
         sigma: ``aniso_s_sigma``, the standard deviation of the fit.
-        n_measurements: ``aniso_s_n_measurements``; the degrees of freedom are
-            ``3 n - 6`` (three components measured in each of n positions).
+        n_measurements: ``aniso_s_n_measurements``, the positions measured.
+        aniso_type: ``aniso_type``; decides the degrees of freedom
+            (:func:`degrees_of_freedom`): ``n - 6`` for AMS, else ``3 n - 6``.
 
     Returns:
         ``pmag.dohext``'s dictionary: eigenvalues ``t1..t3``, eigenvector
@@ -319,9 +330,9 @@ def specimen_hext(s, sigma: float, n_measurements: int) -> dict:
         confidence-ellipse semi-angles ``e12``, ``e23``, ``e13`` in degrees.
     """
     s = parse_s(s) if isinstance(s, str) else np.asarray(s, dtype=float)
-    nf = 3 * int(n_measurements) - 6
+    nf = degrees_of_freedom(n_measurements, aniso_type)
     if nf <= 0:
-        raise ValueError("Hext statistics need more than two measurement positions")
+        raise ValueError("Hext statistics need more positions than the six a tensor has elements")
     return _real(pmag.dohext(nf, float(sigma), list(s)))
 
 
@@ -581,6 +592,11 @@ TENSOR_COLUMNS = ['aniso_type', 'aniso_tilt_correction', 'aniso_s', 'aniso_s_mea
 # the remanence acquired in each field step of a protocol, and the zero-field step that is its baseline
 PROTOCOLS = {'AARM': {'code': 'LP-AN-ARM', 'in_field': 'LT-AF-I', 'zero_field': 'LT-AF-Z'},
              'ATRM': {'code': 'LP-AN-TRM', 'in_field': 'LT-T-I', 'zero_field': 'LT-T-Z'}}
+# a susceptibility anisotropy is one scalar per position: LP-AN-MS rows (in the method codes, or in the
+# experiment name as k15_magic writes it) carrying a susceptibility, measured along meas_orient_phi/theta
+AMS_CODE = 'LP-AN-MS'
+CHI_COLUMNS = ('susc_chi_volume', 'susc_chi_mass', 'susc_chi_qdr_volume', 'susc_chi_qdr_mass')
+REDUCIBLE = ('AMS', *PROTOCOLS)          # the aniso_types reduce_measurements knows how to fit
 
 
 def design_matrix(directions) -> tuple:
@@ -680,6 +696,162 @@ def field_directions(rows: pd.DataFrame) -> np.ndarray:
     return np.array(POSITION_SCHEMES[n], dtype=float)
 
 
+def susceptibility_design(directions) -> tuple:
+    """The least-squares design of a susceptibility-anisotropy experiment.
+
+    Susceptibility measured along a unit direction ``h`` is the scalar
+    ``k = hᵀ K h``, so each position contributes one row
+    ``[h1², h2², h3², 2h1h2, 2h2h3, 2h1h3]`` over the six elements
+    ``[s11, s22, s33, s12, s23, s13]`` — Jelinek's (1977) design;
+    ``pmag.design(15)`` is this matrix for the Kappabridge's fifteen
+    positions in their standard order (:data:`POSITION_SCHEMES`).
+
+    Args:
+        directions: ``(n, 2)`` declination, inclination of each measurement
+            direction in specimen coordinates.
+
+    Returns:
+        ``(A, B, H)``: the ``(n, 6)`` design matrix, its ``(6, n)``
+        pseudo-inverse and the ``(n, 3)`` unit direction vectors.
+
+    Raises:
+        ValueError: with fewer than six positions, or with positions that do
+            not determine all six elements.
+    """
+    directions = np.asarray(directions, dtype=float)
+    n = len(directions)
+    if n < 6:
+        raise ValueError(f"a tensor has six elements: {n} measurement positions cannot determine it")
+    H = np.array([pmag.dir2cart([dec, inc, 1.0]) for dec, inc in directions], dtype=float)
+    A = np.column_stack([H[:, 0] ** 2, H[:, 1] ** 2, H[:, 2] ** 2,
+                         2 * H[:, 0] * H[:, 1], 2 * H[:, 1] * H[:, 2], 2 * H[:, 0] * H[:, 2]])
+    if np.linalg.matrix_rank(A) < 6:
+        raise ValueError("the measurement positions do not determine all six tensor elements")
+    B = np.linalg.inv(A.T @ A) @ A.T
+    return A, B, H
+
+
+def fit_susceptibility_tensor(chi, directions) -> dict:
+    """The best-fit susceptibility tensor of scalar susceptibilities measured along directions.
+
+    :func:`fit_tensor` for a Kappabridge: the same output, with ``nf`` the
+    ``n - 6`` of one scalar per position and ``s_mean`` the bulk
+    susceptibility (a third of the trace, in the units of `chi`). Reproduces
+    ``pmag.dok15_s`` for the fifteen-position scheme.
+
+    Args:
+        chi: ``(n,)`` susceptibilities.
+        directions: ``(n, 2)`` declination, inclination of each measurement.
+    """
+    chi = np.asarray(chi, dtype=float).reshape(-1)
+    A, B, H = susceptibility_design(directions)
+    if len(chi) != A.shape[0]:
+        raise ValueError(f"{len(chi)} susceptibilities for {A.shape[0]} measurement positions")
+    raw = B @ chi
+    trace = float(raw[0] + raw[1] + raw[2])
+    if trace <= 0:
+        raise ValueError("the fitted tensor has a non-positive trace: the values do not look like susceptibilities")
+    s = raw / trace
+    nf = len(chi) - 6
+    residual = chi / trace - A @ s
+    sigma = float(np.sqrt(np.sum(residual ** 2) / nf)) if nf > 0 else np.nan
+    out = {'s': s, 's_mean': trace / 3, 'sigma': sigma, 'nf': nf, 'n_positions': len(chi)}
+    out.update(eigenparameters(s))
+    out['hext'] = specimen_hext(s, sigma, len(chi), 'AMS') if nf > 0 and sigma > 1e-10 else None
+    return out
+
+
+def susceptibility_values(rows: pd.DataFrame) -> pd.Series:
+    """Each row's susceptibility: the first of :data:`CHI_COLUMNS` with a value (NaN when none)."""
+    out = pd.Series(np.nan, index=rows.index, dtype=float)
+    for column in CHI_COLUMNS:
+        if column in rows.columns:
+            values = pd.to_numeric(rows[column], errors='coerce')
+            out = out.where(out.notna(), values)
+    return out
+
+
+def ams_rows(measurements: pd.DataFrame) -> pd.DataFrame:
+    """The susceptibility-anisotropy rows of a measurements table: ``LP-AN-MS`` in the method
+    codes or the experiment name, with a susceptibility (a Kappabridge bulk value without
+    the code is not one)."""
+    blank = pd.Series('', index=measurements.index)
+    codes = measurements['method_codes'] if 'method_codes' in measurements.columns else blank
+    experiment = measurements['experiment'] if 'experiment' in measurements.columns else blank
+    is_ams = _has_codes(codes, AMS_CODE) | experiment.fillna('').astype(str).str.contains(AMS_CODE, regex=False)
+    return measurements[is_ams & susceptibility_values(measurements).notna()]
+
+
+def measurement_directions(rows: pd.DataFrame) -> np.ndarray:
+    """Where each susceptibility was measured: ``meas_orient_phi/theta``, or the fifteen-position
+    scheme when the table does not say and there are fifteen rows.
+
+    Raises:
+        ValueError: when the directions are missing and the count is not fifteen.
+    """
+    if {'meas_orient_phi', 'meas_orient_theta'} <= set(rows.columns):
+        phi = pd.to_numeric(rows['meas_orient_phi'], errors='coerce')
+        theta = pd.to_numeric(rows['meas_orient_theta'], errors='coerce')
+        if phi.notna().all() and theta.notna().all() and phi.nunique() + theta.nunique() > 2:
+            return np.column_stack([phi.to_numpy(dtype=float), theta.to_numpy(dtype=float)])
+    if len(rows) != 15:
+        raise ValueError(f"{len(rows)} susceptibility positions without meas_orient_phi/theta; "
+                         "only the fifteen-position Kappabridge scheme is assumed")
+    return np.array(POSITION_SCHEMES[15], dtype=float)
+
+
+def specimen_susceptibility_tensor(measurements: pd.DataFrame) -> dict:
+    """One specimen's AMS tensor from its Kappabridge positions (:func:`ams_rows`).
+
+    The rows are taken in ``treat_step_num`` order, else by a numeric
+    ``measurement`` name (``k15_magic`` numbers the positions 1–15), else as
+    they stand. Returns :func:`fit_susceptibility_tensor`'s dictionary plus
+    ``specimen``, ``experiments``, ``n_baselines`` (0) and ``alteration``
+    (NaN), the keys :func:`specimen_tensor` returns.
+
+    Raises:
+        ValueError: with no AMS rows, fewer than six, or directions that cannot
+            be told.
+    """
+    rows = ams_rows(measurements)
+    if not len(rows):
+        raise ValueError(f"no {AMS_CODE} susceptibility measurements")
+    for column in ('treat_step_num', 'measurement'):
+        if column in rows.columns:
+            order = pd.to_numeric(rows[column], errors='coerce')
+            if order.notna().all():
+                rows = rows.iloc[np.argsort(order.to_numpy(), kind='stable')]
+                break
+    if len(rows) < 6:
+        raise ValueError(f"{len(rows)} susceptibility positions; a tensor needs at least six")
+    fit = fit_susceptibility_tensor(susceptibility_values(rows).to_numpy(), measurement_directions(rows))
+    fit['specimen'] = str(rows['specimen'].iloc[0]) if 'specimen' in rows.columns else ''
+    fit['experiments'] = ':'.join(sorted(rows['experiment'].dropna().astype(str).unique())) \
+        if 'experiment' in rows.columns else ''
+    fit['n_baselines'] = 0
+    fit['alteration'] = np.nan
+    return fit
+
+
+def protocol_counts(measurements: Optional[pd.DataFrame]) -> dict:
+    """Specimens with measurements of each reducible anisotropy type, ``{'AMS': n, 'AARM': n, ...}``
+    in :data:`REDUCIBLE` order — an AMS specimen needs six positions to count."""
+    out = {}
+    if measurements is None or not len(measurements) or 'specimen' not in measurements.columns:
+        return out
+    ams = ams_rows(measurements)
+    if len(ams):
+        n = int((ams.groupby(ams['specimen'].astype(str)).size() >= 6).sum())
+        if n:
+            out['AMS'] = n
+    if 'method_codes' in measurements.columns:
+        for kind, protocol in PROTOCOLS.items():
+            n = int(measurements.loc[_has_codes(measurements['method_codes'], protocol['code']), 'specimen'].nunique())
+            if n:
+                out[kind] = n
+    return out
+
+
 def specimen_tensor(measurements: pd.DataFrame, aniso_type: str, baseline: bool = True) -> dict:
     """One specimen's anisotropy tensor from its remanence-acquisition steps.
 
@@ -696,7 +868,8 @@ def specimen_tensor(measurements: pd.DataFrame, aniso_type: str, baseline: bool 
     Args:
         measurements: the specimen's rows of the measurements table (any
             experiment; the protocol's rows are picked by method code).
-        aniso_type: 'AARM' or 'ATRM'.
+        aniso_type: 'AARM' or 'ATRM'; 'AMS' hands the rows to
+            :func:`specimen_susceptibility_tensor` (`baseline` does not apply).
         baseline: subtract the preceding zero-field step from each in-field step.
 
     Returns:
@@ -709,8 +882,10 @@ def specimen_tensor(measurements: pd.DataFrame, aniso_type: str, baseline: bool 
     Raises:
         ValueError: when the protocol's rows are missing or cannot be fit.
     """
+    if aniso_type == 'AMS':
+        return specimen_susceptibility_tensor(measurements)
     if aniso_type not in PROTOCOLS:
-        raise ValueError(f"tensors are reduced for {sorted(PROTOCOLS)}, not {aniso_type!r}")
+        raise ValueError(f"tensors are reduced for {list(REDUCIBLE)}, not {aniso_type!r}")
     protocol = PROTOCOLS[aniso_type]
     codes = measurements['method_codes'] if 'method_codes' in measurements.columns else pd.Series('', index=measurements.index)
     rows = measurements[_has_codes(codes, protocol['code'])]
@@ -755,8 +930,11 @@ def specimen_tensor(measurements: pd.DataFrame, aniso_type: str, baseline: bool 
     return fit
 
 
-def tensor_record(fit: dict, aniso_type: str, unit: str = 'Am^2') -> dict:
-    """The specimens-table columns for one specimen's tensor (:func:`specimen_tensor`)."""
+def tensor_record(fit: dict, aniso_type: str, unit: Optional[str] = None) -> dict:
+    """The specimens-table columns for one specimen's tensor (:func:`specimen_tensor`).
+    `unit` is ``aniso_s_unit``: 'SI' for AMS and 'Am^2' for a remanence unless given."""
+    if unit is None:
+        unit = 'SI' if aniso_type == 'AMS' else 'Am^2'
     record = {'aniso_type': aniso_type, 'aniso_tilt_correction': -1, 'aniso_s': format_s(fit['s']),
               'aniso_s_mean': float(fit['s_mean']), 'aniso_s_unit': unit,
               'aniso_s_n_measurements': int(fit['n_positions']),
@@ -786,8 +964,8 @@ def reduce_measurements(measurements: pd.DataFrame, aniso_type: str, baseline: b
 
     Args:
         measurements: the MagIC measurements table.
-        aniso_type: 'AARM' or 'ATRM' — which protocol's rows to reduce.
-        baseline: see :func:`specimen_tensor`.
+        aniso_type: 'AMS', 'AARM' or 'ATRM' (:data:`REDUCIBLE`) — which rows to reduce.
+        baseline: see :func:`specimen_tensor`; ignored for AMS.
         specimens: names to reduce, or None for every specimen with the protocol's rows.
 
     Returns:
@@ -796,11 +974,13 @@ def reduce_measurements(measurements: pd.DataFrame, aniso_type: str, baseline: b
         ``sample`` when the measurements name it) and a ``{specimen: reason}``
         dict for the specimens that could not be reduced.
     """
-    protocol = PROTOCOLS[aniso_type] if aniso_type in PROTOCOLS else None
-    if protocol is None:
-        raise ValueError(f"tensors are reduced for {sorted(PROTOCOLS)}, not {aniso_type!r}")
-    rows = measurements[_has_codes(measurements['method_codes'], protocol['code'])] \
-        if 'method_codes' in measurements.columns else measurements.iloc[0:0]
+    if aniso_type == 'AMS':
+        rows = ams_rows(measurements)
+    elif aniso_type in PROTOCOLS:
+        rows = measurements[_has_codes(measurements['method_codes'], PROTOCOLS[aniso_type]['code'])] \
+            if 'method_codes' in measurements.columns else measurements.iloc[0:0]
+    else:
+        raise ValueError(f"tensors are reduced for {list(REDUCIBLE)}, not {aniso_type!r}")
     names = list(dict.fromkeys(rows['specimen'].astype(str))) if len(rows) else []
     if specimens is not None:
         wanted = [str(name) for name in specimens]
