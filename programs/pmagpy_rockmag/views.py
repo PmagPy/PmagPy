@@ -456,6 +456,97 @@ class GoethiteView:
                          self.result, self.plot, self.code.panel(), sizing_mode="stretch_width")
 
 
+# ----------------------------------------------------------------------------- AC susceptibility
+class AcSusceptibilityView:
+    """In-phase and quadrature AC susceptibility against temperature: ``rockmag.plot_mpms_ac``.
+
+    One experiment at a time (an MPMS run sweeps several frequencies); the
+    controls are the function's ``phase`` and ``frequency`` arguments.
+    """
+
+    TYPE = "mpms_ac"
+    PHASES = {"in phase": "in", "out of phase": "out", "both": "both"}
+
+    def __init__(self, session):
+        self.s = as_session(session)
+        self.experiment = pn.widgets.Select(name="Experiment", options={}, width=420)
+        self.phase = pn.widgets.RadioButtonGroup(name="Phase", options=self.PHASES, value="in", button_type="default",
+                                                 margin=(24, 5, 0, 10))
+        self.frequency = pn.widgets.Select(name="Frequency", options={"all": None}, value=None, width=140)
+        self.plot = pn.pane.Bokeh(sizing_mode="stretch_width")
+        self.code = code.CodePane()
+        self.figure = None
+
+        self.experiment.param.watch(self._on_experiment, "value")
+        self.phase.param.watch(lambda e: self.refresh(), "value")
+        self.frequency.param.watch(lambda e: self.refresh(), "value")
+        self.s.param.watch(lambda e: self.reset(), "directory")
+        self.s.param.watch(self._follow_session, "specimen")
+        self.reset()
+
+    # ----- state --------------------------------------------------------------
+    def reset(self) -> None:
+        exps = self.s.experiments_of(self.TYPE)
+        options = {f"{r.specimen} · {r.experiment}": r.experiment for r in exps.itertuples()}
+        before = self.experiment.value
+        self.experiment.options = options
+        own = [e for spec, e in zip(exps["specimen"], exps["experiment"]) if spec == self.s.specimen]
+        self.experiment.value = own[0] if own else (next(iter(options.values())) if options else None)
+        if self.experiment.value == before:
+            self._on_experiment(None)
+
+    def _on_experiment(self, event) -> None:
+        exp = self.experiment.value
+        if exp:
+            exps = self.s.experiments
+            self.s.specimen = exps.loc[exps["experiment"] == exp, "specimen"].iloc[0]
+            freqs = sorted(self.data()["meas_freq"].dropna().unique().tolist())
+            before = self.frequency.value
+            self.frequency.options = {"all": None, **{f"{f:g} Hz": f for f in freqs}}
+            if self.frequency.value not in freqs:
+                self.frequency.value = None
+            if self.frequency.value != before:
+                return                                                    # the change refreshed
+        self.refresh()
+
+    def _follow_session(self, event) -> None:
+        exps = self.s.experiments_of(self.TYPE)
+        own = exps.loc[exps["specimen"] == event.new, "experiment"].tolist()
+        if own and self.experiment.value not in own:
+            self.experiment.value = own[0]
+
+    # ----- the plot -----------------------------------------------------------
+    def data(self):
+        if not self.experiment.value or self.s.measurements is None:
+            return None
+        return rockmag.experiment_selection(self.s.measurements, self.experiment.value)
+
+    def refresh(self) -> None:
+        experiment = self.data()
+        if experiment is None or experiment.empty or "meas_freq" not in experiment:
+            self.figure = None
+            self.plot.object = None
+            self.code.set(preamble(self.s))
+            return
+        kwargs = dict(phase=self.phase.value, interactive=True, return_figure=True, show_plot=False)
+        if self.frequency.value is not None:
+            kwargs["frequency"] = self.frequency.value
+        self.figure = rockmag.plot_mpms_ac(experiment, **kwargs)
+        for fig in self.figure.children:
+            style_figure(fig[0])
+        self.plot.object = self.figure
+        shown = {k: v for k, v in kwargs.items() if k not in ("return_figure", "show_plot")}
+        self.code.set(preamble(self.s) + [
+            code.assign("experiment", code.call("rmag.experiment_selection", code.Name("measurements"), self.experiment.value)),
+            code.call("rmag.plot_mpms_ac", code.Name("experiment"), **shown),
+        ])
+
+    def panel(self) -> pn.Column:
+        return pn.Column(pn.Row(self.experiment, self.phase, self.frequency), self.plot, self.code.panel(),
+                         sizing_mode="stretch_width")
+
+
 # ----------------------------------------------------------------------------- the set of views
-TABS = (("mpms_dc", "MPMS DC", MpmsDcView), ("verwey", "Verwey", VerweyView), ("goethite", "Goethite", GoethiteView))
+TABS = (("mpms_dc", "MPMS DC", MpmsDcView), ("verwey", "Verwey", VerweyView), ("goethite", "Goethite", GoethiteView),
+        ("mpms_ac", "AC susceptibility", AcSusceptibilityView))
 """``(key, tab label, view class)`` in tab order. Experiment types without a view are listed in the index only."""

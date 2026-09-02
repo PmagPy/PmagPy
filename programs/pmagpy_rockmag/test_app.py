@@ -16,7 +16,7 @@ pn = pytest.importorskip("panel")
 
 from pmagpy import rockmag  # noqa: E402
 from pmagpy_rockmag import app, session as rs  # noqa: E402
-from pmagpy_rockmag.views import GoethiteView, MpmsDcView, VerweyView  # noqa: E402
+from pmagpy_rockmag.views import AcSusceptibilityView, GoethiteView, MpmsDcView, VerweyView  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
@@ -201,6 +201,42 @@ class TestGoethiteView:
         assert view.specimen.options == [] and view.figure is None and "no RTSIRM" in view.result.object
 
 
+class TestAcSusceptibilityView:
+    def test_the_view_plots_one_experiment_with_the_functions_phase_and_frequency(self, session):
+        session.specimen = FOUR_CURVES
+        view = AcSusceptibilityView(session)
+        assert view.experiment.value == "IRM-OldBlue-LP-X:LP-X-T:LP-X-F-9652"      # the session specimen's run
+        assert list(view.frequency.options) == ["all", "1 Hz", "5.62 Hz", "31.59 Hz", "177.56 Hz", "997.34 Hz"]
+        assert [pos for _, *pos in view.figure.children] == [[0, 0]]
+        assert view.code.text.splitlines()[-2:] == [
+            "experiment = rmag.experiment_selection(measurements, 'IRM-OldBlue-LP-X:LP-X-T:LP-X-F-9652')",
+            "rmag.plot_mpms_ac(experiment, phase='in', interactive=True)"]
+        view.phase.value = "both"
+        view.frequency.value = 997.34
+        assert [pos for _, *pos in view.figure.children] == [[0, 0], [0, 1]]
+        assert view.code.text.endswith("rmag.plot_mpms_ac(experiment, phase='both', interactive=True, frequency=997.34)")
+        namespace = {"rmag": rockmag, "measurements": session.measurements}
+        exec("\n".join(view.code.text.splitlines()[5:-1]), namespace)
+        assert len(namespace["experiment"]) == 150
+
+    def test_changing_experiment_follows_the_specimen_and_reoffers_frequencies(self, session):
+        view = AcSusceptibilityView(session)
+        view.frequency.value = 997.34
+        session.specimen = "goethite_AA 19496-1"                        # a run with a different frequency set
+        assert view.experiment.value == "IRM-BigRed-LP-X:LP-X-T:LP-X-F-9645"
+        assert view.frequency.value == 997.34 and "3.16 Hz" in view.frequency.options
+        view.experiment.value = "IRM-OldBlue-LP-X:LP-X-T:LP-X-F-9654"
+        assert session.specimen == "lepidocrocite_Pfizer_1"
+        session.specimen = TWO_CURVES                                    # no AC run: the view keeps its own
+        assert session.specimen == TWO_CURVES and view.experiment.value == "IRM-OldBlue-LP-X:LP-X-T:LP-X-F-9654"
+
+    def test_nothing_to_plot_is_said_not_raised(self):
+        m = pd.DataFrame({"specimen": ["a"], "method_codes": ["LP-FC"], "experiment": ["e"],
+                          "meas_temp": [10.0], "magn_mass": [1.0]})
+        view = AcSusceptibilityView(m)
+        assert view.experiment.options == {} and view.figure is None
+
+
 class TestApp:
     def test_create_app_builds_the_template_with_one_tab_per_view(self):
         template = app.create_app(EXAMPLE)
@@ -209,7 +245,7 @@ class TestApp:
 
     def test_the_body_has_the_index_and_the_views(self, session):
         body = app.build_body(session)
-        assert list(body.views) == ["mpms_dc", "verwey", "goethite"]
-        assert [name for name, _ in zip(body.main._names, body.main)] == ["MPMS DC", "Verwey", "Goethite"]
+        assert list(body.views) == ["mpms_dc", "verwey", "goethite", "mpms_ac"]
+        assert [name for name, _ in zip(body.main._names, body.main)] == ["MPMS DC", "Verwey", "Goethite", "AC susceptibility"]
         assert body.views["verwey"].specimen.value == body.views["mpms_dc"].specimen.value
         assert body.info.app_id == "pmagpy_rockmag"
