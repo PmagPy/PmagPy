@@ -370,6 +370,19 @@ accepts. Start with the 13 formats Pmag GUI offers plus the IRM instruments
 * Keep imports lean in what the apps import: an app that needs `pmagpy.demag`
   should not pull `ipmag` (and with it all of `matplotlib.pyplot`) along. It
   is start-up time in a desktop bundle, and load time in any browser build.
+  Measured 2026-09-02 (apps imported as top-level packages, the way the
+  launchers do): none of the four apps imports `ipmag`; only the rockmag app
+  imports pyplot, and it needs it. Two module-level costs were removed:
+  `pmagpy.pmag` imported `SPD.lib.leastsq_jacobian` (→ `scipy.optimize`,
+  ~0.25 s, a third of the module's import time) for the one Arai-curvature
+  call — now imported inside `get_curve`; `programs/__init__.py` called
+  `matplotlib.get_backend()`, which resolves the automatic backend by
+  importing pyplot and probing the GUI toolkits (~0.15 s and a GUI probe in a
+  server process) — it now reads the raw rcParams entry and, as its comment
+  always said, leaves an explicitly set backend (`MPLBACKEND`, matplotlibrc,
+  `matplotlib.use`) alone. `pmagpy/test/test_import_cost.py` holds the
+  contracts. What remains is `pmagpy.pmag` itself (~0.5 s, pandas and the
+  MagIC data model) — a floor every app shares.
 
 ## 5. What has to change in the toolkit
 

@@ -14,7 +14,9 @@ from .mapping import map_magic
 from pmagpy import contribution_builder as cb
 from . import find_pmag_dir
 from pmag_env import set_env
-import SPD.lib.leastsq_jacobian as lib_k
+# SPD.lib.leastsq_jacobian (Arai curvature) pulls in scipy.optimize, about a
+# quarter of the time it takes to import this module; it is imported by
+# get_curve() when needed.
 
 WARNINGS = {'cartopy': False}
 
@@ -1432,6 +1434,7 @@ def dia_vgp(*args):  # new function interface by J.Holmes, SIO, 6/1/2011
 
 def get_curve(araiblock,**kwargs):
 #   curvature stuff
+    import SPD.lib.leastsq_jacobian as lib_k
     pars={}
     first_Z,first_I=araiblock[0],araiblock[1]
     first_Z=np.array(first_Z).transpose()

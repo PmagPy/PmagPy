@@ -450,3 +450,20 @@ the bottom; struck through once settled.
       documented behaviour ("leave the field blank and the program will fill
       in the last recorded information"), kept as is. Should the hub's
       Convert page warn when an inherited value crosses a site boundary?
+
+45. **`programs/__init__.py` now respects a preset matplotlib backend
+    (2026-09-02).** The package pins `TKAgg` (or `WXAgg` for the wx GUIs) for
+    the command-line programs. It used to decide by calling
+    `matplotlib.get_backend()`, which resolves the automatic backend by
+    importing `matplotlib.pyplot` and probing the GUI toolkits — ~0.15 s on
+    every `import programs`, and a GUI probe inside a server process — and,
+    because it compared against `'TKAgg'` while matplotlib canonicalises to
+    `'TkAgg'`, it overrode nearly everything, including `MPLBACKEND=Agg` on
+    a headless machine. It now reads the raw rcParams entry and leaves any
+    explicitly set backend (`MPLBACKEND`, a matplotlibrc, an earlier
+    `matplotlib.use`) alone, which is what its comment always said it did.
+    The one behavioural change: a user with `MPLBACKEND=MacOSX` in their
+    shell who runs `demag_gui` no longer gets `WXAgg` forced on them. The wx
+    GUIs embed their canvases through `backend_wxagg` directly, so I expect
+    that to be harmless, but I have not run the wx GUIs (no wx in the apps
+    env). Fine, or should the wx programs keep forcing `WXAgg`?
