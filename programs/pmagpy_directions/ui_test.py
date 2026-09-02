@@ -68,16 +68,16 @@ with sync_playwright() as p:
     def highlighted():
         return [int(r.get_attribute("data-i")) for r in page.locator(".step-logger tr.infit").all()]
 
-    # a fit is selected: clicking a step moves its nearest bound, live
-    page.get_by_role("button", name="New fit").click(); time.sleep(1.5)
+    # New fit creates and selects a fit at once; clicking a step moves its nearest bound, live
+    n_steps = page.locator(".step-logger tr[data-i]").count()
+    page.get_by_role("button", name="New fit").click(); time.sleep(2.5)
+    check(highlighted() and highlighted()[-1] == n_steps - 1,
+          f"New fit made a selected fit reaching the last step (got {highlighted()})")
     name_box = page.get_by_role("textbox", name="Component")
-    name_box.fill("UI"); name_box.press("Enter"); time.sleep(0.5)
-    page.locator(".step-logger tr[data-i='2']").click(); time.sleep(1.5)
-    check("bmin" in (page.locator(".step-logger tr[data-i='2']").get_attribute("class") or ""),
-          "first click after New fit marks the lower bound")
-    page.locator(".step-logger tr[data-i='8']").click(); time.sleep(3)
-    check(page.locator("text=UI").count() > 0, "second click creates fit 'UI'")
-    check(highlighted() == list(range(2, 9)), f"new fit spans steps 2–8 (got {highlighted()})")
+    name_box.fill("UI"); name_box.press("Enter"); time.sleep(1.5)
+    check(page.locator("text=UI").count() > 0, "the name field renamed the new fit 'UI'")
+    page.locator(".step-logger tr[data-i='2']").click(); time.sleep(3)
+    check(highlighted()[0] == 2, f"clicking step 2 moved the lower bound (got {highlighted()})")
     page.locator(".step-logger tr[data-i='10']").click(); time.sleep(3)
     check(highlighted() == list(range(2, 11)), f"clicking step 10 moved the upper bound (got {highlighted()})")
     page.mouse.click(900, 500)
@@ -214,7 +214,7 @@ with sync_playwright() as p:
         box.fill(path)
         box.press("Enter")
         time.sleep(0.5)
-        page.get_by_role("button", name="Load", exact=True).click()
+        page.get_by_role("button", name="Open", exact=True).click()
         wait_for(os.path.basename(path.rstrip("/")))
 
     def switch_by_chooser():

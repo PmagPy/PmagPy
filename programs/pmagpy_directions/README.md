@@ -136,8 +136,10 @@ clicking a step (in the logger, or tapping a point on the Zijderveld or
 equal-area plot) moves its nearest bound and the fit recomputes at once;
 box-selecting a range sets both bounds; the bound, fit-type and name fields
 apply live; `[` `]` nudge the lower bound and `{` `}` the upper. *New fit*
-deselects, and the next two steps clicked become a new fit (named with the
-next free letter unless you type a name). `←` `→` step through specimens.
+creates a fit at once — from the end of the last fit to the final step, or
+over all steps — named with the next free letter and selected, so the next
+clicks place its bounds. With no fit selected, two clicked steps also make a
+fit. `←` `→` step through specimens.
 Fit types: line, anchored line, line through the origin, plane, Fisher
 mean; the same fit name gets the same colour on every specimen and plot.
 Fit lines carry an arrowhead at their outward end — the fitted direction is

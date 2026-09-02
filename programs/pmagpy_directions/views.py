@@ -18,6 +18,7 @@ from .logger import StepLogger
 from pmagpy_panel.widgets import HeightSplitter, Hotkeys
 from .plots import DecayPlot, DirectionsPlot, PoleMapPlot, StepEqualAreaPlot, ZijderveldPlot
 from .session import REDO_NAME, AUTOSAVE_NAME, RECENT_FILE, Session, env
+from pmagpy_panel import runtime
 from pmagpy_panel.chooser import DirectoryChooser
 from pmagpy_panel.theme import (BUTTON_GROUP_CSS, CHECKBOX_CSS, INPUT_CSS, KPI_ITEM, MUTED_STYLE, SECTION_STYLE,
                     STATS_TABLE_CSS, TABLE_ROW_CSS, kpi, lighten)
@@ -33,11 +34,7 @@ SIDE_PLOT = 380      # equal-area net in the side column, inside its 450 px defa
 
 def next_tick(fn):
     """Run ``fn`` under the Bokeh document lock (immediately when not serving)."""
-    doc = pn.state.curdoc
-    if doc is not None and getattr(doc, "session_context", None) is not None:
-        doc.add_next_tick_callback(fn)
-    else:
-        fn()
+    runtime.locked(fn)
 
 
 def section(text: str):
@@ -146,7 +143,7 @@ class SpecimenView:
         self.comp_name.param.watch(self._on_name_widget, "value")
         self.hint = pn.pane.HTML(f'<span style="{MUTED_STYLE}">click a step to move the selected fit\'s nearest '
                                  'bound · <b>[</b> <b>]</b> <b>{</b> <b>}</b> nudge bounds · '
-                                 '<i>New fit</i>: click two steps · <b>←</b> <b>→</b> specimens</span>',
+                                 '<b>←</b> <b>→</b> specimens</span>',
                                  margin=(2, 0, 0, 12))
         # the one list of fits: statistics + selection (click a row to make it the current fit)
         self.comp_table = pn.widgets.Tabulator(
@@ -238,11 +235,22 @@ class SpecimenView:
             self.s.status = ""
 
     def _new_fit(self, event=None):
-        self.s.current = None
+        """Create a fit at once and select it; clicks then move its bounds.
+
+        The fit takes the steps after the last existing fit (an analyst's next
+        component usually starts where the previous one ends), or all steps when
+        there is no fit yet or nothing is left above it.
+        """
         self._pending_bound = None
         self.logger.marks = {}
-        self.comp_name.value = self.s.next_fit_name()
-        self.s.status = "new fit: click its lower bound, then its upper bound"
+        labels = self._labels()
+        lo, hi = 0, len(labels) - 1
+        comps = self.s.components()
+        if comps and max(c.imax for c in comps) < hi:
+            lo = max(c.imax for c in comps)
+        comp = self.s.add_component(self.s.next_fit_name(), lo, hi, self.fit_type_sel.value)
+        self.s.status = (f"fit {comp.name}: {labels[comp.imin]} – {labels[comp.imax]} — "
+                         "click a step to move its nearest bound")
 
     def _on_bound_widget(self, event):
         if self._syncing or self.s.current is None:
@@ -258,7 +266,11 @@ class SpecimenView:
 
     def _on_name_widget(self, event):
         if not self._syncing and self.s.current is not None and event.new.strip():
-            self.s.update_component(self.s.current, name=event.new.strip())
+            # Enter in a TextInput reaches Panel (1.9) as a value change plus an
+            # enter-pressed event, and it runs the pair outside the document lock;
+            # a next-tick callback holds the lock again when the redraw touches the plots.
+            cur, name = self.s.current, event.new.strip()
+            next_tick(lambda: self.s.update_component(cur, name=name))
 
     def _on_hotkey(self, event):
         key = self.hotkeys.key

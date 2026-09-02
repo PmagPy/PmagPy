@@ -475,6 +475,38 @@ class TestSpecimenView:
         view.plot_size.value = frame0
         assert view.zij.fig.frame_width == frame0 and view.eq.fig.width == net0
 
+    def test_new_fit_creates_and_selects_a_fit_at_once(self, tmp_path):
+        """New fit makes a fit immediately (after the last one, or over all steps); clicks then move its bounds."""
+        from pmagpy_directions.views import SpecimenView
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        view = SpecimenView(s)
+        n = s.spec.n_steps
+        s.delete_components(s.components())
+        assert s.current is None
+
+        view._new_fit()
+        first = s.current
+        assert first is not None and (first.imin, first.imax) == (0, n - 1)
+        assert first.fit_type == view.fit_type_sel.value
+        assert first.name in view.comp_table.value["fit"].tolist()
+        assert "click a step" in s.status
+
+        # the next clicks shape the new fit rather than starting another one
+        view._pick(3)
+        assert (first.imin, first.imax) == (3, n - 1) and len(s.components()) == 1
+        view._pick(n - 3)
+        assert (first.imin, first.imax) == (3, n - 3)
+
+        # a second new fit starts where the last one ends, and gets the next letter
+        view._new_fit()
+        second = s.current
+        assert second is not first and (second.imin, second.imax) == (n - 3, n - 1)
+        assert [c.name for c in s.components()] == [first.name, second.name] == ["A", "B"]
+
+        # nothing left above the last fit: the new one spans everything again
+        view._new_fit()
+        assert (s.current.imin, s.current.imax) == (0, n - 1)
+
 
 class TestInterpretationsView:
     def test_side_plot_follows_the_table(self, tmp_path):
