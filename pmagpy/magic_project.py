@@ -564,6 +564,12 @@ def read_contribution(directory: str, meas_file: str = "measurements.txt",
 
 def magic_write(path: str, df: pd.DataFrame, table: str) -> str:
     """Write a MagIC 3 tab-delimited table through ``contribution_builder``."""
+    if table == "measurements" and "measurement" not in df.columns and "experiment" in df.columns:
+        # MagicDataFrame adds this column itself — and writes the table into the
+        # working directory as a side effect; name the measurements here instead
+        df = df.copy()
+        steps = df["treat_step_num"].astype(str) if "treat_step_num" in df.columns else pd.Series("", index=df.index)
+        df["measurement"] = df["experiment"].astype(str) + steps.where(steps != "nan", "")
     mdf = cb.MagicDataFrame(dtype=table, df=df)
     return mdf.write_magic_file(custom_name=os.path.basename(path),
                                 dir_path=os.path.dirname(os.path.realpath(path)) or ".")

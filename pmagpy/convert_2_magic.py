@@ -3846,14 +3846,15 @@ def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False
                         'method_codes']='LT-AF-I'
     measurements_df.loc[measurements_df['description']=='ARM',\
                         'instrument_codes']='IODP-JR6:IODP-D2000'
-    measurements_df.loc[measurements_df['description']=='ARM',"treat_dc_field"] = dc_field #
+    # the column was made as strings; keep it so (newer pandas refuses a float in a str column)
+    measurements_df.loc[measurements_df['description']=='ARM',"treat_dc_field"] = '%8.3e' % float(dc_field)
     measurements_df['external_database_ids']='LORE['+in_df['Test No.'].astype('str')+']'
 # add these later when controlled vocabs implemented
     measurements_df.loc[measurements_df['description']=='TD','method_codes']='LT-T-Z'
     measurements_df.loc[measurements_df['description']=='TD',\
                         'instrument_codes']='IODP-SRM:IODP-TDS'
     measurements_df.loc[measurements_df['description']=='TD',"treat_temp"] =\
-                        in_df['Treatment value (mT or °C or ex. B14)']+273
+                        (in_df['Treatment value (mT or °C or ex. B14)']+273).astype(float).map('%8.3e'.__mod__)
     #measurements_df.loc[measurements_df['description']=='IRM','method_codes']='LT-IRM'
     #measurements_df.loc[measurements_df['description']=='IRM',\
        #                 'instrument_codes']='IODP-SRM:IODP-IRM'
@@ -4637,11 +4638,12 @@ def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samp
     # make specimen_df format compatible with MagicDataFrame
     specimens_df.index = specimens_df['specimen']
     specimens_df.index.name = 'specimen name'
-    # combine with old specimen records if available
-    if os.path.exists(spec_file):
-        old_specimens = cb.MagicDataFrame(spec_file)
+    # combine with old specimen records if available (in the output directory,
+    # not the working directory)
+    if os.path.exists(spec_out):
+        old_specimens = cb.MagicDataFrame(spec_out)
         old_specimens.df = old_specimens.merge_dfs(specimens_df)
-        old_specimens.write_magic_file(spec_file)
+        old_specimens.write_magic_file(spec_out)
     else:
         spec_dicts = specimens_df.to_dict('records')
         pmag.magic_write(spec_out, spec_dicts, 'specimens')
@@ -6203,7 +6205,6 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
         MeasRec["standard"] = 'u'
         MeasRec["treat_step_num"] = 0
         MeasRec["treat_ac_field"] = '0'
-        print(row['step'],str(row['step'])[0:1] == 'TD')
         if row['step'] == 'NRM' or row['step']=='0':
             meas_type = "LT-NO"
         elif 'step_unit' in row and row['step_unit'] == 'C' or meth_code=='LP-DIR-T':
@@ -6228,6 +6229,14 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
             meas_type = "LT-T-Z"
             treat = float(row['step'][1:])
             MeasRec["treat_temp"] = '%8.3e' % (treat+273.)  # temp in kelvin
+        elif str(row['step']).strip().endswith('C') and str(row['step']).strip()[:-1].strip().replace('.', '').isdigit():
+            # "20 C", "200 C": thermal steps written with their unit; room temperature is the NRM
+            treat = float(str(row['step']).strip()[:-1])
+            if treat <= 25:
+                meas_type = "LT-NO"
+            else:
+                meas_type = "LT-T-Z"
+                MeasRec["treat_temp"] = '%8.3e' % (treat+273.)  # temp in kelvin
         elif meth_code=='LP-DIR-AF':
             meas_type = "LT-AF-Z"
             treat = float(row['step'])
@@ -8849,6 +8858,8 @@ def mini(magfile, dir_path='.', meas_file='measurements.txt',
     input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     magfile = pmag.resolve_file_name(magfile, input_dir_path)
     input_dir_path = os.path.split(magfile)[0]
+    # write into dir_path, not the working directory
+    meas_file = pmag.resolve_file_name(meas_file, dir_path)
     try:
         with open(magfile, 'r') as finput:
             lines = finput.readlines()
