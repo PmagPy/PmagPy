@@ -710,6 +710,44 @@ class TestOpenLoopBrh:
         assert res_open['loop_is_closed'] is False
         assert set(res_full) == set(res_lin) == set(res_open)
 
+    def test_the_summary_table_is_returned_not_only_shown(self, monkeypatch):
+        # each outcome reports the parameters defined for it; with
+        # show_results_table=False nothing is shown, but the one-row table
+        # and its values come back for a caller to place in its own layout
+        import warnings as _warnings
+        pytest.importorskip('bokeh')
+        from bokeh.models import DataTable
+        shown = []
+        monkeypatch.setattr(rmag, 'show', lambda obj: shown.append(obj))
+        H_full, M_full = synthetic_loop(noise=5e-4, chi=0.2)
+        H_lin, M_lin = synthetic_loop(Ms=0.0, chi=0.2, noise=1e-4)
+        H_open, M_open = synthetic_loop(Ms=0.65, Bc=0.05, w=0.03,
+                                        hard_Ms=1.0, hard_Bc=2.0,
+                                        hard_w=1.5, noise=2e-4)
+        with _warnings.catch_warnings():
+            _warnings.simplefilter('ignore')
+            res_full, res_lin, res_open = [
+                rmag.process_hyst_loop(H, M, show_results_table=False,
+                                       show_plot=False)
+                for H, M in ((H_full, M_full), (H_lin, M_lin),
+                             (H_open, M_open))]
+        assert shown == []
+        assert set(res_full['summary']) == {'Mr', 'Ms', 'Bc', 'Brh', 'sigma',
+                                            'Q', 'Qf', 'chi_HF',
+                                            'FNL60', 'FNL70', 'FNL80'}
+        assert set(res_lin['summary']) == {'chi_HF', 'FNL'}
+        assert set(res_open['summary']) == {'Mr', 'Brh', 'Q', 'FNL60',
+                                            'FNL70', 'FNL80', 'SNR', 'HAR'}
+        for res in (res_full, res_lin, res_open):
+            assert isinstance(res['summary_table'], DataTable)
+            table_values = {col.field: res['summary_table'].source.data[col.field][0]
+                            for col in res['summary_table'].columns}
+            assert table_values == res['summary']
+        assert res_full['summary']['Ms'] == res_full['Ms']
+        # the default still shows it (once per loop), alongside the plot
+        rmag.process_hyst_loop(H_full, M_full, show_plot=False)
+        assert len(shown) == 1
+
 
 class TestSparseLoopSaturation:
     def test_sparse_loop_does_not_abort(self):

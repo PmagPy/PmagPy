@@ -1158,3 +1158,29 @@ class TestThermomagPlots:
         })
         with pytest.raises(ValueError):
             rmag.curie_inverse_susceptibility_interactive(df, branch="cooling")
+
+    def test_interactive_inverse_susceptibility_can_return_its_layout_unshown(self, monkeypatch, curie_weiss_chi):
+        pytest.importorskip("bokeh")
+        from bokeh.models import Column, Div
+        from bokeh.plotting import figure as Figure
+        shown = []
+        monkeypatch.setattr(rmag, "show", lambda obj: shown.append(obj))
+        T, chi = curie_weiss_chi
+        df = pd.DataFrame({"meas_temp": T, "susc_chi_mass": chi, "specimen": "cw"})
+        layout = rmag.curie_inverse_susceptibility_interactive(
+            df, temp_unit="K", input_unit="K", remove_holder=False,
+            initial_fit_range=(620, 700), show_plot=False, return_figure=True)
+        assert shown == []
+        assert isinstance(layout, Column)
+        plot, estimate = layout.children
+        assert isinstance(plot, type(Figure())) and isinstance(estimate, Div)
+        assert plot.title.text == "cw – 1/χ (heating)"
+        # the fit endpoints sit on the 1/chi curve at the requested temperatures
+        endpoints = [r for r in plot.renderers if "x" in r.data_source.data
+                     and len(r.data_source.data["x"]) == 2][0].data_source.data
+        assert endpoints["x"] == pytest.approx([620, 700], abs=T[1] - T[0])
+        assert endpoints["y"] == pytest.approx((np.array(endpoints["x"]) - THETA_C) / CURIE_CONSTANT, rel=1e-6)
+        # default: shown, nothing returned
+        assert rmag.curie_inverse_susceptibility_interactive(
+            df, temp_unit="K", input_unit="K", remove_holder=False) is None
+        assert len(shown) == 1

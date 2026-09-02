@@ -79,8 +79,9 @@ unmixing initial guess) are thin: each collects slider values and calls a pure
 function (`calc_verwey_estimate`, `goethite_removal`, `mpms_signal_blender`,
 `estimate_coercivity_components` → `unmix_coercivity_spectrum`). Experiments
 are indexed with `make_experiment_df()` and selected with
-`experiment_selection()`. Two functions call Bokeh `show()` unconditionally
-(`_show_hyst_summary_table`, `curie_inverse_susceptibility_interactive`) and
+`experiment_selection()`. Two functions used to call Bokeh `show()`
+unconditionally (`_show_hyst_summary_table`,
+`curie_inverse_susceptibility_interactive`; fixed 2026-09-02, §4) and
 `forc.py` is matplotlib-only with no interactive layer. Nothing in `pmagpy` or
 the notebooks imports Panel.
 
@@ -359,9 +360,13 @@ accepts. Start with the 13 formats Pmag GUI offers plus the IRM instruments
   inherits like `bedding_dip`, `average_bedding` actually averages; the
   example's `site_class`-style headers are accepted (QUESTIONS 44).
   `azdip_magic` is still untested.
-* `rockmag.py`: give `_show_hyst_summary_table` and
-  `curie_inverse_susceptibility_interactive` a `show_plot=False` /
-  `return_figure=True` path like their siblings.
+* `rockmag.py` (2026-09-02): `_show_hyst_summary_table` now returns the
+  `DataTable` and shows it only when asked, and `process_hyst_loop` results
+  carry `summary` (the numbers as a dict) and `summary_table` at all three
+  exits — the hub can embed the table instead of re-deriving it.
+  `curie_inverse_susceptibility_interactive` gained `show_plot` /
+  `return_figure` like its siblings and returns the `column(plot, Div)`
+  layout. Nothing in `pmagpy` calls Bokeh `show()` unconditionally any more.
 * Keep imports lean in what the apps import: an app that needs `pmagpy.demag`
   should not pull `ipmag` (and with it all of `matplotlib.pyplot`) along. It
   is start-up time in a desktop bundle, and load time in any browser build.

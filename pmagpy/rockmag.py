@@ -3927,19 +3927,26 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
 # the highest fields). The full key set is always present in the result so
 # batch tables (process_hyst_loops) and the specimens-table writer keep a
 # stable schema across all three outcomes.
-def _show_hyst_summary_table(summary, width):
-    """Display a one-row Bokeh table of hysteresis summary parameters.
+def _show_hyst_summary_table(summary, width, show_table=True):
+    """Build (and by default display) a one-row Bokeh table of hysteresis
+    summary parameters.
 
     Shared by the full processing path and the decision-tree exits of
     process_hyst_loop, each of which passes only the parameters defined for
-    its outcome.
+    its outcome. Returns the DataTable so a caller that does not want it
+    shown (``show_table=False``) can place it in its own layout; returns
+    None without Bokeh.
     """
+    if not _HAS_BOKEH:
+        return None
     source = ColumnDataSource({name: [value] for name, value in summary.items()})
     columns = [TableColumn(field=name, title=name) for name in summary]
     data_table = DataTable(source=source, columns=columns,
                            width=width, height=100)
     data_table.index_position = None
-    show(column(data_table))
+    if show_table:
+        show(column(data_table))
+    return data_table
 
 
 _HYST_UNDEFINED_RESULTS = {
@@ -3953,6 +3960,7 @@ _HYST_UNDEFINED_RESULTS = {
     'FNL60': np.nan, 'FNL70': np.nan, 'FNL80': np.nan,
     'Ms': np.nan, 'Bc': np.nan, 'M_sn_f': np.nan, 'Qf': np.nan,
     'Fnl_lin': None, 'plot': None,
+    'summary': {}, 'summary_table': None,
 }
 
 
@@ -4001,7 +4009,9 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
     specimen_name : str, optional
         Identifier for the specimen, used for labeling plots.
     show_results_table : bool, optional
-        If True (default), display a summary table of key parameters using Bokeh.
+        If True (default), display a summary table of key parameters using
+        Bokeh. The table is built either way and returned as
+        ``'summary_table'`` (its values as the ``'summary'`` dict).
     show_plot : bool, optional
         If True (default), display the Bokeh plot of the hysteresis loop and processing steps.
     NL_fit : bool, optional
@@ -4061,6 +4071,10 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
             - 'Fnl_lin': F statistic for improvement of the nonlinear over the linear
               high-field fit (None if the loop is saturated and no nonlinear fit is made)
             - 'plot': Bokeh figure with overlaid processing steps
+            - 'summary': dict of the parameters defined for this loop's
+              outcome (what the results table shows)
+            - 'summary_table': the one-row Bokeh DataTable of 'summary'
+              (None without Bokeh)
     """
     # clean the inputs (accepts lists/Series/text columns, drops non-finite
     # pairs, warns on apparent non-tesla field units)
@@ -4095,10 +4109,12 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
                                      specimen_name, line_color='orange',
                                      label='raw loop (statistically linear)',
                                      return_figure=True, show_plot=show_plot)
-            if show_results_table and p is not None:
-                _show_hyst_summary_table(
-                    {'chi_HF': chi_HF,
-                     'FNL': loop_linearity_test_results['FNL']}, p.width)
+        summary = {'chi_HF': chi_HF,
+                   'FNL': loop_linearity_test_results['FNL']}
+        summary_table = None
+        if p is not None:
+            summary_table = _show_hyst_summary_table(summary, p.width,
+                                                     show_table=show_results_table)
         return {**_HYST_UNDEFINED_RESULTS,
                 'gridded_H': grid_fields,
                 'gridded_M': grid_magnetizations,
@@ -4108,7 +4124,8 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
                 'FNL': loop_linearity_test_results['FNL'],
                 'centering_protocol': centering_protocol,
                 'chi_HF': chi_HF,
-                'plot': p}
+                'plot': p,
+                'summary': summary, 'summary_table': summary_table}
 
     # loop centering
     if centering_protocol == 'legacy':
@@ -4174,16 +4191,19 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
             p.line(H, Me, line_color='brown', legend_label='Me', line_width=1)
             if show_plot:
                 show(p)
-            if show_results_table:
-                _show_hyst_summary_table({
-                    'Mr': Mr, 'Brh': Brh,
-                    'Q': loop_centering_results['Q'],
-                    'FNL60': loop_saturation_stats['FNL60'],
-                    'FNL70': loop_saturation_stats['FNL70'],
-                    'FNL80': loop_saturation_stats['FNL80'],
-                    'SNR': loop_closure_test_results['SNR'],
-                    'HAR': loop_closure_test_results['HAR'],
-                }, p.width)
+        summary = {
+            'Mr': Mr, 'Brh': Brh,
+            'Q': loop_centering_results['Q'],
+            'FNL60': loop_saturation_stats['FNL60'],
+            'FNL70': loop_saturation_stats['FNL70'],
+            'FNL80': loop_saturation_stats['FNL80'],
+            'SNR': loop_closure_test_results['SNR'],
+            'HAR': loop_closure_test_results['HAR'],
+        }
+        summary_table = None
+        if p is not None:
+            summary_table = _show_hyst_summary_table(summary, p.width,
+                                                     show_table=show_results_table)
         return {**_HYST_UNDEFINED_RESULTS,
                 'gridded_H': grid_fields,
                 'gridded_M': grid_magnetizations,
@@ -4207,7 +4227,8 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
                 'FNL60': loop_saturation_stats['FNL60'],
                 'FNL70': loop_saturation_stats['FNL70'],
                 'FNL80': loop_saturation_stats['FNL80'],
-                'plot': p}
+                'plot': p,
+                'summary': summary, 'summary_table': summary_table}
 
     if NL_fit:
         loop_saturation_stats['loop_is_saturated'] = False  # force non-linear high-field fitting
@@ -4282,15 +4303,17 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
                'Ms': Ms, 'Bc': Bc, 'M_sn_f': M_sn_f,
                'Qf': Qf, 'Fnl_lin': Fnl_lin,
                'plot': p}
-    
-    if show_results_table and _HAS_BOKEH and p_slope_corr is not None:
-        _show_hyst_summary_table({
-            'Mr': Mr, 'Ms': Ms, 'Bc': Bc, 'Brh': Brh, 'sigma': sigma,
-            'Q': loop_centering_results['Q'], 'Qf': Qf, 'chi_HF': chi_HF,
-            'FNL60': loop_saturation_stats['FNL60'],
-            'FNL70': loop_saturation_stats['FNL70'],
-            'FNL80': loop_saturation_stats['FNL80'],
-        }, p_slope_corr.width)
+    results['summary'] = {
+        'Mr': Mr, 'Ms': Ms, 'Bc': Bc, 'Brh': Brh, 'sigma': sigma,
+        'Q': loop_centering_results['Q'], 'Qf': Qf, 'chi_HF': chi_HF,
+        'FNL60': loop_saturation_stats['FNL60'],
+        'FNL70': loop_saturation_stats['FNL70'],
+        'FNL80': loop_saturation_stats['FNL80'],
+    }
+    results['summary_table'] = None
+    if p_slope_corr is not None:
+        results['summary_table'] = _show_hyst_summary_table(
+            results['summary'], p_slope_corr.width, show_table=show_results_table)
     return results
 
 def process_hyst_loops(
@@ -6563,6 +6586,8 @@ def curie_inverse_susceptibility_interactive(
     branch="heating",
     initial_fit_range=None,
     figsize=(6, 6),
+    show_plot=True,
+    return_figure=False,
 ):
     """
     Interactive (Bokeh) Curie-Weiss fit to inverse susceptibility.
@@ -6593,12 +6618,18 @@ def curie_inverse_susceptibility_interactive(
         temperature range — a starting position only, meant to be dragged.
     figsize : tuple, optional
         (width, height) in inches; height sets the Bokeh plot height.
+    show_plot : bool, optional
+        If True (default), display the layout with ``bokeh.io.show``.
+    return_figure : bool, optional
+        If True, return the Bokeh layout (the figure above the live
+        estimate) so it can be embedded elsewhere; the drag-to-fit callback
+        runs in the browser, so it works there too. Default False.
 
     Returns
     -------
-    None
-        The interactive Bokeh application is displayed as a side effect; no
-        value is returned. For a reproducible, reportable estimate use
+    bokeh.models.Column or None
+        The layout when ``return_figure`` is True, else None. For a
+        reproducible, reportable estimate use
         ``curie_inverse_susceptibility`` with the ``fit_range`` identified
         here.
 
@@ -6683,7 +6714,12 @@ def curie_inverse_susceptibility_interactive(
         }
     """)
     fit_source.js_on_change("data", callback)
-    show(column(p_inv, curie_estimate))
+    layout = column(p_inv, curie_estimate)
+    if show_plot:
+        show(layout)
+    if return_figure:
+        return layout
+    return None
 
 
 def add_curie_estimates_to_specimens_table(
