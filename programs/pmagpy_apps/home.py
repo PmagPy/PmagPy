@@ -199,10 +199,13 @@ a.bar:hover .open { filter:brightness(.93) }
 .start .lead { color:var(--ink); font-size:1.12rem; white-space:nowrap; margin:14px 0 22px }
 .door h3 { margin:0 0 6px; font-size:1.15rem; font-weight:650; letter-spacing:-.005em }
 .door p { margin:0 0 14px; color:var(--muted); font-size:.93rem; line-height:1.5; min-height:4.5em; max-width:48ch }
-.recent { margin:0; padding:0 }
-.recent li { list-style:none; padding:5px 0; font-size:.88rem; border-bottom:1px solid #f0f2f4 }
+.recent { margin:0 -16px; padding:0 }
+.recent li { list-style:none; font-size:.88rem; border-bottom:1px solid #f0f2f4 }
 .recent li:last-child { border-bottom:0 }
-.recent li a { color:var(--ink); text-decoration:none } .recent li a:hover { color:var(--accent) }
+.recent li a { display:block; padding:7px 16px; text-decoration:none; color:var(--accent) }
+.recent li a:hover { background:#eef3fb }
+.recent li .n { font-weight:600 }
+.recent li .n::after { content:" →"; color:var(--muted); font-weight:400 }
 .recent li .p { color:var(--muted); font-size:.78rem; font-family:ui-monospace,Menlo,monospace; display:block;
                 overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
 """
@@ -436,9 +439,9 @@ def aside_html(inv: Inventory) -> str:
 
 def recent_html(recent: List[str]) -> str:
     """The recently opened directories as links, for the start page. Empty when there are none."""
-    items = "".join(
-        f'<li><a href="{_esc(home_link(d))}">{_esc(os.path.basename(d.rstrip(os.sep)) or d)}</a>'
-        f'<span class="p" title="{_esc(d)}">{_esc(shorten_home(d))}</span></li>' for d in recent)
+    items = "".join(                              # the whole row is the link, name and path alike
+        f'<li><a href="{_esc(home_link(d))}" title="{_esc(d)}"><span class="n">{_esc(os.path.basename(d.rstrip(os.sep)) or d)}</span>'
+        f'<span class="p">{_esc(shorten_home(d))}</span></a></li>' for d in recent)
     if not items:
         return ""
     return f'<div class="home"><div class="section">Recent</div><div class="box"><ul class="recent">{items}</ul></div></div>'
