@@ -863,3 +863,7 @@ the bottom; struck through once settled.
       amber (convert) — the same amber as the Metadata "gaps" dot. Change any?
     - Wording on the doors is one sentence each; the example door names
       Lawrence et al. 2009 (doi:10.1029/2008GC002072, MagIC 13436).
+
+59. **New fit's starting bounds (Directions, 2026-09-02).** *New fit* now creates the fit at once: from the end of the last existing fit to the final step (an analyst's next component usually starts where the previous one ends), or over all steps when there is no fit yet or nothing lies above the last one. The alternative — start from the Lower/Upper bound selectors as they stand — was rejected because with a fit selected they show that fit's bounds and the new fit would duplicate it. Is "after the last fit" the right default, or should a new fit always span everything (more predictable, one more click)? Two clicked steps with no fit selected still make a fit.
+
+60. **Panel runs some callbacks unlocked (found 2026-09-02).** Async callbacks and a text field's Enter both run outside the Bokeh document lock in Panel 1.9.4; raw Bokeh model changes there raise and leave the page half drawn. `runtime.locked()` is the fix on our side (used by the chooser and Directions' name field). Worth a Panel issue upstream? The behaviour is by design for async (their docs point to `pn.io.with_lock`), but the Enter case looks like a bug in `_server_event`.
