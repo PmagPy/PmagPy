@@ -362,6 +362,43 @@ class TestExportView:
         view._save_vgp_maps()
         assert "vgps_A" in view.status.object
 
+    def test_criteria_are_opt_in_and_reach_the_written_tables(self, tmp_path):
+        from pmagpy_directions.views import ExportView
+        from pmagpy.magic_project import magic_write
+        src = tmp_path / "data"
+        shutil.copytree(_DMAG, src)
+        out = tmp_path / "out"
+        s = Session(str(src), output_dir=str(out))
+        view = ExportView(s)
+        assert view.criteria.disabled and s.criteria_count() == 0 and "no <code>criteria.txt" in view.criteria_note.object
+        magic_write(str(src / "criteria.txt"), pd.DataFrame([
+            {"criterion": "DE-SPEC", "table_column": "specimens.dir_mad_free", "criterion_operation": "<=",
+             "criterion_value": "2.0", "citations": "This study"},
+            {"criterion": "IE-SPEC", "table_column": "specimens.int_b_beta", "criterion_operation": "<=",
+             "criterion_value": "0.1", "citations": "This study"}]), "criteria")
+        assert s.load(str(src), str(out))
+        assert s.criteria_count() == 1 and not view.criteria.disabled and "1 directional" in view.criteria.name
+        assert not s.apply_criteria and "not applied" in view.criteria_note.object
+        version = s.version
+        s.apply_criteria = True                                    # the checkbox is bound to this
+        assert s.version == version + 1 and s.data.criteria is not None
+        failing = s.data.failing_components()
+        assert len(failing) > 20 and f"{len(failing)} fits fail DE-SPEC" in view.criteria_note.object
+        view._write()
+        spec = pd.read_csv(out / "specimens.txt", sep="\t", skiprows=1, dtype=str)
+        mine = spec[spec["software_packages"].fillna("").str.contains(dc.APP_ID)]
+        bad = mine[mine["result_quality"] == "b"]
+        assert set(zip(bad["specimen"], bad["dir_comp"])) == failing
+        sites = pd.read_csv(out / "sites.txt", sep="\t", skiprows=1, dtype=str)
+        written = sites[sites["software_packages"].fillna("").str.contains(dc.APP_ID)]
+        coords = s.default_mean_coords()
+        with_criteria = sum(s.data.mean_directions("site", c)["dir_n_specimens"].sum() for c in coords)
+        without = sum(s.data.mean_directions("site", c, include_bad=True)["dir_n_specimens"].sum() for c in coords)
+        assert written["dir_n_specimens"].astype(float).sum() == with_criteria < without
+        s.apply_criteria = False                                   # off again: nothing is flagged
+        assert s.data.criteria is None and s.data.failing_components() == set()
+        assert (s.data.specimens_table(coords=(dc.COORD_GEOGRAPHIC,))["result_quality"] == "g").all()
+
     def test_in_place_export_backs_up_originals(self, tmp_path):
         src = tmp_path / "data"
         shutil.copytree(_DMAG, src)

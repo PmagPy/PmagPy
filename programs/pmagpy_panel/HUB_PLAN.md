@@ -553,9 +553,19 @@ Intensity were built.
    value not a number, table named in the singular as older files have) and
    lists the scores beside the validator's findings. `passing_rows(table_df,
    criteria, table, criterion=, blank_fails=True)` is the piece Directions'
-   export can use to apply criteria (QUESTIONS 49). A blank cell fails a
+   export uses to apply criteria (QUESTIONS 49). A blank cell fails a
    criterion, as `pmag.grade` has always ruled; `blank_fails=False` lets it
    through.
+   **Directions applies them since 2026-09-02** (opt-in on its Export pane):
+   `DemagData.set_criteria` / `load_criteria` take the directory's
+   `criteria.txt`; a fit failing `DE-SPEC` is written `result_quality` 'b'
+   and left out of the means, a sample or site mean failing `DE-SAMP` /
+   `DE-SITE` is written 'b' and left out of the level above (site means over
+   samples, location means, poles); Means and Poles follow the setting. Blank
+   statistics do not fail there (`blank_fails=False`) — one table mixes fit
+   types with different statistics, and McMurdo's own `DE-SPEC
+   dir_alpha95 <= 180` would otherwise reject every line fit. On McMurdo the
+   cascade is 76 of 992 fits, 7 of 135 sites, pole N 135 → 128.
    **Upload built 2026-09-01**: `pmagpy/magic_upload.py` is the UI-free layer
    — `check_offline` (every table through `magic_metadata.check_table`),
    `build_upload_file` (`ipmag.upload_magic`, the file landing in the study
@@ -762,7 +772,7 @@ Intensity were built.
 | kly4s / k15 / sufar4 | **done** (2026-09-02), as the `k15`/`kly4s`/`sufar4` formats; the directory opens Anisotropy | conversions |
 | legacy 2.5 → 3.0 | **done** (2026-09-02), as the `legacy` format on Convert, guessed from the 2.5 table names | cheap; old datasets still arrive |
 | export result tables (`*_extract`) | **done** (step 3, 2026-09-01): `magic_upload.export_tables` on Upload, Excel or LaTeX | publication tables; cheap |
-| criteria editor (`CustomizeCriteria`, unreachable today) | **done** (2026-09-02), as the criteria grid on Metadata with defaults and a per-criterion check | criteria need a home; Directions' export can apply them through `magic_metadata.passing_rows` |
+| criteria editor (`CustomizeCriteria`, unreachable today) | **done** (2026-09-02), as the criteria grid on Metadata with defaults and a per-criterion check | criteria need a home; Directions' export applies them, opt-in, since 2026-09-02 |
 | depth plots (`core_depthplot`, `ani_depthplot2`) | **defer** | matplotlib, niche; revisit when a stratigraphic user asks |
 | `ZeqMagic` (unreachable today) | **drop** | Directions covers it |
 | private MagIC workspace | **defer** until its function is fixed | cannot work today |

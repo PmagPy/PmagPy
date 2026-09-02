@@ -662,3 +662,20 @@ the bottom; struck through once settled.
     library's core dependency list is unchanged. Would you rather it were a
     core requirement? `data_model3` fetches the data model with it when the
     local copy is absent, so the case exists.
+
+    *Update to 49, criteria on export (2026-09-02)*: the export now applies criteria, **opt-in** (a
+    checkbox on Directions' Export pane, off by default, disabled when the
+    directory has no `criteria.txt` with DE-* rows). Choices made, all
+    reversible: (a) a fit failing DE-SPEC is written `result_quality` 'b'
+    and left out of the means — as a fit you flag by hand is — rather than
+    dropped from the table; (b) a sample/site mean failing DE-SAMP/DE-SITE is
+    written 'b' and left out of the level above (site means over samples,
+    location means, poles); (c) blank statistics do **not** fail
+    (`blank_fails=False`) — `pmag.grade` for `specimen_dir` never looked at
+    alpha95 at all (its USEKEYS were MAD, n, moment, step range), so the old
+    strict rule and this lenient one agree on the classic criteria and differ
+    only where a criterion names a statistic the fit type lacks; (d) the
+    Means and Poles tabs follow the checkbox, so the display is the export.
+    On McMurdo: 76 of 992 fits fail (MAD > 5 or n < 4), 7 of 135 site means
+    fail after that (k, n_samples, n_lines), the pole goes from N = 135 to
+    128. Should the checkbox default to *on* when a criteria.txt exists?

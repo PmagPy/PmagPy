@@ -1105,6 +1105,11 @@ class ExportView:
                                                     inline=True, stylesheets=[CHECKBOX_CSS])
         self.write_meas = pn.widgets.Checkbox(name="write measurements.txt with good/bad flags", value=True,
                                               stylesheets=[CHECKBOX_CSS])
+        self.criteria = pn.widgets.Checkbox.from_param(session.param.apply_criteria, name="apply criteria.txt",
+                                                       stylesheets=[CHECKBOX_CSS])
+        self.criteria_note = pn.pane.HTML("", sizing_mode="stretch_width")
+        session.param.watch(lambda e: self._describe_criteria(), ["version", "apply_criteria"])   # loads bump version
+        self._describe_criteria()
         self.write_btn = pn.widgets.Button(name="Write MagIC tables", button_type="primary", width=180)
         self.validate_btn = pn.widgets.Button(name="Validate output tables", width=180)
         self.write_btn.on_click(self._write)
@@ -1145,6 +1150,23 @@ class ExportView:
         # means, poles and figures default to the dataset's best coordinate system
         session.param.watch(lambda e: self._follow_default_coord(), "directory")
         self._follow_default_coord()
+
+    def _describe_criteria(self):
+        """The checkbox says how many directional criteria the directory carries; none disables it."""
+        n = self.s.criteria_count()
+        self.criteria.disabled = n == 0
+        self.criteria.name = f"apply the {n} directional criteria in criteria.txt" if n else "apply criteria.txt"
+        if n == 0:
+            text = ("no <code>criteria.txt</code> with DE-SPEC / DE-SAMP / DE-SITE rows in this directory "
+                    "(the hub's Metadata page writes one) - every fit and mean is written as it is")
+        elif self.s.apply_criteria:
+            failing = len(self.s.data.failing_components())
+            text = (f"{failing} fits fail DE-SPEC and are written <code>result_quality</code> 'b' and left out "
+                    "of the means; a sample or site mean failing its criterion is written 'b' and left out of "
+                    "the level above (location means, poles). Blank statistics do not fail a criterion.")
+        else:
+            text = "the criteria are not applied: every fit and mean is written as it is"
+        self.criteria_note.object = f'<div style="{MUTED_STYLE}">{text}</div>'
 
     def _follow_default_coord(self):
         """Figures default to the dataset's best coordinate system; means and poles are
@@ -1289,7 +1311,8 @@ class ExportView:
                    pn.Column(pn.pane.HTML("means and poles in"), self.mean_coords),
                    pn.Column(pn.pane.HTML("means for"), self.levels),
                    pn.Column(pn.pane.HTML("site means over"), self.site_over)),
-            pn.Row(self.analysts, pn.Column(self.write_meas, margin=(28, 10, 0, 10))),
+            pn.Row(self.analysts, pn.Column(self.write_meas, self.criteria, margin=(28, 10, 0, 10))),
+            self.criteria_note,
             pn.Row(self.write_btn, self.validate_btn),
             self.status, self.report,
             section("Fits (.redo)"),

@@ -231,6 +231,22 @@ specimen (PDF/SVG/PNG; panel, inset or Zijderveld-only layout), a
 "directions for all specimens" overview (one net per component) and the
 VGP maps.
 
+**Acceptance criteria** (opt-in, on the Export pane). When the directory
+holds a `criteria.txt` with `DE-SPEC` / `DE-SAMP` / `DE-SITE` rows (the
+hub's Metadata page writes one), ticking *apply criteria* judges the fits
+and means by them the way the legacy tools did with `pmag.grade`: a
+component failing `DE-SPEC` is written with `result_quality` 'b' and left
+out of the means, as one flagged by hand is; a sample or site mean failing
+its criterion is written 'b' and left out of the level above (site means
+over samples, location means, poles). The Means and Poles tabs follow the
+setting, so what is shown is what is written. One deliberate difference
+from `pmag.grade`: a statistic a row does not carry (`dir_alpha95` on a
+line fit, `dir_mad_free` on a Fisher mean) does not fail the criterion —
+one table mixes fit types with different statistics, and McMurdo's own
+`DE-SPEC dir_alpha95 <= 180` would otherwise reject every line fit. Nothing
+is applied unless the box is ticked; intensity criteria (`IE-*`) and the
+pole criteria (`NPOLE`/`RPOLE`) are not the concern of this application.
+
 ### Persistence model
 
 Fits are the light-weight, coordinate-independent part of the
@@ -375,9 +391,9 @@ Worth knowing before relying on the app:
   step. This is the only systematic difference found in full regressions
   against the published interpretations of two studies (Oman: 3 of 522
   fits; Jacobsville: 20 of 578).
-* **Not yet carried over from the legacy GUI:** acceptance-criteria
-  filtering on export, the ages dialog, `images.txt` records,
-  auto-interpretation and LSQ import.
+* **Not yet carried over from the legacy GUI:** the ages dialog (the hub's
+  Metadata page covers it), `images.txt` records, auto-interpretation and
+  LSQ import.
 * **The polarity modes are not labelled normal and reversed.** Which mode is
   which follows from the polarity of its VGP, not from the directions — in
   the southern hemisphere normal polarity is the steeply *negative* mode, as
