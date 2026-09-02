@@ -3,7 +3,7 @@ Tests for the Rock Magnetism application: the experiment index, the session,
 and the views against the shipped examples (MagIC contribution 20427,
 ``data_files/3_0/RMB_oxyhydroxides``, for the low-temperature and
 thermomagnetic views; 20213, ``data_files/3_0/ECMB_rockmag``, for the
-hysteresis ones) and synthetic curves with known answers. Run with the apps
+hysteresis and backfield ones) and synthetic curves with known answers. Run with the apps
 environment::
 
     pytest programs/pmagpy_rockmag/test_app.py -q
@@ -13,13 +13,15 @@ import os
 import numpy as np
 import pandas as pd
 import pytest
+from scipy.optimize import brentq
+from scipy.special import erf
 
 pn = pytest.importorskip("panel")
 
 from pmagpy import rockmag  # noqa: E402
 from pmagpy_rockmag import app, session as rs  # noqa: E402
-from pmagpy_rockmag.views import (AcSusceptibilityView, ChiTView, CurieView, GoethiteView, HysteresisView,  # noqa: E402
-                                  MpmsDcView, VerweyView)
+from pmagpy_rockmag.views import (AcSusceptibilityView, BackfieldView, ChiTView, CurieView, GoethiteView,  # noqa: E402
+                                  HysteresisView, MpmsDcView, UnmixingView, VerweyView)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
@@ -426,6 +428,141 @@ class TestHysteresisView:
         assert view.experiment.options == {} and view.results is None and "no hysteresis loop" in view.result.object
 
 
+ECMB_BACKFIELD = "IRM-VSM3-LP-BCR-BF-218846"                # NED1-5c
+TWO_COMPONENTS = ((0.6, 1.3, 0.3), (0.4, 2.0, 0.2))        # (fraction, log10 B_mean in mT, dispersion)
+
+
+def remanence_left(log_b, components=TWO_COMPONENTS):
+    """The fraction of a saturation remanence left after a backfield of 10**log_b mT, for log-Gaussian components."""
+    return sum(f * (1 - 0.5 * (1 + erf((log_b - mu) / (dp * np.sqrt(2))))) for f, mu, dp in components)
+
+
+def backfield_curve(components=TWO_COMPONENTS, n=80, noise=0.0, seed=0):
+    """A backfield curve from the saturation remanence (field 0, M = 1) through 0.3 mT–1 T in log steps."""
+    log_b = np.linspace(-0.5, 3.0, n)
+    mags = 2 * remanence_left(log_b, components) - 1 + np.random.default_rng(seed).normal(0, noise, n)
+    return pd.DataFrame({"specimen": "syn", "method_codes": "LP-BCR-BF", "experiment": "syn_BCR",
+                         "treat_dc_field": np.concatenate([[0.0], -(10 ** log_b) / 1e3]),
+                         "magn_mass": np.concatenate([[1.0], mags])})
+
+
+class TestBackfieldView:
+    def test_the_example_curve_gives_bcr_and_the_code_reproduces_it(self, ecmb):
+        view = BackfieldView(ecmb)
+        assert view.experiment.value == ECMB_BACKFIELD and ecmb.specimen == "NED1-5c"
+        assert view.Bcr == pytest.approx(0.02636, abs=5e-5) and "B<sub>cr</sub> <b>26.4 mT</b>" in view.result.object
+        assert len(view.processed) == 99 and view.drop_first.value and view.drop_first.disabled
+        assert len(view.figure.children) == 3 and view.plot.object is view.figure
+        lines = view.code.text.splitlines()
+        assert lines[5:] == [f"experiment = rmag.experiment_selection(measurements, '{ECMB_BACKFIELD}')",
+                             "experiment, Bcr = rmag.process_backfield_data(experiment, smooth_mode='spline', drop_first=True)",
+                             "rmag.plot_backfield_data(experiment, Bcr=Bcr, interactive=True)"]
+        namespace = {"rmag": rockmag, "measurements": ecmb.measurements}
+        exec("\n".join(lines[5:-1]), namespace)
+        assert namespace["Bcr"] == pytest.approx(view.Bcr)
+        assert list(namespace["experiment"]["smoothed_magn_mass_shift"]) == list(view.processed["smoothed_magn_mass_shift"])
+
+    def test_the_smoothing_controls_are_the_functions_arguments(self, ecmb):
+        view = BackfieldView(ecmb)
+        raw = view.processed["smoothed_magn_mass_shift"].to_numpy()
+        view.set_parameters(smooth_frac=0.2)
+        assert view.code.text.splitlines()[6:12] == ["experiment, Bcr = rmag.process_backfield_data(", "    experiment,",
+                                                     "    smooth_mode='spline',", "    smooth_frac=0.2,",
+                                                     "    drop_first=True,", ")"]
+        assert not np.allclose(view.processed["smoothed_magn_mass_shift"].to_numpy(), raw)
+        assert view.Bcr == pytest.approx(0.02636, abs=5e-5)                 # Bcr is read off the raw curve
+        view.set_parameters(smooth_frac=0.0)
+
+    def test_changing_experiment_follows_the_specimen_both_ways(self, ecmb):
+        view = BackfieldView(ecmb)
+        view.experiment.value = "IRM-VSM3-LP-BCR-BF-218850"
+        assert ecmb.specimen == "NED2-8c" and view.Bcr == pytest.approx(0.0344, abs=1e-4)
+        ecmb.specimen = "NED18-2c"
+        assert view.experiment.value == "IRM-VSM3-LP-BCR-BF-218848" and view.Bcr == pytest.approx(0.0210, abs=1e-4)
+        ecmb.specimen = "NED1-5c"
+
+    def test_a_synthetic_curve_gives_back_its_bcr_with_the_sirm_point_dropped(self):
+        view = BackfieldView(backfield_curve())
+        expected = 10 ** brentq(lambda log_b: remanence_left(log_b) - 0.5, -0.5, 3.0) / 1e3
+        assert view.Bcr == pytest.approx(expected, rel=2e-3)
+        assert len(view.processed) == 80 and np.isfinite(view.processed["log_dc_field"]).all()
+        assert view.code.text.splitlines()[3] == "# measurements: the DataFrame this view was given"
+
+    def test_nothing_to_plot_is_said_not_raised(self):
+        view = BackfieldView(pd.DataFrame({"specimen": ["a"], "method_codes": ["LP-FC"], "experiment": ["e"],
+                                           "meas_temp": [10.0], "magn_mass": [1.0]}))
+        assert view.experiment.options == {} and view.Bcr is None and "no backfield curve" in view.result.object
+
+
+class TestUnmixingView:
+    @pytest.fixture(scope="class")
+    def synthetic(self):
+        return UnmixingView(backfield_curve())
+
+    def test_two_log_gaussian_components_are_recovered_by_every_method(self, synthetic):
+        for method in ["spectrum", "curve", "maxunmix"]:
+            synthetic.set_unmixing(method=method, n_components=2, vary_skew=False)
+            params = synthetic.result["params"]
+            assert params["proportion"].to_numpy() == pytest.approx([0.6, 0.4], abs=0.01), method
+            assert params["log10_B_mean"].to_numpy() == pytest.approx([1.3, 2.0], abs=0.01), method
+            assert params["sd_log"].to_numpy() == pytest.approx([0.3, 0.2], abs=0.01), method
+            assert synthetic.result["stats"]["r_squared"] > 0.999
+        synthetic.set_unmixing(method="spectrum")
+        assert "B<sub>mean</sub> (mT)" in synthetic.table.object and "r² <b>1.0000</b>" in synthetic.table.object
+
+    def test_noise_does_not_move_the_components_much(self):
+        view = UnmixingView(backfield_curve(noise=0.005))
+        assert view.result["params"]["log10_B_mean"].to_numpy() == pytest.approx([1.3, 2.0], abs=0.02)
+        assert view.result["params"]["proportion"].to_numpy() == pytest.approx([0.6, 0.4], abs=0.02)
+
+    def test_choose_n_runs_the_selection_and_enters_the_code_until_the_slider_is_moved(self, synthetic):
+        synthetic.set_unmixing(n_components=1)
+        assert synthetic.selection is None and "select_n_components" not in synthetic.code.text
+        synthetic.choose_n()
+        assert synthetic.n_components.value == 2
+        assert list(synthetic.selection["selected"]) == [False, True, False, False]
+        assert "2 components chosen by the parsimony rule" in synthetic.table.object
+        lines = synthetic.code.text.splitlines()
+        assert lines[5:7] == ["experiment, Bcr = rmag.process_backfield_data(experiment, smooth_mode='spline', drop_first=True)",
+                              "x, M = experiment['log_dc_field'], experiment['magn_mass_shift']"]
+        assert lines[7] == ("n_components, selection, fits = rmag.select_n_components(x, M, method='spectrum', "
+                            "max_components=4, vary_skew=False)")
+        assert "    n_components=n_components," in lines and lines[-1] == \
+            "rmag.plot_coercivity_unmixing(result, title='syn · 2 components')"
+        synthetic.set_unmixing(n_components=3)                               # a hand-picked count drops the rule
+        assert synthetic.selection is None and "select_n_components" not in synthetic.code.text
+        assert "n_components=3," in synthetic.code.text.splitlines()[-2]
+        synthetic.set_unmixing(n_components=2)
+
+    def test_the_code_reproduces_the_fit(self, synthetic, monkeypatch):
+        import matplotlib
+        matplotlib.use("Agg")
+        synthetic.set_unmixing(method="curve", n_components=2, vary_skew=True)
+        lines = synthetic.code.text.splitlines()
+        assert lines[-2] == "result = rmag.unmix_coercivity(x, M, method='curve', n_components=2, vary_skew=True)"
+        namespace = {"rmag": rockmag, "measurements": synthetic.s.measurements}
+        exec("\n".join(lines[4:-1]), namespace)
+        assert namespace["result"]["params"]["B_mean_mT"].to_numpy() == \
+            pytest.approx(synthetic.result["params"]["B_mean_mT"].to_numpy())
+        synthetic.set_unmixing(method="spectrum", vary_skew=False)
+
+    def test_the_example_curve_is_unmixed(self, ecmb):
+        view = UnmixingView(ecmb)
+        assert view.experiment.value == ECMB_BACKFIELD and view.result["n_components"] == 2
+        assert view.result["method"] == "spectrum" and view.plot.object is view.figure
+        assert "NED1-5c · 2 components" in view.code.text
+        view.set_unmixing(method="curve", n_components=3)
+        assert view.result["stats"]["r_squared"] > 0.999
+
+    def test_a_failed_fit_is_reported_not_raised(self, monkeypatch):
+        def fail(*a, **k):
+            raise RuntimeError("no convergence")
+        monkeypatch.setattr(rockmag, "unmix_coercivity", fail)
+        view = UnmixingView(backfield_curve())
+        assert view.result is None and "The fit failed: no convergence" in view.table.object
+        assert view.code.text.splitlines()[-1].startswith("experiment, Bcr = rmag.process_backfield_data")
+
+
 class TestApp:
     def test_create_app_builds_the_template_with_one_tab_per_view(self):
         template = app.create_app(EXAMPLE)
@@ -434,8 +571,8 @@ class TestApp:
 
     def test_the_body_has_the_index_and_the_views(self, session):
         body = app.build_body(session)
-        assert list(body.views) == ["mpms_dc", "verwey", "goethite", "mpms_ac", "chi_t", "curie", "hys"]
+        assert list(body.views) == ["mpms_dc", "verwey", "goethite", "mpms_ac", "chi_t", "curie", "hys", "bcr", "unmix"]
         assert [name for name, _ in zip(body.main._names, body.main)] == [
-            "MPMS DC", "Verwey", "Goethite", "AC susceptibility", "χ–T", "Curie", "Hysteresis"]
+            "MPMS DC", "Verwey", "Goethite", "AC susceptibility", "χ–T", "Curie", "Hysteresis", "Backfield", "Unmixing"]
         assert body.views["verwey"].specimen.value == body.views["mpms_dc"].specimen.value
         assert body.info.app_id == "pmagpy_rockmag"

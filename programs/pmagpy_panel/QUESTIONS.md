@@ -158,3 +158,37 @@ the bottom; struck through once settled.
     I plan to offer LOWESS only when statsmodels is importable and default to
     `'spline'` otherwise — or should statsmodels join the `apps` extra in
     `setup.py`?
+
+## Backfield and unmixing views (2026-09-02)
+
+20. **Unmixing defaults and the noisy raw spectrum.** The unmixing view
+    follows `coercivity_unmixing.ipynb`: the raw shifted curve
+    (`magn_mass_shift` against `log_dc_field`, not the smoothed columns) goes
+    to `unmix_coercivity` with `method='spectrum'`, `n_components=2`,
+    `vary_skew=False` (the function's own default is `vary_skew=True`). On the
+    ECMB backfield curves the raw spectrum is noisy enough (r² ≈ 0.88–0.97 for
+    one component) that on two of the three the two-component spectrum fit
+    spends its second component on a single low-field point (NED2-8c: 2 % at
+    0.6 mT with DP 0.025 — the lower `dp_bounds` limit is 0.01), while the
+    `curve` method gives r² > 0.999 and sensible pairs. Three things you may want to decide:
+    (a) should the view (and notebook) default to `curve`, or feed the
+    smoothed curve to the spectrum method; (b) is a wider minimum dispersion
+    (say DP ≥ 0.05, i.e. a component narrower than the field spacing is not
+    physical) the right guard against one-point components; (c) `vary_skew`
+    False (notebook) or True (function default) as the app's default?
+
+21. **The parsimony rule stops early.** `select_n_components` stops adding
+    components at the first one that improves the residual by less than
+    `min_improvement` (2 %). On the two ECMB spectra above a second component
+    adds 0.1–0.2 % (the one-point component) while a third adds 11–24 %, so
+    the rule returns 1. That is the rule as written; should it instead look
+    ahead one step (skip a useless k if k+1 helps), or is a returned 1 with
+    the table beside it (the view shows each step's improvement) the honest
+    answer?
+
+22. **Bcr at the SIRM point.** A backfield run that starts with a zero-field
+    SIRM measurement (field 0.0 rather than a positive field) makes
+    `process_backfield_data` take log10(0): the function drops the first
+    point on its own only when the first field is positive. The view drops it
+    for either case and disables the checkbox while that experiment is shown.
+    Should the function do the same (`if experiment[field].iloc[0] >= 0`)?

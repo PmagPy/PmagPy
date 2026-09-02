@@ -11,9 +11,11 @@ notebook — straight from a measurements DataFrame::
 """
 from __future__ import annotations
 
+import importlib.util
 import warnings
 from typing import Optional
 
+import matplotlib.pyplot as plt
 import numpy as np
 import panel as pn
 from bokeh.layouts import gridplot
@@ -1004,8 +1006,318 @@ class HysteresisView:
                          self.result, pn.Row(self.plot, self.quality), self.code.panel(), sizing_mode="stretch_width")
 
 
+# ----------------------------------------------------------------------------- backfield
+BACKFIELD_FIELD = "treat_dc_field"
+SMOOTH_MODES = {"LOWESS": "lowess", "spline": "spline"}
+BACKFIELD_DEFAULTS = dict(smooth_mode="lowess", smooth_frac=0.0, drop_first=False)
+"""``process_backfield_data``'s own defaults; only what differs from them is emitted."""
+
+
+def plural(n: int, noun: str) -> str:
+    return f"{n} {noun}{'' if n == 1 else 's'}"
+
+
+def importable(module: str) -> bool:
+    """Whether an optional dependency of ``pmagpy.rockmag`` is installed (LOWESS needs statsmodels, Bayes dynesty)."""
+    return importlib.util.find_spec(module) is not None
+
+
+class BackfieldBase:
+    """The experiment picker and ``process_backfield_data`` controls shared by the backfield and unmixing views.
+
+    The processing shifts the curve to positive values, takes log10 of the
+    field in mT and smooths it; its arguments — ``smooth_mode``,
+    ``smooth_frac`` and ``drop_first`` — are the controls. LOWESS is offered
+    only when statsmodels is installed, which the function needs for it.
+    """
+
+    TYPE = "bcr"
+
+    def __init__(self, session):
+        self.s = as_session(session)
+        modes = dict(SMOOTH_MODES) if importable("statsmodels") else {"spline": "spline"}
+        self.experiment = pn.widgets.Select(name="Experiment", options={}, width=340)
+        self.smooth_mode = pn.widgets.RadioButtonGroup(name="Smoothing", options=modes, value=next(iter(modes.values())),
+                                                       width=150, button_type="default", margin=(24, 5, 0, 10))
+        self.smooth_frac = pn.widgets.FloatSlider(name="smoothing fraction", start=0.0, end=0.5, step=0.01, value=0.0,
+                                                  width=170)
+        self.drop_first = pn.widgets.Checkbox(name="drop first point", value=False, width=120, margin=(28, 5, 0, 10))
+        self.code = code.CodePane()
+        self.figure = None
+        self.Bcr = None
+        self.processed = None                     # the DataFrame process_backfield_data returned for what is shown
+        self._quiet = False                       # the checkbox being set by processing(): hold the refresh
+
+        self.experiment.param.watch(self._on_experiment, "value")
+        self.smooth_mode.param.watch(lambda e: self.refresh(), "value")
+        self.smooth_frac.param.watch(lambda e: self.refresh(), "value_throttled")
+        self.drop_first.param.watch(lambda e: self._quiet or self.refresh(), "value")
+        self.s.param.watch(lambda e: self.reset(), "directory")
+        self.s.param.watch(self._follow_session, "specimen")
+
+    # ----- state --------------------------------------------------------------
+    def _experiments(self):
+        return self.s.experiments_of(self.TYPE)
+
+    def reset(self) -> None:
+        exps = self._experiments()
+        options = {f"{r.specimen} · {r.experiment}": r.experiment for r in exps.itertuples()}
+        before = self.experiment.value
+        self.experiment.options = options
+        own = exps.loc[exps["specimen"] == self.s.specimen, "experiment"].tolist()
+        self.experiment.value = own[0] if own else (next(iter(options.values())) if options else None)
+        if self.experiment.value == before:
+            self._on_experiment(None)
+
+    def _on_experiment(self, event) -> None:
+        exp = self.experiment.value
+        if exp:
+            exps = self.s.experiments
+            self.s.specimen = exps.loc[exps["experiment"] == exp, "specimen"].iloc[0]
+        self.refresh()
+
+    def _follow_session(self, event) -> None:
+        exps = self._experiments()
+        own = exps.loc[exps["specimen"] == event.new, "experiment"].tolist()
+        if own and self.experiment.value not in own:
+            self.experiment.value = own[0]
+
+    def set_parameters(self, smooth_mode=None, smooth_frac=None, drop_first=None) -> None:
+        """Set the processing controls from code (a notebook, a test) and refresh."""
+        if smooth_mode is not None:
+            self.smooth_mode.value = smooth_mode
+        if smooth_frac is not None:
+            self.smooth_frac.value = smooth_frac
+        if drop_first is not None:
+            self.drop_first.value = drop_first
+        self.refresh()
+
+    # ----- the curve ----------------------------------------------------------
+    def data(self):
+        if not self.experiment.value or self.s.measurements is None:
+            return None
+        return rockmag.experiment_selection(self.s.measurements, self.experiment.value)
+
+    def processing(self, column: str, experiment) -> dict:
+        """The keyword arguments of ``process_backfield_data`` off their defaults, in signature order.
+
+        A curve that starts at the saturation remanence itself — a first field
+        of zero or of the magnetizing sign — has no place on a log axis of
+        backfields, so its first point is dropped whatever the checkbox says
+        (the function does that on its own for a positive first field, but
+        not for zero), and the checkbox is disabled while that experiment is
+        shown.
+        """
+        forced = bool(experiment[BACKFIELD_FIELD].dropna().iloc[0] >= 0)
+        self.drop_first.disabled = forced
+        if forced and not self.drop_first.value:
+            self._quiet = True
+            try:
+                self.drop_first.value = True
+            finally:
+                self._quiet = False
+        chosen = dict(magnetization=column, smooth_mode=self.smooth_mode.value,
+                      smooth_frac=round(float(self.smooth_frac.value), 3), drop_first=forced or bool(self.drop_first.value))
+        defaults = dict(magnetization="magn_mass", **BACKFIELD_DEFAULTS)
+        return {k: v for k, v in chosen.items() if v != defaults[k]}
+
+    def process(self):
+        """Run the processing on the chosen experiment: ``(processed, Bcr, column, kwargs)``, or None."""
+        experiment = self.data()
+        column = magnetization_column(experiment) if experiment is not None else None
+        if column is None or BACKFIELD_FIELD not in experiment or experiment[BACKFIELD_FIELD].isna().all():
+            return None
+        kwargs = self.processing(column, experiment)
+        processed, Bcr = rockmag.process_backfield_data(experiment, **kwargs)
+        return processed, float(Bcr), column, kwargs
+
+    def process_lines(self, kwargs: dict) -> list:
+        """The code that gets the processed curve: the preamble, the selection and the processing call."""
+        return preamble(self.s) + [
+            code.assign("experiment", code.call("rmag.experiment_selection", code.Name("measurements"), self.experiment.value)),
+            code.assign(["experiment", "Bcr"], code.call("rmag.process_backfield_data", code.Name("experiment"), **kwargs)),
+        ]
+
+    def controls(self) -> pn.Row:
+        if len(self.smooth_mode.options) == 1:                       # nothing to choose: say why
+            mode = pn.pane.HTML(muted("spline smoothing<br>(LOWESS needs statsmodels)"), width=170, margin=(18, 5, 0, 10))
+        else:
+            mode = self.smooth_mode
+        return pn.Row(self.experiment, mode, self.smooth_frac, self.drop_first)
+
+    def refresh(self) -> None:                                                  # pragma: no cover - subclasses
+        raise NotImplementedError
+
+
+class BackfieldView(BackfieldBase):
+    """A backfield curve raw, processed and as a coercivity spectrum: ``rockmag.plot_backfield_data``,
+    with B<sub>cr</sub> from ``process_backfield_data``.
+    """
+
+    def __init__(self, session):
+        super().__init__(session)
+        self.result = pn.pane.HTML("", sizing_mode="stretch_width")
+        self.plot = pn.pane.Bokeh(sizing_mode="stretch_width")
+        self.reset()
+
+    def refresh(self) -> None:
+        done = self.process()
+        if done is None:
+            self.processed = self.Bcr = self.figure = None
+            self.plot.object = None
+            self.result.object = muted("no backfield curve in this directory")
+            self.code.set(preamble(self.s))
+            return
+        self.processed, self.Bcr, column, kwargs = done
+        plot_kwargs = dict(Bcr=code.Name("Bcr"), interactive=True)
+        if column != "magn_mass":
+            plot_kwargs = dict(magnetization=column, **plot_kwargs,
+                               y_axis_units=MAGNETIZATION_COLUMNS[column])
+        self.figure = rockmag.plot_backfield_data(self.processed, **{**plot_kwargs, "Bcr": self.Bcr},
+                                                  figsize=(5, 7.5), return_figure=True, show_plot=False)
+        for fig, *_ in self.figure.children:
+            style_figure(fig)
+        self.plot.object = self.figure
+        bcr = f"{1e3 * self.Bcr:.1f} mT" if np.isfinite(self.Bcr) else "— (the curve does not cross zero)"
+        self.result.object = kpi([("B<sub>cr</sub>", bcr), ("points", str(len(self.processed)))])
+        self.code.set(self.process_lines(kwargs) + [code.call("rmag.plot_backfield_data", code.Name("experiment"),
+                                                                **plot_kwargs)])
+
+    def panel(self) -> pn.Column:
+        return pn.Column(self.controls(), self.result, self.plot, self.code.panel(), sizing_mode="stretch_width")
+
+
+UNMIX_METHODS = {"spectrum": "spectrum (dM/dlog B)", "curve": "curve (cumulative)", "maxunmix": "MAX UnMix (bootstrap)",
+                 "bayes": "Bayesian (nested sampling)"}
+"""The built-in ``unmix_coercivity`` methods with the labels the view shows; Bayes needs dynesty."""
+UNMIX_COLUMNS = (("proportion", "fraction", "{:.3f}"), ("B_mean_mT", "B<sub>mean</sub> (mT)", "{:.1f}"),
+                 ("B_median_mT", "B<sub>median</sub> (mT)", "{:.1f}"), ("sd_log", "DP (log₁₀ mT)", "{:.3f}"),
+                 ("skew", "skew", "{:.2f}"))
+"""The component parameters tabulated, from the result's ``params`` table."""
+MAX_COMPONENTS = 4
+
+
+class UnmixingView(BackfieldBase):
+    """Coercivity unmixing of a backfield curve: ``rockmag.unmix_coercivity`` on the processed
+    curve, tabulated and drawn by ``rockmag.plot_coercivity_unmixing``; ``select_n_components``
+    picks the number of components by its parsimony rule on request.
+    """
+
+    def __init__(self, session):
+        super().__init__(session)
+        methods = {label: m for m, label in UNMIX_METHODS.items() if m != "bayes" or importable("dynesty")}
+        self.method = pn.widgets.Select(name="Method", options=methods, value="spectrum", width=190)
+        self.n_components = pn.widgets.IntSlider(name="components", start=1, end=MAX_COMPONENTS, value=2, width=150)
+        self.vary_skew = pn.widgets.Checkbox(name="vary skew", value=False, width=90, margin=(28, 5, 0, 10))
+        self.select_btn = pn.widgets.Button(name="Choose n", width=90, margin=(24, 5, 0, 10))
+        self.table = pn.pane.HTML("", sizing_mode="stretch_width")
+        self.plot = pn.pane.Matplotlib(dpi=100, tight=True, sizing_mode="stretch_width")
+        self.result = None                        # the dict unmix_coercivity returned for what is drawn
+        self.selection = None                     # select_n_components' table when "Choose n" picked the count
+        self.method.param.watch(lambda e: self.refresh(), "value")
+        self.n_components.param.watch(self._on_n, "value_throttled")
+        self.vary_skew.param.watch(lambda e: self.refresh(), "value")
+        self.select_btn.on_click(lambda e: self.choose_n())
+        self.reset()
+
+    def _on_n(self, event) -> None:
+        self.selection = None                                          # a hand-picked count, not the rule's
+        self.refresh()
+
+    def set_unmixing(self, method=None, n_components=None, vary_skew=None) -> None:
+        """Set the unmixing controls from code (a notebook, a test) and refresh."""
+        if method is not None:
+            self.method.value = method
+        if n_components is not None:
+            self.n_components.value = int(n_components)
+        if vary_skew is not None:
+            self.vary_skew.value = vary_skew
+        self.selection = None
+        self.refresh()
+
+    def unmixing(self) -> dict:
+        """The keyword arguments of ``unmix_coercivity``, in signature order."""
+        return dict(method=self.method.value, n_components=int(self.n_components.value), vary_skew=bool(self.vary_skew.value))
+
+    def choose_n(self) -> None:
+        """Let ``select_n_components`` pick the count with the current method and skew setting."""
+        done = self.process()
+        if done is None:
+            return
+        processed = done[0]
+        x, M = processed["log_dc_field"].to_numpy(), processed["magn_mass_shift"].to_numpy()
+        kwargs = self.unmixing()
+        del kwargs["n_components"]
+        n, table, _ = rockmag.select_n_components(x, M, max_components=MAX_COMPONENTS, **kwargs)
+        self.selection = table
+        self.n_components.value = int(n)
+        self.refresh()
+
+    def refresh(self) -> None:
+        done = self.process()
+        if done is None:
+            self.processed = self.Bcr = self.figure = self.result = None
+            self.plot.object = None
+            self.table.object = muted("no backfield curve in this directory")
+            self.code.set(preamble(self.s))
+            return
+        self.processed, self.Bcr, column, kwargs = done
+        x, M = self.processed["log_dc_field"].to_numpy(), self.processed["magn_mass_shift"].to_numpy()
+        unmixing = self.unmixing()
+        title = f"{self.s.specimen} · {plural(unmixing['n_components'], 'component')}"
+        if self.figure is not None:
+            plt.close(self.figure)                                     # pyplot keeps figures until told otherwise
+        try:
+            self.result = rockmag.unmix_coercivity(x, M, **unmixing)
+            self.figure, _ = rockmag.plot_coercivity_unmixing(self.result, title=title)
+        except (ValueError, RuntimeError, np.linalg.LinAlgError, ImportError) as ex:
+            self.result = self.figure = None
+            self.plot.object = None
+            self.table.object = f'<div style="color:#b00">The fit failed: {ex}</div>'
+            self.code.set(self.process_lines(kwargs))
+            return
+        self.plot.object = self.figure
+        self.table.object = self._table_html()
+        lines = self.process_lines(kwargs) + ["x, M = experiment['log_dc_field'], experiment['magn_mass_shift']"]
+        if self.selection is not None:
+            lines.append(code.assign(["n_components", "selection", "fits"],
+                                     code.call("rmag.select_n_components", code.Name("x"), code.Name("M"),
+                                               method=unmixing["method"], max_components=MAX_COMPONENTS,
+                                               vary_skew=unmixing["vary_skew"])))
+            unmixing["n_components"] = code.Name("n_components")
+        lines += [code.assign("result", code.call("rmag.unmix_coercivity", code.Name("x"), code.Name("M"), **unmixing)),
+                  code.call("rmag.plot_coercivity_unmixing", code.Name("result"), title=title)]
+        self.code.set(lines)
+
+    def _table_html(self) -> str:
+        params, stats = self.result["params"], self.result["stats"]
+        head = "<tr><th>component</th>" + "".join(f"<th style='text-align:right'>{label}</th>" for _, label, _ in UNMIX_COLUMNS) + "</tr>"
+        rows = []
+        for component, row in params.iterrows():
+            cells = "".join(f'<td style="text-align:right;font-variant-numeric:tabular-nums">{fmt.format(row[name])}</td>'
+                            for name, _, fmt in UNMIX_COLUMNS)
+            rows.append(f"<tr><td>{component}</td>{cells}</tr>")
+        html = ('<table style="border-collapse:collapse;font-size:13px;margin:6px 0">'
+                '<style>.unmix td,.unmix th{padding:3px 12px 3px 0;border-bottom:1px solid #eee}</style>'
+                f'<tbody class="unmix">{head}{"".join(rows)}</tbody></table>')
+        notes = [f"r² <b>{stats['r_squared']:.4f}</b>", f"AIC <b>{stats['aic']:.1f}</b>", f"BIC <b>{stats['bic']:.1f}</b>"]
+        if not self.result["success"]:
+            notes.append(f"the optimiser did not report convergence: {self.result['message']}")
+        if self.selection is not None:
+            chosen = self.selection.loc[self.selection["selected"], "n_components"].iloc[0]
+            gains = " · ".join(f"{int(r.n_components)}: {r.rss_improvement_fraction:.1%}"
+                               for r in self.selection.itertuples() if np.isfinite(r.rss_improvement_fraction))
+            notes.append(f"{plural(int(chosen), 'component')} chosen by the parsimony rule "
+                         f"(residual reduced by each added component — {gains})")
+        return html + muted(" · ".join(notes[:3])) + ("".join(muted(n) for n in notes[3:]))
+
+    def panel(self) -> pn.Column:
+        return pn.Column(self.controls(), pn.Row(self.method, self.n_components, self.vary_skew, self.select_btn),
+                         self.table, self.plot, self.code.panel(), sizing_mode="stretch_width")
+
+
 # ----------------------------------------------------------------------------- the set of views
 TABS = (("mpms_dc", "MPMS DC", MpmsDcView), ("verwey", "Verwey", VerweyView), ("goethite", "Goethite", GoethiteView),
         ("mpms_ac", "AC susceptibility", AcSusceptibilityView), ("chi_t", "χ–T", ChiTView), ("curie", "Curie", CurieView),
-        ("hys", "Hysteresis", HysteresisView))
+        ("hys", "Hysteresis", HysteresisView), ("bcr", "Backfield", BackfieldView), ("unmix", "Unmixing", UnmixingView))
 """``(key, tab label, view class)`` in tab order. Experiment types without a view are listed in the index only."""

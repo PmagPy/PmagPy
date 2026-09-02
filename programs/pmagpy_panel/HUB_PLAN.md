@@ -561,8 +561,20 @@ Intensity were built.
    explained in prose). It needed loops to show, so a second example landed:
    `data_files/3_0/ECMB_rockmag`, the rock-magnetic subset (VSM loops,
    backfield, MPMS) of Nick's public MagIC 20213, with the script that rebuilds
-   it (QUESTIONS 16). *Next*: backfield + unmixing, FORC, results to
+   it (QUESTIONS 16). `BackfieldView` and `UnmixingView` share a
+   `BackfieldBase` (experiment picker over the `LP-BCR` runs and
+   `process_backfield_data`'s `smooth_mode`/`smooth_frac`/`drop_first`; LOWESS
+   offered only when statsmodels is importable, QUESTIONS 19; the SIRM point of
+   a curve starting at zero field is dropped for it, since the function only
+   does that for a positive first field). The first is Bcr and the function's
+   three-panel Bokeh grid (`plot_backfield_data(interactive=True)`); the second
+   is `unmix_coercivity` (method, `n_components`, `vary_skew`; Bayes offered
+   only with dynesty) with a "Choose n" button running `select_n_components`,
+   a table of the components and `plot_coercivity_unmixing` in a Matplotlib
+   pane; the emitted code carries the selection call only while the rule's
+   count is the one shown (QUESTIONS 20–21). *Next*: FORC, results to
    `specimens.txt` (`add_hyst_stats_to_specimens_table`,
+   `add_Bcr_to_specimens_table`, `add_unmixing_to_specimens_table`,
    `add_curie_estimates_to_specimens_table` through `MagicProject`), the
    notebook switch-over in RockmagPy-notebooks (QUESTIONS 12).
 5. **The rest of Pmag GUI, one decision at a time** — see the table below.
