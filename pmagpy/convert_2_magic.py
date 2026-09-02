@@ -8131,7 +8131,7 @@ def livdb(input_dir_path, output_dir_path=".", meas_out="measurements.txt",
         elif site_naming_convention[0] == "character delimited":
             d = site_naming_convention[1]
             site_splitted = sample.split(d)
-            if len(site_splitted == 1):
+            if len(site_splitted) == 1:
                 site = site_splitted[0]
             else:
                 site = d.join(site_splitted[:-1])

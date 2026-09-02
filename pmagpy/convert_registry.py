@@ -542,7 +542,7 @@ def guess_format(names: Sequence[str], directory: str = "") -> Tuple[str, Dict[s
                 orient_files.append(n)
     if orient_files:
         return "orient", roles
-    for key in ("jr6_jr6", "pmd", "tdt", "agm", "utrecht", "2g_asc", "2g_bin"):
+    for key in ("jr6_jr6", "pmd", "tdt", "livdb", "agm", "utrecht", "2g_asc", "2g_bin"):
         fmt = FORMATS[key]
         hits = [n for n in names if fmt.accepts(n) and fmt.extensions]
         if hits:
@@ -780,6 +780,26 @@ _add(Format(
     extensions=(".tdt",),
     examples=(("tdt_magic", {}),),
     notes="Converts every .tdt file in the directory at once."))
+
+LIVDB_NAMING = (("sample=specimen", "the specimen name"), ("no. of terminate characters", "all but the last N characters"),
+                ("character delimited", "the part before the last delimiter"))
+_add(Format(
+    "livdb", "Livdb (Liverpool)", convert.livdb,
+    fields=(LOCATION,
+            Field("samp_name_con", "choice", "Sample name is", "", default="sample=specimen", choices=LIVDB_NAMING),
+            Field("samp_num_chars", "text", "… N or delimiter", "For the two conventions that need one.", default="0"),
+            Field("site_name_con", "choice", "Site name is", "", default="site=sample",
+                  choices=(("site=sample", "the sample name"),) + LIVDB_NAMING[1:]),
+            Field("site_num_chars", "text", "… N or delimiter", "For the two conventions that need one.", default="0")),
+    kwargs={"location": "location_name"},
+    file_kw="input_dir_path", output_dir_kw="output_dir_path", takes_directory=True,
+    outputs={"measurements": "meas_out", "specimens": "spec_out", "samples": "samp_out",
+             "sites": "site_out", "locations": "loc_out"},
+    extensions=(".livdb", ".livdb.csv"),
+    examples=(("livdb_magic/TH_IZZI+", {"location": "ATPI"}), ("livdb_magic/MW_IZZI+andC++", {"location": "NVPA"}),
+              ("livdb_magic/MW_P", {"location": "Perp"})),
+    notes="Liverpool's Livdb exports (.livdb or .csv), thermal and microwave paleointensity protocols; "
+          "converts every such file in the directory at once, so keep one location per directory."))
 
 _add(Format(
     "agm", "AGM / VSM (MicroMag)", convert.agm,

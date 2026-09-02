@@ -353,6 +353,8 @@ class TestGuessFormat:
         assert reg.guess_format(["a.tdt", "b.tdt"])[0] == "tdt"
         assert reg.guess_format(["x.agm"])[0] == "agm"
         assert reg.guess_format(["Utrecht_Example.af"])[0] == "utrecht"
+        key, roles = reg.guess_format(["A.livdb", "B.livdb.csv", "measurements.txt"])
+        assert key == "livdb" and roles == {"A.livdb": "Livdb (Liverpool)", "B.livdb.csv": "Livdb (Liverpool)"}
 
     def test_magic_contribution_file(self, tmp_path):
         (tmp_path / "magic_contribution_1234.txt").write_text("tab delimited\tcontribution\nid\n1234\n>>>>>>>>>>\n")

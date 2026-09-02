@@ -349,6 +349,19 @@ class TestConvert:
         view.format.value = "sio"
         assert view.files.disabled is False
 
+    def test_a_livdb_directory_is_recognised_and_converts_whole(self, tmp_path):
+        livdb = os.path.join(os.path.dirname(CIT), "..", "livdb_magic", "TH_IZZI+", "ATPI_Thellier.livdb")
+        shutil.copy(livdb, tmp_path / "ATPI_Thellier.livdb")
+        session = home.HubSession(str(tmp_path), landing=False)
+        view = convert.ConvertView(session)
+        assert view.format.value == "livdb" and view.files.disabled is True
+        assert view.form.widgets["samp_name_con"].value == "sample=specimen"
+        view.form.widgets["location"].value = "ATPI"
+        assert asyncio.run(view._convert()) is True
+        counts = session.inventory.counts
+        assert counts["measurements"] == 659 and counts["specimens"] == counts["samples"] == 27   # sample=specimen
+        assert counts["locations"] == 1 and session.inventory.is_magic
+
     def test_a_contribution_file_unpacks_on_the_same_page(self, tmp_path):
         from pmagpy.test.test_magic_project import AS_SERVED
         (tmp_path / "magic_contribution_20549.txt").write_text(AS_SERVED)

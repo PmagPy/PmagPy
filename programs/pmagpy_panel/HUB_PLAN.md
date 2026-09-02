@@ -492,9 +492,12 @@ Intensity were built.
    when the directory holds lab files and no tables; the page turns between
    Home and Convert without leaving the URL.
    *Still to do here*: the CLI programs (`programs/conversion_scripts`) do not
-   yet read the registry; `livdb` and the other anisotropy inputs (`atrm`/`aarm`
-   from measurements are Anisotropy's Reduce tab) are not registered — the
-   Kappabridge ones are, since 2026-09-02; nothing records which files a
+   yet read the registry; the anisotropy inputs from measurements (`atrm`/
+   `aarm`) are Anisotropy's Reduce tab rather than Formats — the Kappabridge
+   ones and `livdb` (Liverpool's thermal and microwave paleointensity exports;
+   a directory format guessed from `.livdb`/`.livdb.csv`, whose
+   character-delimited site convention raised a TypeError until 2026-09-02)
+   are registered since 2026-09-02; nothing records which files a
    directory's tables came from (Home says only "N files beside the tables").
    Some of `data_files/convert_2_magic` is old — the next round should track
    down current instrument exports and test with the labs that use them; the

@@ -632,3 +632,23 @@ the bottom; struck through once settled.
       check reads it as `sites` and says so, rather than refusing; the
       validator does not object to it either. Fine, or should the check
       insist on the data model's `table.column` form?
+
+50. **Livdb on Convert (2026-09-02).** `livdb` is a registry Format now, a
+    directory format like `tdt` (the converter reads every `.livdb`,
+    `.livdb.csv` *and plain `.csv`* file in the directory), guessed from
+    `.livdb`/`.livdb.csv` names. Two things to know:
+    - The plain-`.csv` rule is the converter's own (`data_files/…/MW_P/
+      perp.csv` is one), so a directory that also holds an unrelated CSV
+      (a sample list, an orientation sheet) would be fed to the Livdb parser
+      and probably fail the whole run. The registry does not guess `livdb`
+      from a bare `.csv`, but it does not stop the converter reading one
+      either. Should the converter check the first line for the Livdb header
+      before parsing a `.csv`, or is "one Livdb export per directory" the
+      working rule at Liverpool anyway?
+    - The Format's examples are the shipped `TH_IZZI+`, `MW_IZZI+andC++` and
+      `MW_P` directories (all five shipped sets convert; `MW_C+` and `MW_OT+`
+      also carry `*_different_delimiters`/`*_old_delimiters` files that the
+      extension rule skips). The character-delimited *site* convention raised
+      `TypeError` (`len(site_splitted == 1)`) before today — nobody had used
+      it through the CLI, so if you know a Liverpool user whose names need
+      it, it is worth a real-data check.
