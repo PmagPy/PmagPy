@@ -24,7 +24,7 @@ from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 
-from pmagpy.convert_registry import FORMATS, guess_format
+from pmagpy.convert_registry import CONVERSION_LOG, FORMATS, conversion_sources, guess_format, read_conversions
 from pmagpy.magic_upload import is_upload_file
 
 # MagIC 3 tables in the order Home lists them; contribution is read but not listed
@@ -100,6 +100,7 @@ class Inventory:
     gaps: List[Gap] = field(default_factory=list)                 # largest first
     files: List[FileRole] = field(default_factory=list)           # everything that is not a MagIC table
     uploads: List[str] = field(default_factory=list)              # upload files built from the tables, newest first
+    conversions: List[dict] = field(default_factory=list)         # the log entries that account for the tables, oldest first
     folders: int = 0
     format_key: str = ""                                          # a convert_registry key, "magic", or ""
     format_guess: str = ""                                        # its label: "CIT", "JR6 (.jr6)", "MagIC contribution file", or ""
@@ -128,6 +129,16 @@ class Inventory:
         if fmt is None or "measurements" not in fmt.outputs:
             return []
         return [f for f in self.files if f.role]
+
+    @property
+    def source_files(self) -> List[str]:
+        """The files the conversion log says the tables came from, in the order they were converted."""
+        seen: List[str] = []
+        for entry in self.conversions:
+            for name in entry.get("files", []):
+                if name not in seen:
+                    seen.append(name)
+        return seen
 
     @property
     def is_empty(self) -> bool:
@@ -276,7 +287,9 @@ def take_inventory(directory: str) -> Inventory:
     for n in names:
         stem, ext = os.path.splitext(n)
         path = os.path.join(directory, n)
-        if ext == ".txt" and stem in TABLES and os.path.isfile(path):
+        if n == CONVERSION_LOG:
+            inv.conversions = conversion_sources(read_conversions(directory))
+        elif ext == ".txt" and stem in TABLES and os.path.isfile(path):
             try:
                 df = _read_table(path, COLUMNS[stem])
             except (OSError, ValueError, pd.errors.ParserError) as e:

@@ -39,10 +39,12 @@ import contextlib
 import importlib
 import inspect
 import io
+import json
 import os
 import shutil
 import tempfile
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
 import pandas as pd
@@ -50,6 +52,8 @@ import pandas as pd
 from pmagpy import convert_2_magic as convert
 
 MAGIC_TABLES = ("measurements", "specimens", "samples", "sites", "locations", "ages", "criteria", "images")
+#: the record, beside the tables, of the conversions that wrote them (see :func:`record_conversion`)
+CONVERSION_LOG = "pmagpy_conversions.json"
 
 
 class Deferred:
@@ -308,13 +312,16 @@ def _normalise(result) -> Tuple[bool, str]:
 
 
 def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: str,
-                  append: bool = False, report: Optional[Callable[[str], None]] = None) -> ConversionResult:
+                  append: bool = False, report: Optional[Callable[[str], None]] = None,
+                  record: bool = True) -> ConversionResult:
     """Convert files (or one directory) with one converter and write the MagIC tables into ``dir_path``.
 
     Each input is converted on its own in a scratch directory; the tables are then
     combined (rows concatenated, exact duplicates dropped) into ``dir_path``'s
     ``measurements.txt``, ``specimens.txt`` … — replacing what is there, or adding
-    to it when ``append`` is set.
+    to it when ``append`` is set. A conversion that wrote tables is added to
+    ``dir_path``'s :data:`CONVERSION_LOG` (:func:`record_conversion`), so the
+    directory remembers which files its tables came from.
 
     Args:
         fmt: the format.
@@ -324,6 +331,7 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
         dir_path: the MagIC directory the tables go to.
         append: add to the tables already in ``dir_path`` instead of replacing them.
         report: called with a line per file for a status bar.
+        record: keep the conversion in the directory's log.
     """
     say = report or (lambda text: None)
     dir_path = os.path.abspath(os.path.expanduser(dir_path))
@@ -372,7 +380,91 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
         return ConversionResult(False, message, "\n".join(logs), tables, failed)
     what = f"{n_ok} of {len(inputs)} files" if failed else (f"{n_ok} files" if n_ok > 1 else os.path.basename(inputs[0]))
     message = f"{what} converted · {describe_tables(tables)}" + (f" · {len(failed)} failed" if failed else "")
-    return ConversionResult(True, message, "\n".join(logs), tables, failed)
+    result = ConversionResult(True, message, "\n".join(logs), tables, failed)
+    if record and tables:
+        if fmt.takes_directory:
+            names = directory_inputs(fmt, inputs[0])
+        else:
+            names = [os.path.basename(p) for p in inputs if os.path.basename(p) not in {f for f, _ in failed}]
+        record_conversion(dir_path, fmt.key, names, values, append=append, tables=tables,
+                          failed=[f for f, _ in failed], label=fmt.label)
+    return result
+
+
+def directory_inputs(fmt: Format, directory: str) -> List[str]:
+    """The files a directory format read: the ones it accepts by extension (the 2.5 tables for ``legacy``).
+
+    When the format lists no extensions, or none match, the directory's own
+    name stands for its contents.
+    """
+    try:
+        names = sorted(n for n in os.listdir(directory) if os.path.isfile(os.path.join(directory, n)))
+    except OSError:
+        names = []
+    if fmt.key == "legacy":
+        hits = [n for n in names if _legacy_table(n.lower())]
+    else:
+        hits = [n for n in names if fmt.extensions and fmt.accepts(n)]
+    return hits or [os.path.basename(os.path.abspath(directory))]
+
+
+# ----- remembering what the tables came from ----------------------------------------------
+
+
+def record_conversion(dir_path: str, format_key: str, files: Sequence[str], values: Optional[dict] = None,
+                      append: bool = False, tables: Optional[Dict[str, int]] = None,
+                      failed: Sequence[str] = (), label: str = "") -> str:
+    """Append one conversion to ``dir_path``'s :data:`CONVERSION_LOG` and return the log's path.
+
+    The log is a JSON list, oldest first; each entry has ``when`` (local time,
+    ISO 8601 to the second), ``format`` (a registry key, or ``"magic"`` for an
+    unpacked contribution file), ``label``, ``files`` (names relative to the
+    directory), ``values`` (the fields the converter was given, blanks left
+    out), ``append``, ``tables`` (rows written per table) and ``failed`` (the
+    files that did not convert). A conversion that replaced the tables makes
+    the earlier entries history rather than provenance; readers look at
+    ``append`` to tell which (see :func:`conversion_sources`).
+    """
+    entry = {
+        "when": datetime.now().replace(microsecond=0).isoformat(),
+        "format": format_key,
+        "label": label or (FORMATS[format_key].label if format_key in FORMATS else format_key),
+        "files": list(files),
+        "values": {k: v for k, v in (values or {}).items() if not (v is None or v is False or v == "" or v == [])},
+        "append": bool(append),
+        "tables": dict(tables or {}),
+        "failed": list(failed),
+    }
+    entries = read_conversions(dir_path)
+    entries.append(entry)
+    path = os.path.join(dir_path, CONVERSION_LOG)
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(entries, fh, indent=1, default=str)
+        fh.write("\n")
+    return path
+
+
+def read_conversions(dir_path: str) -> List[dict]:
+    """The directory's conversion log, oldest first; empty when there is none or it cannot be read."""
+    path = os.path.join(dir_path, CONVERSION_LOG)
+    if not os.path.isfile(path):
+        return []
+    try:
+        with open(path, encoding="utf-8") as fh:
+            entries = json.load(fh)
+    except (OSError, ValueError):
+        return []
+    return [e for e in entries if isinstance(e, dict)] if isinstance(entries, list) else []
+
+
+def conversion_sources(entries: Sequence[dict]) -> List[dict]:
+    """The entries that account for the tables as they stand: the last one that replaced them and every append since."""
+    kept: List[dict] = []
+    for entry in entries:
+        if not entry.get("append"):
+            kept = []
+        kept.append(entry)
+    return kept
 
 
 def describe_tables(tables: Dict[str, int]) -> str:

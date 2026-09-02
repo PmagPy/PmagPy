@@ -284,9 +284,11 @@ def stages(inv: Inventory) -> list:
             imp = ("warn", f"{fmt(n)} file{'s' if n != 1 else ''} to convert" + (f" · {inv.format_guess}?" if inv.format_guess else ""))
         return [("Import", *imp, True), ("Metadata", "off", "after import", False),
                 ("Analyze", "off", "after import", False), ("Upload", "off", "after import", False)]
-    # Lab files beside the tables are usually the ones the tables came from; the page cannot tell, so it says what it sees.
     others = [f for f in inv.files if f.role]
-    if not others:
+    if inv.conversions:
+        # the conversion log says what the tables came from
+        imp = ("ok", converted_from(inv))
+    elif not others:
         imp = ("ok", "tables in place")
     elif inv.format_key == "legacy":
         imp = ("ok", f"{len(others)} MagIC 2.5 table{'s' if len(others) != 1 else ''} beside the 3.0 tables")
@@ -314,6 +316,31 @@ def stages(inv: Inventory) -> list:
         up = ("off", "upload file not built yet")
     return [("Import", *imp, False), ("Metadata", *meta, False), ("Analyze", *ana, not parts),
             ("Upload", *up, bool(parts) and not inv.gaps and not inv.uploads)]
+
+
+def converted_from(inv: Inventory) -> str:
+    """'converted from 10 CIT files · 2 Sep 2026' — the log's account of the tables, latest conversion dated."""
+    last = inv.conversions[-1]
+    labels = {e.get("label") or e.get("format", "") for e in inv.conversions} - {""}
+    files = inv.source_files
+    if last.get("format") == "magic":
+        what = f"unpacked from {files[0]}" if len(files) == 1 else f"unpacked from {len(files)} contribution files"
+    elif last.get("format") == "legacy":
+        what = f"upgraded from {fmt(len(files))} MagIC 2.5 table{'s' if len(files) != 1 else ''}"
+    else:
+        label = labels.pop() if len(labels) == 1 else ""
+        if len(files) == 1:
+            what = f"converted from {files[0]}" + (f" ({label})" if label else "")
+        else:
+            what = f"converted from {fmt(len(files))} {label + ' ' if label else ''}files"
+    try:
+        when = datetime.fromisoformat(last.get("when", ""))
+        what += f" · {when:%-d %b %Y}"
+    except ValueError:
+        pass
+    if len(inv.conversions) > 1:
+        what += f" · {len(inv.conversions)} conversions"
+    return what
 
 
 def strip_html(inv: Inventory) -> str:
@@ -381,7 +408,9 @@ def aside_html(inv: Inventory, recent: List[str]) -> str:
         body = f"<table>{rows}</table>" if rows else '<div class="none">none</div>'
         first = f'<div class="section">Files</div><div class="box">{body}</div>'
     elif inv.files:
-        rows = "".join(f'<tr><td class="file" title="{_esc(f.name)}">{_esc(f.name)}</td><td class="n">{_esc(f.role)}</td></tr>'
+        sources = set(inv.source_files)                       # the conversion log names what the tables came from
+        rows = "".join(f'<tr><td class="file" title="{_esc(f.name)}">{_esc(f.name)}</td>'
+                       f'<td class="n">{_esc(" · ".join(x for x in (f.role, "converted" if f.name in sources else "") if x))}</td></tr>'
                        for f in inv.files[:6])
         if len(inv.files) > 6:
             rows += f'<tr><td class="file" style="color:var(--muted)">and {len(inv.files) - 6} more</td><td class="n"></td></tr>'

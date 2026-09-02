@@ -584,6 +584,14 @@ def magic_write(path: str, df: pd.DataFrame, table: str) -> str:
                                 dir_path=os.path.dirname(os.path.realpath(path)) or ".")
 
 
+def table_rows(path: str) -> int:
+    """The number of rows in a MagIC 3 table file (lines after the two header lines); 0 when the file is absent."""
+    if not os.path.isfile(path):
+        return 0
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        return max(0, sum(1 for line in fh if line.strip()) - 2)
+
+
 # ----- MagIC (EarthRef): finding and downloading a public contribution --------------
 #
 # Every EarthRef call the applications make goes through these few functions, so

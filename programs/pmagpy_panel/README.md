@@ -134,6 +134,15 @@ result = reg.convert_files(reg.FORMATS["jr6_jr6"], ["AF.jr6", "TRM.jr6"],
 result.ok, result.tables      # True, {'measurements': 1154, 'specimens': 98, 'samples': 30, 'sites': 10, 'locations': 1}
 ```
 
+A conversion that wrote tables is appended to `pmagpy_conversions.json` beside
+them — when, which format, which files, the fields given, whether it appended,
+the rows written, the files that failed — so the directory remembers what its
+tables came from (`reg.read_conversions(dir_path)`; `record=False` leaves no
+entry). Home reads it: the Import line says "converted from 10 CIT files ·
+2 Sep 2026" rather than counting the files beside the tables, and the aside
+marks the files that were converted. Unpacking a contribution file on the
+Convert page is recorded the same way (format `magic`).
+
 To add an instrument: write its converter in `pmagpy/convert_2_magic.py`, put an
 example file under `data_files/convert_2_magic/`, and register one `Format` —
 `pmagpy/test/test_convert_registry.py` converts every example, and the Convert

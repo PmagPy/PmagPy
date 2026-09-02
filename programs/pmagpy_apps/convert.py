@@ -22,7 +22,7 @@ from typing import Callable, Optional
 import panel as pn
 
 from pmagpy import magic_project as mp
-from pmagpy.convert_registry import FORMATS, Format, convert_files
+from pmagpy.convert_registry import FORMATS, Format, convert_files, record_conversion
 from pmagpy_panel.forms import Form
 from pmagpy_panel.theme import MUTED_STYLE
 from .home import CSS, shorten_home
@@ -194,6 +194,8 @@ class ConvertView:
             return False
         finally:
             self.run_btn.disabled = False
+        record_conversion(directory, "magic", [chosen[0]], tables={t: mp.table_rows(os.path.join(directory, f"{t}.txt")) for t in tables},
+                          label="MagIC contribution file")
         if not self.s.load(directory):
             self._say(html.escape(self.s.status), FAIL_COLOR)
             return False

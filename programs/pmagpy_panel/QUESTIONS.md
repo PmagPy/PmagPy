@@ -699,3 +699,18 @@ the bottom; struck through once settled.
     alone (MagIC's own `propagate_min_max_up` uses `age` only)?; (c) samples
     and specimens carry no age in MagIC 3, so nothing is written below the
     site -- Pmag GUI 2.5 did copy ages onto samples; is anything lost?
+
+53. **A conversion log beside the tables (2026-09-02).** `convert_files` now
+    writes `pmagpy_conversions.json` into the MagIC directory: one entry per
+    conversion that wrote tables (when, format, files, the fields given,
+    append or replace, rows per table, files that failed), and Home says
+    "converted from 10 CIT files · 2 Sep 2026" from it instead of counting
+    what lies beside the tables. It is the second thing the apps leave in a
+    data directory (with `backup_before_pmagpy_apps/`); MagIC's upload
+    ignores both. Decisions to confirm: (a) a JSON sidecar, or would you
+    rather the provenance lived inside MagIC — `measurements.description` or
+    the contribution table has no column for a source file, so it would be a
+    convention of ours; (b) the name — `pmagpy_conversions.json` is
+    deliberate so a stranger can tell what left it; (c) scripts calling
+    `convert_files` get the log too unless they pass `record=False` — right
+    default for reproducibility, or should scripts be silent?

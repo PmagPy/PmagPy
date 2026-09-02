@@ -339,6 +339,51 @@ class TestConvertFiles:
         assert len(read_table(tmp_path / "measurements.txt")) != n
 
 
+class TestConversionLog:
+    """The directory remembers which files its tables came from."""
+
+    def test_every_conversion_that_wrote_tables_is_logged(self, tmp_path):
+        d = str(tmp_path)
+        sio = reg.FORMATS["sio"]
+        reg.convert_files(sio, [example_path("sio_magic/sio_af_example.dat")], {"codelist": ["AF"], "labfield": ""}, d)
+        reg.convert_files(sio, [example_path("sio_magic/sio_thermal_example.dat")], {"codelist": ["T"], "labfield": 25}, d,
+                          append=True)
+        entries = reg.read_conversions(d)
+        assert [e["files"] for e in entries] == [["sio_af_example.dat"], ["sio_thermal_example.dat"]]
+        assert [e["append"] for e in entries] == [False, True]
+        assert entries[0]["format"] == "sio" and entries[0]["label"] == sio.label
+        assert entries[0]["values"] == {"codelist": ["AF"]}                        # blanks are not recorded
+        assert entries[1]["values"] == {"codelist": ["T"], "labfield": 25}
+        assert entries[1]["tables"]["measurements"] == len(read_table(tmp_path / "measurements.txt"))
+        assert entries[0]["when"][:4].isdigit() and "T" in entries[0]["when"]      # ISO 8601
+        assert reg.conversion_sources(entries) == entries                          # a replace then an append: both count
+        # a third conversion that replaces the tables makes the earlier two history
+        reg.convert_files(sio, [example_path("sio_magic/sio_af_example.dat")], {"codelist": ["AF"]}, d)
+        entries = reg.read_conversions(d)
+        assert len(entries) == 3 and reg.conversion_sources(entries) == entries[-1:]
+
+    def test_failures_are_named_and_a_conversion_that_wrote_nothing_is_not_logged(self, tmp_path):
+        bad = tmp_path / "junk.jr6"
+        bad.write_text("this is not a jr6 file\n")
+        assert not reg.convert_files(reg.FORMATS["jr6_jr6"], [str(bad)], {}, str(tmp_path)).ok
+        assert reg.read_conversions(str(tmp_path)) == [] and not (tmp_path / reg.CONVERSION_LOG).exists()
+        reg.convert_files(reg.FORMATS["jr6_jr6"], [example_path("jr6_magic/AF.jr6"), str(bad)], {}, str(tmp_path))
+        (entry,) = reg.read_conversions(str(tmp_path))
+        assert entry["files"] == ["AF.jr6"] and entry["failed"] == ["junk.jr6"]
+
+    def test_record_is_optional_and_the_log_is_read_defensively(self, tmp_path):
+        d = str(tmp_path)
+        reg.convert_files(reg.FORMATS["sio"], [example_path("sio_magic/sio_af_example.dat")], {"codelist": ["AF"]}, d,
+                          record=False)
+        assert reg.read_conversions(d) == []
+        (tmp_path / reg.CONVERSION_LOG).write_text("not json")
+        assert reg.read_conversions(d) == []
+        path = reg.record_conversion(d, "magic", ["magic_contribution_1234.txt"], tables={"measurements": 10})
+        assert path == str(tmp_path / reg.CONVERSION_LOG)
+        (entry,) = reg.read_conversions(d)                                        # the unreadable log was replaced
+        assert entry["label"] == "magic" and entry["values"] == {} and entry["tables"] == {"measurements": 10}
+
+
 # ----- guessing ------------------------------------------------------------------------------
 
 class TestGuessFormat:

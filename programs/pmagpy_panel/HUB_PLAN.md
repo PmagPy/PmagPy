@@ -508,9 +508,17 @@ Intensity were built.
    ones and `livdb` (Liverpool's thermal and microwave paleointensity exports;
    a directory format guessed from `.livdb`/`.livdb.csv`, whose
    character-delimited site convention raised a TypeError until 2026-09-02)
-   are registered since 2026-09-02; nothing records which files a
-   directory's tables came from (Home says only "N files beside the tables").
-   Some of `data_files/convert_2_magic` is old — the next round should track
+   are registered since 2026-09-02. **Since 2026-09-02 the directory
+   remembers what its tables came from**: `convert_files` appends each
+   conversion that wrote tables to `pmagpy_conversions.json` beside them
+   (`record_conversion` / `read_conversions`; when, format, files, fields,
+   append, rows, failures; a directory format lists the files it accepted,
+   `directory_inputs`), the Convert page records an unpacked contribution file
+   the same way, and Home's Import line reads the log — "converted from 10 CIT
+   files · 2 Sep 2026", "upgraded from 17 MagIC 2.5 tables", "unpacked from
+   magic_contribution_16761.txt" — with `conversion_sources` keeping the last
+   replace and the appends since; the aside marks the converted files
+   (QUESTIONS 53). Some of `data_files/convert_2_magic` is old — the next round should track
    down current instrument exports and test with the labs that use them; the
    community converter at https://beta.paleomagnetism.org/converter/ (MIT) is
    worth reading for format details, though PmagPy keeps its own. The

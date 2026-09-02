@@ -312,6 +312,36 @@ class TestConvert:
         assert view.log.visible is True and "PI47-.sam" in view.log.object
         sites = open(os.path.join(d, "sites.txt")).read()
         assert "Kolob" in sites
+        # the directory remembers what the tables came from, and Home says so instead of guessing
+        inv = session.inventory
+        assert len(inv.conversions) == 1 and inv.source_files == ["PI47-.sam"]
+        assert inv.conversions[0]["values"]["location"] == "Kolob" and inv.conversions[0]["format"] == "cit"
+        assert inv.files and all(f.name != "pmagpy_conversions.json" for f in inv.files)       # the log is not a lab file
+        imp = home.stages(inv)[0]
+        assert imp[2].startswith("converted from PI47-.sam (CIT) · ") and "beside the tables" not in imp[2]
+        aside = home.aside_html(inv, [])
+        assert "CIT index · converted" in aside and "CIT specimen</td>" in aside     # only the index was converted
+
+    def test_home_reads_the_conversion_log_left_by_a_script(self, tmp_path):
+        """A log written by convert_files outside the hub is provenance all the same."""
+        from pmagpy import convert_registry as reg
+        d = tmp_path / "study"
+        d.mkdir()
+        for name in ("measurements", "specimens", "sites"):
+            shutil.copy(os.path.join(MCMURDO, f"{name}.txt"), d)
+        (d / "mc01.dat").write_text("x\n")
+        (d / "mc02.dat").write_text("x\n")
+        reg.record_conversion(str(d), "sio", ["mc01.dat"], {"codelist": ["AF"]}, tables={"measurements": 5})
+        reg.record_conversion(str(d), "sio", ["mc02.dat"], {"codelist": ["T"]}, append=True, tables={"measurements": 9})
+        inv = take_inventory(str(d))
+        assert inv.source_files == ["mc01.dat", "mc02.dat"]
+        imp = home.stages(inv)[0]
+        assert imp[2].startswith("converted from 2 SIO files · ") and imp[2].endswith(" · 2 conversions")
+        assert "mc01.dat" in home.aside_html(inv, []) and "converted" in home.aside_html(inv, [])
+        # a contribution unpacked in the directory
+        reg.record_conversion(str(d), "magic", ["magic_contribution_16761.txt"], tables={"measurements": 100},
+                              label="MagIC contribution file")
+        assert home.stages(take_inventory(str(d)))[0][2].startswith("unpacked from magic_contribution_16761.txt · ")
 
     def test_jr6_files_convert_together_and_a_bad_one_is_named(self, tmp_path):
         src = os.path.join(os.path.dirname(CIT), "..", "jr6_magic")
@@ -453,7 +483,7 @@ class TestConvert:
         assert inv.is_magic and inv.has("demag") and inv.has("pi")
         assert {"measurements", "specimens", "samples", "sites", "locations", "ages", "criteria"} <= set(inv.tables)
         assert (tmp_path / "magic_measurements.txt").exists()          # the 2.5 tables stay
-        assert home.stages(inv)[0][2] == "17 MagIC 2.5 tables beside the 3.0 tables"
+        assert home.stages(inv)[0][2].startswith("upgraded from 17 MagIC 2.5 tables · ")   # the log names them
         assert "Directions" in [a.name for a in home.APPLICATIONS if inv.has(*a.kinds)]
 
     def test_a_2_5_contribution_file_is_told_apart(self, tmp_path):
