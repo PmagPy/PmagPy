@@ -766,3 +766,36 @@ the bottom; struck through once settled.
     - Rotation to geographic/tilt coordinates of the reduced tensor is left
       to the table layer as for AARM/ATRM (k15_magic writes -1, 0 and 100
       rows itself); the Reduce tab writes only the specimen-frame row.
+
+56. **2.5 rock magnetic tables now upgrade with the rest** (2026-09-02,
+    follows 48). `pmag.convert_rmag_2_to_3` turns `rmag_anisotropy`,
+    `rmag_hysteresis`, `rmag_remanence`, `rmag_susceptibility` and
+    `rmag_results` into rows of `specimens.txt` (a result naming one sample
+    or one site goes to `samples`/`sites`), so the legacy format on Convert
+    leaves only `pmag_results` and images to MagIC's tool. Checked against
+    MagIC's own upgrades: McMurdo gives the same 19 AARM + 8 hysteresis rows
+    as `data_files/3_0/McMurdo`; `data_files/ani_depthplot` (contribution
+    12152) reproduces its 431-row `specimens.txt` cell for cell. Choices:
+    - *Column map from the data model*, not a hand-written dict: every 3.0
+      column lists its `previous_columns`, so `rmag_2_to_3_map` reads them
+      (the bundled 2019 copy; the same holds online). The two folded cells
+      are built by hand: `aniso_s` = `s1:…:s6`, `aniso_v1` =
+      `tau:dec:inc:eta/zeta:eta_dec:eta_inc:eta_semi_angle:zeta_dec:zeta_inc:zeta_semi_angle`
+      — the layout `ipmag.aniso_magic` and MagIC's upgrade write. Fine, or
+      should a plain `tau:dec:inc` be written when the result has no ellipse
+      (that is what happens now: the `eta/zeta` block is added only when an
+      ellipse parameter is present)?
+    - *A result joins its tensor's row* when specimen, type and tilt
+      correction match; otherwise it becomes a row of its own. Method codes
+      are unioned in the order met. MagIC sorts codes alphabetically
+      (`AE-H:LP-AN-MS:LP-X:SO-V`); I kept the 2.5 order. Sort to match?
+    - *`result_quality` is not invented*: MagIC's upgrade writes `g` on every
+      row; the 2.5 `anisotropy_flag`/`hysteresis_flag` columns carry over
+      when present, and nothing is written otherwise.
+    - *Repeated 2.5 lines are written once* (McMurdo's hysteresis table lists
+      two specimens twice; ani_depthplot's anisotropy table 41 lines).
+    - *Results spanning several sites* (location-level means) have no 3.0
+      home short of `locations`, which has no `aniso_*` columns; they are
+      listed under "left as 2.5" by row. Rare enough?
+    - `measurement_loop_x` → `hyst_loop` is what the data model says; the
+      hysteresis loop itself (the measurements) is not in these tables anyway.

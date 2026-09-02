@@ -1088,12 +1088,15 @@ _add(Format(
 
 
 def upgrade_2_to_3(input_dir: str, output_dir: str = ".", meas_fname: str = "magic_measurements.txt"):
-    """MagIC 2.5 tables (``magic_measurements``, ``er_*``, ``pmag_*``, ``pmag_criteria``) in
+    """MagIC 2.5 tables (``magic_measurements``, ``er_*``, ``pmag_*``, ``rmag_*``, ``pmag_criteria``) in
     ``input_dir`` → 3.0 ``measurements``, ``specimens`` … ``ages``, ``criteria`` in ``output_dir``.
 
     Wraps :func:`pmagpy.pmag.convert_directory_2_to_3` so it answers like a converter:
     ``(ok, message)``, the message naming what was upgraded and what 2.5 cannot be
-    (``rmag_*``, ``pmag_results``, images), which MagIC's own upgrade tool handles.
+    (``pmag_results``, images, results spanning several sites), which MagIC's own
+    upgrade tool handles. The rock magnetic tables become rows of ``specimens``
+    (``aniso_s``/``aniso_v*``, ``hyst_*``, ``rem_*``, ``susc_*``); results naming
+    one sample or site go to ``samples``/``sites``.
     """
     from pmagpy import pmag
     meas, upgraded, no_upgrade = pmag.convert_directory_2_to_3(meas_fname, input_dir=input_dir, output_dir=output_dir)
@@ -1114,6 +1117,7 @@ _add(Format(
              "ages": None, "criteria": None},
     extensions=(".txt",),
     examples=(("../2_5/McMurdo", {}),),
-    notes="Upgrades the whole directory's 2.5 tables (magic_measurements, er_*, pmag_*, pmag_criteria) to 3.0 "
-          "tables beside them. rmag_* tables, pmag_results and images are not translated — MagIC's upgrade "
-          "tool (earthref.org/MagIC/upgrade) does the full job."))
+    notes="Upgrades the whole directory's 2.5 tables (magic_measurements, er_*, pmag_*, rmag_*, pmag_criteria) "
+          "to 3.0 tables beside them; rmag_anisotropy/rmag_results tensors and eigenparameters, hysteresis, "
+          "remanence and susceptibility parameters become specimen rows. pmag_results and images are not "
+          "translated — MagIC's upgrade tool (earthref.org/MagIC/upgrade) does the full job."))

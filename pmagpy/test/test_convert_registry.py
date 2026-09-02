@@ -473,9 +473,15 @@ class TestLegacy:
                               "magic_methods.txt"}
         assert reg.guess_format(["measurements.txt", "specimens.txt", "notes.txt"])[0] == ""
 
-    def test_the_upgrade_writes_every_3_0_table_and_names_what_it_cannot(self, tmp_path):
-        fmt = reg.FORMATS["legacy"]
-        result = reg.convert_files(fmt, [example_path("../2_5/McMurdo")], {}, str(tmp_path))
+    @pytest.fixture(scope="class")
+    def mcmurdo(self, tmp_path_factory):
+        """The McMurdo 2.5 directory upgraded once for the class."""
+        out = tmp_path_factory.mktemp("mcmurdo")
+        result = reg.convert_files(reg.FORMATS["legacy"], [example_path("../2_5/McMurdo")], {}, str(out))
+        return out, result
+
+    def test_the_upgrade_writes_every_3_0_table_and_names_what_it_cannot(self, mcmurdo):
+        tmp_path, result = mcmurdo
         assert result.ok, result.log
         written = {t for t in reg.MAGIC_TABLES if (tmp_path / f"{t}.txt").exists()}
         assert written == {"measurements", "specimens", "samples", "sites", "locations", "ages", "criteria"}
@@ -483,8 +489,102 @@ class TestLegacy:
         meas = read_table(tmp_path / "measurements.txt")
         assert {"specimen", "method_codes", "treat_ac_field", "dir_dec", "dir_inc"} <= set(meas.columns)
         assert "25,470 measurements" in result.message
-        assert "rmag_anisotropy.txt" in result.log and "left as 2.5" in result.log
+        assert "pmag_results.txt" in result.log and "left as 2.5" in result.log
+        assert "rmag_anisotropy.txt, rmag_hysteresis.txt, rmag_results.txt -> 27 specimens rows" in result.log
+        assert "rmag" not in result.message                                       # nothing rock-magnetic left behind
         assert not (tmp_path / "magic_measurements.txt").exists(), "the 2.5 tables stay where they were"
+
+    def test_rmag_tables_become_specimen_rows(self, mcmurdo):
+        """rmag_anisotropy + rmag_results -> one aniso row per specimen with the tensor and its
+        eigenparameters; rmag_hysteresis -> hyst_* rows; duplicates written once (as MagIC's
+        own upgrade of this dataset, data_files/3_0/McMurdo, has 19 + 8 rows)."""
+        tmp_path, _ = mcmurdo
+        spec = read_table(tmp_path / "specimens.txt")
+        aniso = spec[spec["aniso_s"] != ""]
+        hyst = spec[spec["hyst_bc"] != ""]
+        assert len(aniso) == 19 and len(hyst) == 8                               # 10 hysteresis lines, 2 repeated
+        row = aniso[aniso["specimen"] == "mc121d1"].iloc[0]
+        assert row["aniso_s"] == "0.29925:0.346846:0.353904:-0.001806:-0.005028:0.001793"
+        assert row["aniso_type"] == "AARM" and row["aniso_tilt_correction"] == "-1" and row["sample"] == "mc121d"
+        assert row["aniso_s_unit"] == "Am^2" and row["aniso_s_n_measurements"] == "9" and row["aniso_s_sigma"] == "0.013881"
+        # the eigenparameters from rmag_results on the same row, ellipses as tau:dec:inc:eta/zeta:...
+        assert row["aniso_v1"] == "0.356621:275.2:62.3:eta/zeta:182:1.7:17.6:91.1:27.7:55.9"
+        assert row["aniso_v3"].startswith("0.299134:182:1.7:eta/zeta:")
+        assert row["aniso_ftest"] == "3.8" and row["aniso_ftest12"] == "0.4" and row["aniso_ftest23"] == "5.3"
+        assert row["method_codes"] == "LP-AN-ARM:AE-H" and row["experiments"] == "mc121d1:AARM"    # "mc121d1 : AARM" tidied
+        assert row["description"] == "Hext statistics adapted to AARM." and row["analysts"] == "Jason Steindorf"
+        assert row["hyst_bc"] == "" and row["dir_dec"] == ""
+        h = hyst[hyst["specimen"] == "mc120a2-1"]
+        assert len(h) == 1
+        h = h.iloc[0]
+        assert h["hyst_bc"] == "0.04297" and h["hyst_bcr"] == "0.065" and h["hyst_mr_moment"] == "0.000001708"
+        assert h["hyst_ms_moment"] == "0.000003911" and h["experiments"] == "mc120a2-1:LP-HYS"
+        assert h["method_codes"] == "LT-AF-I:LP-AN-ARM:LP-BCR-HDM" and h["aniso_s"] == ""
+        # the 2.5 columns did not leak through
+        assert not [c for c in spec.columns if c.startswith(("anisotropy_", "hysteresis_", "er_"))]
+        # and the anisotropy toolkit reads the rows as tensors
+        from pmagpy import anisotropy
+        table = anisotropy.tensor_table(spec, read_table(tmp_path / "samples.txt"), "s")
+        assert len(table) == 19 and set(table["aniso_type"]) == {"AARM"}
+
+    def test_a_kappabridge_table_matches_magics_own_upgrade(self, tmp_path):
+        """data_files/ani_depthplot holds rmag_anisotropy.txt (472 lines) and the specimens.txt MagIC's
+        upgrade tool made from it (contribution 12152): the same 431 rows, cell for cell, once the
+        41 repeated lines are dropped — only the method codes are ordered differently (MagIC sorts)."""
+        from pmagpy import pmag
+        src = example_path("../ani_depthplot")
+        translated, written, left = pmag.convert_rmag_2_to_3(src, str(tmp_path))
+        assert translated == ["rmag_anisotropy.txt"] and written == {"specimens": 431} and left == []
+        ours = read_table(tmp_path / "specimens.txt")
+        ref = read_table(os.path.join(src, "specimens.txt"))
+        ref = ref[ref["aniso_s"] != ""]
+        assert len(ours) == len(ref) == 431
+        both = ours.merge(ref, on=["specimen", "aniso_tilt_correction"], suffixes=("", "_magic"))
+        assert len(both) == 431
+        for col in ["aniso_s", "aniso_s_sigma", "aniso_s_n_measurements", "aniso_s_unit", "aniso_type", "sample", "citations"]:
+            assert (both[col] == both[col + "_magic"]).all(), col
+        assert (both["method_codes"].str.split(":").map(sorted) == both["method_codes_magic"].str.split(":").map(sorted)).all()
+
+    def test_rmag_results_go_to_the_finest_table_named(self, tmp_path):
+        """A result naming one specimen joins the specimens table, one sample the samples table,
+        one site the sites table, several sites nowhere (reported); remanence and susceptibility
+        tables are renamed per the data model."""
+        from pmagpy import pmag
+        d = str(tmp_path)
+        pmag.magic_write(os.path.join(d, "magic_measurements.txt"), [
+            {"er_specimen_name": "a1", "er_sample_name": "a", "er_site_name": "S1", "er_location_name": "L",
+             "magic_method_codes": "LT-NO", "measurement_number": "1", "measurement_magn_moment": "1e-6"}],
+            "magic_measurements")
+        v = {"anisotropy_t1": "0.35", "anisotropy_v1_dec": "10", "anisotropy_v1_inc": "20", "anisotropy_t2": "0.33",
+             "anisotropy_v2_dec": "100", "anisotropy_v2_inc": "0", "anisotropy_t3": "0.32", "anisotropy_v3_dec": "190",
+             "anisotropy_v3_inc": "70", "anisotropy_type": "AMS", "tilt_correction": "0", "magic_method_codes": "LP-AN-MS:AE-BS"}
+        pmag.magic_write(os.path.join(d, "rmag_results.txt"), [
+            {"er_specimen_names": "a1", "er_sample_names": "a", "er_site_names": "S1", **v},
+            {"er_specimen_names": "a1:a2", "er_sample_names": "a", "er_site_names": "S1", **v},
+            {"er_specimen_names": "a1:b1", "er_sample_names": "a:b", "er_site_names": "S1", **v},
+            {"er_specimen_names": "", "er_sample_names": "", "er_site_names": "S1:S2", "er_location_names": "L", **v}],
+            "rmag_results")
+        pmag.magic_write(os.path.join(d, "rmag_remanence.txt"), [
+            {"er_specimen_name": "a1", "remanence_mr_moment": "2e-6", "remanence_sratio": "0.95", "remanence_bcr": "0.04",
+             "magic_method_codes": "LP-BCR-BF", "remanence_flag": "g"}], "rmag_remanence")
+        pmag.magic_write(os.path.join(d, "rmag_susceptibility.txt"), [
+            {"er_specimen_name": "a1", "susceptibility_chi_mass": "1.2e-7", "susceptibility_f": "976",
+             "magic_method_codes": "LP-X"}], "rmag_susceptibility")
+        meas, upgraded, no_upgrade = pmag.convert_directory_2_to_3("magic_measurements.txt", input_dir=d, output_dir=d)
+        assert {"specimens.txt", "samples.txt", "sites.txt"} <= set(upgraded)
+        assert no_upgrade == ["rmag_results.txt row for S1:S2 names several sites"]
+        spec = read_table(tmp_path / "specimens.txt")
+        assert len(spec) == 3                                                    # AMS result, remanence, susceptibility
+        ams = spec[spec["aniso_v1"] != ""].iloc[0]
+        assert ams["aniso_v1"] == "0.35:10:20" and ams["aniso_v2"] == "0.33:100:0"       # no ellipse: tau:dec:inc only
+        assert ams["aniso_type"] == "AMS" and ams["aniso_tilt_correction"] == "0" and ams["method_codes"] == "LP-AN-MS:AE-BS"
+        rem = spec[spec["rem_sratio"] != ""].iloc[0]
+        assert rem["rem_mr_moment"] == "2e-6" and rem["rem_bcr"] == "0.04" and rem["result_quality"] == "g"
+        assert spec[spec["susc_chi_mass"] != ""].iloc[0]["susc_f"] == "976"
+        samp = read_table(tmp_path / "samples.txt")
+        assert samp[samp["aniso_v1"] != ""]["aniso_v1"].tolist() == ["0.35:10:20"] and samp[samp["specimens"] != ""]["specimens"].tolist() == ["a1:a2"]
+        site = read_table(tmp_path / "sites.txt")
+        assert site[site["aniso_v3"] != ""]["aniso_v3"].tolist() == ["0.32:190:70"] and site[site["samples"] != ""]["samples"].tolist() == ["a:b"]
 
     def test_no_measurements_file_is_refused_with_the_way_out(self, tmp_path):
         (tmp_path / "er_samples.txt").write_text("tab\ter_samples\ner_sample_name\nA1\n")

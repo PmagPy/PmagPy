@@ -790,8 +790,22 @@ Intensity were built.
    can say that unpacking it is only the first of two steps. `ages` and
    `criteria` joined `MAGIC_TABLES`, so the combine step carries them. The 2.5
    files stay beside the new tables ("17 MagIC 2.5 tables beside the 3.0
-   tables"); `rmag_*`, `pmag_results` and images are not translated — the log
-   says so and points at MagIC's upgrade tool. QUESTIONS 48.
+   tables"); `pmag_results` and images are not translated — the log says so
+   and points at MagIC's upgrade tool. QUESTIONS 48.
+   *Built (rock magnetic tables, 2026-09-02)*: `pmag.convert_rmag_2_to_3`
+   translates `rmag_anisotropy`, `rmag_hysteresis`, `rmag_remanence`,
+   `rmag_susceptibility` and `rmag_results` into rows of `specimens` (results
+   naming one sample or site into `samples`/`sites`), the column map read off
+   the 3.0 data model's `previous_columns` (`rmag_2_to_3_map`); `anisotropy_s1..s6`
+   fold into `aniso_s`, a result's `t1/v1_dec/v1_inc` and ellipse into
+   `aniso_v1` as `tau:dec:inc:eta/zeta:eta_dec:eta_inc:eta_semi_angle:zeta_dec:zeta_inc:zeta_semi_angle`
+   (the layout MagIC's upgrade and `ipmag.aniso_magic` write), and a result
+   folds onto the anisotropy row of the same specimen, type and tilt
+   correction (or the hysteresis row when it holds `hyst_*` ratios). Identical
+   2.5 lines are written once. McMurdo gives the 19 AARM + 8 hysteresis rows
+   MagIC's 3.0 copy has; `data_files/ani_depthplot` reproduces MagIC's own
+   upgrade of its 472-line `rmag_anisotropy` cell for cell (431 rows). The
+   Anisotropy app opens the result directly. QUESTIONS 56.
 
 ### Pmag GUI features still to decide
 
