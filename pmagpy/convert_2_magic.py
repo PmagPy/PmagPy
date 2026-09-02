@@ -3989,7 +3989,7 @@ def iodp_kly4s_lore(kly4s_file, meas_out='measurements.txt',
     measurements_df["treat_step_num"] = '1'
     measurements_df["standard"] = 'u'  # assume all data are "good"
     measurements_df['instrument_codes']="IODP-KLY4S" # assume all measurements on shipboard KLY4S
-    measurements_df['description']='Bulk sucsecptibility measurement'
+    measurements_df['description']='Bulk susceptibility measurement'
     measurements_df['method_codes']='LP-X'
     measurements_df['experiment']=measurements_df['specimen'].astype('str')+'_'+\
                                   measurements_df['method_codes'].astype('str')
@@ -7221,6 +7221,9 @@ def kly4s(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
         samp_infile = os.path.join(input_dir_path, samp_infile)
     measfile = os.path.join(output_dir_path, measfile)
     anisfile = os.path.join(output_dir_path, aniso_outfile)
+    # the sample and site tables go beside the others, not into the working directory
+    samp_outfile = os.path.join(output_dir_path, samp_outfile)
+    site_outfile = os.path.join(output_dir_path, site_outfile)
 
     # set column names for MagIC 3
     spec_name_col = 'specimen'  #
@@ -7601,7 +7604,7 @@ def kly4s(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
     pmag.magic_write(measfile, MeasRecs, meas_table_name)
     print('measurement data saved in ', measfile)
     if azdip_infile:
-        sampfile = 'er_samples.txt'
+        sampfile = samp_outfile if data_model_num == 3 else os.path.join(output_dir_path, 'er_samples.txt')
         pmag.magic_write(sampfile, SampRecs, samp_table_name)
         print('sample data saved in ', sampfile)
     if data_model_num == 3:
@@ -10595,7 +10598,7 @@ def sufar4(ascfile, meas_output='measurements.txt', spec_infile=None,
             MeasRec[quality_col] = 'g'
             AniRec[aniso_quality_col] = 'g'
             MeasRec[meas_standard_col] = 'u'
-            MeasRec[meas_description_col] = 'Bulk sucsecptibility measurement'
+            MeasRec[meas_description_col] = 'Bulk susceptibility measurement'
             AniRec[aniso_type_col] = "AMS"
             AniRec[aniso_unit_col] = "Normalized by trace"
             if spin == 1:
@@ -11042,7 +11045,7 @@ def sufar4_dm2(ascfile, meas_output='measurements.txt', aniso_output='rmag_aniso
             MeasRec[quality_col] = 'g'
             AniRec[aniso_quality_col] = 'g'
             MeasRec[meas_standard_col] = 'u'
-            MeasRec[meas_description_col] = 'Bulk sucsecptibility measurement'
+            MeasRec[meas_description_col] = 'Bulk susceptibility measurement'
             AniRec[aniso_type_col] = "AMS"
             AniRec[aniso_unit_col] = "Normalized by trace"
             if spin == 1:

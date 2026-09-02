@@ -827,6 +827,69 @@ _add(Format(
     examples=(("../iodp_magic/U999A/JR6_data/spinner_17_5_2019.csv", {}),),
     notes="convert the LIMS sample report with IODP samples first."))
 
+_add(Format(
+    "iodp_kly4s", "IODP KLY4S (LORE)", convert.iodp_kly4s_lore,
+    fields=(Field("instrument", "text", "Instrument", INSTRUMENT.help, default="IODP-KLY4S"),
+            Field("actual_volume", "float", "Actual volume (cm³)",
+                  "The shipboard software assumes a nominal 8 or 10 cm³; give the real volume to rescale.")),
+    file_kw="kly4s_file",
+    outputs={"measurements": "meas_out", "specimens": "spec_out"},
+    needs={"specimens": "spec_infile"},
+    extensions=(".csv",),
+    examples=(("../iodp_magic/U999A/KLY4S_data/ex-kappa_17_5_2019.csv", {}),),
+    notes="The LORE 'ex-kappa' report: bulk susceptibility and the AMS tensor per specimen. Convert the "
+          "LIMS sample report with IODP samples first; the results open in Anisotropy."))
+
+
+# ----- Kappabridge exports: anisotropy of susceptibility, opened by the Anisotropy app ---------------
+
+KLY_INSTRUMENT = Field("instrument", "text", "Instrument", INSTRUMENT.help, default="SIO-KLY4S")
+SUFAR_OR_CON = Field("or_con", "choice", "Orientation convention",
+                     "Leave 'as written' to take the file's azimuth and dip; otherwise how they give the lab arrow.",
+                     default="", choices=(("", "as written in the file"), *OR_CON.choices))
+STATIC_15 = Field("static_15_position_mode", "bool", "Static 15-position mode",
+                  "The file is from the static (not spinning) 15-position measurement scheme.", default=False)
+SPECNAME_FROM_FILE = Field("specname", "bool", "Specimen name from the file name",
+                           "Use the file's stem as the specimen name instead of the name inside the file.", default=False)
+PRESERVE_CASE = Field("preserve_case", "bool", "Keep the case of names",
+                      "Untick to lower-case specimen, sample and site names as the command-line converter does.",
+                      default=True)
+
+_add(Format(
+    "k15", "Kappabridge 15-position (.k15)", convert.k15,
+    fields=(LOCATION, SAMP_CON, SPECNUM),
+    kwargs={"samp_con": "sample_naming_con"},
+    file_kw="k15file",
+    outputs={"measurements": "meas_file", "specimens": "aniso_outfile", "samples": "samp_file"},
+    extensions=(".k15", ".dat", ".txt"),
+    examples=(("k15_magic/k15_example.dat", {"location": "Trinidad"}),),
+    notes="Jelinek's 15-position scheme: a line 'specimen [azimuth plunge strike dip]' then three lines of five "
+          "susceptibilities per specimen. Writes the 15 measurements and the tensor (aniso_s) per specimen, in "
+          "specimen, geographic and tilt-corrected coordinates when the orientations are given."))
+
+_add(Format(
+    "kly4s", "KLY4S (SIO LabView)", convert.kly4s,
+    fields=(LOCATION, SAMP_CON, SPECNUM, OR_CON, USER, KLY_INSTRUMENT),
+    kwargs={"location": "locname", "instrument": "inst"},
+    file_kw="infile",
+    outputs={"measurements": "measfile", "specimens": "spec_outfile", "samples": "samp_outfile", "sites": "site_outfile"},
+    extensions=(".dat", ".txt"),
+    examples=(("kly4s_magic/KLY4S_magic_example.dat", {"location": "IODP Expedition 318"}),),
+    notes="One line per specimen as the SIO KLY4S LabView program writes it (normalised tensor, bulk "
+          "susceptibility, temperature, field, date, operator). Writes the bulk measurement and the tensor per specimen."))
+
+_add(Format(
+    "sufar4", "SUFAR 4 (AGICO .asc)", convert.sufar4,
+    fields=(LOCATION, SAMP_CON, SPECNUM, SUFAR_OR_CON, STATIC_15, SPECNAME_FROM_FILE, PRESERVE_CASE, USER, INSTRUMENT),
+    kwargs={"location": "locname", "samp_con": "sample_naming_con"},
+    file_kw="ascfile",
+    outputs={"measurements": "meas_output", "specimens": "spec_outfile", "samples": "samp_outfile", "sites": "site_outfile"},
+    extensions=(".asc", ".txt"),
+    examples=(("sufar_asc_magic/sufar4-asc_magic_example.txt", {"location": "IODP Expedition 318"}),),
+    notes="The ASCII report AGICO's SUFAR program writes for a Kappabridge (one or many specimens per file). Writes "
+          "the bulk susceptibility measurement, the tensor per specimen with the file's own orientation, and the "
+          "sample orientation the operator entered."))
+
 
 # ----- field notebooks: the samples and sites, before any measurement ------------------------------
 

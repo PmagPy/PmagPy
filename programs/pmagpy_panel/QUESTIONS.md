@@ -522,3 +522,44 @@ the bottom; struck through once settled.
       wrong (sign and value) if it is an inclination from horizontal. Which
       is the AzDip file format's meaning? The Convert note now just states
       what the converter does (convention 3) rather than either docstring.
+
+47. **Kappabridge converters as Convert formats** (2026-09-02). `k15`,
+    `kly4s`, `sufar4` and the LORE `iodp_kly4s` export are registry Formats;
+    a directory converted from any of them opens Anisotropy. Choices made
+    without you:
+    - *`sufar4` keeps the case of names by default.* The command-line
+      converter lower-cases specimen, sample and site names unless
+      `preserve_case` is given (the IODP example becomes
+      `318-u1356a-1r-1-w-83`). In the hub the default is the other way, so
+      the names join the tables other converters write; the checkbox "Keep
+      the case of names" unticks back to the CLI behaviour. Fine, or should
+      the CLI default change too?
+    - *`sufar4` orientation convention.* The converter's `or_con` defaults
+      to `False` = take the file's azimuth and dip as written; the form
+      offers "as written in the file" plus conventions 1–6. Left as written.
+    - *The bulk `LP-X` measurement no longer counts as a susceptibility
+      experiment.* The inventory's "Susceptibility" kind (Rock magnetism
+      door) now needs `LP-X-T`, `LP-X-F` or `LP-X-H`; the bare `LP-X` the
+      Kappabridge converters write for the bulk value is not something the
+      Rock magnetism app can plot, and before this change a Kappabridge-only
+      directory offered Rock magnetism as well as Anisotropy. Any `LP-X`
+      data you would want that door open for?
+    - *Example names.* `kly4s_magic/KLY4S_magic_example.dat` has IODP names
+      (`318-U1359B-011H-1-W-75`) and the example runs with naming convention
+      1, giving 26 sites of one sample each with site = sample minus its
+      last character. It converts; it is just a poor demonstration of the
+      naming. Is there a non-IODP KLY4S file worth shipping as the example
+      (SIO's own LabView output), or a convention that fits IODP names?
+    - *`k15` writes a `specimen` column into samples.txt* (the converter
+      builds the sample row from the specimen record). Left alone; the
+      `_drop_redundant` step does not touch it. Worth dropping in the
+      converter?
+    - *Fixed on the way*, tell me if either is wrong: `kly4s` wrote
+      `samples.txt`/`sites.txt` into the working directory instead of
+      `dir_path` (`samp_outfile`/`site_outfile` were never joined); and
+      `pmag.tauV` now takes the real part of the eigen-decomposition when
+      the imaginary parts are all zero — numpy 2's `eig` returns complex
+      arrays for a symmetric tensor, so every `dostilt` (hence every
+      tilt-corrected AMS tensor) raised a ComplexWarning while discarding
+      the zero imaginary part anyway. Values are unchanged (the `dostilt`
+      docstring example reproduces to the last digit).

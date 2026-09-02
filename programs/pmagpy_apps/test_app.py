@@ -397,6 +397,29 @@ class TestConvert:
         samples = open(tmp_path / "samples.txt").read()
         assert "FS-FD:SO-SUN" in samples and "PI47-1" in samples
 
+    @pytest.mark.parametrize("key, example", [
+        ("k15", "k15_magic/k15_example.dat"),
+        ("kly4s", "kly4s_magic/KLY4S_magic_example.dat"),
+        ("sufar4", "sufar_asc_magic/sufar4-asc_magic_example.txt"),
+    ])
+    def test_a_kappabridge_file_converts_and_opens_anisotropy(self, tmp_path, key, example):
+        src = os.path.join(os.path.dirname(CIT), "..", example)
+        shutil.copy(src, tmp_path)
+        session = home.HubSession(str(tmp_path), landing=False)
+        view = convert.ConvertView(session)
+        view.format.value = key                                        # .dat/.txt are shared: the analyst picks
+        assert view.files.value == [os.path.basename(example)]
+        assert {"location", "samp_con", "specnum"} <= set(view.form.widgets)
+        assert asyncio.run(view._convert()) is True
+        inv = session.inventory
+        assert inv.is_magic and inv.has("aniso")
+        assert [k for k in inv.kinds if k.key == "aniso"][0].details == ["AMS"]
+        # the tables all land in the directory, none in the working directory (kly4s once wrote there)
+        for table in ("measurements", "specimens", "samples"):
+            assert (tmp_path / f"{table}.txt").exists(), table
+        assert not os.path.exists("samples.txt") and not os.path.exists("sites.txt")
+        assert [a.name for a in home.APPLICATIONS if inv.has(*a.kinds)] == ["Anisotropy"]
+
     def test_appending_to_a_magic_directory_is_offered_and_keeps_what_is_there(self, tmp_path):
         d = cit_only(tmp_path)
         session = home.HubSession(d, landing=False)

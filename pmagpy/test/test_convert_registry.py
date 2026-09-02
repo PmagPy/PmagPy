@@ -95,6 +95,19 @@ class TestIodp:
         meas = read_table(tmp_path / "measurements.txt")
         assert meas["sequence"].astype(int).tolist() == list(range(1, len(meas) + 1))
 
+        rel, values = reg.FORMATS["iodp_kly4s"].examples[0]
+        result = reg.convert_files(reg.FORMATS["iodp_kly4s"], [example_path(rel)], values, d, append=True)
+        assert result.ok, result.log
+        specs = read_table(tmp_path / "specimens.txt")
+        tensors = specs[specs["aniso_s"] != ""]
+        meas = read_table(tmp_path / "measurements.txt")
+        bulk = meas[meas["method_codes"].str.contains("LP-X")]
+        assert len(tensors) == len(bulk) > 0 and len(meas) == result.tables["measurements"]
+        assert len(specs) == n_spec + len(tensors), "a tensor row per specimen beside the LIMS rows, which all survive"
+        assert set(tensors["specimen"]) <= set(specs["specimen"][specs["aniso_s"] == ""])
+        assert (tensors["aniso_type"] == "AMS").all()
+        assert (tensors["aniso_s"].str.count(":") == 5).all()
+
     def test_measurements_need_specimens_first(self, tmp_path):
         rel, values = reg.FORMATS["iodp_dscr"].examples[0]
         result = reg.convert_files(reg.FORMATS["iodp_dscr"], [example_path(rel)], values, str(tmp_path))

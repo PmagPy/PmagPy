@@ -492,8 +492,9 @@ Intensity were built.
    when the directory holds lab files and no tables; the page turns between
    Home and Convert without leaving the URL.
    *Still to do here*: the CLI programs (`programs/conversion_scripts`) do not
-   yet read the registry; `livdb`, `kly4s`/`k15`/`sufar4` and the other
-   anisotropy inputs are not registered; nothing records which files a
+   yet read the registry; `livdb` and the other anisotropy inputs (`atrm`/`aarm`
+   from measurements are Anisotropy's Reduce tab) are not registered — the
+   Kappabridge ones are, since 2026-09-02; nothing records which files a
    directory's tables came from (Home says only "N files beside the tables").
    Some of `data_files/convert_2_magic` is old — the next round should track
    down current instrument exports and test with the labs that use them; the
@@ -701,6 +702,15 @@ Intensity were built.
    (`orientation_magic` writes one row per orientation method), while
    converter-only knowledge in non-orientation columns is carried over
    (QUESTIONS 46 for the choices).
+   *Built (Kappabridge row, 2026-09-02)*: `k15`, `kly4s`, `sufar4` and the LORE
+   `iodp_kly4s` export are Formats; none is guessed (`.dat`/`.txt` are every
+   instrument's extensions), the analyst picks them from the menu. The
+   inventory's susceptibility kind now needs `LP-X-T`/`-F`/`-H` — a bare `LP-X`
+   is the bulk value the Kappabridge writes beside a tensor, and the Rock
+   magnetism door stays shut on it while Anisotropy opens on the `aniso_s`
+   rows. `kly4s` wrote samples/sites into the cwd (fixed); `pmag.tauV` keeps
+   real eigenvalues real (numpy 2 `eig` returns complex, and every `dostilt`
+   raised a ComplexWarning). QUESTIONS 47 for the choices.
 
 ### Pmag GUI features still to decide
 
@@ -708,8 +718,8 @@ Intensity were built.
 |---|---|---|
 | `orientation_magic` | **done** (2026-09-02), as the `orient` format on Convert | the step between field notebook and MagIC; nothing else does it; form-driven from its conventions |
 | `azdip_magic` | **done** (2026-09-02), as the `azdip` format on Convert | same job, plainer input |
-| IODP sample summaries | **keep**, as formats in the registry | they are conversions |
-| kly4s / k15 / sufar4 | **keep**, as formats in the registry; results open in Anisotropy | conversions |
+| IODP sample summaries | **done**, as the `iodp_*` formats (LIMS samples, SRM section/discrete, JR6, and KLY4S from 2026-09-02) | they are conversions |
+| kly4s / k15 / sufar4 | **done** (2026-09-02), as the `k15`/`kly4s`/`sufar4` formats; the directory opens Anisotropy | conversions |
 | legacy 2.5 → 3.0 | **keep**, one button on Import | cheap; old datasets still arrive |
 | export result tables (`*_extract`) | **keep**, on Upload | publication tables; cheap |
 | criteria editor (`CustomizeCriteria`, unreachable today) | **keep**, as the criteria grid on Metadata | Directions' export already applies criteria; they need a home |

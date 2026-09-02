@@ -157,7 +157,10 @@ KIND_RULES = [
     ("irm", "IRM acquisition", ("LP-IRM",), {"LP-IRM-3D": "3-axis thermal demag", "LP-IRM-AFD": "AF demag"}),
     ("arm", "ARM acquisition", ("LP-ARM",), {}),
     ("forc", "FORC", ("LP-FORC",), {}),
-    ("chi_t", "Susceptibility", ("LP-X",), {"LP-X-T": "vs temperature", "LP-X-F": "vs frequency", "LP-X-H": "vs amplitude"}),
+    # a bare LP-X is one bulk susceptibility (a Kappabridge reading beside an AMS tensor); the
+    # susceptibility experiments the Rock magnetism app plots are the ones against something
+    ("chi_t", "Susceptibility", ("LP-X-T", "LP-X-F", "LP-X-H"),
+     {"LP-X-T": "vs temperature", "LP-X-F": "vs frequency", "LP-X-H": "vs amplitude"}),
     ("ms_t", "Ms–T", ("LP-MST", "LP-IMT"), {}),
     ("low_t", "Low temperature", ("LP-FC", "LP-ZFC", "LP-PFC", "LP-CW-", "LP-MW", "LP-MC", "LP-MRT", "LP-LT"),
      {"LP-FC": "FC", "LP-ZFC": "ZFC", "LP-CW-SIRM": "RT-SIRM cycling", "LP-CW-NRM": "RT-NRM cycling"}),

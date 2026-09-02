@@ -2665,6 +2665,10 @@ def tauV(T):
     t, V, tr = [], [], 0.
     ind1, ind2, ind3 = 0, 1, 2
     evalues, evectmps = linalg.eig(T)
+    # a symmetric tensor has real eigenvalues; eig hands them back as complex with a zero
+    # imaginary part, which would otherwise be discarded with a ComplexWarning downstream
+    if np.iscomplexobj(evalues) and not np.any(evalues.imag) and not np.any(evectmps.imag):
+        evalues, evectmps = evalues.real, evectmps.real
     # to make compatible with Numeric convention
     evectors = np.transpose(evectmps)
     for tau in evalues:
