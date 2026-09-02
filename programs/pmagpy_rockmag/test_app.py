@@ -3,12 +3,13 @@ Tests for the Rock Magnetism application: the experiment index, the session,
 and the views against the shipped examples (MagIC contribution 20427,
 ``data_files/3_0/RMB_oxyhydroxides``, for the low-temperature and
 thermomagnetic views; 20213, ``data_files/3_0/ECMB_rockmag``, for the
-hysteresis and backfield ones) and synthetic curves with known answers. Run with the apps
-environment::
+hysteresis and backfield ones; ``data_files/3_0/FORC_example`` for the FORC
+one) and synthetic curves with known answers. Run with the apps environment::
 
     pytest programs/pmagpy_rockmag/test_app.py -q
 """
 import os
+import sys
 
 import numpy as np
 import pandas as pd
@@ -18,10 +19,13 @@ from scipy.special import erf
 
 pn = pytest.importorskip("panel")
 
-from pmagpy import rockmag  # noqa: E402
+from pmagpy import forc, rockmag  # noqa: E402
 from pmagpy_rockmag import app, session as rs  # noqa: E402
-from pmagpy_rockmag.views import (AcSusceptibilityView, BackfieldView, ChiTView, CurieView, GoethiteView,  # noqa: E402
-                                  HysteresisView, MpmsDcView, UnmixingView, VerweyView)
+from pmagpy_rockmag.views import (AcSusceptibilityView, BackfieldView, ChiTView, CurieView, ForcView,  # noqa: E402
+                                  GoethiteView, HysteresisView, MpmsDcView, UnmixingView, VerweyView)
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "pmagpy", "test"))
+from test_forc import write_micromag  # noqa: E402  the synthetic MicroMag run with a known FORC distribution
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
@@ -563,6 +567,92 @@ class TestUnmixingView:
         assert view.code.text.splitlines()[-1].startswith("experiment, Bcr = rmag.process_backfield_data")
 
 
+FORC = os.path.join(REPO, "data_files", "3_0", "FORC_example")
+FORC_EXPERIMENT = "LP-FORC-conventional_example"
+
+
+class TestForcView:
+    @pytest.fixture(scope="class")
+    def example(self):
+        return ForcView(rs.Session(FORC))
+
+    @pytest.fixture(scope="class")
+    def synthetic(self, tmp_path_factory):
+        """The quadratic synthetic run of ``test_forc`` as a MagIC table in memory: rho = -0.5 × 0.7e-6 everywhere."""
+        raw = tmp_path_factory.mktemp("forc") / "synthetic_specimen.txt"
+        write_micromag(raw)
+        magic_path = forc.export_magic_measurements_from_raw(str(raw))
+        return pd.read_csv(magic_path, sep="\t", header=1)
+
+    def test_the_example_run_is_processed_and_the_code_reproduces_it(self, example):
+        view, session = example, example.s
+        assert view.experiment.value == FORC_EXPERIMENT and session.specimen == "conventional_example"
+        assert len(view.out["forcs_display"]) == 119 and view.out["rho"].shape == (119, 162)
+        assert view.out["drift_corrected"] and view.out["n_calibration_points"] == 120
+        for text in ("curves <b>119</b>", "field step <b>2.83 mT</b>", "drift <b>120 calibration points</b>",
+                     "LOESS span <b>14.1 × 16.9 mT</b>", "B<sub>c</sub> <b>2.49 mT</b>"):
+            assert text in view.result.object
+        assert view.plot.object is view.figure is view.out["fig_rho"] and len(view.curves.object.renderers) == 2
+        # the header window a MagIC table gives is the run's field range; the view frames the distribution instead
+        assert view._window == {"Bu_max": pytest.approx(0.218, abs=1e-3), "Bc_max": pytest.approx(0.2372, abs=1e-3)}
+        assert view.Bu_max.value == view.Bc_max.value == 120.0
+        assert view.out["plot_limits"] == {"Bu_min_lim": -0.12, "Bu_max_lim": 0.12, "Bc_min_lim": 0.0, "Bc_max_lim": 0.12}
+        lines = view.code.text.splitlines()
+        assert lines[2] == "import pmagpy.forc as forc" and lines[6:] == [
+            f"experiment = rmag.experiment_selection(measurements, '{FORC_EXPERIMENT}')",
+            "out = forc.process_forc_dataframe(experiment, Bu_min=-0.12, Bu_max=0.12, Bc_max=0.12)"]
+        namespace = {"rmag": rockmag, "forc": forc, "measurements": session.measurements}
+        exec("\n".join(lines[6:]).replace("(experiment,", "(experiment, plot_rho=False, verbose=False,"), namespace)
+        np.testing.assert_allclose(namespace["out"]["rho"], view.out["rho"], rtol=1e-6, equal_nan=True)
+
+    def test_the_controls_are_the_pipelines_arguments_off_their_defaults(self, example):
+        view = example
+        loess_rho = view.out["rho"].copy()
+        view.set_parameters(smoothing="variforc", preset="central_ridge", smoothing_factor=9, Bc_max=100, Bu_max=100,
+                            color_scale_version=2, show_contours=False)
+        assert not view.smooth_strength.visible and view.preset.visible and view.smoothing_factor.visible
+        lines = view.code.text.splitlines()
+        assert lines[7:] == ["out = forc.process_forc_dataframe(", "    experiment,", "    smoothing='variforc',",
+                             "    variforc=forc.variforc_settings('central_ridge', smoothing_factor=9),",
+                             "    Bu_min=-0.1,", "    Bu_max=0.1,", "    Bc_max=0.1,", "    color_scale_version=2,", "    show_contours=False,", ")"]
+        assert "VARIFORC <b>central ridge · sf 9</b>" in view.result.object
+        assert view.out["plot_limits"]["Bc_max_lim"] == pytest.approx(0.1) and view.out["plot_limits"]["Bu_min_lim"] == pytest.approx(-0.1)
+        assert not np.allclose(view.out["rho"], loess_rho, equal_nan=True)
+        namespace = {"rmag": rockmag, "forc": forc, "measurements": view.s.measurements}
+        exec("\n".join(lines[6:]).replace("    experiment,", "    experiment, plot_rho=False, verbose=False,"), namespace)
+        np.testing.assert_allclose(namespace["out"]["rho"], view.out["rho"], rtol=1e-6, equal_nan=True)
+        # the default factor and the header window are not written; a moved LOESS strength is
+        view.set_parameters(smoothing="loess", smooth_strength=1.5, Bc_max=view._window["Bc_max"] * 1e3,
+                            Bu_max=view._window["Bu_max"] * 1e3, color_scale_version=1, show_contours=True)
+        assert view.code.text.splitlines()[7] == "out = forc.process_forc_dataframe(experiment, smooth_strength=1.5)"
+        assert view.smooth_strength.visible and not view.preset.visible
+        assert view.out["plot_limits"]["Bc_max_lim"] == pytest.approx(view._window["Bc_max"])
+        view.set_parameters(smooth_strength=1.0, Bc_max=120, Bu_max=120)
+
+    def test_a_synthetic_run_gives_back_its_known_distribution(self, synthetic):
+        view = ForcView(synthetic)
+        assert view.experiment.value == "LP-FORC-synthetic_specimen" and view.s.specimen == "synthetic_specimen"
+        assert view.code.text.splitlines()[4] == "# measurements: the DataFrame this view was given"
+        assert "curves <b>40</b>" in view.result.object and "field step <b>5.00 mT</b>" in view.result.object
+        rho = view.out["rho"]
+        finite = np.isfinite(rho)
+        assert finite.sum() > 2000
+        # rho = -0.5 × d²M/dHa dHb with the mixed coefficient 0.7e-6; LOESS is exact away from the edges
+        assert np.nanmedian(rho) == pytest.approx(-0.35e-6, rel=1e-4)
+        assert np.mean(np.abs(rho[finite] + 0.35e-6) < 0.35e-8) > 0.8
+        view.set_parameters(smoothing="variforc", preset="both_ridges")
+        rho = view.out["rho"]
+        assert np.nanmedian(rho) == pytest.approx(-0.35e-6, rel=1e-2)
+        assert view.code.text.splitlines()[-5:] == ["    variforc=forc.variforc_settings('both_ridges'),", "    Bu_min=-0.22,",
+                                                   "    Bu_max=0.22,", "    Bc_max=0.22,", ")"]
+
+    def test_nothing_to_plot_is_said_not_raised(self):
+        view = ForcView(pd.DataFrame({"specimen": ["a"], "method_codes": ["LP-FC"], "experiment": ["e"],
+                                      "meas_temp": [10.0], "magn_mass": [1.0]}))
+        assert view.experiment.options == {} and view.out is None and "no FORC run" in view.result.object
+        assert view.code.text.splitlines()[2] == "import pmagpy.forc as forc"
+
+
 class TestApp:
     def test_create_app_builds_the_template_with_one_tab_per_view(self):
         template = app.create_app(EXAMPLE)
@@ -571,8 +661,8 @@ class TestApp:
 
     def test_the_body_has_the_index_and_the_views(self, session):
         body = app.build_body(session)
-        assert list(body.views) == ["mpms_dc", "verwey", "goethite", "mpms_ac", "chi_t", "curie", "hys", "bcr", "unmix"]
+        assert list(body.views) == ["mpms_dc", "verwey", "goethite", "mpms_ac", "chi_t", "curie", "hys", "bcr", "unmix", "forc"]
         assert [name for name, _ in zip(body.main._names, body.main)] == [
-            "MPMS DC", "Verwey", "Goethite", "AC susceptibility", "χ–T", "Curie", "Hysteresis", "Backfield", "Unmixing"]
+            "MPMS DC", "Verwey", "Goethite", "χ AC", "χ–T", "Curie", "Hysteresis", "Backfield", "Unmixing", "FORC"]
         assert body.views["verwey"].specimen.value == body.views["mpms_dc"].specimen.value
         assert body.info.app_id == "pmagpy_rockmag"

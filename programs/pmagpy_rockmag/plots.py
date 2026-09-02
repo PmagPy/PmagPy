@@ -123,3 +123,24 @@ def goethite_figures(result: dict, fit_range: tuple, title: str = ""):
         fig.legend.label_text_font_size = "9pt"
         fig.legend.background_fill_alpha = 0.7
     return rows
+
+
+def forc_curves_figure(forcs, title: str = "", y_label: str = "Moment (Am²)", height: int = 420):
+    """The reversal curves a FORC run measured, after the pipeline's drift and endpoint conditioning.
+
+    Args:
+        forcs: ``out["forcs_display"]`` of ``pmagpy.forc.process_forc`` — ``Segment`` objects with
+            ``H`` (T) and ``M`` arrays, one per reversal curve.
+        title: the specimen, say.
+        y_label: the moment column's unit.
+    Returns:
+        A Bokeh figure, fields in mT, one line per curve.
+    """
+    tools = [HoverTool(tooltips=[("B", "@xs{0.0} mT")], line_policy="nearest"), "pan,box_zoom,wheel_zoom,reset,save"]
+    fig = figure(title=title, x_axis_label="Field (mT)", y_axis_label=y_label, tools=tools, width=460, height=height)
+    fig.yaxis.formatter = BasicTickFormatter(precision=2)
+    fig.multi_line(xs=[1e3 * np.asarray(seg.H) for seg in forcs], ys=[np.asarray(seg.M) for seg in forcs],
+                   line_color=MAGNETITE_COLOR, line_width=0.8, line_alpha=0.6)
+    fig.line([0, 0], [min(np.nanmin(seg.M) for seg in forcs), max(np.nanmax(seg.M) for seg in forcs)],
+             line_color="#9aa1ab", line_dash="dotted")
+    return style_figure(fig)

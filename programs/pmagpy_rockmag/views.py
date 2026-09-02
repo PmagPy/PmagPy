@@ -20,7 +20,7 @@ import numpy as np
 import panel as pn
 from bokeh.layouts import gridplot
 
-from pmagpy import rockmag
+from pmagpy import forc, rockmag
 from pmagpy_panel import code
 from pmagpy_panel.chooser import DirectoryChooser
 from pmagpy_panel.theme import MUTED_STYLE, SECTION_STYLE, kpi, style_figure
@@ -1316,8 +1316,258 @@ class UnmixingView(BackfieldBase):
                          self.table, self.plot, self.code.panel(), sizing_mode="stretch_width")
 
 
+# ----------------------------------------------------------------------------- FORC
+FORC_SMOOTHING = {"LOESS": "loess", "VARIFORC": "variforc"}
+FORC_DEFAULTS = dict(smoothing="loess", smooth_strength=1.0, color_scale_version=1, show_contours=True, do_regrid=False)
+"""``process_forc`` defaults for the controls the view offers; a window limit's default is the header's."""
+VARIFORC_DEFAULT_FACTOR = 7
+
+
+def forc_preamble(session: Session) -> list:
+    """The notebook preamble with the FORC module imported as the FORCme notebooks do."""
+    lines = preamble(session)
+    return lines[:2] + ["import pmagpy.forc as forc"] + lines[2:]
+
+
+class ForcView:
+    """A first-order reversal curve diagram: ``forc.process_forc_dataframe`` on an LP-FORC experiment.
+
+    The controls are the processing choices an analyst makes — the smoothing
+    method (LOESS with a strength, or VARIFORC with a preset describing the
+    ridges expected and a smoothing factor), the diagram window and how the
+    density is drawn. The measured curves are shown beside the diagram, as
+    ``plot_hyst`` would draw them, so that a bad drift correction or a
+    truncated run is visible next to its consequences.
+    """
+
+    TYPE = "forc"
+
+    def __init__(self, session):
+        self.s = as_session(session)
+        self.experiment = pn.widgets.Select(name="Experiment", options={}, width=340)
+        self.smoothing = pn.widgets.RadioButtonGroup(name="Smoothing", options=dict(FORC_SMOOTHING), value="loess",
+                                                     width=170, button_type="default", margin=(24, 5, 0, 10))
+        self.smooth_strength = pn.widgets.FloatSlider(name="LOESS strength", start=0.5, end=3.0, step=0.1, value=1.0,
+                                                      width=170)
+        self.preset = pn.widgets.Select(name="VARIFORC preset", options={k.replace("_", " "): k for k in forc.VARIFORC_PRESETS},
+                                        value="regular", width=160, visible=False)
+        self.smoothing_factor = pn.widgets.IntSlider(name="smoothing factor", start=3, end=15, value=VARIFORC_DEFAULT_FACTOR,
+                                                     width=170, visible=False)
+        self.Bc_max = pn.widgets.FloatSlider(name="Bc max (mT)", start=10, end=500, step=5, value=100, width=180)
+        self.Bu_max = pn.widgets.FloatSlider(name="Bu range (± mT)", start=10, end=500, step=5, value=100, width=180)
+        self.color_scale = pn.widgets.RadioButtonGroup(name="Colour scale", options={"1": 1, "2": 2, "3": 3}, value=1,
+                                                       width=110, button_type="default", margin=(24, 5, 0, 10))
+        self.show_contours = pn.widgets.Checkbox(name="contours", value=True, width=90, margin=(28, 5, 0, 10))
+        self.do_regrid = pn.widgets.Checkbox(name="regrid", value=False, width=80, margin=(28, 5, 0, 10))
+        self.result = pn.pane.HTML("", sizing_mode="stretch_width")
+        self.curves = pn.pane.Bokeh(sizing_mode="fixed", margin=(0, 10, 0, 0))
+        self.plot = pn.pane.Matplotlib(dpi=100, tight=True, width=560, height=480, sizing_mode="fixed")
+        self.code = code.CodePane()
+        self.out = None                           # the dict process_forc_dataframe returned for what is shown
+        self.figure = None
+        self._window = None                       # the header window limits (T) the sliders were set from
+        self._quiet = False                       # the sliders being set from the header: hold the refresh
+
+        self.experiment.param.watch(self._on_experiment, "value")
+        self.smoothing.param.watch(self._on_smoothing, "value")
+        for w in (self.smooth_strength, self.smoothing_factor, self.Bc_max, self.Bu_max):
+            w.param.watch(lambda e: self._quiet or self.refresh(), "value_throttled")
+        for w in (self.preset, self.color_scale, self.show_contours, self.do_regrid):
+            w.param.watch(lambda e: self.refresh(), "value")
+        self.s.param.watch(lambda e: self.reset(), "directory")
+        self.s.param.watch(self._follow_session, "specimen")
+        self.reset()
+
+    # ----- state --------------------------------------------------------------
+    def _experiments(self):
+        return self.s.experiments_of(self.TYPE)
+
+    def reset(self) -> None:
+        exps = self._experiments()
+        options = {f"{r.specimen} · {r.experiment}": r.experiment for r in exps.itertuples()}
+        before = self.experiment.value
+        self.experiment.options = options
+        own = exps.loc[exps["specimen"] == self.s.specimen, "experiment"].tolist()
+        self.experiment.value = own[0] if own else (next(iter(options.values())) if options else None)
+        if self.experiment.value == before:
+            self._on_experiment(None)
+
+    def _on_experiment(self, event) -> None:
+        exp = self.experiment.value
+        self._window = None                                            # a new run: take its header window
+        if exp:
+            exps = self.s.experiments
+            self.s.specimen = exps.loc[exps["experiment"] == exp, "specimen"].iloc[0]
+        self.refresh()
+
+    def _follow_session(self, event) -> None:
+        exps = self._experiments()
+        own = exps.loc[exps["specimen"] == event.new, "experiment"].tolist()
+        if own and self.experiment.value not in own:
+            self.experiment.value = own[0]
+
+    def _show_smoothing_controls(self) -> None:
+        variforc = self.smoothing.value == "variforc"
+        self.smooth_strength.visible = not variforc
+        self.preset.visible = self.smoothing_factor.visible = variforc
+
+    def _on_smoothing(self, event) -> None:
+        self._show_smoothing_controls()
+        self.refresh()
+
+    def set_parameters(self, smoothing=None, smooth_strength=None, preset=None, smoothing_factor=None,
+                       Bc_max=None, Bu_max=None, color_scale_version=None, show_contours=None, do_regrid=None) -> None:
+        """Set the processing controls from code (a notebook, a test) and refresh once; field limits in mT."""
+        self._quiet = True
+        try:
+            for widget, value in ((self.smoothing, smoothing), (self.smooth_strength, smooth_strength),
+                                  (self.preset, preset), (self.smoothing_factor, smoothing_factor),
+                                  (self.Bc_max, Bc_max), (self.Bu_max, Bu_max), (self.color_scale, color_scale_version),
+                                  (self.show_contours, show_contours), (self.do_regrid, do_regrid)):
+                if value is not None:
+                    widget.value = value
+            self._show_smoothing_controls()
+        finally:
+            self._quiet = False
+        self.refresh()
+
+    # ----- the diagram --------------------------------------------------------
+    def data(self):
+        if not self.experiment.value or self.s.measurements is None:
+            return None
+        return rockmag.experiment_selection(self.s.measurements, self.experiment.value)
+
+    def processing(self) -> dict:
+        """The keyword arguments of ``process_forc_dataframe`` off their defaults, in signature order.
+
+        The window limits are emitted when they differ from the run's header
+        limits, which is what the pipeline uses when none are given; the
+        B<sub>u</sub> range is symmetric about zero (``Bu_min=-x, Bu_max=x``).
+        """
+        chosen = dict(smoothing=self.smoothing.value)
+        if self.smoothing.value == "variforc":
+            settings = dict(preset=self.preset.value)
+            if int(self.smoothing_factor.value) != VARIFORC_DEFAULT_FACTOR:
+                settings["smoothing_factor"] = int(self.smoothing_factor.value)
+            chosen["variforc"] = settings
+        else:
+            chosen["smooth_strength"] = round(float(self.smooth_strength.value), 3)
+        if self._window is not None:
+            Bu = round(self.Bu_max.value / 1e3, 6)
+            if abs(Bu - self._window["Bu_max"]) > 1e-6:                    # symmetric about Bu = 0, as the header's is
+                chosen.update(Bu_min=-Bu, Bu_max=Bu)
+            if abs(self.Bc_max.value / 1e3 - self._window["Bc_max"]) > 1e-6:
+                chosen["Bc_max"] = round(self.Bc_max.value / 1e3, 6)
+        chosen.update(color_scale_version=int(self.color_scale.value), show_contours=bool(self.show_contours.value),
+                      do_regrid=bool(self.do_regrid.value))
+        return {k: v for k, v in chosen.items() if k not in FORC_DEFAULTS or v != FORC_DEFAULTS[k]}
+
+    @staticmethod
+    def _call_kwargs(kwargs: dict) -> dict:
+        """The keyword arguments with the VARIFORC settings dict built by ``variforc_settings``."""
+        kwargs = dict(kwargs)
+        if "variforc" in kwargs:
+            kwargs["variforc"] = forc.variforc_settings(**kwargs["variforc"])
+        return kwargs
+
+    @staticmethod
+    def _code_kwargs(kwargs: dict) -> dict:
+        """The keyword arguments as source, the VARIFORC settings as the ``variforc_settings`` call."""
+        kwargs = dict(kwargs)
+        if "variforc" in kwargs:
+            settings = dict(kwargs["variforc"])
+            kwargs["variforc"] = code.Name(code.call("forc.variforc_settings", settings.pop("preset"), **settings))
+        return kwargs
+
+    def _take_window(self, out: dict) -> bool:
+        """Set the window sliders to the extent of the distribution the first time a run is processed.
+
+        The pipeline's own default is the header window, which a MagIC table
+        carries only as the field range of the run — wider than the reversal
+        curves reach — so the view starts at a square window out to the B<sub>c</sub>
+        extent of the finite ρ, rounded up to 5 mT, and says so in the code.
+        True when the sliders moved.
+        """
+        limits = out.get("header_limits") or {}
+        if self._window is not None or "Bu_max" not in limits or "Bc_max" not in limits:
+            return False
+        self._window = {k: float(limits[k]) for k in ("Bu_max", "Bc_max")}
+        Ha, Hb = np.meshgrid(out["Ha_vals_used"], out["Hb_vals_used"], indexing="ij")
+        Bc_mT = float(5 * np.ceil(1e3 * np.nanmax((0.5 * (Hb - Ha))[np.isfinite(out["rho"])]) / 5))
+        self._quiet = True
+        try:
+            for widget, key in ((self.Bu_max, "Bu_max"), (self.Bc_max, "Bc_max")):
+                widget.end = max(widget.end, 5 * np.ceil(1e3 * self._window[key] / 5))
+                widget.value = Bc_mT                                   # a square window, as diagrams are usually drawn
+        finally:
+            self._quiet = False
+        return True
+
+    def process(self):
+        """Run the pipeline on the chosen experiment: ``(out, moment column, kwargs)``, or None without an LP-FORC run."""
+        experiment = self.data()
+        column = magnetization_column(experiment) if experiment is not None else None
+        if column is None or "meas_field_dc" not in experiment or experiment["meas_field_dc"].isna().all():
+            return None
+        kwargs = self.processing()
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")                                    # pyplot's "non-interactive backend" note
+            out = forc.process_forc_dataframe(experiment, plot_hyst=False, verbose=False, **self._call_kwargs(kwargs))
+        return out, column, kwargs
+
+    def refresh(self) -> None:
+        if self.figure is not None:
+            plt.close(self.figure)                                     # pyplot keeps figures until told otherwise
+        done = self.process()
+        if done is None:
+            self.out = self.figure = None
+            self.plot.object = self.curves.object = None
+            self.result.object = muted("no FORC run in this directory")
+            self.code.set(forc_preamble(self.s))
+            return
+        self.out, column, kwargs = done
+        if self._window is None and self._take_window(self.out):       # first run of this experiment: frame it
+            plt.close(self.out["fig_rho"])
+            self.out, column, kwargs = self.process()
+        self.figure = self.out["fig_rho"]
+        self.plot.object = self.figure
+        self.curves.object = plots.forc_curves_figure(
+            self.out["forcs_display"], title=f"{self.s.specimen} · {plural(len(self.out['forcs_display']), 'curve')}",
+            y_label=f"Moment ({MAGNETIZATION_COLUMNS[column]})")
+        self.result.object = self._kpi(kwargs)
+        self.code.set(forc_preamble(self.s) + [
+            code.assign("experiment", code.call("rmag.experiment_selection", code.Name("measurements"), self.experiment.value)),
+            code.assign("out", code.call("forc.process_forc_dataframe", code.Name("experiment"), **self._code_kwargs(kwargs))),
+        ])
+
+    def _kpi(self, kwargs: dict) -> str:
+        out = self.out
+        items = [("curves", f"{len(out['forcs_display'])}"),
+                 ("field step", f"{1e3 * out['dHb_used']:.2f} mT"),
+                 ("drift", f"{out['n_calibration_points']} calibration points" if out.get("drift_corrected")
+                  else "not corrected")]
+        if kwargs.get("smoothing") == "variforc":
+            settings = kwargs["variforc"]
+            items.append(("VARIFORC", f"{settings['preset'].replace('_', ' ')} · sf {settings.get('smoothing_factor', VARIFORC_DEFAULT_FACTOR)}"))
+        else:
+            lp = out.get("loess_params") or {}
+            if "span_Hb_T_used" in lp:
+                items.append(("LOESS span", f"{1e3 * lp['span_Hb_T_used']:.1f} × {1e3 * lp['span_Ha_T_used']:.1f} mT"))
+        Bc = forc.find_coercive_field(out["Ha_vals_used"], out["Hb_vals_used"], out["M_grid_used"])
+        if np.isfinite(Bc):
+            items.append(("B<sub>c</sub>", f"{1e3 * Bc:.2f} mT"))
+        return kpi(items)
+
+    def panel(self) -> pn.Column:
+        return pn.Column(pn.Row(self.experiment, self.smoothing, self.smooth_strength, self.preset, self.smoothing_factor),
+                         pn.Row(self.Bc_max, self.Bu_max, pn.pane.HTML(muted("colour scale"), margin=(28, 0, 0, 10)),
+                                self.color_scale, self.show_contours, self.do_regrid),
+                         self.result, pn.Row(self.curves, self.plot), self.code.panel(), sizing_mode="stretch_width")
+
+
 # ----------------------------------------------------------------------------- the set of views
 TABS = (("mpms_dc", "MPMS DC", MpmsDcView), ("verwey", "Verwey", VerweyView), ("goethite", "Goethite", GoethiteView),
-        ("mpms_ac", "AC susceptibility", AcSusceptibilityView), ("chi_t", "χ–T", ChiTView), ("curie", "Curie", CurieView),
-        ("hys", "Hysteresis", HysteresisView), ("bcr", "Backfield", BackfieldView), ("unmix", "Unmixing", UnmixingView))
+        ("mpms_ac", "χ AC", AcSusceptibilityView), ("chi_t", "χ–T", ChiTView), ("curie", "Curie", CurieView),
+        ("hys", "Hysteresis", HysteresisView), ("bcr", "Backfield", BackfieldView), ("unmix", "Unmixing", UnmixingView),
+        ("forc", "FORC", ForcView))
 """``(key, tab label, view class)`` in tab order. Experiment types without a view are listed in the index only."""

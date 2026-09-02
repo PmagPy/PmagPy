@@ -572,7 +572,21 @@ Intensity were built.
    only with dynesty) with a "Choose n" button running `select_n_components`,
    a table of the components and `plot_coercivity_unmixing` in a Matplotlib
    pane; the emitted code carries the selection call only while the rule's
-   count is the one shown (QUESTIONS 20–21). *Next*: FORC, results to
+   count is the one shown (QUESTIONS 20–21). `ForcView` is the FORCme
+   pipeline (`forc.py`) on an `LP-FORC` experiment: the pipeline was
+   file-based, so core gained `process_forc_dataframe` (the measurements
+   already in pandas, through the MagIC reader) and a third example landed,
+   `data_files/3_0/FORC_example` — the repo's own raw MicroMag example run
+   exported to a MagIC table by `export_magic_measurements_from_raw`
+   (QUESTIONS 23). The controls are the smoothing (LOESS with its strength, or
+   VARIFORC with a `variforc_settings` preset and smoothing factor), a square
+   diagram window in mT, the colour scale, contours and regridding; the
+   measured curves are drawn in Bokeh beside the pipeline's own ρ figure; the
+   KPI row is curves, field step, drift correction, the LOESS spans or the
+   VARIFORC preset, and the major loop's Bc. The window starts at the extent
+   of the finite ρ rather than the pipeline's header default, because a MagIC
+   table's header is the run's field range (QUESTIONS 24). The tab bar was
+   full at ten views, so "AC susceptibility" became "χ AC". *Next*: results to
    `specimens.txt` (`add_hyst_stats_to_specimens_table`,
    `add_Bcr_to_specimens_table`, `add_unmixing_to_specimens_table`,
    `add_curie_estimates_to_specimens_table` through `MagicProject`), the

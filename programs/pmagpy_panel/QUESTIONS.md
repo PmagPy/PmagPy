@@ -192,3 +192,47 @@ the bottom; struck through once settled.
     point on its own only when the first field is positive. The view drops it
     for either case and disables the checkbox while that experiment is shown.
     Should the function do the same (`if experiment[field].iloc[0] >= 0`)?
+
+## FORC view (2026-09-02)
+
+23. **The shipped FORC example.** No public MagIC contribution with an
+    `LP-FORC` run was small enough to ship (the Baraboo tables are 22–23 MB;
+    SSRM2024C is private; Egli's VARIFORC test data is CC BY-NC). The view's
+    example, `data_files/3_0/FORC_example` (1.3 MB), is PmagPy's own raw
+    MicroMag file `data_files/forc_diagram/conventional_example.forc`
+    (120 curves, measured 2016-04-13, in the repo since 2018) exported to a
+    MagIC measurements table by `forc.export_magic_measurements_from_raw`.
+    Nothing is recorded about the sample. Do you know where it came from (added
+    by "Lori J" in 2018), so the README can say — or is there a small run of
+    yours (IRM, a few hundred kB) you would rather ship as the example?
+
+24. **The diagram window a MagIC table gives.** A raw MicroMag header carries
+    the analyst's window (`Hb1`/`Hb2`/`Hc1`/`Hc2`: ±0.1 T × 0–0.1 T for the
+    example) and `process_forc` frames the diagram with it when no limits are
+    given. The MagIC export has nowhere to put those, so the reader
+    synthesizes them from the field range of the run (±0.218 × 0.237 T for
+    the example) and a diagram from a MagIC table comes out mostly blank. The
+    view therefore starts at a square window out to the Bc extent of the
+    finite ρ (0.12 T here) and writes `Bu_min`/`Bu_max`/`Bc_max` into the
+    code. Should the export carry the header window somewhere (the
+    `description` column of the measurements, or `specimens.txt`), so the
+    round trip preserves the analyst's framing? And is a square window the
+    right default, or Bu ± half of Bc max, as some prefer?
+
+25. **FORC smoothing defaults.** The view offers LOESS at strength 1 (the
+    pipeline's default: spans set for `target_n_eff=60`) and VARIFORC through
+    `variforc_settings` (presets regular / central ridge / vertical ridge /
+    both ridges, smoothing factor 3–15, default 7). Egli's published analyses
+    use factors 7–11. Should the app default to VARIFORC `regular` sf 7, as
+    the FORCme notebooks lean towards, or stay on the pipeline's LOESS
+    default? VARIFORC takes ~1–2 s on the example without numba (regridding
+    adds ~8 s); numba is not in the apps environment — should it be?
+
+26. **Bc from the FORC grid.** The KPI row reports `find_coercive_field` on
+    the interpolated M(Ha, Hb) grid — the field where the lowest reversal curve
+    crosses zero moment — as "Bc". On the example it is 2.5 mT. It is the
+    major-loop Bc only when the deepest reversal saturates the sample; is it
+    worth showing at all, or should the row report the ρ peak position
+    (`find_bounded_peak_rho` — on the example it sits at Bc ≈ 0, which is why
+    it is not shown) or nothing?
+
