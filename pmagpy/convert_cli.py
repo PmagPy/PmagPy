@@ -77,6 +77,9 @@ def _shell(value) -> str:
 
 def field_help(field: reg.Field) -> str:
     """One line per option: the label, the help, the default, the choices spelled out."""
+    if field.kind == "bool" and field.choices:            # both ways are named: say what the flag does and what happens without it
+        ways = dict(field.choices)
+        return f"{ways[not field.default]}. Without this: {ways[bool(field.default)].lower()}."
     parts = [field.label + ("." if not field.label.endswith(".") else "")]
     if field.help:
         parts.append(field.help)

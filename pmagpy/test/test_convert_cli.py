@@ -66,7 +66,12 @@ class TestOptionsFromFields:
         text = cli.build_parser(reg.FORMATS["sio"]).format_help()
         assert "--samp-con CODE" in text and "4 = XXXX[YYY]" in text and "Default 1." in text
         codelist = next(f for f in reg.FORMATS["sio"].fields if f.name == "codelist")
-        assert "AF = AF demagnetization" in cli.field_help(codelist) and "Off unless this is given." in text
+        assert "AF = AF demagnetization" in cli.field_help(codelist)
+        assert "--noave" in text and "Keep replicate measurements. Without this: average replicate measurements." in " ".join(text.split())
+        cit = cli.build_parser(reg.FORMATS["cit"]).format_help()          # CIT keeps them by default, so the flag is the other way
+        assert "--no-noave" in cit and "Average replicate measurements. Without this: keep replicate measurements." in " ".join(cit.split())
+        plain = next(f for f in reg.FORMATS["2g_bin"].fields if f.kind == "bool" and not f.choices)   # a one-way checkbox
+        assert "unless this is given." in cli.field_help(plain)
         assert "Example: pmagpy-convert sio sio_af_example.dat --location Hawaii --specnum 1 --codelist AF" in text
         assert "pmagpy.convert_2_magic.sio" in text
         tdt = cli.build_parser(reg.FORMATS["tdt"]).format_help()

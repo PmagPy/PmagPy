@@ -102,7 +102,9 @@ class Field:
         help: one sentence for the form; the converter's docstring says the rest.
         default: passed when the user leaves the field alone.
         required: the form insists on a value.
-        choices: for ``choice`` — ``(value, label)`` pairs.
+        choices: for ``choice`` — ``(value, label)`` pairs. A ``bool`` may give
+            two, ``(True, label)`` and ``(False, label)``, when the form should
+            spell out both ways rather than show one checkbox.
     """
     name: str
     kind: str
@@ -208,8 +210,9 @@ SPECNUM = Field("specnum", "int", "Specimen characters",
                 default=0)
 LAT = Field("lat", "float", "Latitude", "Of the sites, in decimal degrees; leave blank to fill in later.")
 LON = Field("lon", "float", "Longitude", "Of the sites, in decimal degrees, east positive.")
-NOAVE = Field("noave", "bool", "Keep replicate measurements", "Do not average repeated measurements at a step.",
-              default=False)
+REPLICATES = ((True, "Keep replicate measurements"), (False, "Average replicate measurements"))
+NOAVE = Field("noave", "bool", "Replicate measurements", "Repeated measurements at the same step: kept as separate "
+              "rows, or averaged into one.", default=False, choices=REPLICATES)
 USER = Field("user", "text", "Analyst", "Goes in the analysts column.")
 LABFIELD = Field("labfield", "float", "Lab field (μT)", "DC field of the paleointensity or ARM steps; 0 for none.",
                  default=0)
@@ -717,8 +720,7 @@ _add(Format(
             SPECNUM,
             # CIT steps are already averaged over the measurement orientations, so a repeated step
             # is a remeasurement worth keeping; Pmag GUI's CIT dialog also keeps them
-            Field("noave", "bool", "Keep replicate measurements",
-                  "Keep repeated steps as separate rows rather than averaging them.", default=True),
+            Field("noave", "bool", "Replicate measurements", NOAVE.help, default=True, choices=REPLICATES),
             USER,
             Field("methods", "text", "Orientation method codes",
                   "Colon-delimited, e.g. SO-MAG:SO-SUN. A specimen file whose first line says \"sun compass\" turns "

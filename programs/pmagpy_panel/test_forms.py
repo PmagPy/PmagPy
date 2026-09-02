@@ -68,6 +68,25 @@ class TestWidgets:
         assert "sitename" in form.widgets and "codelist" not in form.widgets
         assert len(form.panel()) == len(FORMATS["cit"].fields)
 
+    def test_an_untouched_default_does_not_follow_into_a_format_that_defaults_the_other_way(self):
+        form = Form(FORMATS["sio"].fields)                       # SIO averages replicates unless told otherwise
+        assert form.values()["noave"] is False
+        form.set_fields(FORMATS["cit"].fields)                   # CIT keeps them: its own default must show
+        assert form.values()["noave"] is True
+        form.widgets["noave"].value = False                      # but a choice the analyst made does carry
+        form.set_fields(FORMATS["sio"].fields)
+        form.set_fields(FORMATS["cit"].fields)
+        assert form.values()["noave"] is False
+
+    def test_the_replicate_choice_names_both_ways(self):
+        form = Form(FORMATS["cit"].fields)
+        w = form.widgets["noave"]
+        assert isinstance(w, pn.widgets.Select) and w.name == "Replicate measurements"
+        assert list(w.options) == ["Keep replicate measurements", "Average replicate measurements"]
+        assert w.value is True
+        w.value = False
+        assert form.values()["noave"] is False
+
     def test_every_registered_format_builds_a_form_the_registry_accepts(self, tmp_path):
         for key, fmt in FORMATS.items():
             form = Form(fmt.fields)
