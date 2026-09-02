@@ -19,8 +19,14 @@ CIT = os.path.join(os.path.dirname(os.path.dirname(MCMURDO)), "convert_2_magic",
 
 
 def page_html(tmpl) -> str:
-    """Every HTML pane on the page, joined."""
-    return "".join(p.object for p in tmpl.body.main.select(pn.pane.HTML))
+    """Every HTML pane the viewer would see, joined — panes inside a hidden column are left out."""
+    def walk(layout, shown: bool):
+        for child in getattr(layout, "objects", []):
+            on = shown and child.visible
+            if isinstance(child, pn.pane.HTML) and on:
+                yield child.object
+            yield from walk(child, on)
+    return "".join(walk(tmpl.body.main, tmpl.body.main.visible))
 
 
 def small_study(tmp_path) -> str:
@@ -65,24 +71,44 @@ class TestPage:
         link = app.app_link("pmagpy_directions", "/data/My Site/magic")
         assert link == "/pmagpy_directions?dir=/data/My%20Site/magic"
 
-    def test_default_falls_back_to_the_shipped_example_as_a_landing(self, monkeypatch, tmp_path):
+    def test_nothing_asked_for_is_the_start_page(self, monkeypatch, tmp_path):
         monkeypatch.delenv("PMAGPY_APPS_DIR", raising=False)
         recent = str(tmp_path / "recent.json")
         monkeypatch.setattr(datasets, "SHARED_RECENT_FILE", recent)
         datasets.remember_recent(recent, str(tmp_path))
-        html = page_html(app.serve_default())
-        assert "McMurdo" in html
-        assert "Recent" in html and home.home_link(str(tmp_path)) in html    # the landing lists where to go
-        assert datasets.load_recent(recent) == [str(tmp_path)]                # the example is not itself "recent"
+        tmpl = app.serve_default()
+        html = page_html(tmpl)
+        for door in home.DOORS:                                                 # the four ways in, in Nick's order
+            assert door.title in html
+        assert [d.title for d in home.DOORS] == ["Explore an example", "Open MagIC data", "Download from MagIC",
+                                                 "Convert measurement files"]
+        assert "Lawrence et al. 2009" in html and "<h1>Start</h1>" not in html    # the header already says PmagPy Apps
+        assert "Recent" in html and home.home_link(str(tmp_path)) in html    # the start page lists where to go
+        assert "MagIC contribution 13436" not in html                          # nothing is loaded behind it
+        assert "no directory open" in tmpl.body.header.object
+        assert datasets.load_recent(recent) == [str(tmp_path)]
 
-    def test_a_directory_asked_for_is_not_a_landing(self, monkeypatch, tmp_path):
+    def test_a_directory_asked_for_opens_straight_away(self, monkeypatch, tmp_path):
         recent = str(tmp_path / "recent.json")
         monkeypatch.setattr(datasets, "SHARED_RECENT_FILE", recent)
         datasets.remember_recent(recent, str(tmp_path))
         monkeypatch.setenv("PMAGPY_APPS_DIR", MCMURDO)
         html = page_html(app.serve_default())
-        assert "McMurdo" in html and "Recent" not in html
+        assert "McMurdo" in html and "Recent" not in html and "Explore an example" not in html
         assert datasets.load_recent(recent)[0] == MCMURDO
+
+    def test_the_example_opens_from_the_start_page_and_is_not_remembered(self, tmp_path):
+        recent = str(tmp_path / "recent.json")
+        session = home.HubSession(recent_file=recent)
+        view = home.HomeView(session)
+        assert session.landing and view.start.visible and not view.work.visible
+        view.example_btn.clicks += 1
+        assert session.directory == MCMURDO and not session.landing
+        assert view.work.visible and not view.start.visible and "MagIC contribution 13436" in view.ref.object
+        assert datasets.load_recent(recent) == []                              # the example is not "recent"
+        view.start_btn.clicks += 1                                              # and back
+        assert session.landing and session.directory == "" and session.status == "no directory open"
+        assert view.start.visible and not view.work.visible
 
     def test_the_header_status_follows_the_session(self):
         session = home.HubSession(MCMURDO)
@@ -104,9 +130,7 @@ class TestThreeStates:
         assert "Thellier experiments · IZZI, ZI, IZ · not built yet" in bars
         assert 'style="--c:#00A8C8;--c-ink:#ffffff" href="/pmagpy_directions' in bars   # the door is the app's colour
         assert '--c:#FFB627;--c-ink:#1b1b1b' in bars                                    # shut doors keep theirs, faintly
-        aside = home.aside_html(inv, [])
-        assert "Tables" not in aside and "measurements.txt" not in aside     # the counts line already says it
-        assert "Other files" in aside and "extra_specimens.txt" in aside
+        assert home.aside_html(inv) == ""      # the counts line says what is in the tables; the files beside them are Convert's
 
     def test_rock_magnetic_directory(self):
         inv = take_inventory(datasets.example_dir("RMB_oxyhydroxides"))
@@ -116,16 +140,12 @@ class TestThreeStates:
         assert 'href="/pmagpy_rockmag?dir=' in bars and "low temperature (FC, ZFC, RT-SIRM cycling)" in bars
         assert "no demagnetization steps in this directory" in bars
 
-    def test_a_tidy_magic_directory_has_no_aside_at_all(self, tmp_path):
-        for name in ("measurements", "specimens", "sites"):
-            shutil.copy(os.path.join(MCMURDO, f"{name}.txt"), tmp_path)
-        inv = take_inventory(str(tmp_path))
-        assert inv.is_magic and home.aside_html(inv, []) == ""
-        session = home.HubSession(str(tmp_path), landing=False)
+    def test_only_a_directory_without_tables_has_an_aside(self, tmp_path):
+        session = home.HubSession(MCMURDO)
         view = home.HomeView(session)
         assert view.aside.visible is False and view.spacer.visible is False
-        session.load(MCMURDO)
-        assert view.aside.visible is True
+        session.load(cit_only(tmp_path))
+        assert view.aside.visible is True and "CIT index" in view.aside.object
 
     def test_lab_files_waiting_to_convert(self, tmp_path):
         inv = take_inventory(cit_only(tmp_path))
@@ -134,34 +154,38 @@ class TestThreeStates:
         assert meta[2] == ana[2] == up[2] == "after import"
         assert "look like CIT specimen files" in home.facts_html(inv)
         assert "no measurements yet" in home.bars_html(inv) and "href" not in home.bars_html(inv)
-        assert "CIT index" in home.aside_html(inv, [])
+        assert "CIT index" in home.aside_html(inv)
 
     def test_empty_directory(self, tmp_path):
         inv = take_inventory(str(tmp_path))
         imp = home.stages(inv)[0]
         assert imp[2] == "convert files, or download from MagIC"
         assert "by its ID or DOI" in home.facts_html(inv)
-        aside = home.aside_html(inv, [MCMURDO, str(tmp_path)])
-        assert "none" in aside
-        assert home.home_link(MCMURDO) in aside and str(tmp_path) not in aside.split("Recent")[1].split("<li>")[0]
+        assert "none" in home.aside_html(inv)
+
+    def test_the_recent_list_is_links_to_this_page(self, tmp_path):
+        html = home.recent_html([MCMURDO, str(tmp_path)])
+        assert home.home_link(MCMURDO) in html and home.home_link(str(tmp_path)) in html
+        assert html.index("McMurdo") < html.index(str(tmp_path))                # most recent first, as given
+        assert home.recent_html([]) == ""
 
 
 class TestOpenDirectory:
-    def test_opening_a_directory_reloads_the_page_and_remembers_it(self, tmp_path):
+    def test_opening_a_directory_turns_the_start_page_over_and_remembers_it(self, tmp_path):
         recent = str(tmp_path / "recent.json")
         datasets.remember_recent(recent, str(tmp_path))
-        session = home.HubSession(MCMURDO, recent_file=recent, landing=True)
+        session = home.HubSession(recent_file=recent)
         view = home.HomeView(session)
         dialog = home.open_directory(session)
-        assert "Recent" in view.aside.object
+        assert view.start.visible and "Recent" in view.recent_pane.object and str(tmp_path) in view.recent_pane.object
         closed = []
         dialog.on_loaded = lambda: closed.append(True)
         target = cit_only(tmp_path)
         dialog.path.value = target
         assert dialog.load() is True                              # no measurements.txt needed here
         assert session.directory == target and closed == [True]
+        assert view.work.visible and not view.start.visible       # picked: the page is about this directory now
         assert "PI47" in view.heading.object and "10 files to convert" in view.strip.object
-        assert "Recent" not in view.aside.object                 # picked: the page is about this directory now
         assert datasets.load_recent(recent) == [target, str(tmp_path)]
         assert list(dialog.recent.options.values())[0] == target   # the dialog keeps the list
 
@@ -184,7 +208,7 @@ class TestOpenDirectory:
         gone.mkdir()
         datasets.remember_recent(recent, str(gone))
         gone.rmdir()
-        session = home.HubSession(MCMURDO, recent_file=recent, landing=False)
+        session = home.HubSession(MCMURDO, recent_file=recent)
         assert session.recent() == [MCMURDO]
 
 
@@ -208,7 +232,7 @@ class TestDownloadFromMagic:
         recent = str(tmp_path / "recent.json")
         empty = tmp_path / "new_study"
         empty.mkdir()
-        session = home.HubSession(str(empty), recent_file=recent, landing=False)
+        session = home.HubSession(str(empty), recent_file=recent)
         view = home.HomeView(session)
         assert view.download_btn.button_type == "primary" and view.change_btn.button_type == "default"
         dialog = self._dialog(session)
@@ -219,13 +243,13 @@ class TestDownloadFromMagic:
         assert asyncio.run(dialog._download()) is True
         assert dialog.fetched == [20549] and closed == [True]
         assert session.directory == str(empty) and session.inventory.is_magic
-        assert "MagIC contribution 20549" in view.heading.object and "4 tables" in dialog.message.object
+        assert "MagIC contribution 20549" in view.ref.object and "4 tables" in dialog.message.object
         assert datasets.load_recent(recent) == [str(empty)]
         assert view.download_btn.button_type == "default"
         assert view.metadata_btn.button_type == "primary"           # the contribution has gaps: the next step is Metadata
 
     def test_a_doi_finds_the_latest_version_and_says_so(self, tmp_path):
-        session = home.HubSession(str(tmp_path), landing=False)
+        session = home.HubSession(str(tmp_path))
         dialog = self._dialog(session, versions=2)
         dialog.reference.value = "https://doi.org/10.1130/B36634.1"
         assert asyncio.run(dialog._download()) is True
@@ -236,7 +260,7 @@ class TestDownloadFromMagic:
         assert "no public contribution with reference DOI 10.1130/nothing.here" in dialog.message.object
 
     def test_it_never_writes_over_a_magic_directory_but_offers_one_beside_it(self, tmp_path):
-        session = home.HubSession(MCMURDO, landing=True)
+        session = home.HubSession(MCMURDO)
         dialog = self._dialog(session)
         dialog.reference.value = "20549"
         assert asyncio.run(dialog._download()) is False
@@ -248,7 +272,7 @@ class TestDownloadFromMagic:
         assert session.directory == str(tmp_path / "somewhere" / "MagIC_20549") and session.landing is False
 
     def test_nonsense_is_refused_in_place(self, tmp_path):
-        session = home.HubSession(str(tmp_path), landing=False)
+        session = home.HubSession(str(tmp_path))
         dialog = self._dialog(session)
         dialog.reference.value = "McMurdo"
         assert asyncio.run(dialog._download()) is False
@@ -262,18 +286,64 @@ class TestDownloadFromMagic:
         assert "Download from MagIC" in downloader[0].object
         shown = []
         body.open_modal = lambda: shown.append(True)
-        heading_row = body.pages["home"][0]
+        heading_row = body.pages["home"][1][0]                  # the directory page's heading row
         for btn, visible in ((heading_row[4], (False, True)), (heading_row[5], (True, False))):     # Download…, Change directory…
             btn.clicks += 1
             assert (chooser.visible, downloader.visible) == visible
         assert shown == [True, True]
+
+    def test_the_start_page_doors_open_the_same_dialogs(self):
+        session = home.HubSession()
+        body = app.build_body(session)
+        chooser, downloader = body.modal
+        shown = []
+        body.open_modal = lambda: shown.append(True)
+        doors = body.pages["home"][0][1]                          # the start page's grid of doors
+        assert [d[0].object.count("<h3>") for d in doors] == [1, 1, 1, 1]
+        doors[2][1].clicks += 1                                   # Download from MagIC
+        assert (chooser.visible, downloader.visible) == (False, True)
+        doors[1][1].clicks += 1                                   # Open MagIC data
+        assert (chooser.visible, downloader.visible) == (True, False)
+        assert "Open a directory" in chooser[0][0].object and shown == [True, True]
+
+    def test_the_convert_door_goes_through_the_chooser_to_the_convert_page(self, tmp_path):
+        session = home.HubSession()
+        body = app.build_body(session)
+        chooser = body.modal[0]
+        body.open_modal = lambda: None
+        closed = []
+        body.close_modal = lambda: closed.append(True)
+        doors = body.pages["home"][0][1]
+        doors[3][1].clicks += 1                                   # Convert measurement files
+        assert chooser.visible and "measurement files" in chooser[0][0].object
+        lab = cit_only(tmp_path)
+        body.chooser.path.value = lab
+        assert body.chooser.load() is True and closed == [True]
+        assert body.pages["convert"].visible and not body.pages["home"].visible    # lab files: straight on to Convert
+        body.turn_to("home")
+        doors[3][1].clicks += 1
+        body.chooser.path.value = MCMURDO                         # but tables already there stay on the directory page
+        assert body.chooser.load() is True and closed == [True, True]
+        assert body.pages["home"].visible and not body.pages["convert"].visible
+        doors[1][1].clicks += 1                                   # and the plain door does not go to Convert
+        body.chooser.path.value = lab
+        assert body.chooser.load() is True and body.pages["home"].visible
+
+    def test_a_download_from_the_start_page_goes_to_the_default_folder(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(download, "DEFAULT_BASE", str(tmp_path / "MagIC"))
+        session = home.HubSession()
+        dialog = self._dialog(session)
+        assert dialog.folder.value == "" and "MagIC_<id>" in dialog.folder.placeholder
+        dialog.reference.value = "20549"
+        assert asyncio.run(dialog._download()) is True
+        assert session.directory == str(tmp_path / "MagIC" / "MagIC_20549") and not session.landing
 
 
 class TestConvert:
     """The Convert page on real example files: the page guesses, the analyst confirms, the tables land."""
 
     def test_home_offers_convert_as_the_next_step_for_lab_files(self, tmp_path):
-        session = home.HubSession(cit_only(tmp_path), landing=False)
+        session = home.HubSession(cit_only(tmp_path))
         view = home.HomeView(session)
         assert view.convert_btn.button_type == "primary" and view.convert_btn.visible is True
         assert view.download_btn.button_type == view.change_btn.button_type == "default"
@@ -287,18 +357,18 @@ class TestConvert:
         assert view.convert_btn.visible is False                    # nothing to convert yet
 
     def test_the_page_turns_between_home_and_convert(self, tmp_path):
-        session = home.HubSession(cit_only(tmp_path), landing=False)
+        session = home.HubSession(cit_only(tmp_path))
         body = app.build_body(session)
         home_page, convert_page = body.pages["home"], body.pages["convert"]
         assert home_page.visible is True and convert_page.visible is False
-        home_page[0][1].clicks += 1                                  # "Convert files…"
+        home_page[1][0][1].clicks += 1                                  # "Convert files…"
         assert home_page.visible is False and convert_page.visible is True
         convert_page[0][1].clicks += 1                              # "← Home"
         assert home_page.visible is True and convert_page.visible is False
 
     def test_cit_files_are_guessed_chosen_and_converted(self, tmp_path):
         d = cit_only(tmp_path)
-        session = home.HubSession(d, landing=False)
+        session = home.HubSession(d)
         view = convert.ConvertView(session)
         assert view.format.value == "cit" and view.fmt.label == "CIT"
         assert view.files.value == ["PI47-.sam"]                     # the .sam index is the file the converter takes
@@ -319,8 +389,7 @@ class TestConvert:
         assert inv.files and all(f.name != "pmagpy_conversions.json" for f in inv.files)       # the log is not a lab file
         imp = home.stages(inv)[0]
         assert imp[2].startswith("converted from PI47-.sam (CIT) · ") and "beside the tables" not in imp[2]
-        aside = home.aside_html(inv, [])
-        assert "CIT index · converted" in aside and "CIT specimen</td>" in aside     # only the index was converted
+        assert home.aside_html(inv) == ""                        # a MagIC directory now: the files are Convert's to list
 
     def test_home_reads_the_conversion_log_left_by_a_script(self, tmp_path):
         """A log written by convert_files outside the hub is provenance all the same."""
@@ -337,7 +406,6 @@ class TestConvert:
         assert inv.source_files == ["mc01.dat", "mc02.dat"]
         imp = home.stages(inv)[0]
         assert imp[2].startswith("converted from 2 SIO files · ") and imp[2].endswith(" · 2 conversions")
-        assert "mc01.dat" in home.aside_html(inv, []) and "converted" in home.aside_html(inv, [])
         # a contribution unpacked in the directory
         reg.record_conversion(str(d), "magic", ["magic_contribution_16761.txt"], tables={"measurements": 100},
                               label="MagIC contribution file")
@@ -350,7 +418,7 @@ class TestConvert:
         for name in ("AF.jr6", "TRM.jr6", "SML07.JR6"):
             shutil.copy(os.path.join(src, name), d)
         (d / "junk.jr6").write_text("not a JR6 file\n")
-        session = home.HubSession(str(d), landing=False)
+        session = home.HubSession(str(d))
         view = convert.ConvertView(session)
         assert view.format.value == "jr6_jr6"
         assert sorted(view.files.value) == ["AF.jr6", "SML07.JR6", "TRM.jr6", "junk.jr6"]
@@ -359,7 +427,7 @@ class TestConvert:
         assert session.inventory.is_magic and session.inventory.has("demag")
 
     def test_nothing_chosen_and_a_required_blank_are_refused_in_place(self, tmp_path):
-        session = home.HubSession(cit_only(tmp_path), landing=False)
+        session = home.HubSession(cit_only(tmp_path))
         view = convert.ConvertView(session)
         view.files.value = []
         assert asyncio.run(view._convert()) is False
@@ -372,7 +440,7 @@ class TestConvert:
         assert not session.inventory.is_magic
 
     def test_a_directory_format_needs_no_file_list(self, tmp_path):
-        session = home.HubSession(str(tmp_path), landing=False)
+        session = home.HubSession(str(tmp_path))
         view = convert.ConvertView(session)
         view.format.value = "tdt"
         assert view.files.disabled is True and "reads every file in the directory" in view.notes.object
@@ -382,7 +450,7 @@ class TestConvert:
     def test_a_livdb_directory_is_recognised_and_converts_whole(self, tmp_path):
         livdb = os.path.join(os.path.dirname(CIT), "..", "livdb_magic", "TH_IZZI+", "ATPI_Thellier.livdb")
         shutil.copy(livdb, tmp_path / "ATPI_Thellier.livdb")
-        session = home.HubSession(str(tmp_path), landing=False)
+        session = home.HubSession(str(tmp_path))
         view = convert.ConvertView(session)
         assert view.format.value == "livdb" and view.files.disabled is True
         assert view.form.widgets["samp_name_con"].value == "sample=specimen"
@@ -395,7 +463,7 @@ class TestConvert:
     def test_a_contribution_file_unpacks_on_the_same_page(self, tmp_path):
         from pmagpy.test.test_magic_project import AS_SERVED
         (tmp_path / "magic_contribution_20549.txt").write_text(AS_SERVED)
-        session = home.HubSession(str(tmp_path), landing=False)
+        session = home.HubSession(str(tmp_path))
         view = convert.ConvertView(session)
         assert view.format.value == convert.MAGIC_FILE and view.files.value == ["magic_contribution_20549.txt"]
         assert len(view.form.widgets) == 0
@@ -406,7 +474,7 @@ class TestConvert:
         orient = os.path.join(os.path.dirname(CIT), "..", "..", "orientation_magic", "orient_example.txt")
         shutil.copy(orient, tmp_path / "orient_example.txt")
         (tmp_path / "notes.txt").write_text("field notes, not a notebook file\n")
-        session = home.HubSession(str(tmp_path), landing=False)
+        session = home.HubSession(str(tmp_path))
         view = convert.ConvertView(session)
         assert view.format.value == "orient" and view.fmt.label.startswith("Orientation file")
         assert view.files.options == ["notes.txt", "orient_example.txt"] and view.files.value == ["orient_example.txt"]
@@ -419,7 +487,7 @@ class TestConvert:
         # Home knows this state: level tables, no measurements; the notebook is not "a file to convert"
         inv = session.inventory
         assert inv.has_level_tables and not inv.is_magic and inv.lab_files == []
-        assert "No measurements yet" in home.heading_html(inv)
+        assert "No measurements yet" in home.ref_html(inv)
         assert "<b>2</b> sites, <b>8</b> samples and no measurements yet" in home.facts_html(inv)
         assert "Copy the lab files into this directory" in home.facts_html(inv)
         assert home.stages(inv)[0][2] == "samples and sites in; measurements to convert"
@@ -448,7 +516,7 @@ class TestConvert:
     def test_a_kappabridge_file_converts_and_opens_anisotropy(self, tmp_path, key, example):
         src = os.path.join(os.path.dirname(CIT), "..", example)
         shutil.copy(src, tmp_path)
-        session = home.HubSession(str(tmp_path), landing=False)
+        session = home.HubSession(str(tmp_path))
         view = convert.ConvertView(session)
         view.format.value = key                                        # .dat/.txt are shared: the analyst picks
         assert view.files.value == [os.path.basename(example)]
@@ -468,7 +536,7 @@ class TestConvert:
         for name in os.listdir(src):
             if name != "zmab0100049tmp03.txt":                          # the 2.5 contribution file the tables came from
                 shutil.copy(os.path.join(src, name), tmp_path)
-        session = home.HubSession(str(tmp_path), landing=False)
+        session = home.HubSession(str(tmp_path))
         inv = session.inventory
         assert inv.format_key == "legacy" and not inv.is_magic
         assert len(inv.lab_files) == 17 and {"magic_measurements.txt", "rmag_anisotropy.txt"} <= {f.name for f in inv.lab_files}
@@ -489,14 +557,14 @@ class TestConvert:
     def test_a_2_5_contribution_file_is_told_apart(self, tmp_path):
         src = os.path.join(os.path.dirname(MCMURDO), "..", "2_5", "McMurdo", "zmab0100049tmp03.txt")
         shutil.copy(src, tmp_path)
-        session = home.HubSession(str(tmp_path), landing=False)
+        session = home.HubSession(str(tmp_path))
         inv = session.inventory
         assert inv.format_key == "magic" and inv.files[0].role == "MagIC 2.5 contribution file"
         assert "unpacks into 2.5 tables; upgrading those is the step after" in home.facts_html(inv)
 
     def test_appending_to_a_magic_directory_is_offered_and_keeps_what_is_there(self, tmp_path):
         d = cit_only(tmp_path)
-        session = home.HubSession(d, landing=False)
+        session = home.HubSession(d)
         view = convert.ConvertView(session)
         assert asyncio.run(view._convert()) is True
         before = session.inventory.counts["measurements"]
@@ -514,17 +582,17 @@ class TestMetadata:
     """The Metadata page: the tables in a grid, gaps filled, the validator's findings on the cells."""
 
     def test_the_page_turns_between_home_and_metadata(self, tmp_path):
-        session = home.HubSession(small_study(tmp_path), landing=False)
+        session = home.HubSession(small_study(tmp_path))
         body = app.build_body(session)
         home_page, meta_page = body.pages["home"], body.pages["metadata"]
-        assert home_page[0][2].name == "Metadata…" and home_page[0][2].button_type == "primary"   # gaps to fill
-        home_page[0][2].clicks += 1
+        assert home_page[1][0][2].name == "Metadata…" and home_page[1][0][2].button_type == "primary"   # gaps to fill
+        home_page[1][0][2].clicks += 1
         assert home_page.visible is False and meta_page.visible is True
         meta_page[0][1].clicks += 1                                  # "← Home"
         assert home_page.visible is True and meta_page.visible is False
 
     def test_the_grid_shows_the_table_with_its_owed_rows_and_required_columns(self, tmp_path):
-        session = home.HubSession(small_study(tmp_path), landing=False)
+        session = home.HubSession(small_study(tmp_path))
         view = metadata.MetadataView(session)
         assert view.table == "sites" and view.tables.value == "sites"
         labels = list(view.tables.options)
@@ -543,7 +611,7 @@ class TestMetadata:
 
     def test_editing_and_saving_closes_a_gap_the_home_page_showed(self, tmp_path):
         d = small_study(tmp_path)
-        session = home.HubSession(d, landing=False)
+        session = home.HubSession(d)
         view = metadata.MetadataView(session)
         assert any(g.label == "site lithologies" for g in session.inventory.gaps)
         df = view.current()
@@ -561,7 +629,7 @@ class TestMetadata:
         assert "geologic_classes" not in open(os.path.join(d, "sites.txt")).readline()   # the empty column is not written
 
     def test_check_names_the_bad_cell_and_the_missing_columns(self, tmp_path):
-        session = home.HubSession(small_study(tmp_path), landing=False)
+        session = home.HubSession(small_study(tmp_path))
         view = metadata.MetadataView(session)
         findings = view.check()
         assert any(f.row == "Z12" and f.column == "lat" for f in findings)
@@ -572,7 +640,7 @@ class TestMetadata:
         assert any(metadata.CELL_FAIL.split(":")[1] in str(v) for v in styled.values())
 
     def test_a_row_and_columns_can_be_added_and_defaults_filled(self, tmp_path):
-        session = home.HubSession(small_study(tmp_path), landing=False)
+        session = home.HubSession(small_study(tmp_path))
         view = metadata.MetadataView(session)
         view.add_row()
         assert len(view.grid.value) == 4 and view.grid.value.iloc[-1]["site"] == ""
@@ -589,7 +657,7 @@ class TestMetadata:
 
     def test_copy_down_and_bounds_take_what_the_other_tables_know(self, tmp_path):
         d = small_study(tmp_path)
-        session = home.HubSession(d, landing=False)
+        session = home.HubSession(d)
         view = metadata.MetadataView(session)
         view.show("samples")
         assert set(view.parent_fill.options) >= {"lat", "lon", "lithologies"}
@@ -613,7 +681,7 @@ class TestMetadata:
         metadata.mm.mp.magic_write(os.path.join(d, "ages.txt"),
                                    pd.DataFrame([{"location": "Zavkhan", "site": "Z11", "age": "805", "age_sigma": "2",
                                                   "age_unit": "Ma", "method_codes": "GM-UPB"}]), "ages")
-        session = home.HubSession(d, landing=False)
+        session = home.HubSession(d)
         view = metadata.MetadataView(session)
         assert view.ages_btn.visible is True
         assert next(g for g in session.inventory.gaps if g.label == "site ages").n == 1          # Z12 (Z13 has no row yet)
@@ -645,7 +713,7 @@ class TestMetadata:
         assert view.ages_btn.visible is False                                                  # samples carry no age
 
     def test_delete_needs_a_selection_and_removes_the_ticked_rows(self, tmp_path):
-        session = home.HubSession(small_study(tmp_path), landing=False)
+        session = home.HubSession(small_study(tmp_path))
         view = metadata.MetadataView(session)
         view.delete_selected()
         assert "Tick the rows" in view.message.object and len(view.grid.value) == 3
@@ -660,7 +728,7 @@ class TestMetadata:
         spec = pd.DataFrame([{"specimen": "Z11.1a", "sample": "Z11.1", "dir_mad_free": "3.1", "dir_n_measurements": "9"},
                              {"specimen": "Z11.1b", "sample": "Z11.1", "dir_mad_free": "8.4", "dir_n_measurements": "9"}])
         metadata.mm.mp.magic_write(os.path.join(d, "specimens.txt"), spec, "specimens")
-        session = home.HubSession(d, landing=False)
+        session = home.HubSession(d)
         view = metadata.MetadataView(session)
         assert "Criteria" in view.tables.options                          # no criteria.txt yet: no count
         view.tables.value = "criteria"
@@ -691,7 +759,7 @@ class TestMetadata:
         assert session.inventory.tables["criteria"].rows == len(df)
         assert f"Criteria ({len(df)})" in view.tables.options
         # a fresh view reads the saved table back with the columns in editor order
-        again = metadata.MetadataView(home.HubSession(d, landing=False))
+        again = metadata.MetadataView(home.HubSession(d))
         again.show("criteria")
         assert list(again.grid.value.columns[:4]) == list(metadata.mm.CRITERIA_COLUMNS[:4]) and len(again.grid.value) == len(df)
 
@@ -700,18 +768,18 @@ class TestUpload:
     """The Upload page: the offline check, the upload file, MagIC's verdict (stubbed), the publication tables."""
 
     def test_the_page_turns_and_home_reports_no_upload_file_yet(self, tmp_path):
-        session = home.HubSession(small_study(tmp_path), landing=False)
+        session = home.HubSession(small_study(tmp_path))
         body = app.build_body(session)
         home_page, up_page = body.pages["home"], body.pages["upload"]
-        assert home_page[0][3].name == "Upload…" and home_page[0][3].button_type == "default"     # gaps first
+        assert home_page[1][0][3].name == "Upload…" and home_page[1][0][3].button_type == "default"     # gaps first
         assert home.stages(session.inventory)[3][1:3] == ("off", "upload file not built yet")
-        home_page[0][3].clicks += 1
+        home_page[1][0][3].clicks += 1
         assert home_page.visible is False and up_page.visible is True
         up_page[0][1].clicks += 1                                    # "← Home"
         assert home_page.visible is True and up_page.visible is False
 
     def test_check_names_the_tables_with_findings_and_the_ones_that_pass(self, tmp_path):
-        session = home.HubSession(small_study(tmp_path), landing=False)
+        session = home.HubSession(small_study(tmp_path))
         view = upload.UploadView(session)
         assert "tables to upload: locations (1), sites (2), samples (2), specimens (1), measurements (1)" in view.note.object
         assert view.file.visible is False and view.validate_btn.visible is False      # nothing to validate yet
@@ -723,7 +791,7 @@ class TestUpload:
         assert upload.findings_html({"sites": []}) == '<div class="report"><h4>sites <span class="ok">passes</span></h4></div>'
 
     def test_build_puts_the_file_in_the_directory_and_home_sees_it(self, tmp_path):
-        session = home.HubSession(small_study(tmp_path), landing=False)
+        session = home.HubSession(small_study(tmp_path))
         view = upload.UploadView(session)
         assert asyncio.run(view.build()) is True
         (name,) = session.inventory.uploads
@@ -735,7 +803,7 @@ class TestUpload:
 
     def test_validate_reports_magic_by_table_with_row_numbers(self, tmp_path, monkeypatch):
         from pmagpy import ipmag
-        session = home.HubSession(small_study(tmp_path), landing=False)
+        session = home.HubSession(small_study(tmp_path))
         view = upload.UploadView(session)
         asyncio.run(view.build())
         sent = []
@@ -754,7 +822,7 @@ class TestUpload:
         assert asyncio.run(view.validate()).ok and "passes MagIC" in view.validate_msg.object
 
     def test_export_writes_into_publication_tables(self, tmp_path):
-        session = home.HubSession(small_study(tmp_path), landing=False)
+        session = home.HubSession(small_study(tmp_path))
         view = upload.UploadView(session)
         view.export_kind.value = True                                # LaTeX
         result = asyncio.run(view.export())

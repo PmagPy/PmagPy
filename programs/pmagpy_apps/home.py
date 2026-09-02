@@ -1,14 +1,17 @@
 """
-The Home page: one directory as its subject, the workflow as a strip, the
-applications as a list of doors.
+The Home page: a start page until a directory is open, then that directory as
+the subject, the workflow as a strip, the applications as a list of doors.
 
-Home reads everything it says from an :class:`~pmagpy_apps.inventory.Inventory`
-and renders it as HTML on the shared shell. It has three faces, decided by what
-the directory holds — a MagIC contribution, lab files not yet converted, or
-nothing — and the same layout in all three. There is no form on it; its
-controls are four buttons — "Convert files…" (the Convert page, :mod:`.convert`),
-"Metadata…" (the tables in a grid, :mod:`.metadata`), "Download from MagIC…"
-and "Change directory…" (dialogs) — and the one that is the next thing to do is
+The start page offers the ways in — open a folder, download a contribution from
+MagIC, explore the shipped example — and lists the recently opened directories;
+nothing is loaded behind it. Once a directory is open, Home reads everything it
+says from an :class:`~pmagpy_apps.inventory.Inventory` and renders it as HTML on
+the shared shell. It has three faces, decided by what the directory holds — a
+MagIC contribution, lab files not yet converted, or nothing — and the same layout
+in all three. There is no form on it; its controls are buttons — "Convert files…"
+(the Convert page, :mod:`.convert`), "Metadata…" (the tables in a grid,
+:mod:`.metadata`), "Upload…", "Download from MagIC…" and "Change directory…"
+(dialogs), "Start page" (back) — and the one that is the next thing to do is
 primary.
 """
 from __future__ import annotations
@@ -24,7 +27,7 @@ from urllib.parse import quote
 import panel as pn
 import param
 
-from pmagpy_panel import app_color, datasets, text_on
+from pmagpy_panel import app_color, datasets, runtime, text_on
 from pmagpy_panel.chooser import DirectoryChooser
 from . import APP
 from .inventory import Inventory, take_inventory
@@ -81,24 +84,28 @@ def home_link(directory: str) -> str:
 # ----- the session -------------------------------------------------------------------
 
 
+START_STATUS = "no directory open"
+
+
 class HubSession(param.Parameterized):
     """The directory this session holds, and what is in it.
 
-    ``landing`` is True while the page shows the directory it opened on by
-    default — nothing asked for on the URL or in the environment. Home lists the
-    recent directories only then; once the user has picked one, the page is
-    about that directory.
+    ``landing`` is True while no directory is open: the page is the start page
+    (open a folder, download from MagIC, explore the example, or a recent
+    directory). :meth:`load` turns the page to a directory; :meth:`start` comes
+    back. A directory opened is remembered in the shared recent list unless the
+    caller says not to (the example is not "recent").
     """
     directory = param.String(default="")
-    status = param.String(default="")
+    status = param.String(default=START_STATUS)
     landing = param.Boolean(default=True)
 
-    def __init__(self, directory: str, recent_file: str = "", landing: bool = True, **params):
+    def __init__(self, directory: str = "", recent_file: str = "", **params):
         super().__init__(**params)
         self.recent_file = recent_file
         self.inventory: Inventory = Inventory(directory="")
-        self.load(directory or os.getcwd(), remember=not landing)   # nothing asked for, no example found: start where the server runs
-        self.landing = landing
+        if directory:
+            self.load(directory)
 
     def load(self, directory: str, remember: bool = True) -> bool:
         """Take the directory's inventory and make it the session's. False when it is not a directory."""
@@ -116,6 +123,16 @@ class HubSession(param.Parameterized):
         else:
             self.directory = inv.directory     # last: watchers rebuild the page from the new inventory
         return True
+
+    def start(self) -> None:
+        """Close the directory and go back to the start page."""
+        self.inventory = Inventory(directory="")
+        self.landing = True
+        self.status = START_STATUS
+        if self.directory:
+            self.directory = ""
+        else:
+            self.param.trigger("directory")
 
     def recent(self) -> List[str]:
         """Recently opened directories that still exist, most recent first."""
@@ -142,7 +159,7 @@ CSS = """
 .home h1 { font-size:2rem; font-weight:600; margin:2px 0 4px; letter-spacing:-.01em; line-height:1.1;
            overflow-wrap:anywhere }     /* a long directory name wraps rather than running under the buttons */
 .path { color:var(--muted); font-size:.85rem; font-family:ui-monospace,Menlo,monospace }
-.ref { color:var(--muted); font-size:.9rem; margin-top:6px }
+.ref { color:var(--muted); font-size:.9rem; margin:-4px 0 0 }
 .ref a { color:var(--accent); text-decoration:none }
 .kpi { display:flex; gap:22px; flex-wrap:wrap; font-size:.95rem; margin:16px 0 4px; font-variant-numeric:tabular-nums }
 .kpi b { font-weight:600 }
@@ -179,6 +196,9 @@ a.bar:hover .open { filter:brightness(.93) }
 .box td.n { text-align:right; color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap; padding-left:12px }
 .box td.file { font-family:ui-monospace,Menlo,monospace; font-size:.82rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:220px }
 .box .none { color:var(--muted); font-size:.88rem }
+.start .lead { color:var(--ink); font-size:1.12rem; max-width:64ch; line-height:1.5; margin:14px 0 26px }
+.door h3 { margin:0 0 6px; font-size:1.15rem; font-weight:650; letter-spacing:-.005em }
+.door p { margin:0 0 14px; color:var(--muted); font-size:.93rem; line-height:1.5; min-height:4.5em; max-width:48ch }
 .recent { margin:0; padding:0 }
 .recent li { list-style:none; padding:5px 0; font-size:.88rem; border-bottom:1px solid #f0f2f4 }
 .recent li:last-child { border-bottom:0 }
@@ -201,10 +221,16 @@ def _esc(text: str) -> str:
     return html.escape(str(text), quote=True)
 
 
-def heading_html(inv: Inventory) -> str:
+def title_html(inv: Inventory) -> str:
+    """The directory's name and path — this shares a row with the buttons, so it stays short."""
     label = "MagIC directory" if inv.is_magic else "Directory"
-    lines = [f'<div class="section">{label}</div>', f"<h1>{_esc(inv.name)}</h1>",
-             f'<div class="path">{_esc(shorten_home(inv.directory))}</div>']
+    return (f'<div class="home"><div class="section">{label}</div><h1>{_esc(inv.name)}</h1>'
+            f'<div class="path">{_esc(shorten_home(inv.directory))}</div></div>')
+
+
+def ref_html(inv: Inventory) -> str:
+    """One line under the title: contribution, DOI and contributor, or what the directory lacks."""
+    lines = []
     c = inv.contribution
     if inv.is_magic and c:
         bits = []
@@ -224,7 +250,7 @@ def heading_html(inv: Inventory) -> str:
         lines.append('<div class="ref">No measurements yet</div>')
     elif not inv.is_magic:
         lines.append('<div class="ref">No MagIC tables yet</div>')
-    return f'<div class="home">{"".join(lines)}</div>'
+    return f'<div class="home">{"".join(lines)}</div>' if lines else ""
 
 
 def facts_html(inv: Inventory) -> str:
@@ -391,49 +417,103 @@ def _bar(app: Application, fact: str, href: Optional[str], shut: str = "—") ->
             f'<div class="open">{shut}</div></div>')
 
 
-def aside_html(inv: Inventory, recent: List[str]) -> str:
-    """Files beside the tables, and the recent list on a landing. Empty when there is neither.
+def aside_html(inv: Inventory) -> str:
+    """The files waiting in a directory that has no MagIC tables yet — what Import will work on.
 
-    The tables themselves are not listed: the counts line above already says
-    what is in them.
+    Empty for a MagIC directory: the counts line already says what is in the
+    tables, and the files beside them are the Convert page's business.
     """
-    first = ""
-    if not inv.is_magic:
-        shown = inv.files[:6]
-        rows = "".join(f'<tr><td class="file" title="{_esc(f.name)}">{_esc(f.name)}</td><td class="n">{_esc(f.role)}</td></tr>' for f in shown)
-        if len(inv.files) > len(shown):
-            rows += f'<tr><td class="file" style="color:var(--muted)">and {len(inv.files) - len(shown)} more</td><td class="n"></td></tr>'
-        if inv.folders and not inv.files:
-            rows = f'<tr><td class="none">{inv.folders} folder{"s" if inv.folders != 1 else ""}, no files</td></tr>'
-        body = f"<table>{rows}</table>" if rows else '<div class="none">none</div>'
-        first = f'<div class="section">Files</div><div class="box">{body}</div>'
-    elif inv.files:
-        sources = set(inv.source_files)                       # the conversion log names what the tables came from
-        rows = "".join(f'<tr><td class="file" title="{_esc(f.name)}">{_esc(f.name)}</td>'
-                       f'<td class="n">{_esc(" · ".join(x for x in (f.role, "converted" if f.name in sources else "") if x))}</td></tr>'
-                       for f in inv.files[:6])
-        if len(inv.files) > 6:
-            rows += f'<tr><td class="file" style="color:var(--muted)">and {len(inv.files) - 6} more</td><td class="n"></td></tr>'
-        first = f'<div class="section">Other files</div><div class="box"><table>{rows}</table></div>'
+    if inv.is_magic:
+        return ""
+    shown = inv.files[:6]
+    rows = "".join(f'<tr><td class="file" title="{_esc(f.name)}">{_esc(f.name)}</td><td class="n">{_esc(f.role)}</td></tr>' for f in shown)
+    if len(inv.files) > len(shown):
+        rows += f'<tr><td class="file" style="color:var(--muted)">and {len(inv.files) - len(shown)} more</td><td class="n"></td></tr>'
+    if inv.folders and not inv.files:
+        rows = f'<tr><td class="none">{inv.folders} folder{"s" if inv.folders != 1 else ""}, no files</td></tr>'
+    body = f"<table>{rows}</table>" if rows else '<div class="none">none</div>'
+    return f'<div class="home"><div class="section">Files</div><div class="box">{body}</div></div>'
+
+
+def recent_html(recent: List[str]) -> str:
+    """The recently opened directories as links, for the start page. Empty when there are none."""
     items = "".join(
         f'<li><a href="{_esc(home_link(d))}">{_esc(os.path.basename(d.rstrip(os.sep)) or d)}</a>'
-        f'<span class="p" title="{_esc(d)}">{_esc(shorten_home(d))}</span></li>'
-        for d in recent if d != inv.directory)
-    second = (f'<div class="section">Recent</div><div class="box"><ul class="recent">{items}</ul></div>' if items else "")
-    if not first and not second:
+        f'<span class="p" title="{_esc(d)}">{_esc(shorten_home(d))}</span></li>' for d in recent)
+    if not items:
         return ""
-    return f'<div class="home">{first}{second}</div>'
+    return f'<div class="home"><div class="section">Recent</div><div class="box"><ul class="recent">{items}</ul></div></div>'
+
+
+START_HTML = ('<div class="home start"><p class="lead">Paleomagnetic and rock-magnetic data in the MagIC tables — '
+              'convert measurement files, fill in the metadata, analyze, upload. Everything works on one directory; '
+              'begin with one of these.</p></div>')
+EXAMPLE_NAME = "McMurdo"
+
+
+@dataclass(frozen=True)
+class Door:
+    """One way in, on the start page.
+
+    Attributes:
+        attribute: the :class:`HomeView` attribute holding its button.
+        title, text: what the card says.
+        label: the button's words.
+        color: the card's top rule.
+    """
+    attribute: str
+    title: str
+    text: str
+    label: str
+    color: str
+
+
+DOORS = (
+    Door("example_btn", "Explore an example",
+         f"The {EXAMPLE_NAME} Sound volcanics (Lawrence et al. 2009, MagIC 13436) that ship with PmagPy — "
+         "demagnetization, paleointensity, hysteresis and anisotropy in one study, ready to open in every application.",
+         "Explore the example", "#2e8b57"),
+    Door("open_btn", "Open MagIC data",
+         "A directory of MagIC tables on this computer — a study in progress, or a contribution you downloaded before.",
+         "Open a directory…", "#1f4e9c"),
+    Door("download_start_btn", "Download from MagIC",
+         "A published contribution by its MagIC ID or the DOI of the paper; its tables land in a folder of your own "
+         "and open here.", "Download…", "#6d4fc2"),
+    Door("convert_start_btn", "Convert measurement files",
+         "Lab files — CIT, 2G, JR6, AGICO, MPMS, VSM and more — become MagIC tables in their folder, which then opens "
+         "here.", "Choose the files' folder…", "#d97706"),
+)
 
 
 # ----- the view ------------------------------------------------------------------------
 
 
 class HomeView:
-    """Home as Panel objects, rebuilt whenever the session's directory changes."""
+    """Home as Panel objects: the start page while nothing is open, the directory page after; rebuilt
+    whenever the session's directory changes."""
 
     def __init__(self, session: HubSession):
         self.s = session
+        # the start page
+        self.start_heading = pn.pane.HTML(START_HTML, stylesheets=[CSS], sizing_mode="stretch_width")
+        self.doors = []
+        for door in DOORS:
+            button = pn.widgets.Button(name=door.label, button_type="primary", width=220, margin=(0, 0, 6, 0),
+                                       stylesheets=[f".bk-btn-primary, .bk-btn-primary:hover, .bk-btn-primary:focus "
+                                                    f"{{ background-color:{door.color} !important; border-color:{door.color} !important }}"
+                                                    ".bk-btn-primary:hover { filter:brightness(.92) }"])
+            setattr(self, door.attribute, button)
+            self.doors.append(pn.Column(
+                pn.pane.HTML(f'<div class="home door"><h3>{_esc(door.title)}</h3><p>{_esc(door.text)}</p></div>',
+                             stylesheets=[CSS], sizing_mode="stretch_width"),
+                button, sizing_mode="stretch_width", margin=(0, 10, 16, 0),
+                styles={"background": "#fff", "border": "1px solid #e3e6ea", "border-top": f"5px solid {door.color}",
+                        "border-radius": "10px", "padding": "18px 20px 14px", "box-shadow": "0 1px 3px rgba(0,0,0,.05)"}))
+        self.recent_pane = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width", margin=(20, 0, 0, 0))
+        self.example_btn.on_click(lambda e: self.open_example())
+        # the directory page
         self.heading = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width")
+        self.ref = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width", margin=(0, 10))
         self.facts = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width")
         self.strip = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width")
         self.bars = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width")
@@ -449,16 +529,47 @@ class HomeView:
                                               margin=(30, 10, 0, 0))
         self.upload_btn = pn.widgets.Button(name="Upload…", button_type="default", width=110,
                                             margin=(30, 10, 0, 0))
+        self.start_btn = pn.widgets.Button(name="Start page", button_type="light", width=100, margin=(30, 0, 0, 10))
+        self.start_btn.on_click(lambda e: self.go_start())
+        self.start = pn.Column(self.start_heading, pn.GridBox(*self.doors, ncols=2, sizing_mode="stretch_width"),
+                               self.recent_pane, sizing_mode="stretch_width")
+        self.work = pn.Column(
+            pn.Row(self.heading, self.convert_btn, self.metadata_btn, self.upload_btn, self.download_btn, self.change_btn,
+                   self.start_btn, sizing_mode="stretch_width"),
+            self.ref, self.facts, self.strip,
+            pn.Row(self.bars, self.spacer, self.aside, sizing_mode="stretch_width", margin=(28, 0, 0, 0)),
+            sizing_mode="stretch_width")
         session.param.watch(lambda e: self.refresh(), "directory")
         self.refresh()
 
+    def open_example(self) -> bool:
+        """Open the shipped example; it is not remembered as a recent directory."""
+        path = datasets.example_dir(EXAMPLE_NAME)
+        if not path:
+            self.s.status = f"the {EXAMPLE_NAME} example is not installed with this copy of PmagPy"
+            return False
+        if self.s.load(path, remember=False):
+            _set_url(path)
+            return True
+        return False
+
+    def go_start(self) -> None:
+        self.s.start()
+        _set_url("")
+
     def refresh(self) -> None:
+        self.start.visible = self.s.landing
+        self.work.visible = not self.s.landing
+        if self.s.landing:
+            self.recent_pane.object = recent_html(self.s.recent())
+            return
         inv = self.s.inventory
-        self.heading.object = heading_html(inv)
+        self.heading.object = title_html(inv)
+        self.ref.object = ref_html(inv)
         self.facts.object = facts_html(inv)
         self.strip.object = strip_html(inv)
         self.bars.object = bars_html(inv)
-        self.aside.object = aside_html(inv, self.s.recent() if self.s.landing else [])
+        self.aside.object = aside_html(inv)
         self.aside.visible = self.spacer.visible = bool(self.aside.object)     # no column when there is nothing to put in it
         # The next thing to do is the primary button: download into an empty directory, convert when it
         # holds lab files and no tables, fill the metadata when the tables have gaps, otherwise pick a directory.
@@ -472,13 +583,14 @@ class HomeView:
         self.upload_btn.visible = inv.is_magic
 
     def panel(self) -> pn.Column:
-        return pn.Column(
-            pn.Row(self.heading, self.convert_btn, self.metadata_btn, self.upload_btn, self.download_btn, self.change_btn,
-                   sizing_mode="stretch_width"),
-            self.facts, self.strip,
-            pn.Row(self.bars, self.spacer, self.aside, sizing_mode="stretch_width", margin=(28, 0, 0, 0)),
-            sizing_mode="stretch_width", max_width=1100, margin=(18, 40, 40, 40),
-        )
+        return pn.Column(self.start, self.work, sizing_mode="stretch_width", max_width=1100, margin=(18, 40, 40, 40))
+
+
+def _set_url(directory: str) -> None:
+    """Put the open directory on the browser's URL (``?dir=``), or clear it, so a reload comes back to the same page."""
+    location = runtime.location()
+    if location is not None:
+        location.search = f"?dir={quote(directory)}" if directory else ""
 
 
 # ----- opening a different directory -----------------------------------------------------

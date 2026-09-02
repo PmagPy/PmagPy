@@ -373,7 +373,7 @@ def hysteresis_loop(ms=1.0, bc=0.02, chi_hf=0.0, width=0.03, noise=0.0, seed=0):
 
 
 class TestHysteresisView:
-    def test_a_loop_of_the_example_is_processed_and_the_code_reproduces_it(self, ecmb, monkeypatch):
+    def test_a_loop_of_the_example_is_processed_and_the_code_reproduces_it(self, ecmb):
         view = HysteresisView(ecmb)
         assert view.experiment.value == ECMB_LOOP and ecmb.specimen == "NED1-5c"
         r = view.results
@@ -385,7 +385,6 @@ class TestHysteresisView:
         lines = view.code.text.splitlines()
         assert lines[5:] == [f"experiment = rmag.experiment_selection(measurements, '{ECMB_LOOP}')",
                              "results = rmag.process_hyst_loop(experiment['meas_field_dc'], experiment['magn_mass'], 'NED1-5c')"]
-        monkeypatch.setattr(rockmag, "show", lambda *a, **k: None)          # the notebook call shows table and plot
         namespace = {"rmag": rockmag, "measurements": ecmb.measurements}
         exec("\n".join(lines[5:]), namespace)
         assert namespace["results"]["Bc"] == pytest.approx(r["Bc"])
@@ -710,14 +709,13 @@ class TestSpecimenSave:
         view.save.save()
         assert "nothing changed" in view.save.note.object
 
-    def test_the_saved_code_reproduces_the_table_in_a_notebook(self, ecmb_copy, tmp_path, monkeypatch):
+    def test_the_saved_code_reproduces_the_table_in_a_notebook(self, ecmb_copy, tmp_path):
         s = rs.Session(ecmb_copy)
         view = HysteresisView(s)
         view.save.save()
         app_table = read_table(os.path.join(ecmb_copy, "specimens.txt"))
         notebook = str(tmp_path / "notebook")
         shutil.copytree(ECMB, notebook)
-        monkeypatch.setattr(rockmag, "show", lambda *a, **k: None)
         exec(view.code.text.replace(ecmb_copy, notebook), {})
         nb_table = read_table(os.path.join(notebook, "specimens.txt"))
         for column in ("hyst_bc", "hyst_ms_mass", "hyst_mr_mass", "hyst_xhf"):

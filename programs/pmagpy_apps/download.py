@@ -43,6 +43,14 @@ def suggested_folder(taken: str, magic_id: int) -> str:
     return os.path.join(os.path.dirname(taken.rstrip(os.sep)) or taken, f"MagIC_{magic_id}")
 
 
+DEFAULT_BASE = os.path.join("~", "MagIC")
+
+
+def default_folder(magic_id: int) -> str:
+    """Where a contribution goes when no directory is open and none is typed: ``~/MagIC/MagIC_<id>``."""
+    return os.path.join(os.path.expanduser(DEFAULT_BASE), f"MagIC_{magic_id}")
+
+
 class DownloadDialog:
     """The dialog's widgets and the download they run.
 
@@ -61,7 +69,8 @@ class DownloadDialog:
         self.on_loaded: Optional[Callable[[], None]] = None      # set by the app: closes the modal
         self.reference = pn.widgets.TextInput(name="Contribution ID or DOI", placeholder="20340  ·  10.1130/G53450.1",
                                               sizing_mode="stretch_width")
-        self.folder = pn.widgets.TextInput(name="Into folder", sizing_mode="stretch_width")
+        self.folder = pn.widgets.TextInput(name="Into folder", sizing_mode="stretch_width",
+                                           placeholder=os.path.join(DEFAULT_BASE, "MagIC_<id>") + " unless you name one")
         self.download_btn = pn.widgets.Button(name="Download", button_type="success", width=130, margin=(23, 10, 5, 10))
         self.message = pn.pane.HTML("", sizing_mode="stretch_width", min_height=24)
         self.download_btn.on_click(self._download)
@@ -70,7 +79,8 @@ class DownloadDialog:
         self.refresh()
 
     def refresh(self) -> None:
-        """Point the folder field at the session's directory: an empty one is the usual destination."""
+        """Point the folder field at the session's directory: an empty one is the usual destination. Blank
+        on the start page, when the default folder (the placeholder) is where the download goes."""
         self.folder.value = getattr(self.s, "directory", "") or ""
 
     # ----- the download -------------------------------------------------------------------
@@ -100,7 +110,8 @@ class DownloadDialog:
             else:
                 magic_id = int(value)
                 self._say(f"Downloading MagIC contribution {magic_id} …")
-            folder = os.path.abspath(os.path.expanduser(self.folder.value.strip() or self.s.directory))
+            typed = self.folder.value.strip() or self.s.directory or default_folder(magic_id)
+            folder = os.path.abspath(os.path.expanduser(typed))
             if holds_magic_tables(folder):
                 self.folder.value = suggested_folder(folder, magic_id)
                 self._say(f"<b>{os.path.basename(folder)}</b> already holds MagIC tables, which a download will not write "

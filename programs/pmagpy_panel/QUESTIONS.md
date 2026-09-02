@@ -839,3 +839,27 @@ the bottom; struck through once settled.
     - Refreshing is `curl -sL` of the three earthref URLs (the data model
       URL redirects to www2); worth a `make`/script target, or should the
       hub fetch and cache them on start-up when online (3b)?
+
+58. **The start page (2026-09-02).** Built to Nick's direction: four doors,
+    in the order explore an example → open MagIC data → download from MagIC →
+    convert measurement files, the Recent list under them, and nothing else;
+    "Other files" is gone from the directory page (a MagIC directory has no
+    aside at all now — the facts line says what tables are there; a folder
+    of lab files still lists them, since Convert needs the analyst to know
+    what is there). Decisions taken on the way, to confirm or change:
+    - The download's default folder with no directory open is
+      `~/MagIC/MagIC_<id>` (the field's placeholder says so). Fine, or should
+      the dialog insist on a folder being named?
+    - The example opens without being written to the Recent list, so a
+      fresh install's Recent stays empty until the analyst opens their own
+      data. Agree?
+    - The convert door reuses the directory chooser with a different heading
+      ("Choose the folder of measurement files"). A folder that already has
+      MagIC tables goes to the directory page, not to Convert (the page's
+      "Convert files…" button is one click away and knows about appending).
+      Should the convert door offer a *file* picker as well, for a single
+      exported file?
+    - Door colours: green (example), the hub blue (open), violet (download),
+      amber (convert) — the same amber as the Metadata "gaps" dot. Change any?
+    - Wording on the doors is one sentence each; the example door names
+      Lawrence et al. 2009 (doi:10.1029/2008GC002072, MagIC 13436).

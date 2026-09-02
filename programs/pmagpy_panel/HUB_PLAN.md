@@ -459,10 +459,22 @@ Intensity were built.
    contribution / lab files awaiting conversion / empty directory) with the
    workflow strip, the Analyze list (a door per application, shut with its
    reason when the directory has nothing for it or the application is not
-   built), and an aside of tables or files. Recent directories show only on
-   the landing, before a directory is picked; the "Change directory…" dialog
-   keeps the list. Metadata on Home names the single largest gap and counts
-   the rest.
+   built), and an aside of files for a directory awaiting conversion (a
+   MagIC directory has no aside — the tables are said in the facts line).
+   Metadata on Home names the single largest gap and counts the rest.
+   **Start page 2026-09-02** (Nick: land on choices, not on a default
+   dataset). With no `?dir=` and no `PMAGPY_APPS_DIR` the hub shows four doors
+   in a 2×2 grid, each with its own colour and one line of text — Explore an
+   example (McMurdo, opened without being remembered), Open MagIC data (the
+   chooser), Download from MagIC (the dialog; the default folder is
+   `~/MagIC/MagIC_<id>` when no directory is open), Convert measurement files
+   (the chooser with its own heading; a folder without tables goes straight
+   on to the Convert page) — and the Recent list beneath. Once a directory is
+   open the page is about that directory only: the header row holds the
+   buttons plus "Start page", and the contribution · DOI · contributor line
+   sits under the path in one line. No "PmagPy Apps / Start" heading — the
+   template header already says it. `HubSession.landing` is the switch;
+   `HubSession.start()` returns to the doors.
    **Download/unpack built 2026-09-01.** The EarthRef calls live UI-free in
    `pmagpy/magic_project.py` (`find_contributions` by reference DOI through the
    FIESTA search API, `fetch_contribution` from `/data`, `unpack_contribution`
