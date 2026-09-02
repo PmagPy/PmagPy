@@ -154,7 +154,7 @@ class DirectoryChooser:
             self.native_btn.disabled = not self.chooser_available
         if chosen:
             self.path.value = chosen
-            self.load()
+            runtime.locked(self.load)      # async callbacks run unlocked; loading redraws Bokeh figures
         else:
             self.message.object = f'<div style="{MUTED_STYLE}">No folder chosen.</div>'
 
