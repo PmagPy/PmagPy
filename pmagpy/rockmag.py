@@ -4367,7 +4367,14 @@ def process_hyst_loops(
     return results_df
 
 
-def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True):
+HYST_MAGNETIZATION_SUFFIX = {'magn_mass': 'mass', 'magn_volume': 'volume',
+                             'magn_moment': 'moment'}
+"""The specimens-table suffix (hyst_ms_<suffix>, hyst_mr_<suffix>) each
+MagIC magnetization column's loop parameters belong under."""
+
+
+def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True,
+                                      magnetization='magn_mass'):
     '''
     Return a copy of the specimens table with hysteresis results added.
 
@@ -4379,15 +4386,22 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
     ----------
     specimens_df : pandas.DataFrame
         dataframe with the specimens data
-    hyst_results : pandas.DataFrame
+    hyst_results : pandas.DataFrame or dict
         DataFrame with hysteresis results including 'specimen' and
         'experiment' columns, as output from rmag.process_hyst_loops.
-        Has a numeric index (one row per experiment).
+        Has a numeric index (one row per experiment). A single loop's
+        results dict from rmag.process_hyst_loop is accepted too, once
+        its 'specimen' and 'experiment' entries have been set.
     overwrite : bool, optional
         If True (default), existing MagIC column values and description stats
         are replaced with new values from hyst_results. If False, existing
         rows are preserved as-is and new rows are appended with the
         hyst results.
+    magnetization : str, optional
+        The measurements column the loops were processed from, which decides
+        where Ms and Mr are recorded: 'magn_mass' (default) fills
+        hyst_ms_mass/hyst_mr_mass, 'magn_volume' the _volume columns and
+        'magn_moment' the _moment columns of the data model.
 
     Returns
     -------
@@ -4398,9 +4412,21 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
     '''
 
     specimens_df = specimens_df.copy()
+    if isinstance(hyst_results, dict):
+        if 'specimen' not in hyst_results or 'experiment' not in hyst_results:
+            raise ValueError("a results dict needs 'specimen' and 'experiment' "
+                             "entries to find its specimens row")
+        one = {key: value for key, value in hyst_results.items()
+               if np.ndim(value) == 0 and key != 'plot'}
+        one.setdefault('processed_by', pmagpy_version)
+        hyst_results = pd.DataFrame([one])
 
+    if magnetization not in HYST_MAGNETIZATION_SUFFIX:
+        raise ValueError(f"magnetization must be one of "
+                         f"{sorted(HYST_MAGNETIZATION_SUFFIX)}, not {magnetization!r}")
+    suffix = HYST_MAGNETIZATION_SUFFIX[magnetization]
     result_keys_MagIC = ['Ms', 'Mr', 'Bc', 'chi_HF']
-    MagIC_columns = ['hyst_ms_mass', 'hyst_mr_mass', 'hyst_bc', 'hyst_xhf']
+    MagIC_columns = [f'hyst_ms_{suffix}', f'hyst_mr_{suffix}', 'hyst_bc', 'hyst_xhf']
 
     additional_keys = ['Q', 'Qf', 'sigma',
                 'Brh', 'FNL', 'FNL60', 'FNL70', 'FNL80',
@@ -6726,14 +6752,17 @@ def add_curie_estimates_to_specimens_table(
     # specimen name recorded in the estimates table; exact/token matching is
     # used rather than substring matching so that an experiment name cannot
     # match a longer sibling name (e.g., '...-MST-1' matching '...-MST-10')
-    experiments_column = specimens_df["experiments"]
-    target = (experiments_column == experiment_name).fillna(False).to_numpy(
-        dtype=bool)
-    if not target.any():
-        target = np.array([
-            isinstance(cell, str) and experiment_name in cell.split(":")
-            for cell in experiments_column
-        ])
+    if "experiments" in specimens_df.columns:
+        experiments_column = specimens_df["experiments"]
+        target = (experiments_column == experiment_name).fillna(
+            False).to_numpy(dtype=bool)
+        if not target.any():
+            target = np.array([
+                isinstance(cell, str) and experiment_name in cell.split(":")
+                for cell in experiments_column
+            ])
+    else:
+        target = np.zeros(len(specimens_df), dtype=bool)
     if not target.any() and row["specimen"]:
         target = (specimens_df["specimen"] == row["specimen"]).fillna(
             False).to_numpy(dtype=bool)
@@ -10858,6 +10887,66 @@ def coercivity_unmixing_interactive(x, magnetization, n_components=2,
     return handle
 
 
+def coercivity_components_table(result, experiment, specimen, Bcr=np.nan):
+    """
+    Lay out one unmixing result as the tidy components table the specimens
+    writer takes: one row per component, with the experiment's identity and
+    the fit statistics repeated on each row.
+
+    This is the table unmix_backfield_experiments builds for every
+    experiment it processes; use it to record a single unmix_coercivity
+    result with add_unmixing_to_specimens_table.
+
+    Parameters
+    ----------
+    result : dict
+        Output of unmix_coercivity (any method), optionally carrying the
+        'bootstrap' or 'bayes' uncertainty summary.
+    experiment : str
+        MagIC experiment name the curve came from.
+    specimen : str
+        Specimen the experiment belongs to.
+    Bcr : float, optional
+        Coercivity of remanence of the curve in tesla (from
+        process_backfield_data); recorded in mT as 'Bcr_mT'. NaN when unknown.
+
+    Returns
+    -------
+    pandas.DataFrame
+        One row per component: experiment, specimen, method, n_components,
+        component, success, Bcr_mT, rss, r_squared, aic, bic, the component's
+        parameters (proportion, B_mean_mT, sd_log, skew, ...) and, when the
+        result carries an uncertainty summary, their std and 2.5/97.5
+        percentiles.
+    """
+    stats = result['stats']
+    rows = []
+    for comp_index, prow in result['params'].iterrows():
+        row = {
+            'experiment': experiment,
+            'specimen': specimen,
+            'method': result['method'],
+            'n_components': result['n_components'],
+            'component': comp_index,
+            'success': result['success'],
+            'Bcr_mT': Bcr * 1e3 if np.isfinite(Bcr) else np.nan,
+            'rss': stats['rss'],
+            'r_squared': stats['r_squared'],
+            'aic': stats['aic'],
+            'bic': stats['bic'],
+        }
+        row.update(prow.to_dict())
+        uncertainty = result.get('bootstrap') or result.get('bayes')
+        if uncertainty is not None:
+            summary_row = uncertainty['param_summary'].loc[comp_index]
+            for name in ['proportion', 'B_mean_mT', 'sd_log']:
+                row[f'{name}_std'] = summary_row[f'{name}_std']
+                row[f'{name}_p2_5'] = summary_row[f'{name}_p2_5']
+                row[f'{name}_p97_5'] = summary_row[f'{name}_p97_5']
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
 def unmix_backfield_experiments(measurements, experiments=None,
                                 n_components=2, method=DEFAULT_UNMIX_METHOD,
                                 initial_parameters=None,
@@ -11000,29 +11089,8 @@ def unmix_backfield_experiments(measurements, experiments=None,
 
         results[experiment_name] = result
         stats = result['stats']
-        for comp_index, prow in result['params'].iterrows():
-            row = {
-                'experiment': experiment_name,
-                'specimen': specimen,
-                'method': method,
-                'n_components': n_components,
-                'component': comp_index,
-                'success': result['success'],
-                'Bcr_mT': Bcr * 1e3 if np.isfinite(Bcr) else np.nan,
-                'rss': stats['rss'],
-                'r_squared': stats['r_squared'],
-                'aic': stats['aic'],
-                'bic': stats['bic'],
-            }
-            row.update(prow.to_dict())
-            uncertainty = result.get('bootstrap') or result.get('bayes')
-            if uncertainty is not None:
-                summary_row = uncertainty['param_summary'].loc[comp_index]
-                for name in ['proportion', 'B_mean_mT', 'sd_log']:
-                    row[f'{name}_std'] = summary_row[f'{name}_std']
-                    row[f'{name}_p2_5'] = summary_row[f'{name}_p2_5']
-                    row[f'{name}_p97_5'] = summary_row[f'{name}_p97_5']
-            rows.append(row)
+        rows.extend(coercivity_components_table(
+            result, experiment_name, specimen, Bcr=Bcr).to_dict('records'))
         if verbose:
             summary = ', '.join(
                 f"{prow['B_mean_mT']:.0f} mT ({prow['proportion'] * 100:.0f}%)"

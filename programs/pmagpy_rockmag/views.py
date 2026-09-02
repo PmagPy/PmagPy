@@ -25,6 +25,7 @@ from pmagpy_panel import code
 from pmagpy_panel.chooser import DirectoryChooser
 from pmagpy_panel.theme import MUTED_STYLE, SECTION_STYLE, kpi, style_figure
 from . import plots
+from .results import SpecimenSave
 from .session import RECENT_FILE, Session, as_session, env
 
 MPMS_DC_SERIES = (("fc_data", "FC"), ("zfc_data", "ZFC"), ("rtsirm_cool_data", "RTSIRM cooling"),
@@ -734,8 +735,11 @@ class CurieView(ThermomagView):
         self.plot = pn.pane.Matplotlib(dpi=100, tight=True, sizing_mode="stretch_width")
         self.estimates = None
         self.data_type = None
+        self.chosen = pn.widgets.Select(name="Estimate to save", options={}, width=300, margin=(0, 5, 5, 10))
+        self.save = SpecimenSave(self.s, self.code, "Curie temperature")
         self.methods.param.watch(self._changed, "value")
         self.branches.param.watch(self._changed, "value")
+        self.chosen.param.watch(lambda e: self._quiet or self.offer_save(), "value")
         self.reset()
 
     def adopt(self, experiment) -> None:
@@ -756,12 +760,14 @@ class CurieView(ThermomagView):
         experiment = self.data()
         column = thermomag_column(experiment) if experiment is not None else None
         methods, branches = list(self.methods.value), list(self.branches.value)
+        self.save.reset()
         if column is None or not methods or not branches:
             self.estimates = None
             self.figure = None
             self.plot.object = None
             self.table.object = muted("pick at least one method and one branch") if column else ""
             self.code.set(preamble(self.s))
+            self._offer_estimates()
             return
         kwargs = dict(methods=methods, **self.preprocessing(column), branches=branches)
         try:
@@ -774,6 +780,7 @@ class CurieView(ThermomagView):
             self.plot.object = None
             self.table.object = f'<div style="color:#b00">The estimate failed: {ex}</div>'
             self.code.set(preamble(self.s))
+            self._offer_estimates()
             return
         self.plot.object = self.figure
         self.table.object = self._table_html()
@@ -782,6 +789,48 @@ class CurieView(ThermomagView):
             code.assign("estimates", code.call("rmag.curie_temperature_estimates", code.Name("experiment"), **kwargs)),
             code.call("rmag.plot_curie_estimates", code.Name("experiment"), **kwargs),
         ])
+        self._offer_estimates()
+
+    # ----- saving one estimate ------------------------------------------------
+    def _offer_estimates(self) -> None:
+        """List the finite estimates in the "estimate to save" picker (keeping the current pick when it is
+        still there) and offer the pick to the save block."""
+        unit = "°C" if self.temp_unit.value == "C" else "K"
+        options = {}
+        if self.estimates is not None:
+            finite = self.estimates[np.isfinite(self.estimates["curie_temp"])]
+            for branch in BRANCHES:                                            # heating first: the writer's default
+                for r in finite[finite["branch"] == branch].itertuples():
+                    options[f"{branch} · {CURIE_METHODS.get(r.method, r.method)}: {r.curie_temp:.1f} {unit}"] = \
+                        (r.method, branch)
+        before = self.chosen.value
+        self._quiet = True
+        try:
+            self.chosen.options = options
+            self.chosen.value = before if before in options.values() else (next(iter(options.values())) if options else None)
+        finally:
+            self._quiet = False
+        self.chosen.visible = bool(options)
+        self.offer_save()
+
+    def offer_save(self) -> None:
+        """The writer for the picked estimate: ``add_curie_estimates_to_specimens_table`` puts it on the row of this
+        experiment as ``critical_temp`` (K) with ``critical_temp_type`` Curie, the method and branch in the description."""
+        if self.estimates is None or self.chosen.value is None:
+            self.save.reset()
+            return
+        method, branch = self.chosen.value
+        estimates, experiment = self.estimates, self.experiment.value
+
+        def update(specimens):
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", UserWarning)                # the specimen-name fallback is fine here
+                rockmag.add_curie_estimates_to_specimens_table(specimens, experiment, estimates, method=method,
+                                                               branch=branch)
+            return specimens
+        self.save.offer(update, [code.call("rmag.add_curie_estimates_to_specimens_table", code.Name("specimens"),
+                                           experiment, code.Name("estimates"), method=method, branch=branch)],
+                        self.code.text.splitlines())
 
     @staticmethod
     def _panels(methods) -> int:
@@ -807,7 +856,8 @@ class CurieView(ThermomagView):
     def panel(self) -> pn.Column:
         label = lambda text: pn.pane.HTML(f'<div style="{SECTION_STYLE}">{text}</div>', width=80, margin=(12, 0, 0, 0))
         return pn.Column(self.controls(), pn.Row(label("Methods"), self.methods), pn.Row(label("Branches"), self.branches),
-                         self.table, self.plot, self.code.panel(), sizing_mode="stretch_width")
+                         self.table, self.plot, pn.Row(self.chosen, self.save.panel(), align="end"), self.code.panel(),
+                         sizing_mode="stretch_width")
 
 
 # ----------------------------------------------------------------------------- hysteresis
@@ -855,6 +905,7 @@ class HysteresisView:
         self.quality = pn.pane.HTML("", width=330, margin=(10, 0, 0, 20))
         self.plot = pn.pane.Bokeh()
         self.code = code.CodePane()
+        self.save = SpecimenSave(self.s, self.code, "hysteresis parameters")
         self.figure = None
         self.results = None                       # the dict process_hyst_loop returned for what is plotted
 
@@ -920,6 +971,7 @@ class HysteresisView:
     def refresh(self) -> None:
         experiment = self.data()
         column = magnetization_column(experiment) if experiment is not None else None
+        self.save.reset()
         if column is None or HYST_FIELD not in experiment:
             self.results = self.figure = None
             self.plot.object = None
@@ -946,6 +998,22 @@ class HysteresisView:
             code.assign("results", code.call("rmag.process_hyst_loop", code.Name(f"experiment['{HYST_FIELD}']"),
                                              code.Name(f"experiment['{column}']"), self.s.specimen, **options)),
         ])
+        self.offer_save(column)
+
+    def offer_save(self, column: str) -> None:
+        """The writer for this loop: ``add_hyst_stats_to_specimens_table`` with the result told whose it is.
+
+        The parameters go to the row of this experiment; M<sub>s</sub> and
+        M<sub>r</sub> land in the ``hyst_*_mass``, ``_volume`` or ``_moment``
+        columns according to the column the loop was recorded in.
+        """
+        results = dict(self.results, specimen=self.s.specimen, experiment=self.experiment.value)
+        unit = {} if column == "magn_mass" else dict(magnetization=column)
+        self.save.offer(lambda specimens: rockmag.add_hyst_stats_to_specimens_table(specimens, results, **unit),
+                        [code.call("results.update", specimen=self.s.specimen, experiment=self.experiment.value),
+                         code.assign("specimens", code.call("rmag.add_hyst_stats_to_specimens_table",
+                                                            code.Name("specimens"), code.Name("results"), **unit))],
+                        self.code.text.splitlines())
 
     # ----- the results --------------------------------------------------------
     @staticmethod
@@ -1003,7 +1071,8 @@ class HysteresisView:
     # ----- layout -------------------------------------------------------------
     def panel(self) -> pn.Column:
         return pn.Column(pn.Row(self.experiment, self.centering, self.nl_fit, self.fit_open, self.fit_linear),
-                         self.result, pn.Row(self.plot, self.quality), self.code.panel(), sizing_mode="stretch_width")
+                         self.result, pn.Row(self.plot, self.quality), self.save.panel(), self.code.panel(),
+                         sizing_mode="stretch_width")
 
 
 # ----------------------------------------------------------------------------- backfield
@@ -1158,10 +1227,12 @@ class BackfieldView(BackfieldBase):
         super().__init__(session)
         self.result = pn.pane.HTML("", sizing_mode="stretch_width")
         self.plot = pn.pane.Bokeh(sizing_mode="stretch_width")
+        self.save = SpecimenSave(self.s, self.code, "Bcr")
         self.reset()
 
     def refresh(self) -> None:
         done = self.process()
+        self.save.reset()
         if done is None:
             self.processed = self.Bcr = self.figure = None
             self.plot.object = None
@@ -1182,9 +1253,22 @@ class BackfieldView(BackfieldBase):
         self.result.object = kpi([("B<sub>cr</sub>", bcr), ("points", str(len(self.processed)))])
         self.code.set(self.process_lines(kwargs) + [code.call("rmag.plot_backfield_data", code.Name("experiment"),
                                                                 **plot_kwargs)])
+        if np.isfinite(self.Bcr):
+            self.offer_save()
+
+    def offer_save(self) -> None:
+        """The writer for this curve: ``add_Bcr_to_specimens_table`` on the row of this experiment (``rem_bcr``, T)."""
+        experiment, Bcr = self.experiment.value, self.Bcr
+
+        def update(specimens):
+            rockmag.add_Bcr_to_specimens_table(specimens, experiment, Bcr)
+            return specimens
+        self.save.offer(update, [code.call("rmag.add_Bcr_to_specimens_table", code.Name("specimens"), experiment,
+                                           code.Name("Bcr"))], self.code.text.splitlines())
 
     def panel(self) -> pn.Column:
-        return pn.Column(self.controls(), self.result, self.plot, self.code.panel(), sizing_mode="stretch_width")
+        return pn.Column(self.controls(), self.result, self.plot, self.save.panel(), self.code.panel(),
+                         sizing_mode="stretch_width")
 
 
 UNMIX_METHODS = {"spectrum": "spectrum (dM/dlog B)", "curve": "curve (cumulative)", "maxunmix": "MAX UnMix (bootstrap)",
@@ -1214,6 +1298,7 @@ class UnmixingView(BackfieldBase):
         self.plot = pn.pane.Matplotlib(dpi=100, tight=True, sizing_mode="stretch_width")
         self.result = None                        # the dict unmix_coercivity returned for what is drawn
         self.selection = None                     # select_n_components' table when "Choose n" picked the count
+        self.save = SpecimenSave(self.s, self.code, "coercivity components")
         self.method.param.watch(lambda e: self.refresh(), "value")
         self.n_components.param.watch(self._on_n, "value_throttled")
         self.vary_skew.param.watch(lambda e: self.refresh(), "value")
@@ -1255,6 +1340,7 @@ class UnmixingView(BackfieldBase):
 
     def refresh(self) -> None:
         done = self.process()
+        self.save.reset()
         if done is None:
             self.processed = self.Bcr = self.figure = self.result = None
             self.plot.object = None
@@ -1288,6 +1374,24 @@ class UnmixingView(BackfieldBase):
         lines += [code.assign("result", code.call("rmag.unmix_coercivity", code.Name("x"), code.Name("M"), **unmixing)),
                   code.call("rmag.plot_coercivity_unmixing", code.Name("result"), title=title)]
         self.code.set(lines)
+        self.offer_save()
+
+    def offer_save(self) -> None:
+        """The writer for this fit: the result laid out by ``coercivity_components_table`` and recorded by
+        ``add_unmixing_to_specimens_table`` as one row per component (``rem_cmf``, ``rem_cd``, ``rem_n_comp``,
+        ``rem_bcr``), replacing the rows of an earlier fit of the same experiment.
+        """
+        result, experiment, specimen, Bcr = self.result, self.experiment.value, self.s.specimen, self.Bcr
+
+        def update(specimens):
+            components = rockmag.coercivity_components_table(result, experiment, specimen, Bcr=Bcr)
+            return rockmag.add_unmixing_to_specimens_table(specimens, components)
+        self.save.offer(update, [
+            code.assign("components", code.call("rmag.coercivity_components_table", code.Name("result"), experiment,
+                                                specimen, Bcr=code.Name("Bcr"))),
+            code.assign("specimens", code.call("rmag.add_unmixing_to_specimens_table", code.Name("specimens"),
+                                               code.Name("components"))),
+        ], self.code.text.splitlines())
 
     def _table_html(self) -> str:
         params, stats = self.result["params"], self.result["stats"]
@@ -1313,7 +1417,7 @@ class UnmixingView(BackfieldBase):
 
     def panel(self) -> pn.Column:
         return pn.Column(self.controls(), pn.Row(self.method, self.n_components, self.vary_skew, self.select_btn),
-                         self.table, self.plot, self.code.panel(), sizing_mode="stretch_width")
+                         self.table, self.plot, self.save.panel(), self.code.panel(), sizing_mode="stretch_width")
 
 
 # ----------------------------------------------------------------------------- FORC

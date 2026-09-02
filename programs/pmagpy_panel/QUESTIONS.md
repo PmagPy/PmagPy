@@ -236,3 +236,59 @@ the bottom; struck through once settled.
     (`find_bounded_peak_rho` — on the example it sits at Bc ≈ 0, which is why
     it is not shown) or nothing?
 
+
+27. **Writers that refuse versus writers that add a row.** Of the four
+    specimens-table writers the app calls, `add_hyst_stats_to_specimens_table`
+    and `add_unmixing_to_specimens_table` create a row when no row carries the
+    experiment (the unmixing writer adds one row per component by design), while
+    `add_Bcr_to_specimens_table` raises "no specimens row matches" and
+    `add_curie_estimates_to_specimens_table` falls back to a specimen match and
+    writes nothing when that fails too. The app shows the refusal in red. Should
+    the Bcr and Curie writers create the row instead, as the other two do, or
+    should the hysteresis writer stop creating rows? The current split means a
+    table described only on the Metadata page (one row per specimen, no
+    `experiments` values) takes hysteresis and unmixing results but not Bcr.
+
+28. **`specimens.py` as an appended log.** Every save appends its block
+    (`# ----- Bcr: NED2-8c`, the analysis, the writer call, the write) to
+    `specimens.py` beside the table, so the file replays the history of the
+    table including saves later superseded (a re-save of the same experiment
+    appends again; the writers themselves replace, so replaying is idempotent).
+    The alternative is one block per (experiment, result) kept current, which
+    reads as a script rather than a log but loses the record of what was tried.
+    Which do you want to see in a MagIC directory?
+
+29. **Method codes and software on the hysteresis row.** The unmixing writer
+    sets `method_codes` (`LP-BCR-BF`) and `software_packages` on the rows it
+    adds; the hysteresis, Bcr and Curie writers set neither, and the app stamps
+    only `software_packages` (with `pmagpy-<version>:pmagpy_rockmag`) on the
+    rows it touches. Should the app (or the writers) also add `LP-HYS`,
+    `LP-BCR-BF` and `LP-MST`/`LP-X-T` to `method_codes` of a row that gains
+    those results, or is `method_codes` on `specimens.txt` reserved for the
+    interpretation codes MagIC expects there?
+
+30. **Two `description` conventions.** `add_hyst_stats_to_specimens_table` and
+    `add_unmixing_to_specimens_table` write JSON (`text | {json}`) into
+    `description`; `add_curie_estimates_to_specimens_table` writes a Python dict
+    literal (`{'curie_method': 'inflection', 'curie_branch': 'cooling',
+    'curie_temp_K': 55.7}`). A reader parsing one convention fails on the other.
+    Move the Curie writer to the JSON convention (changing what the notebooks
+    have written so far), or leave both?
+
+31. **The Curie estimate that is saved.** `critical_temp` holds one value per
+    row, so the view has an "Estimate to save" picker over the finite estimates
+    (heating branch first, methods in the table's order), defaulting to the
+    first and keeping the pick when the experiment changes (so a batch of
+    specimens saves the same method/branch). Is heating-inflection the right
+    default, and should the pick carry across experiments or reset to the
+    default each time?
+
+32. **`hyst_xhf` for loops in moment or volume.** The hysteresis writer now
+    takes `magnetization=` and sends Ms/Mr of a `magn_moment` or `magn_volume`
+    loop to `hyst_ms_moment`/`hyst_ms_volume`, but `hyst_xhf` has a single
+    column, and the data model gives it the unit m³ (a moment per A/m). The
+    writer has always put the high-field slope in the loop's own units per
+    tesla there (Am²/kg/T for a mass loop, which is what the notebooks wrote),
+    and the view does the same for moment and volume loops. Convert to the
+    data model's unit, record the unit in `description`, or leave the column
+    as the notebooks have used it?

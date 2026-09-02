@@ -796,6 +796,23 @@ class TestAddCurieEstimatesToSpecimensTable:
         )
         assert specimens.iloc[0]["critical_temp_type"] == "Curie"
 
+    def test_table_without_experiments_column(self, heat_cool_experiment):
+        """A specimens table that never recorded experiments (several MagIC
+        contributions) is matched on the specimen name alone."""
+        estimates = rmag.curie_temperature_estimates(
+            heat_cool_experiment, magnetic_column="magn_mass"
+        )
+        specimens = pd.DataFrame({
+            "specimen": ["synthetic-01", "other"],
+            "description": [np.nan, np.nan],
+        })
+        with pytest.warns(UserWarning, match="falling back"):
+            rmag.add_curie_estimates_to_specimens_table(
+                specimens, "SYN-LP-MST-1", estimates
+            )
+        assert specimens.loc[0, "critical_temp_type"] == "Curie"
+        assert pd.isna(specimens.loc[1, "critical_temp"])
+
     def test_missing_experiment_raises(self, heat_cool_experiment):
         estimates = rmag.curie_temperature_estimates(
             heat_cool_experiment, magnetic_column="magn_mass"

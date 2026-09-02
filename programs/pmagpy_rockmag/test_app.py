@@ -9,7 +9,9 @@ one) and synthetic curves with known answers. Run with the apps environment::
     pytest programs/pmagpy_rockmag/test_app.py -q
 """
 import os
+import shutil
 import sys
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -20,7 +22,7 @@ from scipy.special import erf
 pn = pytest.importorskip("panel")
 
 from pmagpy import forc, rockmag  # noqa: E402
-from pmagpy_rockmag import app, session as rs  # noqa: E402
+from pmagpy_rockmag import app, results, session as rs  # noqa: E402
 from pmagpy_rockmag.views import (AcSusceptibilityView, BackfieldView, ChiTView, CurieView, ForcView,  # noqa: E402
                                   GoethiteView, HysteresisView, MpmsDcView, UnmixingView, VerweyView)
 
@@ -651,6 +653,185 @@ class TestForcView:
                                       "meas_temp": [10.0], "magn_mass": [1.0]}))
         assert view.experiment.options == {} and view.out is None and "no FORC run" in view.result.object
         assert view.code.text.splitlines()[2] == "import pmagpy.forc as forc"
+
+
+
+def read_table(path):
+    """A MagIC table as pandas reads it (the header line skipped)."""
+    return pd.read_csv(path, sep="\t", header=1)
+
+
+class TestSpecimenSave:
+    """Results into specimens.txt through MagicProject, on copies of the examples."""
+
+    @pytest.fixture()
+    def ecmb_copy(self, tmp_path):
+        d = str(tmp_path / "ECMB")
+        shutil.copytree(ECMB, d)
+        return d
+
+    def test_hysteresis_parameters_go_to_the_experiments_row(self, ecmb_copy):
+        s = rs.Session(ecmb_copy)
+        view = HysteresisView(s)
+        assert not view.save.button.disabled and view.save.note.object == ""
+        before = read_table(os.path.join(ecmb_copy, "specimens.txt"))
+        path = view.save.save()
+        assert path == os.path.join(ecmb_copy, "specimens.txt")
+        after = read_table(path)
+        row = after[after["experiments"] == ECMB_LOOP].iloc[0]
+        assert row["hyst_bc"] == pytest.approx(view.results["Bc"])
+        assert row["hyst_ms_mass"] == pytest.approx(view.results["Ms"])
+        assert row["software_packages"] == s.project.software_tag and row["software_packages"].endswith(":pmagpy_rockmag")
+        assert len(after) == len(before)
+        # only that row changed; the original is kept beside, byte for byte
+        untouched = after["experiments"] != ECMB_LOOP
+        for column in before.columns:
+            assert (before.loc[untouched, column].fillna("").astype(str).str.strip().to_numpy()
+                    == after.loc[untouched, column].fillna("").astype(str).str.strip().to_numpy()).all(), column
+        backup = os.path.join(ecmb_copy, "backup_before_pmagpy_rockmag", "specimens.txt")
+        with open(backup) as f, open(os.path.join(ECMB, "specimens.txt")) as g:
+            assert f.read() == g.read()
+        assert "1 row updated" in view.save.note.object and "backup_before_pmagpy_rockmag/" in view.save.note.object
+        # the code pane now reads analysis then save, and the same lines went to specimens.py
+        lines = view.code.text.splitlines()
+        start = lines.index("specimens = contribution.tables['specimens'].df")
+        assert lines[start - 2].startswith("results = rmag.process_hyst_loop(") and lines[start - 1] == ""
+        assert lines[start + 1:start + 4] == [f"results.update(specimen='NED1-5c', experiment='{ECMB_LOOP}')",
+                                              "specimens = rmag.add_hyst_stats_to_specimens_table(specimens, results)",
+                                              "contribution.tables['specimens'].df = specimens"]
+        assert lines[start + 4].startswith("contribution.tables['specimens'].write_magic_file(")
+        with open(os.path.join(ecmb_copy, "specimens.py")) as f:
+            script = f.read()
+        assert script.startswith("# written by PmagPy Rock Magnetism — the calls that made specimens.txt\n")
+        assert "# ----- hysteresis parameters: NED1-5c" in script and view.code.text in script
+        # the in-memory table followed the file, so a second save changes nothing
+        view.refresh()
+        assert view.save.note.object == "" and not view.save.button.disabled
+        view.save.save()
+        assert "nothing changed" in view.save.note.object
+
+    def test_the_saved_code_reproduces_the_table_in_a_notebook(self, ecmb_copy, tmp_path, monkeypatch):
+        s = rs.Session(ecmb_copy)
+        view = HysteresisView(s)
+        view.save.save()
+        app_table = read_table(os.path.join(ecmb_copy, "specimens.txt"))
+        notebook = str(tmp_path / "notebook")
+        shutil.copytree(ECMB, notebook)
+        monkeypatch.setattr(rockmag, "show", lambda *a, **k: None)
+        exec(view.code.text.replace(ecmb_copy, notebook), {})
+        nb_table = read_table(os.path.join(notebook, "specimens.txt"))
+        for column in ("hyst_bc", "hyst_ms_mass", "hyst_mr_mass", "hyst_xhf"):
+            assert nb_table.loc[nb_table["experiments"] == ECMB_LOOP, column].iloc[0] == pytest.approx(
+                app_table.loc[app_table["experiments"] == ECMB_LOOP, column].iloc[0])
+        assert len(nb_table) == len(app_table)
+
+    def test_bcr_and_components_share_the_table_and_the_script(self, ecmb_copy):
+        s = rs.Session(ecmb_copy)
+        backfield = BackfieldView(s)
+        backfield.save.save()
+        table = read_table(os.path.join(ecmb_copy, "specimens.txt"))
+        assert table.loc[table["experiments"] == ECMB_BACKFIELD, "rem_bcr"].iloc[0] == pytest.approx(backfield.Bcr)
+        lines = backfield.code.text.splitlines()
+        assert lines[lines.index("specimens = contribution.tables['specimens'].df") + 1] == \
+            f"rmag.add_Bcr_to_specimens_table(specimens, '{ECMB_BACKFIELD}', Bcr)"
+        unmixing = UnmixingView(s)
+        assert unmixing.experiment.value == ECMB_BACKFIELD
+        n_before = len(table)
+        unmixing.save.save()
+        assert "2 rows added" in unmixing.save.note.object
+        table = read_table(os.path.join(ecmb_copy, "specimens.txt"))
+        rows = table[table["rem_cmf"].notna() & (table["experiments"] == ECMB_BACKFIELD)]
+        assert len(table) == n_before + 2 and len(rows) == 2
+        assert sorted(rows["rem_cmf"] * 1e3) == pytest.approx(sorted(unmixing.result["params"]["B_median_mT"]))
+        assert (rows["rem_n_comp"] == 2).all() and np.allclose(rows["rem_bcr"], unmixing.Bcr)
+        assert (rows["method_codes"] == "LP-BCR-BF").all() and (rows["software_packages"] == s.project.software_tag).all()
+        lines = unmixing.code.text.splitlines()
+        start = lines.index("specimens = contribution.tables['specimens'].df")
+        assert lines[start + 1:start + 7] == [
+            "components = rmag.coercivity_components_table(", "    result,", f"    '{ECMB_BACKFIELD}',", "    'NED1-5c',",
+            "    Bcr=Bcr,", ")"]
+        assert lines[start + 7] == "specimens = rmag.add_unmixing_to_specimens_table(specimens, components)"
+        # saving the fit again replaces its rows rather than adding to them
+        unmixing.refresh()
+        unmixing.save.save()
+        assert len(read_table(os.path.join(ecmb_copy, "specimens.txt"))) == n_before + 2
+        with open(os.path.join(ecmb_copy, "specimens.py")) as f:
+            script = f.read()
+        assert script.count("# written by") == 1 and script.count("# ----- Bcr: NED1-5c") == 1
+        assert script.count("# ----- coercivity components: NED1-5c") == 2
+        assert len(os.listdir(os.path.join(ecmb_copy, "backup_before_pmagpy_rockmag"))) == 1
+
+    def test_the_curie_estimate_to_save_is_picked_heating_first(self, tmp_path):
+        d = str(tmp_path / "RMB")
+        shutil.copytree(EXAMPLE, d)
+        s = rs.Session(d)
+        s.specimen = "ferroxyhyte_Princeton-1985-M1-2"                  # its run is CHI_T: heating and cooling, in °C
+        view = CurieView(s)
+        specimen = s.specimen
+        assert view.experiment.value == CHI_T and view.chosen.visible
+        labels = list(view.chosen.options)
+        assert len(labels) == 6 and labels[0].startswith("heating · inflection") and labels[0].endswith(" °C")
+        assert [label.split(" · ")[0] for label in labels] == ["heating"] * 3 + ["cooling"] * 3
+        assert view.chosen.value == ("inflection", "heating")
+        view.chosen.value = ("inflection", "cooling")
+        expected = view.estimates.set_index(["method", "branch"]).loc[("inflection", "cooling"), "curie_temp"] + 273.15
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")                      # the specimen-name fallback must not leak out
+            view.save.save()
+        table = read_table(os.path.join(d, "specimens.txt"))
+        row = table[table["specimen"] == specimen].iloc[0]
+        assert row["critical_temp"] == pytest.approx(expected) and row["critical_temp_type"] == "Curie"  # kelvin
+        assert "'curie_branch': 'cooling'" in row["description"]
+        lines = view.code.text.splitlines()
+        assert lines[-1] == ")" and any(l.startswith("contribution.tables['specimens'].write_magic_file(") for l in lines)
+        assert f"    '{CHI_T}'," in lines and "    branch='cooling'," in lines
+        assert "1 row updated" in view.save.note.object
+        # a branch switched off leaves the picker: the pick follows
+        view.branches.value = ["heating"]
+        assert all(label.startswith("heating") for label in view.chosen.options)
+        assert view.chosen.value == ("inflection", "heating")
+        # a run measured on cooling only offers cooling; the pick moves with it and stays put coming back,
+        # so one choice of estimator carries through a batch of specimens
+        view.branches.value = list(view.branches.options)
+        view.experiment.value = IN_FIELD_MT
+        assert all(label.startswith("cooling") for label in view.chosen.options) and len(view.chosen.options) == 4
+        assert view.chosen.value == ("inflection", "cooling")
+        view.experiment.value = CHI_T
+        assert view.chosen.value == ("inflection", "cooling")
+
+    def test_where_nothing_can_be_saved_the_button_says_why(self, tmp_path):
+        in_memory = HysteresisView(hysteresis_loop())
+        assert in_memory.save.button.disabled and "in a notebook" in in_memory.save.note.object
+        assert in_memory.save.save() is None
+        bare = str(tmp_path / "bare")
+        os.makedirs(bare)
+        shutil.copy(os.path.join(ECMB, "measurements.txt"), bare)
+        view = HysteresisView(rs.Session(bare))
+        assert view.save.button.disabled and "no specimens.txt" in view.save.note.object and "Metadata" in view.save.note.object
+        # a writer that finds no row to write to is reported, not raised, and nothing is written
+        d = str(tmp_path / "ECMB")
+        shutil.copytree(ECMB, d)
+        table = read_table(os.path.join(d, "specimens.txt"))
+        table = table[table["experiments"] != ECMB_BACKFIELD]
+        table.to_csv(os.path.join(d, "specimens.txt"), sep="\t", index=False)
+        with open(os.path.join(d, "specimens.txt")) as f:
+            body = f.read()
+        with open(os.path.join(d, "specimens.txt"), "w") as f:
+            f.write("tab delimited\tspecimens\n" + body)
+        s = rs.Session(d)
+        view = BackfieldView(s)
+        assert not view.save.button.disabled
+        assert view.save.save() is None
+        assert "Not saved:" in view.save.note.object and "no specimens row matches" in view.save.note.object
+        assert not os.path.exists(os.path.join(d, "backup_before_pmagpy_rockmag"))
+        assert not os.path.exists(os.path.join(d, "specimens.py"))
+
+    def test_changed_rows_compares_numbers_as_numbers_and_blanks_as_equal(self):
+        before = pd.DataFrame({"specimen": ["a", "b", "c"], "hyst_bc": ["0.0500", "", None], "note": ["x", "y", None]})
+        after = pd.DataFrame({"specimen": ["a", "b", "c", "d"], "hyst_bc": [0.05, np.nan, 0.1, 0.2],
+                              "note": ["x", "y ", np.nan, ""], "new": [np.nan, np.nan, np.nan, 1.0]})
+        assert list(results.changed_rows(before, after)) == [False, False, True, True]
+        assert list(results.changed_rows(before.iloc[:0], after)) == [True] * 4
 
 
 class TestApp:

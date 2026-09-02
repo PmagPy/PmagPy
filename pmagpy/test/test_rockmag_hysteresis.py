@@ -778,6 +778,49 @@ class TestHystStatsDescriptionJSON:
         assert data['Q'] == pytest.approx(5.0)
         assert data['loop_is_closed'] is True
 
+    def test_single_result_dict_is_accepted(self):
+        # the writer also takes the dict process_hyst_loop returns for one
+        # loop, once it has been told which specimen/experiment it belongs to;
+        # arrays and the plot are left out of the specimens row
+        H, M = synthetic_loop()
+        results = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                         show_plot=False)
+        specimens = pd.DataFrame([{
+            'specimen': 'spec1', 'experiments': 'spec1-HYS1',
+        }])
+        with pytest.raises(ValueError, match="'specimen' and 'experiment'"):
+            rmag.add_hyst_stats_to_specimens_table(specimens, results)
+        results.update(specimen='spec1', experiment='spec1-HYS1')
+        out = rmag.add_hyst_stats_to_specimens_table(specimens, results)
+        assert len(out) == 1
+        assert out.loc[0, 'hyst_bc'] == pytest.approx(results['Bc'])
+        assert out.loc[0, 'hyst_mr_mass'] == pytest.approx(results['Mr'])
+        text, data = rmag.parse_specimen_description(
+            out.loc[0, 'description'])
+        assert data['Q'] == pytest.approx(results['Q'])
+        assert 'gridded_H' not in data and 'plot' not in data
+        # the same table comes out of the batch path
+        batch = rmag.add_hyst_stats_to_specimens_table(
+            specimens, pd.DataFrame([{k: v for k, v in results.items()
+                                      if np.ndim(v) == 0 and k != 'plot'}]))
+        assert out.loc[0, 'hyst_xhf'] == batch.loc[0, 'hyst_xhf']
+
+    def test_magnetization_picks_the_columns(self):
+        # a loop in Am2 or A/m is not a mass-normalised one: its Ms and Mr go
+        # to the data model's _moment / _volume columns, never to _mass
+        specimens = pd.DataFrame([{
+            'specimen': 'spec1', 'experiments': 'spec1-HYS1',
+        }])
+        out = rmag.add_hyst_stats_to_specimens_table(
+            specimens, self._hyst_results(), magnetization='magn_moment')
+        assert out.loc[0, 'hyst_ms_moment'] == pytest.approx(1.0)
+        assert out.loc[0, 'hyst_mr_moment'] == pytest.approx(0.4)
+        assert out.loc[0, 'hyst_bc'] == pytest.approx(0.05)
+        assert 'hyst_ms_mass' not in out.columns
+        with pytest.raises(ValueError, match='magnetization'):
+            rmag.add_hyst_stats_to_specimens_table(
+                specimens, self._hyst_results(), magnetization='magn_r')
+
     def test_legacy_dict_cell_migrated(self):
         # legacy str(dict) cells written by older versions are parsed and
         # migrated to the JSON convention rather than corrupted

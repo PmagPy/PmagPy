@@ -586,11 +586,27 @@ Intensity were built.
    VARIFORC preset, and the major loop's Bc. The window starts at the extent
    of the finite ρ rather than the pipeline's header default, because a MagIC
    table's header is the run's field range (QUESTIONS 24). The tab bar was
-   full at ten views, so "AC susceptibility" became "χ AC". *Next*: results to
-   `specimens.txt` (`add_hyst_stats_to_specimens_table`,
-   `add_Bcr_to_specimens_table`, `add_unmixing_to_specimens_table`,
-   `add_curie_estimates_to_specimens_table` through `MagicProject`), the
-   notebook switch-over in RockmagPy-notebooks (QUESTIONS 12).
+   full at ten views, so "AC susceptibility" became "χ AC". Results go back
+   to `specimens.txt` through `results.SpecimenSave`, one block under the
+   result of the Hysteresis, Backfield, Unmixing and Curie views: the view
+   hands it the core writer (`add_hyst_stats_to_specimens_table`,
+   `add_Bcr_to_specimens_table`, `coercivity_components_table` +
+   `add_unmixing_to_specimens_table`, `add_curie_estimates_to_specimens_table`)
+   as a function of the specimens table together with the notebook lines it
+   stands for; the button runs it through `MagicProject` (one backup of the
+   original into `backup_before_pmagpy_rockmag/`, `write_table`, the
+   contribution re-read), stamps the rows it added or altered with the
+   software tag, appends the analysis and the save's lines to `specimens.py`
+   beside the table (a replayable log of every save) and shows them in the
+   code block — exec'ing that code in a notebook reproduces the table. The
+   Curie view adds an "Estimate to save" picker (heating first; the pick
+   carries across experiments); loops in moment or volume go to
+   `hyst_ms_moment`/`_volume` through a new `magnetization` argument of the
+   hysteresis writer, which also takes a single result dict now. In a notebook
+   session or a directory without `specimens.txt` the block says why it is
+   disabled; a writer's refusal (no row for the experiment) is shown in red
+   and nothing is written (QUESTIONS 27–32). *Next*: the Anisotropy
+   application, the notebook switch-over in RockmagPy-notebooks (QUESTIONS 12).
 5. **The rest of Pmag GUI, one decision at a time** — see the table below.
    *Retires `pmag_gui.py`.*
 
