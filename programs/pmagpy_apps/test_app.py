@@ -11,7 +11,7 @@ import pytest
 pn = pytest.importorskip("panel")
 
 from pmagpy_panel import datasets  # noqa: E402
-from pmagpy_apps import APP, app, download, home, launch  # noqa: E402
+from pmagpy_apps import APP, app, convert, download, home, launch  # noqa: E402
 from pmagpy_apps.inventory import take_inventory  # noqa: E402
 
 MCMURDO = datasets.example_dir("McMurdo")
@@ -234,10 +234,116 @@ class TestDownloadFromMagic:
         assert "Download from MagIC" in downloader[0].object
         shown = []
         body.open_modal = lambda: shown.append(True)
-        for btn, visible in ((body.main[0][1], (False, True)), (body.main[0][2], (True, False))):
+        heading_row = body.pages["home"][0]
+        for btn, visible in ((heading_row[2], (False, True)), (heading_row[3], (True, False))):
             btn.clicks += 1
             assert (chooser.visible, downloader.visible) == visible
         assert shown == [True, True]
+
+
+class TestConvert:
+    """The Convert page on real example files: the page guesses, the analyst confirms, the tables land."""
+
+    def test_home_offers_convert_as_the_next_step_for_lab_files(self, tmp_path):
+        session = home.HubSession(cit_only(tmp_path), landing=False)
+        view = home.HomeView(session)
+        assert view.convert_btn.button_type == "primary" and view.convert_btn.visible is True
+        assert view.download_btn.button_type == view.change_btn.button_type == "default"
+        assert "Convert them with the button above" in view.facts.object
+        session.load(MCMURDO)
+        assert view.convert_btn.button_type == "default" and view.change_btn.button_type == "primary"
+        empty = tmp_path / "empty"
+        empty.mkdir()
+        session.load(str(empty))
+        assert view.convert_btn.visible is False                    # nothing to convert yet
+
+    def test_the_page_turns_between_home_and_convert(self, tmp_path):
+        session = home.HubSession(cit_only(tmp_path), landing=False)
+        body = app.build_body(session)
+        home_page, convert_page = body.pages["home"], body.pages["convert"]
+        assert home_page.visible is True and convert_page.visible is False
+        home_page[0][1].clicks += 1                                  # "Convert files…"
+        assert home_page.visible is False and convert_page.visible is True
+        convert_page[0][1].clicks += 1                              # "← Home"
+        assert home_page.visible is True and convert_page.visible is False
+
+    def test_cit_files_are_guessed_chosen_and_converted(self, tmp_path):
+        d = cit_only(tmp_path)
+        session = home.HubSession(d, landing=False)
+        view = convert.ConvertView(session)
+        assert view.format.value == "cit" and view.fmt.label == "CIT"
+        assert view.files.value == ["PI47-.sam"]                     # the .sam index is the file the converter takes
+        assert "sitename" in view.form.widgets and "lat" not in view.form.widgets    # CIT reads lat/lon from the .sam
+        assert view.append.visible is False
+        view.form.widgets["location"].value = "Kolob"
+        assert asyncio.run(view._convert()) is True
+        assert session.inventory.is_magic and session.inventory.counts["specimens"] == 9
+        assert "converted" in view.message.object and "measurements" in view.message.object
+        assert view.home_btn.button_type == "primary"
+        assert view.log.visible is True and "PI47-.sam" in view.log.object
+        sites = open(os.path.join(d, "sites.txt")).read()
+        assert "Kolob" in sites
+
+    def test_jr6_files_convert_together_and_a_bad_one_is_named(self, tmp_path):
+        src = os.path.join(os.path.dirname(CIT), "..", "jr6_magic")
+        d = tmp_path / "jr6"
+        d.mkdir()
+        for name in ("AF.jr6", "TRM.jr6", "SML07.JR6"):
+            shutil.copy(os.path.join(src, name), d)
+        (d / "junk.jr6").write_text("not a JR6 file\n")
+        session = home.HubSession(str(d), landing=False)
+        view = convert.ConvertView(session)
+        assert view.format.value == "jr6_jr6"
+        assert sorted(view.files.value) == ["AF.jr6", "SML07.JR6", "TRM.jr6", "junk.jr6"]
+        assert asyncio.run(view._convert()) is True
+        assert "3 of 4 files converted" in view.message.object and "junk.jr6" in view.message.object
+        assert session.inventory.is_magic and session.inventory.has("demag")
+
+    def test_nothing_chosen_and_a_required_blank_are_refused_in_place(self, tmp_path):
+        session = home.HubSession(cit_only(tmp_path), landing=False)
+        view = convert.ConvertView(session)
+        view.files.value = []
+        assert asyncio.run(view._convert()) is False
+        assert "Choose the files" in view.message.object
+        view.format.value = "generic"
+        assert view.files.options == [f.name for f in session.inventory.files]    # generic takes any file
+        view.files.value = ["PI47-1a"]
+        assert asyncio.run(view._convert()) is False
+        assert "Fill in Experiment" in view.message.object                          # generic insists on the experiment
+        assert not session.inventory.is_magic
+
+    def test_a_directory_format_needs_no_file_list(self, tmp_path):
+        session = home.HubSession(str(tmp_path), landing=False)
+        view = convert.ConvertView(session)
+        view.format.value = "tdt"
+        assert view.files.disabled is True and "reads every file in the directory" in view.notes.object
+        view.format.value = "sio"
+        assert view.files.disabled is False
+
+    def test_a_contribution_file_unpacks_on_the_same_page(self, tmp_path):
+        from pmagpy.test.test_magic_project import AS_SERVED
+        (tmp_path / "magic_contribution_20549.txt").write_text(AS_SERVED)
+        session = home.HubSession(str(tmp_path), landing=False)
+        view = convert.ConvertView(session)
+        assert view.format.value == convert.MAGIC_FILE and view.files.value == ["magic_contribution_20549.txt"]
+        assert len(view.form.widgets) == 0
+        assert asyncio.run(view._convert()) is True
+        assert session.inventory.is_magic and "unpacked" in view.message.object
+
+    def test_appending_to_a_magic_directory_is_offered_and_keeps_what_is_there(self, tmp_path):
+        d = cit_only(tmp_path)
+        session = home.HubSession(d, landing=False)
+        view = convert.ConvertView(session)
+        assert asyncio.run(view._convert()) is True
+        before = session.inventory.counts["measurements"]
+        view.refresh()
+        assert view.append.visible is True and view.append.value is True
+        shutil.copy(os.path.join(os.path.dirname(CIT), "..", "jr6_magic", "AF.jr6"), d)
+        session.load(d)
+        view.format.value = "jr6_jr6"
+        assert view.files.value == ["AF.jr6"]
+        assert asyncio.run(view._convert()) is True
+        assert session.inventory.counts["measurements"] > before
 
 
 class TestLauncher:

@@ -20,9 +20,11 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
+
+from pmagpy.convert_registry import FORMATS, guess_format
 
 # MagIC 3 tables in the order Home lists them; contribution is read but not listed
 TABLES = ("measurements", "specimens", "samples", "sites", "locations", "ages", "criteria", "images", "contribution")
@@ -97,7 +99,8 @@ class Inventory:
     gaps: List[Gap] = field(default_factory=list)                 # largest first
     files: List[FileRole] = field(default_factory=list)           # everything that is not a MagIC table
     folders: int = 0
-    format_guess: str = ""                                        # "CIT", "JR6", "MagIC contribution file", or ""
+    format_key: str = ""                                          # a convert_registry key, "magic", or ""
+    format_guess: str = ""                                        # its label: "CIT", "JR6 (.jr6)", "MagIC contribution file", or ""
     error: str = ""
 
     @property
@@ -205,35 +208,18 @@ def _missing(df: pd.DataFrame, key: str, columns) -> int:
     return int(len(set(df[key].dropna()) - filled))
 
 
-def _guess_format(names: List[str], directory: str) -> (str, Dict[str, str]):
-    """A format guess from file names, and a role per file. Offered to the analyst, never assumed."""
-    roles: Dict[str, str] = {}
-    lower = {n: n.lower() for n in names}
-    sams = [n for n in names if lower[n].endswith(".sam")]
-    if sams:
-        stems = [os.path.splitext(n)[0].rstrip("-") for n in sams]
-        for n in names:
-            if n in sams:
-                roles[n] = "CIT index"
-            elif any(n.startswith(s) for s in stems):
-                roles[n] = "CIT specimen"
-        return "CIT", roles
-    if any(lower[n].endswith(".jr6") for n in names):
-        for n in names:
-            if lower[n].endswith(".jr6"):
-                roles[n] = "JR6"
-        return "JR6", roles
-    for n in names:
-        if lower[n].endswith(".txt"):
-            try:
-                with open(os.path.join(directory, n), encoding="utf-8", errors="replace") as fh:
-                    head = fh.read(4096)
-            except OSError:
-                continue
-            if head.startswith("tab") and ">>>>>>>>>>" in head:
-                roles[n] = "MagIC contribution file"
-                return "MagIC contribution file", roles
-    return "", roles
+def _guess_format(names: List[str], directory: str) -> Tuple[str, str, Dict[str, str]]:
+    """The registry's guess for a directory: (format key, label for the page, role per file).
+
+    Offered to the analyst, never assumed. A MagIC contribution file is not a
+    conversion format but is recognised here so Home can say what it is.
+    """
+    key, roles = guess_format(names, directory)
+    if key == "magic":
+        return key, "MagIC contribution file", roles
+    if key in FORMATS:
+        return key, FORMATS[key].label, roles
+    return "", "", roles
 
 
 def take_inventory(directory: str) -> Inventory:
@@ -269,7 +255,7 @@ def take_inventory(directory: str) -> Inventory:
             others.append(n)
 
     inv.folders = sum(os.path.isdir(os.path.join(directory, n)) for n in names)
-    inv.format_guess, roles = _guess_format(others, directory)
+    inv.format_key, inv.format_guess, roles = _guess_format(others, directory)
     inv.files = [FileRole(n, roles.get(n, "")) for n in others]
     if not frames:
         return inv

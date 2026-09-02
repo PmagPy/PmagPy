@@ -298,6 +298,8 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
             out = os.path.join(scratch, f"{i:03d}")
             os.makedirs(out)
             ok, message, log = run_one(fmt, path, values, out, dir_path)
+            for prefix in {out, os.path.realpath(out)}:                   # the scratch directory is nobody's business
+                log = log.replace(prefix + os.sep, "").replace(prefix, ".")     # (macOS prints it through /private)
             logs.append(f"── {name}\n{log.rstrip()}\n" if log.strip() else f"── {name}\n")
             if not ok:
                 failed.append((name, message or "the converter reported failure"))
@@ -377,6 +379,16 @@ def guess_format(names: Sequence[str], directory: str = "") -> Tuple[str, Dict[s
             elif any(n.startswith(s) for s in stems):
                 roles[n] = "CIT specimen"
         return "cit", roles
+    for n in names:                      # a downloaded contribution is a .txt like any other: look inside
+        if lower[n].endswith(".txt") and directory:
+            try:
+                with open(os.path.join(directory, n), encoding="utf-8-sig", errors="replace") as fh:
+                    head = fh.read(4096)
+            except OSError:
+                continue
+            if head.startswith("tab") and ">>>>>>>>>>" in head:
+                roles[n] = "MagIC contribution file"
+                return "magic", roles
     for key in ("jr6_jr6", "pmd", "tdt", "agm", "utrecht", "2g_asc", "2g_bin"):
         fmt = FORMATS[key]
         hits = [n for n in names if fmt.accepts(n) and fmt.extensions]
@@ -384,16 +396,6 @@ def guess_format(names: Sequence[str], directory: str = "") -> Tuple[str, Dict[s
             for n in hits:
                 roles[n] = fmt.label
             return key, roles
-    for n in names:
-        if lower[n].endswith(".txt") and directory:
-            try:
-                with open(os.path.join(directory, n), encoding="utf-8", errors="replace") as fh:
-                    head = fh.read(4096)
-            except OSError:
-                continue
-            if head.startswith("tab") and ">>>>>>>>>>" in head:
-                roles[n] = "MagIC contribution file"
-                return "magic", roles
     return "", roles
 
 
@@ -414,7 +416,7 @@ PROTOCOLS = (("AF", "AF demagnetization"), ("T", "thermal (including Thellier)")
 CODELIST = Field("codelist", "codes", "Lab protocols", "Every protocol in the file; the steps are decoded by these.",
                  choices=PROTOCOLS)
 EXPERIMENT = Field("experiment", "choice", "Experiment", "What the treatment steps in the file are.",
-                   default="Demag", required=True,
+                   required=True,                  # no default on purpose: the file cannot say, so the analyst must
                    choices=(("Demag", "AF and/or thermal demagnetization"), ("PI", "thermal paleointensity (ZI/IZ/IZZI)"),
                             ("ATRM 6", "anisotropy of TRM, 6 positions"), ("AARM 6", "anisotropy of ARM, 6 positions"),
                             ("CR", "cooling rate"), ("NLT", "non-linear TRM")))

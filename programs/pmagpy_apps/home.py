@@ -5,8 +5,10 @@ applications as a list of doors.
 Home reads everything it says from an :class:`~pmagpy_apps.inventory.Inventory`
 and renders it as HTML on the shared shell. It has three faces, decided by what
 the directory holds — a MagIC contribution, lab files not yet converted, or
-nothing — and the same layout in all three. There is no form on it; the one
-control is "Change directory…", which opens the toolkit's directory chooser.
+nothing — and the same layout in all three. There is no form on it; its
+controls are three buttons — "Convert files…" (the Convert page, :mod:`.convert`),
+"Download from MagIC…" and "Change directory…" (dialogs) — and the one that is
+the next thing to do is primary.
 """
 from __future__ import annotations
 
@@ -236,12 +238,16 @@ def facts_html(inv: Inventory) -> str:
                 "directory and this page fills in.")
     else:
         n = len(inv.files)
-        what = {"CIT": f"look like CIT specimen files with a <code>.sam</code> index",
-                "JR6": "look like JR6 files",
-                "MagIC contribution file": "include a MagIC contribution file, which unpacks into the tables"}
-        guess = f" They {what[inv.format_guess]}." if inv.format_guess in what else ""
-        text = (f"{fmt(n)} file{'s' if n != 1 else ''}, none of them MagIC tables.{guess} Convert them on the "
-                f"Import page, and this page fills in as the tables appear.")
+        if inv.format_key == "cit":
+            guess = " They look like CIT specimen files with a <code>.sam</code> index."
+        elif inv.format_key == "magic":
+            guess = " They include a MagIC contribution file, which unpacks into the tables."
+        elif inv.format_key:
+            guess = f" They look like {_esc(inv.format_guess)} files."
+        else:
+            guess = ""
+        text = (f"{fmt(n)} file{'s' if n != 1 else ''}, none of them MagIC tables.{guess} Convert them with the "
+                f"button above, and this page fills in as the tables appear.")
     return f'<div class="home"><p class="empty">{text}</p></div>'
 
 
@@ -255,9 +261,10 @@ def stages(inv: Inventory) -> list:
             imp = ("warn", f"{fmt(n)} file{'s' if n != 1 else ''} to convert" + (f" · {inv.format_guess}?" if inv.format_guess else ""))
         return [("Import", *imp, True), ("Metadata", "off", "after import", False),
                 ("Analyze", "off", "after import", False), ("Upload", "off", "after import", False)]
+    # Lab files beside the tables are usually the ones the tables came from; the page cannot tell, so it says what it sees.
     others = [f for f in inv.files if f.role]
-    imp = ("warn", f"{len(others)} file{'s' if len(others) != 1 else ''} not yet converted · {inv.format_guess}?") if others \
-        else ("ok", "nothing waiting to convert")
+    imp = ("ok", f"{len(others)} {inv.format_guess} file{'s' if len(others) != 1 else ''} beside the tables") if others \
+        else ("ok", "tables in place")
     if inv.gaps:
         g = inv.gaps[0]
         more = len(inv.gaps) - 1
@@ -375,6 +382,8 @@ class HomeView:
                                             margin=(30, 0, 0, 0))
         self.download_btn = pn.widgets.Button(name="Download from MagIC…", button_type="default", width=200,
                                               margin=(30, 10, 0, 0))
+        self.convert_btn = pn.widgets.Button(name="Convert files…", button_type="default", width=150,
+                                             margin=(30, 10, 0, 0))
         session.param.watch(lambda e: self.refresh(), "directory")
         self.refresh()
 
@@ -387,13 +396,15 @@ class HomeView:
         self.aside.object = aside_html(inv, self.s.recent() if self.s.landing else [])
         self.aside.visible = self.spacer.visible = bool(self.aside.object)     # no column when there is nothing to put in it
         # The next thing to do is the primary button: pick a directory when this is a MagIC one,
-        # download into it when it is empty; lab files waiting to convert make neither the next step.
+        # download into it when it is empty, convert when it holds lab files and no tables.
         self.change_btn.button_type = "primary" if inv.is_magic else "default"
         self.download_btn.button_type = "primary" if inv.is_empty else "default"
+        self.convert_btn.button_type = "primary" if inv.files and not inv.is_magic else "default"
+        self.convert_btn.visible = not inv.is_empty
 
     def panel(self) -> pn.Column:
         return pn.Column(
-            pn.Row(self.heading, self.download_btn, self.change_btn, sizing_mode="stretch_width"),
+            pn.Row(self.heading, self.convert_btn, self.download_btn, self.change_btn, sizing_mode="stretch_width"),
             self.facts, self.strip,
             pn.Row(self.bars, self.spacer, self.aside, sizing_mode="stretch_width", margin=(28, 0, 0, 0)),
             sizing_mode="stretch_width", max_width=1100, margin=(18, 40, 40, 40),

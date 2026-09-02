@@ -72,6 +72,11 @@ demagnetization step or a Thellier step *is*, it does not belong here.
   `directory`, `status` and `load(path) -> bool`; `require_measurements=False`
   for the hub, which opens empty directories too. Began as Yiming Zhang's on
   the intensity branch.
+* **`forms.py`** — `Form`: widgets generated from `pmagpy.convert_registry.Field`
+  descriptions and read back as one dict (`values()`, `missing()` for required
+  fields left blank). The Convert page is built from it, so a converter added to
+  the registry gets its form without any UI code; Orientation will use it for
+  its conventions too.
 * **`launch.py`** — the one-command launcher: stops a previous server, serves
   in dev mode with each application's `assets/` as a static directory, waits
   for the app to answer before opening a browser. With `index=True` it serves
@@ -113,6 +118,26 @@ from a script too:
 from pmagpy import magic_project as mp
 mp.download_contribution("10.1130/G53450.1", "~/MagIC/Ordovician_Eastern_Laurentia", report=print)
 ```
+
+"Convert files…" turns the page over to Convert (`pmagpy_apps/convert.py`):
+the format the inventory guessed is preselected, the files that format takes
+are chosen, and the form is generated from the registry's `fields`. The run
+happens off the event loop; the converters' output sits under the result, and
+Home fills in when the tables are written. Every converter is described once in
+`pmagpy/convert_registry.py` — the function, its keywords, what to ask, an
+example file — and the same call works from a script:
+
+```python
+from pmagpy import convert_registry as reg
+result = reg.convert_files(reg.FORMATS["jr6_jr6"], ["AF.jr6", "TRM.jr6"],
+                           {"location": "Negev", "samp_con": "1"}, dir_path="~/MagIC/Negev", report=print)
+result.ok, result.tables      # True, {'measurements': 1154, 'specimens': 98, 'samples': 30, 'sites': 10, 'locations': 1}
+```
+
+To add an instrument: write its converter in `pmagpy/convert_2_magic.py`, put an
+example file under `data_files/convert_2_magic/`, and register one `Format` —
+`pmagpy/test/test_convert_registry.py` converts every example, and the Convert
+page offers the format the next time it loads.
 
 ## Starting the second application
 

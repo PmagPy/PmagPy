@@ -432,6 +432,39 @@ Intensity were built.
 2. **Conversion registry, then the Convert page.** Formats in order of demand:
    SIO, CIT, 2g, generic, JR6, IODP, then IRM instruments, then the rest.
    *Retires box 1 step 1 and the Import menu's converters.*
+   **Registry built 2026-09-01**: `pmagpy/convert_registry.py` describes twenty
+   converters once each (`Field`/`Format`; `build_kwargs` maps canonical field
+   names onto each function's own keywords by signature; `convert_files` runs
+   each input in a scratch directory and combines the tables — replacing or
+   appending — through `magic_project.magic_write`; `guess_format` reads a
+   directory). Every registered format has an example under
+   `data_files/convert_2_magic` that `pmagpy/test/test_convert_registry.py`
+   converts, including the IODP chain (LIMS samples → SRM/DSCR/JR6 appended).
+   Five converter bugs fell out on the way (`iodp_samples_csv`, `mini`,
+   `jr6_jr6` thermal steps, `iodp_jr6_lore` pandas dtypes, and
+   `MagicDataFrame.add_measurement_names` writing into the cwd).
+   **Convert page built 2026-09-01**: `pmagpy_panel/forms.py` turns a format's
+   `fields` into widgets (text/int/float/bool/choice/codes, and the naming
+   convention with its Z count shown only for codes 4 and 7); `pmagpy_apps/
+   convert.py` is the page — format preselected from the inventory's guess,
+   the files the format takes chosen, the generated form, "Add to the tables
+   already here" when the directory is already MagIC, the run off the event
+   loop with each file reported, the converters' log under the result, and
+   the session reloaded so Home fills in. A MagIC contribution file on disk
+   unpacks from the same page. Home's "Convert files…" is the primary button
+   when the directory holds lab files and no tables; the page turns between
+   Home and Convert without leaving the URL.
+   *Still to do here*: the CLI programs (`programs/conversion_scripts`) do not
+   yet read the registry; `livdb`, `kly4s`/`k15`/`sufar4` and the other
+   anisotropy inputs are not registered; nothing records which files a
+   directory's tables came from (Home says only "N files beside the tables").
+   Some of `data_files/convert_2_magic` is old — the next round should track
+   down current instrument exports and test with the labs that use them; the
+   community converter at https://beta.paleomagnetism.org/converter/ (MIT) is
+   worth reading for format details, though PmagPy keeps its own. The
+   registry is instrument-agnostic on purpose: the MagIC grant proposes
+   converters for rock-magnetic instruments (Lakeshore VSM and the like), and
+   they join as a function in `convert_2_magic` plus one `Format`.
 3. **Metadata and Upload pages.** *Retires ErMagicBuilder, box 3, Export
    menu.*
 4. **Rock magnetism, then Anisotropy.** One experiment type at a time, MPMS DC
