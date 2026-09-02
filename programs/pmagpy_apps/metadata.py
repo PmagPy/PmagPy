@@ -194,8 +194,8 @@ class MetadataView:
                                                placeholder="search the MagIC data model", max_items=20)
         self.add_cols_btn = pn.widgets.Button(name="Add", button_type="default", width=70, margin=(23, 5, 5, 5))
         self.message = pn.pane.HTML("", sizing_mode="stretch_width", min_height=24)
-        self.findings_pane = pn.pane.HTML("", stylesheets=[HELP_CSS], width=300, sizing_mode="fixed")
-        self.help = pn.pane.HTML("", stylesheets=[HELP_CSS], width=300, sizing_mode="fixed")
+        self.findings_pane = pn.pane.HTML("", stylesheets=[HELP_CSS], width=300)
+        self.help = pn.pane.HTML("", stylesheets=[HELP_CSS], width=300)
 
         self.tables.param.watch(lambda e: self.show(e.new), "value")
         self.grid.on_edit(self._edited)
@@ -488,7 +488,7 @@ class MetadataView:
             tools,
             pn.Row(self.note, self.message, sizing_mode="stretch_width"),
             pn.Row(self.grid, pn.Spacer(width=20),
-                   pn.Column(self.help, self.findings_pane, width=300, sizing_mode="fixed"),
+                   pn.Column(self.help, self.findings_pane, width=300),
                    sizing_mode="stretch_width"),
             fills,
             sizing_mode="stretch_width", max_width=1400, margin=(18, 40, 40, 40),

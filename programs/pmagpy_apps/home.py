@@ -158,8 +158,8 @@ CSS = """
 .section { font-weight:600; font-size:.78rem; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin:0 0 8px }
 .home h1 { font-size:2rem; font-weight:600; margin:2px 0 4px; letter-spacing:-.01em; line-height:1.1;
            overflow-wrap:anywhere }     /* a long directory name wraps rather than running under the buttons */
-.path { color:var(--muted); font-size:.85rem; font-family:ui-monospace,Menlo,monospace }
-.ref { color:var(--muted); font-size:.9rem; margin:-4px 0 0 }
+.path { color:var(--muted); font-size:.85rem; font-family:ui-monospace,Menlo,monospace; overflow-wrap:anywhere }
+.ref { color:var(--muted); font-size:.9rem; margin:2px 0 0 }
 .ref a { color:var(--accent); text-decoration:none }
 .kpi { display:flex; gap:22px; flex-wrap:wrap; font-size:.95rem; margin:16px 0 4px; font-variant-numeric:tabular-nums }
 .kpi b { font-weight:600 }
@@ -222,15 +222,14 @@ def _esc(text: str) -> str:
 
 
 def title_html(inv: Inventory) -> str:
-    """The directory's name and path — this shares a row with the buttons, so it stays short."""
+    """The directory's name — this shares a row with the buttons, so it stays short."""
     label = "MagIC directory" if inv.is_magic else "Directory"
-    return (f'<div class="home"><div class="section">{label}</div><h1>{_esc(inv.name)}</h1>'
-            f'<div class="path">{_esc(shorten_home(inv.directory))}</div></div>')
+    return f'<div class="home"><div class="section">{label}</div><h1>{_esc(inv.name)}</h1></div>'
 
 
 def ref_html(inv: Inventory) -> str:
-    """One line under the title: contribution, DOI and contributor, or what the directory lacks."""
-    lines = []
+    """Under the title, at full width: the path, then contribution · DOI · contributor or what the directory lacks."""
+    lines = [f'<div class="path">{_esc(shorten_home(inv.directory))}</div>']
     c = inv.contribution
     if inv.is_magic and c:
         bits = []
@@ -250,7 +249,7 @@ def ref_html(inv: Inventory) -> str:
         lines.append('<div class="ref">No measurements yet</div>')
     elif not inv.is_magic:
         lines.append('<div class="ref">No MagIC tables yet</div>')
-    return f'<div class="home">{"".join(lines)}</div>' if lines else ""
+    return f'<div class="home">{"".join(lines)}</div>'
 
 
 def facts_html(inv: Inventory) -> str:
@@ -511,12 +510,12 @@ class HomeView:
         self.example_btn.on_click(lambda e: self.open_example())
         # the directory page
         self.heading = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width")
-        self.ref = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width", margin=(0, 10))
+        self.ref = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width", margin=(-6, 10, 0, 10))
         self.facts = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width")
         self.strip = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width")
         self.bars = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width")
-        self.aside = pn.pane.HTML("", stylesheets=[CSS], width=340, sizing_mode="fixed")
-        self.spacer = pn.Spacer(width=28, sizing_mode="fixed")
+        self.aside = pn.pane.HTML("", stylesheets=[CSS], width=340)
+        self.spacer = pn.Spacer(width=28)
         self.change_btn = pn.widgets.Button(name="Change directory…", button_type="primary", width=170,
                                             margin=(30, 0, 0, 0))
         self.download_btn = pn.widgets.Button(name="Download from MagIC…", button_type="default", width=200,
