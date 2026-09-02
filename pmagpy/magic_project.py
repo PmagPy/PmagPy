@@ -416,10 +416,19 @@ def failing_cells(failing_items) -> list[dict]:
             issues = {column: row[column] for column in failing_items.columns
                       if column not in ("num", "issues") and not is_null(row[column])}
         for column, problem in issues.items():
-            cells.append({"row": str(name),
-                          "column": str(column).replace("value_pass_", "").replace("_isIn", ""),
-                          "problem": str(problem)})
+            cells.append({"row": str(name), "column": plain_column_name(str(column)), "problem": str(problem)})
     return cells
+
+
+def plain_column_name(check_column: str) -> str:
+    """The MagIC column behind a validator check column: ``value_pass_lat_checkMax`` -> ``lat``.
+
+    ``validate_upload3`` names each check ``<kind>_pass_<column>_<function>``,
+    with a digit appended when a column has the same check twice.
+    """
+    import re
+    name = re.sub(r"^(value|type|presence)_pass_", "", check_column)
+    return re.sub(r"_(isIn|checkMax|checkMin|cv|required\w*|test_type)\d*$", "", name)
 
 
 # ---------------------------------------------------------------------------

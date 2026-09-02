@@ -6,7 +6,8 @@ the workflow strip, the applications as a list. The directory comes from
 "Change directory…" dialog swaps it without leaving the page; "Download from
 MagIC…" fills a folder with a public contribution and opens it; "Convert
 files…" turns the page over to Convert (:mod:`.convert`), which comes back
-Home when the tables are written.
+Home when the tables are written; "Metadata…" turns it over to the tables in a
+grid (:mod:`.metadata`).
 """
 from __future__ import annotations
 
@@ -19,6 +20,7 @@ from . import APP
 from .convert import ConvertView
 from .download import DownloadDialog
 from .home import HomeView, HubSession, app_link, open_directory  # noqa: F401  (app_link re-exported)
+from .metadata import MetadataView
 
 shell.setup()
 
@@ -28,14 +30,15 @@ DEFAULT_EXAMPLE = "McMurdo"
 
 
 def build_body(session: HubSession, chooser_stub: str = "") -> shell.Body:
-    """Home and Convert for the session's directory, one shown at a time; the modal holds both dialogs."""
+    """Home, Convert and Metadata for the session's directory, one shown at a time; the modal holds both dialogs."""
     view = HomeView(session)
     convert = ConvertView(session)
+    metadata = MetadataView(session)
     chooser = open_directory(session, chooser_stub=chooser_stub)
     download = DownloadDialog(session)
     panes = {"chooser": chooser.modal(), "download": download.modal()}
-    pages = {"home": view.panel(), "convert": convert.panel()}
-    pages["convert"].visible = False
+    pages = {"home": view.panel(), "convert": convert.panel(), "metadata": metadata.panel()}
+    pages["convert"].visible = pages["metadata"].visible = False
     body = shell.Body(info=APP, main=pn.Column(*pages.values(), sizing_mode="stretch_width"),
                       header=shell.status_line(session), modal=pn.Column(*panes.values()))
 
@@ -49,11 +52,15 @@ def build_body(session: HubSession, chooser_stub: str = "") -> shell.Body:
             page.visible = name == which
         if which == "convert":
             convert.reset()
+        elif which == "metadata":
+            metadata.reset()
 
     view.change_btn.on_click(lambda e: show("chooser"))
     view.download_btn.on_click(lambda e: show("download"))
     view.convert_btn.on_click(lambda e: turn_to("convert"))
+    view.metadata_btn.on_click(lambda e: turn_to("metadata"))
     convert.home_btn.on_click(lambda e: turn_to("home"))
+    metadata.home_btn.on_click(lambda e: turn_to("home"))
     chooser.on_loaded = download.on_loaded = lambda: body.close_modal()
     body.pages = pages           # for the tests and any host that wants to turn the page
     body.turn_to = turn_to

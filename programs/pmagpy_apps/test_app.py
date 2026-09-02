@@ -11,7 +11,7 @@ import pytest
 pn = pytest.importorskip("panel")
 
 from pmagpy_panel import datasets  # noqa: E402
-from pmagpy_apps import APP, app, convert, download, home, launch  # noqa: E402
+from pmagpy_apps import APP, app, convert, download, home, launch, metadata  # noqa: E402
 from pmagpy_apps.inventory import take_inventory  # noqa: E402
 
 MCMURDO = datasets.example_dir("McMurdo")
@@ -21,6 +21,25 @@ CIT = os.path.join(os.path.dirname(os.path.dirname(MCMURDO)), "convert_2_magic",
 def page_html(tmpl) -> str:
     """Every HTML pane on the page, joined."""
     return "".join(p.object for p in tmpl.body.main.select(pn.pane.HTML))
+
+
+def small_study(tmp_path) -> str:
+    """A MagIC directory with the gaps the Metadata page exists to fill."""
+    import pandas as pd
+    from pmagpy import magic_project as mp
+    d = tmp_path / "study"
+    d.mkdir()
+
+    def write(table, rows):
+        mp.magic_write(str(d / f"{table}.txt"), pd.DataFrame(rows).fillna(""), table)
+    write("locations", [{"location": "Zavkhan", "location_type": "Outcrop"}])
+    write("sites", [{"site": "Z11", "location": "Zavkhan", "lat": "47.05", "lon": "96.2", "lithologies": "Basalt"},
+                    {"site": "Z12", "location": "Zavkhan", "lat": "95", "lon": "96.3"}])       # 95: off the planet
+    write("samples", [{"sample": "Z11.1", "site": "Z11", "azimuth": "10", "dip": "20"},
+                      {"sample": "Z13.1", "site": "Z13"}])                                    # Z13 has no sites row
+    write("specimens", [{"specimen": "Z11.1a", "sample": "Z11.1"}])
+    write("measurements", [{"measurement": "1", "experiment": "e1", "specimen": "Z11.1a", "quality": "g"}])
+    return str(d)
 
 
 def cit_only(tmp_path) -> str:
@@ -194,7 +213,8 @@ class TestDownloadFromMagic:
         assert session.directory == str(empty) and session.inventory.is_magic
         assert "MagIC contribution 20549" in view.heading.object and "4 tables" in dialog.message.object
         assert datasets.load_recent(recent) == [str(empty)]
-        assert view.download_btn.button_type == "default" and view.change_btn.button_type == "primary"
+        assert view.download_btn.button_type == "default"
+        assert view.metadata_btn.button_type == "primary"           # the contribution has gaps: the next step is Metadata
 
     def test_a_doi_finds_the_latest_version_and_says_so(self, tmp_path):
         session = home.HubSession(str(tmp_path), landing=False)
@@ -235,7 +255,7 @@ class TestDownloadFromMagic:
         shown = []
         body.open_modal = lambda: shown.append(True)
         heading_row = body.pages["home"][0]
-        for btn, visible in ((heading_row[2], (False, True)), (heading_row[3], (True, False))):
+        for btn, visible in ((heading_row[3], (False, True)), (heading_row[4], (True, False))):     # Download…, Change directory…
             btn.clicks += 1
             assert (chooser.visible, downloader.visible) == visible
         assert shown == [True, True]
@@ -251,7 +271,8 @@ class TestConvert:
         assert view.download_btn.button_type == view.change_btn.button_type == "default"
         assert "Convert them with the button above" in view.facts.object
         session.load(MCMURDO)
-        assert view.convert_btn.button_type == "default" and view.change_btn.button_type == "primary"
+        assert view.convert_btn.button_type == "default"
+        assert view.metadata_btn.button_type == "primary" and view.metadata_btn.visible is True    # McMurdo has undated sites
         empty = tmp_path / "empty"
         empty.mkdir()
         session.load(str(empty))
@@ -344,6 +365,112 @@ class TestConvert:
         assert view.files.value == ["AF.jr6"]
         assert asyncio.run(view._convert()) is True
         assert session.inventory.counts["measurements"] > before
+
+
+class TestMetadata:
+    """The Metadata page: the tables in a grid, gaps filled, the validator's findings on the cells."""
+
+    def test_the_page_turns_between_home_and_metadata(self, tmp_path):
+        session = home.HubSession(small_study(tmp_path), landing=False)
+        body = app.build_body(session)
+        home_page, meta_page = body.pages["home"], body.pages["metadata"]
+        assert home_page[0][2].name == "Metadata…" and home_page[0][2].button_type == "primary"   # gaps to fill
+        home_page[0][2].clicks += 1
+        assert home_page.visible is False and meta_page.visible is True
+        meta_page[0][1].clicks += 1                                  # "← Home"
+        assert home_page.visible is True and meta_page.visible is False
+
+    def test_the_grid_shows_the_table_with_its_owed_rows_and_required_columns(self, tmp_path):
+        session = home.HubSession(small_study(tmp_path), landing=False)
+        view = metadata.MetadataView(session)
+        assert view.table == "sites" and view.tables.value == "sites"
+        labels = list(view.tables.options)
+        assert "Sites (2)" in labels and "Samples (2)" in labels and "Ages" in labels    # no ages.txt: no count
+        df = view.grid.value
+        assert list(df.site) == ["Z11", "Z12", "Z13"] and view.frame.stubs == ["Z13"]
+        assert list(df.columns[:2]) == ["site", "location"]
+        assert "geologic_classes" in df.columns                     # required, so shown though absent from the file
+        assert view.grid.titles["site"] == "site *" and "lat" in view.grid.editors
+        assert view.grid.editors["lithologies"]["multiselect"] is True     # a list column picks several
+        assert "1 added from samples" in view.note.object and "required and empty" in view.note.object
+        assert "Site Name" in view.help.object
+        view.tables.value = "specimens"
+        assert view.table == "specimens" and list(view.grid.value.specimen) == ["Z11.1a"]
+        assert view.parent_fill.visible is True and view.bounds_btn.visible is False
+
+    def test_editing_and_saving_closes_a_gap_the_home_page_showed(self, tmp_path):
+        d = small_study(tmp_path)
+        session = home.HubSession(d, landing=False)
+        view = metadata.MetadataView(session)
+        assert any(g.label == "site lithologies" for g in session.inventory.gaps)
+        df = view.current()
+        df.loc[df.site == "Z12", "lithologies"] = "Basalt:Diabase"
+        df.loc[df.site == "Z13", ["location", "lithologies", "lat", "lon"]] = ["Zavkhan", "Basalt", "47.2", "96.4"]
+        view.grid.value = df
+        view.dirty = True
+        assert view.save() is True
+        assert not any(g.label == "site lithologies" for g in session.inventory.gaps)
+        assert session.inventory.counts["sites"] == 3               # Z13 is a site now
+        assert view.frame.stubs == [] and view.dirty is False
+        assert "sites.txt written" in view.message.object and metadata.mm.BACKUP_DIR in view.message.object
+        assert os.path.exists(os.path.join(d, metadata.mm.BACKUP_DIR, "sites.txt"))
+        assert view.home_btn.button_type == "primary"
+        assert "geologic_classes" not in open(os.path.join(d, "sites.txt")).readline()   # the empty column is not written
+
+    def test_check_names_the_bad_cell_and_the_missing_columns(self, tmp_path):
+        session = home.HubSession(small_study(tmp_path), landing=False)
+        view = metadata.MetadataView(session)
+        findings = view.check()
+        assert any(f.row == "Z12" and f.column == "lat" for f in findings)
+        assert any(f.column == "geologic_classes" and not f.row for f in findings)
+        assert "objects to" in view.message.object and "required column" in view.findings_pane.object
+        styled = view.grid.style._compute().ctx
+        assert styled                                                # the stub row and the bad cell are painted
+        assert any(metadata.CELL_FAIL.split(":")[1] in str(v) for v in styled.values())
+
+    def test_a_row_and_columns_can_be_added_and_defaults_filled(self, tmp_path):
+        session = home.HubSession(small_study(tmp_path), landing=False)
+        view = metadata.MetadataView(session)
+        view.add_row()
+        assert len(view.grid.value) == 4 and view.grid.value.iloc[-1]["site"] == ""
+        assert view.grid.value.iloc[-1]["citations"] == "This study"      # Pmag GUI's default for a new row
+        view.add_cols.value = ["height", "description"]
+        view.add_columns()
+        cols = list(view.grid.value.columns)
+        assert "height" in cols and "description" in cols
+        assert cols.index("height") < cols.index("description")         # data-model order
+        assert "height" not in view.add_cols.options.values()
+        view.fill_defaults()
+        assert (view.grid.value["citations"] == "This study").all()
+        assert view.dirty is True
+
+    def test_copy_down_and_bounds_take_what_the_other_tables_know(self, tmp_path):
+        d = small_study(tmp_path)
+        session = home.HubSession(d, landing=False)
+        view = metadata.MetadataView(session)
+        view.show("samples")
+        assert set(view.parent_fill.options) >= {"lat", "lon", "lithologies"}
+        view.parent_fill.value = ["lat", "lon"]
+        view.copy_down()
+        by = view.grid.value.set_index("sample")
+        assert by.loc["Z11.1", "lat"] == "47.05" and by.loc["Z13.1", "lat"] == ""    # Z13 has no site row to copy from
+        assert "2 cells copied" in view.message.object
+        view.show("locations")
+        assert view.bounds_btn.visible is True
+        view.fill_bounds()
+        row = view.grid.value.iloc[0]
+        assert (row["lat_s"], row["lat_n"], row["lon_w"], row["lon_e"]) == ("47.05", "95", "96.2", "96.3")
+        assert view.save() is True
+        assert not any(g.label == "location bounds" for g in session.inventory.gaps)
+
+    def test_delete_needs_a_selection_and_removes_the_ticked_rows(self, tmp_path):
+        session = home.HubSession(small_study(tmp_path), landing=False)
+        view = metadata.MetadataView(session)
+        view.delete_selected()
+        assert "Tick the rows" in view.message.object and len(view.grid.value) == 3
+        view.grid.selection = [2]
+        view.delete_selected()
+        assert list(view.grid.value.site) == ["Z11", "Z12"] and view.dirty is True
 
 
 class TestLauncher:

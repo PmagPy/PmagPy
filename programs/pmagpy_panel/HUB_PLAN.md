@@ -467,6 +467,27 @@ Intensity were built.
    they join as a function in `convert_2_magic` plus one `Format`.
 3. **Metadata and Upload pages.** *Retires ErMagicBuilder, box 3, Export
    menu.*
+   **Metadata built 2026-09-01**: `pmagpy/magic_metadata.py` is the UI-free
+   layer — the data model as `Column` records (label, group, type, required,
+   unit, bounds, controlled and suggested vocabulary, examples), the editor's
+   column order (name, parent, required columns whether present or not, the
+   rest in model order, unknown columns last so nothing is lost), an
+   `editor_frame` that adds the rows a table is owed by the table beneath it
+   (a site the samples name, a specimen only in measurements), `save_table`
+   through `magic_write` (blank rows and empty columns dropped, the original
+   copied once to `backup_before_pmagpy_apps/`), Pmag GUI's row defaults,
+   location bounds from the site coordinates, copy-down from the parent table,
+   and `check_table` turning `validate_upload3` into cell findings (the
+   validator's `value_pass_lat_checkMax` names are reduced to `lat` in
+   `magic_project.plain_column_name`). `pmagpy_apps/metadata.py` is the page:
+   one table at a time in a Tabulator with list editors for vocabulary
+   columns, the stub rows and failing cells painted, column help on the right,
+   Save reloading the session so Home's gaps follow, Check on the saved file.
+   Home's "Metadata…" is the primary button when the contribution has gaps.
+   *Still to do here*: the criteria table; propagating a saved age down the
+   hierarchy the way ErMagicBuilder did (the inventory already counts a site
+   dated in `ages.txt` as dated); a newer data model than the bundled 2019
+   copy (the page reads whatever `data_model(True)` returns).
 4. **Rock magnetism, then Anisotropy.** One experiment type at a time, MPMS DC
    first (pure Bokeh already, simplest), then χ–T/Curie, hysteresis + backfield
    + unmixing, FORC. Each view lands with its notebook switched over and its

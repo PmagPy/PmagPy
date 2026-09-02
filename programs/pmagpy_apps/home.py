@@ -6,9 +6,10 @@ Home reads everything it says from an :class:`~pmagpy_apps.inventory.Inventory`
 and renders it as HTML on the shared shell. It has three faces, decided by what
 the directory holds — a MagIC contribution, lab files not yet converted, or
 nothing — and the same layout in all three. There is no form on it; its
-controls are three buttons — "Convert files…" (the Convert page, :mod:`.convert`),
-"Download from MagIC…" and "Change directory…" (dialogs) — and the one that is
-the next thing to do is primary.
+controls are four buttons — "Convert files…" (the Convert page, :mod:`.convert`),
+"Metadata…" (the tables in a grid, :mod:`.metadata`), "Download from MagIC…"
+and "Change directory…" (dialogs) — and the one that is the next thing to do is
+primary.
 """
 from __future__ import annotations
 
@@ -384,6 +385,8 @@ class HomeView:
                                               margin=(30, 10, 0, 0))
         self.convert_btn = pn.widgets.Button(name="Convert files…", button_type="default", width=150,
                                              margin=(30, 10, 0, 0))
+        self.metadata_btn = pn.widgets.Button(name="Metadata…", button_type="default", width=120,
+                                              margin=(30, 10, 0, 0))
         session.param.watch(lambda e: self.refresh(), "directory")
         self.refresh()
 
@@ -395,16 +398,19 @@ class HomeView:
         self.bars.object = bars_html(inv)
         self.aside.object = aside_html(inv, self.s.recent() if self.s.landing else [])
         self.aside.visible = self.spacer.visible = bool(self.aside.object)     # no column when there is nothing to put in it
-        # The next thing to do is the primary button: pick a directory when this is a MagIC one,
-        # download into it when it is empty, convert when it holds lab files and no tables.
-        self.change_btn.button_type = "primary" if inv.is_magic else "default"
+        # The next thing to do is the primary button: download into an empty directory, convert when it
+        # holds lab files and no tables, fill the metadata when the tables have gaps, otherwise pick a directory.
+        self.change_btn.button_type = "primary" if inv.is_magic and not inv.gaps else "default"
         self.download_btn.button_type = "primary" if inv.is_empty else "default"
         self.convert_btn.button_type = "primary" if inv.files and not inv.is_magic else "default"
         self.convert_btn.visible = not inv.is_empty
+        self.metadata_btn.button_type = "primary" if inv.is_magic and inv.gaps else "default"
+        self.metadata_btn.visible = inv.is_magic
 
     def panel(self) -> pn.Column:
         return pn.Column(
-            pn.Row(self.heading, self.convert_btn, self.download_btn, self.change_btn, sizing_mode="stretch_width"),
+            pn.Row(self.heading, self.convert_btn, self.metadata_btn, self.download_btn, self.change_btn,
+                   sizing_mode="stretch_width"),
             self.facts, self.strip,
             pn.Row(self.bars, self.spacer, self.aside, sizing_mode="stretch_width", margin=(28, 0, 0, 0)),
             sizing_mode="stretch_width", max_width=1100, margin=(18, 40, 40, 40),
