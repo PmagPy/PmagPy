@@ -11,7 +11,7 @@ import pytest
 pn = pytest.importorskip("panel")
 
 from pmagpy_panel import datasets  # noqa: E402
-from pmagpy_apps import APP, app, convert, download, home, launch, metadata  # noqa: E402
+from pmagpy_apps import APP, app, convert, download, home, launch, metadata, upload  # noqa: E402
 from pmagpy_apps.inventory import take_inventory  # noqa: E402
 
 MCMURDO = datasets.example_dir("McMurdo")
@@ -255,7 +255,7 @@ class TestDownloadFromMagic:
         shown = []
         body.open_modal = lambda: shown.append(True)
         heading_row = body.pages["home"][0]
-        for btn, visible in ((heading_row[3], (False, True)), (heading_row[4], (True, False))):     # Download…, Change directory…
+        for btn, visible in ((heading_row[4], (False, True)), (heading_row[5], (True, False))):     # Download…, Change directory…
             btn.clicks += 1
             assert (chooser.visible, downloader.visible) == visible
         assert shown == [True, True]
@@ -471,6 +471,73 @@ class TestMetadata:
         view.grid.selection = [2]
         view.delete_selected()
         assert list(view.grid.value.site) == ["Z11", "Z12"] and view.dirty is True
+
+
+class TestUpload:
+    """The Upload page: the offline check, the upload file, MagIC's verdict (stubbed), the publication tables."""
+
+    def test_the_page_turns_and_home_reports_no_upload_file_yet(self, tmp_path):
+        session = home.HubSession(small_study(tmp_path), landing=False)
+        body = app.build_body(session)
+        home_page, up_page = body.pages["home"], body.pages["upload"]
+        assert home_page[0][3].name == "Upload…" and home_page[0][3].button_type == "default"     # gaps first
+        assert home.stages(session.inventory)[3][1:3] == ("off", "upload file not built yet")
+        home_page[0][3].clicks += 1
+        assert home_page.visible is False and up_page.visible is True
+        up_page[0][1].clicks += 1                                    # "← Home"
+        assert home_page.visible is True and up_page.visible is False
+
+    def test_check_names_the_tables_with_findings_and_the_ones_that_pass(self, tmp_path):
+        session = home.HubSession(small_study(tmp_path), landing=False)
+        view = upload.UploadView(session)
+        assert "tables to upload: locations (1), sites (2), samples (2), specimens (1), measurements (1)" in view.note.object
+        assert view.file.visible is False and view.validate_btn.visible is False      # nothing to validate yet
+        findings = asyncio.run(view.check())
+        assert any(f.row == "Z12" and f.column == "lat" for f in findings["sites"])
+        assert "fix them on the Metadata page" in view.check_msg.object
+        assert "<b>Z12</b> · <b>lat</b>: 95.0 (lat) must be &lt;= 90.0" in view.check_pane.object
+        assert "<h4>sites <span>" in view.check_pane.object
+        assert upload.findings_html({"sites": []}) == '<div class="report"><h4>sites <span class="ok">passes</span></h4></div>'
+
+    def test_build_puts_the_file_in_the_directory_and_home_sees_it(self, tmp_path):
+        session = home.HubSession(small_study(tmp_path), landing=False)
+        view = upload.UploadView(session)
+        assert asyncio.run(view.build()) is True
+        (name,) = session.inventory.uploads
+        assert name.startswith("Zavkhan_") and name in view.build_msg.object and view.file.value == name
+        assert view.file.visible is True and view.home_btn.button_type == "primary"
+        assert home.stages(session.inventory)[3][1] == "ok" and name in home.stages(session.inventory)[3][2]
+        assert not any(f.name == name for f in session.inventory.files)              # not a lab file to convert
+        assert "MagIC contribution file" not in home.stages(session.inventory)[0][2]
+
+    def test_validate_reports_magic_by_table_with_row_numbers(self, tmp_path, monkeypatch):
+        from pmagpy import ipmag
+        session = home.HubSession(small_study(tmp_path), landing=False)
+        view = upload.UploadView(session)
+        asyncio.run(view.build())
+        sent = []
+
+        def fake(path, verbose=False):
+            sent.append(path)
+            return {"status": True, "validation": {"errors": [
+                {"table": "sites", "column": "lat", "message": "Value must be at most 90.", "rows": [2]}], "warnings": []}}
+        monkeypatch.setattr(ipmag, "validate_with_public_endpoint", fake)
+        report = asyncio.run(view.validate())
+        assert sent == [os.path.join(session.directory, view.file.value)]
+        assert not report.ok and "1 error" in view.validate_msg.object
+        assert "<h4>sites <span>1 error</span></h4>" in view.validate_pane.object and "row 2" in view.validate_pane.object
+        monkeypatch.setattr(ipmag, "validate_with_public_endpoint",
+                            lambda path, verbose=False: {"status": True, "validation": {"errors": [], "warnings": []}})
+        assert asyncio.run(view.validate()).ok and "passes MagIC" in view.validate_msg.object
+
+    def test_export_writes_into_publication_tables(self, tmp_path):
+        session = home.HubSession(small_study(tmp_path), landing=False)
+        view = upload.UploadView(session)
+        view.export_kind.value = True                                # LaTeX
+        result = asyncio.run(view.export())
+        assert [os.path.basename(f) for f in result.files] == ["site_info.tex"] and result.skipped == ["specimens"]
+        assert "publication_tables/site_info.tex" in view.export_pane.object and "nothing to export from specimens" in view.export_pane.object
+        assert os.path.isfile(os.path.join(session.directory, "specimens.txt"))
 
 
 class TestLauncher:

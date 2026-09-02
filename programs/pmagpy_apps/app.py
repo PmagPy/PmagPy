@@ -21,6 +21,7 @@ from .convert import ConvertView
 from .download import DownloadDialog
 from .home import HomeView, HubSession, app_link, open_directory  # noqa: F401  (app_link re-exported)
 from .metadata import MetadataView
+from .upload import UploadView
 
 shell.setup()
 
@@ -30,15 +31,17 @@ DEFAULT_EXAMPLE = "McMurdo"
 
 
 def build_body(session: HubSession, chooser_stub: str = "") -> shell.Body:
-    """Home, Convert and Metadata for the session's directory, one shown at a time; the modal holds both dialogs."""
+    """Home, Convert, Metadata and Upload for the session's directory, one shown at a time; the modal holds both dialogs."""
     view = HomeView(session)
     convert = ConvertView(session)
     metadata = MetadataView(session)
+    upload = UploadView(session)
     chooser = open_directory(session, chooser_stub=chooser_stub)
     download = DownloadDialog(session)
     panes = {"chooser": chooser.modal(), "download": download.modal()}
-    pages = {"home": view.panel(), "convert": convert.panel(), "metadata": metadata.panel()}
-    pages["convert"].visible = pages["metadata"].visible = False
+    pages = {"home": view.panel(), "convert": convert.panel(), "metadata": metadata.panel(), "upload": upload.panel()}
+    for name in ("convert", "metadata", "upload"):
+        pages[name].visible = False
     body = shell.Body(info=APP, main=pn.Column(*pages.values(), sizing_mode="stretch_width"),
                       header=shell.status_line(session), modal=pn.Column(*panes.values()))
 
@@ -54,13 +57,17 @@ def build_body(session: HubSession, chooser_stub: str = "") -> shell.Body:
             convert.reset()
         elif which == "metadata":
             metadata.reset()
+        elif which == "upload":
+            upload.reset()
 
     view.change_btn.on_click(lambda e: show("chooser"))
     view.download_btn.on_click(lambda e: show("download"))
     view.convert_btn.on_click(lambda e: turn_to("convert"))
     view.metadata_btn.on_click(lambda e: turn_to("metadata"))
+    view.upload_btn.on_click(lambda e: turn_to("upload"))
     convert.home_btn.on_click(lambda e: turn_to("home"))
     metadata.home_btn.on_click(lambda e: turn_to("home"))
+    upload.home_btn.on_click(lambda e: turn_to("home"))
     chooser.on_loaded = download.on_loaded = lambda: body.close_modal()
     body.pages = pages           # for the tests and any host that wants to turn the page
     body.turn_to = turn_to

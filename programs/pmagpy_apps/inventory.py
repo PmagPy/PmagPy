@@ -25,6 +25,7 @@ from typing import Dict, List, Optional, Tuple
 import pandas as pd
 
 from pmagpy.convert_registry import FORMATS, guess_format
+from pmagpy.magic_upload import is_upload_file
 
 # MagIC 3 tables in the order Home lists them; contribution is read but not listed
 TABLES = ("measurements", "specimens", "samples", "sites", "locations", "ages", "criteria", "images", "contribution")
@@ -98,6 +99,7 @@ class Inventory:
     analysis: Dict[str, int] = field(default_factory=dict)        # specimens_interpreted, site_means, site_intensities
     gaps: List[Gap] = field(default_factory=list)                 # largest first
     files: List[FileRole] = field(default_factory=list)           # everything that is not a MagIC table
+    uploads: List[str] = field(default_factory=list)              # upload files built from the tables, newest first
     folders: int = 0
     format_key: str = ""                                          # a convert_registry key, "magic", or ""
     format_guess: str = ""                                        # its label: "CIT", "JR6 (.jr6)", "MagIC contribution file", or ""
@@ -255,6 +257,11 @@ def take_inventory(directory: str) -> Inventory:
             others.append(n)
 
     inv.folders = sum(os.path.isdir(os.path.join(directory, n)) for n in names)
+    if "measurements" in inv.tables:
+        # a contribution file beside the tables is the upload file they were compiled into, not lab files to convert
+        inv.uploads = sorted((n for n in others if n.endswith(".txt") and is_upload_file(os.path.join(directory, n))),
+                             key=lambda n: -os.path.getmtime(os.path.join(directory, n)))
+        others = [n for n in others if n not in inv.uploads]
     inv.format_key, inv.format_guess, roles = _guess_format(others, directory)
     inv.files = [FileRole(n, roles.get(n, "")) for n in others]
     if not frames:

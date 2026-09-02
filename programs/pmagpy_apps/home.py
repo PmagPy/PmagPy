@@ -17,6 +17,7 @@ import html
 import importlib.util
 import os
 from dataclasses import dataclass
+from datetime import datetime
 from typing import List, Optional
 from urllib.parse import quote
 
@@ -281,8 +282,13 @@ def stages(inv: Inventory) -> list:
     if a.get("site_intensities"):
         parts.append(f"{fmt(a['site_intensities'])} site intensities")
     ana = ("ok", " · ".join(parts)) if parts else ("warn", "nothing interpreted yet")
+    if inv.uploads:
+        built = os.path.getmtime(os.path.join(inv.directory, inv.uploads[0]))
+        up = ("ok", f"{inv.uploads[0]} · built {datetime.fromtimestamp(built):%-d %b %Y %H:%M}")
+    else:
+        up = ("off", "upload file not built yet")
     return [("Import", *imp, False), ("Metadata", *meta, False), ("Analyze", *ana, not parts),
-            ("Upload", "off", "not validated yet", False)]
+            ("Upload", *up, bool(parts) and not inv.gaps and not inv.uploads)]
 
 
 def strip_html(inv: Inventory) -> str:
@@ -387,6 +393,8 @@ class HomeView:
                                              margin=(30, 10, 0, 0))
         self.metadata_btn = pn.widgets.Button(name="Metadata…", button_type="default", width=120,
                                               margin=(30, 10, 0, 0))
+        self.upload_btn = pn.widgets.Button(name="Upload…", button_type="default", width=110,
+                                            margin=(30, 10, 0, 0))
         session.param.watch(lambda e: self.refresh(), "directory")
         self.refresh()
 
@@ -400,16 +408,18 @@ class HomeView:
         self.aside.visible = self.spacer.visible = bool(self.aside.object)     # no column when there is nothing to put in it
         # The next thing to do is the primary button: download into an empty directory, convert when it
         # holds lab files and no tables, fill the metadata when the tables have gaps, otherwise pick a directory.
-        self.change_btn.button_type = "primary" if inv.is_magic and not inv.gaps else "default"
+        self.change_btn.button_type = "primary" if inv.is_magic and not inv.gaps and inv.uploads else "default"
+        self.upload_btn.button_type = "primary" if inv.is_magic and not inv.gaps and not inv.uploads else "default"
         self.download_btn.button_type = "primary" if inv.is_empty else "default"
         self.convert_btn.button_type = "primary" if inv.files and not inv.is_magic else "default"
         self.convert_btn.visible = not inv.is_empty
         self.metadata_btn.button_type = "primary" if inv.is_magic and inv.gaps else "default"
         self.metadata_btn.visible = inv.is_magic
+        self.upload_btn.visible = inv.is_magic
 
     def panel(self) -> pn.Column:
         return pn.Column(
-            pn.Row(self.heading, self.convert_btn, self.metadata_btn, self.download_btn, self.change_btn,
+            pn.Row(self.heading, self.convert_btn, self.metadata_btn, self.upload_btn, self.download_btn, self.change_btn,
                    sizing_mode="stretch_width"),
             self.facts, self.strip,
             pn.Row(self.bars, self.spacer, self.aside, sizing_mode="stretch_width", margin=(28, 0, 0, 0)),

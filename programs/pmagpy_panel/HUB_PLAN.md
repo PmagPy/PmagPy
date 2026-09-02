@@ -331,10 +331,11 @@ accepts. Start with the 13 formats Pmag GUI offers plus the IRM instruments
   (`download_magic_from_id`, `download_magic_from_doi`,
   `validate_with_public_endpoint`, the private-workspace four) so the HTTP
   client can be swapped in one place later (§2, rule 4).
-* `download_magic_from_doi(doi, dir_path=".")`; fix `upload_to_private_contribution`'s
-  `open()`; make `validate_contribution` return what it computes; retire
-  `upload_magic3` (or make it forward correctly); `validate_magic`'s undefined
-  `api`. Give `upload_magic` one return shape.
+* `download_magic_from_doi(dir_path=…)` done; `upload_magic3` forwards
+  correctly and `upload_magic` has one return shape (2026-09-01). Still open:
+  fix `upload_to_private_contribution`'s `open()`; make
+  `validate_contribution` return what it computes; `validate_magic`'s
+  undefined `api`.
 * Move `pmagpy_tests/test_contribution_builder.py` into `pmagpy/test/` so its
   49 tests run, before the hub starts depending on `propagate_*`.
 * Tests for `download_magic` (including `txt=…`, the in-memory unpack),
@@ -488,6 +489,35 @@ Intensity were built.
    hierarchy the way ErMagicBuilder did (the inventory already counts a site
    dated in `ages.txt` as dated); a newer data model than the bundled 2019
    copy (the page reads whatever `data_model(True)` returns).
+   **Upload built 2026-09-01**: `pmagpy/magic_upload.py` is the UI-free layer
+   — `check_offline` (every table through `magic_metadata.check_table`),
+   `build_upload_file` (`ipmag.upload_magic`, the file landing in the study
+   directory as `<location>_<date>.txt` the way Pmag GUI left it),
+   `validate_online` (`ipmag.validate_with_public_endpoint` → an
+   `OnlineReport` of `Issue(table, column, message, rows)`; MagIC's validator
+   runs the current data model and finds more than the bundled one: 33 vs 2 on
+   McMurdo), and `export_tables` (`ipmag.*_extract` into
+   `publication_tables/`, never beside the MagIC tables since a tab-delimited
+   `specimens.txt` there would overwrite the real one). The inventory
+   recognises an upload file beside the tables (`Inventory.uploads`) so Home's
+   Import line no longer calls it a file to convert and the Upload stage
+   reports it with its date. `pmagpy_apps/upload.py` is the page: four steps
+   down the page (check, build, validate, publication tables), the slow ones
+   off the event loop (MagIC takes ~70 s on McMurdo), a link to MagIC's upload
+   page for the hand-off. ipmag fixes on the way: `validate_with_public_endpoint`
+   crashed on any non-200 reply (`validation_results` typo); `upload_magic3`
+   forwarded its arguments into the wrong positions; `upload_magic` now always
+   returns the four-tuple and still hands back the file when validation could
+   not reach MagIC; the `*_extract` functions wrote `.xls` (no pandas writer
+   since 1.2), called `dropna('columns')`, wrote literal `\n` into the LaTeX
+   preamble, referenced an undefined `out_file`, and crashed on a sites table
+   without directions or a specimens table without `int_abs`
+   (`map_magic.convert_site_dm3_table_*`); the directions table now comes out
+   in publication column order rather than the file's. *Still to do here*:
+   the private workspace (`upload_to_private_contribution` needs a MagIC
+   login the hub does not hold — see `QUESTIONS.md`); `validate_contribution`
+   and `validate_magic` are still as §4 describes; openpyxl is not in the
+   environment, so Excel export falls back to `.tsv` with a note.
 4. **Rock magnetism, then Anisotropy.** One experiment type at a time, MPMS DC
    first (pure Bokeh already, simplest), then χ–T/Curie, hysteresis + backfield
    + unmixing, FORC. Each view lands with its notebook switched over and its

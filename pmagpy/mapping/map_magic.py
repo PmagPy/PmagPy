@@ -6,6 +6,7 @@
 #  Author: Lori Jonestrask (mintblue87@gmail.com) .
 
 import json
+import pandas as pd
 from pmagpy.data_model3 import DataModel
 from . import maps
 
@@ -497,7 +498,9 @@ def convert_site_dm3_table_intensity(sites_df):
     if 'int_n_samples' not in sites_df:
         sites_df['int_n_samples'] = None
     int_df = sites_df.copy().dropna(subset=['int_abs'])
-    int_df['int_n_samples'] = int_df['int_n_samples'].values.astype('int')
+    if not len(int_df):
+        return pd.DataFrame()
+    int_df['int_n_samples'] = int_df['int_n_samples'].fillna(0).values.astype('int')
     if len(int_df) > 0:
         int_df['int_abs_uT'] = 1e6*int_df.int_abs.values  # convert to uT
         int_df['int_abs_sigma_uT'] = 1e6 * \
@@ -581,6 +584,8 @@ def convert_site_dm3_table_directions(sites_df):
     # directional
     # do directional stuff first
     # a few things need cleaning up
+    if 'dir_dec' not in sites_df or 'dir_inc' not in sites_df:   # no directions at all
+        return pd.DataFrame()
     dir_df = sites_df.copy().dropna(
         subset=['dir_dec', 'dir_inc'])  # delete blank directions
     # sort by absolute value of vgp_lat in order to eliminate duplicate rows for
@@ -596,7 +601,7 @@ def convert_site_dm3_table_directions(sites_df):
             if col in dir_df.columns:
                 dir_df[col] = dir_df[col].values.astype('int')
 
-        columns = dir_df.columns.intersection(columns)
+        columns = [c for c in columns if c in dir_df.columns]   # in publication order, not the file's
         has_vgps = False
         if 'vgp_lat' in dir_df.columns:
             test_vgp = dir_df.dropna(subset=['vgp_lat', 'vgp_lon'])
@@ -639,10 +644,10 @@ def convert_specimen_dm3_table(spec_df):
     dm3_columns = list(meas_group)+list(pint_group)+list(arai_group)
     dm3_columns = filter(lambda x: '_rel' not in x, dm3_columns)
     # apply to specimen dataframe
-    meas_group_columns = ['meas_step_min', 'meas_step_max', 'meas_step_unit']
+    meas_group_columns = list(spec_df.columns.intersection(meas_group))
     pint_group_columns = list(spec_df.columns.intersection(pint_group))
     arai_group_columns = list(spec_df.columns.intersection(arai_group))
-    columns = ['specimen', 'sample']+meas_group_columns + \
+    columns = [c for c in ('specimen', 'sample') if c in spec_df.columns]+meas_group_columns + \
         pint_group_columns+arai_group_columns
     spec_df = spec_df.copy()[columns]
     muT_list = ['int_abs', 'int_abs_sigma', 'int_treat_dc_field']

@@ -5584,7 +5584,10 @@ def validate_with_public_endpoint(contribution_file,verbose=False):
         response['status'] = False
         response['warnings'] = "Status code 500"
     else:
-        response['warnings']=validation_results.json()['errors'][0]['message']
+        try:
+            response['warnings'] = validation_response.json()['errors'][0]['message']
+        except (ValueError, KeyError, IndexError, TypeError):
+            response['warnings'] = "Status code {}".format(validation_response.status_code)
         print ('unable to validate contribution')
     return response
 
@@ -5790,8 +5793,9 @@ def upload_magic2(concat=0, dir_path='.', data_model=None):
 
 
 def upload_magic3(concat=1, dir_path='.', dmodel=None, vocab="", contribution=None):
+    """Deprecated name for :func:`upload_magic`; ``dmodel``, ``vocab`` and ``contribution`` are ignored."""
     print('-W- ipmag.upload_magic3 is deprecated, please switch to using ipmag.upload_magic')
-    return upload_magic(concat, dir_path, dmodel, vocab, contribution)
+    return upload_magic(concat=concat, dir_path=dir_path, input_dir_path=dir_path)
 
 
 def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,verbose=True):
@@ -5813,11 +5817,14 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
         if True print progress and validation results
     Returns
     ----------
-    tuple of either: True/False or (False, error_message, validation dictionary val_response['validation'])
-    if there was a problem creating/validating the upload file
-    or: (filename, '', None) if the file creation was fully successful.
+    (upload_file, validation, None, None) : tuple, always four items
+        upload_file : str path of the file written (named <locations>_<date>.txt),
+            or False when no file could be made
+        validation : dict from validate_with_public_endpoint when validate=True
+            ({'status', 'validation', 'warnings'}; status False with the reason
+            in 'warnings' when MagIC could not be reached), {} when
+            validate=False, or a str message when upload_file is False
     """
-    api = 'https://api.earthref.org/v1/MagIC/{}'
     input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     locations = []
     concat = int(concat)
@@ -5996,7 +6003,8 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
         except Exception as ex:
             print("-E- Couldn't connect to MagIC for validation")
             print(ex)
-            return False, "Could not create an upload file", None, None
+            val_response = {'status': False, 'validation': [],
+                            'warnings': "Could not reach MagIC to validate: {}".format(ex)}
     return new_up, val_response, None, None
 
 
@@ -9016,17 +9024,17 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
         f.write(r'\end{longtable}\n')
         sf.write(r'\end{longtable}\n')
         fI.write(r'\end{longtable}\n')
-        f.write(r'\end{document}\n')
-        sf.write(r'\end{document}\n')
-        fI.write(r'\end{document}\n')
+        f.write('\\end{document}\n')
+        sf.write('\\end{document}\n')
+        fI.write('\\end{document}\n')
         if spec_file:
             fsp.write(r'\hline\n')
             fsp.write(r'\end{longtable}\n')
-            fsp.write(r'\end{document}\n')
+            fsp.write('\\end{document}\n')
         if crit_file:
             cr.write(r'\hline\n')
             cr.write(r'\end{longtable}\n')
-            cr.write(r'\end{document}\n')
+            cr.write('\\end{document}\n')
     f.close()
     sf.close()
     fI.close()
@@ -14064,8 +14072,22 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
         return True, [spec_file]
 
 
-def sites_extract(site_file='sites.txt', directions_file='directions.xls',
-                  intensity_file='intensity.xls', info_file='site_info.xls',
+def _to_excel(df, path):
+    """Write a publication table as .xlsx (the .xls writer left pandas in 1.2); returns the path written."""
+    if path.endswith('.xls'):
+        path = path + 'x'
+    try:
+        df.to_excel(path, index=False)
+    except ImportError as ex:                       # no openpyxl: say so and leave a tab-delimited table instead
+        # .tsv, not .txt: specimens.txt or criteria.txt here would overwrite the MagIC table of that name
+        path = os.path.splitext(path)[0] + '.tsv'
+        print("-W- {}; writing {} as tab-delimited text instead".format(ex, path))
+        df.to_csv(path, sep='\t', index=False)
+    return path
+
+
+def sites_extract(site_file='sites.txt', directions_file='directions.xlsx',
+                  intensity_file='intensity.xlsx', info_file='site_info.xlsx',
                   output_dir_path='.', input_dir_path='', latex=False):
     """
     Extracts directional and/or intensity data from a MagIC 3.0 format sites.txt file.
@@ -14108,19 +14130,19 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
     dir_file = pmag.resolve_file_name(directions_file, output_dir_path)
     if len(dir_df):
         if latex:
-            if dir_file.endswith('.xls'):
-                dir_file = dir_file[:-4] + ".tex"
+            if dir_file.endswith(('.xls', '.xlsx')):
+                dir_file = os.path.splitext(dir_file)[0] + ".tex"
             directions_out = open(dir_file, 'w+', errors="backslashreplace")
-            directions_out.write(r'\documentclass{article}\n')
+            directions_out.write('\\documentclass{article}\n')
             directions_out.write('\\usepackage{booktabs}\n')
             directions_out.write('\\usepackage{longtable}\n')
-            directions_out.write('\\begin{document}')
+            directions_out.write('\\begin{document}\n')
             directions_out.write(dir_df.to_latex(
-                index=False, longtable=True, multicolumn=False))
-            directions_out.write(r'\end{document}\n')
+                index=False, longtable=True, multicolumn=False, float_format='%g'))
+            directions_out.write('\\end{document}\n')
             directions_out.close()
         else:
-            dir_df.to_excel(dir_file, index=False)
+            dir_file = _to_excel(dir_df, dir_file)
     else:
         print("No directional data for output.")
         dir_file = None
@@ -14128,20 +14150,20 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
     int_df = map_magic.convert_site_dm3_table_intensity(sites_df)
     if len(int_df):
         if latex:
-            if intensity_file.endswith('.xls'):
-                intensity_file = intensity_file[:-4] + ".tex"
+            if intensity_file.endswith(('.xls', '.xlsx')):
+                intensity_file = os.path.splitext(intensity_file)[0] + ".tex"
             intensities_out = open(intensity_file, 'w+',
                                    errors="backslashreplace")
-            intensities_out.write(r'\documentclass{article}\n')
+            intensities_out.write('\\documentclass{article}\n')
             intensities_out.write('\\usepackage{booktabs}\n')
             intensities_out.write('\\usepackage{longtable}\n')
-            intensities_out.write('\\begin{document}')
+            intensities_out.write('\\begin{document}\n')
             intensities_out.write(int_df.to_latex(
-                index=False, longtable=True, multicolumn=False))
-            intensities_out.write(r'\end{document}\n')
+                index=False, longtable=True, multicolumn=False, float_format='%g'))
+            intensities_out.write('\\end{document}\n')
             intensities_out.close()
         else:
-            int_df.to_excel(intensity_file, index=False)
+            intensity_file = _to_excel(int_df, intensity_file)
     else:
         print("No intensity data for output.")
         intensity_file = None
@@ -14167,26 +14189,26 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
         nfo_df.columns = SiteCols
         nfo_df = nfo_df.astype(object).fillna("")
         if latex:
-            if info_file.endswith('.xls'):
-                info_file = info_file[:-4] + ".tex"
+            if info_file.endswith(('.xls', '.xlsx')):
+                info_file = os.path.splitext(info_file)[0] + ".tex"
             info_out = open(info_file, 'w+', errors="backslashreplace")
-            info_out.write(r'\documentclass{article}\n')
+            info_out.write('\\documentclass{article}\n')
             info_out.write('\\usepackage{booktabs}\n')
             info_out.write('\\usepackage{longtable}\n')
-            info_out.write('\\begin{document}')
+            info_out.write('\\begin{document}\n')
             info_out.write(nfo_df.to_latex(
-                index=False, longtable=True, multicolumn=False))
-            info_out.write(r'\end{document}\n')
+                index=False, longtable=True, multicolumn=False, float_format='%g'))
+            info_out.write('\\end{document}\n')
             info_out.close()
         else:
-            nfo_df.to_excel(info_file, index=False)
+            info_file = _to_excel(nfo_df, info_file)
     else:
         print("No location information for output.")
         info_file = None
     return True, [fname for fname in [info_file, intensity_file, dir_file] if fname]
 
 
-def specimens_extract(spec_file='specimens.txt', output_file='specimens.xls', landscape=False,
+def specimens_extract(spec_file='specimens.txt', output_file='specimens.xlsx', landscape=False,
                       longtable=False, output_dir_path='.', input_dir_path='', latex=False):
     """
     Extracts specimen results  from a MagIC 3.0 format specimens.txt file.
@@ -14223,17 +14245,19 @@ def specimens_extract(spec_file='specimens.txt', output_file='specimens.xls', la
         print("bad specimen file name")
         return False, "bad specimen file name"
     spec_df = pd.read_csv(fname, sep='\t', header=1)
-    spec_df.dropna('columns', how='all', inplace=True)
-    if 'int_abs' in spec_df.columns:
-        spec_df.dropna(subset=['int_abs'], inplace=True)
+    spec_df.dropna(axis='columns', how='all', inplace=True)
+    if 'int_abs' not in spec_df.columns:            # this is a paleointensity table; nothing to make without int_abs
+        print("No specimen intensity data for output.")
+        return True, []
+    spec_df.dropna(subset=['int_abs'], inplace=True)
     if len(spec_df) > 0:
         table_df = map_magic.convert_specimen_dm3_table(spec_df)
         out_file = pmag.resolve_file_name(output_file, output_dir_path)
         if latex:
-            if out_file.endswith('.xls'):
-                out_file = out_file.rsplit('.')[0] + ".tex"
+            if out_file.endswith(('.xls', '.xlsx')):
+                out_file = os.path.splitext(out_file)[0] + ".tex"
             info_out = open(out_file, 'w+', errors="backslashreplace")
-            info_out.write(r'\documentclass{article}\n')
+            info_out.write('\\documentclass{article}\n')
             info_out.write('\\usepackage{booktabs}\n')
             if landscape:
                 info_out.write('\\usepackage{lscape}')
@@ -14243,20 +14267,21 @@ def specimens_extract(spec_file='specimens.txt', output_file='specimens.xls', la
             if landscape:
                 info_out.write('\\begin{landscape}\n')
             info_out.write(table_df.to_latex(index=False, longtable=longtable,
-                                             escape=True, multicolumn=False))
+                                             escape=True, multicolumn=False, float_format='%g'))
             if landscape:
-                info_out.write(r'\end{landscape}\n')
-            info_out.write(r'\end{document}\n')
+                info_out.write('\\end{landscape}\n')
+            info_out.write('\\end{document}\n')
             info_out.close()
         else:
-            table_df.to_excel(out_file, index=False)
+            out_file = _to_excel(table_df, out_file)
 
     else:
         print("No specimen data for output.")
+        return True, []
     return True, [out_file]
 
 
-def criteria_extract(crit_file='criteria.txt', output_file='criteria.xls',
+def criteria_extract(crit_file='criteria.txt', output_file='criteria.xlsx',
                      output_dir_path='.', input_dir_path='', latex=False):
     """
     Extracts criteria  from a MagIC 3.0 format criteria.txt file.
@@ -14300,26 +14325,26 @@ def criteria_extract(crit_file='criteria.txt', output_file='criteria.xls',
         crit_df.columns = ['Table', 'Statistic', 'Threshold', 'Operation']
 
         if latex:
-            if out_file.endswith('.xls'):
-                out_file = out_file.rsplit('.')[0] + ".tex"
+            if out_file.endswith(('.xls', '.xlsx')):
+                out_file = os.path.splitext(out_file)[0] + ".tex"
             crit_df.loc[crit_df['Operation'].str.contains(
                 '<'), 'operation'] = 'maximum'
             crit_df.loc[crit_df['Operation'].str.contains(
                 '>'), 'operation'] = 'minimum'
             crit_df.loc[crit_df['Operation'] == '=', 'operation'] = 'equal to'
             info_out = open(out_file, 'w+', errors="backslashreplace")
-            info_out.write(r'\documentclass{article}\n')
+            info_out.write('\\documentclass{article}\n')
             info_out.write('\\usepackage{booktabs}\n')
             # info_out.write('\\usepackage{longtable}\n')
             # T1 will ensure that symbols like '<' are formatted correctly
             info_out.write("\\usepackage[T1]{fontenc}\n")
-            info_out.write('\\begin{document}')
+            info_out.write('\\begin{document}\n')
             info_out.write(crit_df.to_latex(index=False, longtable=False,
-                                            escape=True, multicolumn=False))
-            info_out.write(r'\end{document}\n')
+                                            escape=True, multicolumn=False, float_format='%g'))
+            info_out.write('\\end{document}\n')
             info_out.close()
         else:
-            crit_df.to_excel(out_file, index=False)
+            out_file = _to_excel(crit_df, out_file)
 
     else:
         print("No criteria for output.")
