@@ -123,3 +123,38 @@ the bottom; struck through once settled.
     a lot of chrome; one shared "fit range" slider applied to every method
     that takes one would be simpler. Preference?
 
+
+## Hysteresis view (2026-09-02)
+
+16. **A second example dataset.** `RMB_oxyhydroxides` has no hysteresis,
+    backfield or FORC data, and the SSRM2024C contribution the notebooks use
+    is private (fetched with a share key), so I did not copy it. Instead
+    `data_files/3_0/ECMB_rockmag/` is the rock-magnetic subset of your public
+    ECMB contribution (MagIC 20213: 5 VSM loops, 3 backfield curves, the MPMS
+    runs of 3 specimens; 690 kB), with a README and the `make_subset.py` that
+    rebuilds it from an unpacked copy. Is that the right choice, or would you
+    rather ship a different public contribution — one with FORC data too, so
+    the FORC view can be tested on shipped data? (The Jackson 2012 MagIC 16460
+    contribution has a ten-loop hysteresis experiment and MPMS runs but no
+    backfield or FORC.)
+
+17. **The hysteresis view's controls.** The view exposes `process_hyst_loop`'s
+    four switches (centering protocol, forced non-linear high-field fit, and
+    the two decision-tree overrides). It does not expose the internal
+    thresholds (the saturation-test cutoffs, the closure test's SNR/HAR
+    limits, the 0.6 high-field window of the non-linear fit) because the
+    function does not take them either. Should any of them become arguments,
+    or is the decision tree meant to be fixed as in Jackson & Solheid (2010)?
+
+18. **Units in the KPI row.** Fields are shown in mT (Bc = 14.3 mT) while
+    MagIC stores tesla and the emitted code returns tesla; Ms/Mr carry the
+    unit implied by the column processed (`magn_mass` → Am²/kg, `magn_volume`
+    → A/m, `magn_moment` → Am²). Fine, or should the app stick to SI as
+    stored to avoid any confusion when results are saved to `specimens.txt`?
+
+19. **Backfield smoothing needs statsmodels.** `process_backfield_data`'s
+    default `smooth_mode='lowess'` imports statsmodels, which is not a PmagPy
+    dependency (nor installed in the apps environment). For the backfield view
+    I plan to offer LOWESS only when statsmodels is importable and default to
+    `'spline'` otherwise — or should statsmodels join the `apps` extra in
+    `setup.py`?

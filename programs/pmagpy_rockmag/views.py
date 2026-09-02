@@ -11,6 +11,7 @@ notebook — straight from a measurements DataFrame::
 """
 from __future__ import annotations
 
+import warnings
 from typing import Optional
 
 import numpy as np
@@ -807,7 +808,204 @@ class CurieView(ThermomagView):
                          self.table, self.plot, self.code.panel(), sizing_mode="stretch_width")
 
 
+# ----------------------------------------------------------------------------- hysteresis
+MAGNETIZATION_COLUMNS = {"magn_mass": "Am²/kg", "magn_volume": "A/m", "magn_moment": "Am²"}
+"""The MagIC magnetization columns a loop may be recorded in, with the unit each implies."""
+HYST_FIELD = "meas_field_dc"
+CENTERING = {"legacy": "legacy", "iterative": "iterative"}
+HYST_PARAMETERS = (("Ms", "M<sub>s</sub>", "mag"), ("Mr", "M<sub>r</sub>", "mag"), ("Bc", "B<sub>c</sub>", "field"),
+                   ("Brh", "B<sub>rh</sub>", "field"), ("sigma", "σ", ""), ("chi_HF", "χ<sub>HF</sub>", "chi"))
+"""The characteristic parameters ``process_hyst_loop`` returns, in the order shown, and how each is formatted."""
+HYST_QUALITY = (("Q", "Q"), ("Qf", "Q<sub>f</sub>"), ("FNL", "F<sub>NL</sub>"), ("FNL60", "F<sub>NL60</sub>"),
+                ("FNL70", "F<sub>NL70</sub>"), ("FNL80", "F<sub>NL80</sub>"), ("Fnl_lin", "F<sub>nl/lin</sub>"))
+"""The Jackson & Solheid (2010) data-quality statistics, in the order shown."""
+
+
+def magnetization_column(experiment) -> Optional[str]:
+    """The magnetization column an experiment was recorded in (mass-normalised first)."""
+    for column in MAGNETIZATION_COLUMNS:
+        if column in experiment and experiment[column].notna().any():
+            return column
+    return None
+
+
+class HysteresisView:
+    """One hysteresis loop through the IRM decision tree: ``rockmag.process_hyst_loop``.
+
+    The loop is gridded, centred, drift-corrected and slope-corrected, with
+    the raw and corrected loops and the Mrh/Mih/Me curves overlaid in the
+    function's own figure. The controls are its arguments: the centering
+    protocol, forcing the non-linear approach-to-saturation fit, and the two
+    overrides of the decision tree's early exits (open and linear loops).
+    """
+
+    TYPE = "hys"
+
+    def __init__(self, session):
+        self.s = as_session(session)
+        self.experiment = pn.widgets.Select(name="Experiment", options={}, width=340)
+        self.centering = pn.widgets.RadioButtonGroup(name="Centering", options=CENTERING, value="legacy", width=150,
+                                                     button_type="default", margin=(24, 5, 0, 10))
+        self.nl_fit = pn.widgets.Checkbox(name="non-linear HF fit", value=False, width=130, margin=(28, 5, 0, 10))
+        self.fit_open = pn.widgets.Checkbox(name="fit open loop", value=False, width=110, margin=(28, 5, 0, 10))
+        self.fit_linear = pn.widgets.Checkbox(name="fit linear loop", value=False, width=110, margin=(28, 5, 0, 10))
+        self.result = pn.pane.HTML("", sizing_mode="stretch_width")
+        self.quality = pn.pane.HTML("", width=330, margin=(10, 0, 0, 20))
+        self.plot = pn.pane.Bokeh()
+        self.code = code.CodePane()
+        self.figure = None
+        self.results = None                       # the dict process_hyst_loop returned for what is plotted
+
+        self.experiment.param.watch(self._on_experiment, "value")
+        for w in (self.centering, self.nl_fit, self.fit_open, self.fit_linear):
+            w.param.watch(lambda e: self.refresh(), "value")
+        self.s.param.watch(lambda e: self.reset(), "directory")
+        self.s.param.watch(self._follow_session, "specimen")
+        self.reset()
+
+    # ----- state --------------------------------------------------------------
+    def _experiments(self):
+        return self.s.experiments_of(self.TYPE)
+
+    def reset(self) -> None:
+        exps = self._experiments()
+        options = {f"{r.specimen} · {r.experiment}": r.experiment for r in exps.itertuples()}
+        before = self.experiment.value
+        self.experiment.options = options
+        own = exps.loc[exps["specimen"] == self.s.specimen, "experiment"].tolist()
+        self.experiment.value = own[0] if own else (next(iter(options.values())) if options else None)
+        if self.experiment.value == before:
+            self._on_experiment(None)
+
+    def _on_experiment(self, event) -> None:
+        exp = self.experiment.value
+        if exp:
+            exps = self.s.experiments
+            self.s.specimen = exps.loc[exps["experiment"] == exp, "specimen"].iloc[0]
+        self.refresh()
+
+    def _follow_session(self, event) -> None:
+        exps = self._experiments()
+        own = exps.loc[exps["specimen"] == event.new, "experiment"].tolist()
+        if own and self.experiment.value not in own:
+            self.experiment.value = own[0]
+
+    def set_parameters(self, centering_protocol=None, NL_fit=None, fit_open_loop=None, fit_linear_loop=None) -> None:
+        """Set the controls from code (a notebook, a test) and refresh."""
+        if centering_protocol is not None:
+            self.centering.value = centering_protocol
+        if NL_fit is not None:
+            self.nl_fit.value = NL_fit
+        if fit_open_loop is not None:
+            self.fit_open.value = fit_open_loop
+        if fit_linear_loop is not None:
+            self.fit_linear.value = fit_linear_loop
+        self.refresh()
+
+    # ----- the loop -----------------------------------------------------------
+    def data(self):
+        if not self.experiment.value or self.s.measurements is None:
+            return None
+        return rockmag.experiment_selection(self.s.measurements, self.experiment.value)
+
+    def options(self) -> dict:
+        """The keyword arguments the controls stand for; only those off their defaults, in signature order."""
+        chosen = dict(NL_fit=bool(self.nl_fit.value), centering_protocol=self.centering.value,
+                      fit_open_loop=bool(self.fit_open.value), fit_linear_loop=bool(self.fit_linear.value))
+        defaults = dict(NL_fit=False, centering_protocol="legacy", fit_open_loop=False, fit_linear_loop=False)
+        return {k: v for k, v in chosen.items() if v != defaults[k]}
+
+    def refresh(self) -> None:
+        experiment = self.data()
+        column = magnetization_column(experiment) if experiment is not None else None
+        if column is None or HYST_FIELD not in experiment:
+            self.results = self.figure = None
+            self.plot.object = None
+            self.result.object = muted("no hysteresis loop in this directory") if experiment is None else \
+                muted("this experiment has no field and magnetization columns to process")
+            self.quality.object = ""
+            self.code.set(preamble(self.s))
+            return
+        options = self.options()
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            self.results = rockmag.process_hyst_loop(experiment[HYST_FIELD], experiment[column], self.s.specimen,
+                                                     show_results_table=False, show_plot=False, **options)
+        self.figure = self.results["plot"]
+        if self.figure is not None:
+            style_figure(self.figure)
+            self.figure.legend.location = "top_left"                     # the loop's empty corner
+            self.figure.legend.label_text_font_size = "9pt"
+        self.plot.object = self.figure
+        self.result.object = self._result_html(MAGNETIZATION_COLUMNS[column], caught)
+        self.quality.object = self._quality_html()
+        self.code.set(preamble(self.s) + [
+            code.assign("experiment", code.call("rmag.experiment_selection", code.Name("measurements"), self.experiment.value)),
+            code.assign("results", code.call("rmag.process_hyst_loop", code.Name(f"experiment['{HYST_FIELD}']"),
+                                             code.Name(f"experiment['{column}']"), self.s.specimen, **options)),
+        ])
+
+    # ----- the results --------------------------------------------------------
+    @staticmethod
+    def _value(key, value, unit) -> str:
+        if value is None or not np.isfinite(value):
+            return "—"
+        if key == "field":
+            return f"{1e3 * value:.1f} mT"
+        if key == "mag":
+            return f"{value:.4g} {unit}"
+        if key == "chi":
+            return f"{value:.3g} m³/kg"
+        return f"{value:.3f}"
+
+    def _result_html(self, unit, caught) -> str:
+        r = self.results
+        items = [(label, self._value(kind, r.get(name), unit)) for name, label, kind in HYST_PARAMETERS]
+        if all(np.isfinite(r.get(k, np.nan)) for k in ("Mr", "Ms")) and r["Ms"]:
+            items.insert(2, ("M<sub>r</sub>/M<sub>s</sub>", f"{r['Mr'] / r['Ms']:.3f}"))
+        html = kpi(items)
+        if r["loop_is_linear"]:
+            html += muted("the loop is statistically linear (paramagnetic or diamagnetic material dominates): only "
+                          "χ<sub>HF</sub> from the whole-loop regression is reported — tick <i>fit linear loop</i> "
+                          "to process it anyway")
+        elif r["loop_is_closed"] is False and not r["loop_is_linear"] and "Ms" in r and not np.isfinite(r["Ms"]):
+            html += muted("the loop remains open at the highest fields, so M<sub>s</sub> and χ<sub>HF</sub> cannot be "
+                          "separated: M<sub>r</sub>, B<sub>rh</sub> and the quality statistics are reported — tick "
+                          "<i>fit open loop</i> if the loop looks closed and drift is tripping the test")
+        for w in caught:
+            if issubclass(w.category, RuntimeWarning) and "remains open" not in str(w.message):
+                html += muted(str(w.message))
+        return html
+
+    def _quality_html(self) -> str:
+        r = self.results
+        rows = []
+        for name, label in HYST_QUALITY:
+            value = r.get(name)
+            shown = "—" if value is None or not np.isfinite(value) else f"{value:.2f}"
+            rows.append(f'<tr><td>{label}</td><td style="text-align:right;font-variant-numeric:tabular-nums">{shown}</td></tr>')
+        flags = []
+        for name, yes, no in (("loop_is_linear", "linear", "not linear"), ("loop_is_closed", "closed", "open"),
+                              ("loop_is_saturated", "saturated", "not saturated")):
+            if r.get(name) is not None:
+                flags.append(yes if r[name] else no)
+        if r.get("loop_is_saturated") is not None and r.get("Ms") is not None and np.isfinite(r.get("Ms", np.nan)):
+            flags.append("linear high-field fit" if r["loop_is_saturated"] else "non-linear high-field fit")
+        if r.get("measured_descending_first") is not None:
+            flags.append("measured from " + ("positive" if r["measured_descending_first"] else "negative") + " saturation")
+        return ('<table style="border-collapse:collapse;font-size:13px">'
+                '<style>.hystq td{padding:3px 12px 3px 0;border-bottom:1px solid #eee}</style>'
+                f'<tbody class="hystq"><tr><th style="text-align:left" colspan="2">Data quality</th></tr>{"".join(rows)}'
+                f'</tbody></table><div style="{MUTED_STYLE};margin-top:8px">{" · ".join(flags)}</div>')
+
+    # ----- layout -------------------------------------------------------------
+    def panel(self) -> pn.Column:
+        return pn.Column(pn.Row(self.experiment, self.centering, self.nl_fit, self.fit_open, self.fit_linear),
+                         self.result, pn.Row(self.plot, self.quality), self.code.panel(), sizing_mode="stretch_width")
+
+
 # ----------------------------------------------------------------------------- the set of views
 TABS = (("mpms_dc", "MPMS DC", MpmsDcView), ("verwey", "Verwey", VerweyView), ("goethite", "Goethite", GoethiteView),
-        ("mpms_ac", "AC susceptibility", AcSusceptibilityView), ("chi_t", "χ–T", ChiTView), ("curie", "Curie", CurieView))
+        ("mpms_ac", "AC susceptibility", AcSusceptibilityView), ("chi_t", "χ–T", ChiTView), ("curie", "Curie", CurieView),
+        ("hys", "Hysteresis", HysteresisView))
 """``(key, tab label, view class)`` in tab order. Experiment types without a view are listed in the index only."""

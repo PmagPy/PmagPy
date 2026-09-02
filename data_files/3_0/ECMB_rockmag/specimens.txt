@@ -1,0 +1,17 @@
+tab 	specimens
+citations	critical_temp	critical_temp_type	description	experiments	hyst_bc	hyst_bc_offset	hyst_bcr	hyst_mr_mass	hyst_ms_mass	hyst_xhf	instrument_codes	meas_orient_phi	meas_orient_theta	meas_temp	method_codes	rem_hirm_mass	rem_sratio	rem_sratio_back	rem_sratio_forward	result_quality	sample	specimen	volume	weight
+This study			pmag core chip												LP-NOMAG					g	NED1-5	NED1-5c	0.0	0.00015453
+This study			pmag core chip												LP-NOMAG					g	NED18-2	NED18-2c	0.0	0.00025375
+This study			pmag core chip												LP-NOMAG					g	NED2-8	NED2-8c	0.0	0.00018773
+This study			pmag core chip												LP-NOMAG					g	NED4-1	NED4-1c	0.0	0.00021058
+This study			pmag core chip												LP-NOMAG					g	NED6-6	NED6-6c	0.0	0.00013281
+This study				IRM-VSM3-LP-HYS-218845	0.01427	9.969e-05		0.006022	0.03578	2.05e-07	IRM-VSM3	0.0	0.0	300.0	LP-HYS:SM-REG-LIN:SM-SLOPE:LP-HYS-M						NED1-5	NED1-5c		0.0001545
+This study				IRM-VSM3-LP-HYS-218847	0.01001	0.0003769		0.01374	0.1229	2.01e-07	IRM-VSM3	0.0	0.0	300.0	LP-HYS:SM-REG-LIN:SM-SLOPE:LP-HYS-M						NED18-2	NED18-2c		0.0002538
+This study				IRM-VSM3-LP-HYS-218849	0.016	0.000543		0.006807	0.04418	2.168e-07	IRM-VSM3	0.0	0.0	300.0	LP-HYS:SM-REG-LIN:SM-SLOPE:LP-HYS-M						NED2-8	NED2-8c		0.0001877
+This study				IRM-VSM3-LP-HYS-218853	0.03551	0.004018		0.001537	0.005557	2.859e-07	IRM-VSM3	0.0	0.0	300.0	LP-HYS:SM-REG-LIN:SM-SLOPE:LP-HYS-M						NED4-1	NED4-1c		0.0002106
+This study				IRM-VSM3-LP-HYS-218855	0.02276	0.006181		0.0007734	0.00466	2.991e-07	IRM-VSM3	0.0	0.0	300.0	LP-HYS:SM-REG-LIN:SM-SLOPE:LP-HYS-M						NED6-6	NED6-6c		0.0001328
+This study				IRM-VSM3-LP-BCR-BF-218846			0.0264	0.006201			IRM-VSM3	0.0	0.0	300.0	LP-BCR-BF	-7.041e-06	0.931	0.1	1.0		NED1-5	NED1-5c		0.0001545
+This study				IRM-VSM3-LP-BCR-BF-218848			0.021	0.01445			IRM-VSM3	0.0	0.0	300.0	LP-BCR-BF	6.618e-05	0.938	0.1	1.0		NED18-2	NED18-2c		0.0002538
+This study				IRM-VSM3-LP-BCR-BF-218850			0.0344	0.006853			IRM-VSM3	0.0	0.0	300.0	LP-BCR-BF	7.369e-05	0.846	0.1	1.0		NED2-8	NED2-8c		0.0001877
+This study	105.9	Verwey									IRM-BigRed				SM-1DMAX:LP-FC						NED18-2	NED18-2c		
+This study	106.3	Verwey									IRM-BigRed				SM-1DMAX:LP-FC						NED18-2	NED18-2c		

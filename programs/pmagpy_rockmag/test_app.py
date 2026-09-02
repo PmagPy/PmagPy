@@ -1,8 +1,10 @@
 """
 Tests for the Rock Magnetism application: the experiment index, the session,
-and the MPMS DC and Verwey views against the shipped example (MagIC
-contribution 20427, ``data_files/3_0/RMB_oxyhydroxides``) and a synthetic
-magnetite curve. Run with the apps environment::
+and the views against the shipped examples (MagIC contribution 20427,
+``data_files/3_0/RMB_oxyhydroxides``, for the low-temperature and
+thermomagnetic views; 20213, ``data_files/3_0/ECMB_rockmag``, for the
+hysteresis ones) and synthetic curves with known answers. Run with the apps
+environment::
 
     pytest programs/pmagpy_rockmag/test_app.py -q
 """
@@ -16,8 +18,8 @@ pn = pytest.importorskip("panel")
 
 from pmagpy import rockmag  # noqa: E402
 from pmagpy_rockmag import app, session as rs  # noqa: E402
-from pmagpy_rockmag.views import (AcSusceptibilityView, ChiTView, CurieView, GoethiteView, MpmsDcView,  # noqa: E402
-                                  VerweyView)
+from pmagpy_rockmag.views import (AcSusceptibilityView, ChiTView, CurieView, GoethiteView, HysteresisView,  # noqa: E402
+                                  MpmsDcView, VerweyView)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
@@ -342,6 +344,88 @@ class TestCurieView:
         assert "pick at least one method" in view.table.object
 
 
+ECMB = os.path.join(REPO, "data_files", "3_0", "ECMB_rockmag")      # MagIC 20213: VSM loops, backfield, MPMS
+ECMB_LOOP = "IRM-VSM3-LP-HYS-218845"                                   # NED1-5c, ±1 T
+
+
+@pytest.fixture(scope="module")
+def ecmb():
+    return rs.Session(ECMB)
+
+
+def hysteresis_loop(ms=1.0, bc=0.02, chi_hf=0.0, width=0.03, noise=0.0, seed=0):
+    """A ±1 T loop of tanh branches with coercivity `bc` (T) on a paramagnetic slope, from positive saturation."""
+    fields = np.linspace(1.0, -1.0, 201)
+    down = ms * np.tanh((fields + bc) / width) + chi_hf / (4 * np.pi / 1e7) * fields
+    up = ms * np.tanh((fields[::-1] - bc) / width) + chi_hf / (4 * np.pi / 1e7) * fields[::-1]
+    field = np.concatenate([fields, fields[::-1]])
+    mags = np.concatenate([down, up]) + np.random.default_rng(seed).normal(0, noise, 2 * len(fields))
+    return pd.DataFrame({"specimen": "syn", "method_codes": "LP-HYS", "experiment": "syn_HYS",
+                         "meas_field_dc": field, "magn_mass": mags})
+
+
+class TestHysteresisView:
+    def test_a_loop_of_the_example_is_processed_and_the_code_reproduces_it(self, ecmb, monkeypatch):
+        view = HysteresisView(ecmb)
+        assert view.experiment.value == ECMB_LOOP and ecmb.specimen == "NED1-5c"
+        r = view.results
+        assert r["loop_is_closed"] and not r["loop_is_linear"] and np.isfinite(r["Ms"])
+        assert "M<sub>r</sub>/M<sub>s</sub> <b>0.168</b>" in view.result.object
+        assert "B<sub>c</sub> <b>14.3 mT</b>" in view.result.object
+        assert "F<sub>NL</sub>" in view.quality.object and "non-linear high-field fit" in view.quality.object
+        assert view.figure is r["plot"] and view.plot.object is view.figure
+        lines = view.code.text.splitlines()
+        assert lines[5:] == [f"experiment = rmag.experiment_selection(measurements, '{ECMB_LOOP}')",
+                             "results = rmag.process_hyst_loop(experiment['meas_field_dc'], experiment['magn_mass'], 'NED1-5c')"]
+        monkeypatch.setattr(rockmag, "show", lambda *a, **k: None)          # the notebook call shows table and plot
+        namespace = {"rmag": rockmag, "measurements": ecmb.measurements}
+        exec("\n".join(lines[5:]), namespace)
+        assert namespace["results"]["Bc"] == pytest.approx(r["Bc"])
+
+    def test_the_controls_are_the_functions_arguments(self, ecmb):
+        view = HysteresisView(ecmb)
+        legacy_bc = view.results["Bc"]
+        view.set_parameters(centering_protocol="iterative", NL_fit=True, fit_open_loop=True, fit_linear_loop=True)
+        assert view.code.text.splitlines()[6:] == [
+            "results = rmag.process_hyst_loop(", "    experiment['meas_field_dc'],", "    experiment['magn_mass'],",
+            "    'NED1-5c',", "    NL_fit=True,", "    centering_protocol='iterative',", "    fit_open_loop=True,",
+            "    fit_linear_loop=True,", ")"]
+        assert view.results["Bc"] == pytest.approx(legacy_bc, rel=0.05)     # the centering protocols agree here
+        view.set_parameters(centering_protocol="legacy", NL_fit=False, fit_open_loop=False, fit_linear_loop=False)
+        assert view.code.text.splitlines()[-1].endswith("'NED1-5c')")
+
+    def test_changing_experiment_follows_the_specimen_both_ways(self, ecmb):
+        view = HysteresisView(ecmb)
+        view.experiment.value = "IRM-VSM3-LP-HYS-218855"
+        assert ecmb.specimen == "NED6-6c" and "'NED6-6c'" in view.code.text
+        ecmb.specimen = "NED18-2c"
+        assert view.experiment.value == "IRM-VSM3-LP-HYS-218847"
+        ecmb.specimen = "NED1-5c"
+
+    def test_a_synthetic_loop_gives_back_its_parameters(self):
+        view = HysteresisView(hysteresis_loop(ms=1.0, bc=0.02, chi_hf=2e-7))
+        r = view.results
+        assert r["Ms"] == pytest.approx(1.0, rel=0.02)
+        assert r["Bc"] == pytest.approx(0.02, rel=0.05)
+        assert r["chi_HF"] == pytest.approx(2e-7, rel=0.05)
+        assert view.code.text.splitlines()[3] == "# measurements: the DataFrame this view was given"
+
+    def test_a_linear_loop_takes_the_decision_trees_exit_and_says_so(self):
+        loop = hysteresis_loop(ms=0.0, chi_hf=2e-7, noise=1e-4)
+        view = HysteresisView(loop)
+        r = view.results
+        assert r["loop_is_linear"] and not np.isfinite(r["Ms"])
+        assert "statistically linear" in view.result.object and "M<sub>s</sub> <b>—</b>" in view.result.object
+        assert r["chi_HF"] == pytest.approx(2e-7, rel=0.05)
+        view.set_parameters(fit_linear_loop=True)
+        assert not view.results["loop_is_linear"] or np.isfinite(view.results["Bc"])
+
+    def test_nothing_to_process_is_said_not_raised(self):
+        view = HysteresisView(pd.DataFrame({"specimen": ["a"], "method_codes": ["LP-FC"], "experiment": ["e"],
+                                            "meas_temp": [10.0], "magn_mass": [1.0]}))
+        assert view.experiment.options == {} and view.results is None and "no hysteresis loop" in view.result.object
+
+
 class TestApp:
     def test_create_app_builds_the_template_with_one_tab_per_view(self):
         template = app.create_app(EXAMPLE)
@@ -350,8 +434,8 @@ class TestApp:
 
     def test_the_body_has_the_index_and_the_views(self, session):
         body = app.build_body(session)
-        assert list(body.views) == ["mpms_dc", "verwey", "goethite", "mpms_ac", "chi_t", "curie"]
+        assert list(body.views) == ["mpms_dc", "verwey", "goethite", "mpms_ac", "chi_t", "curie", "hys"]
         assert [name for name, _ in zip(body.main._names, body.main)] == [
-            "MPMS DC", "Verwey", "Goethite", "AC susceptibility", "χ–T", "Curie"]
+            "MPMS DC", "Verwey", "Goethite", "AC susceptibility", "χ–T", "Curie", "Hysteresis"]
         assert body.views["verwey"].specimen.value == body.views["mpms_dc"].specimen.value
         assert body.info.app_id == "pmagpy_rockmag"

@@ -553,9 +553,17 @@ Intensity were built.
    column), `CurieView` is `curie_temperature_estimates` as a table plus
    `plot_curie_estimates` in a Matplotlib pane, the method set following the
    data type the way the function's defaults do (a missing colour for
-   `ms_squared_extrapolation` was fixed in core). *Next*: hysteresis, backfield
-   + unmixing, FORC, results to `specimens.txt`
-   (`add_curie_estimates_to_specimens_table` through `MagicProject`), the
+   `ms_squared_extrapolation` was fixed in core).
+   `HysteresisView` is `process_hyst_loop` (the IRM decision tree: its
+   `centering_protocol`, `NL_fit`, `fit_open_loop`, `fit_linear_loop` are the
+   controls; the function's own Bokeh figure, a KPI row of Ms/Mr/Bc/Brh/σ/χHF
+   and the Jackson & Solheid quality statistics beside it; the early exits are
+   explained in prose). It needed loops to show, so a second example landed:
+   `data_files/3_0/ECMB_rockmag`, the rock-magnetic subset (VSM loops,
+   backfield, MPMS) of Nick's public MagIC 20213, with the script that rebuilds
+   it (QUESTIONS 16). *Next*: backfield + unmixing, FORC, results to
+   `specimens.txt` (`add_hyst_stats_to_specimens_table`,
+   `add_curie_estimates_to_specimens_table` through `MagicProject`), the
    notebook switch-over in RockmagPy-notebooks (QUESTIONS 12).
 5. **The rest of Pmag GUI, one decision at a time** — see the table below.
    *Retires `pmag_gui.py`.*
