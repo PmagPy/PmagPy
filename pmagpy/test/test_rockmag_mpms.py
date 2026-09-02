@@ -54,3 +54,40 @@ class TestZeroCrossing:
         for dM_dT in (rising, falling):
             crossing = rockmag.calc_zero_crossing(temps, dM_dT)[-1]     # no IndexError / KeyError
             assert np.isfinite(crossing)
+
+
+def rtsirm_pair(goethite=(2e-5, -0.02, 6.0), magnetite_step=0.5):
+    """RTSIRM warming and cooling curves: a quadratic goethite trend plus a magnetite Verwey step on warming."""
+    temps = np.arange(10.0, 301.0, 5.0)
+    trend = np.polyval(goethite, temps)
+    warm = trend + magnetite_step * (1 - np.tanh((temps - 120) / 4)) / 2
+    cool = trend + 0.4 * magnetite_step * (1 - np.tanh((temps - 120) / 4)) / 2
+    return (pd.DataFrame({"meas_temp": temps, "magn_mass": warm}),
+            pd.DataFrame({"meas_temp": temps[::-1], "magn_mass": cool[::-1]}))
+
+
+class TestGoethiteRemoval:
+    def test_the_trend_fitted_above_the_transition_is_removed_from_both_curves(self):
+        warm, cool = rtsirm_pair()
+        r = rockmag.calc_goethite_removal(warm, cool, t_min=150, t_max=290, poly_deg=2)
+        np.testing.assert_allclose(r["fit"].coefficients, (2e-5, -0.02, 6.0), rtol=1e-6)
+        assert abs(r["warm_corrected"].iloc[0] - 0.5) < 1e-6              # the magnetite step is all that is left
+        assert abs(r["cool_corrected"].iloc[-1] - 0.2) < 1e-6              # cooling curve is reversed in temperature
+        assert abs(r["warm_corrected"].iloc[-1]) < 1e-6                    # nothing left at 300 K
+        assert set(r) >= {"warm_derivative", "cool_derivative", "warm_corrected_derivative", "cool_corrected_derivative"}
+        assert len(r["warm_derivative"]) == len(warm) - 2                 # midpoints, minus the dropped end point
+
+    def test_too_few_points_in_the_range_is_a_value_error(self):
+        warm, cool = rtsirm_pair()
+        with pytest.raises(ValueError, match="cannot fit"):
+            rockmag.calc_goethite_removal(warm, cool, t_min=288, t_max=292, poly_deg=2)
+
+    def test_the_plotting_function_returns_the_same_numbers_without_showing(self):
+        warm, cool = rtsirm_pair()
+        warm_out, cool_out = rockmag.goethite_removal(warm, cool, return_data=True, show_plot=False)
+        r = rockmag.calc_goethite_removal(warm, cool)
+        np.testing.assert_allclose(warm_out["corrected_magn_mass"], r["warm_corrected"])
+        np.testing.assert_allclose(cool_out["corrected_magn_mass"], r["cool_corrected"])
+        assert rockmag.goethite_removal(warm, cool, show_plot=False) is None
+        fig = rockmag.goethite_removal(warm, cool, show_plot=False, return_figure=True)
+        assert len(fig.axes) == 4

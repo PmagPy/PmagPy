@@ -16,7 +16,7 @@ pn = pytest.importorskip("panel")
 
 from pmagpy import rockmag  # noqa: E402
 from pmagpy_rockmag import app, session as rs  # noqa: E402
-from pmagpy_rockmag.views import MpmsDcView, VerweyView  # noqa: E402
+from pmagpy_rockmag.views import GoethiteView, MpmsDcView, VerweyView  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
@@ -170,6 +170,37 @@ class TestVerweyView:
         assert view.method.options == {"ZFC": "LP-ZFC"} and view.method.value == "LP-ZFC"
 
 
+class TestGoethiteView:
+    def test_the_view_offers_specimens_with_both_rtsirm_curves_and_writes_the_call(self, session):
+        view = GoethiteView(session)
+        assert view.specimen.value == FOUR_CURVES and TWO_CURVES not in view.specimen.options
+        assert [pos for _, *pos in view.figure.children] == [[0, 0], [0, 1], [1, 0], [1, 1]]
+        assert set(view.removal) >= {"fit", "warm_corrected", "cool_corrected"}
+        assert "warming remanence at 10 K" in view.result.object and "removed" in view.result.object
+        last = view.code.text.splitlines()
+        assert "rtsirm_warm_corrected, rtsirm_cool_corrected = rmag.goethite_removal(" in last
+        assert "    t_min=150," in last and "    poly_deg=2," in last and "    return_data=True," in last
+        namespace = {"rmag": rockmag, "measurements": session.measurements}
+        exec("\n".join(last[5:]), namespace)                             # runs the matplotlib function, no window
+        assert len(namespace["rtsirm_warm_corrected"]) == 59
+
+    def test_parameters_reach_the_function_and_a_bad_range_is_reported(self, session):
+        view = GoethiteView(session)
+        view.set_parameters(fit_range=(200, 280), poly_deg=1)
+        assert view.parameters() == dict(t_min=200, t_max=280, poly_deg=1)
+        assert len(view.removal["fit"].coefficients) == 2
+        view.set_parameters(fit_range=(289, 291))
+        assert view.removal is None and "fit failed" in view.result.object
+        view.set_parameters(**{"fit_range": (150, 290), "poly_deg": 2})
+        assert view.removal is not None
+
+    def test_nothing_to_remove_is_said_not_raised(self):
+        m = pd.DataFrame({"specimen": ["a"], "method_codes": ["LP-FC"], "experiment": ["e"],
+                          "meas_temp": [10.0], "magn_mass": [1.0]})
+        view = GoethiteView(m)
+        assert view.specimen.options == [] and view.figure is None and "no RTSIRM" in view.result.object
+
+
 class TestApp:
     def test_create_app_builds_the_template_with_one_tab_per_view(self):
         template = app.create_app(EXAMPLE)
@@ -178,7 +209,7 @@ class TestApp:
 
     def test_the_body_has_the_index_and_the_views(self, session):
         body = app.build_body(session)
-        assert list(body.views) == ["mpms_dc", "verwey"]
-        assert [name for name, _ in zip(body.main._names, body.main)] == ["MPMS DC", "Verwey"]
+        assert list(body.views) == ["mpms_dc", "verwey", "goethite"]
+        assert [name for name, _ in zip(body.main._names, body.main)] == ["MPMS DC", "Verwey", "Goethite"]
         assert body.views["verwey"].specimen.value == body.views["mpms_dc"].specimen.value
         assert body.info.app_id == "pmagpy_rockmag"

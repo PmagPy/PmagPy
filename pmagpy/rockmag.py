@@ -1516,18 +1516,73 @@ def zero_crossing(dM_dT_temps, dM_dT, make_plot=False, xlim=None,
     return zero_cross_temp
 
 
+def calc_goethite_removal(rtsirm_warm_data, rtsirm_cool_data, t_min=150, t_max=290, poly_deg=2):
+    """
+    Model the goethite contribution to RTSIRM warming and cooling curves and remove it.
+
+    A polynomial is fitted to the RTSIRM warming curve between ``t_min`` and ``t_max``,
+    where the remanence change is taken to be goethite's alone, and the fit is
+    subtracted from both the warming and the cooling curve. Derivatives of the
+    original and corrected curves are returned for judging the removal.
+
+    Parameters:
+        rtsirm_warm_data (pd.DataFrame): 'meas_temp' and 'magn_mass' of the RTSIRM warming curve.
+        rtsirm_cool_data (pd.DataFrame): 'meas_temp' and 'magn_mass' of the RTSIRM cooling curve.
+        t_min (float, optional): Lower bound of the goethite fit range (K). Default is 150.
+        t_max (float, optional): Upper bound of the goethite fit range (K). Default is 290.
+        poly_deg (int, optional): Degree of the polynomial fitted to the warming curve. Default is 2.
+
+    Returns:
+        dict: with the keys
+            'warm_temps', 'warm_mags', 'cool_temps', 'cool_mags' (pd.Series): the input curves, reindexed;
+            'fit' (np.poly1d): the goethite polynomial;
+            'warm_fit', 'cool_fit' (np.ndarray): the polynomial evaluated at each curve's temperatures;
+            'warm_corrected', 'cool_corrected' (pd.Series): the curves with the fit subtracted;
+            'warm_derivative', 'cool_derivative', 'warm_corrected_derivative', 'cool_corrected_derivative'
+                (pd.DataFrame): dM/dT of each (``thermomag_derivative``, dropping the end point of each
+                sequence that the temperature step does not define).
+
+    Raises:
+        ValueError: when fewer than ``poly_deg + 1`` warming points fall inside the fit range.
+    """
+    warm_temps = rtsirm_warm_data['meas_temp'].reset_index(drop=True).astype(float)
+    warm_mags = rtsirm_warm_data['magn_mass'].reset_index(drop=True).astype(float)
+    cool_temps = rtsirm_cool_data['meas_temp'].reset_index(drop=True).astype(float)
+    cool_mags = rtsirm_cool_data['magn_mass'].reset_index(drop=True).astype(float)
+
+    in_range = (warm_temps > float(t_min)) & (warm_temps < float(t_max))
+    if in_range.sum() < poly_deg + 1:
+        raise ValueError(f"{int(in_range.sum())} warming points between {t_min} and {t_max} K cannot fit a "
+                         f"degree-{poly_deg} polynomial")
+    fit = np.poly1d(np.polyfit(warm_temps[in_range], warm_mags[in_range], poly_deg))
+    warm_fit = fit(warm_temps)
+    cool_fit = fit(cool_temps)
+    warm_corrected = warm_mags - warm_fit
+    cool_corrected = cool_mags - cool_fit
+
+    return {
+        'warm_temps': warm_temps, 'warm_mags': warm_mags, 'cool_temps': cool_temps, 'cool_mags': cool_mags,
+        'fit': fit, 'warm_fit': warm_fit, 'cool_fit': cool_fit,
+        'warm_corrected': warm_corrected, 'cool_corrected': cool_corrected,
+        'cool_derivative': thermomag_derivative(cool_temps, cool_mags, drop_first=True),
+        'warm_derivative': thermomag_derivative(warm_temps, warm_mags, drop_last=True),
+        'cool_corrected_derivative': thermomag_derivative(cool_temps, cool_corrected, drop_first=True),
+        'warm_corrected_derivative': thermomag_derivative(warm_temps, warm_corrected, drop_last=True),
+    }
+
+
 def goethite_removal(rtsirm_warm_data, 
                      rtsirm_cool_data,
                      t_min=150, t_max=290, poly_deg=2,
                      rtsirm_cool_color='#17becf', rtsirm_warm_color='#d62728',
-                     symbol_size=4, return_data=False):
+                     symbol_size=4, return_data=False, show_plot=True, return_figure=False):
     """
     Analyzes and visualizes the removal of goethite signal from Room Temperature Saturation
     Isothermal Remanent Magnetization (RTSIRM) warming and cooling data. The function fits
     a polynomial to the RTSRIM warming curve between specified temperature bounds to model
     the goethite contribution, then subtracts this fit from the original data. The corrected
     and uncorrected magnetizations are plotted, along with their derivatives, to assess the
-    effect of goethite removal.
+    effect of goethite removal. The numbers come from ``calc_goethite_removal``.
 
     Parameters:
         rtsirm_warm_data (pd.DataFrame): DataFrame containing 'meas_temp' and 'magn_mass' columns
@@ -1542,41 +1597,27 @@ def goethite_removal(rtsirm_warm_data,
         symbol_size (int, optional): Size of the markers in the plots. Default is 4.
         return_data (bool, optional): If True, returns the corrected magnetization data for both
                                       warming and cooling. Default is False.
+        show_plot (bool, optional): If True, calls ``plt.show()``. Default is True.
+        return_figure (bool, optional): If True, the matplotlib figure is returned (first, when
+                                        ``return_data`` is also set). Default is False.
 
     Returns:
-        Tuple[pd.Series, pd.Series]: Only if return_data is True. Returns two pandas Series
-                                     containing the corrected magnetization data for the warming
-                                     and cooling sequences, respectively.
+        Tuple[pd.DataFrame, pd.DataFrame]: Only if return_data is True. Two DataFrames with
+                                           'meas_temp' and 'corrected_magn_mass' for the warming
+                                           and cooling sequences, respectively.
     """
-    
-    rtsirm_warm_temps = rtsirm_warm_data['meas_temp']
-    rtsirm_warm_mags = rtsirm_warm_data['magn_mass']
-    rtsirm_cool_temps = rtsirm_cool_data['meas_temp']
-    rtsirm_cool_mags = rtsirm_cool_data['magn_mass']
-    
-    rtsirm_warm_temps.reset_index(drop=True, inplace=True)
-    rtsirm_warm_mags.reset_index(drop=True, inplace=True)
-    rtsirm_cool_temps.reset_index(drop=True, inplace=True)
-    rtsirm_cool_mags.reset_index(drop=True, inplace=True)
-    
-    rtsirm_warm_temps_filtered_indices = [i for i in np.arange(len(rtsirm_warm_temps)) if ((float(rtsirm_warm_temps[i]) > float(t_min)) and (float(rtsirm_warm_temps[i])  < float(t_max)) )]
-    rtsirm_warm_temps_filtered = rtsirm_warm_temps[rtsirm_warm_temps_filtered_indices]
-    rtsirm_warm_mags_filtered = rtsirm_warm_mags[rtsirm_warm_temps_filtered_indices]
-    
-    geothite_fit = np.polyfit(rtsirm_warm_temps_filtered, rtsirm_warm_mags_filtered, poly_deg)
-    rtsirm_warm_mags_polyfit = np.poly1d(geothite_fit)(rtsirm_warm_temps)
-    rtsirm_cool_mags_polyfit = np.poly1d(geothite_fit)(rtsirm_cool_temps)
-    
-    rtsirm_warm_mags_corrected = rtsirm_warm_mags - rtsirm_warm_mags_polyfit
-    rtsirm_cool_mags_corrected = rtsirm_cool_mags - rtsirm_cool_mags_polyfit
-    
+    r = calc_goethite_removal(rtsirm_warm_data, rtsirm_cool_data, t_min=t_min, t_max=t_max, poly_deg=poly_deg)
+    rtsirm_warm_temps, rtsirm_warm_mags = r['warm_temps'], r['warm_mags']
+    rtsirm_cool_temps, rtsirm_cool_mags = r['cool_temps'], r['cool_mags']
+    rtsirm_warm_mags_corrected, rtsirm_cool_mags_corrected = r['warm_corrected'], r['cool_corrected']
+
     fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(12, 8))
     
     axs[0, 0].plot(rtsirm_warm_temps, rtsirm_warm_mags, color=rtsirm_warm_color, 
                    marker='o', linestyle='-', markersize=symbol_size, label='RTSIRM Warming')
     axs[0, 0].plot(rtsirm_cool_temps, rtsirm_cool_mags, color=rtsirm_cool_color, 
                    marker='o', linestyle='-', markersize=symbol_size, label='RTSIRM Cooling')
-    axs[0, 0].plot(rtsirm_warm_temps, rtsirm_warm_mags_polyfit, color=rtsirm_warm_color, 
+    axs[0, 0].plot(rtsirm_warm_temps, r['warm_fit'], color=rtsirm_warm_color, 
                    linestyle='--', label='goethite fit')
     axs[0, 1].plot(rtsirm_warm_temps, rtsirm_warm_mags_corrected, color=rtsirm_warm_color, 
                    marker='s', linestyle='-', markersize=symbol_size, label='RTSIRM Warming (goethite removed)')
@@ -1587,11 +1628,8 @@ def goethite_removal(rtsirm_warm_data,
     rectangle = patches.Rectangle((t_min, ax0.get_ylim()[0]), t_max - t_min, 
                             ax0.get_ylim()[1] - ax0.get_ylim()[0], 
                             linewidth=0, edgecolor=None, facecolor='gray', 
-                            alpha=0.3)
+                            alpha=0.3, label='goethite fit range')
     ax0.add_patch(rectangle)
-    rect_legend_patch = patches.Patch(color='gray', alpha=0.3, label='excluded from background fit')
-    handles, labels = ax0.get_legend_handles_labels()
-    handles.append(rect_legend_patch)  # Add the rectangle legend patch
     
     for ax in axs[0, :]:
         ax.set_xlabel("Temperature (K)")
@@ -1599,24 +1637,14 @@ def goethite_removal(rtsirm_warm_data,
         ax.legend()
         ax.grid(True)
         ax.set_xlim(0, 300)
-             
-    rtsirm_cool_derivative = thermomag_derivative(rtsirm_cool_data['meas_temp'], 
-                                                       rtsirm_cool_data['magn_mass'], drop_first=True)
-    rtsirm_warm_derivative = thermomag_derivative(rtsirm_warm_data['meas_temp'], 
-                                                       rtsirm_warm_data['magn_mass'], drop_last=True)
-    
-    rtsirm_cool_derivative_corrected = thermomag_derivative(rtsirm_cool_data['meas_temp'], 
-                                                       rtsirm_cool_mags_corrected, drop_first=True)
-    rtsirm_warm_derivative_corrected = thermomag_derivative(rtsirm_warm_data['meas_temp'], 
-                                                       rtsirm_warm_mags_corrected, drop_last=True)
 
-    axs[1, 0].plot(rtsirm_cool_derivative['T'], rtsirm_cool_derivative['dM_dT'], 
+    axs[1, 0].plot(r['cool_derivative']['T'], r['cool_derivative']['dM_dT'], 
                    marker='o', linestyle='-', color=rtsirm_cool_color, markersize=symbol_size, label='RTSIRM Cooling Derivative')
-    axs[1, 0].plot(rtsirm_warm_derivative['T'], rtsirm_warm_derivative['dM_dT'], 
+    axs[1, 0].plot(r['warm_derivative']['T'], r['warm_derivative']['dM_dT'], 
                    marker='o', linestyle='-', color=rtsirm_warm_color, markersize=symbol_size, label='RTSIRM Warming Derivative')        
-    axs[1, 1].plot(rtsirm_cool_derivative_corrected['T'], rtsirm_cool_derivative_corrected['dM_dT'], 
+    axs[1, 1].plot(r['cool_corrected_derivative']['T'], r['cool_corrected_derivative']['dM_dT'], 
                    marker='s', linestyle='-', color=rtsirm_cool_color, markersize=symbol_size, label='RTSIRM Cooling Derivative\n(goethite removed)')
-    axs[1, 1].plot(rtsirm_warm_derivative_corrected['T'], rtsirm_warm_derivative_corrected['dM_dT'], 
+    axs[1, 1].plot(r['warm_corrected_derivative']['T'], r['warm_corrected_derivative']['dM_dT'], 
                    marker='s', linestyle='-', color=rtsirm_warm_color, markersize=symbol_size, label='RTSIRM Warming Derivative\n(goethite removed)')  
     for ax in axs[1, :]:
         ax.set_xlabel("Temperature (K)")
@@ -1626,12 +1654,17 @@ def goethite_removal(rtsirm_warm_data,
         ax.set_xlim(0, 300)
 
     fig.tight_layout()
-    plt.show()
+    if show_plot:
+        plt.show()
 
+    out = []
+    if return_figure:
+        out.append(fig)
     if return_data:
-        rtsirm_warm_adjusted = pd.DataFrame({'meas_temp': rtsirm_warm_temps, 'corrected_magn_mass': rtsirm_warm_mags_corrected})
-        rtsirm_cool_adjusted = pd.DataFrame({'meas_temp': rtsirm_cool_temps, 'corrected_magn_mass': rtsirm_cool_mags_corrected})
-        return rtsirm_warm_adjusted, rtsirm_cool_adjusted
+        out.append(pd.DataFrame({'meas_temp': rtsirm_warm_temps, 'corrected_magn_mass': rtsirm_warm_mags_corrected}))
+        out.append(pd.DataFrame({'meas_temp': rtsirm_cool_temps, 'corrected_magn_mass': rtsirm_cool_mags_corrected}))
+    if out:
+        return out[0] if len(out) == 1 else tuple(out)
     
     
 def goethite_removal_interactive(measurements, specimen):

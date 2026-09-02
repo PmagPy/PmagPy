@@ -335,6 +335,127 @@ class VerweyView:
                          self.result, self.plot, self.code.panel(), sizing_mode="stretch_width")
 
 
+# ----------------------------------------------------------------------------- Goethite
+GOETHITE_DEFAULTS = dict(fit_range=(150, 290), poly_deg=2)
+
+
+class GoethiteView:
+    """Goethite removal from RTSIRM cycling curves: ``rockmag.calc_goethite_removal``.
+
+    A polynomial fitted to the warming curve over the fit range — where the
+    remanence change is goethite's alone — is subtracted from both the
+    warming and the cooling curve, leaving the other minerals' behaviour.
+    """
+
+    TYPE = "mpms_dc"
+
+    def __init__(self, session):
+        self.s = as_session(session)
+        self.specimen = pn.widgets.Select(name="Specimen", options=[], width=320)
+        self.fit_range = pn.widgets.RangeSlider(name="Goethite fit range (K)", start=0, end=300, step=1,
+                                                value=GOETHITE_DEFAULTS["fit_range"], width=300)
+        self.poly_deg = pn.widgets.IntSlider(name="Polynomial degree", start=1, end=5, value=GOETHITE_DEFAULTS["poly_deg"],
+                                             width=180)
+        self.reset_btn = pn.widgets.Button(name="Reset", width=80, margin=(24, 5, 0, 10))
+        self.result = pn.pane.HTML("", sizing_mode="stretch_width")
+        self.plot = pn.pane.Bokeh(sizing_mode="stretch_width")
+        self.code = code.CodePane()
+        self.figure = None
+        self.removal = None                       # calc_goethite_removal's dict for what is plotted
+
+        self.specimen.param.watch(self._on_specimen, "value")
+        for w in (self.fit_range, self.poly_deg):
+            w.param.watch(lambda e: self.refresh(), "value_throttled")
+        self.reset_btn.on_click(lambda e: self.set_parameters(**GOETHITE_DEFAULTS))
+        self.s.param.watch(lambda e: self.reset(), "directory")
+        self.s.param.watch(self._follow_session, "specimen")
+        self.reset()
+
+    # ----- state --------------------------------------------------------------
+    def reset(self) -> None:
+        """Offer the specimens with both RTSIRM curves."""
+        exps = self.s.experiments
+        by_spec = exps[exps["method_codes"].isin(["LP-CW-SIRM:LP-MC", "LP-CW-SIRM:LP-MW"])].groupby("specimen")["method_codes"].nunique()
+        options = [spec for spec in dict.fromkeys(exps["specimen"]) if by_spec.get(spec, 0) == 2]
+        before = self.specimen.value
+        self.specimen.options = options
+        self.specimen.value = self.s.specimen if self.s.specimen in options else (options[0] if options else None)
+        if self.specimen.value == before:
+            self.refresh()
+
+    def set_parameters(self, fit_range=None, poly_deg=None) -> None:
+        if fit_range is not None:
+            self.fit_range.value = tuple(fit_range)
+        if poly_deg is not None:
+            self.poly_deg.value = int(poly_deg)
+        self.refresh()
+
+    def _on_specimen(self, event) -> None:
+        if event.new:
+            self.s.specimen = event.new
+        self.refresh()
+
+    def _follow_session(self, event) -> None:
+        if event.new in self.specimen.options and event.new != self.specimen.value:
+            self.specimen.value = event.new
+
+    # ----- the removal --------------------------------------------------------
+    def curves(self) -> Optional[tuple]:
+        """``(rtsirm_warm, rtsirm_cool)`` DataFrames, or None."""
+        if not self.specimen.value or self.s.measurements is None:
+            return None
+        _, _, cool, warm = rockmag.extract_mpms_data_dc(self.s.measurements, self.specimen.value)
+        if warm is None or cool is None or warm.empty or cool.empty:
+            return None
+        return warm, cool
+
+    def parameters(self) -> dict:
+        return dict(t_min=int(self.fit_range.value[0]), t_max=int(self.fit_range.value[1]), poly_deg=int(self.poly_deg.value))
+
+    def refresh(self) -> None:
+        curves = self.curves()
+        if curves is None:
+            self.figure = self.removal = None
+            self.plot.object = None
+            self.result.object = muted("no RTSIRM warming and cooling pair for this specimen")
+            self.code.set(preamble(self.s))
+            return
+        warm, cool = curves
+        params = self.parameters()
+        try:
+            self.removal = rockmag.calc_goethite_removal(warm, cool, **params)
+        except (ValueError, TypeError) as ex:
+            self.figure = self.removal = None
+            self.plot.object = None
+            self.result.object = f'<div style="color:#b91c1c">The fit failed: {ex}. Widen the fit range or lower the degree.</div>'
+            self.code.set(self._code(params))
+            return
+        rows = plots.goethite_figures(self.removal, self.fit_range.value, title=self.specimen.value)
+        self.figure = gridplot(rows, sizing_mode="stretch_width")
+        self.plot.object = self.figure
+        low = int(self.removal["warm_temps"].idxmin())                  # the warming curve's coldest point
+        measured = float(self.removal["warm_mags"].iloc[low])
+        left = float(self.removal["warm_corrected"].iloc[low])
+        removed = f"{100 * (1 - left / measured):.0f} %" if measured else "—"
+        self.result.object = kpi([(f"warming remanence at {self.removal['warm_temps'].iloc[low]:.0f} K", f"{measured:.3g} Am²/kg"),
+                                  ("after goethite removal", f"{left:.3g} Am²/kg"), ("removed", removed)])
+        self.code.set(self._code(params))
+
+    def _code(self, params: dict) -> list:
+        return preamble(self.s) + [
+            code.assign(["fc_data", "zfc_data", "rtsirm_cool_data", "rtsirm_warm_data"],
+                        code.call("rmag.extract_mpms_data_dc", code.Name("measurements"), self.specimen.value)),
+            code.assign(["rtsirm_warm_corrected", "rtsirm_cool_corrected"],
+                        code.call("rmag.goethite_removal", code.Name("rtsirm_warm_data"), code.Name("rtsirm_cool_data"),
+                                  **params, return_data=True)),
+        ]
+
+    # ----- layout -------------------------------------------------------------
+    def panel(self) -> pn.Column:
+        return pn.Column(pn.Row(self.specimen, self.fit_range, self.poly_deg, self.reset_btn),
+                         self.result, self.plot, self.code.panel(), sizing_mode="stretch_width")
+
+
 # ----------------------------------------------------------------------------- the set of views
-TABS = (("mpms_dc", "MPMS DC", MpmsDcView), ("verwey", "Verwey", VerweyView))
+TABS = (("mpms_dc", "MPMS DC", MpmsDcView), ("verwey", "Verwey", VerweyView), ("goethite", "Goethite", GoethiteView))
 """``(key, tab label, view class)`` in tab order. Experiment types without a view are listed in the index only."""
