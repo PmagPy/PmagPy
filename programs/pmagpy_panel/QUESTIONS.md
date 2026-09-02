@@ -841,8 +841,8 @@ the bottom; struck through once settled.
       hub fetch and cache them on start-up when online (3b)?
 
 58. **The start page (2026-09-02).** Built to Nick's direction: four doors,
-    in the order explore an example → open MagIC data → download from MagIC →
-    convert measurement files, the Recent list under them, and nothing else;
+    in the order open MagIC data → download from MagIC → convert measurement
+    files → explore an example, the Recent list under them, and nothing else;
     "Other files" is gone from the directory page (a MagIC directory has no
     aside at all now — the facts line says what tables are there; a folder
     of lab files still lists them, since Convert needs the analyst to know

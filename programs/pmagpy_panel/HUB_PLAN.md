@@ -463,13 +463,14 @@ Intensity were built.
    MagIC directory has no aside — the tables are said in the facts line).
    Metadata on Home names the single largest gap and counts the rest.
    **Start page 2026-09-02** (Nick: land on choices, not on a default
-   dataset). With no `?dir=` and no `PMAGPY_APPS_DIR` the hub shows four doors
-   in a 2×2 grid, each with its own colour and one line of text — Explore an
-   example (McMurdo, opened without being remembered), Open MagIC data (the
+   dataset). With no `?dir=` and no `PMAGPY_APPS_DIR` the hub shows one line
+   ("Get going with PmagPy Apps by navigating to data") and four doors in a
+   2×2 grid, each with its own colour and a sentence — Open MagIC data (the
    chooser), Download from MagIC (the dialog; the default folder is
    `~/MagIC/MagIC_<id>` when no directory is open), Convert measurement files
    (the chooser with its own heading; a folder without tables goes straight
-   on to the Convert page) — and the Recent list beneath. Once a directory is
+   on to the Convert page), Explore an example (McMurdo, opened without being
+   remembered) — in that order, and the Recent list beneath. Once a directory is
    open the page is about that directory only: the header row holds the
    buttons plus "Start page", and the contribution · DOI · contributor line
    sits under the path in one line. No "PmagPy Apps / Start" heading — the

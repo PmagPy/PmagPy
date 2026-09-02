@@ -196,7 +196,7 @@ a.bar:hover .open { filter:brightness(.93) }
 .box td.n { text-align:right; color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap; padding-left:12px }
 .box td.file { font-family:ui-monospace,Menlo,monospace; font-size:.82rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:220px }
 .box .none { color:var(--muted); font-size:.88rem }
-.start .lead { color:var(--ink); font-size:1.12rem; max-width:64ch; line-height:1.5; margin:14px 0 26px }
+.start .lead { color:var(--ink); font-size:1.12rem; white-space:nowrap; margin:14px 0 22px }
 .door h3 { margin:0 0 6px; font-size:1.15rem; font-weight:650; letter-spacing:-.005em }
 .door p { margin:0 0 14px; color:var(--muted); font-size:.93rem; line-height:1.5; min-height:4.5em; max-width:48ch }
 .recent { margin:0; padding:0 }
@@ -445,9 +445,7 @@ def recent_html(recent: List[str]) -> str:
     return f'<div class="home"><div class="section">Recent</div><div class="box"><ul class="recent">{items}</ul></div></div>'
 
 
-START_HTML = ('<div class="home start"><p class="lead">Paleomagnetic and rock-magnetic data in the MagIC tables — '
-              'convert measurement files, fill in the metadata, analyze, upload. Everything works on one directory; '
-              'begin with one of these.</p></div>')
+START_HTML = '<div class="home start"><p class="lead">Get going with PmagPy Apps by navigating to data</p></div>'
 EXAMPLE_NAME = "McMurdo"
 
 
@@ -469,10 +467,6 @@ class Door:
 
 
 DOORS = (
-    Door("example_btn", "Explore an example",
-         f"The {EXAMPLE_NAME} Sound volcanics (Lawrence et al. 2009, MagIC 13436) that ship with PmagPy — "
-         "demagnetization, paleointensity, hysteresis and anisotropy in one study, ready to open in every application.",
-         "Explore the example", "#2e8b57"),
     Door("open_btn", "Open MagIC data",
          "A directory of MagIC tables on this computer — a study in progress, or a contribution you downloaded before.",
          "Open a directory…", "#1f4e9c"),
@@ -482,6 +476,10 @@ DOORS = (
     Door("convert_start_btn", "Convert measurement files",
          "Lab files — CIT, 2G, JR6, AGICO, MPMS, VSM and more — become MagIC tables in their folder, which then opens "
          "here.", "Choose the files' folder…", "#d97706"),
+    Door("example_btn", "Explore an example",
+         f"The {EXAMPLE_NAME} Sound volcanics (Lawrence et al. 2009, MagIC 13436), shipped with PmagPy — "
+         "demagnetization, paleointensity, hysteresis and anisotropy in one study.",
+         "Explore the example", "#2e8b57"),
 )
 
 

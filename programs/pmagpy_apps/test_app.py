@@ -80,8 +80,8 @@ class TestPage:
         html = page_html(tmpl)
         for door in home.DOORS:                                                 # the four ways in, in Nick's order
             assert door.title in html
-        assert [d.title for d in home.DOORS] == ["Explore an example", "Open MagIC data", "Download from MagIC",
-                                                 "Convert measurement files"]
+        assert [d.title for d in home.DOORS] == ["Open MagIC data", "Download from MagIC",
+                                                 "Convert measurement files", "Explore an example"]
         assert "Lawrence et al. 2009" in html and "<h1>Start</h1>" not in html    # the header already says PmagPy Apps
         assert "Recent" in html and home.home_link(str(tmp_path)) in html    # the start page lists where to go
         assert "MagIC contribution 13436" not in html                          # nothing is loaded behind it
@@ -300,9 +300,9 @@ class TestDownloadFromMagic:
         body.open_modal = lambda: shown.append(True)
         doors = body.pages["home"][0][1]                          # the start page's grid of doors
         assert [d[0].object.count("<h3>") for d in doors] == [1, 1, 1, 1]
-        doors[2][1].clicks += 1                                   # Download from MagIC
+        doors[1][1].clicks += 1                                   # Download from MagIC
         assert (chooser.visible, downloader.visible) == (False, True)
-        doors[1][1].clicks += 1                                   # Open MagIC data
+        doors[0][1].clicks += 1                                   # Open MagIC data
         assert (chooser.visible, downloader.visible) == (True, False)
         assert "Open a directory" in chooser[0][0].object and shown == [True, True]
 
@@ -314,18 +314,18 @@ class TestDownloadFromMagic:
         closed = []
         body.close_modal = lambda: closed.append(True)
         doors = body.pages["home"][0][1]
-        doors[3][1].clicks += 1                                   # Convert measurement files
+        doors[2][1].clicks += 1                                   # Convert measurement files
         assert chooser.visible and "measurement files" in chooser[0][0].object
         lab = cit_only(tmp_path)
         body.chooser.path.value = lab
         assert body.chooser.load() is True and closed == [True]
         assert body.pages["convert"].visible and not body.pages["home"].visible    # lab files: straight on to Convert
         body.turn_to("home")
-        doors[3][1].clicks += 1
+        doors[2][1].clicks += 1
         body.chooser.path.value = MCMURDO                         # but tables already there stay on the directory page
         assert body.chooser.load() is True and closed == [True, True]
         assert body.pages["home"].visible and not body.pages["convert"].visible
-        doors[1][1].clicks += 1                                   # and the plain door does not go to Convert
+        doors[0][1].clicks += 1                                   # and the plain door does not go to Convert
         body.chooser.path.value = lab
         assert body.chooser.load() is True and body.pages["home"].visible
 
