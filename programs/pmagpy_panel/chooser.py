@@ -17,6 +17,8 @@ nothing in it yet starts its life.
 
 The session it is given only has to answer ``directory``, ``status`` and
 ``load(path) -> bool``; ``output_dir`` is watched when the session has one.
+A session that re-reads the same directory (after a save, say) triggers
+``directory`` to have the chooser's counts follow.
 
 This began as Yiming Zhang's ``chooser.py`` on the intensity branch; the
 system dialog now runs as a coroutine (:func:`pmagpy_panel.runtime.choose_directory`)
@@ -113,7 +115,7 @@ class DirectoryChooser:
         self.browser.param.watch(self._on_browse, "value")
         self.load_btn.on_click(self.load)
         watched = [p for p in ("directory", "output_dir") if p in session.param]
-        session.param.watch(lambda e: self.refresh(), watched)
+        session.param.watch(lambda *events: self.refresh(), watched)
         self.refresh()
 
     # ----- state ------------------------------------------------------------

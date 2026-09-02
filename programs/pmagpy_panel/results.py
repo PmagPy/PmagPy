@@ -87,11 +87,13 @@ class TableSave:
             site — or None for just `what`.
         missing: the message when the directory has no such table, or None
             when a save may create the table.
+        after_save: called with the path written once a save has gone through
+            (a session re-reading its tables, say).
     """
 
     def __init__(self, session, code_pane: code.CodePane, what: str, table: str = "specimens",
                  app: Optional[AppInfo] = None, label: Optional[Callable[[], str]] = None,
-                 missing: Optional[Callable[[str], str]] = None):
+                 missing: Optional[Callable[[str], str]] = None, after_save: Optional[Callable[[str], None]] = None):
         self.s = session
         self.code = code_pane
         self.what = what
@@ -99,6 +101,7 @@ class TableSave:
         self.app = app
         self.label = label
         self.missing = missing
+        self.after_save = after_save
         self.button = pn.widgets.Button(name=f"Save to {table}.txt", button_type="primary", width=170,
                                         margin=(10, 5, 5, 10))
         self.note = pn.pane.HTML("", sizing_mode="stretch_width", margin=(14, 0, 0, 6))
@@ -193,7 +196,9 @@ class TableSave:
         backed_up = project.backup_originals(project.directory, [self.table + ".txt"])
         path = project.write_table(after, self.table, project.directory)
         project.contribution.add_magic_table(self.table)                   # the in-memory table follows the file
-        lines = self.analysis + self.save_lines()
+        if self.after_save is not None:                                    # e.g. a session reload: views refresh...
+            self.after_save(path)
+        lines = self.analysis + self.save_lines()                           # ...and the record of the save stays up
         self.append_script(lines)
         self.code.set(lines)
         self.written = path

@@ -2,7 +2,8 @@
 The panes: the dataset block, the selection (which specimens, which frame),
 the inventory, and one view per question — where do the eigenvectors point
 and how well are they known (Eigenvectors), what shape is the fabric (Shape),
-and the tensors themselves (Specimens).
+the tensors themselves (Specimens), and the tensors from the measurements
+that have not been reduced yet (Reduce).
 
 Each view is a Panel layout over ``pmagpy.anisotropy``: the widgets are the
 arguments of ``group_statistics``, and the view's "show code" block is the
@@ -29,7 +30,8 @@ from .session import ALL, APP, LEVELS, RECENT_FILE, Session, as_session, env
 
 MEAN_TABLES = {"site": "sites", "sample": "samples"}      # where a group mean is written
 
-WATCHED = ["directory", "coordinates", "level", "group", "aniso_type"]     # session parameters every view follows
+WATCHED = ["version", "coordinates", "level", "group", "aniso_type"]   # session parameters every view follows
+                                                                        # (version: the tables changed — load, reload)
 
 
 def section(title: str) -> pn.pane.HTML:
@@ -91,7 +93,8 @@ class DataView(DirectoryChooser):
             chooser_stub=env("CHOOSER_STUB"), require_measurements=False,
             count=lambda s: f"{s.n_specimens()} specimens with tensors · {len(s.groups('site')) - 1} sites",
             note="A MagIC directory whose specimens.txt carries anisotropy tensors (aniso_s) — from a Kappabridge "
-                 "converter or from aarm_magic/atrm_magic. Sample orientations in samples.txt let specimen "
+                 "converter, from aarm_magic/atrm_magic or from the Reduce tab here, which fits them to the "
+                 "AARM/ATRM steps in measurements.txt. Sample orientations in samples.txt let specimen "
                  "tensors be rotated to geographic and tilt-corrected coordinates here.")
 
 
@@ -111,7 +114,7 @@ class SelectionView:
         self.group.param.watch(self._on_group, "value")
         self.coordinates.param.watch(self._on_coordinates, "value")
         self.aniso_type.param.watch(self._on_type, "value")
-        session.param.watch(lambda e: self.reset(), "directory")
+        session.param.watch(lambda e: self.reset(), "version")
         session.param.watch(lambda e: self.follow(), ["coordinates", "level", "group", "aniso_type"])
         self.reset()
 
@@ -183,7 +186,7 @@ class Inventory:
     def __init__(self, session: Session):
         self.s = session
         self.html = pn.pane.HTML("", sizing_mode="stretch_width")
-        session.param.watch(lambda e: self.refresh(), "directory")
+        session.param.watch(lambda e: self.refresh(), "version")
         self.refresh()
 
     def refresh(self) -> None:
@@ -531,5 +534,128 @@ class SpecimensView:
         return pn.Column(self.summary, self.table, self.code.panel(), sizing_mode="stretch_width")
 
 
+class ReduceView:
+    """Anisotropy tensors from the directory's remanence-acquisition measurements.
+
+    ``anisotropy.reduce_measurements`` fits one tensor per specimen from its
+    ``LP-AN-ARM`` (AARM) or ``LP-AN-TRM`` (ATRM) steps — the in-field moments,
+    less the zero-field baseline measured before them when asked, against
+    the field directions the table records — and the result is offered to
+    ``specimens.txt`` through :class:`TableSave` (``add_tensors_to_specimens_table``:
+    an existing tensor of the same type is replaced, a new specimen gets a
+    row). A directory with measurements but no specimens table starts here.
+    """
+
+    TYPE = "reduce"
+    COLUMNS = ["specimen", "aniso_s_n_measurements", "aniso_s_sigma", "aniso_ftest", "aniso_ftest_quality",
+               "V1", "V2", "V3", "aniso_p", "aniso_t", "aniso_alt"]
+    TITLES = {"aniso_s_n_measurements": "n", "aniso_s_sigma": "σ", "aniso_ftest": "F", "aniso_ftest_quality": "F test",
+              "V1": "V1 dec / inc", "V2": "V2 dec / inc", "V3": "V3 dec / inc", "aniso_p": "P", "aniso_t": "T",
+              "aniso_alt": "alteration %"}
+    WIDTHS = {"specimen": 110, "aniso_s_n_measurements": 40, "aniso_s_sigma": 75, "aniso_ftest": 70,
+              "aniso_ftest_quality": 60, "V1": 110, "V2": 110, "V3": 110, "aniso_p": 70, "aniso_t": 70,
+              "aniso_alt": 90}
+
+    def __init__(self, session):
+        if isinstance(session, pd.DataFrame) and "aniso_s" not in session.columns:      # a measurements table
+            self.s = Session(specimens=pd.DataFrame(columns=["specimen"]))
+            self.s.measurements = session
+        else:
+            self.s = as_session(session)
+        self.protocol = pn.widgets.Select(name="protocol", options=[], width=140)
+        self.baseline = pn.widgets.Checkbox(name="subtract the zero-field baseline", value=True)
+        self.summary = pn.pane.HTML("", sizing_mode="stretch_width")
+        self.table = pn.widgets.Tabulator(pd.DataFrame(), show_index=False, disabled=True, pagination="local",
+                                          page_size=25, sizing_mode="stretch_width", layout="fit_data_stretch",
+                                          titles=self.TITLES, widths=self.WIDTHS, text_align={"specimen": "left"})
+        self.problems = pn.pane.HTML("", sizing_mode="stretch_width")
+        self.code = code.CodePane()
+        self.save = TableSave(self.s, self.code, "tensors", table="specimens", app=APP,
+                              label=lambda: f"{self.protocol.value} from measurements",
+                              after_save=lambda path: self.s.reload())
+        self.tensors = pd.DataFrame()
+        self.failed: dict = {}
+        self._quiet = False
+        self.protocol.param.watch(lambda e: None if self._quiet else self.refresh(), "value")
+        self.baseline.param.watch(lambda e: self.refresh(), "value")
+        self.s.param.watch(lambda e: self.follow(), "version")
+        self.follow()
+
+    def set_parameters(self, **values) -> None:
+        for name, value in values.items():
+            getattr(self, name).value = value
+
+    def follow(self) -> None:
+        """New data: the protocols its measurements hold become the options."""
+        kinds = list(self.s.protocols())
+        self._quiet = True
+        try:
+            self.protocol.options = kinds
+            if kinds and self.protocol.value not in kinds:
+                self.protocol.value = kinds[0]
+        finally:
+            self._quiet = False
+        self.refresh()
+
+    def refresh(self) -> None:
+        s = self.s
+        kind = self.protocol.value
+        lines = ["import pandas as pd", "import pmagpy.anisotropy as aniso", "import pmagpy.contribution_builder as cb", ""]
+        if s.directory:
+            lines += [code.assign("contribution", code.call("cb.Contribution", s.directory)),
+                      "measurements = contribution.tables['measurements'].df"]
+        else:
+            lines.append("# measurements: the DataFrame this view was given")
+        if not kind or s.measurements is None:
+            self.tensors, self.failed = pd.DataFrame(), {}
+            self.table.value = pd.DataFrame(columns=self.COLUMNS)
+            self.problems.object = ""
+            self.summary.object = muted("no AARM or ATRM measurements in this directory — the tensors in "
+                                        "specimens.txt are what there is to look at")
+            self.code.set(lines + ["# nothing to reduce: no LP-AN-ARM / LP-AN-TRM rows in measurements"])
+            self.save.decline("nothing to reduce")
+            return
+        baseline = bool(self.baseline.value)
+        self.tensors, self.failed = anisotropy.reduce_measurements(s.measurements, kind, baseline=baseline)
+        lines.append(code.assign("tensors, problems", code.call("aniso.reduce_measurements", code.Name("measurements"),
+                                                                 kind, baseline=baseline)))
+        self.code.set(lines)
+        shown = self.tensors.copy()
+        for i in (1, 2, 3):
+            shown[f"V{i}"] = [":".join(cell.split(":")[1:]).replace(":", " / ") for cell in shown[f"aniso_v{i}"]] \
+                if len(shown) else []
+        cols = [c for c in self.COLUMNS if c in shown.columns]
+        shown = shown[cols] if len(shown) else pd.DataFrame(columns=cols)
+        for c in shown.columns:
+            if shown[c].dtype.kind == "f":
+                shown[c] = shown[c].round(4)
+        self.table.value = shown
+        index = s.index()
+        existing = set(index.loc[index["aniso_type"].astype(str) == kind, "specimen"].astype(str)) if len(index) else set()
+        replaced = int(self.tensors["specimen"].astype(str).isin(existing).sum()) if len(self.tensors) else 0
+        items = [f"{kind} from measurements", ("specimens reduced", len(self.tensors))]
+        if replaced:
+            items.append((f"already in specimens.txt as {kind}", replaced))
+        if self.failed:
+            items.append(("not reduced", len(self.failed)))
+        self.summary.object = kpi(items)
+        self.problems.object = "" if not self.failed else muted(
+            "not reduced: " + "; ".join(f"<b>{name}</b> — {reason}" for name, reason in self.failed.items()))
+        if not len(self.tensors):
+            self.save.decline("no specimen could be reduced — see the reasons above")
+            return
+        tensors, samples = self.tensors, s.samples
+        save_lines = ["samples = contribution.tables['samples'].df if 'samples' in contribution.tables else None",
+                      code.assign("specimens", code.call("aniso.add_tensors_to_specimens_table", code.Name("specimens"),
+                                                         code.Name("tensors"), code.Name("samples")))]
+        self.save.offer(lambda df: anisotropy.add_tensors_to_specimens_table(df, tensors, samples), save_lines,
+                        self.code.text.splitlines())
+
+    def panel(self) -> pn.Column:
+        options = pn.Row(self.protocol, pn.Column(self.baseline, margin=(22, 0, 0, 10)), align="start")
+        return pn.Column(options, self.summary, self.problems, self.table, self.save.panel(), self.code.panel(),
+                         sizing_mode="stretch_width")
+
+
 TABS = [("eigenvectors", "Eigenvectors", EigenvectorsView), ("shape", "Shape", ShapeView),
-        ("specimens", "Specimens", SpecimensView)]
+        ("specimens", "Specimens", SpecimensView), ("reduce", "Reduce", ReduceView)]

@@ -20,7 +20,8 @@ pn = pytest.importorskip("panel")
 
 from pmagpy import anisotropy  # noqa: E402
 from pmagpy_anisotropy import app, session as ss  # noqa: E402
-from pmagpy_anisotropy.views import EigenvectorsView, SelectionView, ShapeView, SpecimensView  # noqa: E402
+from pmagpy_anisotropy.views import (DataView, EigenvectorsView, ReduceView, SelectionView,  # noqa: E402
+                                     ShapeView, SpecimensView)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
@@ -314,11 +315,133 @@ class TestSpecimensView:
         assert view.table.value.empty and list(view.table.value.columns) == SpecimensView.COLUMNS
 
 
+# ----------------------------------------------------------------------------- measurements -> tensors
+@pytest.fixture(scope="module")
+def aarm_measurements():
+    """McMurdo's 323 LP-AN-ARM measurement rows (the 6.6 MB table is mostly demagnetization)."""
+    m = pd.read_csv(os.path.join(EXAMPLE, "measurements.txt"), sep="\t", skiprows=1, low_memory=False)
+    return m[m["method_codes"].fillna("").str.contains("LP-AN-ARM")].reset_index(drop=True)
+
+
+@pytest.fixture
+def meas_dir(tmp_path, aarm_measurements):
+    """A directory with the AARM measurements and the samples but no specimens.txt: Reduce starts it."""
+    with open(tmp_path / "measurements.txt", "w") as fh:
+        fh.write("tab\tmeasurements\n")
+        aarm_measurements.to_csv(fh, sep="\t", index=False)
+    shutil.copy(os.path.join(EXAMPLE, "samples.txt"), tmp_path / "samples.txt")
+    return str(tmp_path)
+
+
+class TestReduceView:
+    def test_measurements_alone_open_and_reduce_to_the_stored_tensors(self, meas_dir):
+        assert ss.can_open(meas_dir) and not ss.has_specimens(meas_dir)
+        s = ss.Session(meas_dir)
+        assert s.status == f"{meas_dir}: no tensors yet — 18 specimens with AARM measurements (Reduce)"
+        assert s.n_specimens() == 0 and s.protocols() == {"AARM": 18}
+        view = ReduceView(s)
+        assert view.protocol.options == ["AARM"] and view.protocol.value == "AARM" and view.baseline.value
+        shown = view.table.value
+        assert len(shown) == 18 and list(shown.columns) == ReduceView.COLUMNS[:-1]    # no alteration checks
+        stored = pd.read_csv(os.path.join(EXAMPLE, "specimens.txt"), sep="\t", skiprows=1)
+        stored = stored[stored["aniso_s"].notna()].set_index("specimen")
+        row = shown[shown["specimen"] == "mc121d1"].iloc[0]
+        assert row["V1"] == "275.2 / 62.3" and row["aniso_s_n_measurements"] == 9      # positions, as aarm_magic counts
+        assert row["aniso_ftest"] == pytest.approx(stored.loc["mc121d1", "aniso_ftest"], abs=1e-3)
+        assert "specimens reduced" in view.summary.object and "not reduced" not in view.summary.object
+        assert view.problems.object == "" and not view.save.button.disabled
+        assert "tensors, problems = aniso.reduce_measurements(measurements, 'AARM', baseline=True)" in code_text(view)
+        assert "measurements = contribution.tables['measurements'].df" in code_text(view)
+        # without the baseline the residual ARM left after each AF step is fit as if it were acquired
+        # in the field: a different tensor (aarm_magic subtracts it; only the antipodal 6-position
+        # ATRM design cancels an offset — see test_anisotropy.py)
+        sigma = view.tensors.set_index("specimen")["aniso_s_sigma"]
+        view.set_parameters(baseline=False)
+        assert "baseline=False" in code_text(view)
+        again = view.tensors.set_index("specimen")
+        assert again["aniso_v1"].loc["mc121d1"] != "0.356621:275.2:62.3"
+        assert (again["aniso_s_sigma"] != sigma).all()
+        view.set_parameters(baseline=True)
+        assert view.tensors.set_index("specimen")["aniso_v1"].loc["mc121d1"] == "0.356621:275.2:62.3"
+
+    def test_the_save_starts_the_specimens_table_and_the_views_follow(self, meas_dir):
+        s = ss.Session(meas_dir)
+        view = ReduceView(s)
+        eigen, pickers, data = EigenvectorsView(s), SelectionView(s), DataView(s, chooser_available=False)
+        assert eigen.stats is None and pickers.group.options == [ss.ALL]
+        assert "0 specimens with tensors" in data.summary.object
+        assert view.save.button.name == "Save to specimens.txt" and not view.save.button.disabled
+        path = view.save.save()
+        assert path == os.path.join(meas_dir, "specimens.txt")
+        specimens = pd.read_csv(path, sep="\t", skiprows=1)
+        assert len(specimens) == 18 and set(specimens["aniso_type"]) == {"AARM"}
+        assert set(specimens["method_codes"]) == {"LP-AN-ARM:AE-H"}
+        assert set(specimens["software_packages"]) == {s.project.software_tag}
+        assert set(specimens["experiments"]) == {f"{name}-LP-AN-ARM" for name in specimens["specimen"]}
+        assert (specimens["aniso_tilt_correction"] == -1).all() and (specimens["citations"] == "This study").all()
+        assert specimens["sample"].isna().all()   # no sample column in these measurements, none listed in samples.txt
+        # the session re-read the table it just wrote and every view moved with it
+        assert s.version >= 2 and s.n_specimens() == 18
+        assert s.status.startswith("18 specimens with tensors (AARM)")
+        assert eigen.stats is not None and eigen.stats["n"] == 18
+        assert "18 specimens with tensors" in data.summary.object
+        assert pickers.group.options == [ss.ALL] and pickers.coordinates.value.startswith("specimen (18)")
+        assert "already in specimens.txt as AARM" in view.summary.object
+        assert "specimens.py" in view.save.note.object
+        text = code_text(view)
+        assert "samples = contribution.tables['samples'].df if 'samples' in contribution.tables else None" in text
+        assert "specimens = aniso.add_tensors_to_specimens_table(specimens, tensors, samples)" in text
+        assert "contribution.add_magic_table('specimens', df=specimens)" in text
+        # the emitted code, run on a fresh copy of the measurements, writes the same table
+        fresh = os.path.join(meas_dir, "fresh")
+        os.mkdir(fresh)
+        for name in ("measurements.txt", "samples.txt"):
+            shutil.copy(os.path.join(meas_dir, name), os.path.join(fresh, name))
+        exec(text.replace(f"'{meas_dir}'", f"'{fresh}'"), {"__name__": "__notebook__"})
+        again = pd.read_csv(os.path.join(fresh, "specimens.txt"), sep="\t", skiprows=1)
+        assert list(again["aniso_s"]) == list(specimens["aniso_s"])
+        # saving the same tensors again replaces them in place
+        view.save.save()
+        assert len(pd.read_csv(path, sep="\t", skiprows=1)) == 18
+
+    def test_tensors_already_in_the_table_are_counted_and_replaced(self, copy_dir, aarm_measurements):
+        with open(os.path.join(copy_dir, "measurements.txt"), "w") as fh:
+            fh.write("tab\tmeasurements\n")
+            aarm_measurements.to_csv(fh, sep="\t", index=False)
+        s = ss.Session(copy_dir)
+        view = ReduceView(s)
+        assert ">18<" in view.summary.object and "already in specimens.txt as AARM" in view.summary.object
+        before = pd.read_csv(os.path.join(copy_dir, "specimens.txt"), sep="\t", skiprows=1)
+        view.save.save()
+        assert "18 rows updated" in view.save.note.object
+        after = pd.read_csv(os.path.join(copy_dir, "specimens.txt"), sep="\t", skiprows=1)
+        assert len(after) == len(before)                       # the 19th stored tensor has no measurements here
+        assert s.n_specimens() == 19 and s.status.startswith("19 specimens with tensors (AARM)")
+        replaced = after[after["specimen"] == "mc121d1"]
+        replaced = replaced[replaced["aniso_s"].notna()].iloc[0]
+        assert replaced["sample"] == "mc121d" and replaced["software_packages"] == s.project.software_tag
+        assert replaced["aniso_v1"] == "0.356621:275.2:62.3"   # lower hemisphere, where the stored one was upper
+
+    def test_a_directory_without_anisotropy_measurements_has_nothing_to_reduce(self, copy_dir):
+        s = ss.Session(copy_dir)
+        assert s.protocols() == {}
+        view = ReduceView(s)
+        assert view.protocol.options == [] and view.table.value.empty
+        assert view.save.button.disabled and "nothing to reduce" in view.save.note.object
+        assert "# nothing to reduce" in code_text(view)
+
+    def test_the_view_renders_from_a_measurements_dataframe(self, aarm_measurements):
+        view = ReduceView(aarm_measurements)
+        assert len(view.table.value) == 18 and view.protocol.options == ["AARM"]
+        assert "# measurements: the DataFrame this view was given" in code_text(view)
+        assert view.save.button.disabled and "in a notebook" in view.save.note.object
+
+
 # ----------------------------------------------------------------------------- the application
 class TestApp:
     def test_the_body_has_the_side_column_and_a_tab_per_view(self, session):
         body = app.build_body(session)
-        assert [key for key in body.views] == ["eigenvectors", "shape", "specimens"]
+        assert [key for key in body.views] == ["eigenvectors", "shape", "specimens", "reduce"]
         assert isinstance(body.views["eigenvectors"], EigenvectorsView)
         assert isinstance(body.selection, SelectionView)
         template = app.create_app(EXAMPLE)

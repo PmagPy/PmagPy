@@ -633,11 +633,22 @@ Intensity were built.
    `specimens` list, the mean tensor and bootstrap parameters as JSON in
    `description`) → `add_mean_to_table`, a row of its own on `sites.txt` /
    `samples.txt` replaced on a re-save of the same type and frame; the
-   calls are appended to `sites.py`. Not yet: reducing
-   `LP-AN-ARM`/`LP-AN-TRM` measurements to tensors
-   (`ipmag.aarm_magic`/`atrm_magic`) (QUESTIONS 33–42). *Next*: that
-   Reduce view, the notebook switch-over in RockmagPy-notebooks
-   (QUESTIONS 12).
+   calls are appended to `sites.py`. *Reduce built* (2026-09-02): the
+   **Reduce** tab fits one tensor per specimen from the directory's
+   `LP-AN-ARM`/`LP-AN-TRM` steps (`anisotropy.reduce_measurements` →
+   `design_matrix`/`fit_tensor`, the field directions from
+   `treat_dc_field_phi/theta` or the 6/9/15-position schemes, the zero-field
+   step before each position as baseline, `LT-PTRM-I` → `aniso_alt`; Hext
+   statistics per specimen) and saves them to `specimens.txt` through
+   `TableSave` (`add_tensors_to_specimens_table`: replace the same
+   type+frame, else a row), after which the session re-reads its tables
+   (`Session.version`) and every tab follows. A directory with anisotropy
+   measurements and no `specimens.txt` now opens, on that tab. Reproduces
+   `aarm_magic` (McMurdo, 17/18) and `atrm_magic` (30 specimens) to 1e-7;
+   differences are logged in QUESTIONS 43. Not yet: the 15-position AMS
+   reduction of Kappabridge measurements without `aniso_s`. *Next*: the
+   notebook switch-over in RockmagPy-notebooks (QUESTIONS 12), the
+   MagIC-layer fixes in §4.
 5. **The rest of Pmag GUI, one decision at a time** — see the table below.
    *Retires `pmag_gui.py`.*
 

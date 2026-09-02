@@ -562,3 +562,315 @@ def add_mean_to_table(table: Optional[pd.DataFrame], level: str, name: str, reco
         if column not in table.columns:
             table[column] = np.nan
     return pd.concat([table, pd.DataFrame([row], columns=table.columns)], ignore_index=True).astype(object)
+
+
+# ----------------------------------------------------------------------------- tensors from measurements
+# the standard position schemes (Tauxe, Essentials, Appendix D.2) as (phi, theta) of the applied field
+# in specimen coordinates, in measurement order — used when a file does not say where the field was
+POSITION_SCHEMES = {
+    6: [(0., 0.), (90., 0.), (0., 90.), (180., 0.), (270., 0.), (0., -90.)],
+    9: [(315., 0.), (225., 0.), (180., 0.), (90., -45.), (270., -45.), (270., 0.), (180., 45.), (180., -45.),
+        (0., -90.)],
+    15: [(315., 0.), (225., 0.), (180., 0.), (135., 0.), (45., 0.), (90., -45.), (270., -45.), (270., 0.),
+         (270., 45.), (90., 45.), (180., 45.), (180., -45.), (0., -90.), (0., -45.), (0., 45.)],
+}
+TENSOR_COLUMNS = ['aniso_type', 'aniso_tilt_correction', 'aniso_s', 'aniso_s_mean', 'aniso_s_unit',
+                  'aniso_s_n_measurements', 'aniso_s_sigma', 'aniso_v1', 'aniso_v2', 'aniso_v3', *SHAPE_COLUMNS,
+                  'aniso_ftest', 'aniso_ftest12', 'aniso_ftest23', 'aniso_ftest_quality', 'aniso_alt',
+                  'method_codes', 'description', 'experiments']     # what a specimen's tensor writes on its row
+# the remanence acquired in each field step of a protocol, and the zero-field step that is its baseline
+PROTOCOLS = {'AARM': {'code': 'LP-AN-ARM', 'in_field': 'LT-AF-I', 'zero_field': 'LT-AF-Z'},
+             'ATRM': {'code': 'LP-AN-TRM', 'in_field': 'LT-T-I', 'zero_field': 'LT-T-Z'}}
+
+
+def design_matrix(directions) -> tuple:
+    """The least-squares design of an anisotropy experiment.
+
+    A unit field along direction ``i`` gives the moment
+    ``M_i = s · H_i`` with ``s`` the symmetric tensor, so each measured
+    vector contributes three rows to a design matrix ``A`` over the six
+    elements ``[s11, s22, s33, s12, s23, s13]`` (``pmag.design``,
+    ``ipmag.get_matrix``). The tensor is ``B · K`` with ``B = (AᵀA)⁻¹Aᵀ`` and
+    ``K`` the measured components in order.
+
+    Args:
+        directions: ``(n, 2)`` declination, inclination of the applied field
+            in each position, in specimen coordinates.
+
+    Returns:
+        ``(A, B, H)``: the ``(3n, 6)`` design matrix, its ``(6, 3n)``
+        pseudo-inverse and the ``(n, 3)`` unit field vectors.
+
+    Raises:
+        ValueError: with fewer than six positions, or with positions that do
+            not determine all six elements (e.g. all in one plane).
+    """
+    directions = np.asarray(directions, dtype=float)
+    n = len(directions)
+    if n < 6:
+        raise ValueError(f"a tensor has six elements: {n} field positions cannot determine it")
+    H = np.array([pmag.dir2cart([dec, inc, 1.0]) for dec, inc in directions], dtype=float)
+    A = np.zeros((3 * n, 6))
+    for i, (a, b, c) in enumerate(H):
+        A[3 * i] = [a, 0, 0, b, 0, c]
+        A[3 * i + 1] = [0, b, 0, a, c, 0]
+        A[3 * i + 2] = [0, 0, c, 0, b, a]
+    if np.linalg.matrix_rank(A) < 6:
+        raise ValueError("the field positions do not determine all six tensor elements")
+    B = np.linalg.inv(A.T @ A) @ A.T
+    return A, B, H
+
+
+def fit_tensor(moments, directions) -> dict:
+    """The best-fit anisotropy tensor of vector moments acquired in unit fields.
+
+    Args:
+        moments: ``(n, 3)`` Cartesian moments (baseline already removed).
+        directions: ``(n, 2)`` declination, inclination of the field in each
+            position, in specimen coordinates.
+
+    Returns:
+        ``s`` (the six elements, normalised to trace 1), ``s_mean`` (a third
+        of the raw trace: the mean moment, in the units of `moments`),
+        ``sigma`` (the standard deviation of the normalised fit; Hext 1963:
+        ``sqrt(Σ residual² / nf)``), ``nf`` (``3n − 6``), ``n_positions``,
+        the :func:`eigenparameters` and ``hext`` (:func:`specimen_hext`, or
+        None when ``nf`` is 0 or the fit is exact).
+    """
+    moments = np.asarray(moments, dtype=float)
+    A, B, H = design_matrix(directions)
+    K = moments.reshape(-1)
+    if len(K) != A.shape[0]:
+        raise ValueError(f"{len(moments)} moments for {A.shape[0] // 3} field positions")
+    raw = B @ K
+    trace = float(raw[0] + raw[1] + raw[2])
+    if trace <= 0:
+        raise ValueError("the fitted tensor has a non-positive trace: the moments do not look like an acquisition")
+    s = raw / trace
+    nf = 3 * len(moments) - 6
+    residual = K / trace - A @ s
+    sigma = float(np.sqrt(np.sum(residual ** 2) / nf)) if nf > 0 else np.nan
+    out = {'s': s, 's_mean': trace / 3, 'sigma': sigma, 'nf': nf, 'n_positions': len(moments)}
+    out.update(eigenparameters(s))
+    # an exact fit (synthetic moments) has no scatter to test against
+    out['hext'] = specimen_hext(s, sigma, len(moments)) if nf > 0 and sigma > 1e-10 else None
+    return out
+
+
+def _has_codes(series: pd.Series, code: str) -> pd.Series:
+    return series.fillna('').astype(str).str.split(':').apply(lambda codes: code in [c.strip() for c in codes])
+
+
+def field_directions(rows: pd.DataFrame) -> np.ndarray:
+    """Where the field was in each in-field step: ``treat_dc_field_phi/theta``, or the
+    standard scheme for the number of steps when the table does not say.
+
+    Raises:
+        ValueError: when the directions are missing and the count matches no
+            standard scheme (6, 9, 15).
+    """
+    n = len(rows)
+    if {'treat_dc_field_phi', 'treat_dc_field_theta'} <= set(rows.columns):
+        phi = pd.to_numeric(rows['treat_dc_field_phi'], errors='coerce')
+        theta = pd.to_numeric(rows['treat_dc_field_theta'], errors='coerce')
+        if phi.notna().all() and theta.notna().all() and phi.nunique() + theta.nunique() > 2:
+            return np.column_stack([phi.to_numpy(dtype=float), theta.to_numpy(dtype=float)])
+    if n not in POSITION_SCHEMES:
+        raise ValueError(f"{n} in-field steps without treat_dc_field_phi/theta match no standard scheme (6, 9, 15)")
+    return np.array(POSITION_SCHEMES[n], dtype=float)
+
+
+def specimen_tensor(measurements: pd.DataFrame, aniso_type: str, baseline: bool = True) -> dict:
+    """One specimen's anisotropy tensor from its remanence-acquisition steps.
+
+    Each in-field step (``LT-AF-I`` for AARM, ``LT-T-I`` for ATRM) gives a
+    moment vector; the last zero-field step measured before it (``LT-AF-Z``,
+    ``LT-T-Z``) is its baseline and is subtracted when `baseline` is True and
+    there is one — each AARM step is AF-demagnetised before it, an ATRM
+    sequence has one zero-field heating that serves every step. The field
+    direction of each step comes from ``treat_dc_field_phi/theta``
+    (:func:`field_directions`). ``ipmag.aarm_magic`` pairs the rows by order
+    and ``ipmag.atrm_magic`` never subtracts a baseline; with a table in the
+    standard order both give the same tensor as this when `baseline` matches.
+
+    Args:
+        measurements: the specimen's rows of the measurements table (any
+            experiment; the protocol's rows are picked by method code).
+        aniso_type: 'AARM' or 'ATRM'.
+        baseline: subtract the preceding zero-field step from each in-field step.
+
+    Returns:
+        :func:`fit_tensor`'s dictionary plus ``specimen``, ``experiments``,
+        ``n_baselines`` (how many steps had one) and, for ATRM with an
+        alteration check (``LT-PTRM-I``), ``alteration`` — the percent
+        difference between the repeated step and its first measurement
+        (``aniso_alt``).
+
+    Raises:
+        ValueError: when the protocol's rows are missing or cannot be fit.
+    """
+    if aniso_type not in PROTOCOLS:
+        raise ValueError(f"tensors are reduced for {sorted(PROTOCOLS)}, not {aniso_type!r}")
+    protocol = PROTOCOLS[aniso_type]
+    codes = measurements['method_codes'] if 'method_codes' in measurements.columns else pd.Series('', index=measurements.index)
+    rows = measurements[_has_codes(codes, protocol['code'])]
+    if 'treat_step_num' in rows.columns and pd.to_numeric(rows['treat_step_num'], errors='coerce').notna().all():
+        rows = rows.iloc[np.argsort(pd.to_numeric(rows['treat_step_num']).to_numpy(), kind='stable')]
+    if not len(rows):
+        raise ValueError(f"no {protocol['code']} measurements")
+    in_field = _has_codes(rows['method_codes'], protocol['in_field']).to_numpy()
+    zero_field = _has_codes(rows['method_codes'], protocol['zero_field']).to_numpy()
+    if in_field.sum() < 6:
+        raise ValueError(f"{int(in_field.sum())} {protocol['in_field']} steps; a tensor needs at least six")
+    xyz = np.array([pmag.dir2cart([d, i, m]) for d, i, m in
+                    rows[['dir_dec', 'dir_inc', 'magn_moment']].to_numpy(dtype=float)], dtype=float)
+    moments, n_baselines = [], 0
+    last_zero = None
+    for k in range(len(rows)):
+        if zero_field[k] and not in_field[k]:
+            last_zero = xyz[k]
+        elif in_field[k]:
+            if baseline and last_zero is not None:   # a baseline serves the in-field steps until the next one
+                moments.append(xyz[k] - last_zero)      # (each AARM step has its own; one heating for ATRM)
+                n_baselines += 1
+            else:
+                moments.append(xyz[k])
+    steps = rows[in_field]
+    fit = fit_tensor(np.array(moments), field_directions(steps))
+    fit['specimen'] = str(rows['specimen'].iloc[0]) if 'specimen' in rows.columns else ''
+    fit['experiments'] = ':'.join(sorted(rows['experiment'].dropna().astype(str).unique())) \
+        if 'experiment' in rows.columns else ''
+    fit['n_baselines'] = n_baselines
+    fit['alteration'] = np.nan
+    if aniso_type == 'ATRM':
+        checks = measurements[_has_codes(codes, 'LT-PTRM-I') & _has_codes(codes, protocol['code'])]
+        if len(checks) and {'treat_dc_field_phi', 'treat_dc_field_theta'} <= set(steps.columns):
+            check = checks.iloc[-1]
+            phi, theta = float(check['treat_dc_field_phi']), float(check['treat_dc_field_theta'])
+            first = steps[(pd.to_numeric(steps['treat_dc_field_phi'], errors='coerce') == phi)
+                          & (pd.to_numeric(steps['treat_dc_field_theta'], errors='coerce') == theta)]
+            if len(first):
+                m1, m2 = float(first['magn_moment'].iloc[0]), float(check['magn_moment'])
+                fit['alteration'] = 100 * abs(m1 - m2) / np.mean([m1, m2])
+    return fit
+
+
+def tensor_record(fit: dict, aniso_type: str, unit: str = 'Am^2') -> dict:
+    """The specimens-table columns for one specimen's tensor (:func:`specimen_tensor`)."""
+    record = {'aniso_type': aniso_type, 'aniso_tilt_correction': -1, 'aniso_s': format_s(fit['s']),
+              'aniso_s_mean': float(fit['s_mean']), 'aniso_s_unit': unit,
+              'aniso_s_n_measurements': int(fit['n_positions']),
+              'aniso_s_sigma': round(float(fit['sigma']), 8) if np.isfinite(fit['sigma']) else np.nan}
+    for i in (1, 2, 3):
+        record[f'aniso_v{i}'] = eigenparameter_cell(fit[f'tau{i}'], fit[f'v{i}_dec'], fit[f'v{i}_inc'])
+    record.update({key: round(float(fit[key]), 6) for key in SHAPE_COLUMNS})
+    codes = [TYPE_METHOD_CODES.get(aniso_type, 'LP-AN')]
+    h = fit.get('hext')
+    if h is not None:
+        record.update({'aniso_ftest': round(float(h['F']), 4), 'aniso_ftest12': round(float(h['F12']), 4),
+                       'aniso_ftest23': round(float(h['F23']), 4),
+                       'aniso_ftest_quality': 'g' if float(h['F']) > float(h['F_crit']) else 'b',
+                       'description': f"Critical F: {float(h['F_crit']):.4f}"})
+        codes.append('AE-H')
+    if np.isfinite(fit.get('alteration', np.nan)):
+        record['aniso_alt'] = round(float(fit['alteration']), 2)
+    record['method_codes'] = ':'.join(codes)
+    if fit.get('experiments'):
+        record['experiments'] = fit['experiments']
+    return record
+
+
+def reduce_measurements(measurements: pd.DataFrame, aniso_type: str, baseline: bool = True,
+                        specimens=None) -> tuple:
+    """Every specimen's tensor from a measurements table.
+
+    Args:
+        measurements: the MagIC measurements table.
+        aniso_type: 'AARM' or 'ATRM' — which protocol's rows to reduce.
+        baseline: see :func:`specimen_tensor`.
+        specimens: names to reduce, or None for every specimen with the protocol's rows.
+
+    Returns:
+        ``(tensors, problems)``: a DataFrame with one :func:`tensor_record`
+        row per specimen (``specimen`` first, in natural table order, then
+        ``sample`` when the measurements name it) and a ``{specimen: reason}``
+        dict for the specimens that could not be reduced.
+    """
+    protocol = PROTOCOLS[aniso_type] if aniso_type in PROTOCOLS else None
+    if protocol is None:
+        raise ValueError(f"tensors are reduced for {sorted(PROTOCOLS)}, not {aniso_type!r}")
+    rows = measurements[_has_codes(measurements['method_codes'], protocol['code'])] \
+        if 'method_codes' in measurements.columns else measurements.iloc[0:0]
+    names = list(dict.fromkeys(rows['specimen'].astype(str))) if len(rows) else []
+    if specimens is not None:
+        wanted = [str(name) for name in specimens]
+        names = [name for name in names if name in wanted]
+    records, problems = [], {}
+    for name in names:
+        mine = rows[rows['specimen'].astype(str) == name]
+        try:
+            fit = specimen_tensor(mine, aniso_type, baseline=baseline)
+        except ValueError as ex:
+            problems[name] = str(ex)
+            continue
+        sample = mine['sample'].dropna() if 'sample' in mine.columns else pd.Series(dtype=object)
+        records.append({'specimen': name, 'sample': str(sample.iloc[0]) if len(sample) else np.nan,
+                        **tensor_record(fit, aniso_type)})
+    columns = ['specimen', 'sample', *TENSOR_COLUMNS]
+    tensors = pd.DataFrame(records, columns=columns) if records else pd.DataFrame(columns=columns)
+    return tensors.dropna(axis=1, how='all') if len(tensors) else tensors, problems
+
+
+def add_tensors_to_specimens_table(specimens: Optional[pd.DataFrame], tensors: pd.DataFrame,
+                                   samples: Optional[pd.DataFrame] = None) -> pd.DataFrame:
+    """Put reduced tensors (:func:`reduce_measurements`) on the specimens table.
+
+    A specimen's row that already carries a tensor of the same ``aniso_type``
+    in specimen coordinates is replaced (its tensor columns cleared first);
+    a specimen with rows but no such tensor gets a row of its own, copying
+    ``sample`` from its first row; a specimen the table does not know gets a
+    new row with the ``sample`` the tensors carry (from the measurements) or,
+    failing that, looked up in `samples` (by specimen name when the samples
+    table lists its specimens). Rows carry ``citations = 'This study'``.
+    Nothing else on the table is touched.
+
+    Returns:
+        The table with the tensors on it (a new, object-dtype DataFrame).
+    """
+    table = pd.DataFrame(columns=['specimen']) if specimens is None or not len(specimens) else specimens.copy()
+    if 'specimen' not in table.columns:
+        raise ValueError("the specimens table has no 'specimen' column")
+    for column in ['specimen', 'sample', 'citations', *TENSOR_COLUMNS]:
+        if column not in table.columns:
+            table[column] = np.nan
+    table = table.astype(object)
+    new_rows = []
+    for _, tensor in tensors.iterrows():
+        record = {k: v for k, v in tensor.items()
+                  if k not in ('specimen', 'sample') and not (isinstance(v, float) and np.isnan(v))}
+        name = str(tensor['specimen'])
+        mine = table[table['specimen'].astype(str) == name]
+        frame = pd.to_numeric(mine['aniso_tilt_correction'], errors='coerce') if len(mine) else pd.Series(dtype=float)
+        same = mine[(mine['aniso_type'].astype(str) == str(record['aniso_type'])) & (frame == -1)] if len(mine) else mine
+        if len(same):
+            index = same.index[0]
+            for column in TENSOR_COLUMNS:
+                table.at[index, column] = record.get(column, np.nan)
+            table.at[index, 'citations'] = table.at[index, 'citations'] if pd.notna(table.at[index, 'citations']) \
+                else 'This study'
+            continue
+        row = {'specimen': name, 'citations': 'This study'}
+        if len(mine) and pd.notna(mine.iloc[0]['sample']):
+            row['sample'] = mine.iloc[0]['sample']
+        elif 'sample' in tensor.index and pd.notna(tensor['sample']):
+            row['sample'] = tensor['sample']
+        elif samples is not None and 'specimens' in samples.columns and 'sample' in samples.columns:
+            listed = samples[samples['specimens'].fillna('').astype(str).str.split(':')
+                             .apply(lambda names: name in [n.strip() for n in names])]
+            if len(listed):
+                row['sample'] = listed.iloc[0]['sample']
+        row.update(record)
+        new_rows.append(row)
+    if new_rows:
+        table = pd.concat([table, pd.DataFrame(new_rows, columns=table.columns)], ignore_index=True)
+    return table.astype(object)

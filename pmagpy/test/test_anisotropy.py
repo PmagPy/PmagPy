@@ -313,3 +313,161 @@ class TestMeanRecord:
             aniso.add_mean_to_table(samples, "location", "McMurdo", record)
         with pytest.raises(ValueError):
             aniso.add_mean_to_table(pd.DataFrame({"specimen": ["a"]}), "site", "mc121", record)
+
+
+# ----------------------------------------------------------------------------- tensors from measurements
+ATRM = os.path.join(HERE, "..", "..", "data_files", "atrm_magic")
+
+
+@pytest.fixture(scope="module")
+def mcmurdo_measurements():
+    return pd.read_csv(os.path.join(MCMURDO, "measurements.txt"), sep="\t", header=1, low_memory=False)
+
+
+class TestDesign:
+    def test_the_standard_schemes_give_the_legacy_design(self):
+        from pmagpy import ipmag
+        for n in (6, 9, 15):
+            A, B, H = aniso.design_matrix(aniso.POSITION_SCHEMES[n])
+            legacy = ipmag.get_matrix(n)
+            assert_allclose(A, legacy["A"], atol=1e-6)
+            assert_allclose(B, legacy["B"], atol=1e-5)
+            assert_allclose(H, legacy["tmpH"], atol=1e-6)
+
+    def test_a_known_tensor_is_recovered_exactly_from_synthetic_moments(self):
+        s = np.array([0.30, 0.35, 0.35, 0.01, -0.02, 0.005])
+        a = np.array([[s[0], s[3], s[5]], [s[3], s[1], s[4]], [s[5], s[4], s[2]]])
+        for n in (6, 9, 15):
+            A, B, H = aniso.design_matrix(aniso.POSITION_SCHEMES[n])
+            moments = 2e-6 * (H @ a.T)                                   # M_i = a · H_i, scaled
+            fit = aniso.fit_tensor(moments, aniso.POSITION_SCHEMES[n])
+            assert_allclose(fit["s"], s, atol=1e-12)
+            assert fit["s_mean"] == pytest.approx(2e-6 / 3) and fit["nf"] == 3 * n - 6
+            assert fit["sigma"] == pytest.approx(0, abs=1e-12) and fit["hext"] is None   # an exact fit has no scatter
+            assert fit["tau1"] == pytest.approx(max(np.linalg.eigvalsh(a)))
+
+    def test_too_few_or_coplanar_positions_are_refused(self):
+        with pytest.raises(ValueError, match="six"):
+            aniso.design_matrix(aniso.POSITION_SCHEMES[6][:5])
+        with pytest.raises(ValueError, match="determine"):
+            aniso.design_matrix([(d, 0.0) for d in (0, 30, 60, 90, 120, 150)])   # all in the horizontal plane
+        with pytest.raises(ValueError, match="standard scheme"):
+            aniso.field_directions(pd.DataFrame({"dir_dec": np.zeros(7)}))
+
+
+class TestReduce:
+    def test_aarm_from_mcmurdo_matches_the_stored_tensors(self, mcmurdo, mcmurdo_measurements):
+        specimens, _ = mcmurdo
+        tensors, problems = aniso.reduce_measurements(mcmurdo_measurements, "AARM")
+        assert problems == {} and len(tensors) == 18                     # mc15c2 has a tensor but no measurements
+        stored = specimens[specimens["aniso_s"].notna()].set_index("specimen")
+        for _, row in tensors.iterrows():
+            if row["specimen"] == "mc15h":                                # 8 positions measured: see below
+                continue
+            assert_allclose(aniso.parse_s(row["aniso_s"]), aniso.parse_s(stored.loc[row["specimen"], "aniso_s"]),
+                            atol=1e-6)
+            assert row["aniso_s_sigma"] == pytest.approx(float(stored.loc[row["specimen"], "aniso_s_sigma"]), abs=2e-6)
+            assert row["aniso_ftest"] == pytest.approx(float(stored.loc[row["specimen"], "aniso_ftest"]), abs=1e-3)
+            assert row["aniso_s_n_measurements"] == 9 and row["aniso_s_mean"] == pytest.approx(
+                float(stored.loc[row["specimen"], "aniso_s_mean"]), rel=5e-3)          # stored to 3 figures
+        row = tensors.set_index("specimen").loc["mc121d1"]
+        assert row["method_codes"] == "LP-AN-ARM:AE-H" and row["aniso_ftest_quality"] == "g"
+        assert row["aniso_v1"] == "0.356621:275.2:62.3" and row["description"] == "Critical F: 2.6848"
+        assert row["experiments"] == "mc121d1-LP-AN-ARM" and row["aniso_s_unit"] == "Am^2"
+        assert row["aniso_tilt_correction"] == -1 and "aniso_alt" not in tensors.columns
+        # mc15h lacks the ninth position: its eight field directions are fit as measured
+        h = tensors.set_index("specimen").loc["mc15h"]
+        assert h["aniso_s_n_measurements"] == 8
+        fit = aniso.specimen_tensor(mcmurdo_measurements[mcmurdo_measurements["specimen"] == "mc15h"], "AARM")
+        assert fit["nf"] == 18 and fit["n_baselines"] == 8
+
+    def test_the_baseline_is_the_zero_field_step_before_each_position(self, mcmurdo_measurements):
+        rows = mcmurdo_measurements[mcmurdo_measurements["specimen"] == "mc121d1"]
+        with_baseline = aniso.specimen_tensor(rows, "AARM")
+        without = aniso.specimen_tensor(rows, "AARM", baseline=False)
+        assert with_baseline["n_baselines"] == 9 and without["n_baselines"] == 0
+        assert not np.allclose(with_baseline["s"], without["s"], atol=1e-4)
+        # by hand: pair each LT-AF-I row with the LT-AF-Z row before it
+        arm = rows[rows["method_codes"].str.contains("LP-AN-ARM")].sort_values("treat_step_num")
+        xyz = np.array([pmag.dir2cart(list(v)) for v in arm[["dir_dec", "dir_inc", "magn_moment"]].to_numpy(float)])
+        moments = xyz[1::2] - xyz[0::2]
+        directions = arm.iloc[1::2][["treat_dc_field_phi", "treat_dc_field_theta"]].to_numpy(float)
+        assert_allclose(with_baseline["s"], aniso.fit_tensor(moments, directions)["s"], atol=1e-12)
+        with pytest.raises(ValueError, match="at least six"):
+            aniso.specimen_tensor(arm.iloc[:8], "AARM")
+        with pytest.raises(ValueError, match="no LP-AN-TRM"):
+            aniso.specimen_tensor(rows, "ATRM")
+
+    def test_atrm_without_baseline_matches_atrm_magic_and_with_it_gains_its_scatter(self):
+        measurements = pd.read_csv(os.path.join(ATRM, "measurements.txt"), sep="\t", header=1, low_memory=False)
+        stored = pd.read_csv(os.path.join(ATRM, "specimens.txt"), sep="\t", header=1).set_index("specimen")
+        legacy, problems = aniso.reduce_measurements(measurements, "ATRM", baseline=False)
+        assert problems == {} and len(legacy) == 30
+        for _, row in legacy.iterrows():
+            assert_allclose(aniso.parse_s(row["aniso_s"]), aniso.parse_s(stored.loc[row["specimen"], "aniso_s"]),
+                            atol=1e-7)
+            assert row["aniso_ftest"] == pytest.approx(float(stored.loc[row["specimen"], "aniso_ftest"]), abs=1e-3)
+        assert "aniso_alt" not in legacy.columns and (stored["aniso_alt"] == 0).all()   # no checks: nothing to report
+        assert legacy.iloc[0]["method_codes"] == "LP-AN-TRM:AE-H" and legacy.iloc[0]["aniso_s_n_measurements"] == 6
+        # the six antipodal positions cancel a constant offset in the tensor but not in the residuals
+        tensors, _ = aniso.reduce_measurements(measurements, "ATRM", baseline=True)
+        a, b = tensors.set_index("specimen").loc["ak01a"], legacy.set_index("specimen").loc["ak01a"]
+        assert_allclose(aniso.parse_s(a["aniso_s"]), aniso.parse_s(b["aniso_s"]), atol=1e-7)
+        assert a["aniso_s_sigma"] < b["aniso_s_sigma"] / 3 and a["aniso_ftest"] > b["aniso_ftest"]
+        fit = aniso.specimen_tensor(measurements[measurements["specimen"] == "ak01a"], "ATRM")
+        assert fit["n_baselines"] == 6                                    # one zero-field heating serves all six
+        # a chosen subset, and a protocol the table does not have
+        some, _ = aniso.reduce_measurements(measurements, "ATRM", specimens=["ak01a", "nope"])
+        assert list(some["specimen"]) == ["ak01a"]
+        none, problems = aniso.reduce_measurements(measurements, "AARM")
+        assert none.empty and problems == {}
+        with pytest.raises(ValueError):
+            aniso.reduce_measurements(measurements, "AMS")
+
+    def test_an_alteration_check_becomes_aniso_alt(self):
+        megiddo = os.path.join(HERE, "..", "..", "data_files", "3_0", "Megiddo")
+        measurements = pd.read_csv(os.path.join(megiddo, "measurements.txt"), sep="\t", header=1, low_memory=False)
+        rows = measurements[measurements["specimen"] == "hz05a1"]
+        fit = aniso.specimen_tensor(rows, "ATRM")
+        stored = pd.read_csv(os.path.join(megiddo, "specimens.txt"), sep="\t", header=1)
+        stored = stored[(stored["specimen"] == "hz05a1") & (stored["aniso_type"] == "ATRM")].iloc[0]
+        assert_allclose(fit["s"], aniso.parse_s(stored["aniso_s"]), atol=2e-6)      # the offset cancels in s
+        # the repeated first position (LT-PTRM-I) against its first measurement, in percent of their mean
+        first, again = 2.12e-07, 2.09e-07
+        assert fit["alteration"] == pytest.approx(100 * abs(first - again) / np.mean([first, again]), rel=1e-6)
+        record = aniso.tensor_record(fit, "ATRM")
+        assert record["aniso_alt"] == pytest.approx(fit["alteration"], abs=0.01) and record["aniso_s_n_measurements"] == 6
+
+
+class TestAddTensors:
+    def test_tensors_replace_or_join_the_specimens_table(self, mcmurdo, mcmurdo_measurements):
+        specimens, samples = mcmurdo
+        tensors, _ = aniso.reduce_measurements(mcmurdo_measurements, "AARM")
+        out = aniso.add_tensors_to_specimens_table(specimens, tensors)
+        assert len(out) == len(specimens)                                  # every specimen already had an AARM row
+        got = out[out["aniso_s"].notna()].set_index("specimen")
+        assert got.loc["mc121d1", "aniso_s"] == tensors.set_index("specimen").loc["mc121d1", "aniso_s"]
+        assert got.loc["mc121d1", "sample"] == "mc121d" and got.loc["mc121d1", "method_codes"] == "LP-AN-ARM:AE-H"
+        assert got.loc["mc121d1", "aniso_s_mean"] == pytest.approx(5.973e-05, rel=1e-3)
+        untouched = specimens[(specimens["specimen"] == "mc15c2") & specimens["aniso_s"].notna()]["aniso_s"].iloc[0]
+        assert out[(out["specimen"] == "mc15c2") & out["aniso_s"].notna()]["aniso_s"].iloc[0] == untouched
+        # a specimen with rows but no tensor gets a row; an unknown specimen gets one with its sample looked up
+        bare = specimens[specimens["aniso_s"].isna()]
+        out = aniso.add_tensors_to_specimens_table(bare, tensors.iloc[:2], samples)
+        assert len(out) == len(bare) + 2
+        assert out.iloc[-2]["specimen"] == "mc121d1" and out.iloc[-2]["sample"] == "mc121d"
+        assert out.iloc[-2]["citations"] == "This study" and out.iloc[-2]["aniso_type"] == "AARM"
+        assert "sample" not in tensors.columns                              # McMurdo's measurements have no sample column
+        named = mcmurdo_measurements.assign(sample=mcmurdo_measurements["specimen"].str[:-1])
+        named, _ = aniso.reduce_measurements(named, "AARM", specimens=["mc121d1"])
+        assert list(named.columns[:2]) == ["specimen", "sample"] and named.iloc[0]["sample"] == "mc121d"
+        fresh = aniso.add_tensors_to_specimens_table(None, named)
+        assert len(fresh) == 1 and fresh.iloc[0]["sample"] == "mc121d"     # the measurements name the sample
+        nameless = tensors.iloc[:1]
+        listed = pd.DataFrame({"sample": ["mc121d"], "specimens": ["mc121d1:mc121d2"]})
+        fresh = aniso.add_tensors_to_specimens_table(None, nameless, listed)
+        assert fresh.iloc[0]["sample"] == "mc121d"                          # or a samples table listing its specimens
+        alone = aniso.add_tensors_to_specimens_table(None, nameless)
+        assert pd.isna(alone.iloc[0]["sample"])
+        with pytest.raises(ValueError):
+            aniso.add_tensors_to_specimens_table(pd.DataFrame({"sample": ["a"]}), tensors)

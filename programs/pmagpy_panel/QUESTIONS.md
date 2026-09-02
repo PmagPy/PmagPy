@@ -385,3 +385,43 @@ the bottom; struck through once settled.
     want uploaded? Also: `specimens` on that row lists the specimens the mean
     was taken over (colon-joined), which is the `specimens` column's meaning
     on sites rows — confirm that this is right for a fabric mean.
+
+43. **Reducing measurements to tensors — the choices made** (answering 40:
+    refactored, not wrapped). `pmagpy/anisotropy.py` now has
+    `design_matrix`/`fit_tensor`/`specimen_tensor`/`reduce_measurements`
+    /`tensor_record`/`add_tensors_to_specimens_table`, and the app's
+    **Reduce** tab runs them. They reproduce `aarm_magic` on McMurdo (17 of
+    18 specimens to 1e-8) and `atrm_magic` on its example (30 specimens to
+    5e-8), with these differences to confirm:
+    - *Field directions come from the table.* `treat_dc_field_phi/theta` are
+      used when present; the fixed 6/9/15-position schemes only when they are
+      missing (aarm_magic assumes the scheme from the count; atrm_magic
+      requires phi/theta). The 18th McMurdo specimen, `mc15h`, has 8
+      positions — aarm_magic refuses it, the new code fits it (nf = 18);
+      a table's own directions seem the right authority. Agree?
+    - *The zero-field baseline is subtracted by default for both protocols.*
+      aarm_magic subtracts the AF-demagnetized remanence before each ARM step;
+      atrm_magic does not subtract the `LT-T-Z` step. For the antipodal
+      6-position ATRM design a constant offset cancels in `s`, so the
+      tensors are identical either way, but it stays in the residuals:
+      atrm_magic's σ is ~3× larger and its F tests are biased low. The
+      Reduce tab has a checkbox (on by default); for AARM turning it off
+      fits the residual ARM as if acquired in the field — a different
+      tensor. Keep the checkbox, or hide it and always subtract?
+    - *`aniso_alt`.* Written only when there is an `LT-PTRM-I` check, as
+      atrm_magic's 100·|m₁ − m₂| / mean of the scalar moments (repeat of
+      the first position). Megiddo `hz05a1` gives 1.43 % this way; the stored
+      row (from thellier_gui) says 2.13. Which definition should `aniso_alt`
+      carry (scalar vs vector difference; percent of what)? atrm_magic
+      writes `aniso_alt = 0` when there is no check — the new code leaves
+      the cell empty, since 0 % alteration was not measured.
+    - *A baseline serves the in-field steps that follow it* until the next
+      zero-field step (ATRM: one `LT-T-Z` for six positions; AARM: one
+      `LT-AF-Z` per position). Fine for the standard protocols; an ARM
+      experiment with a single leading demagnetization would be treated as
+      ATRM is.
+    - *`aniso_s_n_measurements`* counts positions (9 for McMurdo), as the
+      legacy code does, not measurement rows (18 with baselines).
+    - *`sample` on a new specimen row* comes from the specimen's other rows,
+      else from the measurements' `sample` column, else from a samples table
+      whose `specimens` column lists it (McMurdo's has no such column).

@@ -42,8 +42,22 @@ def session_directory(default: str) -> str:
 
 
 def has_specimens(directory: str) -> bool:
-    """A directory the application can open: it has a specimens table."""
+    """The directory has a specimens table."""
     return os.path.isdir(directory) and os.path.exists(os.path.join(directory, "specimens.txt"))
+
+
+def has_anisotropy_measurements(directory: str) -> bool:
+    """The directory's measurements table has anisotropy-protocol rows (``LP-AN-…`` method codes)."""
+    path = os.path.join(directory, "measurements.txt")
+    if not os.path.exists(path):
+        return False
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        return any("LP-AN-" in line for line in fh)
+
+
+def can_open(directory: str) -> bool:
+    """A directory the application can open: tensors to look at, or measurements to reduce into them."""
+    return has_specimens(directory) or has_anisotropy_measurements(directory)
 
 
 class Session(param.Parameterized):
@@ -55,6 +69,7 @@ class Session(param.Parameterized):
     group = param.String(default=ALL, doc="the group being looked at, or ALL")
     aniso_type = param.String(default="", doc="AMS / AARM / ATRM ...; '' for every type")
     status = param.String(default="")
+    version = param.Integer(default=0, doc="bumped whenever the tables change (a load, a reload after a save)")
 
     def __init__(self, directory: Optional[str] = None, specimens: Optional[pd.DataFrame] = None,
                  samples: Optional[pd.DataFrame] = None, sites: Optional[pd.DataFrame] = None, **params):
@@ -74,31 +89,74 @@ class Session(param.Parameterized):
     def load(self, directory: str) -> bool:
         """Read `directory`; False (with ``status`` saying why) when it cannot be read."""
         directory = os.path.abspath(os.path.expanduser(directory))
-        if not has_specimens(directory):
-            self.status = f"{directory} has no specimens.txt"
+        if not can_open(directory):
+            self.status = f"{directory} has no specimens.txt and no anisotropy measurements"
             return False
         try:
             project = MagicProject.from_directory(directory, app_id=APP.app_id)
             specimens = project.table("specimens")
+            measurements = project.table("measurements")
         except Exception as ex:                                            # a malformed table is reported, not raised
             self.status = f"could not read {directory}: {ex}"
             return False
-        if specimens is None:
+        if specimens is None and measurements is None:
             self.status = f"{directory}: specimens.txt is empty"
             return False
         self.project = project
-        self.measurements = project.table("measurements")
-        self.set_tables(specimens, project.table("samples"), project.table("sites"))
-        n = self.n_specimens()
-        if not n:
-            self.status = f"{directory}: no anisotropy tensors (aniso_s) in specimens.txt"
-        else:
-            types = ", ".join(self.types()) or "untyped"
-            frames = self.frames()
-            self.status = (f"{n} specimens with tensors ({types}) · {frames['s']} specimen"
-                           f" / {frames['g']} geographic / {frames['t']} tilt-corrected")
+        self.measurements = measurements
+        self.set_tables(specimens if specimens is not None else pd.DataFrame(columns=["specimen"]),
+                        project.table("samples"), project.table("sites"))
         self.directory = directory
+        self.status = self.describe()
         return True
+
+    def reload(self) -> bool:
+        """Re-read the directory's tables after a save, keeping the selection where it still applies."""
+        if self.project is None:
+            return False
+        keep = {"coordinates": self.coordinates, "level": self.level, "group": self.group,
+                "aniso_type": self.aniso_type}
+        project = self.project
+        specimens = project.table("specimens")
+        self.measurements = project.table("measurements")
+        self.set_tables(specimens if specimens is not None else pd.DataFrame(columns=["specimen"]),
+                        project.table("samples"), project.table("sites"))
+        if keep["group"] in self.groups(keep["level"]):
+            self.level, self.group = keep["level"], keep["group"]
+        if keep["aniso_type"] in self.types():
+            self.aniso_type = keep["aniso_type"]
+        if self.frame_counts()[keep["coordinates"]]:
+            self.coordinates = keep["coordinates"]
+        self.status = self.describe()
+        self.param.trigger("directory")        # the same directory with new contents: the chooser's counts follow
+        return True
+
+    def describe(self) -> str:
+        """The status line: the tensors in the table, or the measurements waiting to be reduced."""
+        n = self.n_specimens()
+        protocols = self.protocols()
+        waiting = " · ".join(f"{count} specimens with {kind} measurements" for kind, count in protocols.items())
+        if not n:
+            if protocols:
+                return f"{self.directory or 'this directory'}: no tensors yet — {waiting} (Reduce)"
+            return f"{self.directory}: no anisotropy tensors (aniso_s) in specimens.txt"
+        types = ", ".join(self.types()) or "untyped"
+        frames = self.frames()
+        return (f"{n} specimens with tensors ({types}) · {frames['s']} specimen"
+                f" / {frames['g']} geographic / {frames['t']} tilt-corrected")
+
+    def protocols(self) -> dict:
+        """Specimens with measurements of each reducible protocol, ``{'AARM': n, 'ATRM': n}``."""
+        m = self.measurements
+        if m is None or not len(m) or "method_codes" not in m.columns:
+            return {}
+        out = {}
+        codes = m["method_codes"].fillna("").astype(str)
+        for kind, protocol in anisotropy.PROTOCOLS.items():
+            n = int(m.loc[codes.str.contains(protocol["code"], regex=False), "specimen"].nunique())
+            if n:
+                out[kind] = n
+        return out
 
     def set_tables(self, specimens: pd.DataFrame, samples: Optional[pd.DataFrame] = None,
                    sites: Optional[pd.DataFrame] = None, status: str = "") -> None:
@@ -110,6 +168,7 @@ class Session(param.Parameterized):
         if status:
             self.status = status
         self._reset_selection()
+        self.version += 1
 
     def _reset_selection(self) -> None:
         counts = self.frame_counts()
