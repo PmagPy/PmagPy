@@ -569,8 +569,12 @@ Intensity were built.
    `int_abs_max/min`, `int_mad_coe`, `aniso_n_samples/specimens`,
    `feature_dip/_direction/_type`, `paleopole_n_sites`, `contribution.funding`,
    `measurements.files`, `magn_b_111`, `meas_field_ac/dc_phi/theta`,
-   `ages.tiepoint_height_max/min`; gone: `sites.aniso_ftest23` (a site mean's
-   F23 stays in its `description` json) and `specimens.result_type`.
+   `ages.tiepoint_height_max/min`; gone: `specimens.result_type`. The one
+   local addition: `sites.aniso_ftest23`, missing from MagIC's export while
+   specimens and samples have it — reported to earthref/MagIC by Nick
+   (2026-09-02) and carried here as it will be, copied from the samples
+   definition at position 124; the next refresh can simply take MagIC's file
+   once the fix lands (QUESTIONS 57).
    Validations the offline checker does not know (`key()`, `recommended()`)
    are ignored, as before. Refreshing is a download (QUESTIONS 57).
    **Criteria built 2026-09-02** (step 5's last row): `criteria` joined

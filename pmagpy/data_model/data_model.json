@@ -4890,10 +4890,24 @@
 						}
 					]
 				},
+				"aniso_ftest23": {
+					"label": "Anisotropy F Test Oblateness",
+					"group": "Anisotropy",
+					"position": 124,
+					"type": "Number",
+					"unit": "%",
+					"description": "F statistical test for oblateness",
+					"previous_columns": [
+						{
+							"table": "rmag_results",
+							"column": "anisotropy_ftest23"
+						}
+					]
+				},
 				"aniso_n_samples": {
 					"label": "Anisotropy N Samples",
 					"group": "Anisotropy",
-					"position": 124,
+					"position": 125,
 					"type": "Integer",
 					"description": "Number of samples included in the anisotropy calculations",
 					"validations": [
@@ -4903,7 +4917,7 @@
 				"aniso_n_specimens": {
 					"label": "Anisotropy N Specimens",
 					"group": "Anisotropy",
-					"position": 125,
+					"position": 126,
 					"type": "Integer",
 					"description": "Number of specimens included in anisotropy calculations",
 					"validations": [
@@ -4913,7 +4927,7 @@
 				"description": {
 					"label": "Description",
 					"group": "Metadata",
-					"position": 126,
+					"position": 127,
 					"type": "String",
 					"description": "Site and result description and comments",
 					"previous_columns": [
@@ -4946,7 +4960,7 @@
 				"rotation_sequence": {
 					"label": "Sequence of Rotations",
 					"group": "Metadata",
-					"position": 127,
+					"position": 128,
 					"type": "Matrix",
 					"description": "N by M matrix with N sequential rotations and the length of each row defined by the first element: the rotation type",
 					"examples": [
@@ -4981,7 +4995,7 @@
 				"criteria": {
 					"label": "Criteria Names",
 					"group": "Metadata",
-					"position": 128,
+					"position": 129,
 					"type": "List",
 					"description": "Colon-delimited list of criteria names",
 					"examples": [
@@ -5009,7 +5023,7 @@
 				"instrument_codes": {
 					"label": "Instrument Codes",
 					"group": "Metadata",
-					"position": 129,
+					"position": 130,
 					"type": "List",
 					"description": "Colon-delimited list of instrument codes",
 					"validations": [
@@ -5029,7 +5043,7 @@
 				"software_packages": {
 					"label": "Software Packages",
 					"group": "Metadata",
-					"position": 130,
+					"position": 131,
 					"type": "List",
 					"description": "Colon-delimited list of software used for data reduction",
 					"examples": [
@@ -5054,7 +5068,7 @@
 				"external_database_ids": {
 					"label": "External Database IDs",
 					"group": "Metadata",
-					"position": 131,
+					"position": 132,
 					"type": "Dictionary",
 					"description": "Dictionary of external databases and IDs where data are used",
 					"examples": [
@@ -5095,7 +5109,7 @@
 				"external_results": {
 					"label": "External Results",
 					"group": "Metadata",
-					"position": 132,
+					"position": 133,
 					"type": "Matrix",
 					"description": "List of external values associated with a site",
 					"notes": "Results are in the form of key:value:reference;key2:value2:reference2. Keys are from a controlled vocabulary, values are strings, and references should be a DOI or URL.",
@@ -5109,7 +5123,7 @@
 				"scientists": {
 					"label": "Research Scientist Names",
 					"group": "Metadata",
-					"position": 133,
+					"position": 134,
 					"type": "List",
 					"description": "Colon-delimited list of EarthRef handles or ORCIDs or names and emails for scientists who described the site",
 					"examples": [
@@ -5136,7 +5150,7 @@
 				"analysts": {
 					"label": "Analyst Names",
 					"group": "Metadata",
-					"position": 134,
+					"position": 135,
 					"type": "List",
 					"description": "Colon-delimited list of EarthRef handles or ORCIDs or names and emails for analysts",
 					"examples": [

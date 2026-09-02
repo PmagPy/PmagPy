@@ -456,9 +456,6 @@ TYPE_METHOD_CODES = {'AMS': 'LP-AN-MS', 'AARM': 'LP-AN-ARM', 'ATRM': 'LP-AN-TRM'
 MEAN_COLUMNS = ['aniso_type', 'aniso_tilt_correction', 'aniso_v1', 'aniso_v2', 'aniso_v3', *SHAPE_COLUMNS,
                 'aniso_ftest', 'aniso_ftest12', 'aniso_ftest23', 'aniso_ftest_quality', 'method_codes',
                 'description', 'specimens']              # what a mean writes on its row
-# what a table lacks of those in the MagIC data model (2025-02-26): sites has no aniso_ftest23, though
-# specimens and samples do — a site mean keeps its F23 in the description's hext json
-TABLE_LACKS = {'site': ('aniso_ftest23',), 'sample': ()}
 
 
 def mean_record(stats: dict, aniso_type: str, coordinates: str, specimens=None) -> dict:
@@ -470,8 +467,6 @@ def mean_record(stats: dict, aniso_type: str, coordinates: str, specimens=None) 
     ``aniso_ftest23`` and ``aniso_ftest_quality`` (``g`` when F exceeds its
     critical value); ``method_codes`` name the protocol (``LP-AN-ARM`` for
     AARM) and the estimation (``AE-H`` Hext, ``AE-BS``/``AE-BS-P`` bootstrap).
-    The record is the same for a sample and a site; :func:`add_mean_to_table`
-    leaves off what its table lacks (``TABLE_LACKS``).
     The tables have no column for the mean tensor itself, the number of
     specimens or the bootstrap parameters, so those go into ``description``
     as ``text | {json}`` (the convention of the rock-magnetic writers):
@@ -530,9 +525,7 @@ def add_mean_to_table(table: Optional[pd.DataFrame], level: str, name: str, reco
     group with the same ``aniso_type`` and ``aniso_tilt_correction`` is
     replaced, otherwise a row is added carrying the group's name, the parent
     column of its first row (``location`` for a site, ``site`` for a sample)
-    and ``citations = 'This study'``. Columns the table has no place for in
-    the data model (``TABLE_LACKS``: ``aniso_ftest23`` on sites) are left off
-    the row. Nothing else on the table is touched.
+    and ``citations = 'This study'``. Nothing else on the table is touched.
 
     Args:
         table: the ``sites`` or ``samples`` DataFrame; None or empty starts one.
@@ -553,7 +546,6 @@ def add_mean_to_table(table: Optional[pd.DataFrame], level: str, name: str, reco
     table = pd.DataFrame(columns=[level]) if table is None or not len(table) else table.copy()
     if level not in table.columns:
         raise ValueError(f"the table has no {level!r} column")
-    record = {column: value for column, value in record.items() if column not in TABLE_LACKS[level]}
     for column in record:
         if column not in table.columns:
             table[column] = np.nan

@@ -821,10 +821,13 @@ the bottom; struck through once settled.
     - *`sites.aniso_ftest23` is not in the current model* while
       `specimens.aniso_ftest23` and `samples.aniso_ftest23` are (absent since
       at least the 2024-06-13 source; the 2019 copy had it). It reads like an
-      oversight in MagIC's spreadsheet rather than a decision — worth an
-      issue on earthref/MagIC? Until then `anisotropy.add_mean_to_table`
-      leaves the column off site rows (`TABLE_LACKS`) so a saved sites.txt
-      validates; F23 is still in the row's `description` json.
+      oversight in MagIC's spreadsheet rather than a decision.
+      *Nick, 2026-09-02*: issue raised on earthref/MagIC; code acts as if
+      it is fixed. So the bundled `data_model.json` carries
+      `sites.aniso_ftest23` (the samples definition, position 124, the
+      columns after it shifted by one) and `mean_record` writes it on site
+      rows like any other. On the next refresh, diff MagIC's file for the
+      column before overwriting; if it is still missing, re-apply.
     - `specimens.result_type` is gone too; nothing in the apps wrote it.
     - Ranges that tightened or widened: `magn_moment` ±2 (was ±1),
       `dip` ±180, `meas_field_*_phi/theta` ranges; `lab_names` is now a
