@@ -35,7 +35,7 @@ LISTED_TABLES = TABLES[:-1]
 # multi-million-row measurements file costs only its method codes
 COLUMNS = {
     "measurements": ["specimen", "experiment", "method_codes"],
-    "specimens": ["specimen", "sample", "dir_dec", "int_abs", "method_codes"],
+    "specimens": ["specimen", "sample", "dir_dec", "int_abs", "method_codes", "aniso_s", "aniso_type"],
     "samples": ["sample", "site", "azimuth", "dip"],
     "sites": ["site", "location", "lat", "lon", "age", "age_low", "age_high", "lithologies", "dir_dec", "int_abs"],
     "locations": ["location", "lat_n", "lat_s", "lon_e", "lon_w"],
@@ -182,6 +182,22 @@ def experiment_kinds(measurements: pd.DataFrame) -> List[Kind]:
     return kinds
 
 
+def tensor_kind(specimens: Optional[pd.DataFrame]) -> Optional[Kind]:
+    """The anisotropy kind a specimens table gives: specimens with a tensor (``aniso_s``), by ``aniso_type``.
+
+    Tensors are what the Anisotropy application opens — they arrive from a
+    Kappabridge converter (no measurements at all) or from ``aarm_magic``/
+    ``atrm_magic`` (which the measurements' ``LP-AN-`` codes already announce).
+    """
+    if specimens is None or "aniso_s" not in specimens or "specimen" not in specimens:
+        return None
+    rows = specimens[specimens["aniso_s"].notna() & (specimens["aniso_s"].astype(str).str.strip() != "")]
+    if not len(rows):
+        return None
+    details = [str(t) for t in rows["aniso_type"].dropna().unique()] if "aniso_type" in rows else []
+    return Kind("aniso", "Anisotropy", int(rows["specimen"].nunique()), details)
+
+
 # ----- reading -------------------------------------------------------------------
 
 def _read_table(path: str, wanted) -> Optional[pd.DataFrame]:
@@ -281,6 +297,9 @@ def take_inventory(directory: str) -> Inventory:
     }
     if m is not None:
         inv.kinds = experiment_kinds(m)
+    tensors = tensor_kind(frames.get("specimens"))
+    if tensors is not None:                      # tensors in specimens.txt count whether or not measurements announce them
+        inv.kinds = [k for k in inv.kinds if k.key != "aniso"] + [tensors]
 
     c = frames.get("contribution")
     if c is not None and len(c):

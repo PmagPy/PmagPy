@@ -605,8 +605,30 @@ Intensity were built.
    hysteresis writer, which also takes a single result dict now. In a notebook
    session or a directory without `specimens.txt` the block says why it is
    disabled; a writer's refusal (no row for the experiment) is shown in red
-   and nothing is written (QUESTIONS 27–32). *Next*: the Anisotropy
-   application, the notebook switch-over in RockmagPy-notebooks (QUESTIONS 12).
+   and nothing is written (QUESTIONS 27–32).
+   *Anisotropy built* (2026-09-02): `programs/pmagpy_anisotropy/` over a new
+   UI-free `pmagpy/anisotropy.py` — `tensor_table` (the `aniso_s` rows of
+   `specimens.txt` in one frame, rotating specimen tensors to geographic and
+   tilt-corrected with the sample orientations when the table has no row in
+   that frame; `source` says which), `eigen`/`eigenparameters` in float64
+   (`pmag.doseigs` works in float32), `specimen_hext`, `group_statistics`
+   (Hext 1963 and the `pmag.s_boot`/`sbootpars` bootstrap, seeded),
+   `hext_ellipses`/`bootstrap_ellipses` (the same construction as
+   `pmagplotlib.plot_ell`, tested against it), `mean_record` (a
+   sites/samples row with `aniso_v1..v3` cells and `aniso_tilt_correction`).
+   Side column: dataset (a directory needs only `specimens.txt`), selection
+   (group by site/sample/location, frame with counts and a `*` for rotated,
+   type when there are several), tensor inventory. Tabs: **Eigenvectors**
+   (specimen net; mean net with Hext solid / bootstrap dashed ellipses,
+   bootstrap cloud, comparison direction; eigenvalue CDFs; F tests with the
+   verdict; one specimen gets the Hext statistics of its own σ, n),
+   **Shape** (Jelinek P′–T, Flinn; the mean tensor's shape parameters with
+   the specimens' ranges), **Specimens** (the tensor table). The hub counts
+   `aniso_s` rows as an Anisotropy kind, so a specimens-only directory opens
+   there. Not yet: writing site/sample means (`mean_record` → a generalised
+   `TableSave`), reducing `LP-AN-ARM`/`LP-AN-TRM` measurements to tensors
+   (`ipmag.aarm_magic`/`atrm_magic`) (QUESTIONS 33–40). *Next*: those two,
+   the notebook switch-over in RockmagPy-notebooks (QUESTIONS 12).
 5. **The rest of Pmag GUI, one decision at a time** — see the table below.
    *Retires `pmag_gui.py`.*
 

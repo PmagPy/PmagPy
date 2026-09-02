@@ -303,7 +303,7 @@ def bars_html(inv: Inventory, applications=APPLICATIONS) -> str:
     bars = []
     for app in applications:
         present = [inv.kind(k) for k in app.kinds if inv.kind(k)]
-        if not inv.is_magic:
+        if not inv.is_magic and not present:          # tensors in specimens.txt open Anisotropy without measurements
             bars.append(_bar(app, "no measurements yet", None))
         elif not present:
             bars.append(_bar(app, app.absent, None))

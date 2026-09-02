@@ -551,7 +551,7 @@ class TestUpload:
 class TestLauncher:
     def test_serves_the_hub_first_and_every_application_beside_it(self):
         files = launch.application_files()
-        assert [os.path.basename(f) for f in files] == ["pmagpy_directions.py", "pmagpy_rockmag.py"]
+        assert [os.path.basename(f) for f in files] == ["pmagpy_directions.py", "pmagpy_rockmag.py", "pmagpy_anisotropy.py"]
         assert os.path.basename(launch.HUB) == "pmagpy_apps.py"
         assert launch.DEFAULT_PORT == 5010
         assert all(os.path.exists(f) for f in [launch.HUB, *files])

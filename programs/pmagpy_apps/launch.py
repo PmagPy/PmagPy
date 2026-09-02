@@ -23,7 +23,7 @@ from pmagpy_panel import launch  # noqa: E402
 HUB = os.path.join(_HERE, "pmagpy_apps.py")
 DEFAULT_PORT = 5010
 # the analysis applications, served beside the hub when they are installed
-APPLICATIONS = ("pmagpy_directions", "pmagpy_rockmag")
+APPLICATIONS = ("pmagpy_directions", "pmagpy_rockmag", "pmagpy_anisotropy")
 
 
 def application_files() -> list:

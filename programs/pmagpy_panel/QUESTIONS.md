@@ -292,3 +292,74 @@ the bottom; struck through once settled.
     and the view does the same for moment and volume loops. Convert to the
     data model's unit, record the unit in `description`, or leave the column
     as the notebooks have used it?
+
+## Anisotropy application (2026-09-02)
+
+33. **Which frame a directory opens in.** The session opens in the frame
+    most of the table's tensor rows are in (McMurdo: specimen coordinates,
+    since `aarm_magic` wrote `aniso_tilt_correction = -1`), and the picker
+    offers every frame with a count, starring the ones reached by rotating
+    here. `aniso_magic_nb` defaults to geographic. Should the app open in
+    geographic whenever the sample orientations allow it, since that is the
+    frame the fabric is interpreted in, or start where the data are?
+
+34. **Rotating on the fly vs requiring rows.** `tensor_table(coordinates='g')`
+    rotates a specimen-frame tensor with `azimuth`/`dip` from `samples.txt`
+    when the table has no geographic row for that specimen (and applies
+    `bed_dip_direction`/`bed_dip` for 't'), marking the row `source =
+    'rotated'`; a stored row in the frame always wins. `aniso_magic_nb`
+    instead requires the rows to exist (as `aarm_magic -crd g` writes them).
+    Is rotating in the app acceptable, given nothing is written unless a mean
+    is saved (item 36), or should the app ask the user to re-run the
+    reduction in the wanted frame?
+
+35. **Bootstrap defaults.** Off by default (Hext only), 1000 draws,
+    non-parametric, seed 0 shown in the code block; parametric needs
+    `aniso_s_sigma > 0` on every row. `aniso_magic_nb` uses 1000 and
+    non-parametric too. Fine, or should bootstrap be on by default for
+    groups of ≥ 5–6 tensors, where Constable & Tauxe (1990) argue it is the
+    better description?
+
+36. **Where the mean tensor goes.** `mean_record` builds a row with the data
+    model's `aniso_*` columns of `sites` (`aniso_v1..v3` as `tau:dec:inc`,
+    `aniso_tilt_correction`, `aniso_type`, `aniso_ftest*`); the same columns
+    exist in `samples`. The plan is a `TableSave` (generalising the rockmag
+    `SpecimenSave`) that writes the row of a site-level selection to
+    `sites.txt`, a sample-level one to `samples.txt`, and refuses a location
+    or an "all specimens" selection. Should a mean also be written for the
+    specimen-frame tensors of one sample, and how should the bootstrap
+    parameters be recorded — the data model has no ζ/η columns for sites, so
+    the `description` JSON convention of the rockmag writers (QUESTIONS 30)
+    is the candidate?
+
+37. **A single specimen's Hext statistics.** With one tensor selected the
+    view shows the Hext ellipses of that specimen's measurement scatter
+    (`aniso_s_sigma`, `aniso_s_n_measurements`, ν = 3n − 6), as `aniso_magic_nb`
+    does per specimen. It is only meaningful when σ was estimated from ≥ 3
+    measurement positions (n ≥ 3 for ν > 0; `aarm_magic` writes n = 9 for the
+    9-position scheme). Show it always, or only when the specimen's `aniso_ftest`
+    says the tensor is anisotropic?
+
+38. **`aniso_sigma` in `ipmag.aniso_magic_nb`.** `pmagpy/ipmag.py:11382`
+    checks for `aniso_s_sigma` but fills a column named `aniso_sigma` when it
+    is missing, so a table without σ then fails a few lines later on the
+    parametric bootstrap and on the Hext statistics. The app's own layer does
+    not use this path; fix the typo in `ipmag.py` in the same commit series,
+    or leave the legacy function as it is until the notebooks switch?
+
+39. **AARM vs ARM in the hub's inventory.** Measurements with `LP-AN-ARM`
+    read as anisotropy of **ARM** from the method code, while `specimens.txt`
+    labels the tensors `aniso_type = AARM` (as `aarm_magic` writes). The hub
+    now lets the specimens table's label win when tensors exist, and shows
+    the method-code label only for a directory with measurements but no
+    tensors yet. Is `AARM`/`ATRM`/`AMS` the vocabulary the chip should
+    always use?
+
+40. **Reducing measurements to tensors in the app.** A *Reduce* view would
+    run `ipmag.aarm_magic`/`atrm_magic` (and the 15-position AMS reduction
+    for Kappabridge measurements without `aniso_s`) on the directory's
+    `measurements.txt` and write `specimens.txt`, so the fabric can be looked
+    at without a CLI step. Those functions write files rather than returning
+    tables and take the whole directory; refactor them into UI-free
+    functions that return the specimen rows (the writer being the app's
+    `TableSave`), or call them as they are and re-read the directory?
