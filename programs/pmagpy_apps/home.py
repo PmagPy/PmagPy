@@ -220,6 +220,8 @@ def heading_html(inv: Inventory) -> str:
             lines.append(f'<div class="ref">{" · ".join(bits)}</div>')
     elif inv.is_empty:
         lines.append('<div class="ref">Empty</div>')
+    elif inv.has_level_tables:
+        lines.append('<div class="ref">No measurements yet</div>')
     elif not inv.is_magic:
         lines.append('<div class="ref">No MagIC tables yet</div>')
     return f'<div class="home">{"".join(lines)}</div>'
@@ -239,6 +241,14 @@ def facts_html(inv: Inventory) -> str:
         text = ("Nothing here yet. Copy your measurement files into this directory and convert them, or download "
                 "a published contribution from MagIC by its ID or DOI. Either way the MagIC tables land in this "
                 "directory and this page fills in.")
+    elif inv.has_level_tables:
+        have = [f"<b>{fmt(inv.counts[k])}</b> {k if inv.counts[k] != 1 else k[:-1]}"
+                for k in ("locations", "sites", "samples", "specimens") if inv.counts.get(k)]
+        text = (f"{', '.join(have)} and no measurements yet — the tables a field notebook or a sample list gives. "
+                + (f"The {_esc(inv.format_guess)} files here are the next thing to convert, adding to these tables."
+                   if inv.lab_files else
+                   "Copy the lab files into this directory and convert them, adding to these tables.")
+                + " The measurements then hang from these samples and the analysis applications open.")
     else:
         n = len(inv.files)
         if inv.format_key == "cit":
@@ -259,6 +269,10 @@ def stages(inv: Inventory) -> list:
     if not inv.is_magic:
         if inv.is_empty:
             imp = ("warn", "convert files, or download from MagIC")
+        elif inv.has_level_tables:
+            n = len(inv.lab_files)
+            imp = ("warn", "samples and sites in; " + (f"{fmt(n)} file{'s' if n != 1 else ''} to convert · {inv.format_guess}?"
+                                                      if n else "measurements to convert"))
         else:
             n = len(inv.files)
             imp = ("warn", f"{fmt(n)} file{'s' if n != 1 else ''} to convert" + (f" · {inv.format_guess}?" if inv.format_guess else ""))
@@ -412,7 +426,7 @@ class HomeView:
         self.change_btn.button_type = "primary" if inv.is_magic and not inv.gaps and inv.uploads else "default"
         self.upload_btn.button_type = "primary" if inv.is_magic and not inv.gaps and not inv.uploads else "default"
         self.download_btn.button_type = "primary" if inv.is_empty else "default"
-        self.convert_btn.button_type = "primary" if inv.files and not inv.is_magic else "default"
+        self.convert_btn.button_type = "primary" if (inv.files or inv.has_level_tables) and not inv.is_magic else "default"
         self.convert_btn.visible = not inv.is_empty
         self.metadata_btn.button_type = "primary" if inv.is_magic and inv.gaps else "default"
         self.metadata_btn.visible = inv.is_magic

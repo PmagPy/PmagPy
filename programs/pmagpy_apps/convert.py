@@ -78,8 +78,9 @@ class ConvertView:
                                f'<div class="path">{html.escape(shorten_home(inv.directory))}</div></div>')
         if inv.format_key in self.format.options.values():
             self.format.value = inv.format_key
-        self.append.visible = inv.is_magic
-        self.append.value = inv.is_magic
+        # any table already here is worth keeping — the samples and sites from a field notebook as much as measurements
+        self.append.visible = inv.is_magic or inv.has_level_tables
+        self.append.value = inv.is_magic or inv.has_level_tables
         self._format_changed()
 
     def reset(self) -> None:
@@ -109,7 +110,10 @@ class ConvertView:
             return
         self.files.disabled = False
         accepted = [n for n in names if fmt.accepts(n)]
-        self._offer(accepted or names, accepted)
+        # when the guess was this format, the files it recognised are the ones chosen — not every
+        # .txt beside a field notebook
+        recognised = [f.name for f in inv.files if f.role and f.name in accepted] if inv.format_key == fmt.key else []
+        self._offer(accepted or names, recognised or accepted)
         self._note(fmt.notes or "")
 
     def _offer(self, options, chosen) -> None:

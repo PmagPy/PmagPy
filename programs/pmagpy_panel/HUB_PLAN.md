@@ -682,18 +682,32 @@ Intensity were built.
    measurements and no `specimens.txt` now opens, on that tab. Reproduces
    `aarm_magic` (McMurdo, 17/18) and `atrm_magic` (30 specimens) to 1e-7;
    differences are logged in QUESTIONS 43. Not yet: the 15-position AMS
-   reduction of Kappabridge measurements without `aniso_s`. *Next*: the
-   notebook switch-over in RockmagPy-notebooks (QUESTIONS 12), the
-   MagIC-layer fixes in §4.
+   reduction of Kappabridge measurements without `aniso_s`. The §4
+   MagIC-layer fixes landed 2026-09-02. *Next*: the notebook switch-over in
+   RockmagPy-notebooks (QUESTIONS 12).
 5. **The rest of Pmag GUI, one decision at a time** — see the table below.
-   *Retires `pmag_gui.py`.*
+   *Retires `pmag_gui.py`.* *Built (first row, 2026-09-02)*: the field
+   notebook is a conversion like any other, so there is no separate
+   Orientation page — `orientation_magic` and `azdip_magic` are Formats
+   `orient` and `azdip` in `convert_registry` (via `Deferred`, so the
+   registry still loads without `ipmag`/pyplot) and the Convert page serves
+   them: `guess_format` recognises a notebook by its header
+   (`sample_name` + `mag_azimuth`), the form asks the orientation and
+   declination-correction conventions, bedding, GMT offset, method codes, and
+   the result reads "24 samples · 2 sites". `Format.replaces` is the one new
+   idea: in a directory where a measurement converter already wrote
+   placeholder sample rows (CIT: azimuth 90, dip −90, `SO-MAG`), the
+   notebook's rows *replace* those rows by name, all of them
+   (`orientation_magic` writes one row per orientation method), while
+   converter-only knowledge in non-orientation columns is carried over
+   (QUESTIONS 46 for the choices).
 
 ### Pmag GUI features still to decide
 
 | feature | recommendation | why |
 |---|---|---|
-| `orientation_magic` | **keep**, as the Orientation page | the step between field notebook and MagIC; nothing else does it; form-driven from its conventions |
-| `azdip_magic` | **keep**, as the simple case on the Orientation page | same job, plainer input |
+| `orientation_magic` | **done** (2026-09-02), as the `orient` format on Convert | the step between field notebook and MagIC; nothing else does it; form-driven from its conventions |
+| `azdip_magic` | **done** (2026-09-02), as the `azdip` format on Convert | same job, plainer input |
 | IODP sample summaries | **keep**, as formats in the registry | they are conversions |
 | kly4s / k15 / sufar4 | **keep**, as formats in the registry; results open in Anisotropy | conversions |
 | legacy 2.5 → 3.0 | **keep**, one button on Import | cheap; old datasets still arrive |

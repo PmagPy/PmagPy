@@ -115,6 +115,21 @@ class Inventory:
         return "measurements" in self.tables
 
     @property
+    def has_level_tables(self) -> bool:
+        """Specimens, samples, sites or locations without measurements yet — a field notebook or a
+        sample list converted before the lab files."""
+        return not self.is_magic and any(t in self.tables for t in ("specimens", "samples", "sites", "locations"))
+
+    @property
+    def lab_files(self) -> List[FileRole]:
+        """The recognised files that would add measurements — not a field notebook or sample list that
+        (in a directory with level tables) is what the tables came from."""
+        fmt = FORMATS.get(self.format_key)
+        if fmt is None or "measurements" not in fmt.outputs:
+            return []
+        return [f for f in self.files if f.role]
+
+    @property
     def is_empty(self) -> bool:
         """No files at all (folders do not count: a directory of directories is still empty)."""
         return not self.tables and not self.files

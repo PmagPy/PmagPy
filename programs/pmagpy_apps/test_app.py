@@ -359,6 +359,44 @@ class TestConvert:
         assert asyncio.run(view._convert()) is True
         assert session.inventory.is_magic and "unpacked" in view.message.object
 
+    def test_a_field_notebook_is_recognised_and_writes_samples_and_sites(self, tmp_path):
+        orient = os.path.join(os.path.dirname(CIT), "..", "..", "orientation_magic", "orient_example.txt")
+        shutil.copy(orient, tmp_path / "orient_example.txt")
+        (tmp_path / "notes.txt").write_text("field notes, not a notebook file\n")
+        session = home.HubSession(str(tmp_path), landing=False)
+        view = convert.ConvertView(session)
+        assert view.format.value == "orient" and view.fmt.label.startswith("Orientation file")
+        assert view.files.options == ["notes.txt", "orient_example.txt"] and view.files.value == ["orient_example.txt"]
+        assert {"or_con", "dec_correction_con", "samp_con", "gmeths"} <= set(view.form.widgets)
+        view.form.widgets["gmeths"].value = "FS-FD"
+        assert asyncio.run(view._convert()) is True
+        assert "24 samples · 2 sites" in view.message.object
+        counts = session.inventory.counts                              # unique names: 8 samples in 24 orientation rows
+        assert counts["samples"] == 8 and counts["sites"] == 2 and counts["measurements"] == 0
+        # Home knows this state: level tables, no measurements; the notebook is not "a file to convert"
+        inv = session.inventory
+        assert inv.has_level_tables and not inv.is_magic and inv.lab_files == []
+        assert "No measurements yet" in home.heading_html(inv)
+        assert "<b>2</b> sites, <b>8</b> samples and no measurements yet" in home.facts_html(inv)
+        assert "Copy the lab files into this directory" in home.facts_html(inv)
+        assert home.stages(inv)[0][2] == "samples and sites in; measurements to convert"
+        page = home.HomeView(session)
+        assert page.convert_btn.button_type == "primary" and page.metadata_btn.visible is False
+        # the lab files arrive: Convert offers to add to the tables, and the notebook's rows survive the conversion
+        for name in os.listdir(CIT):
+            if name.startswith("PI47"):
+                shutil.copy(os.path.join(CIT, name), tmp_path)
+        session.load(str(tmp_path))
+        assert len(session.inventory.lab_files) == 10 and "10 files to convert · CIT?" in home.stages(session.inventory)[0][2]
+        view.refresh()
+        assert view.append.visible is True and view.append.value is True
+        view.format.value = "cit"
+        assert view.files.value == ["PI47-.sam"]
+        assert asyncio.run(view._convert()) is True
+        assert session.inventory.is_magic
+        samples = open(tmp_path / "samples.txt").read()
+        assert "FS-FD:SO-SUN" in samples and "PI47-1" in samples
+
     def test_appending_to_a_magic_directory_is_offered_and_keeps_what_is_there(self, tmp_path):
         d = cit_only(tmp_path)
         session = home.HubSession(d, landing=False)

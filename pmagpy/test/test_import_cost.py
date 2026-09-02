@@ -48,6 +48,13 @@ def test_get_curve_still_reaches_the_curvature_code():
     assert pars["int_k"] > 0                                   # concave-up Arai plot
 
 
+def test_convert_registry_defers_the_ipmag_converters():
+    """The field-notebook formats live in ipmag (all of pyplot); the registry must not import it to load."""
+    modules = loaded_after("import pmagpy.convert_registry")
+    assert "pmagpy.convert_registry" in modules
+    assert "pmagpy.ipmag" not in modules and "matplotlib.pyplot" not in modules
+
+
 def test_programs_package_pins_a_backend_without_importing_pyplot():
     modules = loaded_after("import programs")
     assert "matplotlib" in modules

@@ -221,6 +221,68 @@ class TestCombine:
         reg.combine_tables({"measurements": [str(a / "measurements.txt"), str(b / "measurements.txt")]}, str(out))
         assert read_table(out / "measurements.txt")["sequence"].tolist() == ["1", "2", "3", "4"]
 
+    def test_describe_tables(self):
+        assert reg.describe_tables({"measurements": 1234, "specimens": 3}) == "1,234 measurements"
+        assert reg.describe_tables({"samples": 24, "sites": 2}) == "24 samples · 2 sites"
+        assert reg.describe_tables({}) == "no tables"
+
+
+class TestReplaceByName:
+    """A field notebook's rows replace a measurement converter's placeholders (Format.replaces)."""
+
+    PLACEHOLDER = {"height": "0", "azimuth": "90.0", "azimuth_dec_correction": "0.0", "bed_dip": "0.0",
+                   "bed_dip_direction": "90.0", "dip": "-90.0", "citations": "This study", "method_codes": "SO-MAG"}
+
+    def notebook_rows(self):
+        return [{"sample": "mc123a", "site": "mc123", "azimuth": "258.0", "dip": "-38.0", "method_codes": "FS-FD:SO-MAG"},
+                {"sample": "mc123a", "site": "mc123", "azimuth": "48.3", "azimuth_dec_correction": "150.3",
+                 "dip": "-38.0", "method_codes": "FS-FD:SO-CMD-NORTH"},
+                {"sample": "mc123a", "site": "mc123", "azimuth": "200.1", "dip": "-38.0", "method_codes": "FS-FD:SO-SUN"},
+                {"sample": "mc123b", "site": "mc123", "azimuth": "242.0", "dip": "-30.0", "method_codes": "FS-FD:SO-MAG"}]
+
+    def combine(self, tmp_path, earlier, later, replaces=("samples",)):
+        a, b = tmp_path / "a", tmp_path / "b"
+        a.mkdir(); b.mkdir()
+        write_table(a / "samples.txt", "samples", earlier)
+        write_table(b / "samples.txt", "samples", later)
+        out = tmp_path / "out"; out.mkdir()
+        reg.combine_tables({"samples": [str(a / "samples.txt"), str(b / "samples.txt")]}, str(out), replaces=replaces)
+        return read_table(out / "samples.txt")
+
+    def test_every_notebook_row_survives_and_the_placeholder_goes(self, tmp_path):
+        earlier = [dict(self.PLACEHOLDER, sample="mc123a", site="mc123", lithologies="basalt"),
+                   dict(self.PLACEHOLDER, sample="zz1", site="zz")]
+        got = self.combine(tmp_path, earlier, self.notebook_rows())
+        assert got["sample"].tolist() == ["zz1", "mc123a", "mc123a", "mc123a", "mc123b"]
+        mc123a = got[got["sample"] == "mc123a"]
+        assert mc123a["method_codes"].tolist() == ["FS-FD:SO-MAG", "FS-FD:SO-CMD-NORTH", "FS-FD:SO-SUN"]
+        assert mc123a["azimuth"].tolist() == ["258.0", "48.3", "200.1"]
+        # what only the converter knew is kept, but not its orientation placeholders
+        assert mc123a["lithologies"].tolist() == ["basalt"] * 3
+        assert (mc123a["height"] == "").all() and (mc123a["bed_dip"] == "").all()
+        assert mc123a["azimuth_dec_correction"].tolist() == ["", "150.3", ""]
+        # a sample the notebook does not mention keeps its row
+        zz1 = got[got["sample"] == "zz1"].iloc[0]
+        assert zz1["azimuth"] == "90.0" and zz1["method_codes"] == "SO-MAG"
+
+    def test_without_replaces_the_rows_just_accumulate(self, tmp_path):
+        earlier = [dict(self.PLACEHOLDER, sample="mc123a", site="mc123")]
+        got = self.combine(tmp_path, earlier, self.notebook_rows(), replaces=())
+        assert got["sample"].tolist() == ["mc123a"] * 4 + ["mc123b"]
+
+    def test_a_later_notebook_replaces_an_earlier_one(self, tmp_path):
+        first = self.notebook_rows()
+        second = [dict(first[0], azimuth="260.0"), dict(first[2], azimuth="202.0")]  # re-oriented, no compass-corrected row
+        got = self.combine(tmp_path, first, second)
+        mc123a = got[got["sample"] == "mc123a"]
+        assert mc123a["azimuth"].tolist() == ["260.0", "202.0"]
+        assert got[got["sample"] == "mc123b"]["azimuth"].tolist() == ["242.0"]
+
+    def test_one_file_is_left_alone(self):
+        df = pd.DataFrame({"sample": ["a", "a"], "azimuth": ["1", "2"], "_file": [0, 0]})
+        assert reg._replace_by_name(df, "samples").columns.tolist() == ["sample", "azimuth"]
+        assert len(reg._replace_by_name(df, "samples")) == 2
+
 
 class TestConvertFiles:
     def test_two_cit_studies_into_one_directory(self, tmp_path):
@@ -286,3 +348,54 @@ class TestGuessFormat:
 
     def test_nothing_recognised(self):
         assert reg.guess_format(["readme.md", "photo.jpg"]) == ("", {})
+
+    def test_orientation_file_by_its_header(self, tmp_path):
+        shutil.copy(example_path("../orientation_magic/orient_example.txt"), tmp_path / "orient_example.txt")
+        (tmp_path / "notes.txt").write_text("just some notes\nabout the field season\n")
+        key, roles = reg.guess_format(["orient_example.txt", "notes.txt"], str(tmp_path))
+        assert key == "orient" and roles == {"orient_example.txt": "Orientation file"}
+
+    def test_looks_like_orient(self):
+        assert reg._looks_like_orient("tab\tMcMurdo\nsample_name\tmag_azimuth\tfield_dip\nmc01a\t10\t20\n")
+        assert not reg._looks_like_orient("tab\tsamples\nsample\tazimuth\tdip\n")
+        assert not reg._looks_like_orient("one line only")
+
+
+# ----- the field notebook formats --------------------------------------------------------------
+
+class TestFieldNotebook:
+    def test_orient_writes_one_row_per_orientation_method(self, tmp_path):
+        result = reg.convert_files(reg.FORMATS["orient"], [example_path("../orientation_magic/orient_example.txt")],
+                                   {"gmeths": "FS-FD"}, str(tmp_path))
+        assert result.ok and result.tables == {"samples": 24, "sites": 2}
+        assert result.message.endswith("24 samples · 2 sites")
+        samples = read_table(tmp_path / "samples.txt")
+        mc123a = samples[samples["sample"] == "mc123a"]
+        assert mc123a["method_codes"].tolist() == ["FS-FD:SO-MAG", "FS-FD:SO-CMD-NORTH", "FS-FD:SO-SUN"]
+        assert [float(a) for a in mc123a["azimuth"]] == [258.0, 48.3, 200.1]
+        sites = read_table(tmp_path / "sites.txt")
+        assert sites["site"].tolist() == ["mc123", "mc137"] and (sites["location"] == "McMurdo").all()
+
+    def test_azdip_naming_splits_the_z_count(self):
+        assert reg._azdip_naming({"samp_con": "4-2"}) == {"samp_con": "4", "Z": 2}
+        assert reg._azdip_naming({"samp_con": "1"}) == {"samp_con": "1", "Z": 1}
+
+    def test_azdip_writes_samples_for_the_named_location(self, tmp_path):
+        result = reg.convert_files(reg.FORMATS["azdip"], [example_path("../azdip_magic/azdip_magic_example.dat")],
+                                   {"location": "Iceland", "samp_con": "1"}, str(tmp_path))
+        assert result.ok and set(result.tables) == {"samples"}
+        samples = read_table(tmp_path / "samples.txt")
+        assert len(samples) == result.tables["samples"] > 0
+        assert samples["sample"].is_unique
+        assert (samples["method_codes"] == "FS-FD:SO-NO").all() and (samples["location"] == "Iceland").all()
+
+    def test_normalise_accepts_none(self):
+        assert reg._normalise((True, None)) == (True, "")
+        assert reg._normalise((False, "bad")) == (False, "bad")
+        assert reg._normalise(True) == (True, "")
+
+    def test_deferred_converter_has_its_signature_and_repr(self):
+        import inspect
+        fn = reg.FORMATS["orient"].function
+        assert isinstance(fn, reg.Deferred) and repr(fn) == "pmagpy.ipmag.orientation_magic"
+        assert "orient_file" in inspect.signature(fn).parameters

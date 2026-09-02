@@ -467,3 +467,58 @@ the bottom; struck through once settled.
     GUIs embed their canvases through `backend_wxagg` directly, so I expect
     that to be harmless, but I have not run the wx GUIs (no wx in the apps
     env). Fine, or should the wx programs keep forcing `WXAgg`?
+
+46. **Field notebooks as Convert formats (2026-09-02) — three decisions
+    to check.** `orientation_magic` and `azdip_magic` are now the `orient`
+    and `azdip` formats in `convert_registry`, so the Convert page serves
+    them (no separate Orientation page; HUB_PLAN step 5). Three things I
+    decided on the way:
+    - *Several rows per sample.* `orientation_magic` writes one sample row
+      per orientation method — for `mc123a` in the example: `FS-FD:SO-MAG`
+      with the raw compass azimuth (258.0), `FS-FD:SO-CMD-NORTH` with the
+      declination-corrected azimuth (48.3, `azimuth_dec_correction` 150.3),
+      `FS-FD:SO-SUN` with the sun-compass azimuth (200.1). I kept that
+      output as is. But `magic_project.build_orientation` (the Directions
+      app) takes the *first* row with an azimuth and dip, i.e. the raw
+      compass reading, never the corrected or sun-compass one. Should it
+      prefer `SO-SUN`, then `SO-CMD-NORTH`, then `SO-MAG` (a raw compass
+      azimuth is never the one to use when a corrected one is in the
+      table)? Or should `orient` write one row per sample carrying the best
+      azimuth with the full method code string, as most MagIC 3
+      contributions do? (Aside: in the McMurdo example the sun azimuth and
+      the IGRF-corrected azimuth differ by ~150°, which at -78° latitude
+      says the compass reading is not to be trusted — plausible, and a good
+      argument for the app preferring `SO-SUN`.)
+    - *Replacing placeholders.* A measurement converter (CIT: azimuth 90,
+      dip −90, bed dip 0, height 0, `SO-MAG`) writes placeholder sample
+      rows. When a notebook is converted into such a directory with
+      "append", its rows replace every earlier row of the same sample or
+      site (`Format.replaces`), all of them; a column the notebook rows
+      leave blank takes the earlier value *except* the orientation columns
+      and `height` (`convert_registry.ORIENTATION_COLUMNS`), because those
+      are exactly the placeholders. So a CIT `.sam` lat/lon on the site row
+      survives, a CIT height 0 does not. The other way round (notebook
+      first, measurements later) the measurement converter's placeholders
+      would be appended beside the notebook rows and `build_orientation`
+      would still pick the notebook row (it comes first). Is "the notebook
+      wins" the rule you want, or should a converted directory refuse the
+      notebook when its samples already have real (non-placeholder)
+      orientations?
+    - *`azdip_magic` bedding.* The AzDip file gives bedding as strike and
+      dip; `azdip_magic` sets `bed_dip_direction = strike − 90` with the
+      comment "assume dip to right of strike". By the right-hand rule the
+      dip direction is `strike + 90`; "to the right of strike" when looking
+      along the strike is also `+90`. Is the −90 a long-standing PmagPy
+      convention the example files rely on (the Iceland example has strike
+      149, dip 5 → dip direction 59), or a bug to fix? I left it alone and
+      the format's note says the file's own conventions apply.
+    - *`azdip_magic` dip convention.* Its docstring says "field_dip is
+      degrees from horizontal of drill direction" and "Lab arrow dip =
+      90 − field_dip", and it calls `pmag.orient(..., or_con=3)` — whose
+      own docstring says convention 3 is for a *hade* measured in the
+      field. `pmag.orient`'s convention 5, labelled "AZDIP", is different
+      again (lab dip = field_dip − 90). The Iceland example's `is001a 183
+      14` becomes azimuth 183, dip 76, which is right if 14 is a hade and
+      wrong (sign and value) if it is an inclination from horizontal. Which
+      is the AzDip file format's meaning? The Convert note now just states
+      what the converter does (convention 3) rather than either docstring.
