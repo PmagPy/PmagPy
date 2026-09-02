@@ -572,6 +572,48 @@ class TestMetadata:
         view.delete_selected()
         assert list(view.grid.value.site) == ["Z11", "Z12"] and view.dirty is True
 
+    def test_criteria_are_edited_defaulted_and_checked_against_the_tables(self, tmp_path):
+        """The criteria table (Pmag GUI's CustomizeCriteria): defaults in a click, each criterion scored on its table."""
+        import pandas as pd
+        d = small_study(tmp_path)
+        spec = pd.DataFrame([{"specimen": "Z11.1a", "sample": "Z11.1", "dir_mad_free": "3.1", "dir_n_measurements": "9"},
+                             {"specimen": "Z11.1b", "sample": "Z11.1", "dir_mad_free": "8.4", "dir_n_measurements": "9"}])
+        metadata.mm.mp.magic_write(os.path.join(d, "specimens.txt"), spec, "specimens")
+        session = home.HubSession(d, landing=False)
+        view = metadata.MetadataView(session)
+        assert "Criteria" in view.tables.options                          # no criteria.txt yet: no count
+        view.tables.value = "criteria"
+        assert view.table == "criteria" and len(view.grid.value) == 0
+        assert list(view.grid.value.columns) == list(metadata.mm.CRITERIA_COLUMNS)
+        assert view.defaults_btn.visible is True and view.parent_fill.visible is False and view.bounds_btn.visible is False
+        assert "Criterion Name" in view.help.object
+        assert "specimens.dir_mad_free" in view.grid.editors["table_column"]["values"]
+        assert view.grid.editors["criterion"]["values"][0] == "DE-SPEC"
+        assert view.grid.editors["criterion_operation"]["values"][:2] == ["<", "<="]
+        assert "no criteria.txt yet" in view.note.object
+        view.add_default_criteria()
+        df = view.grid.value
+        assert len(df) == len(metadata.mm.default_criteria()) and view.dirty is True
+        assert "default criteria added" in view.message.object
+        by = df.set_index("table_column")
+        assert by.loc["specimens.dir_mad_free", ["criterion", "criterion_operation", "criterion_value"]].tolist() == ["DE-SPEC", "<=", "5"]
+        view.add_default_criteria()
+        assert "already in the table" in view.message.object
+        view.check()                                                     # saves first, then judges
+        assert os.path.exists(os.path.join(d, "criteria.txt")) and view.dirty is False
+        checks = {c.table_column: c for c in view.checks}
+        mad = checks["specimens.dir_mad_free"]
+        assert (mad.rows, mad.passing, mad.blank) == (2, 1, 0)
+        assert checks["sites.dir_k"].problem == "sites.txt has no column dir_k"
+        assert "evaluated against the tables" in view.message.object and "could not be" in view.message.object
+        assert "1 of 2 pass" in view.findings_pane.object and "no column dir_k" in view.findings_pane.object
+        assert session.inventory.tables["criteria"].rows == len(df)
+        assert f"Criteria ({len(df)})" in view.tables.options
+        # a fresh view reads the saved table back with the columns in editor order
+        again = metadata.MetadataView(home.HubSession(d, landing=False))
+        again.show("criteria")
+        assert list(again.grid.value.columns[:4]) == list(metadata.mm.CRITERIA_COLUMNS[:4]) and len(again.grid.value) == len(df)
+
 
 class TestUpload:
     """The Upload page: the offline check, the upload file, MagIC's verdict (stubbed), the publication tables."""

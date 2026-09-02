@@ -592,3 +592,43 @@ the bottom; struck through once settled.
       `convert_directory_2_to_3` returns False without one; the level
       tables alone could be upgraded (`convert_and_combine_2_to_3` per
       table). Rare enough to leave?
+
+49. **The criteria table on Metadata** (2026-09-02). `criteria.txt` is edited
+    in the same grid as the level tables; *Add default criteria* appends
+    PmagPy's defaults; *Check* scores every criterion against the table it
+    names ("913 of 1,374 pass, 385 blank"). Decisions to check:
+    - *The default values are `pmag.default_criteria(0)` translated through
+      the data model's `criteria_map`* — so `specimens.dir_mad_free <= 5`,
+      `samples.dir_alpha95 <= 5`, `sites.dir_n_samples >= 5`,
+      `sites.dir_n_specimens_lines >= 4`, `sites.dir_k >= 50`, and the
+      Thellier set (`int_n_measurements >= 4`, `int_n_ptrm >= 2`,
+      `int_drats <= 20`, `int_b_beta <= 0.1`, `int_maxdev <= 15`,
+      `int_fvds >= 0.7`, `int_q >= 1`, `int_dang <= 10`,
+      `int_mad_free <= 10`; sites `int_n_samples >= 2`,
+      `int_abs_sigma <= 5e-6`, `int_abs_sigma_perc <= 15`). Two things fall
+      out of the translation: MagIC's map sends the 2.5 `specimen_dang` to
+      `specimens.int_dang`, so there is *no directional DANG default*
+      (`specimens.dir_dang <= 10` would be the Pmag GUI intent), and there is
+      no `dir_n_measurements` default at all (the McMurdo study uses `>= 4`).
+      Add either or both? The Thellier thresholds are the old `-dcr` ones;
+      a second set built on the Standard Paleointensity Definitions (FRAC,
+      SCAT, GAP-MAX — the statistics Thellier GUI's criteria dialog offers)
+      could be added if you name the set you want.
+    - *A blank cell fails a criterion* (`pmag.grade`'s rule: a record
+      without the statistic is killed). The check reports blanks apart from
+      failures, and `passing_rows(..., blank_fails=False)` exists for the
+      other reading. Which should Directions' export use when it starts
+      applying criteria — on McMurdo's own table, `DE-SPEC` with
+      `specimens.dir_alpha95 <= 180` fails every fit (only 3 of 1,374
+      specimens carry a `dir_alpha95`) under the strict rule and passes 1,298
+      under the lenient one.
+    - *Directions' export does not yet apply criteria* (its README says so;
+      the plan's table row had it the other way). `magic_metadata.passing_rows`
+      is written for that; wiring it into the Directions export as a
+      "criteria" option — `DE-SPEC` on the specimen fits, `DE-SITE` on the
+      site means — is a small next piece. Do it, or leave the export
+      unfiltered and let MagIC's tools apply the criteria?
+    - *`site.dir_polarity`* (singular) in McMurdo's `criteria.txt` — the
+      check reads it as `sites` and says so, rather than refusing; the
+      validator does not object to it either. Fine, or should the check
+      insist on the data model's `table.column` form?

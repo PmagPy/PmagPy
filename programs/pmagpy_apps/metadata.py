@@ -1,5 +1,5 @@
 """
-The Metadata page: the locations, sites, samples, specimens and ages tables in a grid.
+The Metadata page: the locations, sites, samples, specimens, ages and criteria tables in a grid.
 
 What Pmag GUI's ErMagicBuilder did, on the shell: one table at a time in an
 editable grid whose columns, order, vocabularies and help all come from the
@@ -11,6 +11,12 @@ sample's coordinates from its site), checks a table with PmagPy's validator
 and paints the cells it objects to, and writes the table back through the
 same writer every other application uses — after copying the original once
 into ``backup_before_pmagpy_apps/``.
+
+The criteria table is edited in the same grid (what Pmag GUI's
+``CustomizeCriteria`` was for): PmagPy's default acceptance criteria can be
+added in a click, the ``table_column`` cell picks from every column of the
+MagIC tables, and *Check* evaluates each criterion against the table it names
+— how many rows pass, how many have no value — beside the validator's findings.
 """
 from __future__ import annotations
 
@@ -31,7 +37,8 @@ CELL_FAIL = "background-color:#fde2e0"
 CELL_STUB = "background-color:#fff7db"
 PAGE_SIZE = 25
 
-LABELS = {"locations": "Locations", "sites": "Sites", "samples": "Samples", "specimens": "Specimens", "ages": "Ages"}
+LABELS = {"locations": "Locations", "sites": "Sites", "samples": "Samples", "specimens": "Specimens", "ages": "Ages",
+          "criteria": "Criteria"}
 
 GRID_CSS = """
 .tabulator { font-size: 13px; }
@@ -52,6 +59,7 @@ HELP_CSS = """
 .findings { font-size:.85rem; color:#2b2b2b; margin:12px 0 0; padding-left:18px; max-height:300px; overflow:auto; word-break:break-word }
 .findings li { padding:2px 0 }
 .findings b { font-family:ui-monospace,Menlo,monospace; font-weight:600 }
+.findings .ok { color:#1a7f5a } .findings .bad { color:#c0392b } .findings .dim { color:#6b7280 }
 """
 
 
@@ -89,11 +97,19 @@ def column_help_html(table: str, name: str) -> str:
 
 
 def editors_for(table: str, names) -> Dict[str, dict]:
-    """Tabulator editors: a searchable list for vocabulary columns (multiple for list columns), text elsewhere."""
+    """Tabulator editors: a searchable list for vocabulary columns (multiple for list columns), text elsewhere.
+
+    On the criteria table ``table_column`` picks from every column of the
+    MagIC tables and ``criterion`` from the names PmagPy's tools use.
+    """
     editors = {}
     for name in names:
         col = mm.column(table, name)
         values = list(col.vocabulary or col.suggested) if col else []
+        if table == "criteria" and name == "table_column":
+            values = mm.table_columns()
+        elif table == "criteria" and name == "criterion":
+            values = list(mm.CRITERION_NAMES)
         if values:
             editors[name] = {"type": "list", "values": values, "autocomplete": True, "listOnEmpty": True,
                              "freetext": True, "allowEmpty": True, "multiselect": bool(col.is_list),
@@ -124,6 +140,21 @@ def findings_html(findings: List[mm.Finding]) -> str:
     return f'<ul class="findings">{"".join(items)}</ul>'
 
 
+def criteria_html(checks: List[mm.CriterionCheck]) -> str:
+    """Each criterion with how the table it names fares: "DE-SPEC specimens.dir_mad_free <= 5: 913 of 1374 pass, 385 blank"."""
+    if not checks:
+        return ""
+    items = []
+    for c in checks:
+        head = f"<b>{html.escape(c.criterion) or '?'}</b> {html.escape(c.table_column)} {html.escape(c.operation)} {html.escape(c.value)}"
+        if c.problem:
+            items.append(f'<li>{head}: <span class="bad">{html.escape(c.problem)}</span></li>')
+        else:
+            cls = "ok" if c.passing else "dim"
+            items.append(f'<li>{head}: <span class="{cls}">{html.escape(c.summary())}</span></li>')
+    return f'<ul class="findings">{"".join(items)}</ul>'
+
+
 class MetadataView:
     """The Metadata page as Panel objects, following the session's directory.
 
@@ -136,6 +167,7 @@ class MetadataView:
         self.table = "sites"
         self.frame: Optional[mm.EditorFrame] = None
         self.findings: List[mm.Finding] = []
+        self.checks: List[mm.CriterionCheck] = []
         self.dirty = False
         self.heading = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width")
         self.home_btn = pn.widgets.Button(name="← Home", button_type="default", width=110, margin=(30, 0, 0, 0))
@@ -152,6 +184,7 @@ class MetadataView:
         self.delete_btn = pn.widgets.Button(name="Delete selected", button_type="default", width=140)
         self.fill_btn = pn.widgets.Button(name="Fill defaults", button_type="default", width=120)
         self.bounds_btn = pn.widgets.Button(name="Bounds from sites", button_type="default", width=150, visible=False)
+        self.defaults_btn = pn.widgets.Button(name="Add default criteria", button_type="default", width=170, visible=False)
         self.parent_fill = pn.widgets.MultiChoice(name="Copy down from the table above", options=[], width=320,
                                                   placeholder="columns to copy from each row's parent", visible=False)
         self.parent_btn = pn.widgets.Button(name="Copy down", button_type="default", width=100, visible=False,
@@ -172,6 +205,7 @@ class MetadataView:
         self.delete_btn.on_click(lambda e: self.delete_selected())
         self.fill_btn.on_click(lambda e: self.fill_defaults())
         self.bounds_btn.on_click(lambda e: self.fill_bounds())
+        self.defaults_btn.on_click(lambda e: self.add_default_criteria())
         self.parent_btn.on_click(lambda e: self.copy_down())
         self.add_cols_btn.on_click(lambda e: self.add_columns())
         session.param.watch(lambda e: self.refresh(), "directory")
@@ -183,8 +217,7 @@ class MetadataView:
         inv = self.s.inventory
         self.heading.object = (f'<div class="home"><div class="section">Metadata</div><h1>{html.escape(inv.name)}</h1>'
                                f'<div class="path">{html.escape(shorten_home(inv.directory))}</div></div>')
-        counts = {t: inv.counts.get(t, 0) for t in mm.TABLES if t != "ages"}
-        counts["ages"] = inv.tables["ages"].rows if "ages" in inv.tables else 0
+        counts = {t: inv.counts.get(t) or (inv.tables[t].rows if t in inv.tables else 0) for t in mm.TABLES}
         self.tables.options = {f"{LABELS[t]} ({fmt(counts[t])})" if counts[t] else LABELS[t]: t for t in mm.TABLES}
         self.show(self.table)
 
@@ -204,10 +237,11 @@ class MetadataView:
         self.dirty = False
         self._load_grid(self.frame.df)
         self._describe()
-        self.help.object = column_help_html(table, mm.NAME_COLUMN.get(table, "location"))
+        self.help.object = column_help_html(table, mm.NAME_COLUMN.get(table, "criterion" if table == "criteria" else "location"))
         self.findings_pane.object = ""
         self.message.object = ""
         self.bounds_btn.visible = table == "locations"
+        self.defaults_btn.visible = table == "criteria"
         down = table in mm.PARENT
         self.parent_fill.visible = self.parent_btn.visible = down
         if down:
@@ -342,6 +376,16 @@ class MetadataView:
         else:
             self._say("No site coordinates to take bounds from, or the bounds are already filled.", WARN_COLOR)
 
+    def add_default_criteria(self) -> None:
+        """Append PmagPy's default acceptance criteria (the rows the table does not have yet)."""
+        df, n = mm.add_default_criteria(self.current())
+        if n:
+            self._replace(df)
+            self.grid.page = max(1, (len(df) + PAGE_SIZE - 1) // PAGE_SIZE)
+            self._say(f"{n} default criteri{'a' if n != 1 else 'on'} added — PmagPy's usual thresholds; edit the values to the study's, then save.")
+        else:
+            self._say("Every default criterion is already in the table.")
+
     def copy_down(self) -> None:
         cols = list(self.parent_fill.value)
         if not cols:
@@ -359,12 +403,28 @@ class MetadataView:
 
     # ----- checking and saving ------------------------------------------------------------------
     def check(self) -> List[mm.Finding]:
-        """Validate the table as saved on disk (saving first when the grid has changes)."""
+        """Validate the table as saved on disk (saving first when the grid has changes).
+
+        On the criteria table the check also evaluates every criterion against
+        the table it names and lists how many rows pass.
+        """
         if self.dirty:
             self.save()
         self.findings = mm.check_table(self.s.directory, self.table)
         self._paint()
         self.findings_pane.object = findings_html(self.findings)
+        if self.table == "criteria":
+            self.checks = mm.check_criteria(self.s.directory, self.current())
+            self.findings_pane.object += criteria_html(self.checks)
+            stuck = sum(1 for c in self.checks if c.problem)
+            said = f"{len(self.checks)} criteri{'a' if len(self.checks) != 1 else 'on'} evaluated against the tables"
+            if stuck:
+                said += f"; {stuck} could not be (see the list)"
+            if not self.findings:
+                self._say(said + ". The table passes PmagPy's MagIC validator.", FAIL_COLOR if stuck else OK_COLOR)
+                return self.findings
+            self._say(said + ". The validator objects, see below.", FAIL_COLOR)
+            return self.findings
         if not self.findings:
             self._say(f"{LABELS[self.table]} pass PmagPy's MagIC validator.", OK_COLOR)
         else:
@@ -397,7 +457,7 @@ class MetadataView:
     # ----- layout ------------------------------------------------------------------------------------
     def panel(self) -> pn.Column:
         tools = pn.Row(self.save_btn, self.check_btn, pn.Spacer(width=14), self.add_row_btn, self.delete_btn,
-                       self.fill_btn, self.bounds_btn, sizing_mode="stretch_width", margin=(6, 0, 0, 0))
+                       self.fill_btn, self.bounds_btn, self.defaults_btn, sizing_mode="stretch_width", margin=(6, 0, 0, 0))
         fills = pn.Row(self.add_cols, self.add_cols_btn, pn.Spacer(width=30), self.parent_fill, self.parent_btn,
                        sizing_mode="stretch_width")
         return pn.Column(

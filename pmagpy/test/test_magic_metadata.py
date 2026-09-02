@@ -271,6 +271,123 @@ class TestCheckTable:
         assert mm.check_table(study, "ages") == []
 
 
+# ---------------------------------------------------------------------------
+# Acceptance criteria
+# ---------------------------------------------------------------------------
+@pytest.fixture
+def judged(tmp_path):
+    """Specimens with directional statistics and a criteria table that judges them."""
+    write(tmp_path, "specimens", [
+        {"specimen": "a", "dir_mad_free": "2.5", "dir_n_measurements": "8", "dir_polarity": "n"},
+        {"specimen": "b", "dir_mad_free": "7.0", "dir_n_measurements": "8", "dir_polarity": "r"},
+        {"specimen": "c", "dir_mad_free": "4.0", "dir_n_measurements": "3", "dir_polarity": "n"},
+        {"specimen": "d", "dir_mad_free": "", "dir_n_measurements": "5", "dir_polarity": ""},
+    ])
+    write(tmp_path, "criteria", [
+        {"criterion": "DE-SPEC", "table_column": "specimens.dir_mad_free", "criterion_operation": "<=", "criterion_value": "5"},
+        {"criterion": "DE-SPEC", "table_column": "specimens.dir_n_measurements", "criterion_operation": ">=", "criterion_value": "4"},
+        {"criterion": "NPOLE", "table_column": "specimen.dir_polarity", "criterion_operation": "=", "criterion_value": "n"},
+        {"criterion": "DE-SITE", "table_column": "sites.dir_k", "criterion_operation": ">=", "criterion_value": "50"},
+        {"criterion": "IE-SPEC", "table_column": "specimens.int_b_beta", "criterion_operation": "<=", "criterion_value": "0.1"},
+    ])
+    return str(tmp_path)
+
+
+class TestCriteria:
+    def test_the_criteria_table_is_edited_like_the_others(self, judged):
+        assert "criteria" in mm.TABLES
+        frame = mm.editor_frame(judged, "criteria")
+        assert list(frame.df.columns[:4]) == ["criterion", "table_column", "criterion_operation", "criterion_value"]
+        assert frame.stubs == [] and frame.exists is True and len(frame.df) == 5
+        assert mm.required_columns("criteria") == ["criterion", "table_column", "criterion_operation", "criterion_value"]
+        assert mm.column("criteria", "criterion_operation").vocabulary[:5] == ("<", "<=", "=", ">", ">=")
+        assert mm.column("criteria", "criterion").unit == ""          # the model has no unit column here
+        fresh = mm.editor_frame(judged + "/nowhere", "criteria")
+        assert list(fresh.df.columns) == list(mm.CRITERIA_COLUMNS) and fresh.exists is False
+
+    def test_saving_drops_rows_with_nothing_in_their_required_cells(self, judged):
+        df = mm.editor_frame(judged, "criteria").df
+        assert "citations" not in df.columns                      # not in the file, not required: added on request
+        df["citations"] = ""
+        df = pd.concat([df, pd.DataFrame([mm.blank_row("criteria", df.columns)])], ignore_index=True)
+        assert df.iloc[-1]["citations"] == "This study" and df.iloc[-1]["criterion"] == ""
+        mm.save_table(judged, "criteria", df, backup=False)
+        assert len(mm.read_table(judged, "criteria")) == 5
+
+    def test_default_criteria_are_pmagpy_defaults_in_the_3_0_vocabulary(self):
+        from pmagpy import pmag, magic_project as mp
+        df = mm.default_criteria()
+        assert list(df.columns) == list(mm.CRITERIA_COLUMNS)
+        assert set(df.criterion) == {"DE-SPEC", "DE-SAMP", "DE-SITE", "IE-SPEC", "IE-SITE"}
+        assert (df.citations == "This study").all()
+        # every 2.5 default that MagIC's criteria_map translates is here, with its value and operation
+        crit_map = mp.data_model(True).crit_map.dropna()
+        legacy = {k: v for k, v in pmag.default_criteria(0)[0].items() if v and k in crit_map.index}
+        legacy = {k: v for k, v in legacy.items() if k not in ("pmag_criteria_code", "criteria_definition", "er_citation_names")}
+        ours = {(r.table_column, r.criterion_operation): r.criterion_value for r in df.itertuples()}
+        for key, value in legacy.items():
+            mapped = crit_map.loc[key]["criteria_map"]
+            assert ours[(mapped["table_column"], mapped["criterion_operation"])] == value, key
+        assert len(ours) == len({(m["criteria_map"]["table_column"], m["criteria_map"]["criterion_operation"])
+                                 for m in (crit_map.loc[k] for k in legacy)})
+
+    def test_adding_defaults_skips_the_rows_already_there(self, judged):
+        df = mm.editor_frame(judged, "criteria").df
+        out, n = mm.add_default_criteria(df)
+        assert n == len(mm.default_criteria()) - 3           # DE-SPEC mad_free, DE-SITE dir_k and IE-SPEC b_beta are there
+        assert len(out) == 5 + n and list(out.columns[:4]) == list(mm.CRITERIA_COLUMNS[:4])
+        again, m = mm.add_default_criteria(out)
+        assert m == 0 and len(again) == len(out)
+
+    def test_table_columns_name_every_result_column(self):
+        cols = mm.table_columns()
+        assert "specimens.dir_mad_free" in cols and "sites.dir_k" in cols and "measurements.treat_ac_field" in cols
+        assert cols.index("specimens.specimen") < cols.index("sites.site")
+        assert mm.split_table_column("specimens.dir_mad_free") == ("specimens", "dir_mad_free", "")
+        table, column, slip = mm.split_table_column("site.dir_polarity")
+        assert (table, column) == ("sites", "dir_polarity") and "not 'site'" in slip
+        assert mm.split_table_column("dir_mad_free")[2] and mm.split_table_column("moons.phase")[2]
+
+    def test_criterion_mask_reads_numbers_and_text(self):
+        s = pd.Series(["2.5", "7", "", "abc"])
+        passing, blank, problem = mm.criterion_mask(s, "<=", "5")
+        assert list(passing) == [True, False, False, False] and list(blank) == [False, False, True, False] and problem == ""
+        assert list(mm.criterion_mask(s, ">", "5")[0]) == [False, True, False, False]
+        assert list(mm.criterion_mask(pd.Series(["n", "r", "", "n"]), "=", "n")[0]) == [True, False, False, True]
+        assert list(mm.criterion_mask(pd.Series(["5.0", "5", "6"]), "=", "5")[0]) == [True, True, False]
+        assert list(mm.criterion_mask(pd.Series(["LP-DIR-T", "LP-PI-TRM", ""]), "contains", "DIR")[0]) == [True, False, False]
+        assert list(mm.criterion_mask(pd.Series(["LP-DIR-T", "LP-PI-TRM", ""]), "does not contain", "DIR")[0]) == [False, True, False]
+        assert list(mm.criterion_mask(pd.Series(["mc01a", "sc01a"]), "begins with", "mc")[0]) == [True, False]
+        assert "not a number" in mm.criterion_mask(s, "<", "five")[2]
+        assert "not a criterion operation" in mm.criterion_mask(s, "approximately", "5")[2]
+
+    def test_check_criteria_counts_passing_and_blank_rows_and_names_what_it_cannot_judge(self, judged):
+        df = mm.editor_frame(judged, "criteria").df
+        checks = {c.table_column: c for c in mm.check_criteria(judged, df)}
+        mad = checks["specimens.dir_mad_free"]
+        assert (mad.rows, mad.passing, mad.blank, mad.failing) == (4, 2, 1, 1) and mad.problem == ""
+        assert mad.summary() == "2 of 4 pass, 1 blank"
+        assert checks["specimens.dir_n_measurements"].passing == 3
+        polarity = checks["specimen.dir_polarity"]
+        assert polarity.table == "sites" or polarity.table == "specimens"
+        assert (polarity.passing, polarity.blank) == (2, 1) and "not 'specimen'" in polarity.note and polarity.problem == ""
+        assert checks["sites.dir_k"].problem == "no sites.txt in the directory"
+        assert checks["specimens.int_b_beta"].problem == "specimens.txt has no column int_b_beta"
+        blank = pd.concat([df, pd.DataFrame([{c: "" for c in df.columns}])], ignore_index=True)
+        assert len(mm.check_criteria(judged, blank)) == 5                     # an empty row is not a criterion
+
+    def test_passing_rows_applies_the_criteria_aimed_at_one_table(self, judged):
+        spec = mm.read_table(judged, "specimens")
+        crit = mm.read_table(judged, "criteria")
+        ok = mm.passing_rows(spec, crit, "specimens", "DE-SPEC")
+        assert list(spec.specimen[ok]) == ["a"]                                # b: MAD 7; c: 3 steps; d: no MAD
+        lenient = mm.passing_rows(spec, crit, "specimens", "DE-SPEC", blank_fails=False)
+        assert list(spec.specimen[lenient]) == ["a", "d"]
+        assert not mm.passing_rows(spec, crit, "specimens").any()            # IE-SPEC names a column the table lacks
+        assert mm.passing_rows(spec, crit, "locations").all()                # nothing aimed at the frame's table
+        assert list(spec.specimen[mm.passing_rows(spec, crit, "specimens", "NPOLE")]) == ["a", "c"]
+
+
 def test_plain_column_name_strips_the_validators_decoration():
     assert mp.plain_column_name("value_pass_lat_checkMax") == "lat"
     assert mp.plain_column_name("value_pass_lithologies_cv2") == "lithologies"

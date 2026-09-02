@@ -522,10 +522,26 @@ Intensity were built.
    columns, the stub rows and failing cells painted, column help on the right,
    Save reloading the session so Home's gaps follow, Check on the saved file.
    Home's "Metadata…" is the primary button when the contribution has gaps.
-   *Still to do here*: the criteria table; propagating a saved age down the
-   hierarchy the way ErMagicBuilder did (the inventory already counts a site
-   dated in `ages.txt` as dated); a newer data model than the bundled 2019
-   copy (the page reads whatever `data_model(True)` returns).
+   *Still to do here*: propagating a saved age down the hierarchy the way
+   ErMagicBuilder did (the inventory already counts a site dated in `ages.txt`
+   as dated); a newer data model than the bundled 2019 copy (the page reads
+   whatever `data_model(True)` returns).
+   **Criteria built 2026-09-02** (step 5's last row): `criteria` joined
+   `magic_metadata.TABLES`, so the same grid edits it — `table_column` picks
+   from every column of the MagIC tables (`table_columns`), `criterion` from
+   the names PmagPy's tools use (`DE-SPEC` … `RPOLE`), the operation from the
+   data model's vocabulary. *Add default criteria* appends
+   `magic_metadata.default_criteria()` — `pmag.default_criteria` written in
+   the 3.0 vocabulary through the data model's `criteria_map`, checked
+   against it in the tests — skipping rows already there. *Check* evaluates
+   each criterion on the table it names (`check_criteria` → `CriterionCheck`:
+   rows, passing, blank, or the problem — table missing, column missing,
+   value not a number, table named in the singular as older files have) and
+   lists the scores beside the validator's findings. `passing_rows(table_df,
+   criteria, table, criterion=, blank_fails=True)` is the piece Directions'
+   export can use to apply criteria (QUESTIONS 49). A blank cell fails a
+   criterion, as `pmag.grade` has always ruled; `blank_fails=False` lets it
+   through.
    **Upload built 2026-09-01**: `pmagpy/magic_upload.py` is the UI-free layer
    — `check_offline` (every table through `magic_metadata.check_table`),
    `build_upload_file` (`ipmag.upload_magic`, the file landing in the study
@@ -731,8 +747,8 @@ Intensity were built.
 | IODP sample summaries | **done**, as the `iodp_*` formats (LIMS samples, SRM section/discrete, JR6, and KLY4S from 2026-09-02) | they are conversions |
 | kly4s / k15 / sufar4 | **done** (2026-09-02), as the `k15`/`kly4s`/`sufar4` formats; the directory opens Anisotropy | conversions |
 | legacy 2.5 → 3.0 | **done** (2026-09-02), as the `legacy` format on Convert, guessed from the 2.5 table names | cheap; old datasets still arrive |
-| export result tables (`*_extract`) | **keep**, on Upload | publication tables; cheap |
-| criteria editor (`CustomizeCriteria`, unreachable today) | **keep**, as the criteria grid on Metadata | Directions' export already applies criteria; they need a home |
+| export result tables (`*_extract`) | **done** (step 3, 2026-09-01): `magic_upload.export_tables` on Upload, Excel or LaTeX | publication tables; cheap |
+| criteria editor (`CustomizeCriteria`, unreachable today) | **done** (2026-09-02), as the criteria grid on Metadata with defaults and a per-criterion check | criteria need a home; Directions' export can apply them through `magic_metadata.passing_rows` |
 | depth plots (`core_depthplot`, `ani_depthplot2`) | **defer** | matplotlib, niche; revisit when a stratigraphic user asks |
 | `ZeqMagic` (unreachable today) | **drop** | Directions covers it |
 | private MagIC workspace | **defer** until its function is fixed | cannot work today |

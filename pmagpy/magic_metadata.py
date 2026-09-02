@@ -8,6 +8,11 @@ values it admits, the rows a table is owed by the tables beneath it, and the
 reading and writing of one table -- so that any front end (the hub's Metadata
 page, a notebook) shows the same thing and writes the same file.
 
+The criteria table rides along: the acceptance criteria a study applies to its
+results (``specimens.dir_mad_free <= 5`` ...) are edited in the same grid, and
+the last section evaluates them against the tables they name so an editor can
+see how many rows each criterion lets through.
+
 Everything about a column comes from the MagIC 3 data model and its
 controlled vocabularies, both read from the copies bundled with PmagPy
 (:func:`pmagpy.magic_project.data_model`), so nothing here waits on
@@ -25,8 +30,8 @@ import pandas as pd
 
 from pmagpy import magic_project as mp
 
-#: the tables this module edits, in the order the hierarchy runs
-TABLES = ("locations", "sites", "samples", "specimens", "ages")
+#: the tables this module edits, in the order the hierarchy runs, then the criteria that judge them
+TABLES = ("locations", "sites", "samples", "specimens", "ages", "criteria")
 #: the name column of each table (ages has none: a row names whichever level it dates)
 NAME_COLUMN = {"locations": "location", "sites": "site", "samples": "sample", "specimens": "specimen"}
 #: the table above each, whose name a row carries
@@ -39,6 +44,13 @@ LEVELS = ("location", "site", "sample", "specimen")
 DEFAULTS = {"citations": "This study", "result_quality": "g", "result_type": "i", "orientation_quality": "g"}
 
 BACKUP_DIR = "backup_before_pmagpy_apps"
+
+#: the criteria table's columns in the model's order: the four required ones first
+CRITERIA_COLUMNS = ("criterion", "table_column", "criterion_operation", "criterion_value", "description", "citations")
+#: the tables a criterion may judge (``table_column`` = "<table>.<column>")
+CRITERIA_TABLES = ("specimens", "samples", "sites", "locations", "measurements")
+#: the criterion names PmagPy's tools use, by what they judge: DE = directions, IE = intensities; a study may coin its own
+CRITERION_NAMES = ("DE-SPEC", "DE-SAMP", "DE-SITE", "IE-SPEC", "IE-SAMP", "IE-SITE", "NPOLE", "RPOLE")
 
 
 # ---------------------------------------------------------------------------
@@ -120,7 +132,7 @@ def columns(table: str) -> Dict[str, Column]:
                 name=name, label=str(row["label"]), group=str(row["group"]), dtype=str(row["type"]),
                 description=str(row["description"]) if not mp.is_null(row["description"]) else "",
                 required="required()" in validations,
-                unit=str(row["unit"]) if not mp.is_null(row["unit"]) else "",
+                unit=str(row["unit"]) if "unit" in row and not mp.is_null(row["unit"]) else "",   # criteria has no unit column
                 vocabulary=tuple(str(v) for v in vocab.vocabularies.get(name, ())),
                 suggested=tuple(str(v) for v in vocab.suggested.get(name, ())),
                 minimum=_bound(validations, "min"), maximum=_bound(validations, "max"),
@@ -153,15 +165,19 @@ def order_columns(table: str, present: Iterable[str]) -> List[str]:
     (present or not -- an empty required column is a gap to be seen), then
     every other column present, all in data-model order. Columns the model
     does not know (an application's own, a converter's leftover) come last so
-    they are not lost on saving.
+    they are not lost on saving. The ages table leads with the four level
+    names; criteria follow the model's order, which already reads as a
+    sentence (criterion, table_column, operation, value).
     """
     present = list(present)
     model = columns(table)
     wanted = set(present) | set(required_columns(table))
     if table in NAME_COLUMN:
         lead = [NAME_COLUMN[table]] + ([NAME_COLUMN[PARENT[table]]] if table in PARENT else [])
+    elif table == "ages":
+        lead = list(LEVELS)                      # a row names whichever level it dates
     else:
-        lead = list(LEVELS)                      # ages: a row names whichever level it dates
+        lead = []
     lead = [c for c in lead if c in model]
     ordered = lead + [c for c in model if c in wanted and c not in lead]
     return ordered + [c for c in present if c not in model]
@@ -245,7 +261,8 @@ def editor_frame(directory: str, table: str) -> EditorFrame:
     df = read_table(directory, table)
     exists = df is not None
     if df is None:
-        df = pd.DataFrame(columns=[NAME_COLUMN[table]] if table in NAME_COLUMN else list(LEVELS))
+        first = {"ages": list(LEVELS), "criteria": list(CRITERIA_COLUMNS)}.get(table, [NAME_COLUMN.get(table)])
+        df = pd.DataFrame(columns=[c for c in first if c])
     stubs: List[str] = []
     key = NAME_COLUMN.get(table)
     if key:
@@ -302,8 +319,9 @@ def save_table(directory: str, table: str, df: pd.DataFrame, backup: bool = True
     Cells are written as typed; columns with nothing in them are left out of
     the file (a required column that stays blank is a validation finding, not
     a column of empty tabs). Rows with no name are dropped -- they are the
-    editor's blank rows that were never filled in. The original file is copied
-    into ``backup_before_pmagpy_apps/`` the first time it is rewritten.
+    editor's blank rows that were never filled in (for criteria, a row with
+    none of its four required cells). The original file is copied into
+    ``backup_before_pmagpy_apps/`` the first time it is rewritten.
     """
     out = df.copy().fillna("").astype(str)
     for c in out.columns:
@@ -313,6 +331,10 @@ def save_table(directory: str, table: str, df: pd.DataFrame, backup: bool = True
         out = out[out[key] != ""]
     elif table == "ages":
         named = [c for c in LEVELS if c in out.columns]
+        if named:
+            out = out[(out[named] != "").any(axis=1)]
+    elif table == "criteria":
+        named = [c for c in CRITERIA_COLUMNS[:4] if c in out.columns]
         if named:
             out = out[(out[named] != "").any(axis=1)]
     keep = [c for c in out.columns if (out[c] != "").any()]
@@ -438,3 +460,228 @@ def check_table(directory: str, table: str) -> List[Finding]:
     for grp in report["missing_groups"]:
         findings.append(Finding("", "", f"no column from the required group {grp}"))
     return findings
+
+
+# ---------------------------------------------------------------------------
+# Acceptance criteria
+# ---------------------------------------------------------------------------
+def default_criteria() -> pd.DataFrame:
+    """PmagPy's default acceptance criteria as a MagIC 3 criteria table.
+
+    The values are those of :func:`pmagpy.pmag.default_criteria` (the ``-dcr``
+    defaults of the command-line tools and Pmag GUI), written straight in the
+    3.0 vocabulary the data model's ``criteria_map`` gives them. Directional
+    criteria are named ``DE-SPEC``/``DE-SAMP``/``DE-SITE`` and intensity
+    criteria ``IE-SPEC``/``IE-SITE`` as the PmagPy tools name them.
+    """
+    rows = [
+        ("DE-SPEC", "specimens.dir_mad_free", "<=", "5", "Criteria for selection of specimen direction"),
+        ("DE-SAMP", "samples.dir_alpha95", "<=", "5", "Criteria for selection of sample direction"),
+        ("DE-SITE", "sites.dir_n_samples", ">=", "5", "Criteria for selection of site direction"),
+        ("DE-SITE", "sites.dir_n_specimens_lines", ">=", "4", "Criteria for selection of site direction"),
+        ("DE-SITE", "sites.dir_k", ">=", "50", "Criteria for selection of site direction"),
+        ("IE-SPEC", "specimens.int_n_measurements", ">=", "4", "Criteria for selection of specimen intensity"),
+        ("IE-SPEC", "specimens.int_n_ptrm", ">=", "2", "Criteria for selection of specimen intensity"),
+        ("IE-SPEC", "specimens.int_drats", "<=", "20", "Criteria for selection of specimen intensity"),
+        ("IE-SPEC", "specimens.int_b_beta", "<=", "0.1", "Criteria for selection of specimen intensity"),
+        ("IE-SPEC", "specimens.int_maxdev", "<=", "15", "Criteria for selection of specimen intensity"),
+        ("IE-SPEC", "specimens.int_fvds", ">=", "0.7", "Criteria for selection of specimen intensity"),
+        ("IE-SPEC", "specimens.int_q", ">=", "1.0", "Criteria for selection of specimen intensity"),
+        ("IE-SPEC", "specimens.int_dang", "<=", "10", "Criteria for selection of specimen intensity"),
+        ("IE-SPEC", "specimens.int_mad_free", "<=", "10", "Criteria for selection of specimen intensity"),
+        ("IE-SITE", "sites.int_n_samples", ">=", "2", "Criteria for selection of site intensity"),
+        ("IE-SITE", "sites.int_abs_sigma", "<=", "5e-6", "Criteria for selection of site intensity"),
+        ("IE-SITE", "sites.int_abs_sigma_perc", "<=", "15", "Criteria for selection of site intensity"),
+    ]
+    df = pd.DataFrame(rows, columns=list(CRITERIA_COLUMNS[:5]))
+    df["citations"] = DEFAULTS["citations"]
+    return df
+
+
+def add_default_criteria(df: pd.DataFrame) -> Tuple[pd.DataFrame, int]:
+    """Append the default criteria a criteria frame does not have yet (same criterion and table_column). Returns (frame, rows added)."""
+    df = df.copy().fillna("").astype(str)
+    for c in CRITERIA_COLUMNS:
+        if c not in df.columns:
+            df[c] = ""
+    have = set(zip(df["criterion"].str.strip(), df["table_column"].str.strip()))
+    new = default_criteria()
+    new = new[[(c, t) not in have for c, t in zip(new["criterion"], new["table_column"])]]
+    out = pd.concat([df, new], ignore_index=True, sort=False).fillna("")
+    return out[order_columns("criteria", out.columns)], len(new)
+
+
+def table_columns() -> List[str]:
+    """Every ``<table>.<column>`` a criterion may name, in data-model order, result tables first."""
+    return [f"{t}.{c}" for t in CRITERIA_TABLES for c in columns(t)]
+
+
+def split_table_column(table_column: str) -> Tuple[str, str, str]:
+    """``"specimens.dir_mad_free"`` -> ("specimens", "dir_mad_free", ""); the third item names what is wrong when it is.
+
+    A table written in the singular ("site.dir_polarity", which older files
+    have) is taken as the plural it means, with the slip reported.
+    """
+    text = str(table_column).strip()
+    if "." not in text:
+        return "", "", f"'{text}' is not written as table.column"
+    table, column = text.split(".", 1)
+    if table in CRITERIA_TABLES:
+        return table, column, ""
+    if table + "s" in CRITERIA_TABLES:
+        return table + "s", column, f"the table is '{table + 's'}', not '{table}'"
+    return table, column, f"no MagIC table '{table}'"
+
+
+def criterion_mask(values: pd.Series, operation: str, value: str) -> Tuple[pd.Series, pd.Series, str]:
+    """Which cells of ``values`` satisfy ``<operation> <value>``.
+
+    Returns (passing, blank, problem): two boolean Series on the values' index
+    and an explanation when the criterion cannot be evaluated (then nothing
+    passes). Blank cells never pass -- a record without the statistic fails
+    the criterion, as :func:`pmagpy.pmag.grade` has always ruled -- but are
+    reported apart so an editor can tell "not computed" from "rejected".
+    The comparison operations read numbers; ``=``/``equals`` compare numbers
+    when both sides are numbers and text otherwise; the text operations
+    (``contains`` ...) work on the cell as written.
+    """
+    text = values.fillna("").astype(str).str.strip()
+    blank = text == ""
+    value = str(value).strip()
+    op = str(operation).strip()
+    none = pd.Series(False, index=values.index)
+    if op in ("<", "<=", ">", ">="):
+        threshold = pd.to_numeric(pd.Series([value]), errors="coerce").iloc[0]
+        if pd.isna(threshold):
+            return none, blank, f"'{value}' is not a number to compare with {op}"
+        numbers = pd.to_numeric(text, errors="coerce")
+        passing = {"<": numbers < threshold, "<=": numbers <= threshold,
+                   ">": numbers > threshold, ">=": numbers >= threshold}[op]
+        return passing.fillna(False).astype(bool), blank, ""
+    if op in ("=", "equals"):
+        threshold = pd.to_numeric(pd.Series([value]), errors="coerce").iloc[0]
+        numbers = pd.to_numeric(text, errors="coerce")
+        if not pd.isna(threshold):
+            passing = (numbers == threshold) | (text == value)
+        else:
+            passing = text == value
+        return passing.fillna(False).astype(bool) & ~blank, blank, ""
+    if op == "begins with":
+        return text.str.startswith(value) & ~blank, blank, ""
+    if op == "ends with":
+        return text.str.endswith(value) & ~blank, blank, ""
+    if op == "contains":
+        return text.str.contains(value, regex=False) & ~blank, blank, ""
+    if op == "does not contain":
+        return ~text.str.contains(value, regex=False) & ~blank, blank, ""
+    return none, blank, f"'{op}' is not a criterion operation the data model knows"
+
+
+@dataclass
+class CriterionCheck:
+    """One criteria row evaluated against the table it names.
+
+    Attributes:
+        row: the row's position in the criteria frame.
+        criterion, table_column, operation, value: the row as written.
+        table, column: what ``table_column`` resolved to.
+        rows: rows of the target table; passing: how many satisfy the criterion;
+            blank: how many have no value in the column.
+        problem: why the row could not be evaluated ("" when it could).
+        note: a slip that did not stop the evaluation (a table named in the singular).
+    """
+    row: int
+    criterion: str
+    table_column: str
+    operation: str
+    value: str
+    table: str = ""
+    column: str = ""
+    rows: int = 0
+    passing: int = 0
+    blank: int = 0
+    problem: str = ""
+    note: str = ""
+
+    @property
+    def failing(self) -> int:
+        return self.rows - self.passing - self.blank
+
+    def summary(self) -> str:
+        """"231 of 300 pass, 12 blank" (with the note, if any) or the problem."""
+        if self.problem:
+            return self.problem
+        bits = [f"{self.passing} of {self.rows} pass"]
+        if self.blank:
+            bits.append(f"{self.blank} blank")
+        return ", ".join(bits) + (f" — {self.note}" if self.note else "")
+
+
+def check_criteria(directory: str, df: pd.DataFrame) -> List[CriterionCheck]:
+    """Evaluate every row of a criteria frame against the tables in ``directory``.
+
+    A row whose table is not there, whose column is not in the table, or whose
+    operation or value cannot be read comes back with a ``problem`` instead
+    of counts. Rows with nothing in them are skipped.
+    """
+    checks: List[CriterionCheck] = []
+    frames: Dict[str, Optional[pd.DataFrame]] = {}
+    df = df.fillna("").astype(str)
+    for i, row in df.iterrows():
+        get = lambda c: str(row.get(c, "")).strip()   # noqa: E731
+        check = CriterionCheck(int(i), get("criterion"), get("table_column"), get("criterion_operation"), get("criterion_value"))
+        if not any((check.criterion, check.table_column, check.operation, check.value)):
+            continue
+        table, column, problem = split_table_column(check.table_column)
+        check.table, check.column = table, column
+        if problem and (not table or table not in CRITERIA_TABLES):
+            check.problem = problem
+            checks.append(check)
+            continue
+        check.note = problem
+        if table not in frames:
+            frames[table] = read_table(directory, table)
+        target = frames[table]
+        if target is None:
+            check.problem = f"no {table}.txt in the directory"
+        elif column not in target.columns:
+            check.problem = f"{table}.txt has no column {column}"
+        else:
+            passing, blank, bad = criterion_mask(target[column], check.operation, check.value)
+            check.rows, check.passing, check.blank = len(target), int(passing.sum()), int(blank.sum())
+            check.problem = bad
+        checks.append(check)
+    return checks
+
+
+def passing_rows(table_df: pd.DataFrame, criteria: pd.DataFrame, table: str, criterion: Optional[str] = None,
+                 blank_fails: bool = True) -> pd.Series:
+    """The rows of ``table_df`` that satisfy every criterion aimed at ``table``.
+
+    Args:
+        table_df: a MagIC table as strings (:func:`read_table`).
+        criteria: a criteria table.
+        table: which table ``table_df`` is ("specimens" ...).
+        criterion: judge by the rows of this criterion name only (``"DE-SPEC"``);
+            None applies every criterion that names the table.
+        blank_fails: a row without a value in the judged column fails the
+            criterion (:func:`pmagpy.pmag.grade`'s rule); False lets such a
+            row through, so a criterion only bites where the statistic exists.
+
+    Returns:
+        A boolean Series on ``table_df``'s index. With no applicable criterion
+        every row passes. A criterion naming a column the table lacks is a
+        blank cell in every row.
+    """
+    ok = pd.Series(True, index=table_df.index)
+    criteria = criteria.fillna("").astype(str)
+    for _, row in criteria.iterrows():
+        if criterion is not None and row.get("criterion", "").strip() != criterion:
+            continue
+        t, column, _ = split_table_column(row.get("table_column", ""))
+        if t != table or not column:
+            continue
+        values = table_df[column] if column in table_df.columns else pd.Series("", index=table_df.index)
+        passing, blank, _ = criterion_mask(values, row.get("criterion_operation", ""), row.get("criterion_value", ""))
+        ok &= passing | (blank & ~blank_fails)
+    return ok
