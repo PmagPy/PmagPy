@@ -7139,6 +7139,7 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
     sclass, lithology, sample_type = "", "", ""
     newclass, newlith, newtype = '', '', ''
     BPs = []  # bedding pole declinations, bedding pole inclinations
+    dip_dir = ""  # last recorded bedding dip direction (declination-corrected)
     image_file = "er_images.txt"
     #
     # use 3.0. default filenames when in 3.0.
@@ -7312,6 +7313,11 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
         # the following keys, if blank, used to be defined here as "Not Specified" :
 
         for key in ["sample_class", "sample_lithology", "sample_type"]:
+            # older orient files carry these as site_class etc.
+            # (data_files/orientation_magic/orient_example.txt does)
+            site_key = key.replace("sample_", "site_")
+            if key not in OrRec and OrRec.get(site_key, "") != "":
+                OrRec[key] = OrRec[site_key]
             if key in list(OrRec.keys()) and OrRec[key] != "" and OrRec[key] != "Not Specified":
                 MagRec[key] = OrRec[key]
             elif key in list(Prev_MagRec.keys()) and Prev_MagRec[key] != "" and Prev_MagRec[key] != "Not Specified":
@@ -7427,14 +7433,17 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
         else:
             MagRec["sample_bed_dip"] = '0'
         if "bedding_dip_direction" in list(OrRec.keys()):
-            if OrRec["bedding_dip_direction"] != "" and bed_correction == 1:
-                dd = float(OrRec["bedding_dip_direction"]) + dec_correction
-                if dd > 360.:
-                    dd = dd - 360.
-                MagRec["sample_bed_dip_direction"] = '%7.1f' % (dd)
-                dip_dir = MagRec["sample_bed_dip_direction"]
-            else:
-                MagRec["sample_bed_dip_direction"] = OrRec['bedding_dip_direction']
+            if OrRec["bedding_dip_direction"] != "":
+                if bed_correction == 1:
+                    dd = float(OrRec["bedding_dip_direction"]) + dec_correction
+                    if dd > 360.:
+                        dd = dd - 360.
+                    dip_dir = '%7.1f' % (dd)
+                else:
+                    dip_dir = OrRec['bedding_dip_direction']
+            # a blank inherits the last recorded (corrected) direction,
+            # as bedding_dip does
+            MagRec["sample_bed_dip_direction"] = dip_dir
         else:
             MagRec["sample_bed_dip_direction"] = '0'
         if average_bedding:
@@ -7511,13 +7520,18 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
             SiteRec["er_site_name"] = site
             SiteRec["site_definition"] = "s"
 
-            if "er_location_name" in SiteRec and SiteRec.get("er_location_name"):
+            # location: the orient file's header line, else an appended
+            # site's prior value.  (This used to index with a stale loop
+            # variable, so sites came out with no location column.)
+            if SiteRec.get("er_location_name"):
                 pass
-            elif key in list(Prev_MagRec.keys()) and Prev_MagRec[key] != "":
-                SiteRec[key] = Prev_MagRec[key]
+            elif MagRec.get("er_location_name"):
+                SiteRec["er_location_name"] = MagRec["er_location_name"]
+            elif Prev_MagRec.get("er_location_name"):
+                SiteRec["er_location_name"] = Prev_MagRec["er_location_name"]
             else:
                 print('setting location name to ""')
-                SiteRec[key] = ""
+                SiteRec["er_location_name"] = ""
 
             for key in ["lat", "lon", "height"]:
                 if "site_" + key in list(Prev_MagRec.keys()) and Prev_MagRec["site_" + key] != "":
@@ -7666,12 +7680,15 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
                 GPSRec["sample_declination_correction"] = ''
                 GPSRec["magic_method_codes"] = methcodes + ':SO-GPS-DIFF'
                 SampOuts.append(GPSRec)
-        if average_bedding != "0" and fpars:
-            fpars = pmag.fisher_mean(BPs)
-            print('over-writing all bedding with average ')
+    # average the bedding poles once every sample has been read (this used
+    # to be tested inside the loop against a still-empty fpars, so the
+    # average was never taken)
+    if average_bedding and str(average_bedding) != "0" and BPs:
+        fpars = pmag.fisher_mean(BPs)
+        print('over-writing all bedding with average ')
     Samps = []
     for rec in SampOuts:
-        if average_bedding != "0" and fpars:
+        if fpars:
             rec['sample_bed_dip_direction'] = '%7.1f' % (fpars['dec'])
             rec['sample_bed_dip'] = '%7.1f' % (fpars['inc'] + 90.)
             Samps.append(rec)

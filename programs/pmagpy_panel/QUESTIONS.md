@@ -425,3 +425,28 @@ the bottom; struck through once settled.
     - *`sample` on a new specimen row* comes from the specimen's other rows,
       else from the measurements' `sample` column, else from a samples table
       whose `specimens` column lists it (McMurdo's has no such column).
+
+44. **`orientation_magic` — what the new tests found (2026-09-02).**
+    `pmagpy/test/test_ipmag_magic_files.py` checks the function against
+    `data_files/orientation_magic/orient_example.txt` and `pmag.doigrf` /
+    `pmag.dosundec`. Three fixes went in; two choices are yours.
+    - *Fixed*: sites came out with no `location` column and a stray
+      `sample_type` column (a stale loop variable was used as the key);
+      `bedding_dip_direction` was not inherited by the samples that leave it
+      blank although `bedding_dip` was, so a site's second sample lost its
+      bedding; `average_bedding=True` never averaged (tested against an
+      empty `fpars` inside the loop).
+    - *The example file uses the old column names* `site_class`,
+      `site_lithology`, `site_type`, `sample_flag`, `magic_method_codes`;
+      the docstring (and pmag_gui's template) say `sample_class`,
+      `sample_lithology`, `sample_type`, `sample_orientation_flag`,
+      `method_codes`. I made `site_*` fall back to `sample_*` so the example's
+      geology reaches the sites table; `sample_flag` and `magic_method_codes`
+      are still ignored, so `mc137a`'s `b` flag and `SO-GT5` code are lost.
+      Update the example file to the documented headers, or alias those too?
+    - *Inheritance crosses sites*: a blank bedding (or date, or lat/lon) takes
+      the last recorded value even when the previous row was another site —
+      `mc137` inherits `mc123`'s bedding in the example. That is the
+      documented behaviour ("leave the field blank and the program will fill
+      in the last recorded information"), kept as is. Should the hub's
+      Convert page warn when an inherited value crosses a site boundary?

@@ -349,9 +349,16 @@ accepts. Start with the 13 formats Pmag GUI offers plus the IRM instruments
   and NaN is truthy — under pandas 3 a `None` written into a string column
   becomes NaN, so nothing propagated up into an emptied column. The legacy
   copy in `pmagpy_tests/` still exists for the wx-era runner.
-* Tests for `download_magic` (including `txt=…`, the in-memory unpack),
-  `combine_magic`, and `orientation_magic` against the examples in
-  `data_files/orientation_magic/` and `data_files/azdip_magic/`.
+* `pmagpy/test/test_ipmag_magic_files.py` (2026-09-02): `download_magic`
+  (file, `txt=…`, `separate_locs`, split directories), `combine_magic`
+  (sequence, duplicates, non-measurement tables, refusals) and
+  `orientation_magic` against `data_files/orientation_magic/` with the
+  IGRF and sun-compass azimuths checked against `pmag.doigrf` /
+  `pmag.dosundec`. `orientation_magic` fixes: sites get their `location`
+  (a stale loop variable had been the key), blank `bedding_dip_direction`
+  inherits like `bedding_dip`, `average_bedding` actually averages; the
+  example's `site_class`-style headers are accepted (QUESTIONS 44).
+  `azdip_magic` is still untested.
 * `rockmag.py`: give `_show_hyst_summary_table` and
   `curie_inverse_susceptibility_interactive` a `show_plot=False` /
   `return_figure=True` path like their siblings.
