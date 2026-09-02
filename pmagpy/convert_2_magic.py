@@ -1443,11 +1443,16 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
     locname : location name
     sitename : site name set by user instead of using samp_con
     sampname : sample name set by user instead of using samp_con
-    methods : colon delimited list of sample method codes. full list here (https://www2.earthref.org/MagIC/method-codes) (default : SO-MAG)
+    methods : colon delimited list of sample orientation method codes. full list here (https://www2.earthref.org/MagIC/method-codes) (default : SO-MAG)
+        SO-MAG becomes SO-SUN when a specimen file's first line says "sun compass", and SO-CMD-NORTH is added
+        when the .sam header carries a declination correction or the line says the azimuths were corrected
     specnum : number of terminal characters that identify a specimen
     norm : is volume or mass normalization using cgs or si units (options : cc,m3,g,kg) (default : cc)
+        a volume/mass of exactly 1.0 is taken as "not normalized" (LP-NOMAG, no volume written)
     oersted : demag step values are in Oersted
     noave : average measurement data or not. False is average, True is don't average. (default : False)
+        CIT steps are already averaged over the measurement orientations, so repeated steps are
+        usually worth keeping (noave=True, as Pmag GUI does)
     samp_con : sample naming convention options as follows:
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
@@ -1625,25 +1630,21 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
         f = open(os.path.join(input_dir_path, specimen), 'r')
         Lines = f.readlines()
         f.close()
-        comment = ""
-        line = Lines[0].split()
-        if len(line) > 2:
-            comment = line[2]
+        comment = Lines[0].strip()      # the specimen name followed by free text
         info = Lines[1].split()
         volmass = float(info[-1])
         if volmass == 1.0:
-            print('Warning: Specimen volume set to 1.0.')
-            print('Warning: If volume/mass really is 1.0, set volume/mass to 1.001')
-            print('Warning: specimen method code LP-NOMAG set.')
+            print('Warning: %s volume/mass is 1.0, taken as not normalized (LP-NOMAG); '
+                  'set it to 1.001 if it really is 1.0.' % specimen)
             SpecRec['weight'] = ""
             SpecRec['volume'] = ""
             SpecRec['method_codes'] = 'LP-NOMAG'
-        elif norm == "gm":
+        elif norm in ("gm", "g"):
             SpecRec['volume'] = ''
-            SpecRec['weight'] = '%10.3e' % volmass*1e-3
+            SpecRec['weight'] = '%10.3e' % (volmass*1e-3)
         elif norm == "kg":
             SpecRec['volume'] = ''
-            SpecRec['weight'] = '%10.3e'*volmass
+            SpecRec['weight'] = '%10.3e' % (volmass)
         elif norm == "cc":
             SpecRec['weight'] = ""
             SpecRec['volume'] = '%10.3e' % (volmass*1e-6)
@@ -1655,10 +1656,12 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
                   norm, '. Using default of cc')
             SpecRec['weight'] = ""
             SpecRec['volume'] = '%10.3e' % (volmass*1e-6)
+        # the CIT sample line holds strikes: the core strike is 90 degrees clockwise of the
+        # core azimuth, and the bedding strike 90 degrees counterclockwise of the dip direction
         dip = float(info[-2])
-        dip_direction = float(info[-3])+Cdec+90.
+        dip_direction = (float(info[-3])+Cdec+90.) % 360.
         sample_dip = -float(info[-4])
-        sample_azimuth = float(info[-5])+Cdec-90.
+        sample_azimuth = (float(info[-5])+Cdec-90.) % 360.
         if len(info) > 5:
             SampRec['height'] = info[-6]
         else:
@@ -1670,16 +1673,24 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
         SampRec['geologic_classes'] = ''
         SampRec['geologic_types'] = ''
         SampRec['lithologies'] = ''
-        if Cdec != 0 or Cdec != "":
-            SampRec['method_codes'] = 'SO-CMD-NORTH'
-        else:
-            SampRec['method_codes'] = 'SO-MAG'
+        # orientation method: the caller's codes, corrected by what the sample file's first line
+        # says (the CIT programs write e.g. "sun compass orientation" or
+        # "mag compass orientation (IGRF corrected)"), plus the declination correction when
+        # the .sam header applies one or the line says the azimuths were already corrected
+        samp_meths = [m for m in ":".join(methods if isinstance(methods, (list, tuple)) else [methods]).split(":") if m]
+        if 'sun compass' in comment.lower():
+            samp_meths = [m if m != 'SO-MAG' else 'SO-SUN' for m in samp_meths]
+        if (Cdec != 0 or 'corrected' in comment.lower()) and 'SO-CMD-NORTH' not in samp_meths:
+            samp_meths.append('SO-CMD-NORTH')
+        SampRec['method_codes'] = ":".join(samp_meths)
         for line in Lines[2:len(Lines)]:
             if line == '\n':
                 continue
             MeasRec = SpecRec.copy()
             MeasRec.pop('sample')
+            MeasRec.pop('method_codes', None)     # the specimen's LP-NOMAG is not a treatment
             MeasRec['analysts'] = user
+            MeasRec['description'] = ''
 #           Remove volume and weight as they do not exits in the magic_measurement table
             del MeasRec["volume"]
             del MeasRec["weight"]
@@ -1694,12 +1705,17 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
                 float(treat)
             except ValueError:
                 treat = line[3:6]
-                if treat.split() == '':
-                    treat = '0'
-                try:
-                    float(treat)
-                except ValueError:
-                    treat = line.split()[1]
+                if treat.strip() == '':
+                    # a step with no value (e.g. "TT    "): keep it blank rather than reading the
+                    # next column, which is the declination
+                    if treat_type.startswith('TT'):
+                        print('Warning: %s: a TT step without a temperature, recorded at 273 K.' % specimen)
+                        MeasRec['description'] = 'treatment temperature missing in the CIT file'
+                else:
+                    try:
+                        float(treat)
+                    except ValueError:
+                        treat = line.split()[1]
             if treat_type.startswith('NRM'):
                 MeasRec['method_codes'] = 'LT-NO'
                 MeasRec['meas_temp'] = '273'
@@ -1858,7 +1874,8 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
                 MeasRec['treat_dc_field_theta'] = '%1.2f' % DC_THETA
                 MeasRec['treat_ac_field'] = '0'
             else:
-                print("trouble with your treatment steps")
+                print("Warning: %s: treatment '%s' not understood, line skipped." % (specimen, line[0:6].strip()))
+                continue
             MeasRec['dir_dec'] = line[46:51]
             MeasRec['dir_inc'] = line[52:58]
 #           Some MIT files have and extra digit in the exponent of the magnetude.

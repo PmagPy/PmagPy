@@ -124,6 +124,12 @@ class TestBuildKwargs:
         kw = reg.build_kwargs(reg.FORMATS["sio"], {"lat": "", "lon": None, "bogus": 3, "location": "X"}, "/d/f.dat", "/o")
         assert "lat" not in kw and "lon" not in kw and "bogus" not in kw and kw["location"] == "X"
 
+    def test_a_field_left_out_takes_the_registry_default(self):
+        """A script and the form get the same conversion: cit keeps replicates unless told otherwise."""
+        kw = reg.build_kwargs(reg.FORMATS["cit"], {"samp_con": "2"}, "/d/T1-.sam", "/o")
+        assert kw["noave"] is True and kw["norm"] == "cc" and kw["meas_n_orient"] == 8
+        assert reg.build_kwargs(reg.FORMATS["cit"], {"noave": False}, "/d/T1-.sam", "/o")["noave"] is False
+
     def test_codes_are_colon_joined(self):
         kw = reg.build_kwargs(reg.FORMATS["sio"], {"codelist": ["AF", "T"]}, "/d/f.dat", "/o")
         assert kw["codelist"] == "AF:T"
@@ -187,6 +193,22 @@ class TestCombine:
         df = pd.DataFrame({"specimen": ["a", "a", "b"], "sample": ["A", "A", "B"], "volume": [pd.NA, "1e-5", pd.NA]})
         kept = reg._drop_redundant(df, "specimens")
         assert kept["specimen"].tolist() == ["a", "b"] and kept["volume"].tolist()[0] == "1e-5"
+
+    def test_one_location_from_files_with_their_own_coordinates(self, tmp_path):
+        """Five CIT sites named the same location with five .sam headers: one row, its bounding box."""
+        a, b = tmp_path / "a", tmp_path / "b"
+        a.mkdir(); b.mkdir()
+        write_table(a / "locations.txt", "locations", [{"location": "Nipigon", "lat_n": "49.0", "lat_s": "49.0",
+                                                        "lon_e": "272.0", "lon_w": "272.0", "citations": "This study"}])
+        write_table(b / "locations.txt", "locations", [{"location": "Nipigon", "lat_n": "48.9", "lat_s": "48.9",
+                                                        "lon_e": "271.8", "lon_w": "271.8", "citations": "This study"},
+                                                       {"location": "Other", "lat_n": "1", "lat_s": "1", "lon_e": "2", "lon_w": "2"}])
+        out = tmp_path / "out"; out.mkdir()
+        written = reg.combine_tables({"locations": [str(a / "locations.txt"), str(b / "locations.txt")]}, str(out))
+        assert written == {"locations": 2}
+        loc = read_table(out / "locations.txt").set_index("location")
+        assert loc.loc["Nipigon", ["lat_n", "lat_s", "lon_e", "lon_w"]].tolist() == ["49.0", "48.9", "272.0", "271.8"]
+        assert loc.loc["Nipigon", "citations"] == "This study" and loc.loc["Other", "lat_n"] == "1"
 
     def test_measurement_sequence_is_renumbered(self, tmp_path):
         a, b = tmp_path / "a", tmp_path / "b"

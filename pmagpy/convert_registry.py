@@ -198,15 +198,19 @@ def build_kwargs(fmt: Format, values: dict, input_path: str, out_dir: str, magic
     """The keyword arguments for one call of ``fmt.function``.
 
     Only values the converter has a keyword for are passed, under the converter's own
-    names; ``values`` may hold more (a form's whole dict) without harm. ``magic_dir``
-    is where the tables a format ``needs`` are read from (``out_dir`` when not given).
+    names; ``values`` may hold more (a form's whole dict) without harm, and a field left
+    out takes its registry default, so a script and the form get the same conversion.
+    ``magic_dir`` is where the tables a format ``needs`` are read from (``out_dir`` when
+    not given).
     """
     params = inspect.signature(fmt.function).parameters
     kwargs = dict(fmt.fixed)
     for f in fmt.fields:
-        if f.name not in values or values[f.name] in (None, "", [], ()):
+        value = values.get(f.name)
+        if value in (None, "", [], ()):
+            value = f.default
+        if value in (None, "", [], ()):
             continue
-        value = values[f.name]
         if f.kind == "naming":
             value = naming_code(value)
         elif f.kind == "int":
@@ -298,8 +302,10 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
             out = os.path.join(scratch, f"{i:03d}")
             os.makedirs(out)
             ok, message, log = run_one(fmt, path, values, out, dir_path)
-            for prefix in {out, os.path.realpath(out)}:                   # the scratch directory is nobody's business
-                log = log.replace(prefix + os.sep, "").replace(prefix, ".")     # (macOS prints it through /private)
+            # the scratch directory is nobody's business; macOS prints it through /private, so the
+            # longer spelling goes first or its tail would survive
+            for prefix in sorted({out, os.path.realpath(out)}, key=len, reverse=True):
+                log = log.replace(prefix + os.sep, "").replace(prefix, ".")
             logs.append(f"── {name}\n{log.rstrip()}\n" if log.strip() else f"── {name}\n")
             if not ok:
                 failed.append((name, message or "the converter reported failure"))
@@ -340,12 +346,36 @@ def combine_tables(per_table: Dict[str, List[str]], dir_path: str) -> Dict[str, 
         df = pd.concat(frames, ignore_index=True, sort=False)
         df = df.replace("", pd.NA).drop_duplicates()
         df = _drop_redundant(df, table)
+        if table == "locations":
+            df = _merge_locations(df)
         if table == "measurements" and "sequence" in df:
             df["sequence"] = range(1, len(df) + 1)
         with contextlib.redirect_stdout(io.StringIO()):
             magic_write(os.path.join(dir_path, f"{table}.txt"), df, table)
         written[table] = len(df)
     return written
+
+
+def _merge_locations(df: pd.DataFrame) -> pd.DataFrame:
+    """One row per location: files that each named it with their own site coordinates give its bounding box.
+
+    ``lat_n``/``lon_e`` take the largest value and ``lat_s``/``lon_w`` the smallest (a
+    location straddling the dateline is not resolved); every other column keeps the
+    first value given.
+    """
+    if "location" not in df or not df["location"].duplicated().any():
+        return df
+    bounds = {"lat_n": "idxmax", "lat_s": "idxmin", "lon_e": "idxmax", "lon_w": "idxmin"}
+    merged = []
+    for _, group in df.groupby("location", sort=False):
+        row = group.bfill().iloc[0].copy()
+        for col, which in bounds.items():
+            if col in group:
+                values = pd.to_numeric(group[col], errors="coerce").dropna()
+                if len(values):
+                    row[col] = group[col][getattr(values, which)()]     # as the file wrote it
+        merged.append(row)
+    return pd.DataFrame(merged).reset_index(drop=True)
 
 
 def _drop_redundant(df: pd.DataFrame, table: str) -> pd.DataFrame:
@@ -469,11 +499,19 @@ _add(Format(
             Field("sitename", "text", "Site name", "One site for every specimen in the file; blank to read it from the names."),
             Field("samp_con", "naming", "Sample naming convention", "How the site name is read from the sample name.",
                   default="3"),
-            SPECNUM, NOAVE, USER,
-            Field("methods", "text", "Orientation method codes", "Colon-delimited, e.g. SO-MAG:SO-SUN.", default="SO-MAG"),
+            SPECNUM,
+            # CIT steps are already averaged over the measurement orientations, so a repeated step
+            # is a remeasurement worth keeping; Pmag GUI's CIT dialog also keeps them
+            Field("noave", "bool", "Keep replicate measurements",
+                  "Keep repeated steps as separate rows rather than averaging them.", default=True),
+            USER,
+            Field("methods", "text", "Orientation method codes",
+                  "Colon-delimited, e.g. SO-MAG:SO-SUN. A specimen file whose first line says \"sun compass\" turns "
+                  "SO-MAG into SO-SUN; SO-CMD-NORTH is added when a declination correction applies.", default="SO-MAG"),
             Field("meas_n_orient", "int", "Orientations per measurement", "Number of positions the specimen was measured in.",
                   default=8),
-            Field("norm", "choice", "Normalization", "Units of the volume or mass in the .sam file.", default="cc",
+            Field("norm", "choice", "Normalization", "Units of the volume or mass in the specimen files "
+                  "(exactly 1.0 means not normalized).", default="cc",
                   choices=(("cc", "cm³"), ("m3", "m³"), ("g", "g"), ("kg", "kg")))),
     kwargs={"mag_file": "magfile", "location": "locname"},
     extensions=(".sam",),
