@@ -93,7 +93,8 @@ port (5100, 5101).
 
 **Portability.** The PyPI `pmagpy` wheel is pure Python (`py3-none-any`); its
 hard dependencies are numpy, scipy, matplotlib, pandas, pytz and packaging;
-cartopy is a lazy optional extra; `requests` is import-guarded; the pole map's
+cartopy is a lazy optional extra; `requests` is import-guarded in the library
+and a dependency of the `apps` extra; the pole map's
 coastlines are bundled JSON. Nothing in the apps uses a thread or a subprocess
 except the native folder chooser. All of that keeps every distribution route
 in §8 open — including, one day, a build that runs in the browser.
@@ -438,6 +439,16 @@ Intensity were built.
    chooser now awaits `runtime.choose_directory` instead of running a thread,
    and takes `require_measurements=False` for the hub). This branch is
    canonical for both; the intensity app adopts them from here.
+   **Rung 0 verified 2026-09-02**: `python -m venv` + `pip install -e '.[apps]'`
+   in an empty environment, then `pmagpy-apps --no-show` from another
+   directory served `/`, `/pmagpy_directions`, `/pmagpy_rockmag` and
+   `/pmagpy_anisotropy` with their assets and no errors. Two gaps were fixed
+   first: `pmagpy_anisotropy` was missing from setup.py's `package_dir` (the
+   app imported from a checkout only), and `requests` — what Download and
+   Upload talk to MagIC with — was in no requirement list, so a fresh install
+   would have failed at the first download; it is in the `apps` extra now, and
+   `environment.yml` lists panel and requests. A test in the hub suite reads
+   setup.py and insists the packages match the launcher's list.
 1. **Hub: Home and Analyze, then Download/unpack.** Design mock first (§2).
    *Retires Pmag GUI's box 0, box 2, and "Download or unpack".* From here the
    hub is the way to start the analysis applications.

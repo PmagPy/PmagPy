@@ -31,4 +31,7 @@ dependencies:
   # interactive use
   - jupyterlab
   - ipython
+  # the Panel applications (pmagpy-apps; the pip extra is pmagpy[apps])
+  - panel>=1.5
+  - requests
   - pip

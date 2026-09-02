@@ -702,3 +702,23 @@ class TestLauncher:
         assert os.path.basename(launch.HUB) == "pmagpy_apps.py"
         assert launch.DEFAULT_PORT == 5010
         assert all(os.path.exists(f) for f in [launch.HUB, *files])
+
+    def test_setup_py_ships_every_package_the_launcher_serves(self):
+        """HUB_PLAN §8 rung 0: `pip install -e '.[apps]'` must yield every app.
+
+        setup.py maps the packages under programs/ by hand; a new application
+        added to the launcher without a line there imports from a checkout but
+        not from an install.
+        """
+        import ast
+        root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(launch.__file__))))
+        tree = ast.parse(open(os.path.join(root, "setup.py")).read())
+        node = next(n.value for n in ast.walk(tree)
+                    if isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "") == "app_packages")
+        shipped = ast.literal_eval(node)
+        assert set(shipped) == {"pmagpy_panel", "pmagpy_apps", *launch.APPLICATIONS}
+        assert all(v == f"programs/{k}" and os.path.isdir(os.path.join(root, v)) for k, v in shipped.items())
+        extras = next(kw.value for n in ast.walk(tree) if isinstance(n, ast.Call) and getattr(n.func, "id", "") == "setup"
+                      for kw in n.keywords if kw.arg == "extras_require")
+        apps = ast.literal_eval(extras)["apps"]
+        assert {a.split(">")[0] for a in apps} == {"panel", "bokeh", "param", "requests"}   # Download/Upload need requests

@@ -652,3 +652,13 @@ the bottom; struck through once settled.
       `TypeError` (`len(site_splitted == 1)`) before today — nobody had used
       it through the CLI, so if you know a Liverpool user whose names need
       it, it is worth a real-data check.
+
+51. **`requests` as a dependency (2026-09-02).** The library imports it guarded
+    (`ipmag`, `data_model3`, `controlled_vocabularies3` fall back to `None`),
+    but the hub's Download and Upload pages cannot work without it and it was
+    in no requirement list — a fresh `pip install pmagpy[apps]` would have
+    installed fine and failed at the first download. I put it in the `apps`
+    extra (and `environment.yml`) rather than `install_requires`, so the
+    library's core dependency list is unchanged. Would you rather it were a
+    core requirement? `data_model3` fetches the data model with it when the
+    local copy is absent, so the case exists.
