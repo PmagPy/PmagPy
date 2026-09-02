@@ -714,3 +714,21 @@ the bottom; struck through once settled.
     deliberate so a stranger can tell what left it; (c) scripts calling
     `convert_files` get the log too unless they pass `record=False` — right
     default for reproducibility, or should scripts be silent?
+
+54. **`pmagpy-convert` — a new command rather than regenerated scripts**
+    (2026-09-02). The registry now drives a command: `pmagpy-convert sio
+    af.dat --codelist AF --location Hawaii --dir ~/MagIC/Hawaii`, with
+    `pmagpy-convert FORMAT --help` generated from the fields. I chose a
+    single new command over regenerating the 30 `programs/conversion_scripts`
+    (`sio_magic.py -f … -loc …`): those keep flags people have in shell
+    histories and cookbook notebooks, and rewriting them would change the
+    flags' names (`-ncn` → `--samp-con`) without changing what they do. So
+    the old scripts are untouched and the new command is the one with the
+    page's names. Decisions: (a) is that the right split, or should the old
+    scripts eventually print a one-line "also: pmagpy-convert sio …" hint
+    and be deprecated? (b) option names are the registry field names with
+    dashes (`--samp-con`, `--specnum`, `--labfield`), so they differ from
+    the old `-ncn`/`-spc`/`-dc`; keep them as the canonical names or add the
+    old short forms as aliases? (c) `--dir` defaults to the working
+    directory and files not found there are looked for in `--dir` — the
+    scripts' `-WD`/`-ID` split is collapsed into that; fine?

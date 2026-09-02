@@ -143,6 +143,24 @@ entry). Home reads it: the Import line says "converted from 10 CIT files ·
 marks the files that were converted. Unpacking a contribution file on the
 Convert page is recorded the same way (format `magic`).
 
+The same registry is a command. `pmagpy-convert` (installed by `setup.py`; or
+`python -m pmagpy.convert_cli`) lists the formats, `pmagpy-convert sio --help`
+prints SIO's fields as options — dashes for underscores, `--no-<name>` to turn
+off a flag that defaults on, naming codes and choices spelled out, the shipped
+example as an `Example:` line — and
+
+```
+pmagpy-convert sio af.dat thermal.dat --codelist AF T --location Hawaii --dir ~/MagIC/Hawaii
+pmagpy-convert tdt --dir ~/MagIC/ATPI           # a directory format reads --dir itself
+pmagpy-convert cit PI47-.sam --samp-con 2 --specnum 1 --append --log
+```
+
+is the same `convert_files` call the page makes, so it leaves the same tables
+and the same log entry (`--no-record` to leave none; exit 0 converted, 1 the
+conversion failed, 2 bad usage). The older `programs/conversion_scripts/`
+keep their own flags and are untouched. `pmagpy/test/test_convert_cli.py`
+builds a parser for every format and runs SIO, TDT and a failing JR6.
+
 To add an instrument: write its converter in `pmagpy/convert_2_magic.py`, put an
 example file under `data_files/convert_2_magic/`, and register one `Format` —
 `pmagpy/test/test_convert_registry.py` converts every example, and the Convert

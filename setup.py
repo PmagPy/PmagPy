@@ -137,6 +137,7 @@ setup(
         'console_scripts': [
             'pmagpy=pmagpy:main',
             'pmagpy-apps=pmagpy_apps.launch:main',
+            'pmagpy-convert=pmagpy.convert_cli:main',
         ],
     },
 )

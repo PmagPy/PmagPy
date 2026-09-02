@@ -502,8 +502,15 @@ Intensity were built.
    unpacks from the same page. Home's "Convert files…" is the primary button
    when the directory holds lab files and no tables; the page turns between
    Home and Convert without leaving the URL.
-   *Still to do here*: the CLI programs (`programs/conversion_scripts`) do not
-   yet read the registry; the anisotropy inputs from measurements (`atrm`/
+   **Since 2026-09-02 the registry is a command**: `pmagpy-convert`
+   (`pmagpy/convert_cli.py`, a `console_scripts` entry) builds an argparse
+   parser per format from the same `Field`s the page is built from — one
+   option per field, `--no-<name>` for a bool that defaults on, `--dir`,
+   `--append`, `--no-record`, `--log` — and calls `convert_files`, so shell,
+   script and page are one call with one set of names; the 30 legacy
+   `programs/conversion_scripts` keep their own flags rather than being
+   regenerated (QUESTIONS 54). *Still to do here*: the anisotropy inputs
+   from measurements (`atrm`/
    `aarm`) are Anisotropy's Reduce tab rather than Formats — the Kappabridge
    ones and `livdb` (Liverpool's thermal and microwave paleointensity exports;
    a directory format guessed from `.livdb`/`.livdb.csv`, whose
