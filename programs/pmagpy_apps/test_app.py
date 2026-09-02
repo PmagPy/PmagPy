@@ -2,6 +2,7 @@
 
     pytest programs/pmagpy_apps -q
 """
+import asyncio
 import os
 import shutil
 
@@ -10,7 +11,7 @@ import pytest
 pn = pytest.importorskip("panel")
 
 from pmagpy_panel import datasets  # noqa: E402
-from pmagpy_apps import APP, app, home, launch  # noqa: E402
+from pmagpy_apps import APP, app, download, home, launch  # noqa: E402
 from pmagpy_apps.inventory import take_inventory  # noqa: E402
 
 MCMURDO = datasets.example_dir("McMurdo")
@@ -158,6 +159,85 @@ class TestOpenDirectory:
         gone.rmdir()
         session = home.HubSession(MCMURDO, recent_file=recent, landing=False)
         assert session.recent() == [MCMURDO]
+
+
+class TestDownloadFromMagic:
+    """The dialog with the network stubbed: the file it 'fetches' is the test's own small contribution."""
+
+    def _dialog(self, session, versions=1):
+        from pmagpy.test.test_magic_project import AS_SERVED
+        from pmagpy import magic_project as mp
+        fetched = []
+
+        def fetch(magic_id):
+            fetched.append(magic_id)
+            return AS_SERVED.replace("20549", str(magic_id))
+        found = [mp.ContributionRef(id=20614 - i, version=versions - i, doi="10.1130/B36634.1") for i in range(versions)]
+        dialog = download.DownloadDialog(session, fetch=fetch, find=lambda doi: found if doi == "10.1130/B36634.1" else [])
+        dialog.fetched = fetched
+        return dialog
+
+    def test_an_empty_directory_is_the_destination_and_home_opens_the_result(self, tmp_path):
+        recent = str(tmp_path / "recent.json")
+        empty = tmp_path / "new_study"
+        empty.mkdir()
+        session = home.HubSession(str(empty), recent_file=recent, landing=False)
+        view = home.HomeView(session)
+        assert view.download_btn.button_type == "primary" and view.change_btn.button_type == "default"
+        dialog = self._dialog(session)
+        assert dialog.folder.value == str(empty)                          # prefilled with the empty directory
+        closed = []
+        dialog.on_loaded = lambda: closed.append(True)
+        dialog.reference.value = "20549"
+        assert asyncio.run(dialog._download()) is True
+        assert dialog.fetched == [20549] and closed == [True]
+        assert session.directory == str(empty) and session.inventory.is_magic
+        assert "MagIC contribution 20549" in view.heading.object and "4 tables" in dialog.message.object
+        assert datasets.load_recent(recent) == [str(empty)]
+        assert view.download_btn.button_type == "default" and view.change_btn.button_type == "primary"
+
+    def test_a_doi_finds_the_latest_version_and_says_so(self, tmp_path):
+        session = home.HubSession(str(tmp_path), landing=False)
+        dialog = self._dialog(session, versions=2)
+        dialog.reference.value = "https://doi.org/10.1130/B36634.1"
+        assert asyncio.run(dialog._download()) is True
+        assert dialog.fetched == [20614]
+        assert "MagIC contribution 20614" in dialog.message.object
+        dialog.reference.value = "10.1130/nothing.here"
+        assert asyncio.run(dialog._download()) is False
+        assert "no public contribution with reference DOI 10.1130/nothing.here" in dialog.message.object
+
+    def test_it_never_writes_over_a_magic_directory_but_offers_one_beside_it(self, tmp_path):
+        session = home.HubSession(MCMURDO, landing=True)
+        dialog = self._dialog(session)
+        dialog.reference.value = "20549"
+        assert asyncio.run(dialog._download()) is False
+        assert dialog.fetched == []                                       # refused before any network
+        assert "already holds MagIC tables" in dialog.message.object
+        assert dialog.folder.value == os.path.join(os.path.dirname(MCMURDO), "MagIC_20549")
+        dialog.folder.value = str(tmp_path / "somewhere" / "MagIC_20549")       # a folder that does not exist yet
+        assert asyncio.run(dialog._download()) is True
+        assert session.directory == str(tmp_path / "somewhere" / "MagIC_20549") and session.landing is False
+
+    def test_nonsense_is_refused_in_place(self, tmp_path):
+        session = home.HubSession(str(tmp_path), landing=False)
+        dialog = self._dialog(session)
+        dialog.reference.value = "McMurdo"
+        assert asyncio.run(dialog._download()) is False
+        assert "is not a MagIC contribution ID or a DOI" in dialog.message.object
+        assert dialog.download_btn.disabled is False
+
+    def test_the_page_carries_both_dialogs_and_shows_one_at_a_time(self):
+        session = home.HubSession(MCMURDO)
+        body = app.build_body(session)
+        chooser, downloader = body.modal
+        assert "Download from MagIC" in downloader[0].object
+        shown = []
+        body.open_modal = lambda: shown.append(True)
+        for btn, visible in ((body.main[0][1], (False, True)), (body.main[0][2], (True, False))):
+            btn.clicks += 1
+            assert (chooser.visible, downloader.visible) == visible
+        assert shown == [True, True]
 
 
 class TestLauncher:

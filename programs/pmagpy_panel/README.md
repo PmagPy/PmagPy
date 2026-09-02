@@ -103,6 +103,17 @@ metadata gaps, and a guess at the format of lab files awaiting conversion. To
 list a new application on Home add an `Application` to `home.APPLICATIONS` with
 the experiment kinds it opens; the door opens once its package imports.
 
+"Download from MagIC…" (`pmagpy_apps/download.py`) fills a folder with a public
+contribution given its ID or the paper's DOI and reopens Home on it. The
+EarthRef calls are in `pmagpy.magic_project` (`find_contributions`,
+`fetch_contribution`, `unpack_contribution`, `download_contribution`) and work
+from a script too:
+
+```python
+from pmagpy import magic_project as mp
+mp.download_contribution("10.1130/G53450.1", "~/MagIC/Ordovician_Eastern_Laurentia", report=print)
+```
+
 ## Starting the second application
 
 ```

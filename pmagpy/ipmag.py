@@ -5489,14 +5489,16 @@ def download_magic_from_id(magic_id, directory='.', share_key=""):
         return False, error_message
 
 
-def download_magic_from_doi(doi):
+def download_magic_from_doi(doi, dir_path="."):
     """
     Download a public contribution matching the provided DOI
     from earthref.org/MagIC.
 
     Parameters:
         doi : str
-            DOI for a MagIC
+            reference DOI of a MagIC contribution
+        dir_path : str
+            directory to write magic_contribution.txt into (default: current directory)
 
     Returns:
         result : bool
@@ -5520,15 +5522,21 @@ def download_magic_from_doi(doi):
         for filename in contribution_zip.namelist():
             if (re.match(r'^\d+\/magic_contribution_\d+\.txt', filename)):
                 contribution_text = io.TextIOWrapper(contribution_zip.open(filename)).read()
-                with open('magic_contribution.txt', 'wt', encoding="utf-8") as fh:
+                out_path = os.path.join(dir_path, 'magic_contribution.txt')
+                with open(out_path, 'wt', encoding="utf-8") as fh:
                     fh.write(contribution_text)
-                print(filename, 'extracted to magic_contribution.txt', '\n')
+                print(filename, 'extracted to', out_path, '\n')
                 return True, ""
+        return False, 'No contribution file in the archive MagIC returned for DOI {}'.format(doi)
     elif (response.status_code == 204):
         return False, 'Public contribution with a reference DOI = \'{}\' not found in MagIC'.format(doi)
 
     else:
-        return False, 'Error:', response.json()['err'][0]['message'], '\n'
+        try:
+            message = response.json()['errors'][0]['message']
+        except Exception:
+            message = response.reason
+        return False, 'Error: {}'.format(message)
 
 
 def validate_with_public_endpoint(contribution_file,verbose=False):

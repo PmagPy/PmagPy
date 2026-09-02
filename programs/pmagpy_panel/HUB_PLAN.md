@@ -414,7 +414,21 @@ Intensity were built.
    built), and an aside of tables or files. Recent directories show only on
    the landing, before a directory is picked; the "Change directory…" dialog
    keeps the list. Metadata on Home names the single largest gap and counts
-   the rest. Download/unpack (by ID or DOI, as an Import option) is next.
+   the rest.
+   **Download/unpack built 2026-09-01.** The EarthRef calls live UI-free in
+   `pmagpy/magic_project.py` (`find_contributions` by reference DOI through the
+   FIESTA search API, `fetch_contribution` from `/data`, `unpack_contribution`
+   over `ipmag.download_magic`, `download_contribution` tying them together
+   with a `report` callback; served files carry a BOM and CRLF, and some older
+   contributions have no id in their `contribution` row, so the id they were
+   fetched by is written in). `pmagpy_apps/download.py` is the "Download from
+   MagIC…" dialog: ID or DOI, an "Into folder" field prefilled with the
+   session's directory, network and unpacking off the event loop, never over an
+   existing MagIC directory (it offers `MagIC_<id>` beside it instead), Home
+   reopening on the result. Verified live on six of the group's contributions
+   (20340, 20549, 19314, 18693, 20614 via its DOI — two versions, the latest
+   taken — and 16403, the no-id case). `ipmag.download_magic_from_doi` was
+   fixed on the way (it wrote to the cwd and had a broken error return).
 2. **Conversion registry, then the Convert page.** Formats in order of demand:
    SIO, CIT, 2g, generic, JR6, IODP, then IRM instruments, then the rest.
    *Retires box 1 step 1 and the Import menu's converters.*

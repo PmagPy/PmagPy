@@ -567,3 +567,233 @@ def magic_write(path: str, df: pd.DataFrame, table: str) -> str:
     mdf = cb.MagicDataFrame(dtype=table, df=df)
     return mdf.write_magic_file(custom_name=os.path.basename(path),
                                 dir_path=os.path.dirname(os.path.realpath(path)) or ".")
+
+
+# ----- MagIC (EarthRef): finding and downloading a public contribution --------------
+#
+# Every EarthRef call the applications make goes through these few functions, so
+# the HTTP client can be swapped in one place. Nothing here prints; problems are
+# raised as MagicDownloadError with a sentence a user can act on.
+
+MAGIC_API = "https://api.earthref.org/v1/MagIC"
+MAGIC_DOI_PREFIX = "10.7288/V4/MAGIC/"          # the DOI MagIC mints for a contribution: the id is its tail
+
+
+class MagicDownloadError(Exception):
+    """A contribution could not be found, fetched or unpacked; ``str(err)`` says why."""
+
+
+@dataclass(frozen=True)
+class ContributionRef:
+    """What MagIC says about one contribution, from its ``contribution`` row."""
+    id: int
+    version: int = 0
+    doi: str = ""
+    contributor: str = ""
+    timestamp: str = ""
+    lab_names: tuple = ()
+
+    @property
+    def label(self) -> str:
+        text = f"MagIC contribution {self.id}"
+        return f"{text} (version {self.version})" if self.version else text
+
+
+def parse_contribution_reference(text: str) -> tuple[str, str]:
+    """Read a contribution ID or a reference DOI out of whatever a user pastes.
+
+    Accepts the bare id (``20340``), an earthref.org URL, MagIC's own DOI
+    (``10.7288/V4/MAGIC/20340``), and a reference DOI with or without a
+    ``doi:`` or ``https://doi.org/`` prefix.
+
+    Returns:
+        ``("id", "20340")`` or ``("doi", "10.1130/G53450.1")``.
+    Raises:
+        ValueError: when the text is neither.
+    """
+    t = text.strip().strip("<>").rstrip("/")
+    t = re.sub(r"^(https?://)?(www2?\.)?(dx\.)?doi\.org/", "", t, flags=re.I)
+    t = re.sub(r"^(https?://)?(www2?\.)?earthref\.org/MagIC/", "", t, flags=re.I)
+    t = re.sub(r"^(doi|magic|id)\s*:?\s*", "", t, flags=re.I).strip()
+    if t.isdigit():
+        return "id", t
+    if t.upper().startswith(MAGIC_DOI_PREFIX):
+        tail = t[len(MAGIC_DOI_PREFIX):].strip("/")
+        if tail.isdigit():
+            return "id", tail
+    if re.fullmatch(r"10\.\d{4,9}/\S+", t):
+        return "doi", t
+    raise ValueError(f"{text.strip()!r} is not a MagIC contribution ID or a DOI")
+
+
+def _contribution_ref(row: dict) -> ContributionRef:
+    return ContributionRef(id=int(row.get("id") or row.get("contribution_id")),
+                           version=int(row.get("version") or 0),
+                           doi=str(row.get("reference") or ""),
+                           contributor=str(row.get("contributor") or ""),
+                           timestamp=str(row.get("timestamp") or ""),
+                           lab_names=tuple(row.get("lab_names") or ()))
+
+
+def find_contributions(doi: str, timeout: float = 30) -> list[ContributionRef]:
+    """The public contributions whose reference is this DOI, newest version first.
+
+    A paper can have more than one — a corrected version keeps the DOI and gets a
+    new id — so the caller chooses; the first entry is the latest.
+    """
+    import requests
+    try:
+        response = requests.get(f"{MAGIC_API}/search/contributions",
+                                params={"query": f'"{doi}"', "n_max_rows": 50}, timeout=timeout)
+    except requests.exceptions.RequestException as err:
+        raise MagicDownloadError(f"Could not reach MagIC ({err.__class__.__name__}); check the connection.") from err
+    if response.status_code == 204:
+        return []
+    if response.status_code != 200:
+        raise MagicDownloadError(f"MagIC search failed: {response.status_code} {response.reason}")
+    rows = response.json().get("results", [])
+    # the phrase search matches any text field; keep only the rows whose reference *is* this DOI
+    refs = [_contribution_ref(r) for r in rows
+            if str(r.get("reference") or "").strip().lstrip("/").lower() == doi.lower()]
+    return sorted(refs, key=lambda r: (r.version, r.id), reverse=True)
+
+
+def fetch_contribution(magic_id, share_key: str = "", timeout: float = 600) -> str:
+    """The MagIC text of one contribution, as the ``data`` endpoint serves it.
+
+    Args:
+        magic_id: the contribution id.
+        share_key: the key a private contribution was shared with; empty for a public one.
+    """
+    import requests
+    params = {"id": str(magic_id)}
+    if share_key:
+        params["key"] = share_key
+    try:
+        response = requests.get(f"{MAGIC_API}/data", params=params, timeout=timeout)
+    except requests.exceptions.RequestException as err:
+        raise MagicDownloadError(f"Could not reach MagIC ({err.__class__.__name__}); check the connection.") from err
+    if response.status_code == 204 or (response.status_code == 200 and not response.text.strip()):
+        raise MagicDownloadError(f"MagIC has no public contribution with ID {magic_id}.")
+    if response.status_code == 401:
+        raise MagicDownloadError(f"Contribution {magic_id} is private and the share key does not match.")
+    if response.status_code != 200:
+        raise MagicDownloadError(f"MagIC returned {response.status_code} {response.reason} for contribution {magic_id}.")
+    return response.text
+
+
+def clean_contribution_text(text: str) -> str:
+    """A downloaded file as plain lines: no byte-order mark, no ``\\r``."""
+    return text.lstrip("\ufeff").replace("\r\n", "\n").replace("\r", "\n")
+
+
+def contribution_tables(text: str) -> list[str]:
+    """The table names in a MagIC contribution file, in order.
+
+    Tables start with a ``tab delimited\\tsites`` line (``tab\\tsites`` in files
+    PmagPy itself writes) and are separated by ``>>>>>>>>>>`` lines.
+    """
+    return [_table_name(line) for line in clean_contribution_text(text).splitlines() if _table_name(line)]
+
+
+def _table_name(line: str) -> str:
+    """The table a ``tab delimited\\t<table>`` line starts, or ''."""
+    parts = line.split("\t")
+    if len(parts) >= 2 and parts[0].strip().lower() in ("tab delimited", "tab"):
+        return parts[1].strip()
+    return ""
+
+
+def describe_contribution(text: str) -> ContributionRef:
+    """The ``contribution`` row of a downloaded file, if it has one; else a ref with only an id of 0."""
+    lines = clean_contribution_text(text).splitlines()
+    for i, line in enumerate(lines[:-2]):
+        if _table_name(line) == "contribution":
+            header = lines[i + 1].split("\t")
+            values = lines[i + 2].split("\t")
+            row = dict(zip(header, values))
+            row["lab_names"] = [s for s in str(row.get("lab_names", "")).split(":") if s]
+            try:
+                return _contribution_ref(row)
+            except (TypeError, ValueError):
+                break
+    return ContributionRef(id=0)
+
+
+def unpack_contribution(text: str, directory: str, magic_id: int = 0) -> list[str]:
+    """Write a contribution's tables into ``directory`` as ``<table>.txt`` files.
+
+    Args:
+        magic_id: the id the file was fetched by. Some older contributions are
+            served without an ``id`` in their ``contribution`` row; when so, this
+            is written into ``contribution.txt`` so the directory remembers where
+            it came from.
+    Returns:
+        the table names written, in file order.
+    Raises:
+        MagicDownloadError: when the text holds no MagIC tables.
+    """
+    from pmagpy import ipmag
+    text = clean_contribution_text(text)
+    tables = contribution_tables(text)
+    if not tables:
+        raise MagicDownloadError("That is not a MagIC contribution file: no tables in it.")
+    directory = os.path.expanduser(directory)
+    os.makedirs(directory, exist_ok=True)
+    import contextlib
+    import io
+    with contextlib.redirect_stdout(io.StringIO()):       # magic_write announces every table; the caller reports instead
+        ok = ipmag.download_magic(txt=text, dir_path=directory, print_progress=False)
+    if not ok:
+        raise MagicDownloadError(f"Could not unpack the contribution into {directory}.")
+    if magic_id and describe_contribution(text).id == 0:
+        path = os.path.join(directory, "contribution.txt")
+        if os.path.exists(path):
+            df = pd.read_csv(path, sep="\t", skiprows=1, dtype=str).fillna("")
+        else:
+            df = pd.DataFrame([{}])
+            tables.insert(0, "contribution")
+        df["id"] = str(magic_id)
+        with open(path, "w", encoding="utf-8") as fh:        # one row; written plainly, no data-model round trip
+            fh.write("tab\tcontribution\n")
+            df.to_csv(fh, sep="\t", index=False, lineterminator="\n")
+    return tables
+
+
+def download_contribution(reference: str, directory: str, share_key: str = "",
+                          report: Optional[Callable[[str], None]] = None) -> ContributionRef:
+    """Find, fetch and unpack a contribution into a directory, by id or by reference DOI.
+
+    Args:
+        reference: anything :func:`parse_contribution_reference` accepts.
+        directory: where the tables go; created if need be.
+        share_key: for a private contribution shared by key (id only).
+        report: called with a sentence at each stage, for a status line.
+    Returns:
+        what MagIC says the contribution is (id, version, reference DOI, ...).
+    Raises:
+        ValueError: the reference is neither an id nor a DOI.
+        MagicDownloadError: nothing found, no connection, or the file would not unpack.
+    """
+    say = report or (lambda text: None)
+    kind, value = parse_contribution_reference(reference)
+    if kind == "doi":
+        say(f"Looking up {value} in MagIC …")
+        found = find_contributions(value)
+        if not found:
+            raise MagicDownloadError(f"MagIC has no public contribution with reference DOI {value}.")
+        chosen = found[0]
+        others = f" ({len(found)} versions; taking the latest)" if len(found) > 1 else ""
+        say(f"Found {chosen.label}{others}. Downloading …")
+        magic_id = chosen.id
+    else:
+        magic_id = int(value)
+        say(f"Downloading MagIC contribution {magic_id} …")
+    text = fetch_contribution(magic_id, share_key=share_key)
+    say(f"Unpacking {len(text) / 1e6:.1f} MB into {directory} …")
+    tables = unpack_contribution(text, directory, magic_id=magic_id)
+    ref = describe_contribution(text)
+    if ref.id == 0:
+        ref = ContributionRef(id=magic_id)
+    say(f"{ref.label}: {len(tables)} tables written.")
+    return ref

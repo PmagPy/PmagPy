@@ -107,7 +107,10 @@ class HubSession(param.Parameterized):
             datasets.remember_recent(self.recent_file, inv.directory)
         self.status = _status(inv)
         self.landing = False
-        self.directory = inv.directory     # last: watchers rebuild the page from the new inventory
+        if inv.directory == self.directory:
+            self.param.trigger("directory")   # the same directory with new contents (a download landed in it)
+        else:
+            self.directory = inv.directory     # last: watchers rebuild the page from the new inventory
         return True
 
     def recent(self) -> List[str]:
@@ -370,6 +373,8 @@ class HomeView:
         self.spacer = pn.Spacer(width=28, sizing_mode="fixed")
         self.change_btn = pn.widgets.Button(name="Change directory…", button_type="primary", width=170,
                                             margin=(30, 0, 0, 0))
+        self.download_btn = pn.widgets.Button(name="Download from MagIC…", button_type="default", width=200,
+                                              margin=(30, 10, 0, 0))
         session.param.watch(lambda e: self.refresh(), "directory")
         self.refresh()
 
@@ -381,11 +386,14 @@ class HomeView:
         self.bars.object = bars_html(inv)
         self.aside.object = aside_html(inv, self.s.recent() if self.s.landing else [])
         self.aside.visible = self.spacer.visible = bool(self.aside.object)     # no column when there is nothing to put in it
+        # The next thing to do is the primary button: pick a directory when this is a MagIC one,
+        # download into it when it is empty; lab files waiting to convert make neither the next step.
         self.change_btn.button_type = "primary" if inv.is_magic else "default"
+        self.download_btn.button_type = "primary" if inv.is_empty else "default"
 
     def panel(self) -> pn.Column:
         return pn.Column(
-            pn.Row(self.heading, self.change_btn, sizing_mode="stretch_width"),
+            pn.Row(self.heading, self.download_btn, self.change_btn, sizing_mode="stretch_width"),
             self.facts, self.strip,
             pn.Row(self.bars, self.spacer, self.aside, sizing_mode="stretch_width", margin=(28, 0, 0, 0)),
             sizing_mode="stretch_width", max_width=1100, margin=(18, 40, 40, 40),
