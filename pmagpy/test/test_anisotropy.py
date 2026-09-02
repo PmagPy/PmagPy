@@ -243,8 +243,73 @@ class TestMeanRecord:
         # the cell rounds tau to six decimals and the direction to a tenth of a degree
         assert tau1 == pytest.approx(stats["tau1"], abs=5e-7) and dec == pytest.approx(stats["v1_dec"], abs=0.05)
         assert inc == pytest.approx(stats["v1_inc"], abs=0.05)
-        assert record["aniso_ftest_quality"] == "g"
+        assert record["aniso_ftest_quality"] == "g" and record["aniso_ftest"] == pytest.approx(stats["hext"]["F"], abs=1e-4)
+        assert record["method_codes"] == "LP-AN-ARM:AE-H"
+        text, payload = record["description"].split(" | ", 1)
+        detail = json.loads(payload)
+        assert text == "mean AARM tensor of 5 specimens" and detail["n_specimens"] == 5 and detail["nf"] == stats["nf"]
+        np.testing.assert_allclose(detail["s"], stats["s"], atol=1e-8)
+        assert detail["hext"]["F_crit"] == float(stats["hext"]["F_crit"]) and "bootstrap" not in detail
         with open(os.path.join(HERE, "..", "data_model", "data_model.json"), encoding="utf-8-sig") as fh:
             model = json.load(fh)
         site_columns = set(model["tables"]["sites"]["columns"])
         assert set(record) <= site_columns
+        # with specimens and a bootstrap
+        boot = aniso.group_statistics(list(g[g["site"] == "mc121"]["s"]), bootstrap=True, parametric=True,
+                                      n_bootstraps=200, random_seed=1)
+        record = aniso.mean_record(boot, "AARM", "g", specimens=list(g[g["site"] == "mc121"]["specimen"]))
+        assert record["method_codes"] == "LP-AN-ARM:AE-H:AE-BS-P" and record["specimens"].startswith("mc121d1:")
+        detail = json.loads(record["description"].split(" | ", 1)[1])
+        assert detail["bootstrap"]["n_bootstraps"] == 200 and detail["bootstrap"]["parametric"]
+        assert detail["bootstrap"]["v1_zeta"] == pytest.approx(boot["bootstrap"]["params"]["v1_zeta"], abs=0.01)
+        lo, hi = detail["bootstrap"]["tau1_95"]
+        assert lo < boot["tau1"] < hi
+        assert set(record) <= site_columns
+        assert aniso.mean_record(boot, "AMS", "s")["method_codes"].startswith("LP-AN-MS:")
+
+    def test_the_mean_gets_a_row_of_its_own_and_is_replaced_on_a_re_save(self, mcmurdo):
+        specimens, samples = mcmurdo
+        sites = pd.read_csv(os.path.join(HERE, "..", "..", "data_files", "3_0", "McMurdo", "sites.txt"), sep="\t",
+                            skiprows=1)
+        g = aniso.tensor_table(specimens, samples, "g")
+        stats = aniso.group_statistics(list(g[g["site"] == "mc121"]["s"]))
+        record = aniso.mean_record(stats, "AARM", "g")
+        before = len(sites)
+        n_mc121 = int((sites["site"] == "mc121").sum())
+        out = aniso.add_mean_to_table(sites, "site", "mc121", record)
+        assert len(out) == before + 1 and len(sites) == before                     # a new row; the input untouched
+        row = out.iloc[-1]
+        assert row["site"] == "mc121" and row["location"] == "McMurdo" and row["citations"] == "This study"
+        assert row["aniso_v1"] == record["aniso_v1"] and float(row["aniso_tilt_correction"]) == 0
+        assert pd.isna(row["dir_dec"])                                              # nothing borrowed from the direction row
+        assert (out["site"] == "mc121").sum() == n_mc121 + 1
+        # the other rows are as they were
+        for column in sites.columns:
+            assert (out.iloc[:before][column].fillna("").astype(str).to_numpy()
+                    == sites[column].fillna("").astype(str).to_numpy()).all(), column
+        # same site, type and frame: replaced, not added; a save without Hext clears the F tests
+        no_hext = aniso.mean_record(aniso.group_statistics(list(g[g["site"] == "mc121"]["s"]), hext=False), "AARM", "g")
+        again = aniso.add_mean_to_table(out, "site", "mc121", no_hext)
+        assert len(again) == before + 1 and pd.isna(again.iloc[-1]["aniso_ftest"])
+        assert again.iloc[-1]["method_codes"] == "LP-AN-ARM"
+        # another frame is another row
+        s_stats = aniso.group_statistics(list(aniso.tensor_table(specimens, samples, "s").query("site == 'mc121'")["s"]))
+        third = aniso.add_mean_to_table(again, "site", "mc121", aniso.mean_record(s_stats, "AARM", "s"))
+        assert len(third) == before + 2
+
+    def test_a_mean_can_start_a_table_and_a_sample_mean_names_its_site(self, mcmurdo):
+        specimens, samples = mcmurdo
+        g = aniso.tensor_table(specimens, samples, "g")
+        stats = aniso.group_statistics(list(g[g["site"] == "mc121"]["s"]))
+        record = aniso.mean_record(stats, "AARM", "g")
+        fresh = aniso.add_mean_to_table(None, "site", "mc121", record, parent={"location": "McMurdo"})
+        assert len(fresh) == 1 and fresh.iloc[0]["location"] == "McMurdo" and fresh.iloc[0]["site"] == "mc121"
+        k = g[g["sample"] == "mc121k"]
+        record = aniso.mean_record(aniso.group_statistics(list(k["s"])), "AARM", "g", specimens=list(k["specimen"]))
+        out = aniso.add_mean_to_table(samples, "sample", "mc121k", record)
+        row = out.iloc[-1]
+        assert row["sample"] == "mc121k" and row["site"] == "mc121" and row["specimens"] == "mc121k1:mc121k2"
+        with pytest.raises(ValueError):
+            aniso.add_mean_to_table(samples, "location", "McMurdo", record)
+        with pytest.raises(ValueError):
+            aniso.add_mean_to_table(pd.DataFrame({"specimen": ["a"]}), "site", "mc121", record)

@@ -189,6 +189,97 @@ class TestEigenvectorsView:
         assert isinstance(view.panel(), pn.Column)
 
 
+@pytest.fixture
+def copy_dir(tmp_path):
+    """A McMurdo copy without the measurements (the save never reads them): saves land here."""
+    for name in ("specimens.txt", "samples.txt", "sites.txt", "locations.txt", "contribution.txt"):
+        shutil.copy(os.path.join(EXAMPLE, name), tmp_path / name)
+    return str(tmp_path)
+
+
+class TestMeanSave:
+    def test_the_save_waits_until_one_site_or_sample_is_picked(self, copy_dir):
+        s = ss.Session(copy_dir)
+        view = EigenvectorsView(s)
+        assert view.save.button.disabled and "pick one site" in view.save.note.object
+        assert view.save.table == "sites" and view.save.button.name == "Save to sites.txt"
+        s.level = "location"
+        view.refresh()
+        assert view.save.button.disabled and "group by one of those" in view.save.note.object
+        s.level = "sample"
+        s.group = "mc217a"                                                    # the one-specimen sample
+        view.refresh()
+        assert view.save.table == "samples" and view.save.button.name == "Save to samples.txt"
+        assert view.save.button.disabled and "at least two tensors" in view.save.note.object
+        s.group = "mc121k"
+        view.refresh()
+        assert not view.save.button.disabled and view.save.note.object == ""
+
+    def test_a_site_mean_goes_on_a_row_of_sites_with_its_code_and_a_backup(self, copy_dir):
+        s = ss.Session(copy_dir)
+        s.group, s.coordinates = "mc121", "g"
+        view = EigenvectorsView(s)
+        before = pd.read_csv(os.path.join(copy_dir, "sites.txt"), sep="\t", skiprows=1)
+        path = view.save.save()
+        assert path == os.path.join(copy_dir, "sites.txt")
+        sites = pd.read_csv(path, sep="\t", skiprows=1)
+        assert len(sites) == len(before) + 1
+        row = sites.iloc[-1]
+        assert row["site"] == "mc121" and row["location"] == "McMurdo"
+        assert row["aniso_type"] == "AARM" and int(row["aniso_tilt_correction"]) == 0
+        assert row["method_codes"] == "LP-AN-ARM:AE-H" and row["specimens"] == "mc121d1:mc121f2:mc121g1:mc121k1:mc121k2"
+        assert row["software_packages"] == s.project.software_tag and row["citations"] == "This study"
+        expected = anisotropy.mean_record(view.stats, "AARM", "g")
+        assert row["aniso_v1"] == expected["aniso_v1"] and float(row["aniso_ftest"]) == pytest.approx(expected["aniso_ftest"])
+        # the other rows are as they were, the original is kept and the calls are on record
+        for column in before.columns:
+            assert (sites.iloc[:len(before)][column].fillna("").astype(str).to_numpy()
+                    == before[column].fillna("").astype(str).to_numpy()).all(), column
+        assert os.path.exists(os.path.join(copy_dir, s.project.backup_dir_name(), "sites.txt"))
+        assert "1 row added" in view.save.note.object and "sites.py" in view.save.note.object
+        with open(os.path.join(copy_dir, "sites.py")) as fh:
+            script = fh.read()
+        assert "# ----- mean tensor: mc121 · geographic" in script
+        text = code_text(view)
+        assert "record = aniso.mean_record(stats, 'AARM', 'g', specimens=list(tensors['specimen']))" in text
+        assert "sites = aniso.add_mean_to_table(sites, 'site', 'mc121', record, parent={'location': 'McMurdo'})" in text
+        assert "contribution.add_magic_table('sites', df=sites)" in text
+        # the code, run as a notebook would on a fresh copy, writes the same row
+        fresh = os.path.join(copy_dir, "fresh")
+        os.mkdir(fresh)
+        for name in ("specimens.txt", "samples.txt", "sites.txt"):
+            shutil.copy(os.path.join(EXAMPLE, name), os.path.join(fresh, name))
+        exec(text.replace(f"'{copy_dir}'", f"'{fresh}'"), {"__name__": "__notebook__"})
+        again = pd.read_csv(os.path.join(fresh, "sites.txt"), sep="\t", skiprows=1)
+        assert len(again) == len(before) + 1 and again.iloc[-1]["aniso_v1"] == row["aniso_v1"]
+        assert again.iloc[-1]["description"] == row["description"]
+        # saving the same mean again changes nothing
+        view.refresh()
+        view.save.save()
+        assert "nothing changed" in view.save.note.object
+        assert len(pd.read_csv(path, sep="\t", skiprows=1)) == len(before) + 1
+
+    def test_a_sample_mean_goes_to_samples(self, copy_dir):
+        s = ss.Session(copy_dir)
+        s.level, s.group = "sample", "mc121k"
+        view = EigenvectorsView(s)
+        path = view.save.save()
+        assert path == os.path.join(copy_dir, "samples.txt")
+        samples = pd.read_csv(path, sep="\t", skiprows=1)
+        row = samples.iloc[-1]
+        assert row["sample"] == "mc121k" and row["site"] == "mc121" and row["specimens"] == "mc121k1:mc121k2"
+        assert int(row["aniso_tilt_correction"]) == -1 and row["method_codes"] == "LP-AN-ARM:AE-H"
+        assert "samples.py" in view.save.note.object
+        assert not os.path.exists(os.path.join(copy_dir, "sites.py"))
+
+    def test_a_dataframe_session_has_nowhere_to_save(self):
+        specimens = pd.read_csv(os.path.join(EXAMPLE, "specimens.txt"), sep="\t", skiprows=1)
+        view = EigenvectorsView(specimens[specimens["aniso_s"].notna()])
+        view.s.group = "mc121"
+        view.refresh()
+        assert view.save.button.disabled and "in a notebook" in view.save.note.object
+
+
 class TestShapeView:
     def test_the_mean_tensor_and_the_specimen_ranges(self, session):
         view = ShapeView(session)

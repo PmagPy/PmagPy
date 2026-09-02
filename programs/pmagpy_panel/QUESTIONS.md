@@ -363,3 +363,25 @@ the bottom; struck through once settled.
     tables and take the whole directory; refactor them into UI-free
     functions that return the specimen rows (the writer being the app's
     `TableSave`), or call them as they are and re-read the directory?
+
+41. **JSON in `description` is CSV-quoted on disk.** The mean tensor and the
+    bootstrap parameters ride in the `description` cell as
+    `mean AARM tensor of 5 specimens | {"s": [...], "hext": {...}, ...}` (the
+    `text | {json}` convention the rock-magnetic writers already use).
+    `MagicProject.write_table` → pandas `to_csv` wraps a cell containing `"`
+    in quotes and doubles the inner ones (`""s""`), which pandas and
+    `contribution_builder` read back correctly. Does the MagIC upload
+    validator accept quoted cells in a tab-separated table, or should the
+    detail be written without double quotes (single-quoted keys are not JSON;
+    a `key=value;...` form would be)? Applies to the rockmag results too.
+
+42. **One row per mean, or the existing site row?** A MagIC site usually has
+    several rows (a direction, an intensity…), so `add_mean_to_table` gives
+    the mean tensor a row of its own — `site`, `location`, `citations` ("This
+    study"), the `aniso_*` cells, `method_codes`, `specimens` — and replaces
+    it on a re-save of the same `aniso_type` and `aniso_tilt_correction`;
+    a mean in another frame is another row. The alternative is to fill the
+    `aniso_*` columns of the site's existing direction row. Which do you
+    want uploaded? Also: `specimens` on that row lists the specimens the mean
+    was taken over (colon-joined), which is the `specimens` column's meaning
+    on sites rows — confirm that this is right for a fabric mean.

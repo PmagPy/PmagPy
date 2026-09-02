@@ -22,9 +22,12 @@ import panel as pn
 from pmagpy import anisotropy
 from pmagpy_panel import code
 from pmagpy_panel.chooser import DirectoryChooser
+from pmagpy_panel.results import TableSave
 from pmagpy_panel.theme import MUTED_STYLE, SECTION_STYLE, kpi
 from . import plots
-from .session import ALL, LEVELS, RECENT_FILE, Session, as_session, env
+from .session import ALL, APP, LEVELS, RECENT_FILE, Session, as_session, env
+
+MEAN_TABLES = {"site": "sites", "sample": "samples"}      # where a group mean is written
 
 WATCHED = ["directory", "coordinates", "level", "group", "aniso_type"]     # session parameters every view follows
 
@@ -39,7 +42,7 @@ def muted(text: str) -> str:
 
 def preamble(session: Session) -> list:
     """The lines that get the tensors into a notebook: the tables, then ``tensor_table`` in the session's frame."""
-    lines = ["import pmagpy.anisotropy as aniso", "import pmagpy.contribution_builder as cb", ""]
+    lines = ["import pandas as pd", "import pmagpy.anisotropy as aniso", "import pmagpy.contribution_builder as cb", ""]
     if session.directory:
         lines += [code.assign("contribution", code.call("cb.Contribution", session.directory)),
                   "specimens = contribution.tables['specimens'].df",
@@ -222,7 +225,9 @@ class EigenvectorsView:
     their Hext (1963) ellipses and, when asked, the bootstrap ellipses of
     ``pmag.sbootpars`` on the other. The options are ``group_statistics``'s
     arguments; a single specimen gets the Hext statistics of its own
-    measurement scatter.
+    measurement scatter. A site's or sample's mean can be saved to its row
+    of ``sites.txt``/``samples.txt`` (``anisotropy.mean_record``,
+    ``add_mean_to_table``) through the toolkit's :class:`TableSave`.
     """
 
     TYPE = "eigenvectors"
@@ -247,6 +252,8 @@ class EigenvectorsView:
                                                                 # trips over its stylesheets when its visibility changes
         self.table = pn.pane.HTML("", sizing_mode="stretch_width")
         self.code = code.CodePane()
+        self.save = TableSave(self.s, self.code, "mean tensor", table="sites", app=APP,
+                              label=lambda: self.s.selection_label())
         self.stats: Optional[dict] = None
         self.tensors = pd.DataFrame()
 
@@ -297,6 +304,44 @@ class EigenvectorsView:
         self.compare_dec.visible = self.compare_inc.visible = self.compare.value
         self._summarize(stats)
         self._emit(stats)
+        self._offer(stats)
+
+    # ----- the save ---------------------------------------------------------------
+    def mean_type(self) -> Optional[str]:
+        """The one anisotropy type in the selection, or None when it mixes several."""
+        if self.s.aniso_type:
+            return self.s.aniso_type
+        types = [str(t) for t in self.tensors["aniso_type"].dropna().unique()] if len(self.tensors) else []
+        return types[0] if len(types) == 1 else None
+
+    def _offer(self, stats: Optional[dict]) -> None:
+        """A site's or sample's mean of two or more tensors can go to its row; say why anything else cannot."""
+        s = self.s
+        if s.level not in MEAN_TABLES:
+            self.save.decline("a mean is saved for a site or a sample — group by one of those to write it")
+            return
+        self.save.set_table(MEAN_TABLES[s.level])
+        if s.group == ALL:
+            self.save.decline(f"pick one {s.level} to save its mean tensor to its row of {self.save.table}.txt")
+            return
+        if stats is None or stats["n"] < 2:
+            self.save.decline("a mean needs at least two tensors")
+            return
+        aniso_type = self.mean_type()
+        if aniso_type is None:
+            self.save.decline("the selection mixes anisotropy types — pick one to save its mean")
+            return
+        record = anisotropy.mean_record(stats, aniso_type, s.coordinates, specimens=list(self.tensors["specimen"]))
+        parent_column = {"site": "location", "sample": "site"}[s.level]
+        parents = self.tensors[parent_column].dropna().astype(str).unique() if parent_column in self.tensors else []
+        parent = {parent_column: str(parents[0])} if len(parents) == 1 else None
+        level, group, table = s.level, s.group, self.save.table
+        lines = [code.assign("record", code.call("aniso.mean_record", code.Name("stats"), aniso_type, s.coordinates,
+                                                 specimens=code.Name("list(tensors['specimen'])"))),
+                 code.assign(table, code.call("aniso.add_mean_to_table", code.Name(table), level, group,
+                                              code.Name("record"), parent=parent))]
+        self.save.offer(lambda df: anisotropy.add_mean_to_table(df, level, group, record, parent=parent),
+                        lines, self.code.text.splitlines())
 
     def _summarize(self, stats: Optional[dict]) -> None:
         label = self.s.selection_label()
@@ -372,7 +417,7 @@ class EigenvectorsView:
             w.align = "end"                       # checkboxes sit on the baseline of the slider and inputs
         options = pn.Row(*widgets)
         return pn.Column(options, self.summary, pn.Row(self.specimen_net, self.mean_net, self.cdf_box),
-                         self.table, self.code.panel(), sizing_mode="stretch_width")
+                         self.table, self.save.panel(), self.code.panel(), sizing_mode="stretch_width")
 
 
 # ----------------------------------------------------------------------------- shape

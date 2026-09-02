@@ -625,10 +625,19 @@ Intensity were built.
    **Shape** (Jelinek P′–T, Flinn; the mean tensor's shape parameters with
    the specimens' ranges), **Specimens** (the tensor table). The hub counts
    `aniso_s` rows as an Anisotropy kind, so a specimens-only directory opens
-   there. Not yet: writing site/sample means (`mean_record` → a generalised
-   `TableSave`), reducing `LP-AN-ARM`/`LP-AN-TRM` measurements to tensors
-   (`ipmag.aarm_magic`/`atrm_magic`) (QUESTIONS 33–40). *Next*: those two,
-   the notebook switch-over in RockmagPy-notebooks (QUESTIONS 12).
+   there. *Mean save built* (2026-09-02): the "Save to <table>.txt" step is
+   now the toolkit's `pmagpy_panel/results.py: TableSave` (any table; the
+   rockmag `SpecimenSave` is its specimens-only subclass) and the
+   Eigenvectors tab offers it for one site or sample: `mean_record` (the
+   `aniso_*` cells, `method_codes` `LP-AN-ARM:AE-H[:AE-BS[-P]]`, the
+   `specimens` list, the mean tensor and bootstrap parameters as JSON in
+   `description`) → `add_mean_to_table`, a row of its own on `sites.txt` /
+   `samples.txt` replaced on a re-save of the same type and frame; the
+   calls are appended to `sites.py`. Not yet: reducing
+   `LP-AN-ARM`/`LP-AN-TRM` measurements to tensors
+   (`ipmag.aarm_magic`/`atrm_magic`) (QUESTIONS 33–42). *Next*: that
+   Reduce view, the notebook switch-over in RockmagPy-notebooks
+   (QUESTIONS 12).
 5. **The rest of Pmag GUI, one decision at a time** — see the table below.
    *Retires `pmag_gui.py`.*
 

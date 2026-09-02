@@ -18,6 +18,7 @@ reported in the lower hemisphere. ``aniso_tilt_correction`` names the frame:
 """
 from __future__ import annotations
 
+import json
 from typing import Optional
 
 import numpy as np
@@ -439,22 +440,125 @@ def eigenparameter_cell(tau: float, dec: float, inc: float) -> str:
     return f'{tau:.6f}:{dec:.1f}:{inc:.1f}'
 
 
-def mean_record(stats: dict, aniso_type: str, coordinates: str) -> dict:
+# the lab protocol behind each anisotropy type, for the method codes of a mean's row
+TYPE_METHOD_CODES = {'AMS': 'LP-AN-MS', 'AARM': 'LP-AN-ARM', 'ATRM': 'LP-AN-TRM', 'AIRM': 'LP-AN-IRM'}
+MEAN_COLUMNS = ['aniso_type', 'aniso_tilt_correction', 'aniso_v1', 'aniso_v2', 'aniso_v3', *SHAPE_COLUMNS,
+                'aniso_ftest', 'aniso_ftest12', 'aniso_ftest23', 'aniso_ftest_quality', 'method_codes',
+                'description', 'specimens']              # what a mean writes on its row
+
+
+def mean_record(stats: dict, aniso_type: str, coordinates: str, specimens=None) -> dict:
     """The MagIC sample/site columns for a group mean (:func:`group_statistics`).
 
     Returns ``aniso_type``, ``aniso_tilt_correction``, ``aniso_v1..v3``
     (``tau:dec:inc`` of the mean tensor), the shape parameters, and — when
     the Hext statistics were computed — ``aniso_ftest``, ``aniso_ftest12``,
     ``aniso_ftest23`` and ``aniso_ftest_quality`` (``g`` when F exceeds its
-    critical value). ``aniso_n_specimens`` is not a data-model column and is
-    left to the caller's description.
+    critical value); ``method_codes`` name the protocol (``LP-AN-ARM`` for
+    AARM) and the estimation (``AE-H`` Hext, ``AE-BS``/``AE-BS-P`` bootstrap).
+    The tables have no column for the mean tensor itself, the number of
+    specimens or the bootstrap parameters, so those go into ``description``
+    as ``text | {json}`` (the convention of the rock-magnetic writers):
+    ``s``, ``n_specimens``, ``nf``, ``sigma``, ``hext`` (F, its critical
+    value, the semi-angles) and ``bootstrap`` (draws, parametric, ζ/η about
+    each axis, the 95% eigenvalue bounds).
+
+    Args:
+        stats: :func:`group_statistics`'s result.
+        aniso_type: AMS, AARM, ATRM ...
+        coordinates: 's', 'g' or 't' — the frame the tensors were in.
+        specimens: names of the specimens in the mean, for the ``specimens`` column.
     """
     record = {'aniso_type': aniso_type, 'aniso_tilt_correction': COORDINATES[coordinates]}
     for i in (1, 2, 3):
         record[f'aniso_v{i}'] = eigenparameter_cell(stats[f'tau{i}'], stats[f'v{i}_dec'], stats[f'v{i}_inc'])
-    record.update({key: stats[key] for key in SHAPE_COLUMNS})
+    record.update({key: round(float(stats[key]), 6) for key in SHAPE_COLUMNS})
+    codes = [TYPE_METHOD_CODES[aniso_type]] if aniso_type in TYPE_METHOD_CODES else ['LP-AN']
+    detail = {'s': [round(float(x), 8) for x in stats['s']], 'n_specimens': int(stats['n'])}
+    for key in ('nf', 'sigma'):
+        if key in stats:
+            detail[key] = round(float(stats[key]), 8) if key == 'sigma' else int(stats[key])
     h = stats.get('hext')
     if h is not None:
-        record.update({'aniso_ftest': h['F'], 'aniso_ftest12': h['F12'], 'aniso_ftest23': h['F23'],
+        record.update({'aniso_ftest': round(float(h['F']), 4), 'aniso_ftest12': round(float(h['F12']), 4),
+                       'aniso_ftest23': round(float(h['F23']), 4),
                        'aniso_ftest_quality': 'g' if float(h['F']) > float(h['F_crit']) else 'b'})
+        codes.append('AE-H')
+        detail['hext'] = {'F': round(float(h['F']), 4), 'F_crit': float(h['F_crit']),
+                          'F12': round(float(h['F12']), 4), 'F23': round(float(h['F23']), 4),
+                          'F12_crit': float(h['F12_crit']),
+                          'e12': round(float(h['e12']), 2), 'e13': round(float(h['e13']), 2),
+                          'e23': round(float(h['e23']), 2)}
+    b = stats.get('bootstrap')
+    if b is not None:
+        codes.append('AE-BS-P' if b['parametric'] else 'AE-BS')
+        p = b['params']
+        bounds = bootstrap_eigenvalue_bounds(b['taus'])
+        detail['bootstrap'] = {'n_bootstraps': int(b['n_bootstraps']), 'parametric': bool(b['parametric']),
+                               **{f'{v}_{k}': round(float(p[f'{v}_{k}']), 2) for v in ('v1', 'v2', 'v3')
+                                  for k in ('zeta', 'eta')},
+                               **{f'tau{i}_95': [round(x, 6) for x in bounds[f'tau{i}']] for i in (1, 2, 3)}}
+    record['method_codes'] = ':'.join(codes)
+    record['description'] = f"mean {aniso_type} tensor of {stats['n']} specimens | {json.dumps(detail)}"
+    if specimens is not None:
+        record['specimens'] = ':'.join(str(name) for name in specimens)
     return record
+
+
+def add_mean_to_table(table: Optional[pd.DataFrame], level: str, name: str, record: dict,
+                      parent: Optional[dict] = None) -> pd.DataFrame:
+    """Put a group mean (:func:`mean_record`) on its row of ``sites`` or ``samples``.
+
+    MagIC tables hold several rows per site or sample (a direction, an
+    intensity ...), so the mean gets a row of its own: an existing row of the
+    group with the same ``aniso_type`` and ``aniso_tilt_correction`` is
+    replaced, otherwise a row is added carrying the group's name, the parent
+    column of its first row (``location`` for a site, ``site`` for a sample)
+    and ``citations = 'This study'``. Nothing else on the table is touched.
+
+    Args:
+        table: the ``sites`` or ``samples`` DataFrame; None or empty starts one.
+        level: 'site' or 'sample' — the table's key column.
+        name: the group's name.
+        record: :func:`mean_record`'s columns.
+        parent: extra identifying columns for a new row when the table has no
+            row for the group (``{'location': 'McMurdo'}``).
+
+    Returns:
+        The table with the mean on it (a new DataFrame).
+
+    Raises:
+        ValueError: when `level` is not a column of a non-empty table.
+    """
+    if level not in ('site', 'sample'):
+        raise ValueError(f"a mean belongs to a site or a sample, not {level!r}")
+    table = pd.DataFrame(columns=[level]) if table is None or not len(table) else table.copy()
+    if level not in table.columns:
+        raise ValueError(f"the table has no {level!r} column")
+    for column in record:
+        if column not in table.columns:
+            table[column] = np.nan
+    table = table.astype(object)
+    group = table[table[level].astype(str) == str(name)]
+    frame = pd.to_numeric(group['aniso_tilt_correction'], errors='coerce') if len(group) else pd.Series(dtype=float)
+    same = group[(group['aniso_type'].astype(str) == str(record['aniso_type']))
+                 & (frame == float(record['aniso_tilt_correction']))] if len(group) else group
+    if len(same):
+        index = same.index[0]
+        for column in MEAN_COLUMNS:                # the whole result, so a re-save without Hext clears the F tests
+            if column in table.columns:
+                table.at[index, column] = record.get(column, np.nan)
+        for column, value in record.items():
+            table.at[index, column] = value
+        return table.reset_index(drop=True)
+    row = {level: name, 'citations': 'This study'}
+    parent_column = {'site': 'location', 'sample': 'site'}[level]
+    if len(group) and parent_column in group.columns and pd.notna(group.iloc[0][parent_column]):
+        row[parent_column] = group.iloc[0][parent_column]
+    if parent:
+        row.update(parent)
+    row.update(record)
+    for column in row:
+        if column not in table.columns:
+            table[column] = np.nan
+    return pd.concat([table, pd.DataFrame([row], columns=table.columns)], ignore_index=True).astype(object)
