@@ -536,10 +536,16 @@ Intensity were built.
    columns, the stub rows and failing cells painted, column help on the right,
    Save reloading the session so Home's gaps follow, Check on the saved file.
    Home's "Metadata…" is the primary button when the contribution has gaps.
-   *Still to do here*: propagating a saved age down the hierarchy the way
-   ErMagicBuilder did (the inventory already counts a site dated in `ages.txt`
-   as dated); a newer data model than the bundled 2019 copy (the page reads
-   whatever `data_model(True)` returns).
+   **Ages filled since 2026-09-02** (ErMagicBuilder's age propagation): *Fill
+   ages* on the sites and locations tables — `magic_metadata.fill_ages` — dates
+   the undated rows without overwriting: a site from its row in `ages.txt`
+   (`ages_at`; a row dates the lowest level it names), else its location's age;
+   a location from `ages.txt`, else the span of its dated sites
+   (`site_age_spans`, `age ± age_sigma` included, only when the sites share an
+   `age_unit`). The five age cells travel together. Samples and specimens carry
+   no age in MagIC 3, so nothing is written below the site (QUESTIONS 52).
+   *Still to do here*: a newer data model than the bundled 2019 copy (the page
+   reads whatever `data_model(True)` returns).
    **Criteria built 2026-09-02** (step 5's last row): `criteria` joined
    `magic_metadata.TABLES`, so the same grid edits it — `table_column` picks
    from every column of the MagIC tables (`table_columns`), `criterion` from

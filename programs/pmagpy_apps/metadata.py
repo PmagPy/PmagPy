@@ -184,6 +184,7 @@ class MetadataView:
         self.delete_btn = pn.widgets.Button(name="Delete selected", button_type="default", width=140)
         self.fill_btn = pn.widgets.Button(name="Fill defaults", button_type="default", width=120)
         self.bounds_btn = pn.widgets.Button(name="Bounds from sites", button_type="default", width=150, visible=False)
+        self.ages_btn = pn.widgets.Button(name="Fill ages", button_type="default", width=100, visible=False)
         self.defaults_btn = pn.widgets.Button(name="Add default criteria", button_type="default", width=170, visible=False)
         self.parent_fill = pn.widgets.MultiChoice(name="Copy down from the table above", options=[], width=320,
                                                   placeholder="columns to copy from each row's parent", visible=False)
@@ -205,6 +206,7 @@ class MetadataView:
         self.delete_btn.on_click(lambda e: self.delete_selected())
         self.fill_btn.on_click(lambda e: self.fill_defaults())
         self.bounds_btn.on_click(lambda e: self.fill_bounds())
+        self.ages_btn.on_click(lambda e: self.fill_ages())
         self.defaults_btn.on_click(lambda e: self.add_default_criteria())
         self.parent_btn.on_click(lambda e: self.copy_down())
         self.add_cols_btn.on_click(lambda e: self.add_columns())
@@ -241,6 +243,9 @@ class MetadataView:
         self.findings_pane.object = ""
         self.message.object = ""
         self.bounds_btn.visible = table == "locations"
+        self.ages_btn.visible = table in mm.AGED_TABLES
+        self.ages_btn.description = ("Undated sites take their row in ages.txt, else their location's age" if table == "sites"
+                                     else "Undated locations take their row in ages.txt, else the age span of their sites")
         self.defaults_btn.visible = table == "criteria"
         down = table in mm.PARENT
         self.parent_fill.visible = self.parent_btn.visible = down
@@ -376,6 +381,23 @@ class MetadataView:
         else:
             self._say("No site coordinates to take bounds from, or the bounds are already filled.", WARN_COLOR)
 
+    def fill_ages(self) -> None:
+        """Date the undated rows from ages.txt and from the level above (sites) or below (locations)."""
+        df, counts, notes = mm.fill_ages(self.s.directory, self.table, self.current())
+        n = sum(counts.values())
+        if n:
+            self._replace(df[mm.order_columns(self.table, df.columns)])
+        what = "site" if self.table == "sites" else "location"
+        said = {"ages": "from ages.txt", "location": "from their location", "sites": "from the span of their sites"}
+        parts = [f"{k} {said[src]}" for src, k in counts.items()]
+        if n:
+            text = f"{n} {what}{'s' if n != 1 else ''} dated: " + ", ".join(parts) + "."
+        else:
+            text = f"No {what} to date: every {what} has an age, or nothing else knows one."
+        if notes:
+            text += " Not spanned — " + "; ".join(html.escape(x) for x in notes) + "."
+        self._say(text, "" if n else WARN_COLOR)
+
     def add_default_criteria(self) -> None:
         """Append PmagPy's default acceptance criteria (the rows the table does not have yet)."""
         df, n = mm.add_default_criteria(self.current())
@@ -457,7 +479,7 @@ class MetadataView:
     # ----- layout ------------------------------------------------------------------------------------
     def panel(self) -> pn.Column:
         tools = pn.Row(self.save_btn, self.check_btn, pn.Spacer(width=14), self.add_row_btn, self.delete_btn,
-                       self.fill_btn, self.bounds_btn, self.defaults_btn, sizing_mode="stretch_width", margin=(6, 0, 0, 0))
+                       self.fill_btn, self.bounds_btn, self.ages_btn, self.defaults_btn, sizing_mode="stretch_width", margin=(6, 0, 0, 0))
         fills = pn.Row(self.add_cols, self.add_cols_btn, pn.Spacer(width=30), self.parent_fill, self.parent_btn,
                        sizing_mode="stretch_width")
         return pn.Column(

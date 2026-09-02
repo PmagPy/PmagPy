@@ -576,6 +576,44 @@ class TestMetadata:
         assert view.save() is True
         assert not any(g.label == "location bounds" for g in session.inventory.gaps)
 
+    def test_fill_ages_dates_sites_from_ages_txt_and_their_location(self, tmp_path):
+        """ErMagicBuilder's age propagation: ages.txt and the location's age reach the undated sites, and back up."""
+        import pandas as pd
+        d = small_study(tmp_path)
+        metadata.mm.mp.magic_write(os.path.join(d, "ages.txt"),
+                                   pd.DataFrame([{"location": "Zavkhan", "site": "Z11", "age": "805", "age_sigma": "2",
+                                                  "age_unit": "Ma", "method_codes": "GM-UPB"}]), "ages")
+        session = home.HubSession(d, landing=False)
+        view = metadata.MetadataView(session)
+        assert view.ages_btn.visible is True
+        assert next(g for g in session.inventory.gaps if g.label == "site ages").n == 1          # Z12 (Z13 has no row yet)
+        view.fill_ages()
+        assert "1 site dated: 1 from ages.txt" in view.message.object                          # the location has no age yet
+        by = view.grid.value.set_index("site")
+        assert by.loc["Z11", ["age", "age_sigma", "age_unit"]].tolist() == ["805", "2", "Ma"]
+        assert by.loc["Z12", "age"] == "" and view.dirty is True
+        view.fill_ages()
+        assert "No site to date" in view.message.object                                        # nothing more is known
+        view.show("locations")
+        assert view.ages_btn.visible is True
+        view.fill_ages()
+        assert "1 location dated: 1 from the span of their sites" in view.message.object
+        row = view.grid.value.iloc[0]
+        assert (row["age_low"], row["age_high"], row["age_unit"]) == ("803", "807", "Ma")       # 805 +/- 2
+        assert view.save() is True
+        view.show("sites")
+        df = view.current()
+        df.loc[df.site == "Z13", "location"] = "Zavkhan"                                       # the stub row needs its location first
+        view.grid.value = df
+        view.fill_ages()
+        assert "3 sites dated: 1 from ages.txt, 2 from their location" in view.message.object
+        by = view.grid.value.set_index("site")
+        assert by.loc["Z13", ["age_low", "age_high", "age_unit"]].tolist() == ["803", "807", "Ma"]
+        assert view.save() is True
+        assert not any(g.label == "site ages" for g in session.inventory.gaps)
+        view.show("samples")
+        assert view.ages_btn.visible is False                                                  # samples carry no age
+
     def test_delete_needs_a_selection_and_removes_the_ticked_rows(self, tmp_path):
         session = home.HubSession(small_study(tmp_path), landing=False)
         view = metadata.MetadataView(session)

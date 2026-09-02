@@ -435,6 +435,173 @@ def fill_from_parent(directory: str, table: str, df: pd.DataFrame, column_names:
 
 
 # ---------------------------------------------------------------------------
+# Ages: the ages table into the sites and locations tables, and between them
+# ---------------------------------------------------------------------------
+#: the Age group of sites and locations (samples and specimens carry no age in MagIC 3)
+AGE_COLUMNS = ("age", "age_sigma", "age_low", "age_high", "age_unit")
+#: the tables whose rows are dated
+AGED_TABLES = ("sites", "locations")
+
+
+def is_dated(df: pd.DataFrame) -> pd.Series:
+    """True for the rows with an age or an age range (``age``, ``age_low`` or ``age_high`` filled)."""
+    have = [c for c in ("age", "age_low", "age_high") if c in df.columns]
+    if not have or not len(df):
+        return pd.Series(False, index=df.index)
+    return (df[have].astype(str).apply(lambda s: s.str.strip() != "")).any(axis=1)
+
+
+def age_level(row) -> str:
+    """The level an ages row dates: the lowest of specimen, sample, site, location it names ("" when none)."""
+    for level in reversed(LEVELS):
+        if level in row.index and str(row[level]).strip():
+            return level
+    return ""
+
+
+def _age_cells(row) -> Dict[str, str]:
+    return {c: str(row[c]).strip() for c in AGE_COLUMNS if c in row.index and str(row[c]).strip()}
+
+
+def ages_at(directory: str, level: str) -> Dict[str, Dict[str, str]]:
+    """name -> age cells from the rows of ``ages.txt`` dated at ``level`` ("site", "location" ...).
+
+    A row dates the lowest level it names (a row with a site and a sample is
+    a sample age). When a name has several dated rows -- two dating methods
+    on one site -- the first one in the file is taken, as
+    ``contribution_builder.propagate_ages`` has always done.
+    """
+    df = read_table(directory, "ages")
+    if df is None or level not in df.columns:
+        return {}
+    out: Dict[str, Dict[str, str]] = {}
+    for i in df.index[is_dated(df)]:
+        row = df.loc[i]
+        if age_level(row) != level:
+            continue
+        name = str(row[level]).strip()
+        if name and name not in out:
+            out[name] = _age_cells(row)
+    return out
+
+
+def table_ages(directory: str, table: str) -> Dict[str, Dict[str, str]]:
+    """name -> age cells of the dated rows of ``sites.txt`` or ``locations.txt``."""
+    df = read_table(directory, table)
+    key = NAME_COLUMN[table]
+    if df is None or key not in df.columns:
+        return {}
+    out: Dict[str, Dict[str, str]] = {}
+    for i in df.index[is_dated(df)]:
+        name = str(df.at[i, key]).strip()
+        if name and name not in out:
+            out[name] = _age_cells(df.loc[i])
+    return out
+
+
+def site_age_spans(directory: str) -> Tuple[Dict[str, Dict[str, str]], List[str]]:
+    """location -> ``age_low``/``age_high``/``age_unit`` spanning its dated sites.
+
+    The span runs from the smallest of a site's ``age_low``, ``age`` and
+    ``age - age_sigma`` to the largest of ``age_high``, ``age`` and
+    ``age + age_sigma``, over the sites of the location that are dated in
+    ``sites.txt`` or, failing that, in ``ages.txt``. Ages are not converted
+    between units: a location whose sites are dated in more than one
+    ``age_unit`` is left out and named in the second element.
+    """
+    sites = read_table(directory, "sites")
+    if sites is None or not {"site", "location"} <= set(sites.columns):
+        return {}, []
+    from_ages = ages_at(directory, "site")
+    rows: List[Dict[str, str]] = []
+    dated = is_dated(sites)
+    for i in sites.index:
+        name, loc = str(sites.at[i, "site"]).strip(), str(sites.at[i, "location"]).strip()
+        if not loc:
+            continue
+        cells = _age_cells(sites.loc[i]) if dated[i] else from_ages.get(name, {})
+        if cells:
+            rows.append({"location": loc, **cells})
+    if not rows:
+        return {}, []
+    df = pd.DataFrame(rows)
+    for c in ("age", "age_sigma", "age_low", "age_high"):
+        df[c] = pd.to_numeric(df[c], errors="coerce") if c in df.columns else float("nan")
+    if "age_unit" not in df.columns:
+        df["age_unit"] = ""
+    spans: Dict[str, Dict[str, str]] = {}
+    mixed: List[str] = []
+    for loc, group in df.groupby("location", sort=False):
+        units = set(group["age_unit"].fillna("").astype(str)) - {""}
+        if len(units) > 1:
+            mixed.append(str(loc))
+            continue
+        low = pd.concat([group["age_low"], group["age"], group["age"] - group["age_sigma"].fillna(0)]).min()
+        high = pd.concat([group["age_high"], group["age"], group["age"] + group["age_sigma"].fillna(0)]).max()
+        if pd.isna(low) or pd.isna(high):
+            continue
+        span = {"age_low": f"{low:g}", "age_high": f"{high:g}"}
+        if units:
+            span["age_unit"] = units.pop()
+        spans[str(loc)] = span
+    return spans, mixed
+
+
+def fill_ages(directory: str, table: str, df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict[str, int], List[str]]:
+    """Date the undated rows of a sites or locations frame from what the other tables know.
+
+    A site takes the age of its row in ``ages.txt`` (site level), else its
+    location's age -- from ``locations.txt`` or the location's row in
+    ``ages.txt``. A location takes its row in ``ages.txt`` (location level),
+    else the span of its dated sites (:func:`site_age_spans`). A row that
+    already has an age or a range is left as it is, whole: the five age
+    cells travel together, so an ``age_unit`` is never put beside someone
+    else's ``age``.
+
+    Returns:
+        (frame, rows dated by source, notes): the source keys are ``"ages"``
+        (from ``ages.txt``), ``"location"`` (sites from their location) and
+        ``"sites"`` (locations from the span of their sites); the notes name
+        the locations whose sites disagree on the age unit.
+    """
+    if table not in AGED_TABLES:
+        return df, {}, []
+    key = NAME_COLUMN[table]
+    df = df.copy()
+    counts: Dict[str, int] = {}
+    notes: List[str] = []
+    if key not in df.columns or not len(df):
+        return df, counts, notes
+    for c in AGE_COLUMNS:
+        if c not in df.columns:
+            df[c] = ""
+    # (source name, name -> age cells, the frame column holding the name)
+    sources: List[Tuple[str, Dict[str, Dict[str, str]], str]] = [("ages", ages_at(directory, key), key)]
+    if table == "sites":
+        above = table_ages(directory, "locations")
+        for name, cells in ages_at(directory, "location").items():
+            above.setdefault(name, cells)
+        sources.append(("location", above, "location"))
+    else:
+        spans, mixed = site_age_spans(directory)
+        sources.append(("sites", spans, key))
+        notes += [f"{loc}: its sites are dated in more than one age unit" for loc in mixed]
+    undated = ~is_dated(df)
+    for source, lookup, by in sources:
+        if not lookup or by not in df.columns:
+            continue
+        for i in df.index[undated]:
+            cells = lookup.get(str(df.at[i, by]).strip())
+            if not cells:
+                continue
+            for c, value in cells.items():
+                df.at[i, c] = value
+            undated[i] = False
+            counts[source] = counts.get(source, 0) + 1
+    return df, counts, notes
+
+
+# ---------------------------------------------------------------------------
 # Checking
 # ---------------------------------------------------------------------------
 @dataclass

@@ -245,6 +245,82 @@ class TestFilling:
         assert n == 0 and out.equals(df)
 
 
+@pytest.fixture
+def dated(tmp_path):
+    """Two locations; ages.txt dates one site twice, one site's sample, and one location."""
+    write(tmp_path, "locations", [{"location": "Zavkhan", "age": "805", "age_sigma": "2", "age_unit": "Ma"},
+                                  {"location": "Khuvsgul"}])
+    write(tmp_path, "sites", [
+        {"site": "Z11", "location": "Zavkhan", "age_low": "790", "age_high": "800", "age_unit": "Ma"},   # dated in place
+        {"site": "Z12", "location": "Zavkhan"},                                                          # in ages.txt, twice
+        {"site": "Z13", "location": "Zavkhan"},                                                          # only its sample is dated
+        {"site": "Z14", "location": "Zavkhan"},                                                          # undated: the location's
+        {"site": "K1", "location": "Khuvsgul"},                                                          # location dated in ages.txt
+        {"site": "K2", "location": "Khuvsgul", "age": "515", "age_unit": "Ma"},
+        {"site": "X1", "location": ""},                                                                  # no location
+    ])
+    write(tmp_path, "ages", [
+        {"location": "Zavkhan", "site": "Z12", "age": "811", "age_sigma": "3", "age_unit": "Ma", "method_codes": "GM-UPB"},
+        {"location": "Zavkhan", "site": "Z12", "age": "809", "age_sigma": "5", "age_unit": "Ma", "method_codes": "GM-ARAR"},
+        {"location": "Zavkhan", "site": "Z13", "sample": "Z13.1", "age": "812", "age_unit": "Ma"},
+        {"location": "Khuvsgul", "age_low": "500", "age_high": "540", "age_unit": "Ma"},
+        {"location": "Khuvsgul", "site": "K3", "method_codes": "GM-NO"},                                 # no age on it
+    ])
+    return str(tmp_path)
+
+
+class TestAges:
+    def test_an_ages_row_dates_the_lowest_level_it_names(self, dated):
+        assert mm.ages_at(dated, "site") == {"Z12": {"age": "811", "age_sigma": "3", "age_unit": "Ma"}}   # first row wins
+        assert mm.ages_at(dated, "sample") == {"Z13.1": {"age": "812", "age_unit": "Ma"}}
+        assert mm.ages_at(dated, "location") == {"Khuvsgul": {"age_low": "500", "age_high": "540", "age_unit": "Ma"}}
+        assert mm.ages_at(dated, "specimen") == {}
+
+    def test_sites_take_their_ages_row_then_their_locations_age(self, dated):
+        df = mm.editor_frame(dated, "sites").df
+        out, counts, notes = mm.fill_ages(dated, "sites", df)
+        by = out.set_index("site")
+        assert counts == {"ages": 1, "location": 3} and notes == []
+        assert by.loc["Z11", ["age_low", "age_high"]].tolist() == ["790", "800"]           # left as it was
+        assert by.loc["Z12", ["age", "age_sigma", "age_unit"]].tolist() == ["811", "3", "Ma"]
+        assert by.loc["Z13", "age"] == "805" and by.loc["Z13", "age_sigma"] == "2"          # the sample age is not a site age
+        assert by.loc["Z14", "age"] == "805"
+        assert by.loc["K1", ["age_low", "age_high", "age_unit"]].tolist() == ["500", "540", "Ma"]   # location dated only in ages.txt
+        assert by.loc["K2", "age"] == "515" and by.loc["X1", "age"] == ""
+        assert mm.is_dated(out).sum() == 6
+        assert df.loc[1, "age"] == ""                                                       # the input is not touched
+
+    def test_locations_take_their_ages_row_then_the_span_of_their_sites(self, dated):
+        df = mm.editor_frame(dated, "locations").df
+        df.loc[df.location == "Zavkhan", ["age", "age_sigma"]] = ""                         # undate it
+        out, counts, notes = mm.fill_ages(dated, "locations", df)
+        by = out.set_index("location")
+        assert counts == {"ages": 1, "sites": 1} and notes == []
+        assert by.loc["Khuvsgul", ["age_low", "age_high", "age_unit"]].tolist() == ["500", "540", "Ma"]
+        # Zavkhan: Z11 790-800, Z12 811 +/- 3 (from ages.txt); Z13's sample age is not a site age
+        assert by.loc["Zavkhan", ["age_low", "age_high", "age_unit"]].tolist() == ["790", "814", "Ma"]
+        assert by.loc["Zavkhan", "age"] == ""
+
+    def test_mixed_age_units_are_not_spanned(self, dated):
+        sites = mm.read_table(dated, "sites")
+        sites.loc[sites.site == "Z11", "age_unit"] = "Ka"
+        mm.save_table(dated, "sites", sites, backup=False)
+        spans, mixed = mm.site_age_spans(dated)
+        assert mixed == ["Zavkhan"] and set(spans) == {"Khuvsgul"}
+        assert spans["Khuvsgul"] == {"age_low": "515", "age_high": "515", "age_unit": "Ma"}
+        df = mm.editor_frame(dated, "locations").df
+        df[["age", "age_sigma"]] = ""
+        out, counts, notes = mm.fill_ages(dated, "locations", df)
+        assert counts == {"ages": 1} and notes == ["Zavkhan: its sites are dated in more than one age unit"]
+
+    def test_nothing_to_date_from_is_no_change(self, study):
+        df = mm.editor_frame(study, "sites").df
+        out, counts, notes = mm.fill_ages(study, "sites", df)
+        assert counts == {} and notes == []
+        assert out.drop(columns=list(mm.AGE_COLUMNS)).equals(df.drop(columns=[c for c in mm.AGE_COLUMNS if c in df.columns]))
+        assert mm.fill_ages(study, "samples", df)[1] == {}
+
+
 # ---------------------------------------------------------------------------
 # Checking
 # ---------------------------------------------------------------------------

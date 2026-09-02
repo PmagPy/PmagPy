@@ -679,3 +679,23 @@ the bottom; struck through once settled.
     On McMurdo: 76 of 992 fits fail (MAD > 5 or n < 4), 7 of 135 site means
     fail after that (k, n_samples, n_lines), the pole goes from N = 135 to
     128. Should the checkbox default to *on* when a criteria.txt exists?
+
+52. **Ages on the Metadata page (2026-09-02).** *Fill ages* on the sites and
+    locations tables does what ErMagicBuilder's age propagation did, without
+    overwriting: an undated site takes its row in `ages.txt` (a row dates the
+    lowest level it names, so a sample-dated row is not a site age), else its
+    location's age; an undated location takes its row in `ages.txt`, else
+    the span of its dated sites -- `age_low` = min of the sites' `age_low`,
+    `age` and `age - age_sigma`, `age_high` the matching max -- when the
+    sites agree on `age_unit` (no conversion between Ma, ka, Years BP ...;
+    a mixed location is named in the message and left alone). The five age
+    cells travel together, so a row with an `age` never gets someone else's
+    `age_unit`. Decisions to confirm: (a) when a site has several rows in
+    `ages.txt` (two dating methods) the *first in the file* wins, as
+    `contribution_builder.propagate_ages` has always done -- would you rather
+    it took the row with the smallest `age_sigma`, or left the site alone
+    and asked?; (b) is `age ± age_sigma` the right contribution of a
+    single-age site to the location span, or should the span use `age`
+    alone (MagIC's own `propagate_min_max_up` uses `age` only)?; (c) samples
+    and specimens carry no age in MagIC 3, so nothing is written below the
+    site -- Pmag GUI 2.5 did copy ages onto samples; is anything lost?
