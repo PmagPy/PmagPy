@@ -65,7 +65,7 @@ def test_every_field_keyword_exists_or_is_prepared():
                 continue
             assert fmt.keyword(f.name) in params, f"{fmt.key}: {f.name} → {fmt.keyword(f.name)}"
         for kw in fmt.outputs.values():
-            assert kw in params, f"{fmt.key}: output keyword {kw}"
+            assert kw is None or kw in params, f"{fmt.key}: output keyword {kw}"
         assert fmt.keyword(fmt.file_kw) in params
         assert fmt.output_dir_kw in params
 
@@ -412,3 +412,35 @@ class TestFieldNotebook:
         fn = reg.FORMATS["orient"].function
         assert isinstance(fn, reg.Deferred) and repr(fn) == "pmagpy.ipmag.orientation_magic"
         assert "orient_file" in inspect.signature(fn).parameters
+
+
+# ----- MagIC 2.5 tables ------------------------------------------------------------------------------
+
+class TestLegacy:
+    def test_a_2_5_directory_is_recognised_by_its_table_names(self):
+        names = ["magic_measurements.txt", "er_samples.txt", "pmag_criteria.txt", "rmag_anisotropy.txt",
+                 "magic_methods.txt", "notes.txt", "ages.txt"]
+        key, roles = reg.guess_format(names)
+        assert key == "legacy"
+        assert set(roles) == {"magic_measurements.txt", "er_samples.txt", "pmag_criteria.txt", "rmag_anisotropy.txt",
+                              "magic_methods.txt"}
+        assert reg.guess_format(["measurements.txt", "specimens.txt", "notes.txt"])[0] == ""
+
+    def test_the_upgrade_writes_every_3_0_table_and_names_what_it_cannot(self, tmp_path):
+        fmt = reg.FORMATS["legacy"]
+        result = reg.convert_files(fmt, [example_path("../2_5/McMurdo")], {}, str(tmp_path))
+        assert result.ok, result.log
+        written = {t for t in reg.MAGIC_TABLES if (tmp_path / f"{t}.txt").exists()}
+        assert written == {"measurements", "specimens", "samples", "sites", "locations", "ages", "criteria"}
+        assert result.tables["measurements"] == 25470 and result.tables["criteria"] == 23
+        meas = read_table(tmp_path / "measurements.txt")
+        assert {"specimen", "method_codes", "treat_ac_field", "dir_dec", "dir_inc"} <= set(meas.columns)
+        assert "25,470 measurements" in result.message
+        assert "rmag_anisotropy.txt" in result.log and "left as 2.5" in result.log
+        assert not (tmp_path / "magic_measurements.txt").exists(), "the 2.5 tables stay where they were"
+
+    def test_no_measurements_file_is_refused_with_the_way_out(self, tmp_path):
+        (tmp_path / "er_samples.txt").write_text("tab\ter_samples\ner_sample_name\nA1\n")
+        result = reg.convert_files(reg.FORMATS["legacy"], [str(tmp_path)], {}, str(tmp_path))
+        assert not result.ok
+        assert "magic_measurements.txt" in result.message and "upgrade" in result.message

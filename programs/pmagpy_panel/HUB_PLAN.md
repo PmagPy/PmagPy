@@ -711,6 +711,16 @@ Intensity were built.
    rows. `kly4s` wrote samples/sites into the cwd (fixed); `pmag.tauV` keeps
    real eigenvalues real (numpy 2 `eig` returns complex, and every `dostilt`
    raised a ComplexWarning). QUESTIONS 47 for the choices.
+   *Built (2.5 → 3.0, 2026-09-02)*: `convert_registry.upgrade_2_to_3` wraps
+   `pmag.convert_directory_2_to_3` as the `legacy` Format (takes the directory,
+   no fields); `guess_format` names a directory `legacy` from its 2.5 table
+   names (`magic_measurements`, `er_*`, `pmag_*`, `rmag_*`) ahead of anything
+   else beside them, and tells a 2.5 contribution file from a 3.0 one so Home
+   can say that unpacking it is only the first of two steps. `ages` and
+   `criteria` joined `MAGIC_TABLES`, so the combine step carries them. The 2.5
+   files stay beside the new tables ("17 MagIC 2.5 tables beside the 3.0
+   tables"); `rmag_*`, `pmag_results` and images are not translated — the log
+   says so and points at MagIC's upgrade tool. QUESTIONS 48.
 
 ### Pmag GUI features still to decide
 
@@ -720,7 +730,7 @@ Intensity were built.
 | `azdip_magic` | **done** (2026-09-02), as the `azdip` format on Convert | same job, plainer input |
 | IODP sample summaries | **done**, as the `iodp_*` formats (LIMS samples, SRM section/discrete, JR6, and KLY4S from 2026-09-02) | they are conversions |
 | kly4s / k15 / sufar4 | **done** (2026-09-02), as the `k15`/`kly4s`/`sufar4` formats; the directory opens Anisotropy | conversions |
-| legacy 2.5 → 3.0 | **keep**, one button on Import | cheap; old datasets still arrive |
+| legacy 2.5 → 3.0 | **done** (2026-09-02), as the `legacy` format on Convert, guessed from the 2.5 table names | cheap; old datasets still arrive |
 | export result tables (`*_extract`) | **keep**, on Upload | publication tables; cheap |
 | criteria editor (`CustomizeCriteria`, unreachable today) | **keep**, as the criteria grid on Metadata | Directions' export already applies criteria; they need a home |
 | depth plots (`core_depthplot`, `ani_depthplot2`) | **defer** | matplotlib, niche; revisit when a stratigraphic user asks |

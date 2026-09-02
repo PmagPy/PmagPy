@@ -254,7 +254,13 @@ def facts_html(inv: Inventory) -> str:
         if inv.format_key == "cit":
             guess = " They look like CIT specimen files with a <code>.sam</code> index."
         elif inv.format_key == "magic":
-            guess = " They include a MagIC contribution file, which unpacks into the tables."
+            guess = (" They include a MagIC 2.5 contribution file, which unpacks into 2.5 tables; upgrading those is the step after."
+                     if any(f.role == "MagIC 2.5 contribution file" for f in inv.files)
+                     else " They include a MagIC contribution file, which unpacks into the tables.")
+        elif inv.format_key == "legacy":
+            n_old = len(inv.lab_files)
+            guess = (f" {fmt(n_old)} of them are MagIC 2.5 tables (<code>magic_measurements</code>, <code>er_</code>, "
+                     f"<code>pmag_</code>), which upgrade to 3.0 tables beside them.")
         elif inv.format_key:
             guess = f" They look like {_esc(inv.format_guess)} files."
         else:
@@ -280,8 +286,12 @@ def stages(inv: Inventory) -> list:
                 ("Analyze", "off", "after import", False), ("Upload", "off", "after import", False)]
     # Lab files beside the tables are usually the ones the tables came from; the page cannot tell, so it says what it sees.
     others = [f for f in inv.files if f.role]
-    imp = ("ok", f"{len(others)} {inv.format_guess} file{'s' if len(others) != 1 else ''} beside the tables") if others \
-        else ("ok", "tables in place")
+    if not others:
+        imp = ("ok", "tables in place")
+    elif inv.format_key == "legacy":
+        imp = ("ok", f"{len(others)} MagIC 2.5 table{'s' if len(others) != 1 else ''} beside the 3.0 tables")
+    else:
+        imp = ("ok", f"{len(others)} {inv.format_guess} file{'s' if len(others) != 1 else ''} beside the tables")
     if inv.gaps:
         g = inv.gaps[0]
         more = len(inv.gaps) - 1

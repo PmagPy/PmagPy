@@ -563,3 +563,32 @@ the bottom; struck through once settled.
       tilt-corrected AMS tensor) raised a ComplexWarning while discarding
       the zero imaginary part anyway. Values are unchanged (the `dostilt`
       docstring example reproduces to the last digit).
+
+48. **MagIC 2.5 → 3.0 as the `legacy` Convert format** (2026-09-02). A
+    directory of 2.5 tables is guessed from the names (`magic_measurements`,
+    `er_*`, `pmag_*`, `rmag_*`, `magic_methods`), the Convert page preselects
+    "MagIC 2.5 tables (upgrade)" with the file list disabled, and one click
+    runs `pmag.convert_directory_2_to_3` (the `data_files/2_5/McMurdo`
+    example: 25,470 measurements, specimens, samples, sites, locations, 99
+    ages, 23 criteria in ~3 s). Decisions to check:
+    - *The 2.5 files stay.* The 3.0 tables are written beside them and Home
+      then reads "17 MagIC 2.5 tables beside the 3.0 tables". Nothing is
+      deleted or moved; the analyst can. Would you rather they went into a
+      `magic_2_5/` subfolder so the directory is tidy for upload?
+    - *`rmag_anisotropy`, `rmag_hysteresis`, `rmag_results`, `pmag_results`,
+      `er_images` are not translated* — `convert_directory_2_to_3` never did;
+      the log names them and points at MagIC's upgrade tool
+      (earthref.org/MagIC/upgrade). For the rock-magnetism side the
+      `rmag_anisotropy` → `specimens.aniso_*` and `rmag_hysteresis` →
+      `specimens.hyst_*` translations would be a bounded piece of work
+      (`map_magic` has no maps for them today). Worth doing here, or is
+      MagIC's tool the answer for legacy rock-magnetic tables?
+    - *A 2.5 contribution file* (one text file, `tab delimited\ter_locations`
+      first) is recognised as such; unpacking it gives the 2.5 tables, and
+      the upgrade is the next click. Two steps rather than one; a single
+      "unpack and upgrade" seemed not worth a special path. Agree?
+    - *A directory with `er_*` tables but no `magic_measurements.txt`* is
+      refused ("no magic_measurements.txt in the directory") because
+      `convert_directory_2_to_3` returns False without one; the level
+      tables alone could be upgraded (`convert_and_combine_2_to_3` per
+      table). Rare enough to leave?

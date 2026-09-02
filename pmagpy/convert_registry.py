@@ -49,7 +49,7 @@ import pandas as pd
 
 from pmagpy import convert_2_magic as convert
 
-MAGIC_TABLES = ("measurements", "specimens", "samples", "sites", "locations", "images")
+MAGIC_TABLES = ("measurements", "specimens", "samples", "sites", "locations", "ages", "criteria", "images")
 
 
 class Deferred:
@@ -123,7 +123,8 @@ class Format:
         input_dir_kw: the keyword for the directory the input is read from ('' when
             the function has none — then the file is passed as a full path).
         output_dir_kw: the keyword for the directory the tables are written to.
-        outputs: MagIC table → the keyword naming that table's output file.
+        outputs: MagIC table → the keyword naming that table's output file, or None
+            when the converter writes it under its fixed name.
         fixed: keywords always passed, whatever the user says.
         extensions: lower-case file extensions the format's files usually have —
             for guessing a format from a directory and for offering its files.
@@ -495,6 +496,13 @@ def _looks_like_orient(head: str) -> bool:
     return "sample_name" in header and "mag_azimuth" in header
 
 
+def _legacy_table(lower_name: str) -> bool:
+    """A MagIC 2.5 table by its name: magic_measurements, er_*, pmag_*, rmag_*, magic_methods."""
+    return lower_name.endswith(".txt") and (
+        lower_name in ("magic_measurements.txt", "magic_methods.txt")
+        or lower_name.startswith(("er_", "pmag_", "rmag_")))
+
+
 def guess_format(names: Sequence[str], directory: str = "") -> Tuple[str, Dict[str, str]]:
     """A format key from file names (and a peek inside ambiguous ones), and a role per file.
 
@@ -511,6 +519,11 @@ def guess_format(names: Sequence[str], directory: str = "") -> Tuple[str, Dict[s
             elif any(n.startswith(s) for s in stems):
                 roles[n] = "CIT specimen"
         return "cit", roles
+    legacy = [n for n in names if _legacy_table(lower[n])]
+    if legacy:                           # 2.5 tables: the upgrade is the conversion, whatever else is beside them
+        for n in legacy:
+            roles[n] = "MagIC 2.5 table"
+        return "legacy", roles
     orient_files = []
     for n in names:                      # a downloaded contribution is a .txt like any other: look inside
         if lower[n].endswith((".txt", ".tsv")) and directory:
@@ -520,7 +533,9 @@ def guess_format(names: Sequence[str], directory: str = "") -> Tuple[str, Dict[s
             except OSError:
                 continue
             if head.startswith("tab") and ">>>>>>>>>>" in head:
-                roles[n] = "MagIC contribution file"
+                first = head.splitlines()[0].split("\t")
+                old_model = len(first) > 1 and _legacy_table(first[1].strip().lower() + ".txt")
+                roles[n] = "MagIC 2.5 contribution file" if old_model else "MagIC contribution file"
                 return "magic", roles
             if head.startswith("tab") and _looks_like_orient(head):
                 roles[n] = "Orientation file"
@@ -955,3 +970,38 @@ _add(Format(
     notes="Space-delimited 'sample azimuth dip strike dip' lines, azimuths already true north; the converter "
           "applies orientation convention 3 (lab arrow dip = 90 − dip) and takes bedding as strike and dip. "
           "Writes samples only."))
+
+
+# ----- MagIC 2.5 tables: the upgrade, so an old dataset opens like a new one ---------------------------
+
+
+def upgrade_2_to_3(input_dir: str, output_dir: str = ".", meas_fname: str = "magic_measurements.txt"):
+    """MagIC 2.5 tables (``magic_measurements``, ``er_*``, ``pmag_*``, ``pmag_criteria``) in
+    ``input_dir`` → 3.0 ``measurements``, ``specimens`` … ``ages``, ``criteria`` in ``output_dir``.
+
+    Wraps :func:`pmagpy.pmag.convert_directory_2_to_3` so it answers like a converter:
+    ``(ok, message)``, the message naming what was upgraded and what 2.5 cannot be
+    (``rmag_*``, ``pmag_results``, images), which MagIC's own upgrade tool handles.
+    """
+    from pmagpy import pmag
+    meas, upgraded, no_upgrade = pmag.convert_directory_2_to_3(meas_fname, input_dir=input_dir, output_dir=output_dir)
+    if meas is False:
+        return False, f"no {meas_fname} in the directory — MagIC's upgrade tool (earthref.org/MagIC/upgrade) takes the rest"
+    message = "upgraded " + ", ".join(upgraded)
+    if no_upgrade:
+        message += f"; left as 2.5: {', '.join(sorted(no_upgrade))} (MagIC's upgrade tool at earthref.org/MagIC/upgrade takes those)"
+    print(message)                                # the converters' log is what the page shows
+    return True, message
+
+
+_add(Format(
+    "legacy", "MagIC 2.5 tables (upgrade)", upgrade_2_to_3,
+    fields=(),
+    file_kw="input_dir", input_dir_kw="", output_dir_kw="output_dir", takes_directory=True,
+    outputs={"measurements": None, "specimens": None, "samples": None, "sites": None, "locations": None,
+             "ages": None, "criteria": None},
+    extensions=(".txt",),
+    examples=(("../2_5/McMurdo", {}),),
+    notes="Upgrades the whole directory's 2.5 tables (magic_measurements, er_*, pmag_*, pmag_criteria) to 3.0 "
+          "tables beside them. rmag_* tables, pmag_results and images are not translated — MagIC's upgrade "
+          "tool (earthref.org/MagIC/upgrade) does the full job."))

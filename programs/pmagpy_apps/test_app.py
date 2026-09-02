@@ -420,6 +420,37 @@ class TestConvert:
         assert not os.path.exists("samples.txt") and not os.path.exists("sites.txt")
         assert [a.name for a in home.APPLICATIONS if inv.has(*a.kinds)] == ["Anisotropy"]
 
+    def test_a_magic_2_5_directory_upgrades_in_place_and_opens_directions(self, tmp_path):
+        src = os.path.join(os.path.dirname(MCMURDO), "..", "2_5", "McMurdo")
+        for name in os.listdir(src):
+            if name != "zmab0100049tmp03.txt":                          # the 2.5 contribution file the tables came from
+                shutil.copy(os.path.join(src, name), tmp_path)
+        session = home.HubSession(str(tmp_path), landing=False)
+        inv = session.inventory
+        assert inv.format_key == "legacy" and not inv.is_magic
+        assert len(inv.lab_files) == 17 and {"magic_measurements.txt", "rmag_anisotropy.txt"} <= {f.name for f in inv.lab_files}
+        assert "MagIC 2.5 tables" in home.facts_html(inv) and "upgrade to 3.0 tables beside them" in home.facts_html(inv)
+        assert "MagIC 2.5 tables (upgrade)?" in home.stages(inv)[0][2]
+        view = convert.ConvertView(session)
+        assert view.format.value == "legacy" and view.files.disabled is True
+        assert len(view.form.widgets) == 0 and "earthref.org/MagIC/upgrade" in view.notes.object
+        assert asyncio.run(view._convert()) is True
+        assert "25,470 measurements" in view.message.object and "left as 2.5" in view.log.object
+        inv = session.inventory
+        assert inv.is_magic and inv.has("demag") and inv.has("pi")
+        assert {"measurements", "specimens", "samples", "sites", "locations", "ages", "criteria"} <= set(inv.tables)
+        assert (tmp_path / "magic_measurements.txt").exists()          # the 2.5 tables stay
+        assert home.stages(inv)[0][2] == "17 MagIC 2.5 tables beside the 3.0 tables"
+        assert "Directions" in [a.name for a in home.APPLICATIONS if inv.has(*a.kinds)]
+
+    def test_a_2_5_contribution_file_is_told_apart(self, tmp_path):
+        src = os.path.join(os.path.dirname(MCMURDO), "..", "2_5", "McMurdo", "zmab0100049tmp03.txt")
+        shutil.copy(src, tmp_path)
+        session = home.HubSession(str(tmp_path), landing=False)
+        inv = session.inventory
+        assert inv.format_key == "magic" and inv.files[0].role == "MagIC 2.5 contribution file"
+        assert "unpacks into 2.5 tables; upgrading those is the step after" in home.facts_html(inv)
+
     def test_appending_to_a_magic_directory_is_offered_and_keeps_what_is_there(self, tmp_path):
         d = cit_only(tmp_path)
         session = home.HubSession(d, landing=False)
