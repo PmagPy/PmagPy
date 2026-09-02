@@ -130,16 +130,20 @@ only sample orientations are, specimen coordinates otherwise, and a
 specimen lacking the chosen system falls back to the next one down), Zijderveld projection (x = East,
 North or NRM dec, with the legacy axis labelling), step-label
 density, and the *step logger*: every measurement in sequence with dec, inc,
-moment and csd. Right click toggles a measurement good/bad (struck through
+moment and csd. Clicking a row selects that step: it is set bold in the
+logger and ringed on the Zijderveld (both projections), the net and the
+M/M₀ strip, so one measurement can be followed across the three views; `↑`
+`↓` move the selection, a second click (or a change of specimen) clears it.
+Right click toggles a measurement good/bad (struck through
 and tagged; on the plots a bad step is an open symbol on the Zijderveld, a
 faded one on the net and the M/M₀ strip, and the connecting line skips it). Fits are edited without modes or buttons: with a fit selected,
-clicking a step (in the logger, or tapping a point on the Zijderveld or
-equal-area plot) moves its nearest bound and the fit recomputes at once;
+tapping a point on the Zijderveld or equal-area plot moves its nearest bound
+and the fit recomputes at once;
 box-selecting a range sets both bounds; the bound, fit-type and name fields
 apply live; `[` `]` nudge the lower bound and `{` `}` the upper. *New fit*
 creates a fit at once — from the end of the last fit to the final step, or
 over all steps — named with the next free letter and selected, so the next
-clicks place its bounds. With no fit selected, two clicked steps also make a
+taps place its bounds. With no fit selected, two tapped points also make a
 fit. `←` `→` step through specimens.
 Fit types: line, anchored line, line through the origin, plane, Fisher
 mean; the same fit name gets the same colour on every specimen and plot.
@@ -166,7 +170,10 @@ their columns are different things and reading a pole to a plane under
 the same *dec/inc* heading as a line is what makes the two look alike. A
 plane is listed by the pole that defines it (*pole dec*, *pole inc*) and
 the vector it resolves to (*bfv dec*, *bfv inc*), which is the pair drawn
-as the triangle. The VGP the mean implies is on the Poles
+as the triangle. Selecting a row (click, or `↑` `↓`, which walk the lines
+and then the planes) rings that direction on the net — a plane's great
+circle is drawn heavy instead — so a stray direction in the table can be
+found in the plot and vice versa; *Go to specimen* opens it. The VGP the mean implies is on the Poles
 tab, which draws it on the globe, rather than in the statistics table.
 *Statistic* offers two more ways to average the plotted directions: a Fisher
 mean of each polarity mode on its own (the comparison a reversal test rests

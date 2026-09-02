@@ -511,9 +511,9 @@ class TestSpecimenView:
         assert first is not None and (first.imin, first.imax) == (0, n - 1)
         assert first.fit_type == view.fit_type_sel.value
         assert first.name in view.comp_table.value["fit"].tolist()
-        assert "click a step" in s.status
+        assert "tap a point" in s.status
 
-        # the next clicks shape the new fit rather than starting another one
+        # the next plot taps shape the new fit rather than starting another one
         view._pick(3)
         assert (first.imin, first.imax) == (3, n - 1) and len(s.components()) == 1
         view._pick(n - 3)
@@ -528,6 +528,57 @@ class TestSpecimenView:
         # nothing left above the last fit: the new one spans everything again
         view._new_fit()
         assert (s.current.imin, s.current.imax) == (0, n - 1)
+
+    def test_clicking_a_step_selects_it_and_arrows_move_the_selection(self, tmp_path):
+        """A left click in the logger selects a step (no bound moves); it is ringed on all three plots."""
+        from pmagpy_directions.views import SpecimenView
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        view = SpecimenView(s)
+        n = s.spec.n_steps
+        cur = s.current
+        bounds = (cur.imin, cur.imax)
+        assert view.step is None and view.logger.selected == -1
+        for plot in (view.zij, view.eq, view.decay):
+            assert plot.mark_src.data["x"] == []
+
+        view.logger.clicked = {"row": 5, "button": "left", "n": 1}
+        assert view.step == 5 and view.logger.selected == 5
+        assert (cur.imin, cur.imax) == bounds                        # the fit is untouched
+        # the ring sits on the step: on the Zijderveld in both projections
+        zx, zy = view.zij.mark_src.data["x"], view.zij.mark_src.data["y"]
+        assert zx == [view.zij._xy[0][5]] * 2 and zy == [view.zij._xy[1][5], view.zij._xy[2][5]]
+        assert view.eq.mark_src.data["x"] == [view.eq.src.data["x"][5]]
+        assert view.decay.mark_src.data["x"] == [view.decay.src.data["x"][5]]
+
+        # ↑ ↓ move it, clamped to the table
+        view.hotkeys.key = "ArrowDown"; view.hotkeys.n += 1
+        assert view.step == 6
+        view.hotkeys.key = "ArrowUp"; view.hotkeys.n += 1
+        view.hotkeys.key = "ArrowUp"; view.hotkeys.n += 1
+        assert view.step == 4
+        view.select_step(n - 1)
+        view.hotkeys.key = "ArrowDown"; view.hotkeys.n += 1
+        assert view.step == n - 1
+        assert view.decay.mark_src.data["x"] == [view.decay.src.data["x"][n - 1]]
+
+        # the ring follows a redraw (a coordinate change moves the points)
+        s.coord = dc.COORD_GEOGRAPHIC
+        assert view.eq.mark_src.data["x"] == [view.eq.src.data["x"][n - 1]]
+
+        # clicking the selected step again clears the selection; a right click still flags
+        view.logger.clicked = {"row": n - 1, "button": "left", "n": 2}
+        assert view.step is None and view.eq.mark_src.data["x"] == []
+        view.logger.clicked = {"row": 2, "button": "right", "n": 3}
+        assert s.spec.steps["quality"].iloc[2] == "b" and view.step is None
+        s.toggle_step(2)
+
+        # from nothing, ↓ starts at the first step; a new specimen clears the selection
+        view.hotkeys.key = "ArrowDown"; view.hotkeys.n += 1
+        assert view.step == 0
+        s.step_specimen(+1)
+        assert view.step is None and view.logger.selected == -1
+        for plot in (view.zij, view.eq, view.decay):
+            assert plot.mark_src.data["x"] == []
 
 
 class TestInterpretationsView:
@@ -647,6 +698,49 @@ class TestMeansView:
         stored = s.data.best_fit_vectors(s.active_coord)
         for vdec, vinc, spec, comp, _col in vectors:
             assert stored[(spec, comp)] == pytest.approx((vdec, vinc), abs=0.01)
+
+    def test_selected_fit_is_ringed_on_the_net_and_arrows_move_it(self, tmp_path):
+        """Selecting a row (or ↑ ↓) singles out that fit on the net: a ring, or a heavy great circle for a plane."""
+        from pmagpy_directions.views import MeansView, SpecimenView
+        mcmurdo = os.path.join(_HERE, "..", "..", "data_files", "3_0", "McMurdo")
+        s = Session(mcmurdo, output_dir=str(tmp_path))
+        specimen, means = SpecimenView(s), MeansView(s)
+        means.level.value, means.comp.value = "site", "all"
+        means.name.value = "mc01"
+        assert means.plot.mark_src.data["x"] == [] and means.plot.mark_circle_src.data["xs"] == []
+        n_lines, n_planes = len(means._records), len(means._plane_records)
+        assert n_lines >= 2 and n_planes == 2
+
+        means.table.selection = [1]
+        rec = means._records[1]
+        x, y = dc.equal_area_xy([rec["_dec"]], [rec["_inc"]])
+        assert means.plot.mark_src.data == {"x": [float(x[0])], "y": [float(y[0])]}
+        assert means.plot.mark_circle_src.data["xs"] == []
+
+        # ↑ ↓ reach the Means view only while its tab shows (the app routes them)
+        specimen.arrow_target = means
+        for _ in range(n_lines - 2):                                    # from row 1 to the last line
+            specimen.hotkeys.key = "ArrowDown"; specimen.hotkeys.n += 1
+        assert means.table.selection == [n_lines - 1] and means.plane_table.selection == []
+        specimen.hotkeys.key = "ArrowDown"; specimen.hotkeys.n += 1      # ... on into the planes table
+        assert means.table.selection == [] and means.plane_table.selection == [0]
+        assert means.plot.mark_src.data["x"] == [] and len(means.plot.mark_circle_src.data["xs"]) == 1
+        pdec, pinc = means._plane_records[0]["_dec"], means._plane_records[0]["_inc"]
+        gx, _gy = dc.great_circle_xy(pdec, pinc)
+        assert means.plot.mark_circle_src.data["xs"][0] == list(gx)
+        specimen.hotkeys.key = "ArrowDown"; specimen.hotkeys.n += 1
+        specimen.hotkeys.key = "ArrowDown"; specimen.hotkeys.n += 1      # clamped at the last plane
+        assert means.plane_table.selection == [n_planes - 1]
+        specimen.hotkeys.key = "ArrowUp"; specimen.hotkeys.n += 1
+        specimen.hotkeys.key = "ArrowUp"; specimen.hotkeys.n += 1
+        assert means.table.selection == [n_lines - 1] and means.plot.mark_circle_src.data["xs"] == []
+
+        # a fit flagged bad is not plotted, so nothing is ringed for it
+        means.table.selection = [0]
+        means._flag()
+        assert means._records[0]["q"] == "b" and means.plot.mark_src.data["x"] == []
+        means._flag()
+        assert means.plot.mark_src.data["x"] != []
 
     def test_statistic_selector_switches_what_is_averaged(self, tmp_path):
         """Fisher of the whole set, a mean per polarity mode, or the axial Bingham mean."""

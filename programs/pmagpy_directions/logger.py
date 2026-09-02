@@ -3,7 +3,7 @@ The step logger: every measurement step of the current specimen, in
 measurement order, as a compact table that stays visible next to the plots.
 
 Interaction (mirrors the legacy Demag GUI):
-* left click on a row  -> first click sets the lower bound, second the upper
+* left click on a row  -> select the step: it is ringed on every plot, ↑ ↓ move it
 * right click on a row -> toggle the measurement good/bad
 
 Implemented as a small custom component so that a right click is a real
@@ -22,6 +22,7 @@ class StepLogger(JSComponent):
     rows = param.List(default=[], doc="list of dicts: i, step, dec, inc, M, csd, q")
     highlight = param.Dict(default={}, doc="{'imin', 'imax', 'color'} of the current fit")
     marks = param.Dict(default={}, doc="{'imin', 'imax'} pending bound selection")
+    selected = param.Integer(default=-1, doc="row (step index) selected, -1 for none; drawn and scrolled into view")
     clicked = param.Dict(default={}, doc="{'row', 'button', 'n'} last click (n increments)")
     coord_label = param.String(default="")
 
@@ -43,6 +44,7 @@ class StepLogger(JSComponent):
           if (inFit) cls.push('infit');
           if (m.imin === r.i) cls.push('bmin');
           if (m.imax === r.i) cls.push('bmax');
+          if (model.selected === r.i) cls.push('sel');
           const style = inFit ? ` style="background:${h.color}26"` : '';
           const flag = r.q === 'b' ? '<span class="flag">bad</span>' : '';
           html += `<tr data-i="${r.i}" class="${cls.join(' ')}"${style}>` +
@@ -51,6 +53,8 @@ class StepLogger(JSComponent):
                   `<td class="num">${r.M}</td><td class="num">${r.csd}</td></tr>`;
         }
         root.innerHTML = html + '</tbody></table>';
+        const sel = root.querySelector('tr.sel');
+        if (sel) sel.scrollIntoView({ block: 'nearest' });
       }
 
       root.addEventListener('click', (e) => {
@@ -67,6 +71,7 @@ class StepLogger(JSComponent):
       model.on('rows', draw);
       model.on('highlight', draw);
       model.on('marks', draw);
+      model.on('selected', draw);
       draw();
       return root;
     }
@@ -87,6 +92,8 @@ class StepLogger(JSComponent):
     .step-logger tr.bad td { color: #9aa1ab; text-decoration: line-through; }
     .step-logger tr.bad .flag { text-decoration: none; margin-left: 6px; font-size: 10px; color: #c0392b;
                                 border: 1px solid #c0392b; border-radius: 3px; padding: 0 3px; }
+    .step-logger tr.sel td { font-weight: 700; background: #dbe4f3 !important; }
+    .step-logger tr.sel td:first-child { box-shadow: inset 4px 0 0 #1f2937; }
     .step-logger tr.bmin td:first-child, .step-logger tr.bmax td:first-child { font-weight: 700; color: #1f4e9c; }
     .step-logger tr.bmin td:first-child::before { content: '⌈'; margin-right: 2px; }
     .step-logger tr.bmax td:first-child::before { content: '⌊'; margin-right: 2px; }

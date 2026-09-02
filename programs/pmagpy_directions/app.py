@@ -43,12 +43,17 @@ def build_body(session: Session) -> shell.Body:
     side_holder = pn.Column(side_panels[0], sizing_mode="stretch_width")
     full_width_tabs = {4}
 
-    body = shell.Body(info=APP, main=tabs, side=pn.Column(dataview.sidebar(), side_holder, sizing_mode="stretch_width"),
+    # the hotkeys listener lives beside the tabs, never in a side panel: the side
+    # column is swapped per tab, and a component that is off the page cannot report
+    main = pn.Column(specimen.hotkeys, tabs, margin=0, sizing_mode="stretch_both")
+    body = shell.Body(info=APP, main=main, side=pn.Column(dataview.sidebar(), side_holder, sizing_mode="stretch_width"),
                       header=shell.status_line(session), modal=dataview.modal())
 
     def _on_tab(event):
         for i, view in lazy.items():
             view.set_active(i == event.new)
+        # ↑ ↓ move the selection of the table on show: steps on the Specimen tab, fits on Means
+        specimen.arrow_target = means if event.new == 2 else specimen
         show = event.new not in full_width_tabs
         body.show_side(show)
         if show:

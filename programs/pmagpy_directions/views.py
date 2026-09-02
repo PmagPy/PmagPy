@@ -103,6 +103,8 @@ class SpecimenView:
     def __init__(self, session: Session):
         self.s = session
         self._pending_bound = None
+        self.step = None                 # the selected step (index), ringed on every plot
+        self.arrow_target = self         # who takes ↑ ↓: this view, or the Means view on its tab
         self._syncing = False
         s = session
 
@@ -141,9 +143,9 @@ class SpecimenView:
         self.tmax_sel.param.watch(self._on_bound_widget, "value")
         self.fit_type_sel.param.watch(self._on_type_widget, "value")
         self.comp_name.param.watch(self._on_name_widget, "value")
-        self.hint = pn.pane.HTML(f'<span style="{MUTED_STYLE}">click a step to move the selected fit\'s nearest '
-                                 'bound · <b>[</b> <b>]</b> <b>{</b> <b>}</b> nudge bounds · '
-                                 '<b>←</b> <b>→</b> specimens</span>',
+        self.hint = pn.pane.HTML(f'<span style="{MUTED_STYLE}">tap a point on a plot to move the selected fit\'s '
+                                 'nearest bound · <b>[</b> <b>]</b> <b>{</b> <b>}</b> nudge bounds · '
+                                 '<b>↑</b> <b>↓</b> steps · <b>←</b> <b>→</b> specimens</span>',
                                  margin=(2, 0, 0, 12))
         # the one list of fits: statistics + selection (click a row to make it the current fit)
         self.comp_table = pn.widgets.Tabulator(
@@ -206,10 +208,30 @@ class SpecimenView:
         if click["button"] == "right":
             self.s.toggle_step(row)
             return
-        self._pick(row)
+        self.select_step(None if row == self.step else row)
+
+    def select_step(self, i):
+        """Select step `i` (None: nothing): bold in the logger, ringed on all three plots."""
+        n = len(self.s.spec.steps) if self.s.ready else 0
+        if i is not None and not 0 <= i < n:
+            i = None
+        self.step = i
+        self.logger.selected = -1 if i is None else i
+        for plot in (self.zij, self.eq, self.decay):
+            plot.mark(i)
+
+    def move_selection(self, delta):
+        """↑ ↓: step the selection through the table (clamped; from nothing, start at an end)."""
+        if not self.s.ready:
+            return
+        n = len(self.s.spec.steps)
+        if self.step is None:
+            self.select_step(0 if delta > 0 else n - 1)
+        else:
+            self.select_step(min(n - 1, max(0, self.step + delta)))
 
     def _pick(self, row):
-        """A step was clicked: move a bound of the selected fit, or build a new fit from two clicks."""
+        """A point was tapped on a plot: move a bound of the selected fit, or build a new fit from two taps."""
         if self.s.current is not None:
             self.s.move_nearest_bound(self.s.current, row)
             return
@@ -228,11 +250,13 @@ class SpecimenView:
                 self.s.status = f"fit {comp.name}: {labels[comp.imin]} – {labels[comp.imax]} — auto-saved"
 
     def _reset_pending(self, *events):
-        """A new specimen: forget a half-built fit."""
+        """A new specimen: forget a half-built fit and the selected step."""
         if self._pending_bound is not None:
             self._pending_bound = None
             self.logger.marks = {}
             self.s.status = ""
+        if self.step is not None:
+            self.select_step(None)
 
     def _new_fit(self, event=None):
         """Create a fit at once and select it; clicks then move its bounds.
@@ -250,7 +274,7 @@ class SpecimenView:
             lo = max(c.imax for c in comps)
         comp = self.s.add_component(self.s.next_fit_name(), lo, hi, self.fit_type_sel.value)
         self.s.status = (f"fit {comp.name}: {labels[comp.imin]} – {labels[comp.imax]} — "
-                         "click a step to move its nearest bound")
+                         "tap a point on a plot to move its nearest bound")
 
     def _on_bound_widget(self, event):
         if self._syncing or self.s.current is None:
@@ -279,6 +303,10 @@ class SpecimenView:
             self.s.step_specimen(+1)
         elif key == "ArrowLeft":
             self.s.step_specimen(-1)
+        elif key == "ArrowDown":
+            self.arrow_target.move_selection(+1)
+        elif key == "ArrowUp":
+            self.arrow_target.move_selection(-1)
         elif cur is not None and key in "[]{}":
             if key == "[":
                 self.s.update_component(cur, imin=cur.imin - 1)
@@ -410,14 +438,13 @@ class SpecimenView:
     # --- layout -----------------------------------------------------------------
     def sidebar(self):
         return pn.Column(
-            self.hotkeys,
             self.specimen_sel, pn.Row(self.prev_btn, self.next_btn,
                                       pn.pane.HTML(f'<span style="{MUTED_STYLE}">← → keys</span>', margin=(12, 0, 0, 4))),
             self.info,
             pn.Row(pn.Column(section("Coordinates"), self.coord_sel, margin=0),
                    pn.Column(section("Step labels"), self.label_sel, width=110, margin=0)),
             section("Zijderveld projection · x axis"), self.proj_sel,
-            section("Steps · click = bound, right-click = good/bad"),
+            section("Steps · click = select, right-click = good/bad"),
             self.logger,
         )
 
@@ -472,9 +499,13 @@ class MeansView(LazyView):
         self.planes_box = pn.Column(pn.pane.HTML(f'<div style="{SECTION_STYLE}">Pole to the plane and '
                                                  'best fit vector (BFV)</div>', margin=(2, 0, 0, 0)),
                                     self.plane_table, visible=False, sizing_mode="stretch_width")
-        # one selection at a time, whichever table it is in
+        # one selection at a time, whichever table it is in; the selected fit is
+        # singled out on the net (the selection events arrive outside the document
+        # lock, so the plot is touched on the next tick)
         self.table.param.watch(lambda e: e.new and setattr(self.plane_table, "selection", []), "selection")
         self.plane_table.param.watch(lambda e: e.new and setattr(self.table, "selection", []), "selection")
+        self.table.param.watch(lambda e: next_tick(self._mark_selection), "selection")
+        self.plane_table.param.watch(lambda e: next_tick(self._mark_selection), "selection")
         self._records, self._plane_records = [], []
         self._table_df = None
         self.goto_btn = pn.widgets.Button(name="Go to specimen", button_type="primary", width=140)
@@ -543,6 +574,8 @@ class MeansView(LazyView):
                         rec.update({key[0]: _fmt(res.dir_dec), key[1]: _fmt(res.dir_inc)})
                         rec.update(MAD=_fmt(res.dir_mad_free), n=res.dir_n_measurements)
                         if c.quality == "g":
+                            # where the record is on the net (a bad fit is not plotted)
+                            rec.update(_dec=res.dir_dec, _inc=res.dir_inc, _plane=res.direction_type == "p")
                             if res.direction_type == "p":
                                 planes.append((res.dir_dec, res.dir_inc, color))
                             else:
@@ -563,7 +596,8 @@ class MeansView(LazyView):
                 records.append({lower: m[lower], "fit": m["dir_comp_name"], "dec": _fmt(m["dir_dec"]),
                                 "inc": _fmt(m["dir_inc"]), "α95": _fmt(m.get("dir_alpha95")),
                                 "n": int(m.get("dir_n_specimens", 0)), "_comp": None, "_color": color,
-                                "_specimens": m.get("specimens", "")})
+                                "_specimens": m.get("specimens", ""),
+                                "_dec": m["dir_dec"], "_inc": m["dir_inc"], "_plane": False})
         means = s.data.mean_directions(level, coord, comp, over=over, common_polarity=s.unify_polarity,
                                        flip=s.flip_polarity) if name else pd.DataFrame()
         means = means[means[level] == name] if len(means) else means
@@ -645,6 +679,7 @@ class MeansView(LazyView):
         self._records, self._plane_records = records, plane_records
         self._fill_table(self.table, records, "_table_cache")
         self._fill_table(self.plane_table, plane_records, "_plane_cache")
+        self._mark_selection()
         # the planes table is there only when the data holds planes; both tables take
         # the height of what they hold, so the planes are not pushed out of sight by
         # empty rows above them
@@ -678,6 +713,34 @@ class MeansView(LazyView):
             if sel and sel[0] < len(records):
                 return records[sel[0]]
         return None
+
+    def _mark_selection(self):
+        """Ring the selected record's direction on the net (a plane: its circle drawn heavy)."""
+        rec = self._selected_record()
+        if rec is None or rec.get("_dec") is None:
+            self.plot.mark()
+        else:
+            self.plot.mark(rec["_dec"], rec["_inc"], plane=rec.get("_plane", False))
+
+    def move_selection(self, delta):
+        """↑ ↓: step the selection through the lines table and then the planes table."""
+        n_lines, n_all = len(self._records), len(self._records) + len(self._plane_records)
+        if n_all == 0:
+            return
+        if self.table.selection:
+            at = self.table.selection[0]
+        elif self.plane_table.selection:
+            at = n_lines + self.plane_table.selection[0]
+        else:
+            at = None
+        if at is None:
+            at = 0 if delta > 0 else n_all - 1
+        else:
+            at = min(n_all - 1, max(0, at + delta))
+        if at < n_lines:
+            self.table.selection = [at]
+        else:
+            self.plane_table.selection = [at - n_lines]
 
     def _goto(self, event=None):
         rec = self._selected_record()
