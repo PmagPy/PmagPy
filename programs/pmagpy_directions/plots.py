@@ -13,6 +13,8 @@ from pmagpy_panel.nets import declutter_labels, keep_circular, net_figure
 from pmagpy_panel.theme import (HORIZONTAL_COLOR, LAND_COLOR, LAND_EDGE, MEAN_COLOR, NET_COLOR, OCEAN_COLOR,
                                 SITE_COLOR, VERTICAL_COLOR, style_figure)
 
+BAD_ALPHA = 0.25        # a step flagged bad stays visible on the net and the M/M₀ strip, but faded
+
 
 class ZijderveldPlot:
     """Orthogonal projection with box/tap selection of steps."""
@@ -183,10 +185,13 @@ class StepEqualAreaPlot:
 
     def __init__(self, size=340):
         self.fig = net_figure(None, size)          # no title: the net speaks for itself
-        self.src = ColumnDataSource(dict(x=[], y=[], fill=[], label=[], seq=[]))
-        self.fig.line("x", "y", source=self.src, color="#9aa1ab", line_width=0.8)
+        # every step is a symbol (a bad one faded); the path joins the good ones only
+        self.src = ColumnDataSource(dict(x=[], y=[], fill=[], label=[], seq=[], alpha=[]))
+        self.path = ColumnDataSource(dict(x=[], y=[]))
+        self.fig.line("x", "y", source=self.path, color="#9aa1ab", line_width=0.8)
         pts = self.fig.scatter("x", "y", source=self.src, size=8, fill_color="fill", line_color="#2b2b2b",
-                               nonselection_fill_alpha=1.0, nonselection_line_alpha=1.0)
+                               fill_alpha="alpha", line_alpha="alpha",
+                               nonselection_fill_alpha="alpha", nonselection_line_alpha="alpha")
         self.fig.add_tools(HoverTool(renderers=[pts], tooltips=[("step", "@label")]))
         self.dirs = ColumnDataSource(dict(x=[], y=[], color=[], name=[]))
         stars = self.fig.scatter("x", "y", source=self.dirs, marker="star", size=17, fill_color="color",
@@ -215,7 +220,10 @@ class StepEqualAreaPlot:
             if res is not None:
                 fill[res.imin:res.imax + 1] = color
         fill[(steps[inc_col] < 0).values] = "white"
-        self.src.data = dict(x=x, y=y, fill=fill, label=steps["label"], seq=steps["sequence"])
+        good = (steps["quality"] == "g").values
+        self.src.data = dict(x=x, y=y, fill=fill, label=steps["label"], seq=steps["sequence"],
+                             alpha=np.where(good, 1.0, BAD_ALPHA))
+        self.path.data = dict(x=x[good], y=y[good])
         dx, dy, dcol, names, gxs, gys, gcol = [], [], [], [], [], [], []
         for comp, res, color in fits:
             if res is None:
@@ -255,10 +263,11 @@ class DecayPlot:
         self.fig.axis.axis_label_text_font_size = "9pt"
         self.fig.axis.major_label_text_font_size = "8pt"
         self.fig.min_border_right = 4          # same right border as the net box above: frames end flush
-        self.src = ColumnDataSource(dict(x=[], y=[], label=[], color=[]))
-        self.fig.line("x", "y", source=self.src, color="#6b7280", line_width=1)
+        self.src = ColumnDataSource(dict(x=[], y=[], label=[], color=[], alpha=[]))
+        self.path = ColumnDataSource(dict(x=[], y=[]))               # good steps only, as on the net
+        self.fig.line("x", "y", source=self.path, color="#6b7280", line_width=1)
         pts = self.fig.scatter("x", "y", source=self.src, size=7, fill_color="color", line_color="#2b2b2b",
-                               line_width=0.5)
+                               line_width=0.5, fill_alpha="alpha", line_alpha="alpha")
         self.fig.add_tools(HoverTool(renderers=[pts], tooltips=[("step", "@label"), ("M/M₀", "@y{0.000}")]))
         self.bounds = ColumnDataSource(dict(x=[], y=[], color=[]))
         self.fig.scatter("x", "y", source=self.bounds, size=17, fill_alpha=0.0, line_color="color", line_width=2)
@@ -279,7 +288,10 @@ class DecayPlot:
             color[res.imin:res.imax + 1] = col
             for i in (res.imin, res.imax):
                 bx.append(steps["treat_display"][i]); by.append(steps["moment_norm"][i]); bcol.append(col)
-        self.src.data = dict(x=steps["treat_display"], y=steps["moment_norm"], label=steps["label"], color=color)
+        good = (steps["quality"] == "g").values
+        self.src.data = dict(x=steps["treat_display"], y=steps["moment_norm"], label=steps["label"], color=color,
+                             alpha=np.where(good, 1.0, BAD_ALPHA))
+        self.path.data = dict(x=steps["treat_display"][good], y=steps["moment_norm"][good])
         self.bounds.data = dict(x=bx, y=by, color=bcol)
         self.fig.xaxis.axis_label = {"T": "AF field (mT)", "K": "temperature (°C)"}.get(spec.unit,
                                                                                          f"treatment ({spec.unit})")

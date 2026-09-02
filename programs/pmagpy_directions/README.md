@@ -131,7 +131,8 @@ specimen lacking the chosen system falls back to the next one down), Zijderveld 
 North or NRM dec, with the legacy axis labelling), step-label
 density, and the *step logger*: every measurement in sequence with dec, inc,
 moment and csd. Right click toggles a measurement good/bad (struck through
-and tagged). Fits are edited without modes or buttons: with a fit selected,
+and tagged; on the plots a bad step is an open symbol on the Zijderveld, a
+faded one on the net and the M/M₀ strip, and the connecting line skips it). Fits are edited without modes or buttons: with a fit selected,
 clicking a step (in the logger, or tapping a point on the Zijderveld or
 equal-area plot) moves its nearest bound and the fit recomputes at once;
 box-selecting a range sets both bounds; the bound, fit-type and name fields

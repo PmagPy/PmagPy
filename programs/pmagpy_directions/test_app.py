@@ -475,6 +475,28 @@ class TestSpecimenView:
         view.plot_size.value = frame0
         assert view.zij.fig.frame_width == frame0 and view.eq.fig.width == net0
 
+    def test_a_bad_step_is_faded_and_left_out_of_the_path(self, tmp_path):
+        """Flagging a step bad fades its symbol on the net and the M/M₀ strip and breaks the connecting line there."""
+        from pmagpy_directions.plots import BAD_ALPHA
+        from pmagpy_directions.views import SpecimenView
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        view = SpecimenView(s)
+        n = s.spec.n_steps
+        assert list(view.eq.src.data["alpha"]) == [1.0] * n and len(view.eq.path.data["x"]) == n
+        assert list(view.decay.src.data["alpha"]) == [1.0] * n and len(view.decay.path.data["x"]) == n
+
+        s.toggle_step(4)
+        assert s.spec.steps["quality"].iloc[4] == "b"
+        for plot in (view.eq, view.decay):
+            alpha = list(plot.src.data["alpha"])
+            assert alpha[4] == BAD_ALPHA and alpha.count(1.0) == n - 1
+            assert len(plot.src.data["x"]) == n                    # the symbol itself is still drawn
+            assert len(plot.path.data["x"]) == n - 1               # the line skips it
+        assert list(view.decay.path.data["x"]) == [x for i, x in enumerate(view.decay.src.data["x"]) if i != 4]
+
+        s.toggle_step(4)
+        assert list(view.eq.src.data["alpha"]) == [1.0] * n and len(view.decay.path.data["x"]) == n
+
     def test_new_fit_creates_and_selects_a_fit_at_once(self, tmp_path):
         """New fit makes a fit immediately (after the last one, or over all steps); clicks then move its bounds."""
         from pmagpy_directions.views import SpecimenView
