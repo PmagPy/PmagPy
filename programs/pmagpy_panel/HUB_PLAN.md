@@ -559,8 +559,20 @@ Intensity were built.
    (`site_age_spans`, `age ± age_sigma` included, only when the sites share an
    `age_unit`). The five age cells travel together. Samples and specimens carry
    no age in MagIC 3, so nothing is written below the site (QUESTIONS 52).
-   *Still to do here*: a newer data model than the bundled 2019 copy (the page
-   reads whatever `data_model(True)` returns).
+   **Data model refreshed 2026-09-02**: the bundled `data_model.json` is now
+   MagIC's 2025-02-26 release (the copy served at
+   `earthref.org/MagIC/data-models/3.0.json`, identical to
+   `lib/configs/magic/data_models/3.0.js` on `main` of
+   [earthref/MagIC](https://github.com/earthref/MagIC)); `method_codes.json`
+   and the controlled/suggested vocabularies (`*_September_2_2026.json`) are
+   today's earthref copies. New columns the pages now offer: `igsn_parent`,
+   `int_abs_max/min`, `int_mad_coe`, `aniso_n_samples/specimens`,
+   `feature_dip/_direction/_type`, `paleopole_n_sites`, `contribution.funding`,
+   `measurements.files`, `magn_b_111`, `meas_field_ac/dc_phi/theta`,
+   `ages.tiepoint_height_max/min`; gone: `sites.aniso_ftest23` (a site mean's
+   F23 stays in its `description` json) and `specimens.result_type`.
+   Validations the offline checker does not know (`key()`, `recommended()`)
+   are ignored, as before. Refreshing is a download (QUESTIONS 57).
    **Criteria built 2026-09-02** (step 5's last row): `criteria` joined
    `magic_metadata.TABLES`, so the same grid edits it — `table_column` picks
    from every column of the MagIC tables (`table_columns`), `criterion` from

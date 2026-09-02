@@ -32,6 +32,8 @@ the bottom; struck through once settled.
    refresh the bundled JSON on each release; (b) fetch the current data model
    at start-up when online and cache it; (c) drop the offline check and rely
    on the endpoint. I lean to (b) with (a) as the fallback. Which?
+   *2026-09-02*: (a) done for now — the bundled model, method codes and
+   vocabularies are today's earthref copies (57). (b) is still open.
 
 4. **Publication tables.** `ipmag.sites_extract` etc. now write into
    `publication_tables/` as `.xlsx` (or `.tsv` when openpyxl is missing) or
@@ -799,3 +801,38 @@ the bottom; struck through once settled.
       listed under "left as 2.5" by row. Rare enough?
     - `measurement_loop_x` → `hyst_loop` is what the data model says; the
       hysteresis loop itself (the measurements) is not in these tables anyway.
+    *Nick, 2026-09-02*: 2.5 support is not a current need — nothing further
+    here (or on 48); the translation above stays as committed but will not
+    be extended.
+
+57. **Bundled MagIC data model refreshed (2026-09-02).**
+    `pmagpy/data_model/data_model.json` is now MagIC's 2025-02-26 model —
+    the JSON served at https://earthref.org/MagIC/data-models/3.0.json, the
+    same as your Downloads copy and as `lib/configs/magic/data_models/3.0.js`
+    on `main` of https://github.com/earthref/MagIC (its 2026 commits touch
+    nothing the JSON export shows). `method_codes.json` was overwritten with
+    today's `method-codes.json` (673 codes, was 630: `LP-AN-DC`, `LP-CA-*`,
+    `LP-SQUIDM`, `LP-XPEEM`, `LT-AF-Z-X…` are new; `LP-PI-CA*` gone) and the
+    vocabularies were added as `controlled_vocabularies_September_2_2026.json`
+    / `suggested_vocabularies_September_2_2026.json` with
+    `controlled_vocabularies3.py` pointed at them, the way earlier refreshes
+    were done (the 2017/2018/2019 copies stay in the directory; drop them?).
+    Decisions to check:
+    - *`sites.aniso_ftest23` is not in the current model* while
+      `specimens.aniso_ftest23` and `samples.aniso_ftest23` are (absent since
+      at least the 2024-06-13 source; the 2019 copy had it). It reads like an
+      oversight in MagIC's spreadsheet rather than a decision — worth an
+      issue on earthref/MagIC? Until then `anisotropy.add_mean_to_table`
+      leaves the column off site rows (`TABLE_LACKS`) so a saved sites.txt
+      validates; F23 is still in the row's `description` json.
+    - `specimens.result_type` is gone too; nothing in the apps wrote it.
+    - Ranges that tightened or widened: `magn_moment` ±2 (was ±1),
+      `dip` ±180, `meas_field_*_phi/theta` ranges; `lab_names` is now a
+      required contribution column with a controlled vocabulary,
+      `measurements.sequence` recommended, `cv("database_name")` →
+      `cv("external_database_names")`. `validate_upload3` ignores the
+      validation names it does not know (`key()`, `recommended()`), so the
+      offline check is no stricter than before on those.
+    - Refreshing is `curl -sL` of the three earthref URLs (the data model
+      URL redirects to www2); worth a `make`/script target, or should the
+      hub fetch and cache them on start-up when online (3b)?

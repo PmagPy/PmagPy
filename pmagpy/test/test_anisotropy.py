@@ -252,8 +252,15 @@ class TestMeanRecord:
         assert detail["hext"]["F_crit"] == float(stats["hext"]["F_crit"]) and "bootstrap" not in detail
         with open(os.path.join(HERE, "..", "data_model", "data_model.json"), encoding="utf-8-sig") as fh:
             model = json.load(fh)
+        # the record fits a samples row as it is; a sites row has no aniso_ftest23 in the 2025 data model,
+        # so add_mean_to_table leaves it off there (F23 stays in the description's hext json)
+        assert set(record) <= set(model["tables"]["samples"]["columns"])
         site_columns = set(model["tables"]["sites"]["columns"])
-        assert set(record) <= site_columns
+        assert "aniso_ftest23" in record and "aniso_ftest23" not in site_columns
+        on_site = aniso.add_mean_to_table(None, "site", "mc121", record, parent={"location": "McMurdo"})
+        assert set(on_site.columns) <= site_columns and on_site.iloc[0]["aniso_ftest12"] == record["aniso_ftest12"]
+        on_sample = aniso.add_mean_to_table(None, "sample", "mc121k", record)
+        assert set(on_sample.columns) == set(record) | {"sample", "citations"}
         # with specimens and a bootstrap
         boot = aniso.group_statistics(list(g[g["site"] == "mc121"]["s"]), bootstrap=True, parametric=True,
                                       n_bootstraps=200, random_seed=1)
@@ -264,7 +271,7 @@ class TestMeanRecord:
         assert detail["bootstrap"]["v1_zeta"] == pytest.approx(boot["bootstrap"]["params"]["v1_zeta"], abs=0.01)
         lo, hi = detail["bootstrap"]["tau1_95"]
         assert lo < boot["tau1"] < hi
-        assert set(record) <= site_columns
+        assert set(record) - {"aniso_ftest23"} <= site_columns
         assert aniso.mean_record(boot, "AMS", "s")["method_codes"].startswith("LP-AN-MS:")
 
     def test_the_mean_gets_a_row_of_its_own_and_is_replaced_on_a_re_save(self, mcmurdo):
