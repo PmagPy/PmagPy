@@ -6164,24 +6164,28 @@ def upload_to_private_contribution(contribution_id, upload_file,username="",pass
     response['errors']='Failed to contact database'
     response['method']='PUT'
     response['upload_file']=upload_file
+    upload_response = None
     try:
-        with open(upload_file, 'rb', encoding="utf-8") as f:
+        # binary mode takes no encoding: open(..., 'rb', encoding=...) raised before any request was made
+        with open(upload_file, 'rb') as f:
             upload_response = requests.put(api.format('private'),
                                           params={'id':contribution_id},
                                           auth=(username, password),
                                           headers={'Content-Type': 'text/plain'},
                                           data=f)
+        response['url']=upload_response.request.url
         if upload_response.status_code==202:
             response['status_code']=True
-            response['url']=upload_response.request.url
             response['errors']='None'
         else:
             response['status_code']=False
-            response['url']=upload_response.request.url
-            #response['errors']=upload_response.json()['errors'][0]['message']
+            try:
+                response['errors']=upload_response.json()['errors'][0]['message']
+            except Exception:
+                response['errors']='HTTP {}'.format(upload_response.status_code)
     except Exception as e:
         print ('trouble uploading:', e)
-        print (upload_response.json()['errors'])
+        response['errors']=str(e)
     return response
 
 
@@ -16221,46 +16225,34 @@ def validate_magic(top_dir,doi=False,private_key=False,contribution_id=False):
     contribution_id: str
          id of contribution
     private_key : str
-         private key of contribution in private workspace
+         private key of contribution in private workspace (with contribution_id)
+
+    Returns
+    -----------
+    magic_dir, upload_file : str, str
+        the MagIC directory under top_dir and the name of the re-assembled
+        upload file written into it (its validation is printed by upload_magic);
+        (False, False) when nothing could be downloaded
     """
     # set up directories
-    magic_dir=top_dir+'/MagIC'
-    dirs=os.listdir()
-    if top_dir not in dirs:
-        os.makedirs(top_dir)
-    dirs=os.listdir(top_dir)
-    if 'MagIC' not in dirs:
-        os.makedirs(magic_dir)
+    magic_dir=os.path.join(top_dir, 'MagIC')
+    os.makedirs(magic_dir, exist_ok=True)
     if doi:
-        magic_contribution='magic_contribution.txt' # set the file name string
-        download_magic_from_doi(doi) # download the contribution from MagIC
-        os.rename(magic_contribution, magic_dir+'/'+magic_contribution) # move the contribution to the directory
-        download_magic(magic_contribution,dir_path=magic_dir,print_progress=False) # unpack the file
+        ok, message = download_magic_from_doi(doi, dir_path=magic_dir)
+        magic_contribution='magic_contribution.txt'
     elif contribution_id:
-        magic_contribution='magic_contribution_'+str(contribution_id)+'.txt' # set the file name string
-        download_magic_from_id(contribution_id) # download the contribution from MagIC
-        os.rename(magic_contribution, magic_dir+'/'+magic_contribution) # move the contribution to the directory
-        download_magic(magic_contribution,dir_path=magic_dir,print_progress=False) # unpack the file
-        
-    elif private_key:
-        shared_contribution_response = requests.get(api.format('data'), params={'id': contribution_id, 'key': private_key})
-        if (shared_contribution_response.status_code == 200):
-            shared_contribution_text = shared_contribution_response.text
-            print(shared_contribution_text[0:200], '\n')
-        elif (shared_contribution_response.status_code == 204): # bad file
-            print('Contribution ID and/or private key do not match any contributions in MagIC.', '\n')
-        else:
-            print('Error:', shared_contribution_response.json()['err'][0]['message'], '\n')
-            return False,False
-         # save and unpack downloaded data  
-        magic_contribution='magic_contribution_'+str(contribution_id)+'.txt'
-        magic_out=open(magic_dir+'/'+magic_contribution, 'w', errors="backslashreplace")
-        magic_out.write(shared_contribution_text)
-        download_magic(magic_contribution,dir_path=magic_dir,print_progress=False) # unpack the file
+        # a share key downloads a private contribution; every EarthRef call stays in download_magic_from_id
+        ok, message = download_magic_from_id(contribution_id, directory=magic_dir, share_key=private_key or "")
+        magic_contribution=message if ok else ''
+    else:
+        print('validate_magic needs a doi or a contribution_id (with private_key for a private contribution)')
+        return False,False
+    if not ok:
+        print(message)
+        return False,False
+    download_magic(magic_contribution,dir_path=magic_dir,print_progress=False) # unpack the file
     validation=upload_magic(dir_path=magic_dir,input_dir_path=magic_dir,concat=True)
-    upload_file=validation[0].split('/')[-1]
-
-
+    upload_file=validation[0].split('/')[-1] if validation[0] else False
     return magic_dir,upload_file
 
 

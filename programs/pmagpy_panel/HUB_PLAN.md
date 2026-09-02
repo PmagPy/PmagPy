@@ -332,12 +332,23 @@ accepts. Start with the 13 formats Pmag GUI offers plus the IRM instruments
   `validate_with_public_endpoint`, the private-workspace four) so the HTTP
   client can be swapped in one place later (§2, rule 4).
 * `download_magic_from_doi(dir_path=…)` done; `upload_magic3` forwards
-  correctly and `upload_magic` has one return shape (2026-09-01). Still open:
-  fix `upload_to_private_contribution`'s `open()`; make
-  `validate_contribution` return what it computes; `validate_magic`'s
-  undefined `api`.
-* Move `pmagpy_tests/test_contribution_builder.py` into `pmagpy/test/` so its
-  49 tests run, before the hub starts depending on `propagate_*`.
+  correctly and `upload_magic` has one return shape (2026-09-01). Done
+  2026-09-02: `upload_to_private_contribution` opens the file in binary mode
+  and reports a failed request instead of raising; `validate_contribution`
+  returns `(passing, {table: validate_table result})`; `validate_magic`
+  downloads by DOI or by id + share key into `<top_dir>/MagIC` and returns
+  `(magic_dir, upload_file)` — tests in `test_ipmag_upload.py` and
+  `test_magic_upload.py`.
+* `pmagpy/test/test_contribution_builder.py` (2026-09-02): the 49 legacy
+  tests, now cwd-independent and valid under pandas 3 (`np.nan`, not `''`,
+  for a missing float). They surfaced three library bugs, fixed:
+  `MagicDataFrame.update_row` assigned a Series positionally through `iloc`
+  (the values landed in the wrong columns) and could not widen a float column
+  for a string; `propagate_cols`, `propagate_lithology_cols` and
+  `propagate_ages` decided "target has a value" with `np.where(column, …)`,
+  and NaN is truthy — under pandas 3 a `None` written into a string column
+  becomes NaN, so nothing propagated up into an emptied column. The legacy
+  copy in `pmagpy_tests/` still exists for the wx-era runner.
 * Tests for `download_magic` (including `txt=…`, the in-memory unpack),
   `combine_magic`, and `orientation_magic` against the examples in
   `data_files/orientation_magic/` and `data_files/azdip_magic/`.
@@ -515,9 +526,9 @@ Intensity were built.
    (`map_magic.convert_site_dm3_table_*`); the directions table now comes out
    in publication column order rather than the file's. *Still to do here*:
    the private workspace (`upload_to_private_contribution` needs a MagIC
-   login the hub does not hold — see `QUESTIONS.md`); `validate_contribution`
-   and `validate_magic` are still as §4 describes; openpyxl is not in the
+   login the hub does not hold — see `QUESTIONS.md`); openpyxl is not in the
    environment, so Excel export falls back to `.tsv` with a note.
+   `validate_contribution` and `validate_magic` were fixed 2026-09-02 (§4).
 4. **Rock magnetism, then Anisotropy.** One experiment type at a time, MPMS DC
    first (pure Bokeh already, simplest), then χ–T/Curie, hysteresis + backfield
    + unmixing, FORC. Each view lands with its notebook switched over and its

@@ -53,6 +53,18 @@ class TestPresentAndCheck:
         assert any(f.row == "Z12" and f.column == "lat" for f in sites)              # 95 is beyond the pole
         assert capsys.readouterr().out == ""                                          # the validator's narration is kept in
 
+    def test_validate_contribution_returns_what_it_computes(self, study, tmp_path, capsys):
+        from pmagpy import contribution_builder as cb
+        from pmagpy import validate_upload3
+        con = cb.Contribution(study, read_tables=["locations", "sites"], dmodel=mp.data_model(True))
+        out = tmp_path / "scratch_out"
+        out.mkdir()
+        passing, failures = validate_upload3.validate_contribution(con, output_dir=str(out))
+        assert passing is False and "sites" in failures
+        dtype, bad_rows, bad_cols, missing_cols, missing_groups, failing_items = failures["sites"]
+        assert dtype == "sites" and bad_cols == ["lat"] and bad_rows == [(1, "Z12")]     # (index, site)
+        assert "validating sites" in capsys.readouterr().out
+
 
 class TestUploadFile:
     def test_build_writes_one_file_named_for_the_location_with_every_table(self, study):
