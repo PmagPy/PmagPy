@@ -108,6 +108,14 @@ class TestThreeStates:
         assert "Tables" not in aside and "measurements.txt" not in aside     # the counts line already says it
         assert "Other files" in aside and "extra_specimens.txt" in aside
 
+    def test_rock_magnetic_directory(self):
+        inv = take_inventory(datasets.example_dir("RMB_oxyhydroxides"))
+        assert [k.key for k in inv.kinds] == ["chi_t", "ms_t", "low_t"]
+        assert inv.gaps == []                                           # nothing to orient: no directional experiments
+        bars = home.bars_html(inv)
+        assert 'href="/pmagpy_rockmag?dir=' in bars and "low temperature (FC, ZFC, RT-SIRM cycling)" in bars
+        assert "no demagnetization steps in this directory" in bars
+
     def test_a_tidy_magic_directory_has_no_aside_at_all(self, tmp_path):
         for name in ("measurements", "specimens", "sites"):
             shutil.copy(os.path.join(MCMURDO, f"{name}.txt"), tmp_path)
@@ -543,7 +551,7 @@ class TestUpload:
 class TestLauncher:
     def test_serves_the_hub_first_and_every_application_beside_it(self):
         files = launch.application_files()
-        assert [os.path.basename(f) for f in files] == ["pmagpy_directions.py"]
+        assert [os.path.basename(f) for f in files] == ["pmagpy_directions.py", "pmagpy_rockmag.py"]
         assert os.path.basename(launch.HUB) == "pmagpy_apps.py"
         assert launch.DEFAULT_PORT == 5010
         assert all(os.path.exists(f) for f in [launch.HUB, *files])

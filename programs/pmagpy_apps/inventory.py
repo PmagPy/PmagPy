@@ -312,7 +312,8 @@ def take_inventory(directory: str) -> Inventory:
         gaps.append(Gap("site ages", int(len(set(si["site"].dropna()) - dated))))
         gaps.append(Gap("site lithologies", _missing(si, "site", ["lithologies"])))
     sa = frames.get("samples")
-    if sa is not None:
+    oriented = {k.key for k in inv.kinds} & {"demag", "pi", "aniso"} or m is None
+    if sa is not None and oriented:                                     # a rock-magnetic study has nothing to orient
         gaps.append(Gap("sample orientations", _missing(sa, "sample", ["azimuth", "dip"])))
     lo = frames.get("locations")
     if lo is not None:

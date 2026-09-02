@@ -1,0 +1,86 @@
+tab 	samples
+citations	dip	method_codes	sample	site
+This study	-90.0	FS-H	akaganeite (Dyar) Nanophase 1GOE 07/2010 J. Bosch T-series	RMB akaganeite (beta FeOOH)
+This study	-90.0	FS-H	akaganeite (Dyar) Sklute, Ak020515	RMB akaganeite (beta FeOOH)
+This study	-90.0	FS-H	akaganeite (Dyar) Sklute, Ak102315	RMB akaganeite (beta FeOOH)
+This study	-90.0	FS-H	ferrihydrite (Dyar) 1: DB seep surf 2, E. Estes	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) 10: chat 1-3 <44, E. Estes	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) 2: DB seep bio, E. Estes	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) 3: Ad, E. Estes	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) 4: 22 1, E. Estes	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) 5: ken 1-1, E. Estes	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) 6: DB3 fine >44, E. Estes	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) 7: DB3 fine >74, E. Estes	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) 8: chat 1 >44, E. Estes	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) 9: chat 1 >74, E. Estes	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) 96214, Smedley's Mine	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) air dried	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) DB B+1 20 cm, E. Estes	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) Dehouk, FH-150-0-A	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) Dehouk, FH-150-1-A	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) Dehouk, FH-40-0-A	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) Dehouk, FH-40-1-A	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) Dehouk, FH-40-2-A	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) Dehouk, FH-40-3-A	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) Dehouk, FH-40-h-A	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) Dehouk, FH-ini, 21 may	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) Dehouk, SG-FH-150-0-A	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) Dehouk, SG-FH-150-1-A	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) Dehouk, SG-FH-40-0-A	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) Dehouk, SG-FH-40-4-A	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) dehydrated JB-JLB-820	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) dehydrated JB-JLB-821	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) dehydrated JB-JLB-822	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) dehydrated JB-JLB-823	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) Icelandic, JA499	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) Icelandic, JB 498	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) JB-JLB-499	RMB ferrihydrite (5Fe2O3 . 9H20)
+This study	-90.0	FS-H	ferrihydrite (Dyar) JB-JLB-499	RMB ferrihydrite (5Fe2O3 . 9H20)
+This study	-90.0	FS-H	ferrihydrite (Dyar) JB 564 Czech Soos-1	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) JB 565 Czech Soos-2	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) Nanophase 1GOE 03/2010 J. Bosch T-series	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) Nanophase 1GOE 06/2008 J. Bosch T-series	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) Nanophase 1GOE 07/2010 J. Bosch T-series	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) R, E. Estes	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) reduced synthetic, JB 428	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) reduced synthetic, JB 431	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) synthetic JB46	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) Synthetic, 2nm grain size	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) Synthetic, 4nm grain size	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) Synthetic, 6nm grain size	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) synthetic, JB 409	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) synthetic, JB 45	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) test E. Sklute	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrite (Dyar) Wet Fh B Frozen, Sully	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrites (Dyar) SG-FH-15-0-A, Erwin	RMB ferrihydrite
+This study	-90.0	FS-H	ferrihydrites (Dyar) SG-FH-40-4-A, Erwin	RMB ferrihydrite
+This study	-90.0	FS-H	goethite (Dyar) 125086	RMB goethite (alpha FeOOH)
+This study	-90.0	FS-H	goethite (Dyar) 7nm	RMB goethite (alpha FeOOH)
+This study	-90.0	FS-H	goethite (Dyar) 83831	RMB goethite (alpha FeOOH)
+This study	-90.0	FS-H	goethite (Dyar) Florissant, HMM 119377	RMB goethite (alpha FeOOH)
+This study	-90.0	FS-H	goethite (Dyar) nano YLO 1888D	RMB goethite (alpha FeOOH)
+This study	-90.0	FS-H	goethite (Dyar) nano YLO 3288D	RMB goethite (alpha FeOOH)
+This study	-90.0	FS-H	goethite (Dyar) Nanophase 1GOE 07/20/10 J. Bosch T-series	RMB goethite (alpha FeOOH)
+This study	-90.0	FS-H	goethite (Dyar) nanophase, A1	RMB goethite (alpha FeOOH)
+This study	-90.0	FS-H	goethite (Dyar) nanophase, B1	RMB goethite (alpha FeOOH)
+This study	-90.0	FS-H	goethite (Dyar) nanophase, C1	RMB goethite (alpha FeOOH)
+This study	-90.0	FS-H	goethite (Dyar) reduced synthetic, JB 438	RMB goethite (alpha FeOOH)
+This study	-90.0	FS-H	goethite (Dyar) Sklute, 030216	RMB goethite (alpha FeOOH)
+This study	-90.0	FS-H	goethite (Dyar) Sklute, Goet011515	RMB goethite (alpha FeOOH)
+This study	-90.0	FS-H	goethite (Dyar) Sklute, Goet012315	RMB goethite (alpha FeOOH)
+This study	-90.0	FS-H	goethite (Dyar) synthetic JB 54	RMB goethite (alpha FeOOH)
+This study	-90.0	FS-H	lepidocrocite (Dyar) Sklute, Lep030415	RMB lepidocrocite (gamma FeOOH)
+This study	-90.0	FS-H	lepidocrocite (Dyar) Sklute, LEP052616	RMB lepidocrocite (gamma FeOOH)
+This study	-90.0	FS-H	lepidocrocite (Dyar) Sklute, Lep100615_2	RMB lepidocrocite (gamma FeOOH)
+This study	-90.0	FS-H	lepidocrocite (Dyar) synthetic, JB 56	RMB lepidocrocite (gamma FeOOH)
+This study	-90.0	FS-H	lepidocrocite (Dyar) synthetic, JB50	RMB lepidocrocite (gamma FeOOH)
+This study	-90.0	FS-H	lepidocrocite (Dyar) Zuckmantel, HMM 81159	RMB lepidocrocite (gamma FeOOH)
+This study	-90.0	FS-H	schwertmannite (Dyar) natural JB130	RMB schwertmannite (hydrated oxyhydroxide)
+This study		FS-H	ferroxyhyte_Princeton-1985-M1	
+This study		FS-H	ferroxyhyte_Princeton-1985-M2	
+This study		FS-H	goethite_AA 19496	
+This study		FS-H	goethite_Pfizer-YLO1888D	
+This study		FS-H	goethite_Pfizer-YO-5087	
+This study		FS-H	goethite_Pfizer-YO-6087	
+This study		FS-H	lepidocrocite_AA 17531	
+This study		FS-H	lepidocrocite_Pfizer	

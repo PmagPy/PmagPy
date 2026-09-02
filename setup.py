@@ -23,6 +23,7 @@ app_packages = {
     'pmagpy_panel': 'programs/pmagpy_panel',
     'pmagpy_apps': 'programs/pmagpy_apps',
     'pmagpy_directions': 'programs/pmagpy_directions',
+    'pmagpy_rockmag': 'programs/pmagpy_rockmag',
 }
 packages.extend(app_packages)
 

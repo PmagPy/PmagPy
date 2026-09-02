@@ -639,6 +639,7 @@ def plot_mpms_dc(
                 p2.scatter(zfcd["T"], zfcd["dM_dT"], marker=mpl_to_bokeh_markers.get(zfc_marker), 
                            size=symbol_size, color=zfc_color, legend_label="ZFC dM/dT")
             p2.legend.click_policy="hide" 
+            p2.legend.location = "bottom_right"        # dM/dT of a warming curve sits near zero at the top
             p2.xaxis.axis_label_text_font_style = "normal"
             p2.yaxis.axis_label_text_font_style = "normal"        
             figs.append(p2)  
@@ -656,11 +657,16 @@ def plot_mpms_dc(
                 p3.scatter(rwd["T"], rwd["dM_dT"], marker=mpl_to_bokeh_markers.get(rtsirm_warm_marker), 
                            size=symbol_size, color=rtsirm_warm_color, legend_label="warm dM/dT")
             p3.legend.click_policy="hide"  
+            p3.legend.location = "bottom_left"
             p3.xaxis.axis_label_text_font_style = "normal"
             p3.yaxis.axis_label_text_font_style = "normal"
             figs.append(p3)  
 
-        layout = gridplot([figs[:2], figs[2:]], sizing_mode="stretch_width")  
+        # data panels on the first row, their derivatives beneath them; with one
+        # data panel the derivative goes under it rather than beside it
+        n_data = int(fc_zfc_present) + int(rtsirm_present)
+        rows = [figs[:n_data]] + ([figs[n_data:]] if len(figs) > n_data else [])
+        layout = gridplot(rows, sizing_mode="stretch_width")
         if show_plot:
             show(layout)
         return layout if return_figure else None  
@@ -1437,6 +1443,9 @@ def calc_zero_crossing(dM_dT_temps, dM_dT):
     d2M_dT2 = thermomag_derivative(dM_dT_temps, dM_dT)
     d2M_dT2_T_array = d2M_dT2['T'].to_numpy()
     max_index = np.searchsorted(d2M_dT2_T_array, max_dM_dT_temp)
+    # a maximum at either end of the range (no interior peak, i.e. no transition)
+    # is bracketed by the end pair rather than wrapping around to index -1
+    max_index = int(np.clip(max_index, 1, len(d2M_dT2_T_array) - 1))
 
     d2M_dT2_T_before = d2M_dT2['T'][max_index-1]
     d2M_dT2_before = d2M_dT2['dM_dT'][max_index-1]

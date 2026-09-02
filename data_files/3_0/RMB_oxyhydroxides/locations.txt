@@ -1,0 +1,8 @@
+tab 	locations
+age	age_unit	citations	geologic_classes	lat_n	lat_s	lithologies	location	location_type	lon_e	lon_w
+2000	Years AD (+/-)	This study	Not Specified	44.9753	44.9753	Not Specified	RMB oxyhydroxides	Laboratory	266.7655	266.7655
+2000	Years AD (+/-)	This study	Not Specified	44.9753	44.9753	Not Specified	RMB oxyhydroxides	Laboratory	266.7655	266.7655
+2000	Years AD (+/-)	This study	Not Specified	44.9753	44.9753	Not Specified	RMB oxyhydroxides	Laboratory	266.7655	266.7655
+2000	Years AD (+/-)	This study	Not Specified	44.9753	44.9753	Not Specified	RMB oxyhydroxides	Laboratory	266.7655	266.7655
+2000	Years AD (+/-)	This study	Not Specified	44.9753	44.9753	Not Specified	RMB oxyhydroxides	Laboratory	266.7655	266.7655
+2000	Years AD (+/-)	This study	Not Specified	44.9753	44.9753	Not Specified	RMB oxyhydroxides	Laboratory	266.7655	266.7655

@@ -56,3 +56,42 @@ the bottom; struck through once settled.
    the selection criteria dialog. The hub has nothing for criteria yet; the
    Directions app writes its own. Where should criteria editing live — on
    Metadata as a sixth table, in each analysis app, or nowhere?
+
+## Rock magnetism app (2026-09-01)
+
+8. **Example data.** MagIC contribution 20427 ("RMB oxyhydroxides", Zhang et
+   al., IRM; DOI 10.5281/zenodo.15588182) is bundled as
+   `data_files/3_0/RMB_oxyhydroxides` (1.1 MB, 9 specimens: FC/ZFC/RTSIRM, AC
+   susceptibility, χ–T, Ms–T). It is the app's default example and the test
+   fixture. Fine to ship, or would a smaller one (20384 siderite, 350 KB) or
+   a synthetic set be better? It has no magnetite, so the Verwey view has
+   nothing real to find in it — a small contribution with a clean Verwey
+   transition would make a better demonstration and a better test.
+
+9. **Verwey defaults.** The view opens on the FC curve with the
+   `verwey_estimate_interactive` defaults (background 60–250 K, excluded
+   75–150 K, degree 3). Should FC be the default over ZFC? And the view flags
+   "no clear loss" when the remanence loss is below 0.5 % of the curve's range
+   or the estimate falls outside the excluded range — is that threshold
+   sensible, or should it be tied to something physical?
+
+10. **Orientation gap.** Home's inventory no longer reports missing sample
+    azimuth/dip when the directory holds only rock-magnetic experiments (no
+    demag, palaeointensity or anisotropy kinds). A study mixing both still
+    reports it. Right rule?
+
+11. **Experiment types.** `LP-X:LP-X-T:LP-X-F` (the MPMS AC sweep in
+    temperature *and* frequency) is claimed by the AC-susceptibility view
+    because the match order puts `LP-X-F` before `LP-X-T`; the pure `LP-X-T`
+    runs go to χ–T. Should such an experiment appear in both views? And what
+    is `LP-MST` in this contribution — the three Ms–T runs look like MPMS
+    in-field warming curves rather than VSM Ms(T); should the Ms–T view treat
+    them the same way as χ–T?
+
+12. **Notebook switch-over.** §3 says each view lands with its notebook using
+    the same object (`MpmsDcView(measurements).panel()` replaces
+    `plot_mpms_dc_interactive`, `VerweyView` replaces
+    `verwey_estimate_interactive`). Those notebooks live in
+    `RockmagPy-notebooks`, a sibling repository I will not edit unasked. Shall
+    I prepare the edited notebooks there, or write the replacement cells here
+    (e.g. `programs/pmagpy_rockmag/notebooks/`) for you to move?

@@ -522,6 +522,27 @@ Intensity were built.
    first (pure Bokeh already, simplest), then χ–T/Curie, hysteresis + backfield
    + unmixing, FORC. Each view lands with its notebook switched over and its
    "show code" (§3).
+   **Rock magnetism started 2026-09-01** — `programs/pmagpy_rockmag/`, served
+   by the hub as `/pmagpy_rockmag?dir=` and lit on Home's card once the package
+   imports. `session.py`: `EXPERIMENT_TYPES` (whole-method-code matching, in
+   view order), `experiment_index`, a `Session` with the shared `specimen`.
+   `views.py`: the side column (`DataView`, `ExperimentIndex`) and the views,
+   each buildable from a measurements DataFrame for a notebook. `MpmsDcView`
+   is `plot_mpms_dc` (Bokeh branch; the lone-panel grid layout and the
+   derivative legends were fixed in core). `VerweyView` is
+   `calc_verwey_estimate` with the range/degree sliders, Bokeh panels in
+   `plots.py` from the function's own return values, a KPI line, and a note
+   when the residual has no clear loss inside the excluded range (the example
+   has no magnetite); `calc_zero_crossing` no longer indexes past the start
+   when the residual peaks at an end of the fit range. Show code (§3 item 2)
+   is `pmagpy_panel/code.py` — `call`/`assign`/`script` write real Python
+   from live values, `CodePane` is the toggle, `write_beside` puts the `.py`
+   next to an export — and the emitted text is `exec`-tested. Example data:
+   MagIC contribution 20427 as `data_files/3_0/RMB_oxyhydroxides` (mpms_dc,
+   mpms_ac, χ–T, Ms–T; 1.1 MB). *Next*: Goethite (`goethite_removal` needs a
+   `return_figure`/`show_plot` split first), AC susceptibility, χ–T/Curie,
+   hysteresis, backfield + unmixing, FORC, results to `specimens.txt`, the
+   notebook switch-over in RockmagPy-notebooks.
 5. **The rest of Pmag GUI, one decision at a time** — see the table below.
    *Retires `pmag_gui.py`.*
 

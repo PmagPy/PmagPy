@@ -139,7 +139,8 @@ CSS = """
 :host { --accent:#1f4e9c; --ink:#2b2b2b; --muted:#6b7280; --line:#e3e6ea; --ok:#2e8b57; --warn:#d97706; --off:#9aa1ab; }
 .home { font-size:15px; color:var(--ink) }
 .section { font-weight:600; font-size:.78rem; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin:0 0 8px }
-.home h1 { font-size:2rem; font-weight:600; margin:2px 0 4px; letter-spacing:-.01em }
+.home h1 { font-size:2rem; font-weight:600; margin:2px 0 4px; letter-spacing:-.01em; line-height:1.1;
+           overflow-wrap:anywhere }     /* a long directory name wraps rather than running under the buttons */
 .path { color:var(--muted); font-size:.85rem; font-family:ui-monospace,Menlo,monospace }
 .ref { color:var(--muted); font-size:.9rem; margin-top:6px }
 .ref a { color:var(--accent); text-decoration:none }
