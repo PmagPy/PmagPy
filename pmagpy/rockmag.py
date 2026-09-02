@@ -4676,10 +4676,13 @@ def plot_chi_T(
     return_figure=False,
     figsize=(6, 6),
     window_type="hanning",
+    show_plot=True,
 ):
     """
     Plot the high-temperature susceptibility curve, and optionally its derivative
-    and reciprocal using Bokeh or Matplotlib.
+    and reciprocal using Bokeh or Matplotlib. Works for an in-field M(T) curve too
+    when ``magnetic_column`` names a magnetization column (e.g. 'magn_mass'); the
+    y axis is labelled accordingly.
 
     Parameters:
         experiment (pandas.DataFrame): MagIC-formatted experiment DataFrame.
@@ -4698,6 +4701,8 @@ def plot_chi_T(
             window, one of 'flat', 'hanning', 'hamming', 'bartlett', or
             'blackman' (default 'hanning'). Only used when smooth_window > 0.
             See prepare_thermomag_branches for a description of each option.
+        show_plot (bool): Display the figures (default True). Set False to only
+            build them, e.g. for an application that lays them out itself.
 
     Returns:
         tuple or None: If return_figure is True, a tuple of the figure
@@ -4726,6 +4731,9 @@ def plot_chi_T(
     scT = cooling["T"] if cooling else empty
     scX = cooling["y"] if cooling else empty
     title = experiment["specimen"].unique()[0]
+    is_susceptibility = _resolve_thermomag_data_type(None, magnetic_column) == "susceptibility"
+    y_label = "χ (m³ kg⁻¹)" if is_susceptibility else "M (Am² kg⁻¹)"
+    y_symbol = "χ" if is_susceptibility else "M"
     figs = []
 
     if interactive:
@@ -4737,7 +4745,7 @@ def plot_chi_T(
             sizing_mode="stretch_width",
             height=bokeh_height,
             x_axis_label=f"Temperature ({_temp_unit_label(temp_unit)})",
-            y_axis_label="χ (m³ kg⁻¹)",
+            y_axis_label=y_label,
             tools="pan,wheel_zoom,box_zoom,reset,save",
         )
         p.xaxis.axis_label_text_font_style = "normal"
@@ -4760,11 +4768,11 @@ def plot_chi_T(
         )
         p.add_tools(
             HoverTool(renderers=[r_warm_c, r_warm_l],
-                      tooltips=[("T", "@x"), ("Heating χ", "@y")])
+                      tooltips=[("T", "@x"), (f"Heating {y_symbol}", "@y")])
         )
         p.add_tools(
             HoverTool(renderers=[r_cool_c, r_cool_l],
-                      tooltips=[("T", "@x"), ("Cooling χ", "@y")])
+                      tooltips=[("T", "@x"), (f"Cooling {y_symbol}", "@y")])
         )
         p.grid.grid_line_color = "lightgray"
         p.outline_line_color = "black"
@@ -4776,11 +4784,11 @@ def plot_chi_T(
         # Derivative
         if plot_derivative:
             p_dx = figure(
-                title=f"{title} – dχ/dT",
+                title=f"{title} – d{y_symbol}/dT",
                 sizing_mode="stretch_width",
                 height=bokeh_height,
                 x_axis_label=f"Temperature ({_temp_unit_label(temp_unit)})",
-                y_axis_label="dχ/dT",
+                y_axis_label=f"d{y_symbol}/dT",
                 tools="pan,wheel_zoom,box_zoom,reset,save",
             )
             p_dx.xaxis.axis_label_text_font_style = "normal"
@@ -4794,28 +4802,28 @@ def plot_chi_T(
             swT_d = swT_d if swT_d.size > 1 else empty
             scT_d = scT_d if scT_d.size > 1 else empty
             r_dx_w = p_dx.line(
-                swT_d, dx_w, legend_label="Heating – dχ/dT",
+                swT_d, dx_w, legend_label=f"Heating – d{y_symbol}/dT",
                 line_width=2, color="red"
             )
             r_dx_w_c = p_dx.scatter(
-                swT_d, dx_w, legend_label="Heating – dχ/dT",
+                swT_d, dx_w, legend_label=f"Heating – d{y_symbol}/dT",
                 color="red", alpha=0.5, size=6
             )
             r_dx_c = p_dx.line(
-                scT_d, dx_c, legend_label="Cooling – dχ/dT",
+                scT_d, dx_c, legend_label=f"Cooling – d{y_symbol}/dT",
                 line_width=2, color="blue"
             )
             r_dx_c_c = p_dx.scatter(
-                scT_d, dx_c, legend_label="Cooling – dχ/dT",
+                scT_d, dx_c, legend_label=f"Cooling – d{y_symbol}/dT",
                 color="blue", alpha=0.5, size=6
             )
             p_dx.add_tools(
                 HoverTool(renderers=[r_dx_w, r_dx_w_c],
-                          tooltips=[("T", "@x"), ("dχ/dT (heat)", "@y")])
+                          tooltips=[("T", "@x"), (f"d{y_symbol}/dT (heat)", "@y")])
             )
             p_dx.add_tools(
                 HoverTool(renderers=[r_dx_c, r_dx_c_c],
-                          tooltips=[("T", "@x"), ("dχ/dT (cool)", "@y")])
+                          tooltips=[("T", "@x"), (f"d{y_symbol}/dT (cool)", "@y")])
             )
             p_dx.grid.grid_line_color = "lightgray"
             p_dx.outline_line_color = "black"
@@ -4827,11 +4835,11 @@ def plot_chi_T(
         # Inverse
         if plot_inverse:
             p_inv = figure(
-                title=f"{title} – 1/χ",
+                title=f"{title} – 1/{y_symbol}",
                 sizing_mode="stretch_width",
                 height=bokeh_height,
                 x_axis_label=f"Temperature ({_temp_unit_label(temp_unit)})",
-                y_axis_label="1/χ",
+                y_axis_label=f"1/{y_symbol}",
                 tools="pan,wheel_zoom,box_zoom,reset,save",
             )
             p_inv.xaxis.axis_label_text_font_style = "normal"
@@ -4873,8 +4881,9 @@ def plot_chi_T(
             p_inv.legend.click_policy = "hide"
             figs.append(p_inv)
 
-        for fig in figs:
-            show(fig)
+        if show_plot:
+            for fig in figs:
+                show(fig)
 
     else:
         fig_kwargs = {"figsize": figsize}
@@ -4885,7 +4894,7 @@ def plot_chi_T(
         ax1.plot(scT, scX, label="Cooling – smoothed", linewidth=2)
         ax1.set_title(title)
         ax1.set_xlabel(f"Temperature ({_temp_unit_label(temp_unit)})")
-        ax1.set_ylabel("χ (m³ kg⁻¹)")
+        ax1.set_ylabel(y_label)
         ax1.grid(True)
         ax1.legend(loc="upper left")
         figs.append(fig1)
@@ -4902,9 +4911,9 @@ def plot_chi_T(
             fig2, ax2 = plt.subplots(**fig_kwargs)
             ax2.plot(swT_d, dx_w, label="Heating – dχ/dT", linewidth=2, marker="o")
             ax2.plot(scT_d, dx_c, label="Cooling – dχ/dT", linewidth=2, marker="o")
-            ax2.set_title(f"{title} – dχ/dT")
+            ax2.set_title(f"{title} – d{y_symbol}/dT")
             ax2.set_xlabel(f"Temperature ({_temp_unit_label(temp_unit)})")
-            ax2.set_ylabel("dχ/dT")
+            ax2.set_ylabel(f"d{y_symbol}/dT")
             ax2.grid(True)
             ax2.legend(loc="upper left")
             figs.append(fig2)
@@ -4917,14 +4926,15 @@ def plot_chi_T(
             fig3, ax3 = plt.subplots(**fig_kwargs)
             ax3.plot(np.array(swT)[mask_w], inv_w[mask_w], label="Heating – 1/χ", linewidth=2, marker="o")
             ax3.plot(np.array(scT)[mask_c], inv_c[mask_c], label="Cooling – 1/χ", linewidth=2, marker="o")
-            ax3.set_title(f"{title} – 1/χ")
+            ax3.set_title(f"{title} – 1/{y_symbol}")
             ax3.set_xlabel(f"Temperature ({_temp_unit_label(temp_unit)})")
-            ax3.set_ylabel("1/χ")
+            ax3.set_ylabel(f"1/{y_symbol}")
             ax3.grid(True)
             ax3.legend(loc="upper left")
             figs.append(fig3)
 
-        plt.show()
+        if show_plot:
+            plt.show()
 
     if return_figure:
         return tuple(figs)
@@ -6209,6 +6219,7 @@ _CURIE_METHOD_COLORS = {
     "two_tangent": "#009E73",            # green
     "inverse_susceptibility": "#D55E00", # vermillion
     "landau": "#CC79A7",                 # purple
+    "ms_squared_extrapolation": "#56B4E9",  # sky blue
 }
 
 

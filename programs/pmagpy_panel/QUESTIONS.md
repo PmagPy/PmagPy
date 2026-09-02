@@ -95,3 +95,31 @@ the bottom; struck through once settled.
     `RockmagPy-notebooks`, a sibling repository I will not edit unasked. Shall
     I prepare the edited notebooks there, or write the replacement cells here
     (e.g. `programs/pmagpy_rockmag/notebooks/`) for you to move?
+
+## Thermomagnetic views (2026-09-02)
+
+13. **Which runs belong in the Curie view.** The χ–T and Curie tabs offer
+    every χ–T (`LP-X-T`) and Ms–T (`LP-MST`, `LP-IMT`) experiment. In the
+    example that includes the three MPMS in-field 10–300 K runs, on which
+    Curie estimates are meaningless (they come out anyway: the estimators
+    return numbers for any monotonic curve). Should the Curie tab hide runs
+    whose maximum temperature is below, say, 400 K, or is showing the
+    estimates with the methods' caveats enough? The unit toggle already adopts
+    kelvin for such runs.
+
+14. **Curie table columns.** The view shows branch, method, T_C ± stderr and
+    the method note from the function (its literature caveats). The
+    `params` column (fit ranges, slopes) is left out; should it be shown, or
+    only in the exported table? And when results go to `specimens.txt`,
+    `add_curie_estimates_to_specimens_table` writes one method/branch —
+    inflection on heating by default. Is that the right default for the app's
+    "save" button, with the choice recorded in `description` as the function
+    already does?
+
+15. **Method fit ranges.** `curie_temperature_estimates` takes
+    `method_kwargs` (a `fit_range` for Curie–Weiss, Landau and Ms²; tangent
+    ranges for two-tangent). The view does not expose them yet — the
+    estimates use each method's automatic range. A range slider per method is
+    a lot of chrome; one shared "fit range" slider applied to every method
+    that takes one would be simpler. Preference?
+

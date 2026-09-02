@@ -539,10 +539,24 @@ Intensity were built.
    from live values, `CodePane` is the toggle, `write_beside` puts the `.py`
    next to an export — and the emitted text is `exec`-tested. Example data:
    MagIC contribution 20427 as `data_files/3_0/RMB_oxyhydroxides` (mpms_dc,
-   mpms_ac, χ–T, Ms–T; 1.1 MB). *Next*: Goethite (`goethite_removal` needs a
-   `return_figure`/`show_plot` split first), AC susceptibility, χ–T/Curie,
-   hysteresis, backfield + unmixing, FORC, results to `specimens.txt`, the
-   notebook switch-over in RockmagPy-notebooks.
+   mpms_ac, χ–T, Ms–T; 1.1 MB).
+
+   **Views added 2026-09-02** — `GoethiteView` (`calc_goethite_removal`, split
+   out of `goethite_removal` so the app draws its own Bokeh panels; the
+   function's fit range and degree are the controls), `AcSusceptibilityView`
+   (`plot_mpms_ac` with its `phase`/`frequency` arguments; the frequency list
+   is read from the run), and the two thermomagnetic views over the shared
+   `ThermomagView` base (experiment picker across χ–T and in-field M–T runs,
+   `temp_unit`/`smooth_window`/`remove_holder` as `prepare_thermomag_branches`
+   takes them; kelvin is adopted for a run staying below 320 K): `ChiTView` is
+   `plot_chi_T` (given a `show_plot` argument and y labels that follow the
+   column), `CurieView` is `curie_temperature_estimates` as a table plus
+   `plot_curie_estimates` in a Matplotlib pane, the method set following the
+   data type the way the function's defaults do (a missing colour for
+   `ms_squared_extrapolation` was fixed in core). *Next*: hysteresis, backfield
+   + unmixing, FORC, results to `specimens.txt`
+   (`add_curie_estimates_to_specimens_table` through `MagicProject`), the
+   notebook switch-over in RockmagPy-notebooks (QUESTIONS 12).
 5. **The rest of Pmag GUI, one decision at a time** — see the table below.
    *Retires `pmag_gui.py`.*
 

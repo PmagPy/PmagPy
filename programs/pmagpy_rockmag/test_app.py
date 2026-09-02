@@ -16,7 +16,8 @@ pn = pytest.importorskip("panel")
 
 from pmagpy import rockmag  # noqa: E402
 from pmagpy_rockmag import app, session as rs  # noqa: E402
-from pmagpy_rockmag.views import AcSusceptibilityView, GoethiteView, MpmsDcView, VerweyView  # noqa: E402
+from pmagpy_rockmag.views import (AcSusceptibilityView, ChiTView, CurieView, GoethiteView, MpmsDcView,  # noqa: E402
+                                  VerweyView)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
@@ -237,6 +238,110 @@ class TestAcSusceptibilityView:
         assert view.experiment.options == {} and view.figure is None
 
 
+CHI_T = "IRM-KappaF-LP-X-T-3413"                             # ferroxyhyte_Princeton-1985-M1-2, 297–976 K
+IN_FIELD_MT = "ferroxyhyte_Princeton-1985-M1-1-LP-MST-DC-9652"  # an MPMS in-field run, 10–300 K, magn_mass
+
+
+def ms_curve(tc_c=580.0, beta=0.5):
+    """A heating + cooling mean-field M(T) experiment with a known Curie temperature and a holder offset."""
+    tc = tc_c + 273.15
+    temps = np.arange(300.0, 973.0, 3.0)
+    mags = np.where(temps < tc, np.clip(1 - temps / tc, 0, None) ** beta, 0.0) + 0.02
+    heating = pd.DataFrame({"meas_temp": temps, "magn_mass": mags})
+    cooling = pd.DataFrame({"meas_temp": temps[::-1], "magn_mass": 0.9 * mags[::-1] + 0.002})
+    experiment = pd.concat([heating, cooling], ignore_index=True)
+    experiment["specimen"], experiment["experiment"], experiment["method_codes"] = "syn", "syn_MST", "LP-MST"
+    return experiment
+
+
+class TestChiTView:
+    def test_the_view_plots_a_susceptibility_run_with_the_functions_options(self, session):
+        session.specimen = "ferroxyhyte_Princeton-1985-M1-2"
+        view = ChiTView(session)
+        assert view.experiment.value == CHI_T
+        assert [pos for _, *pos in view.figure.children] == [[0, 0], [1, 0]]          # curve over its derivative
+        view.inverse.value = True
+        assert [pos for _, *pos in view.figure.children] == [[0, 0], [1, 0], [1, 1]]
+        assert [f[0].yaxis.axis_label for f in view.figure.children] == ["χ (m³ kg⁻¹)", "dχ/dT", "1/χ"]
+        view.set_parameters(temp_unit="K", smooth_window=10, remove_holder=False)
+        lines = view.code.text.splitlines()
+        assert lines[5] == f"experiment = rmag.experiment_selection(measurements, '{CHI_T}')"
+        assert lines[6:] == ["rmag.plot_chi_T(", "    experiment,", "    magnetic_column='susc_chi_mass',",
+                             "    temp_unit='K',", "    smooth_window=10,", "    remove_holder=False,",
+                             "    plot_derivative=True,", "    plot_inverse=True,", "    interactive=True,", ")"]
+        namespace = {"rmag": rockmag, "measurements": session.measurements}
+        exec("\n".join(lines[5:]) .replace("interactive=True,", "interactive=True, show_plot=False,"), namespace)
+
+    def test_an_in_field_magnetization_run_is_plotted_from_its_own_column(self, session):
+        session.specimen = FOUR_CURVES
+        view = ChiTView(session)
+        assert view.experiment.value == IN_FIELD_MT
+        assert "magnetic_column='magn_mass'," in view.code.text
+        assert [f[0].yaxis.axis_label for f in view.figure.children] == ["M (Am² kg⁻¹)", "dM/dT"]
+        assert view.temp_unit.value == "K"                                       # a 10–300 K run is shown in kelvin
+        view.experiment.value = CHI_T
+        assert view.temp_unit.value == "C" and "temp_unit='C'," in view.code.text
+
+    def test_a_dataframe_and_nothing_to_plot(self):
+        view = ChiTView(ms_curve())
+        assert view.experiment.value == "syn_MST" and len(view.figure.children) == 2
+        assert view.code.text.splitlines()[3] == "# measurements: the DataFrame this view was given"
+        empty = ChiTView(pd.DataFrame({"specimen": ["a"], "method_codes": ["LP-FC"], "experiment": ["e"],
+                                       "meas_temp": [10.0], "magn_mass": [1.0]}))
+        assert empty.experiment.options == {} and empty.figure is None
+
+
+class TestCurieView:
+    def test_a_known_curie_temperature_is_recovered_by_every_magnetization_method(self):
+        view = CurieView(ms_curve(tc_c=580.0))
+        assert view.data_type == "magnetization"
+        assert view.methods.value == ["inflection", "max_curvature", "two_tangent", "landau"]   # the function's default
+        assert "Ms² extrapolation" in view.methods.options and "Curie–Weiss 1/χ" in view.methods.options
+        view.set_methods(["inflection", "max_curvature", "two_tangent", "landau", "ms_squared_extrapolation"])
+        heating = view.estimates[view.estimates["branch"] == "heating"].set_index("method")["curie_temp"]
+        assert len(heating) == 5 and np.isfinite(heating).all()
+        assert (abs(heating - 580.0) < 5).all(), heating
+        assert len(view.figure.axes) == 2                                        # curve + derivative panel
+        assert "580" in view.table.object or "58" in view.table.object
+        lines = view.code.text.splitlines()
+        assert lines[4] == "experiment = rmag.experiment_selection(measurements, 'syn_MST')"
+        assert lines[5:9] == ["estimates = rmag.curie_temperature_estimates(", "    experiment,",
+                              "    methods=['inflection', 'max_curvature', 'two_tangent', 'landau', 'ms_squared_extrapolation'],",
+                              "    magnetic_column='magn_mass',"]
+        namespace = {"rmag": rockmag, "measurements": ms_curve()}
+        plot_line = lines.index("rmag.plot_curie_estimates(")
+        exec("\n".join(lines[4:plot_line]), namespace)                             # the estimate call only
+        assert len(namespace["estimates"]) == 10
+
+    def test_susceptibility_offers_the_curie_weiss_method_and_switches_defaults(self, session):
+        session.specimen = FOUR_CURVES                                          # its run is in-field M(T)
+        view = CurieView(session)
+        assert view.experiment.value == IN_FIELD_MT and view.data_type == "magnetization"
+        view.experiment.value = CHI_T
+        assert session.specimen == "ferroxyhyte_Princeton-1985-M1-2"
+        assert view.data_type == "susceptibility"
+        assert view.methods.value == ["inflection", "max_curvature", "inverse_susceptibility"]
+        assert "Ms² extrapolation" not in view.methods.options
+        assert len(view.figure.axes) == 3                                        # + the 1/χ panel
+        curie_weiss = view.estimates[view.estimates["method"] == "inverse_susceptibility"]
+        assert np.isfinite(curie_weiss["curie_temp_stderr"]).all()
+        assert "T<sub>C</sub> (°C)" in view.table.object
+        view.set_parameters(smooth_window=10)
+        assert "T<sub>C</sub> (°C)" in view.table.object and "smooth_window=10," in view.code.text
+        view.experiment.value = IN_FIELD_MT
+        assert view.methods.value == ["inflection", "max_curvature", "two_tangent", "landau"]
+        assert "T<sub>C</sub> (K)" in view.table.object and "temp_unit='K'," in view.code.text
+
+    def test_nothing_selected_says_so_and_a_failure_is_reported(self):
+        view = CurieView(ms_curve())
+        view.branches.value = []
+        assert "pick at least one method" in view.table.object and view.figure is None
+        view.branches.value = ["heating"]
+        assert len(view.estimates) == 4
+        view.set_methods([])
+        assert "pick at least one method" in view.table.object
+
+
 class TestApp:
     def test_create_app_builds_the_template_with_one_tab_per_view(self):
         template = app.create_app(EXAMPLE)
@@ -245,7 +350,8 @@ class TestApp:
 
     def test_the_body_has_the_index_and_the_views(self, session):
         body = app.build_body(session)
-        assert list(body.views) == ["mpms_dc", "verwey", "goethite", "mpms_ac"]
-        assert [name for name, _ in zip(body.main._names, body.main)] == ["MPMS DC", "Verwey", "Goethite", "AC susceptibility"]
+        assert list(body.views) == ["mpms_dc", "verwey", "goethite", "mpms_ac", "chi_t", "curie"]
+        assert [name for name, _ in zip(body.main._names, body.main)] == [
+            "MPMS DC", "Verwey", "Goethite", "AC susceptibility", "χ–T", "Curie"]
         assert body.views["verwey"].specimen.value == body.views["mpms_dc"].specimen.value
         assert body.info.app_id == "pmagpy_rockmag"

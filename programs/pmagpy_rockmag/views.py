@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from typing import Optional
 
+import numpy as np
 import panel as pn
 from bokeh.layouts import gridplot
 
@@ -546,7 +547,267 @@ class AcSusceptibilityView:
                          sizing_mode="stretch_width")
 
 
+# ----------------------------------------------------------------------------- thermomagnetic curves
+THERMOMAG_TYPES = ("chi_t", "ms_t")
+"""High-temperature runs that share the heating/cooling-branch preprocessing: χ(T) and in-field M(T)."""
+THERMOMAG_COLUMNS = ("susc_chi_mass", "susc_chi_volume", "susc_chi_qdr_mass", "magn_mass", "magn_volume", "magn_moment")
+TEMP_UNITS = {"°C": "C", "K": "K"}
+
+
+def thermomag_column(experiment) -> Optional[str]:
+    """The measurement column a thermomagnetic run was recorded in (susceptibility before magnetization)."""
+    for column in THERMOMAG_COLUMNS:
+        if column in experiment and experiment[column].notna().any():
+            return column
+    return None
+
+
+class ThermomagView:
+    """The experiment picker and preprocessing controls shared by the χ–T and Curie views.
+
+    The controls are the arguments of ``rockmag.prepare_thermomag_branches``
+    that both ``plot_chi_T`` and ``curie_temperature_estimates`` pass through:
+    ``temp_unit``, ``smooth_window`` (a width in that unit) and ``remove_holder``.
+    """
+
+    TYPE = "chi_t"
+    LOW_TEMPERATURE = 320.0
+    """A run staying below this (K) is an MPMS one and is shown in kelvin; furnace runs in °C."""
+
+    def __init__(self, session):
+        self.s = as_session(session)
+        self.experiment = pn.widgets.Select(name="Experiment", options={}, width=380)
+        self.temp_unit = pn.widgets.RadioButtonGroup(name="Temperature", options=TEMP_UNITS, value="C", width=90,
+                                                     button_type="default", margin=(24, 5, 0, 10))
+        self.smooth_window = pn.widgets.IntSlider(name="smoothing window (degrees)", start=0, end=50, step=1, value=0,
+                                                  width=170)
+        self.remove_holder = pn.widgets.Checkbox(name="subtract holder", value=True, width=130, margin=(28, 5, 0, 10))
+        self.code = code.CodePane()
+        self.figure = None
+        self._quiet = False                                      # widgets being set by adopt(): hold the refresh
+
+        self.experiment.param.watch(self._on_experiment, "value")
+        self.temp_unit.param.watch(self._changed, "value")
+        self.smooth_window.param.watch(self._changed, "value_throttled")
+        self.remove_holder.param.watch(self._changed, "value")
+        self.s.param.watch(lambda e: self.reset(), "directory")
+        self.s.param.watch(self._follow_session, "specimen")
+
+    # ----- state --------------------------------------------------------------
+    def _experiments(self):
+        return self.s.experiments[self.s.experiments["type"].isin(THERMOMAG_TYPES)]
+
+    def reset(self) -> None:
+        exps = self._experiments()
+        options = {f"{r.specimen} · {r.experiment}": r.experiment for r in exps.itertuples()}
+        before = self.experiment.value
+        self.experiment.options = options
+        own = exps.loc[exps["specimen"] == self.s.specimen, "experiment"].tolist()
+        self.experiment.value = own[0] if own else (next(iter(options.values())) if options else None)
+        if self.experiment.value == before:
+            self._on_experiment(None)
+
+    def _on_experiment(self, event) -> None:
+        exp = self.experiment.value
+        if exp:
+            exps = self.s.experiments
+            self.s.specimen = exps.loc[exps["experiment"] == exp, "specimen"].iloc[0]
+            self._quiet = True
+            try:
+                self.adopt(self.data())
+            finally:
+                self._quiet = False
+        self.refresh()
+
+    def _changed(self, event) -> None:
+        if not self._quiet:
+            self.refresh()
+
+    def adopt(self, experiment) -> None:
+        """Defaults that follow the run: kelvin for a low-temperature (MPMS) one, °C for a furnace one."""
+        temps = experiment["meas_temp"].dropna() if "meas_temp" in experiment else []
+        self.temp_unit.value = "K" if len(temps) and temps.max() < self.LOW_TEMPERATURE else "C"
+
+    def _follow_session(self, event) -> None:
+        exps = self._experiments()
+        own = exps.loc[exps["specimen"] == event.new, "experiment"].tolist()
+        if own and self.experiment.value not in own:
+            self.experiment.value = own[0]
+
+    # ----- the data -----------------------------------------------------------
+    def data(self):
+        if not self.experiment.value or self.s.measurements is None:
+            return None
+        return rockmag.experiment_selection(self.s.measurements, self.experiment.value)
+
+    def preprocessing(self, column: str) -> dict:
+        """The keyword arguments both core functions take, in their signature order."""
+        return dict(magnetic_column=column, temp_unit=self.temp_unit.value,
+                    smooth_window=int(self.smooth_window.value), remove_holder=bool(self.remove_holder.value))
+
+    def set_parameters(self, temp_unit=None, smooth_window=None, remove_holder=None) -> None:
+        """Set the preprocessing controls from code (a notebook, a test) and refresh."""
+        if temp_unit is not None:
+            self.temp_unit.value = temp_unit
+        if smooth_window is not None:
+            self.smooth_window.value = smooth_window
+        if remove_holder is not None:
+            self.remove_holder.value = remove_holder
+        self.refresh()
+
+    def controls(self) -> pn.Row:
+        return pn.Row(self.experiment, self.temp_unit, self.smooth_window, self.remove_holder)
+
+    def refresh(self) -> None:                                                  # pragma: no cover - subclasses
+        raise NotImplementedError
+
+
+class ChiTView(ThermomagView):
+    """A thermomagnetic curve with its derivative and reciprocal: ``rockmag.plot_chi_T``.
+
+    Also plots the in-field M(T) runs (LP-MST) since the function only needs
+    to be told the column; the y axis is labelled from it.
+    """
+
+    def __init__(self, session):
+        super().__init__(session)
+        self.derivative = pn.widgets.Checkbox(name="derivative", value=True, margin=(28, 5, 0, 10))
+        self.inverse = pn.widgets.Checkbox(name="reciprocal", value=False, margin=(28, 5, 0, 10))
+        self.plot = pn.pane.Bokeh(sizing_mode="stretch_width")
+        self.derivative.param.watch(self._changed, "value")
+        self.inverse.param.watch(self._changed, "value")
+        self.reset()
+
+    def refresh(self) -> None:
+        experiment = self.data()
+        column = thermomag_column(experiment) if experiment is not None else None
+        if column is None:
+            self.figure = None
+            self.plot.object = None
+            self.code.set(preamble(self.s))
+            return
+        kwargs = dict(**self.preprocessing(column), plot_derivative=bool(self.derivative.value),
+                      plot_inverse=bool(self.inverse.value), interactive=True)
+        figs = list(rockmag.plot_chi_T(experiment, **kwargs, return_figure=True, figsize=(6, 4), show_plot=False))
+        for fig in figs:
+            style_figure(fig)
+        rows = [[figs[0]]] + ([figs[1:]] if len(figs) > 1 else [])
+        self.figure = gridplot(rows, sizing_mode="stretch_width", toolbar_location="right")
+        self.plot.object = self.figure
+        shown = kwargs
+        self.code.set(preamble(self.s) + [
+            code.assign("experiment", code.call("rmag.experiment_selection", code.Name("measurements"), self.experiment.value)),
+            code.call("rmag.plot_chi_T", code.Name("experiment"), **shown),
+        ])
+
+    def panel(self) -> pn.Column:
+        row = self.controls()
+        row.extend([self.derivative, self.inverse])
+        return pn.Column(row, self.plot, self.code.panel(), sizing_mode="stretch_width")
+
+
+CURIE_METHODS = {"inflection": "inflection (dM/dT minimum)", "max_curvature": "maximum curvature",
+                 "two_tangent": "two tangents", "inverse_susceptibility": "Curie–Weiss 1/χ",
+                 "landau": "Landau fit", "ms_squared_extrapolation": "Ms² extrapolation"}
+"""Every estimator ``curie_temperature_estimates`` knows, with the label the view shows."""
+CURIE_DEFAULTS = {"susceptibility": ("inflection", "max_curvature", "inverse_susceptibility"),
+                  "magnetization": ("inflection", "max_curvature", "two_tangent", "landau")}
+"""The function's own default method sets per data type; Ms² extrapolation is magnetization-only."""
+BRANCHES = ("heating", "cooling")
+
+
+class CurieView(ThermomagView):
+    """Curie-temperature estimates by several methods: ``rockmag.curie_temperature_estimates``
+    tabulated, and ``rockmag.plot_curie_estimates`` showing each construction.
+    """
+
+    def __init__(self, session):
+        super().__init__(session)
+        self.methods = pn.widgets.CheckBoxGroup(name="Methods", options=dict(CURIE_METHODS), value=[], inline=True,
+                                                margin=(8, 10, 0, 10))
+        self.branches = pn.widgets.CheckBoxGroup(name="Branches", options=list(BRANCHES), value=list(BRANCHES),
+                                                 inline=True, margin=(8, 10, 0, 10))
+        self.table = pn.pane.HTML(sizing_mode="stretch_width")
+        self.plot = pn.pane.Matplotlib(dpi=100, tight=True, sizing_mode="stretch_width")
+        self.estimates = None
+        self.data_type = None
+        self.methods.param.watch(self._changed, "value")
+        self.branches.param.watch(self._changed, "value")
+        self.reset()
+
+    def adopt(self, experiment) -> None:
+        """Switching between χ(T) and M(T) data changes the methods on offer and picks the function's defaults."""
+        super().adopt(experiment)
+        column = thermomag_column(experiment)
+        data_type = rockmag._resolve_thermomag_data_type(None, column) if column else None
+        if data_type is not None and data_type != self.data_type:
+            self.data_type = data_type
+            self.methods.options = {label: m for m, label in CURIE_METHODS.items()
+                                    if data_type == "magnetization" or m != "ms_squared_extrapolation"}
+            self.methods.value = list(CURIE_DEFAULTS[data_type])
+
+    def set_methods(self, methods) -> None:
+        self.methods.value = list(methods)
+
+    def refresh(self) -> None:
+        experiment = self.data()
+        column = thermomag_column(experiment) if experiment is not None else None
+        methods, branches = list(self.methods.value), list(self.branches.value)
+        if column is None or not methods or not branches:
+            self.estimates = None
+            self.figure = None
+            self.plot.object = None
+            self.table.object = muted("pick at least one method and one branch") if column else ""
+            self.code.set(preamble(self.s))
+            return
+        kwargs = dict(methods=methods, **self.preprocessing(column), branches=branches)
+        try:
+            self.estimates = rockmag.curie_temperature_estimates(experiment, **kwargs)
+            self.figure, _ = rockmag.plot_curie_estimates(experiment, **kwargs, figsize=(9, 3.2 * self._panels(methods)),
+                                                          return_figure=True)
+        except (ValueError, RuntimeError, np.linalg.LinAlgError) as ex:
+            self.estimates = None
+            self.figure = None
+            self.plot.object = None
+            self.table.object = f'<div style="color:#b00">The estimate failed: {ex}</div>'
+            self.code.set(preamble(self.s))
+            return
+        self.plot.object = self.figure
+        self.table.object = self._table_html()
+        self.code.set(preamble(self.s) + [
+            code.assign("experiment", code.call("rmag.experiment_selection", code.Name("measurements"), self.experiment.value)),
+            code.assign("estimates", code.call("rmag.curie_temperature_estimates", code.Name("experiment"), **kwargs)),
+            code.call("rmag.plot_curie_estimates", code.Name("experiment"), **kwargs),
+        ])
+
+    @staticmethod
+    def _panels(methods) -> int:
+        return 1 + int(bool({"inflection", "max_curvature"} & set(methods))) + int("inverse_susceptibility" in methods)
+
+    def _table_html(self) -> str:
+        unit = "°C" if self.temp_unit.value == "C" else "K"
+        rows = []
+        for r in self.estimates.itertuples():
+            if np.isfinite(r.curie_temp):
+                value = f"{r.curie_temp:.1f}" + (f" ± {r.curie_temp_stderr:.1f}" if np.isfinite(r.curie_temp_stderr) else "")
+            else:
+                value = "—"
+            rows.append(f"<tr><td>{r.branch}</td><td>{CURIE_METHODS.get(r.method, r.method)}</td>"
+                        f'<td style="text-align:right;font-variant-numeric:tabular-nums">{value}</td>'
+                        f'<td style="{MUTED_STYLE}">{r.notes}</td></tr>')
+        head = (f"<tr><th>branch</th><th>method</th><th style='text-align:right'>T<sub>C</sub> ({unit})</th>"
+                f"<th>note</th></tr>")
+        return ('<table style="border-collapse:collapse;font-size:13px;margin:6px 0">'
+                '<style>.curie td,.curie th{padding:3px 12px 3px 0;vertical-align:top;border-bottom:1px solid #eee}</style>'
+                f'<tbody class="curie">{head}{"".join(rows)}</tbody></table>')
+
+    def panel(self) -> pn.Column:
+        label = lambda text: pn.pane.HTML(f'<div style="{SECTION_STYLE}">{text}</div>', width=80, margin=(12, 0, 0, 0))
+        return pn.Column(self.controls(), pn.Row(label("Methods"), self.methods), pn.Row(label("Branches"), self.branches),
+                         self.table, self.plot, self.code.panel(), sizing_mode="stretch_width")
+
+
 # ----------------------------------------------------------------------------- the set of views
 TABS = (("mpms_dc", "MPMS DC", MpmsDcView), ("verwey", "Verwey", VerweyView), ("goethite", "Goethite", GoethiteView),
-        ("mpms_ac", "AC susceptibility", AcSusceptibilityView))
+        ("mpms_ac", "AC susceptibility", AcSusceptibilityView), ("chi_t", "χ–T", ChiTView), ("curie", "Curie", CurieView))
 """``(key, tab label, view class)`` in tab order. Experiment types without a view are listed in the index only."""

@@ -866,6 +866,20 @@ class TestPlotCurieEstimates:
         import matplotlib.pyplot as plt
         plt.close(fig)
 
+    def test_every_method_has_a_colour(self, heat_cool_experiment):
+        """ms_squared_extrapolation was missing from the colour table, so asking
+        the plot for every magnetization method raised a KeyError."""
+        fig, axes = rmag.plot_curie_estimates(
+            heat_cool_experiment, magnetic_column="magn_mass",
+            methods=("inflection", "max_curvature", "two_tangent", "landau",
+                     "ms_squared_extrapolation"),
+            return_figure=True,
+        )
+        labels = [line.get_label() for line in axes[0].get_lines()]
+        assert any(label.startswith("ms_squared_extrapolation") for label in labels)
+        import matplotlib.pyplot as plt
+        plt.close(fig)
+
     def test_inverse_panel_for_susceptibility(self, curie_weiss_chi):
         T, chi = curie_weiss_chi
         df = pd.DataFrame({
