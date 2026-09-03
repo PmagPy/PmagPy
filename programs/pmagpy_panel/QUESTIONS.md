@@ -937,3 +937,5 @@ the bottom; struck through once settled.
     would not redistribute its example files — the same sites from the MagIC
     database would close it; and nothing above 359 specimens has been
     profiled. `docs/pmagpy_intensity_report.md` §5 has the rest.
+
+66. **Side-column width and the plots (2026-09-03).** The drag handle no longer holds the main pane at 880 px (that cap made the column immovable on a 1280-px window and stopped it at ~490 px on a 1440 laptop); it now stops at 360 px of main pane and the main pane scrolls sideways when squeezed below what its content wants. The drag itself moves a guide bar and resizes on release (live resizing re-laid out every table and figure per frame). Should the Specimen tab's plots shrink automatically to fit the main pane when the column is dragged wide (the height handle already sets their size), or is sideways scrolling fine?

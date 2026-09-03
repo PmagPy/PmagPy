@@ -18,20 +18,32 @@ class Splitter(JSComponent):
     A drag resizes the side panel *and* the row that wraps it, so that the main
     pane beside it — the flexible item of the layout — gives up or takes back
     exactly the width the panel gained or lost.
+
+    Everything in both panes — Bokeh figures, Tabulator tables, the step
+    logger — re-lays itself out whenever its width changes, and together
+    that costs tens of milliseconds a frame: resizing live made the drag
+    lag behind the cursor. So the drag moves a guide bar only (free), and
+    the panels take the new width once, on release — the same scheme as
+    :class:`HeightSplitter`.
+
+    The side panel may be dragged as wide as the window allows minus
+    ``main_min``; the main pane scrolls sideways when it is squeezed below
+    what its content wants, rather than forbidding the drag.
     """
 
     # (not min_width/max_width: those are Panel's own layout parameters of the handle itself)
     panel_min = param.Integer(default=320, doc="smallest width the side panel may be dragged to")
     panel_max = param.Integer(default=1100, doc="largest width the side panel may be dragged to")
     panel_default = param.Integer(default=450, doc="width restored by a double click")
-    main_min = param.Integer(default=880, doc="width the main pane keeps: the plots and fit controls stay whole")
+    main_min = param.Integer(default=360, doc="width the main pane always keeps (it scrolls sideways below "
+                                              "what its content wants)")
     width_px = param.Integer(default=450, doc="width of the panel after the last drag")
 
     _esm = """
     export function render({ model, el }) {
       const bar = document.createElement('div');
       bar.className = 'splitter';
-      bar.title = 'drag to move the boundary between the panels';
+      bar.title = 'drag to move the boundary between the panels · double click resets';
       const host = () => el.getRootNode().host || el;
       const target = () => host().previousElementSibling;   // the side panel
       // the row holding panel + handle. Bokeh renders each model into a shadow root,
@@ -40,7 +52,7 @@ class Splitter(JSComponent):
       // contrast, resolves inside the root and needs no such step)
       const wrapper = () => { const h = host(), p = h.parentNode;
                               return h.parentElement || (p && p.host) || null; };
-      let startX = 0, startW = 0, handleW = 14, minW = 0, maxW = 0, pending = null, frame = null;
+      let startX = 0, startW = 0, handleW = 14, minW = 0, maxW = 0, pending = null, frame = null, guide = null;
       const apply = (w) => {
         const t = target(), wrap = wrapper();
         if (!t) return;
@@ -54,10 +66,8 @@ class Splitter(JSComponent):
           wrap.style.width = total; wrap.style.minWidth = total; wrap.style.maxWidth = total;
         }
       };
-      // Measured once per drag: reading layout on every mouse move (and so forcing a
-      // synchronous reflow before each frame) is what makes a resize feel heavy.
-      // The panel may not grow so far that the plots of the main pane are squeezed
-      // out; the main pane's own right edge moves out with it once its content
+      // Measured once per drag. The panel may grow until the main pane is down to
+      // main_min; the main pane's own right edge moves out with it once its content
       // cannot shrink further, so bound it by the page's (symmetric) margin too.
       const measure = () => {
         const t = target(), wrap = wrapper();
@@ -69,11 +79,27 @@ class Splitter(JSComponent):
         minW = model.panel_min;
         maxW = Math.max(minW, Math.min(model.panel_max, right - left - handleW - model.main_min));
       };
-      // The panels follow the cursor, at most one resize per animation frame however
-      // fast the mouse reports; the move handler itself only does arithmetic.
+      // The guide is a bar the size of the handle, fixed over the page, that stands
+      // where the boundary will be; the panels themselves do not move until release.
+      const showGuide = () => {
+        const r = host().getBoundingClientRect();
+        guide = document.createElement('div');
+        guide.className = 'splitter-guide';
+        Object.assign(guide.style, { position: 'fixed', top: r.top + 'px', left: r.left + 'px',
+                                     width: r.width + 'px', height: r.height + 'px', zIndex: 10000,
+                                     pointerEvents: 'none' });
+        const line = document.createElement('div');
+        Object.assign(line.style, { width: '8px', height: 'calc(100% - 8px)', margin: '4px 3px',
+                                    borderRadius: '4px', background: '#1f4e9c' });
+        guide.appendChild(line);
+        document.body.appendChild(guide);
+      };
       const onMove = (e) => {
         pending = Math.max(minW, Math.min(maxW, startW + (e.clientX - startX)));
-        if (frame === null) frame = requestAnimationFrame(() => { frame = null; apply(pending); });
+        if (frame === null) frame = requestAnimationFrame(() => {
+          frame = null;
+          if (guide) guide.style.transform = 'translateX(' + (pending - startW) + 'px)';
+        });
       };
       const onUp = () => {
         document.removeEventListener('mousemove', onMove);
@@ -81,13 +107,15 @@ class Splitter(JSComponent):
         document.body.style.cursor = ''; document.body.style.userSelect = '';
         bar.classList.remove('dragging');
         if (frame !== null) { cancelAnimationFrame(frame); frame = null; }
+        if (guide) { guide.remove(); guide = null; }
         if (pending !== null) { apply(pending); model.width_px = Math.round(pending); pending = null; }
       };
       bar.addEventListener('mousedown', (e) => {
         const t = target();
-        if (!t) return;
+        if (!t || e.button !== 0) return;
         startX = e.clientX; startW = t.getBoundingClientRect().width;
         measure();
+        showGuide();
         bar.classList.add('dragging');
         document.body.style.cursor = 'col-resize'; document.body.style.userSelect = 'none';
         document.addEventListener('mousemove', onMove);
@@ -103,8 +131,8 @@ class Splitter(JSComponent):
     :host { display: flex; align-self: stretch; width: 14px !important; min-width: 14px; max-width: 14px; }
     .splitter { width: 8px; min-height: 100%; cursor: col-resize; background: #e5e7eb; border-radius: 4px;
                 margin: 4px 3px; transition: background .15s; }
-    .splitter:hover, .splitter.dragging { background: #9aa1ab; }
-    .splitter.dragging { background: #1f4e9c; }
+    .splitter:hover { background: #9aa1ab; }
+    .splitter.dragging { background: #c7d2e5; }
     """]
 
 
