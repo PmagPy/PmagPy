@@ -33,8 +33,14 @@ class TestMagicDirectory:
         assert list(kinds) == ["demag", "pi", "hys", "aniso"]     # in the order the rules are declared
         assert kinds["demag"].specimens == 639 and kinds["demag"].details == ["AF", "thermal"]
         assert kinds["pi"].label == "Thellier" and kinds["pi"].details == ["IZZI", "ZI", "IZ"]
-        assert kinds["aniso"].detail == "ARM"
+        assert kinds["aniso"].detail == "AARM" and kinds["aniso"].specimens == 19   # from the tensors in specimens.txt
         assert self.inv.has("demag", "pi") and not self.inv.has("forc")
+
+    def test_tensors_in_specimens_count_as_anisotropy_without_measurements(self, tmp_path):
+        shutil.copy(os.path.join(MCMURDO, "specimens.txt"), tmp_path)
+        inv = take_inventory(str(tmp_path))
+        assert not inv.is_magic
+        assert [(k.key, k.specimens, k.details) for k in inv.kinds] == [("aniso", 19, ["AARM"])]
 
     def test_contribution_and_analysis_state(self):
         assert self.inv.contribution["id"] == "13436"           # not "13436.0"

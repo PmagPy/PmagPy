@@ -202,7 +202,7 @@ class Vocabulary(object):
         # used cached
         if not len(data):
             print('-I- Using cached vocabularies')
-            fname = os.path.join(data_model_dir, "controlled_vocabularies_October_3_2019.json")
+            fname = os.path.join(data_model_dir, "controlled_vocabularies_September_2_2026.json")
             data = pd.io.json.read_json(fname, encoding='utf-8-sig')
         # parse data
         possible_vocabularies = data.columns
@@ -290,7 +290,7 @@ class Vocabulary(object):
         # if not available online, use cached
         if not len(data):
             print('-I- Using cached suggested vocabularies')
-            fname = os.path.join(data_model_dir, "suggested_vocabularies_December_10_2018.json")
+            fname = os.path.join(data_model_dir, "suggested_vocabularies_September_2_2026.json")
             data = pd.io.json.read_json(fname, encoding='utf-8-sig')
         # parse data
         possible_vocabularies = data.columns

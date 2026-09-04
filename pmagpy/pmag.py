@@ -14,7 +14,9 @@ from .mapping import map_magic
 from pmagpy import contribution_builder as cb
 from . import find_pmag_dir
 from pmag_env import set_env
-import SPD.lib.leastsq_jacobian as lib_k
+# SPD.lib.leastsq_jacobian (Arai curvature) pulls in scipy.optimize, about a
+# quarter of the time it takes to import this module; it is imported by
+# get_curve() when needed.
 
 WARNINGS = {'cartopy': False}
 
@@ -563,7 +565,9 @@ def convert_directory_2_to_3(meas_fname="magic_measurements.txt", input_dir=".",
     """
     Convert 2.0 measurements file into 3.0 measurements file.
     Merge and convert specimen, sample, site, and location data.
-    Also translates criteria data.
+    Also translates criteria data and the rock magnetic tables
+    (rmag_anisotropy, rmag_hysteresis, rmag_remanence, rmag_susceptibility,
+    rmag_results -> rows of specimens/samples/sites, see convert_rmag_2_to_3).
 
     Parameters
     ----------
@@ -621,12 +625,21 @@ def convert_directory_2_to_3(meas_fname="magic_measurements.txt", input_dir=".",
                 upgraded.append(crit_file)
             else:
                 no_upgrade.append("pmag_criteria.txt")
+        # rock magnetic tables -> rows of specimens (samples, sites)
+        rmag_done, rmag_written, rmag_left = convert_rmag_2_to_3(input_dir, output_dir, data_model)
+        if rmag_done:
+            print("-I- {} -> {}".format(", ".join(rmag_done), ", ".join(
+                "{} {} rows".format(n, dtype) for dtype, n in rmag_written.items()) or "no rows"))
+        for dtype in rmag_written:
+            if dtype + ".txt" not in upgraded:
+                upgraded.append(dtype + ".txt")
+        no_upgrade.extend(rmag_left)
         # create list of all un-upgradeable files
         for fname in os.listdir(input_dir):
             if fname in ['measurements.txt', 'specimens.txt', 'samples.txt',
                          'sites.txt', 'locations.txt']:
                 continue
-            elif 'rmag' in fname:
+            elif 'rmag' in fname and fname not in rmag_done:
                 no_upgrade.append(fname)
             elif fname in ['pmag_results.txt', 'er_synthetics.txt', 'er_images.txt',
                            'er_plots.txt']:
@@ -695,6 +708,230 @@ def convert_and_combine_2_to_3(dtype, map_dict, input_dir=".", output_dir=".", d
     else:
         print("-I- No {} data found.".format(dtype))
         return None
+
+
+# the 2.5 rock magnetic tables and where their rows go in 3.0: a result row goes to
+# the finest table whose 2.5 name column holds exactly one name
+RMAG_TABLES = ('rmag_anisotropy', 'rmag_hysteresis', 'rmag_remanence',
+               'rmag_susceptibility', 'rmag_results')
+RMAG_RESULT_LEVELS = (('er_specimen_names', 'specimens'), ('er_sample_names', 'samples'),
+                      ('er_site_names', 'sites'))
+# the 2.5 columns that fold into one 3.0 cell, built by convert_rmag_record rather than renamed
+ANISOTROPY_S_COLUMNS = tuple('anisotropy_s{}'.format(i) for i in range(1, 7))
+ANISOTROPY_V_PARTS = ('dec', 'inc', 'eta_dec', 'eta_inc', 'eta_semi_angle',
+                      'zeta_dec', 'zeta_inc', 'zeta_semi_angle')
+
+
+def rmag_2_to_3_map(table, dtype='specimens', data_model=None):
+    """
+    The column translation for one 2.5 rock magnetic table, read off the 3.0
+    data model's ``previous_columns``.
+
+    Parameters
+    ----------
+    table : str
+        2.5 table name (one of RMAG_TABLES)
+    dtype : str
+        3.0 table the rows go to (specimens, samples or sites)
+    data_model : data_model3.DataModel, optional
+
+    Returns
+    -------
+    mapping : dict
+        {2.5 column: 3.0 column}; the columns that several 2.5 values fold into
+        (anisotropy_s1..s6 -> aniso_s, anisotropy_t1/v1_* -> aniso_v1) are left
+        out, and columns whose 2.5 type was a list are kept as lists
+    """
+    if data_model is None:
+        from . import data_model3 as dm3
+        data_model = dm3.DataModel()
+    dm = data_model.dm[dtype]
+    mapping = {}
+    for label, row in dm.iterrows():
+        if not isinstance(row['previous_columns'], list):
+            continue
+        for previous in row['previous_columns']:
+            if previous['table'] != table:
+                continue
+            old = previous['column']
+            if old in ANISOTROPY_S_COLUMNS or label in ('aniso_v1', 'aniso_v2', 'aniso_v3'):
+                continue
+            if old not in mapping:                 # the first 3.0 home listed wins (external_database_ids)
+                mapping[old] = label
+    return mapping
+
+
+def convert_rmag_record(table, rec, mapping, list_columns=()):
+    """
+    One 2.5 rock magnetic record -> one 3.0 record.
+
+    Parameters
+    ----------
+    table : str
+        2.5 table the record came from
+    rec : dict
+        the 2.5 record
+    mapping : dict
+        from rmag_2_to_3_map
+    list_columns : iterable of str
+        3.0 columns of type List, whose ``a : b`` cells are tidied to ``a:b``
+
+    Returns
+    -------
+    new_rec : dict
+        the 3.0 record; ``aniso_s`` joined from anisotropy_s1..s6, ``aniso_v1..v3``
+        joined as tau:dec:inc[:eta/zeta:eta_dec:eta_inc:eta_semi_angle:zeta_dec:zeta_inc:zeta_semi_angle]
+    """
+    new_rec = {}
+    for old, value in rec.items():
+        if old in mapping and value not in ('', None):
+            new = mapping[old]
+            value = str(value).strip()
+            if new in list_columns:
+                value = ':'.join(part.strip() for part in value.split(':') if part.strip())
+            new_rec[new] = value
+    if table == 'rmag_anisotropy':
+        s = [str(rec.get(col, '')).strip() for col in ANISOTROPY_S_COLUMNS]
+        if all(s):
+            new_rec['aniso_s'] = ':'.join(s)
+    if table == 'rmag_results':
+        for i in (1, 2, 3):
+            parts = {part: str(rec.get('anisotropy_v{}_{}'.format(i, part), '')).strip()
+                     for part in ANISOTROPY_V_PARTS}
+            tau = str(rec.get('anisotropy_t{}'.format(i), '')).strip()
+            if not (tau or parts['dec']):
+                continue
+            cell = [tau, parts['dec'], parts['inc']]
+            if any(parts[p] for p in ANISOTROPY_V_PARTS[2:]):
+                cell += ['eta/zeta'] + [parts[p] for p in ANISOTROPY_V_PARTS[2:]]
+            new_rec['aniso_v{}'.format(i)] = ':'.join(cell)
+    return new_rec
+
+
+def rmag_result_level(rec):
+    """
+    The 3.0 table an rmag_results record belongs to: specimens when it names one
+    specimen, samples when it names one sample, sites when one site, else None.
+    """
+    for column, dtype in RMAG_RESULT_LEVELS:
+        names = [n.strip() for n in str(rec.get(column, '')).split(':') if n.strip()]
+        if len(names) == 1:
+            return dtype
+        if len(names) > 1:
+            return None if dtype == 'sites' else rmag_result_level({k: v for k, v in rec.items() if k != column})
+    return None
+
+
+def _merge_rmag_result(result, rows):
+    """
+    Fold a translated rmag_results record into the row of the same item it
+    describes -- the anisotropy row of the same type and tilt correction, or
+    the hysteresis row when the result holds hysteresis ratios -- filling only
+    what that row lacks. Returns True when merged.
+    """
+    name_col = [c for c in ('specimen', 'sample', 'site') if c in result]
+    if not name_col:
+        return False
+    name = result[name_col[0]]
+    wants_aniso = 'aniso_type' in result or any(k.startswith('aniso_v') for k in result)
+    wants_hyst = any(k.startswith('hyst_') for k in result)
+    for row in rows:
+        if row.get(name_col[0]) != name:
+            continue
+        if wants_aniso:
+            same = ('aniso_s' in row and row.get('aniso_type', '') == result.get('aniso_type', '')
+                    and str(row.get('aniso_tilt_correction', '')) == str(result.get('aniso_tilt_correction', '')))
+        elif wants_hyst:
+            same = any(k.startswith('hyst_') for k in row)
+        else:
+            same = False
+        if same:
+            for key, value in result.items():
+                if key == 'method_codes' and row.get(key):
+                    codes = row[key].split(':')
+                    row[key] = ':'.join(codes + [c for c in value.split(':') if c not in codes])
+                elif not row.get(key):
+                    row[key] = value
+            return True
+    return False
+
+
+def convert_rmag_2_to_3(input_dir=".", output_dir=".", data_model=None):
+    """
+    Translate the 2.5 rock magnetic tables (rmag_anisotropy, rmag_hysteresis,
+    rmag_remanence, rmag_susceptibility, rmag_results) into rows of the 3.0
+    specimens (samples, sites) tables, appended to those already in output_dir.
+
+    Anisotropy tensors become ``aniso_s`` cells and their eigenparameters from
+    rmag_results ``aniso_v1..v3`` on the same row (matched by specimen, type and
+    tilt correction); hysteresis, remanence and susceptibility parameters are
+    renamed per the data model's previous_columns; results naming one sample or
+    site go to the samples or sites table. Identical rows are written once.
+
+    Parameters
+    ----------
+    input_dir : str
+        directory with the 2.5 tables
+    output_dir : str
+        directory with the 3.0 tables (specimens.txt etc. are rewritten with the new rows)
+    data_model : data_model3.DataModel, optional
+
+    Returns
+    -------
+    translated : list of str
+        2.5 files translated
+    written : dict
+        {3.0 table name: number of rows added}
+    left : list of str
+        notes on rows that could not be placed (results naming several sites)
+    """
+    if data_model is None:
+        from . import data_model3 as dm3
+        data_model = dm3.DataModel()
+    translated, left = [], []
+    new_rows = {'specimens': [], 'samples': [], 'sites': []}
+    results = []
+    for table in RMAG_TABLES:
+        fname = os.path.join(input_dir, table + '.txt')
+        if not os.path.exists(fname):
+            continue
+        data, filetype = magic_read(fname)
+        if not data:
+            continue
+        translated.append(table + '.txt')
+        if table == 'rmag_results':
+            results = data
+            continue
+        mapping = rmag_2_to_3_map(table, 'specimens', data_model)
+        lists = set(data_model.dm['specimens'].index[data_model.dm['specimens']['type'] == 'List'])
+        for rec in data:
+            new_rows['specimens'].append(convert_rmag_record(table, rec, mapping, lists))
+    maps = {}
+    for rec in results:
+        dtype = rmag_result_level(rec)
+        if dtype is None:
+            left.append('rmag_results.txt row for {} names several sites'.format(
+                rec.get('er_site_names') or rec.get('er_location_names') or '?'))
+            continue
+        if dtype not in maps:
+            maps[dtype] = (rmag_2_to_3_map('rmag_results', dtype, data_model),
+                           set(data_model.dm[dtype].index[data_model.dm[dtype]['type'] == 'List']))
+        new_rec = convert_rmag_record('rmag_results', rec, *maps[dtype])
+        if not _merge_rmag_result(new_rec, new_rows[dtype]):
+            new_rows[dtype].append(new_rec)
+    written = {}
+    for dtype, rows in new_rows.items():
+        if not rows:
+            continue
+        rows = [dict(t) for t in {tuple(sorted(r.items())) for r in rows}]        # identical rows once
+        rows.sort(key=lambda r: (r.get(dtype[:-1], ''), r.get('aniso_type', ''), r.get('aniso_tilt_correction', '')))
+        ofile = os.path.join(output_dir, dtype + '.txt')
+        existing = magic_read(ofile)[0] if os.path.exists(ofile) else []
+        df = pd.DataFrame(existing + rows)
+        new_df = cb.MagicDataFrame(dtype=dtype, df=df, dmodel=data_model)
+        new_df.write_magic_file(dir_path=output_dir)
+        written[dtype] = len(rows)
+    return translated, written, left
 
 
 def convert_criteria_file_2_to_3(fname="pmag_criteria.txt", input_dir=".",
@@ -1432,6 +1669,7 @@ def dia_vgp(*args):  # new function interface by J.Holmes, SIO, 6/1/2011
 
 def get_curve(araiblock,**kwargs):
 #   curvature stuff
+    import SPD.lib.leastsq_jacobian as lib_k
     pars={}
     first_Z,first_I=araiblock[0],araiblock[1]
     first_Z=np.array(first_Z).transpose()
@@ -2662,6 +2900,10 @@ def tauV(T):
     t, V, tr = [], [], 0.
     ind1, ind2, ind3 = 0, 1, 2
     evalues, evectmps = linalg.eig(T)
+    # a symmetric tensor has real eigenvalues; eig hands them back as complex with a zero
+    # imaginary part, which would otherwise be discarded with a ComplexWarning downstream
+    if np.iscomplexobj(evalues) and not np.any(evalues.imag) and not np.any(evectmps.imag):
+        evalues, evectmps = evalues.real, evectmps.real
     # to make compatible with Numeric convention
     evectors = np.transpose(evectmps)
     for tau in evalues:

@@ -227,6 +227,18 @@ with sync_playwright() as playwright:
                   f"the group dot plot rendered (got {groups})")
         page.screenshot(path=f"{prefix}_{label.split()[0].lower()}.png")
 
+    # ---- show code: the family's rule that a view says what it ran ------
+    # back to Specimen: the loop above finished on Export, and a lazy tab's
+    # widgets are not in the document while another tab is showing
+    page.evaluate(CLICK_TAB_JS, "Specimen")
+    time.sleep(3)
+    # what the pane *says* is asserted in test_app.py's TestShowCode, which also
+    # runs the emitted script in a subprocess and compares its answer with the
+    # panel's -- stronger than grepping a Markdown block out of the DOM. Here we
+    # only want to know the control reached the page.
+    check(page.evaluate(CLICK_BUTTON_JS, "Show code"), "the specimen view offers Show code")
+    time.sleep(1)
+
     # ---- criteria: every statistic is a row, and a row explains itself ----
     page.evaluate(CLICK_TAB_JS, "Criteria & statistics")
     time.sleep(4)

@@ -10,6 +10,8 @@ import asyncio
 import json
 import os
 import shutil
+import subprocess
+import sys
 
 import matplotlib
 import numpy as np
@@ -584,6 +586,67 @@ class TestPublication:
             data.set_interpretation(name, 0, min(5, data.specimens[name].arai.n - 1))
         written = pub.all_specimen_figures(data, str(tmp_path), specimens=names)
         assert len(written) == 3
+
+
+# ---------------------------------------------------------------------------
+class TestShowCode:
+    """HUB_PLAN §3: every view emits the Python that reproduces what it shows.
+
+    The test that matters is not that the text exists but that it *runs* and
+    gives the panel's own answer, so one of them is executed in a subprocess.
+    """
+
+    def test_every_view_emits_a_script(self, study):
+        study.specimen = "hz05a1"
+        for view in (SpecimenView(study), CriteriaView(study), GroupView(study),
+                     BicepView(study)):
+            if hasattr(view, "set_active"):
+                view.set_active(True)
+            else:
+                view.redraw()
+            text = view.code.text
+            assert "import pmagpy.paleointensity as pint" in text, type(view).__name__
+            assert study.directory in text, type(view).__name__
+            compile(text, "<show code>", "exec")          # it is at least valid Python
+
+    def test_the_specimen_script_runs_and_gives_the_panel_s_answer(self, study, tmp_path):
+        study.specimen = "hz05a1"
+        view = SpecimenView(study)
+        view.redraw()
+        script = tmp_path / "shown.py"
+        script.write_text(view.code.text + "\nprint('B=%.4f' % result.b_anc)\n")
+        env = dict(os.environ, PYTHONPATH=REPO, MPLBACKEND="Agg")
+        out = subprocess.run([sys.executable, str(script)], capture_output=True, text=True,
+                             env=env, timeout=600)
+        assert out.returncode == 0, out.stderr[-2000:]
+        shown = float(out.stdout.rsplit("B=", 1)[1].split()[0])
+        assert abs(shown - study.result.b_anc) < 1e-4      # the four places it prints
+
+    def test_a_saved_figure_comes_with_the_calls_that_drew_it(self, workdir):
+        src, out = workdir
+        session = Session(src, out)
+        session.specimen = session.data.specimen_names[0]
+        session.auto_interpret([session.specimen])
+        view = ExportView(session)
+        view.figure_kind.value = "arai"
+        view._save_figure()
+        beside = os.path.join(out, f"arai_{session.specimen}.py")
+        assert os.path.exists(beside)
+        text = open(beside).read()
+        assert text.startswith("# written by PmagPy Intensity")
+        assert "pub.specimen_figure" in text and "figure.savefig" in text
+        compile(text, beside, "exec")
+
+    def test_exported_tables_come_with_the_calls_that_wrote_them(self, workdir):
+        src, out = workdir
+        session = Session(src, out)
+        session.auto_interpret()
+        ExportView(session)._export()
+        beside = os.path.join(out, "specimens_export.py")
+        assert os.path.exists(beside)
+        text = open(beside).read()
+        assert "data.write_specimens" in text and "data.validate_output" in text
+        compile(text, beside, "exec")
 
 
 # ---------------------------------------------------------------------------

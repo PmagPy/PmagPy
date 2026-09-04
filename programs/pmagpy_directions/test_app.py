@@ -362,6 +362,43 @@ class TestExportView:
         view._save_vgp_maps()
         assert "vgps_A" in view.status.object
 
+    def test_criteria_are_opt_in_and_reach_the_written_tables(self, tmp_path):
+        from pmagpy_directions.views import ExportView
+        from pmagpy.magic_project import magic_write
+        src = tmp_path / "data"
+        shutil.copytree(_DMAG, src)
+        out = tmp_path / "out"
+        s = Session(str(src), output_dir=str(out))
+        view = ExportView(s)
+        assert view.criteria.disabled and s.criteria_count() == 0 and "no <code>criteria.txt" in view.criteria_note.object
+        magic_write(str(src / "criteria.txt"), pd.DataFrame([
+            {"criterion": "DE-SPEC", "table_column": "specimens.dir_mad_free", "criterion_operation": "<=",
+             "criterion_value": "2.0", "citations": "This study"},
+            {"criterion": "IE-SPEC", "table_column": "specimens.int_b_beta", "criterion_operation": "<=",
+             "criterion_value": "0.1", "citations": "This study"}]), "criteria")
+        assert s.load(str(src), str(out))
+        assert s.criteria_count() == 1 and not view.criteria.disabled and "1 directional" in view.criteria.name
+        assert not s.apply_criteria and "not applied" in view.criteria_note.object
+        version = s.version
+        s.apply_criteria = True                                    # the checkbox is bound to this
+        assert s.version == version + 1 and s.data.criteria is not None
+        failing = s.data.failing_components()
+        assert len(failing) > 20 and f"{len(failing)} fits fail DE-SPEC" in view.criteria_note.object
+        view._write()
+        spec = pd.read_csv(out / "specimens.txt", sep="\t", skiprows=1, dtype=str)
+        mine = spec[spec["software_packages"].fillna("").str.contains(dc.APP_ID)]
+        bad = mine[mine["result_quality"] == "b"]
+        assert set(zip(bad["specimen"], bad["dir_comp"])) == failing
+        sites = pd.read_csv(out / "sites.txt", sep="\t", skiprows=1, dtype=str)
+        written = sites[sites["software_packages"].fillna("").str.contains(dc.APP_ID)]
+        coords = s.default_mean_coords()
+        with_criteria = sum(s.data.mean_directions("site", c)["dir_n_specimens"].sum() for c in coords)
+        without = sum(s.data.mean_directions("site", c, include_bad=True)["dir_n_specimens"].sum() for c in coords)
+        assert written["dir_n_specimens"].astype(float).sum() == with_criteria < without
+        s.apply_criteria = False                                   # off again: nothing is flagged
+        assert s.data.criteria is None and s.data.failing_components() == set()
+        assert (s.data.specimens_table(coords=(dc.COORD_GEOGRAPHIC,))["result_quality"] == "g").all()
+
     def test_in_place_export_backs_up_originals(self, tmp_path):
         src = tmp_path / "data"
         shutil.copytree(_DMAG, src)
@@ -437,6 +474,111 @@ class TestSpecimenView:
         assert view.zij.fig.frame_width == 600 and view.eq.fig.width > net0
         view.plot_size.value = frame0
         assert view.zij.fig.frame_width == frame0 and view.eq.fig.width == net0
+
+    def test_a_bad_step_is_faded_and_left_out_of_the_path(self, tmp_path):
+        """Flagging a step bad fades its symbol on the net and the M/M₀ strip and breaks the connecting line there."""
+        from pmagpy_directions.plots import BAD_ALPHA
+        from pmagpy_directions.views import SpecimenView
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        view = SpecimenView(s)
+        n = s.spec.n_steps
+        assert list(view.eq.src.data["alpha"]) == [1.0] * n and len(view.eq.path.data["x"]) == n
+        assert list(view.decay.src.data["alpha"]) == [1.0] * n and len(view.decay.path.data["x"]) == n
+
+        s.toggle_step(4)
+        assert s.spec.steps["quality"].iloc[4] == "b"
+        for plot in (view.eq, view.decay):
+            alpha = list(plot.src.data["alpha"])
+            assert alpha[4] == BAD_ALPHA and alpha.count(1.0) == n - 1
+            assert len(plot.src.data["x"]) == n                    # the symbol itself is still drawn
+            assert len(plot.path.data["x"]) == n - 1               # the line skips it
+        assert list(view.decay.path.data["x"]) == [x for i, x in enumerate(view.decay.src.data["x"]) if i != 4]
+
+        s.toggle_step(4)
+        assert list(view.eq.src.data["alpha"]) == [1.0] * n and len(view.decay.path.data["x"]) == n
+
+    def test_new_fit_creates_and_selects_a_fit_at_once(self, tmp_path):
+        """New fit makes a fit immediately (after the last one, or over all steps); clicks then move its bounds."""
+        from pmagpy_directions.views import SpecimenView
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        view = SpecimenView(s)
+        n = s.spec.n_steps
+        s.delete_components(s.components())
+        assert s.current is None
+
+        view._new_fit()
+        first = s.current
+        assert first is not None and (first.imin, first.imax) == (0, n - 1)
+        assert first.fit_type == view.fit_type_sel.value
+        assert first.name in view.comp_table.value["fit"].tolist()
+        assert "tap a point" in s.status
+
+        # the next plot taps shape the new fit rather than starting another one
+        view._pick(3)
+        assert (first.imin, first.imax) == (3, n - 1) and len(s.components()) == 1
+        view._pick(n - 3)
+        assert (first.imin, first.imax) == (3, n - 3)
+
+        # a second new fit starts where the last one ends, and gets the next letter
+        view._new_fit()
+        second = s.current
+        assert second is not first and (second.imin, second.imax) == (n - 3, n - 1)
+        assert [c.name for c in s.components()] == [first.name, second.name] == ["A", "B"]
+
+        # nothing left above the last fit: the new one spans everything again
+        view._new_fit()
+        assert (s.current.imin, s.current.imax) == (0, n - 1)
+
+    def test_clicking_a_step_selects_it_and_arrows_move_the_selection(self, tmp_path):
+        """A left click in the logger selects a step (no bound moves); it is ringed on all three plots."""
+        from pmagpy_directions.views import SpecimenView
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        view = SpecimenView(s)
+        n = s.spec.n_steps
+        cur = s.current
+        bounds = (cur.imin, cur.imax)
+        assert view.step is None and view.logger.selected == -1
+        for plot in (view.zij, view.eq, view.decay):
+            assert plot.mark_src.data["x"] == []
+
+        view.logger.clicked = {"row": 5, "button": "left", "n": 1}
+        assert view.step == 5 and view.logger.selected == 5
+        assert (cur.imin, cur.imax) == bounds                        # the fit is untouched
+        # the ring sits on the step: on the Zijderveld in both projections
+        zx, zy = view.zij.mark_src.data["x"], view.zij.mark_src.data["y"]
+        assert zx == [view.zij._xy[0][5]] * 2 and zy == [view.zij._xy[1][5], view.zij._xy[2][5]]
+        assert view.eq.mark_src.data["x"] == [view.eq.src.data["x"][5]]
+        assert view.decay.mark_src.data["x"] == [view.decay.src.data["x"][5]]
+
+        # ↑ ↓ move it, clamped to the table
+        view.hotkeys.key = "ArrowDown"; view.hotkeys.n += 1
+        assert view.step == 6
+        view.hotkeys.key = "ArrowUp"; view.hotkeys.n += 1
+        view.hotkeys.key = "ArrowUp"; view.hotkeys.n += 1
+        assert view.step == 4
+        view.select_step(n - 1)
+        view.hotkeys.key = "ArrowDown"; view.hotkeys.n += 1
+        assert view.step == n - 1
+        assert view.decay.mark_src.data["x"] == [view.decay.src.data["x"][n - 1]]
+
+        # the ring follows a redraw (a coordinate change moves the points)
+        s.coord = dc.COORD_GEOGRAPHIC
+        assert view.eq.mark_src.data["x"] == [view.eq.src.data["x"][n - 1]]
+
+        # clicking the selected step again clears the selection; a right click still flags
+        view.logger.clicked = {"row": n - 1, "button": "left", "n": 2}
+        assert view.step is None and view.eq.mark_src.data["x"] == []
+        view.logger.clicked = {"row": 2, "button": "right", "n": 3}
+        assert s.spec.steps["quality"].iloc[2] == "b" and view.step is None
+        s.toggle_step(2)
+
+        # from nothing, ↓ starts at the first step; a new specimen clears the selection
+        view.hotkeys.key = "ArrowDown"; view.hotkeys.n += 1
+        assert view.step == 0
+        s.step_specimen(+1)
+        assert view.step is None and view.logger.selected == -1
+        for plot in (view.zij, view.eq, view.decay):
+            assert plot.mark_src.data["x"] == []
 
 
 class TestInterpretationsView:
@@ -556,6 +698,49 @@ class TestMeansView:
         stored = s.data.best_fit_vectors(s.active_coord)
         for vdec, vinc, spec, comp, _col in vectors:
             assert stored[(spec, comp)] == pytest.approx((vdec, vinc), abs=0.01)
+
+    def test_selected_fit_is_ringed_on_the_net_and_arrows_move_it(self, tmp_path):
+        """Selecting a row (or ↑ ↓) singles out that fit on the net: a ring, or a heavy great circle for a plane."""
+        from pmagpy_directions.views import MeansView, SpecimenView
+        mcmurdo = os.path.join(_HERE, "..", "..", "data_files", "3_0", "McMurdo")
+        s = Session(mcmurdo, output_dir=str(tmp_path))
+        specimen, means = SpecimenView(s), MeansView(s)
+        means.level.value, means.comp.value = "site", "all"
+        means.name.value = "mc01"
+        assert means.plot.mark_src.data["x"] == [] and means.plot.mark_circle_src.data["xs"] == []
+        n_lines, n_planes = len(means._records), len(means._plane_records)
+        assert n_lines >= 2 and n_planes == 2
+
+        means.table.selection = [1]
+        rec = means._records[1]
+        x, y = dc.equal_area_xy([rec["_dec"]], [rec["_inc"]])
+        assert means.plot.mark_src.data == {"x": [float(x[0])], "y": [float(y[0])]}
+        assert means.plot.mark_circle_src.data["xs"] == []
+
+        # ↑ ↓ reach the Means view only while its tab shows (the app routes them)
+        specimen.arrow_target = means
+        for _ in range(n_lines - 2):                                    # from row 1 to the last line
+            specimen.hotkeys.key = "ArrowDown"; specimen.hotkeys.n += 1
+        assert means.table.selection == [n_lines - 1] and means.plane_table.selection == []
+        specimen.hotkeys.key = "ArrowDown"; specimen.hotkeys.n += 1      # ... on into the planes table
+        assert means.table.selection == [] and means.plane_table.selection == [0]
+        assert means.plot.mark_src.data["x"] == [] and len(means.plot.mark_circle_src.data["xs"]) == 1
+        pdec, pinc = means._plane_records[0]["_dec"], means._plane_records[0]["_inc"]
+        gx, _gy = dc.great_circle_xy(pdec, pinc)
+        assert means.plot.mark_circle_src.data["xs"][0] == list(gx)
+        specimen.hotkeys.key = "ArrowDown"; specimen.hotkeys.n += 1
+        specimen.hotkeys.key = "ArrowDown"; specimen.hotkeys.n += 1      # clamped at the last plane
+        assert means.plane_table.selection == [n_planes - 1]
+        specimen.hotkeys.key = "ArrowUp"; specimen.hotkeys.n += 1
+        specimen.hotkeys.key = "ArrowUp"; specimen.hotkeys.n += 1
+        assert means.table.selection == [n_lines - 1] and means.plot.mark_circle_src.data["xs"] == []
+
+        # a fit flagged bad is not plotted, so nothing is ringed for it
+        means.table.selection = [0]
+        means._flag()
+        assert means._records[0]["q"] == "b" and means.plot.mark_src.data["x"] == []
+        means._flag()
+        assert means.plot.mark_src.data["x"] != []
 
     def test_statistic_selector_switches_what_is_averaged(self, tmp_path):
         """Fisher of the whole set, a mean per polarity mode, or the axial Bingham mean."""

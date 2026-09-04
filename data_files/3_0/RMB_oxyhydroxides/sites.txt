@@ -1,0 +1,8 @@
+tab 	sites
+age	age_unit	citations	geologic_classes	geologic_types	lat	lithologies	location	lon	method_codes	site
+2000	Years AD (+/-)	This study	Not Specified	Not Specified	44.9753	Not Specified	RMB oxyhydroxides	266.7655	LP-X:LP-X-T:LP-X-F:LP-X-T:LP-MST:LP-FC:LP-ZFC:LP-CW-SIRM:LP-MC:LP-CW-SIRM:LP-MW	RMB akaganeite (beta FeOOH)
+2000	Years AD (+/-)	This study	Not Specified	Not Specified	44.9753	Not Specified	RMB oxyhydroxides	266.7655	LP-X:LP-X-T:LP-X-F:LP-X-T:LP-MST:LP-FC:LP-ZFC:LP-CW-SIRM:LP-MC:LP-CW-SIRM:LP-MW	RMB ferrihydrite
+2000	Years AD (+/-)	This study	Not Specified	Not Specified	44.9753	Not Specified	RMB oxyhydroxides	266.7655	LP-X:LP-X-T:LP-X-F:LP-X-T:LP-MST:LP-FC:LP-ZFC:LP-CW-SIRM:LP-MC:LP-CW-SIRM:LP-MW	RMB ferrihydrite (5Fe2O3 . 9H20)
+2000	Years AD (+/-)	This study	Not Specified	Not Specified	44.9753	Not Specified	RMB oxyhydroxides	266.7655	LP-X:LP-X-T:LP-X-F:LP-X-T:LP-MST:LP-FC:LP-ZFC:LP-CW-SIRM:LP-MC:LP-CW-SIRM:LP-MW	RMB goethite (alpha FeOOH)
+2000	Years AD (+/-)	This study	Not Specified	Not Specified	44.9753	Not Specified	RMB oxyhydroxides	266.7655	LP-X:LP-X-T:LP-X-F:LP-X-T:LP-MST:LP-FC:LP-ZFC:LP-CW-SIRM:LP-MC:LP-CW-SIRM:LP-MW	RMB lepidocrocite (gamma FeOOH)
+2000	Years AD (+/-)	This study	Not Specified	Not Specified	44.9753	Not Specified	RMB oxyhydroxides	266.7655	LP-X:LP-X-T:LP-X-F:LP-X-T:LP-MST:LP-FC:LP-ZFC:LP-CW-SIRM:LP-MC:LP-CW-SIRM:LP-MW	RMB schwertmannite (hydrated oxyhydroxide)

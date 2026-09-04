@@ -86,3 +86,59 @@ class TestUploadMagicCountColumns:
                                     validate=False, verbose=False)
         tables = _parse_tables(result[0])
         assert tables['locations'][0]['pole_n_sites'] == '50'
+
+
+class TestValidateMagic:
+    """validate_magic downloads through the download functions and re-assembles the contribution offline."""
+
+    EXAMPLE = os.path.join(os.path.dirname(__file__), '..', '..', 'data_files', 'download_magic',
+                           'magic_contribution_19340.txt')
+
+    def test_a_private_contribution_goes_through_download_magic_from_id(self, tmp_path, monkeypatch):
+        import shutil
+        calls = {}
+
+        def fake_download(magic_id, directory='.', share_key=""):
+            calls.update(id=magic_id, directory=directory, share_key=share_key)
+            shutil.copy(self.EXAMPLE, os.path.join(directory, 'magic_contribution_19340.txt'))
+            return True, 'magic_contribution_19340.txt'
+
+        monkeypatch.setattr(ipmag, 'download_magic_from_id', fake_download)
+        monkeypatch.setattr(ipmag, 'upload_magic', lambda **kw: (os.path.join(kw['dir_path'], 'x_upload.txt'), {}, None, None))
+        top = str(tmp_path / 'project')
+        magic_dir, upload_file = ipmag.validate_magic(top, contribution_id=19340, private_key='abc')
+        assert magic_dir == os.path.join(top, 'MagIC') and upload_file == 'x_upload.txt'
+        assert calls == {'id': 19340, 'directory': magic_dir, 'share_key': 'abc'}   # the key rides with the id
+        assert os.path.exists(os.path.join(magic_dir, 'measurements.txt'))         # unpacked
+
+    def test_a_failed_download_is_reported_not_raised(self, tmp_path, monkeypatch, capsys):
+        monkeypatch.setattr(ipmag, 'download_magic_from_doi', lambda doi, dir_path='.': (False, 'no such DOI'))
+        assert ipmag.validate_magic(str(tmp_path / 'p'), doi='10.0/nothing') == (False, False)
+        assert 'no such DOI' in capsys.readouterr().out
+        assert ipmag.validate_magic(str(tmp_path / 'p')) == (False, False)
+
+
+class TestUploadToPrivateContribution:
+    def test_the_file_is_sent_in_binary_and_the_reply_is_reported(self, tmp_path, monkeypatch):
+        path = tmp_path / 'upload.txt'
+        path.write_text('tab\tcontribution\n')
+        seen = {}
+
+        class Reply:
+            status_code = 202
+
+            class request:
+                url = 'https://api.earthref.org/v1/MagIC/private?id=1'
+
+        def fake_put(url, params=None, auth=None, headers=None, data=None):
+            seen.update(url=url, params=params, auth=auth, mode=data.mode)
+            return Reply()
+
+        monkeypatch.setattr(ipmag.requests, 'put', fake_put)
+        response = ipmag.upload_to_private_contribution(1, str(path), 'me', 'pw')
+        assert response['status_code'] is True and response['errors'] == 'None'
+        assert seen == {'url': 'https://api.earthref.org/v1/MagIC/private', 'params': {'id': 1},
+                        'auth': ('me', 'pw'), 'mode': 'rb'}
+        # a missing file is a reason, not a crash
+        response = ipmag.upload_to_private_contribution(1, str(tmp_path / 'absent.txt'))
+        assert response['status_code'] is False and 'absent.txt' in response['errors']

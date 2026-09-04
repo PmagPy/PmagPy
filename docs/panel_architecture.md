@@ -150,6 +150,12 @@ asserted in both browser suites.
   main pane; only a tab that plots nothing takes the full width.
 * **Tables** get the height of what they hold, use `TABLE_ROW_CSS` so hovered
   and selected rows stay readable, and never mix quantities under one heading.
+* **Every pathway documents itself** (HUB_PLAN §3). A view can emit the Python
+  that reproduces its current result from the core functions — `code.CodePane`
+  shows it on request — and every export writes the same script beside the file
+  through `code.write_beside`. It is a real constraint on the core, not a
+  presentation flourish: a script that runs is only possible because the
+  science takes no UI object as an argument.
 * **A number that cannot be computed says so in words.** Neither application
   prints `-999`; both distinguish *not applicable* from *unavailable* from
   *undefined*, and both browser suites fail if a sentinel appears on screen.

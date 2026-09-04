@@ -130,14 +130,21 @@ only sample orientations are, specimen coordinates otherwise, and a
 specimen lacking the chosen system falls back to the next one down), Zijderveld projection (x = East,
 North or NRM dec, with the legacy axis labelling), step-label
 density, and the *step logger*: every measurement in sequence with dec, inc,
-moment and csd. Right click toggles a measurement good/bad (struck through
-and tagged). Fits are edited without modes or buttons: with a fit selected,
-clicking a step (in the logger, or tapping a point on the Zijderveld or
-equal-area plot) moves its nearest bound and the fit recomputes at once;
+moment and csd. Clicking a row selects that step: it is set bold in the
+logger and ringed on the Zijderveld (both projections), the net and the
+M/M₀ strip, so one measurement can be followed across the three views; `↑`
+`↓` move the selection, a second click (or a change of specimen) clears it.
+Right click toggles a measurement good/bad (struck through
+and tagged; on the plots a bad step is an open symbol on the Zijderveld, a
+faded one on the net and the M/M₀ strip, and the connecting line skips it). Fits are edited without modes or buttons: with a fit selected,
+tapping a point on the Zijderveld or equal-area plot moves its nearest bound
+and the fit recomputes at once;
 box-selecting a range sets both bounds; the bound, fit-type and name fields
 apply live; `[` `]` nudge the lower bound and `{` `}` the upper. *New fit*
-deselects, and the next two steps clicked become a new fit (named with the
-next free letter unless you type a name). `←` `→` step through specimens.
+creates a fit at once — from the end of the last fit to the final step, or
+over all steps — named with the next free letter and selected, so the next
+taps place its bounds. With no fit selected, two tapped points also make a
+fit. `←` `→` step through specimens.
 Fit types: line, anchored line, line through the origin, plane, Fisher
 mean; the same fit name gets the same colour on every specimen and plot.
 Fit lines carry an arrowhead at their outward end — the fitted direction is
@@ -163,7 +170,10 @@ their columns are different things and reading a pole to a plane under
 the same *dec/inc* heading as a line is what makes the two look alike. A
 plane is listed by the pole that defines it (*pole dec*, *pole inc*) and
 the vector it resolves to (*bfv dec*, *bfv inc*), which is the pair drawn
-as the triangle. The VGP the mean implies is on the Poles
+as the triangle. Selecting a row (click, or `↑` `↓`, which walk the lines
+and then the planes) rings that direction on the net — a plane's great
+circle is drawn heavy instead — so a stray direction in the table can be
+found in the plot and vice versa; *Go to specimen* opens it. The VGP the mean implies is on the Poles
 tab, which draws it on the globe, rather than in the statistics table.
 *Statistic* offers two more ways to average the plotted directions: a Fisher
 mean of each polarity mode on its own (the comparison a reversal test rests
@@ -230,6 +240,22 @@ publication figures for the current specimen or for every interpreted
 specimen (PDF/SVG/PNG; panel, inset or Zijderveld-only layout), a
 "directions for all specimens" overview (one net per component) and the
 VGP maps.
+
+**Acceptance criteria** (opt-in, on the Export pane). When the directory
+holds a `criteria.txt` with `DE-SPEC` / `DE-SAMP` / `DE-SITE` rows (the
+hub's Metadata page writes one), ticking *apply criteria* judges the fits
+and means by them the way the legacy tools did with `pmag.grade`: a
+component failing `DE-SPEC` is written with `result_quality` 'b' and left
+out of the means, as one flagged by hand is; a sample or site mean failing
+its criterion is written 'b' and left out of the level above (site means
+over samples, location means, poles). The Means and Poles tabs follow the
+setting, so what is shown is what is written. One deliberate difference
+from `pmag.grade`: a statistic a row does not carry (`dir_alpha95` on a
+line fit, `dir_mad_free` on a Fisher mean) does not fail the criterion —
+one table mixes fit types with different statistics, and McMurdo's own
+`DE-SPEC dir_alpha95 <= 180` would otherwise reject every line fit. Nothing
+is applied unless the box is ticked; intensity criteria (`IE-*`) and the
+pole criteria (`NPOLE`/`RPOLE`) are not the concern of this application.
 
 ### Persistence model
 
@@ -375,9 +401,9 @@ Worth knowing before relying on the app:
   step. This is the only systematic difference found in full regressions
   against the published interpretations of two studies (Oman: 3 of 522
   fits; Jacobsville: 20 of 578).
-* **Not yet carried over from the legacy GUI:** acceptance-criteria
-  filtering on export, the ages dialog, `images.txt` records,
-  auto-interpretation and LSQ import.
+* **Not yet carried over from the legacy GUI:** the ages dialog (the hub's
+  Metadata page covers it), `images.txt` records, auto-interpretation and
+  LSQ import.
 * **The polarity modes are not labelled normal and reversed.** Which mode is
   which follows from the polarity of its VGP, not from the directions — in
   the southern hemisphere normal polarity is the steeply *negative* mode, as

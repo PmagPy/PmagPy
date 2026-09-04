@@ -759,9 +759,12 @@ class Contribution(object):
         for col in col_names:
             # if there has been a previous merge, consolidate and delete data
             if col + "_target" in target_df.columns:
-                # prioritize values from target df
-                new_arr = np.where(target_df[col + "_target"],
-                                   target_df[col + "_target"],
+                # prioritize values from target df; a missing target value is
+                # None, NaN or "" (NaN is truthy, so test explicitly)
+                target_vals = target_df[col + "_target"]
+                has_target = target_vals.notnull() & (target_vals.astype(str) != "")
+                new_arr = np.where(has_target,
+                                   target_vals,
                                    target_df[col + "_source"])
                 target_df.rename(columns={col + "_target": col}, inplace=True)
                 target_df[col] = new_arr
@@ -843,7 +846,9 @@ class Contribution(object):
         for col in cols:
             res = grouped.apply(func, col)
             target_df.df['new_' + col] = res
-            target_df.df[col] = np.where(target_df.df[col], target_df.df[col], target_df.df['new_' + col])
+            existing = target_df.df[col]
+            has_value = existing.notnull() & (existing.astype(str) != "")
+            target_df.df[col] = np.where(has_value, existing, target_df.df['new_' + col])
             target_df.df.drop(['new_' + col], axis='columns', inplace=True)
         # set table
         self.tables[target_df_name] = target_df
@@ -1115,9 +1120,11 @@ class Contribution(object):
             # fill in table with values gleaned from ages
             new_df = pd.DataFrame(data=list(res.values), index=res.index,
                                   columns=available_age_headers)
-            age_values = np.where(self.tables[table_name].df[available_age_headers],
-                                  self.tables[table_name].df[available_age_headers],
-                                  new_df)
+            # keep an existing age; take the ages-table value where the
+            # table's is None, NaN or "" (NaN is truthy, so test explicitly)
+            existing = self.tables[table_name].df[available_age_headers]
+            has_age = existing.notnull() & (existing.astype(str) != "")
+            age_values = np.where(has_age, existing, new_df)
             self.tables[table_name].df[available_age_headers] = age_values
         #
         # put age_high, age_low into locations table
@@ -1565,10 +1572,18 @@ class MagicDataFrame(object):
             for col_label in self.df.columns:
                 if col_label not in list(row_data.keys()):
                     row_data[col_label] = None
-        try:
-            self.df.iloc[ind] = pd.Series(row_data)
-        except IndexError:
+        if ind >= len(self.df) or ind < -len(self.df):
             return False
+        # set positionally, column by column: iloc does not align a Series
+        # by label, and a column whose dtype cannot hold the new value
+        # (a string into float64) is widened to object first
+        for col_num, col_label in enumerate(self.df.columns):
+            value = row_data[col_label]
+            try:
+                self.df.iloc[ind, col_num] = value
+            except (TypeError, ValueError):
+                self.df[col_label] = self.df[col_label].astype(object)
+                self.df.iloc[ind, col_num] = value
         return self.df
 
     def add_row(self, label, row_data, columns=""):

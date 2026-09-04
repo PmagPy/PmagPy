@@ -17,6 +17,8 @@ nothing in it yet starts its life.
 
 The session it is given only has to answer ``directory``, ``status`` and
 ``load(path) -> bool``; ``output_dir`` is watched when the session has one.
+A session that re-reads the same directory (after a save, say) triggers
+``directory`` to have the chooser's counts follow.
 
 This began as Yiming Zhang's ``chooser.py`` on the intensity branch; the
 system dialog now runs as a coroutine (:func:`pmagpy_panel.runtime.choose_directory`)
@@ -113,7 +115,7 @@ class DirectoryChooser:
         self.browser.param.watch(self._on_browse, "value")
         self.load_btn.on_click(self.load)
         watched = [p for p in ("directory", "output_dir") if p in session.param]
-        session.param.watch(lambda e: self.refresh(), watched)
+        session.param.watch(lambda *events: self.refresh(), watched)
         self.refresh()
 
     # ----- state ------------------------------------------------------------
@@ -152,7 +154,7 @@ class DirectoryChooser:
             self.native_btn.disabled = not self.chooser_available
         if chosen:
             self.path.value = chosen
-            self.load()
+            runtime.locked(self.load)      # async callbacks run unlocked; loading redraws Bokeh figures
         else:
             self.message.object = f'<div style="{MUTED_STYLE}">No folder chosen.</div>'
 
@@ -189,13 +191,17 @@ class DirectoryChooser:
         return pn.Column(pn.pane.HTML(f'<div style="{SECTION_STYLE}">Data</div>'),
                          pn.Row(self.summary, self.change_btn), sizing_mode="stretch_width")
 
+    @staticmethod
+    def heading_html(title: str, note: str = "") -> str:
+        """The dialog's heading — a host that opens the chooser for more than one purpose sets a new one."""
+        return f'<h3 style="margin:0 0 6px 0">{title}</h3>' + (f'<div style="{MUTED_STYLE}">{note}</div>' if note else "")
+
     def modal(self, *extra, width: int = 760) -> pn.Column:
-        """The dialog, with anything the application wants to add underneath."""
+        """The dialog, with anything the application wants to add underneath; ``[0][0]`` is the heading pane."""
         fallback = pn.Card(self.browser, collapsed=True, sizing_mode="stretch_width",
                            title="In-page browser (for sessions served from another machine)")
         block = pn.Column(
-            pn.pane.HTML(f'<h3 style="margin:0 0 6px 0">{self.title}</h3>'
-                         + (f'<div style="{MUTED_STYLE}">{self.note}</div>' if self.note else "")),
+            pn.pane.HTML(self.heading_html(self.title, self.note)),
             pn.Row(self.native_btn, self.message),
             self.recent, pn.Row(self.path, self.load_btn), fallback,
             sizing_mode="stretch_width")

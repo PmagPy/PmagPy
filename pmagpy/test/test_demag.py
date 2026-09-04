@@ -839,3 +839,112 @@ class TestDefaultCoordinates:
         data.specimens[names[0]].steps["dec_g"] = np.nan
         assert data.best_coord(names[0], COORD_TILT) == COORD_SPECIMEN
         assert data.best_coord(names[-1], COORD_SPECIMEN) == COORD_SPECIMEN     # never upgrades
+
+
+# --------------------------------------------------------------------------
+# acceptance criteria
+# --------------------------------------------------------------------------
+def criteria_frame(*rows):
+    """A criteria table from (criterion, table_column, operation, value) tuples."""
+    return pd.DataFrame([{"criterion": c, "table_column": tc, "criterion_operation": op, "criterion_value": v,
+                          "citations": "This study"} for c, tc, op, v in rows])
+
+
+@pytest.fixture(scope="class")
+def judged():
+    """dmag_magic with its published fits: 165 components (37 planes), 23 site means, MADs 0.7-6.9."""
+    data = DemagData.from_directory(DMAG_DIR)
+    data.load_components_from_specimens_table()
+    return data
+
+
+class TestCriteria:
+    def test_only_directional_criteria_are_taken(self, judged):
+        table = pd.read_csv(os.path.join(MCMURDO_DIR, "criteria.txt"), sep="\t", header=1, dtype=str)
+        assert len(table) == 24                                  # DE-*, IE-*, NPOLE, RPOLE
+        assert judged.set_criteria(table) == 8                   # the DE-SPEC / DE-SAMP / DE-SITE rows
+        assert set(judged.criteria["criterion"]) == {"DE-SPEC", "DE-SAMP", "DE-SITE"}
+        assert judged.set_criteria(None) == 0 and judged.criteria is None
+        assert judged.set_criteria(criteria_frame()) == 0 and judged.criteria is None
+        assert judged.load_criteria() == 0                       # dmag_magic ships no criteria.txt
+
+    def test_without_criteria_nothing_fails(self, judged):
+        judged.set_criteria(None)
+        assert judged.failing_components() == set() and judged.failing_groups("site", COORD_GEOGRAPHIC) == set()
+        spec = judged.specimens_table(coords=(COORD_GEOGRAPHIC,))
+        assert (spec["result_quality"] == "g").all()
+
+    def test_failing_fits_are_flagged_and_left_out_of_the_means(self, judged):
+        before = judged.mean_directions("site", COORD_GEOGRAPHIC)
+        judged.set_criteria(criteria_frame(("DE-SPEC", "specimens.dir_mad_free", "<=", "2.0"),
+                                           ("DE-SPEC", "specimens.dir_n_measurements", ">=", "5")))
+        try:
+            rows = pd.DataFrame([r.to_record() for r in judged.fit_all(COORD_SPECIMEN)])
+            expect = set(zip(rows.loc[(rows["dir_mad_free"] > 2.0) | (rows["dir_n_measurements"] < 5), "specimen"],
+                             rows.loc[(rows["dir_mad_free"] > 2.0) | (rows["dir_n_measurements"] < 5), "dir_comp"]))
+            failing = judged.failing_components()
+            assert failing == expect and 40 < len(failing) < 120
+            spec = judged.specimens_table(coords=(COORD_SPECIMEN, COORD_GEOGRAPHIC))
+            bad = spec[spec["result_quality"] == "b"]
+            assert set(zip(bad["specimen"], bad["dir_comp"])) == failing      # flagged in every coordinate system
+            assert len(bad) == 2 * len(failing)
+            after = judged.mean_directions("site", COORD_GEOGRAPHIC)
+            assert after["dir_n_specimens"].sum() == len(rows) - len(failing) == before["dir_n_specimens"].sum() - len(failing)
+            lenient = judged.mean_directions("site", COORD_GEOGRAPHIC, include_bad=True)
+            assert lenient["dir_n_specimens"].sum() == before["dir_n_specimens"].sum()
+            # a plane left in the mean is still pinned down only by the accepted lines
+            assert set(judged.best_fit_vectors(COORD_GEOGRAPHIC)) <= {k for k in judged.best_fit_vectors(COORD_GEOGRAPHIC, include_bad=True)}
+        finally:
+            judged.set_criteria(None)
+
+    def test_failing_site_means_are_flagged_and_left_out_of_the_level_above(self, judged):
+        sites = judged.mean_directions("site", COORD_GEOGRAPHIC)
+        pole_before = judged.mean_pole(COORD_GEOGRAPHIC, "A", "site")
+        judged.set_criteria(criteria_frame(("DE-SITE", "sites.dir_k", ">=", "100"),
+                                           ("DE-SITE", "sites.dir_n_specimens_lines", ">=", "5")))
+        try:
+            weak = sites[(sites["dir_k"] < 100) | (sites["dir_n_specimens_lines"] < 5)]
+            assert 3 <= len(weak) < len(sites)
+            assert judged.failing_groups("site", COORD_GEOGRAPHIC) == set(zip(weak["site"], weak["dir_comp_name"]))
+            table = judged.means_table("site", coords=(COORD_GEOGRAPHIC,))
+            assert set(table.loc[table["result_quality"] == "b", "site"]) == set(weak["site"])
+            mine = table[table["software_packages"].fillna("").str.contains("pmagpy_directions")]
+            assert len(mine) == len(sites) and (mine["result_quality"] == "g").sum() == len(sites) - len(weak)
+            pole = judged.mean_pole(COORD_GEOGRAPHIC, "A", "site")
+            assert pole["N"] == pole_before["N"] - len(weak)
+            loc = judged.mean_directions("location", COORD_GEOGRAPHIC)
+            assert loc["dir_n_specimens"].iloc[0] == sites["dir_n_specimens"].sum() - weak["dir_n_specimens"].sum()
+            over_sites = judged.mean_directions("location", COORD_GEOGRAPHIC, over="sites")
+            assert over_sites["dir_n_sites"].iloc[0] == len(sites) - len(weak)
+            locs = judged.locations_table(coords=(COORD_GEOGRAPHIC,))
+            assert locs["pole_n_sites"].dropna().tolist() == [pole["N"]]      # the row this export wrote
+        finally:
+            judged.set_criteria(None)
+
+    def test_a_blank_statistic_does_not_fail(self, judged):
+        # every fit in dmag_magic is a line or a plane: none has dir_alpha95, so an
+        # alpha95 criterion cannot bite, however tight (pmag.grade would fail them all)
+        judged.set_criteria(criteria_frame(("DE-SPEC", "specimens.dir_alpha95", "<=", "0.1"),
+                                           ("DE-SAMP", "samples.dir_alpha95", "<=", "0.1")))
+        try:
+            assert judged.failing_components() == set()
+            samples = judged.mean_directions("sample", COORD_GEOGRAPHIC)
+            singles = samples[samples["dir_n_specimens"] == 1]          # no alpha95 for one specimen
+            assert len(singles) and set(judged.failing_groups("sample", COORD_GEOGRAPHIC)).isdisjoint(
+                zip(singles["sample"], singles["dir_comp_name"]))
+            multi = samples[samples["dir_n_specimens"] > 1]
+            assert judged.failing_groups("sample", COORD_GEOGRAPHIC) == set(zip(multi["sample"], multi["dir_comp_name"]))
+        finally:
+            judged.set_criteria(None)
+
+    def test_mcmurdo_criteria_cascade(self):
+        data = DemagData.from_directory(MCMURDO_DIR)
+        data.load_components_from_specimens_table()
+        n_sites = len(data.mean_directions("site", COORD_GEOGRAPHIC))
+        assert data.load_criteria() == 8
+        failing = data.failing_components()
+        rows = pd.DataFrame([r.to_record() for r in data.fit_all(COORD_SPECIMEN)])
+        assert len(failing) == ((rows["dir_mad_free"] > 5) | (rows["dir_n_measurements"] < 4)).sum() == 76
+        bad_sites = data.failing_groups("site", COORD_GEOGRAPHIC)
+        assert len(bad_sites) == 7 and ("mc136", "A") in bad_sites
+        assert data.mean_pole(COORD_GEOGRAPHIC, "A", "site")["N"] == n_sites - len(bad_sites) == 128

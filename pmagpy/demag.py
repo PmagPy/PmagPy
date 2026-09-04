@@ -707,6 +707,8 @@ class DemagData:
         self.components: list[Component] = []
         self.warnings: list[str] = []
         self._fit_cache: dict = {}
+        self.criteria: Optional[pd.DataFrame] = None     # acceptance criteria applied to means and export
+        self._criteria_cache: dict = {}
         self._build()
 
     def invalidate(self) -> None:
@@ -724,7 +726,7 @@ class DemagData:
                 instead of fetching it from EarthRef (faster, works offline).
         """
         con = cb.Contribution(directory, custom_filenames={"measurements": meas_file},
-                              read_tables=["measurements", "specimens", "samples", "sites", "locations"],
+                              read_tables=["measurements", "specimens", "samples", "sites", "locations", "criteria"],
                               dmodel=_data_model(offline_data_model))
         return cls(con)
 
@@ -1100,6 +1102,89 @@ class DemagData:
         results = [self.fit(c, coord) for c in comps]
         return [r for r in results if r is not None]
 
+    # ----- acceptance criteria ----------------------------------------------
+    # MagIC's criteria table names a statistic, an operation and a value per
+    # row, under a criterion name that says which level it judges. Directions
+    # applies the three directional ones the way the legacy tools did with
+    # pmag.grade: a component failing DE-SPEC, or a mean failing DE-SAMP /
+    # DE-SITE, is written with result_quality 'b' and left out of the level
+    # above (the means, the poles) - exactly as one the analyst flagged is.
+    CRITERION_NAMES = {"specimen": "DE-SPEC", "sample": "DE-SAMP", "site": "DE-SITE"}
+
+    def set_criteria(self, criteria: Optional[pd.DataFrame]) -> int:
+        """Apply acceptance criteria to the means and the exported tables.
+
+        Args:
+            criteria: a MagIC criteria table (``criterion``, ``table_column``,
+                ``criterion_operation``, ``criterion_value``); None or an empty
+                frame switches the criteria off.
+
+        A criterion on a statistic a row does not carry (``dir_alpha95`` on a
+        line fit, ``dir_mad_free`` on a Fisher mean) does not bite - the rows
+        of one table mix fit types that have different statistics, so a blank
+        is read as "not applicable" rather than as a failure
+        (:func:`pmagpy.magic_metadata.passing_rows` with ``blank_fails=False``).
+
+        Returns:
+            The number of criteria rows judging specimens, samples or sites.
+        """
+        from pmagpy import magic_metadata as mm
+        self._criteria_cache.clear()
+        if criteria is None or len(criteria) == 0:
+            self.criteria = None
+            return 0
+        criteria = criteria.fillna("").astype(str)
+        names = set(self.CRITERION_NAMES.values())
+        used = [i for i, row in criteria.iterrows()
+                if row.get("criterion", "").strip() in names
+                and mm.split_table_column(row.get("table_column", ""))[0] in ("specimens", "samples", "sites")]
+        self.criteria = criteria.loc[used].reset_index(drop=True) if used else None
+        return len(used)
+
+    def load_criteria(self) -> int:
+        """Apply the contribution's own criteria table (``criteria.txt``); 0 when there is none."""
+        return self.set_criteria(self._table("criteria"))
+
+    def _fails(self, rows: pd.DataFrame, level: str) -> pd.Series:
+        """Which rows of a level's table fail its criterion (all False without criteria)."""
+        if self.criteria is None or len(rows) == 0:
+            return pd.Series(False, index=rows.index)
+        from pmagpy import magic_metadata as mm
+        return ~mm.passing_rows(rows, self.criteria, level + "s", criterion=self.CRITERION_NAMES[level],
+                                blank_fails=False)
+
+    def failing_components(self) -> set:
+        """``{(specimen, component name)}`` of the fits that fail DE-SPEC.
+
+        The statistics judged (MAD, DANG, alpha95, number of steps) do not
+        depend on the coordinate system, so the fits are judged once, in
+        specimen coordinates.
+        """
+        if self.criteria is None:
+            return set()
+        key = tuple((c.specimen, c.name, c.imin, c.imax, c.fit_type) for c in self.components)
+        if key not in self._criteria_cache:
+            results = self.fit_all(COORD_SPECIMEN)
+            if results:
+                rows = pd.DataFrame([r.to_record() for r in results])
+                fails = self._fails(rows, "specimen")
+                failing = {(r.specimen, r.dir_comp) for r, bad in zip(results, fails) if bad}
+            else:
+                failing = set()
+            self._criteria_cache.clear()          # one state at a time
+            self._criteria_cache[key] = failing
+        return self._criteria_cache[key]
+
+    def failing_groups(self, level: str, coord: int) -> set:
+        """``{(name, component name)}`` of the sample or site means that fail DE-SAMP / DE-SITE."""
+        if self.criteria is None or level not in ("sample", "site"):
+            return set()
+        means = self.mean_directions(level, coord, over="specimens")
+        if len(means) == 0:
+            return set()
+        fails = self._fails(means, level)
+        return set(zip(means.loc[fails, level].astype(str), means.loc[fails, "dir_comp_name"].astype(str)))
+
     # ----- higher-level means ---------------------------------------------
     def mean_directions(self, level: str = "site", coord: int = COORD_GEOGRAPHIC,
                         component: Optional[str] = None, include_bad: bool = False,
@@ -1135,6 +1220,8 @@ class DemagData:
         if over != "specimens":
             return self._mean_of_means(level, coord, component, include_bad, over, common_polarity, flip)
         results = self.fit_all(coord)
+        failing = self.failing_components() if not include_bad else set()
+        failing_sites = self.failing_groups("site", coord) if level == "location" and not include_bad else set()
         rows = []
         for r in results:
             if r.result_quality == "b" and not include_bad:
@@ -1142,6 +1229,8 @@ class DemagData:
             if component is not None and r.dir_comp != component:
                 continue
             spec = self.specimens[r.specimen]
+            if (r.specimen, r.dir_comp) in failing or (spec.site, r.dir_comp) in failing_sites:
+                continue
             rows.append({"group": getattr(spec, level), "site": spec.site,
                          "location": spec.location, "dir_comp": r.dir_comp,
                          "dir_dec": r.dir_dec, "dir_inc": r.dir_inc,
@@ -1214,8 +1303,9 @@ class DemagData:
         if level not in ("sample", "site", "location"):
             raise ValueError(level)
         groups: dict = {}
+        failing = self.failing_components() if not include_bad else set()
         for r in self.fit_all(coord):
-            if r.result_quality == "b" and not include_bad:
+            if (r.result_quality == "b" and not include_bad) or (r.specimen, r.dir_comp) in failing:
                 continue
             spec = self.specimens[r.specimen]
             key = (getattr(spec, level), r.dir_comp)
@@ -1238,6 +1328,8 @@ class DemagData:
         if lower is None or over != lower + "s":
             raise ValueError(f"cannot average {over} into {level} means")
         lower_means = self.mean_directions(lower, coord, component, include_bad, over="specimens")
+        if not include_bad:                      # a mean failing its criterion stops here
+            lower_means = lower_means[~self._fails(lower_means, lower)]
         if len(lower_means) == 0:
             return lower_means
         parent_of = {}
@@ -1306,6 +1398,8 @@ class DemagData:
             fewer than two VGPs are available.
         """
         means = self.mean_directions(level, coord, component)
+        if level in ("sample", "site"):
+            means = means[~self._fails(means, level)]          # a site failing DE-SITE gives no VGP to the pole
         if len(means) == 0 or "vgp_lat" not in means.columns:
             return {}
         reference = None
@@ -1369,6 +1463,7 @@ class DemagData:
         # a plane only gains a direction once its site's lines pin it down (MM88),
         # and that direction differs per coordinate system, as the mean does
         bfv = {coord: self.best_fit_vectors(coord) for coord in coords}
+        failing = self.failing_components()
         for comp in self.components:
             spec = self.specimens[comp.specimen]
             for coord in coords:
@@ -1377,6 +1472,8 @@ class DemagData:
                     continue
                 rec = result.to_record()
                 rec.update({"sample": spec.sample, "dir_n_comps": n_comps[comp.specimen]})
+                if (comp.specimen, comp.name) in failing:
+                    rec["result_quality"] = "b"
                 vector = bfv[coord].get((comp.specimen, comp.name)) if result.direction_type == "p" else None
                 if vector is not None:
                     rec["dir_bfv_dec"], rec["dir_bfv_inc"] = round(vector[0], 1), round(vector[1], 1)
@@ -1460,6 +1557,7 @@ class DemagData:
         means = pd.concat(parts, ignore_index=True, sort=False)
         means["result_type"] = "a"
         means["result_quality"] = "g"
+        means.loc[self._fails(means, level), "result_quality"] = "b"
         if level == "site" and "vgp_lat" in means.columns:
             has_vgp = means["vgp_lat"].notna()
             means.loc[has_vgp, "method_codes"] = [_join_codes(_codes(mc) + [VGP_CODE])

@@ -24,7 +24,8 @@ from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 
-from pmagpy.convert_registry import FORMATS, guess_format
+from pmagpy.convert_registry import CONVERSION_LOG, FORMATS, conversion_sources, guess_format, read_conversions
+from pmagpy.magic_upload import is_upload_file
 
 # MagIC 3 tables in the order Home lists them; contribution is read but not listed
 TABLES = ("measurements", "specimens", "samples", "sites", "locations", "ages", "criteria", "images", "contribution")
@@ -34,7 +35,7 @@ LISTED_TABLES = TABLES[:-1]
 # multi-million-row measurements file costs only its method codes
 COLUMNS = {
     "measurements": ["specimen", "experiment", "method_codes"],
-    "specimens": ["specimen", "sample", "dir_dec", "int_abs", "method_codes"],
+    "specimens": ["specimen", "sample", "dir_dec", "int_abs", "method_codes", "aniso_s", "aniso_type"],
     "samples": ["sample", "site", "azimuth", "dip"],
     "sites": ["site", "location", "lat", "lon", "age", "age_low", "age_high", "lithologies", "dir_dec", "int_abs"],
     "locations": ["location", "lat_n", "lat_s", "lon_e", "lon_w"],
@@ -98,6 +99,8 @@ class Inventory:
     analysis: Dict[str, int] = field(default_factory=dict)        # specimens_interpreted, site_means, site_intensities
     gaps: List[Gap] = field(default_factory=list)                 # largest first
     files: List[FileRole] = field(default_factory=list)           # everything that is not a MagIC table
+    uploads: List[str] = field(default_factory=list)              # upload files built from the tables, newest first
+    conversions: List[dict] = field(default_factory=list)         # the log entries that account for the tables, oldest first
     folders: int = 0
     format_key: str = ""                                          # a convert_registry key, "magic", or ""
     format_guess: str = ""                                        # its label: "CIT", "JR6 (.jr6)", "MagIC contribution file", or ""
@@ -111,6 +114,31 @@ class Inventory:
     def is_magic(self) -> bool:
         """Holds a measurements table: the analysis applications can open it."""
         return "measurements" in self.tables
+
+    @property
+    def has_level_tables(self) -> bool:
+        """Specimens, samples, sites or locations without measurements yet — a field notebook or a
+        sample list converted before the lab files."""
+        return not self.is_magic and any(t in self.tables for t in ("specimens", "samples", "sites", "locations"))
+
+    @property
+    def lab_files(self) -> List[FileRole]:
+        """The recognised files that would add measurements — not a field notebook or sample list that
+        (in a directory with level tables) is what the tables came from."""
+        fmt = FORMATS.get(self.format_key)
+        if fmt is None or "measurements" not in fmt.outputs:
+            return []
+        return [f for f in self.files if f.role]
+
+    @property
+    def source_files(self) -> List[str]:
+        """The files the conversion log says the tables came from, in the order they were converted."""
+        seen: List[str] = []
+        for entry in self.conversions:
+            for name in entry.get("files", []):
+                if name not in seen:
+                    seen.append(name)
+        return seen
 
     @property
     def is_empty(self) -> bool:
@@ -140,7 +168,10 @@ KIND_RULES = [
     ("irm", "IRM acquisition", ("LP-IRM",), {"LP-IRM-3D": "3-axis thermal demag", "LP-IRM-AFD": "AF demag"}),
     ("arm", "ARM acquisition", ("LP-ARM",), {}),
     ("forc", "FORC", ("LP-FORC",), {}),
-    ("chi_t", "Susceptibility", ("LP-X",), {"LP-X-T": "vs temperature", "LP-X-F": "vs frequency", "LP-X-H": "vs amplitude"}),
+    # a bare LP-X is one bulk susceptibility (a Kappabridge reading beside an AMS tensor); the
+    # susceptibility experiments the Rock magnetism app plots are the ones against something
+    ("chi_t", "Susceptibility", ("LP-X-T", "LP-X-F", "LP-X-H"),
+     {"LP-X-T": "vs temperature", "LP-X-F": "vs frequency", "LP-X-H": "vs amplitude"}),
     ("ms_t", "Ms–T", ("LP-MST", "LP-IMT"), {}),
     ("low_t", "Low temperature", ("LP-FC", "LP-ZFC", "LP-PFC", "LP-CW-", "LP-MW", "LP-MC", "LP-MRT", "LP-LT"),
      {"LP-FC": "FC", "LP-ZFC": "ZFC", "LP-CW-SIRM": "RT-SIRM cycling", "LP-CW-NRM": "RT-NRM cycling"}),
@@ -178,6 +209,22 @@ def experiment_kinds(measurements: pd.DataFrame) -> List[Kind]:
             label = "Thellier"
         kinds.append(Kind(key, label, int(n), details))
     return kinds
+
+
+def tensor_kind(specimens: Optional[pd.DataFrame]) -> Optional[Kind]:
+    """The anisotropy kind a specimens table gives: specimens with a tensor (``aniso_s``), by ``aniso_type``.
+
+    Tensors are what the Anisotropy application opens — they arrive from a
+    Kappabridge converter (no measurements at all) or from ``aarm_magic``/
+    ``atrm_magic`` (which the measurements' ``LP-AN-`` codes already announce).
+    """
+    if specimens is None or "aniso_s" not in specimens or "specimen" not in specimens:
+        return None
+    rows = specimens[specimens["aniso_s"].notna() & (specimens["aniso_s"].astype(str).str.strip() != "")]
+    if not len(rows):
+        return None
+    details = [str(t) for t in rows["aniso_type"].dropna().unique()] if "aniso_type" in rows else []
+    return Kind("aniso", "Anisotropy", int(rows["specimen"].nunique()), details)
 
 
 # ----- reading -------------------------------------------------------------------
@@ -240,7 +287,9 @@ def take_inventory(directory: str) -> Inventory:
     for n in names:
         stem, ext = os.path.splitext(n)
         path = os.path.join(directory, n)
-        if ext == ".txt" and stem in TABLES and os.path.isfile(path):
+        if n == CONVERSION_LOG:
+            inv.conversions = conversion_sources(read_conversions(directory))
+        elif ext == ".txt" and stem in TABLES and os.path.isfile(path):
             try:
                 df = _read_table(path, COLUMNS[stem])
             except (OSError, ValueError, pd.errors.ParserError) as e:
@@ -255,6 +304,11 @@ def take_inventory(directory: str) -> Inventory:
             others.append(n)
 
     inv.folders = sum(os.path.isdir(os.path.join(directory, n)) for n in names)
+    if "measurements" in inv.tables:
+        # a contribution file beside the tables is the upload file they were compiled into, not lab files to convert
+        inv.uploads = sorted((n for n in others if n.endswith(".txt") and is_upload_file(os.path.join(directory, n))),
+                             key=lambda n: -os.path.getmtime(os.path.join(directory, n)))
+        others = [n for n in others if n not in inv.uploads]
     inv.format_key, inv.format_guess, roles = _guess_format(others, directory)
     inv.files = [FileRole(n, roles.get(n, "")) for n in others]
     if not frames:
@@ -274,6 +328,9 @@ def take_inventory(directory: str) -> Inventory:
     }
     if m is not None:
         inv.kinds = experiment_kinds(m)
+    tensors = tensor_kind(frames.get("specimens"))
+    if tensors is not None:                      # tensors in specimens.txt count whether or not measurements announce them
+        inv.kinds = [k for k in inv.kinds if k.key != "aniso"] + [tensors]
 
     c = frames.get("contribution")
     if c is not None and len(c):
@@ -305,7 +362,8 @@ def take_inventory(directory: str) -> Inventory:
         gaps.append(Gap("site ages", int(len(set(si["site"].dropna()) - dated))))
         gaps.append(Gap("site lithologies", _missing(si, "site", ["lithologies"])))
     sa = frames.get("samples")
-    if sa is not None:
+    oriented = {k.key for k in inv.kinds} & {"demag", "pi", "aniso"} or m is None
+    if sa is not None and oriented:                                     # a rock-magnetic study has nothing to orient
         gaps.append(Gap("sample orientations", _missing(sa, "sample", ["azimuth", "dip"])))
     lo = frames.get("locations")
     if lo is not None:

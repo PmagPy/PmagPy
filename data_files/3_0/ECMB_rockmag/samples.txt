@@ -1,0 +1,7 @@
+tab 	samples
+azimuth	azimuth_dec_correction	bed_dip	bed_dip_direction	citations	dip	geologic_classes	geologic_types	height	method_codes	result_quality	sample	site
+182.9	0.0	0	90.9	This study	-38	Intrusive	Diabase	0	SO-CMD-NORTH	g	NED2-8	NED2
+49.9	0.0	0	90.9	This study	-7	Intrusive	Diabase	0	SO-CMD-NORTH	g	NED6-6	NED6
+242.9	0.0	0	90.0	This study	-30	Intrusive	Diabase	0	SO-CMD-NORTH	g	NED1-5	NED1
+210.3	0.0	0	90.0	This study	-20	Intrusive	Diabase	0	SO-CMD-NORTH	g	NED4-1	NED4
+313.9	0.0	0	90.9	This study	-13	Intrusive	Diabase	0	SO-CMD-NORTH	g	NED18-2	NED18

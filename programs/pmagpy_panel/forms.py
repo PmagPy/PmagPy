@@ -43,19 +43,22 @@ class Form:
         self.widgets: Dict[str, pn.widgets.Widget] = {}
         self.extras: Dict[str, pn.widgets.Widget] = {}     # the Z count beside a naming select
         self.fields: List[Field] = []
+        self.touched: set = set()                            # field names the analyst has set by hand
         self.set_fields(fields, values or {})
 
     def set_fields(self, fields: Sequence[Field], values: Dict[str, object] = None) -> None:
         """Rebuild the form for another set of fields, keeping values for names that carry over."""
         values = dict(values or {})
-        for name, w in self.widgets.items():
-            values.setdefault(name, self.value_of(name))
+        for f in self.fields:                     # what the analyst set carries over; an untouched default does
+            if f.name in self.touched:            # not, since the next format may default the other way
+                values.setdefault(f.name, self.value_of(f.name))
         self.fields = list(fields)
         self.widgets, self.extras = {}, {}
         items = []
         for f in self.fields:
             start = values.get(f.name, f.default)
             w = self._widget(f, start)
+            w.param.watch(lambda e, name=f.name: self.touched.add(name), "value")
             self.widgets[f.name] = w
             if f.kind == "naming":
                 z = pn.widgets.IntInput(name="Z characters", value=_z_of(start), start=1, width=Z_WIDTH,
@@ -69,6 +72,9 @@ class Form:
 
     def _widget(self, f: Field, start) -> pn.widgets.Widget:
         kw = dict(name=f.label + (" *" if f.required else ""), width=self.width, description=f.help or None)
+        if f.kind == "bool" and f.choices:        # both ways named: "Keep replicate…" / "Average replicate…"
+            options = {label: value for value, label in f.choices}
+            return pn.widgets.Select(options=options, value=bool(start), **kw)
         if f.kind == "bool":
             return pn.widgets.Checkbox(name=f.label, value=bool(start), width=self.width, margin=(20, 10, 5, 10))
         if f.kind == "choice":

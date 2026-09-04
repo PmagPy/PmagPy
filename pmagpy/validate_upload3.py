@@ -575,17 +575,26 @@ def validate_table(the_con, dtype, verbose=False, output_dir="."):
 
 ## Run validations on an entire contribution
 
-def validate_contribution(the_con):
+def validate_contribution(the_con, verbose=False, output_dir="."):
     """
-    Go through a Contribution and validate each table
+    Go through a Contribution and validate each table.
+
+    Returns:
+        passing (bool): True when no table failed.
+        failures (dict): {table name: validate_table's tuple
+            (dtype, bad_rows, bad_cols, missing_cols, missing_groups,
+            failing_items)} for the tables that failed.
     """
     passing = True
+    failures = {}
     for dtype in list(the_con.tables.keys()):
         print("validating {}".format(dtype))
-        fail = validate_table(the_con, dtype)
+        fail = validate_table(the_con, dtype, verbose=verbose, output_dir=output_dir)
         if fail:
             passing = False
+            failures[dtype] = fail
         print('--')
+    return passing, failures
 
 
 ## Utilities

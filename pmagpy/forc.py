@@ -6780,6 +6780,49 @@ def process_forc(
         outs.append(one_out)
     return outs
 
+def process_forc_dataframe(
+    measurements,
+    sample_title: Optional[str] = None,
+    stack_method: str = "mean",
+    **kwargs,
+):
+    """
+    Process the LP-FORC measurements of a MagIC table already read into pandas.
+
+    The DataFrame counterpart of ``process_forc(mode='m')``, for a notebook
+    that has a contribution's measurements table in memory — one experiment
+    picked with ``rockmag.experiment_selection``, say. The rows are written
+    to a temporary MagIC table and dispatched exactly as a file would be, so
+    a table holding several specimens returns a list, and repeated runs of
+    one specimen are stacked.
+
+    Args:
+        measurements: MagIC measurements rows; ``specimen``, ``sequence``,
+            ``meas_field_dc`` and a moment column are needed, and the
+            ``measurement`` names carry the calibration/curve block structure
+            when they come from :func:`export_magic_measurements_from_raw`.
+        sample_title: Title on the figures; the specimen name when None.
+        stack_method: ``"mean"`` or ``"median"`` for repeated runs.
+        **kwargs: The processing and plotting options of :func:`process_forc`.
+
+    Returns:
+        The dict :func:`process_forc` returns, or a list of them for several
+        specimens.
+    """
+    kwargs = dict(kwargs)
+    kwargs.pop("export_magic", None)
+    with tempfile.TemporaryDirectory(prefix="forcme_frame_") as temp_name:
+        table = Path(temp_name) / "measurements.txt"
+        with table.open("w", encoding="utf-8", newline="") as fh:
+            fh.write("tab delimited\tmeasurements\n")
+            measurements.to_csv(fh, sep="\t", index=False)
+        out = _process_forc_magic(table, sample_title=sample_title, stack_method=stack_method, kwargs=kwargs)
+    for one in out if isinstance(out, list) else [out]:
+        one["input_path"] = "<DataFrame>"
+        one["input_files"] = []
+    return out
+
+
 def _export_current_figure_single(
     out: Dict[str, object],
     filename: Optional[str] = None,

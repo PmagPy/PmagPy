@@ -79,8 +79,9 @@ unmixing initial guess) are thin: each collects slider values and calls a pure
 function (`calc_verwey_estimate`, `goethite_removal`, `mpms_signal_blender`,
 `estimate_coercivity_components` → `unmix_coercivity_spectrum`). Experiments
 are indexed with `make_experiment_df()` and selected with
-`experiment_selection()`. Two functions call Bokeh `show()` unconditionally
-(`_show_hyst_summary_table`, `curie_inverse_susceptibility_interactive`) and
+`experiment_selection()`. Two functions used to call Bokeh `show()`
+unconditionally (`_show_hyst_summary_table`,
+`curie_inverse_susceptibility_interactive`; fixed 2026-09-02, §4) and
 `forc.py` is matplotlib-only with no interactive layer. Nothing in `pmagpy` or
 the notebooks imports Panel.
 
@@ -92,7 +93,8 @@ port (5100, 5101).
 
 **Portability.** The PyPI `pmagpy` wheel is pure Python (`py3-none-any`); its
 hard dependencies are numpy, scipy, matplotlib, pandas, pytz and packaging;
-cartopy is a lazy optional extra; `requests` is import-guarded; the pole map's
+cartopy is a lazy optional extra; `requests` is import-guarded in the library
+and a dependency of the `apps` extra; the pole map's
 coastlines are bundled JSON. Nothing in the apps uses a thread or a subprocess
 except the native folder chooser. All of that keeps every distribution route
 in §8 open — including, one day, a build that runs in the browser.
@@ -331,21 +333,57 @@ accepts. Start with the 13 formats Pmag GUI offers plus the IRM instruments
   (`download_magic_from_id`, `download_magic_from_doi`,
   `validate_with_public_endpoint`, the private-workspace four) so the HTTP
   client can be swapped in one place later (§2, rule 4).
-* `download_magic_from_doi(doi, dir_path=".")`; fix `upload_to_private_contribution`'s
-  `open()`; make `validate_contribution` return what it computes; retire
-  `upload_magic3` (or make it forward correctly); `validate_magic`'s undefined
-  `api`. Give `upload_magic` one return shape.
-* Move `pmagpy_tests/test_contribution_builder.py` into `pmagpy/test/` so its
-  49 tests run, before the hub starts depending on `propagate_*`.
-* Tests for `download_magic` (including `txt=…`, the in-memory unpack),
-  `combine_magic`, and `orientation_magic` against the examples in
-  `data_files/orientation_magic/` and `data_files/azdip_magic/`.
-* `rockmag.py`: give `_show_hyst_summary_table` and
-  `curie_inverse_susceptibility_interactive` a `show_plot=False` /
-  `return_figure=True` path like their siblings.
+* `download_magic_from_doi(dir_path=…)` done; `upload_magic3` forwards
+  correctly and `upload_magic` has one return shape (2026-09-01). Done
+  2026-09-02: `upload_to_private_contribution` opens the file in binary mode
+  and reports a failed request instead of raising; `validate_contribution`
+  returns `(passing, {table: validate_table result})`; `validate_magic`
+  downloads by DOI or by id + share key into `<top_dir>/MagIC` and returns
+  `(magic_dir, upload_file)` — tests in `test_ipmag_upload.py` and
+  `test_magic_upload.py`.
+* `pmagpy/test/test_contribution_builder.py` (2026-09-02): the 49 legacy
+  tests, now cwd-independent and valid under pandas 3 (`np.nan`, not `''`,
+  for a missing float). They surfaced three library bugs, fixed:
+  `MagicDataFrame.update_row` assigned a Series positionally through `iloc`
+  (the values landed in the wrong columns) and could not widen a float column
+  for a string; `propagate_cols`, `propagate_lithology_cols` and
+  `propagate_ages` decided "target has a value" with `np.where(column, …)`,
+  and NaN is truthy — under pandas 3 a `None` written into a string column
+  becomes NaN, so nothing propagated up into an emptied column. The legacy
+  copy in `pmagpy_tests/` still exists for the wx-era runner.
+* `pmagpy/test/test_ipmag_magic_files.py` (2026-09-02): `download_magic`
+  (file, `txt=…`, `separate_locs`, split directories), `combine_magic`
+  (sequence, duplicates, non-measurement tables, refusals) and
+  `orientation_magic` against `data_files/orientation_magic/` with the
+  IGRF and sun-compass azimuths checked against `pmag.doigrf` /
+  `pmag.dosundec`. `orientation_magic` fixes: sites get their `location`
+  (a stale loop variable had been the key), blank `bedding_dip_direction`
+  inherits like `bedding_dip`, `average_bedding` actually averages; the
+  example's `site_class`-style headers are accepted (QUESTIONS 44).
+  `azdip_magic` is still untested.
+* `rockmag.py` (2026-09-02): `_show_hyst_summary_table` now returns the
+  `DataTable` and shows it only when asked, and `process_hyst_loop` results
+  carry `summary` (the numbers as a dict) and `summary_table` at all three
+  exits — the hub can embed the table instead of re-deriving it.
+  `curie_inverse_susceptibility_interactive` gained `show_plot` /
+  `return_figure` like its siblings and returns the `column(plot, Div)`
+  layout. Nothing in `pmagpy` calls Bokeh `show()` unconditionally any more.
 * Keep imports lean in what the apps import: an app that needs `pmagpy.demag`
   should not pull `ipmag` (and with it all of `matplotlib.pyplot`) along. It
   is start-up time in a desktop bundle, and load time in any browser build.
+  Measured 2026-09-02 (apps imported as top-level packages, the way the
+  launchers do): none of the four apps imports `ipmag`; only the rockmag app
+  imports pyplot, and it needs it. Two module-level costs were removed:
+  `pmagpy.pmag` imported `SPD.lib.leastsq_jacobian` (→ `scipy.optimize`,
+  ~0.25 s, a third of the module's import time) for the one Arai-curvature
+  call — now imported inside `get_curve`; `programs/__init__.py` called
+  `matplotlib.get_backend()`, which resolves the automatic backend by
+  importing pyplot and probing the GUI toolkits (~0.15 s and a GUI probe in a
+  server process) — it now reads the raw rcParams entry and, as its comment
+  always said, leaves an explicitly set backend (`MPLBACKEND`, matplotlibrc,
+  `matplotlib.use`) alone. `pmagpy/test/test_import_cost.py` holds the
+  contracts. What remains is `pmagpy.pmag` itself (~0.5 s, pandas and the
+  MagIC data model) — a floor every app shares.
 
 ## 5. What has to change in the toolkit
 
@@ -401,6 +439,16 @@ Intensity were built.
    chooser now awaits `runtime.choose_directory` instead of running a thread,
    and takes `require_measurements=False` for the hub). This branch is
    canonical for both; the intensity app adopts them from here.
+   **Rung 0 verified 2026-09-02**: `python -m venv` + `pip install -e '.[apps]'`
+   in an empty environment, then `pmagpy-apps --no-show` from another
+   directory served `/`, `/pmagpy_directions`, `/pmagpy_rockmag` and
+   `/pmagpy_anisotropy` with their assets and no errors. Two gaps were fixed
+   first: `pmagpy_anisotropy` was missing from setup.py's `package_dir` (the
+   app imported from a checkout only), and `requests` — what Download and
+   Upload talk to MagIC with — was in no requirement list, so a fresh install
+   would have failed at the first download; it is in the `apps` extra now, and
+   `environment.yml` lists panel and requests. A test in the hub suite reads
+   setup.py and insists the packages match the launcher's list.
 1. **Hub: Home and Analyze, then Download/unpack.** Design mock first (§2).
    *Retires Pmag GUI's box 0, box 2, and "Download or unpack".* From here the
    hub is the way to start the analysis applications.
@@ -411,10 +459,23 @@ Intensity were built.
    contribution / lab files awaiting conversion / empty directory) with the
    workflow strip, the Analyze list (a door per application, shut with its
    reason when the directory has nothing for it or the application is not
-   built), and an aside of tables or files. Recent directories show only on
-   the landing, before a directory is picked; the "Change directory…" dialog
-   keeps the list. Metadata on Home names the single largest gap and counts
-   the rest.
+   built), and an aside of files for a directory awaiting conversion (a
+   MagIC directory has no aside — the tables are said in the facts line).
+   Metadata on Home names the single largest gap and counts the rest.
+   **Start page 2026-09-02** (Nick: land on choices, not on a default
+   dataset). With no `?dir=` and no `PMAGPY_APPS_DIR` the hub shows one line
+   ("Get going with PmagPy Apps by navigating to data") and four doors in a
+   2×2 grid, each with its own colour and a sentence — Open MagIC data (the
+   chooser), Download from MagIC (the dialog; the default folder is
+   `~/MagIC/MagIC_<id>` when no directory is open), Convert measurement files
+   (the chooser with its own heading; a folder without tables goes straight
+   on to the Convert page), Explore an example (McMurdo, opened without being
+   remembered) — in that order, and the Recent list beneath. Once a directory is
+   open the page is about that directory only: the header row holds the
+   buttons plus "Start page", and the contribution · DOI · contributor line
+   sits under the path in one line. No "PmagPy Apps / Start" heading — the
+   template header already says it. `HubSession.landing` is the switch;
+   `HubSession.start()` returns to the doors.
    **Download/unpack built 2026-09-01.** The EarthRef calls live UI-free in
    `pmagpy/magic_project.py` (`find_contributions` by reference DOI through the
    FIESTA search API, `fetch_contribution` from `/data`, `unpack_contribution`
@@ -454,11 +515,30 @@ Intensity were built.
    unpacks from the same page. Home's "Convert files…" is the primary button
    when the directory holds lab files and no tables; the page turns between
    Home and Convert without leaving the URL.
-   *Still to do here*: the CLI programs (`programs/conversion_scripts`) do not
-   yet read the registry; `livdb`, `kly4s`/`k15`/`sufar4` and the other
-   anisotropy inputs are not registered; nothing records which files a
-   directory's tables came from (Home says only "N files beside the tables").
-   Some of `data_files/convert_2_magic` is old — the next round should track
+   **Since 2026-09-02 the registry is a command**: `pmagpy-convert`
+   (`pmagpy/convert_cli.py`, a `console_scripts` entry) builds an argparse
+   parser per format from the same `Field`s the page is built from — one
+   option per field, `--no-<name>` for a bool that defaults on, `--dir`,
+   `--append`, `--no-record`, `--log` — and calls `convert_files`, so shell,
+   script and page are one call with one set of names; the 30 legacy
+   `programs/conversion_scripts` keep their own flags rather than being
+   regenerated (QUESTIONS 54). *Still to do here*: the anisotropy inputs
+   from measurements (`atrm`/
+   `aarm`) are Anisotropy's Reduce tab rather than Formats — the Kappabridge
+   ones and `livdb` (Liverpool's thermal and microwave paleointensity exports;
+   a directory format guessed from `.livdb`/`.livdb.csv`, whose
+   character-delimited site convention raised a TypeError until 2026-09-02)
+   are registered since 2026-09-02. **Since 2026-09-02 the directory
+   remembers what its tables came from**: `convert_files` appends each
+   conversion that wrote tables to `pmagpy_conversions.json` beside them
+   (`record_conversion` / `read_conversions`; when, format, files, fields,
+   append, rows, failures; a directory format lists the files it accepted,
+   `directory_inputs`), the Convert page records an unpacked contribution file
+   the same way, and Home's Import line reads the log — "converted from 10 CIT
+   files · 2 Sep 2026", "upgraded from 17 MagIC 2.5 tables", "unpacked from
+   magic_contribution_16761.txt" — with `conversion_sources` keeping the last
+   replace and the appends since; the aside marks the converted files
+   (QUESTIONS 53). Some of `data_files/convert_2_magic` is old — the next round should track
    down current instrument exports and test with the labs that use them; the
    community converter at https://beta.paleomagnetism.org/converter/ (MIT) is
    worth reading for format details, though PmagPy keeps its own. The
@@ -467,24 +547,306 @@ Intensity were built.
    they join as a function in `convert_2_magic` plus one `Format`.
 3. **Metadata and Upload pages.** *Retires ErMagicBuilder, box 3, Export
    menu.*
+   **Metadata built 2026-09-01**: `pmagpy/magic_metadata.py` is the UI-free
+   layer — the data model as `Column` records (label, group, type, required,
+   unit, bounds, controlled and suggested vocabulary, examples), the editor's
+   column order (name, parent, required columns whether present or not, the
+   rest in model order, unknown columns last so nothing is lost), an
+   `editor_frame` that adds the rows a table is owed by the table beneath it
+   (a site the samples name, a specimen only in measurements), `save_table`
+   through `magic_write` (blank rows and empty columns dropped, the original
+   copied once to `backup_before_pmagpy_apps/`), Pmag GUI's row defaults,
+   location bounds from the site coordinates, copy-down from the parent table,
+   and `check_table` turning `validate_upload3` into cell findings (the
+   validator's `value_pass_lat_checkMax` names are reduced to `lat` in
+   `magic_project.plain_column_name`). `pmagpy_apps/metadata.py` is the page:
+   one table at a time in a Tabulator with list editors for vocabulary
+   columns, the stub rows and failing cells painted, column help on the right,
+   Save reloading the session so Home's gaps follow, Check on the saved file.
+   Home's "Metadata…" is the primary button when the contribution has gaps.
+   **Ages filled since 2026-09-02** (ErMagicBuilder's age propagation): *Fill
+   ages* on the sites and locations tables — `magic_metadata.fill_ages` — dates
+   the undated rows without overwriting: a site from its row in `ages.txt`
+   (`ages_at`; a row dates the lowest level it names), else its location's age;
+   a location from `ages.txt`, else the span of its dated sites
+   (`site_age_spans`, `age ± age_sigma` included, only when the sites share an
+   `age_unit`). The five age cells travel together. Samples and specimens carry
+   no age in MagIC 3, so nothing is written below the site (QUESTIONS 52).
+   **Data model refreshed 2026-09-02**: the bundled `data_model.json` is now
+   MagIC's 2025-02-26 release (the copy served at
+   `earthref.org/MagIC/data-models/3.0.json`, identical to
+   `lib/configs/magic/data_models/3.0.js` on `main` of
+   [earthref/MagIC](https://github.com/earthref/MagIC)); `method_codes.json`
+   and the controlled/suggested vocabularies (`*_September_2_2026.json`) are
+   today's earthref copies. New columns the pages now offer: `igsn_parent`,
+   `int_abs_max/min`, `int_mad_coe`, `aniso_n_samples/specimens`,
+   `feature_dip/_direction/_type`, `paleopole_n_sites`, `contribution.funding`,
+   `measurements.files`, `magn_b_111`, `meas_field_ac/dc_phi/theta`,
+   `ages.tiepoint_height_max/min`; gone: `specimens.result_type`. The one
+   local addition: `sites.aniso_ftest23`, missing from MagIC's export while
+   specimens and samples have it — reported to earthref/MagIC by Nick
+   (2026-09-02) and carried here as it will be, copied from the samples
+   definition at position 124; the next refresh can simply take MagIC's file
+   once the fix lands (QUESTIONS 57).
+   Validations the offline checker does not know (`key()`, `recommended()`)
+   are ignored, as before. Refreshing is a download (QUESTIONS 57).
+   **Criteria built 2026-09-02** (step 5's last row): `criteria` joined
+   `magic_metadata.TABLES`, so the same grid edits it — `table_column` picks
+   from every column of the MagIC tables (`table_columns`), `criterion` from
+   the names PmagPy's tools use (`DE-SPEC` … `RPOLE`), the operation from the
+   data model's vocabulary. *Add default criteria* appends
+   `magic_metadata.default_criteria()` — `pmag.default_criteria` written in
+   the 3.0 vocabulary through the data model's `criteria_map`, checked
+   against it in the tests — skipping rows already there. *Check* evaluates
+   each criterion on the table it names (`check_criteria` → `CriterionCheck`:
+   rows, passing, blank, or the problem — table missing, column missing,
+   value not a number, table named in the singular as older files have) and
+   lists the scores beside the validator's findings. `passing_rows(table_df,
+   criteria, table, criterion=, blank_fails=True)` is the piece Directions'
+   export uses to apply criteria (QUESTIONS 49). A blank cell fails a
+   criterion, as `pmag.grade` has always ruled; `blank_fails=False` lets it
+   through.
+   **Directions applies them since 2026-09-02** (opt-in on its Export pane):
+   `DemagData.set_criteria` / `load_criteria` take the directory's
+   `criteria.txt`; a fit failing `DE-SPEC` is written `result_quality` 'b'
+   and left out of the means, a sample or site mean failing `DE-SAMP` /
+   `DE-SITE` is written 'b' and left out of the level above (site means over
+   samples, location means, poles); Means and Poles follow the setting. Blank
+   statistics do not fail there (`blank_fails=False`) — one table mixes fit
+   types with different statistics, and McMurdo's own `DE-SPEC
+   dir_alpha95 <= 180` would otherwise reject every line fit. On McMurdo the
+   cascade is 76 of 992 fits, 7 of 135 sites, pole N 135 → 128.
+   **Upload built 2026-09-01**: `pmagpy/magic_upload.py` is the UI-free layer
+   — `check_offline` (every table through `magic_metadata.check_table`),
+   `build_upload_file` (`ipmag.upload_magic`, the file landing in the study
+   directory as `<location>_<date>.txt` the way Pmag GUI left it),
+   `validate_online` (`ipmag.validate_with_public_endpoint` → an
+   `OnlineReport` of `Issue(table, column, message, rows)`; MagIC's validator
+   runs the current data model and finds more than the bundled one: 33 vs 2 on
+   McMurdo), and `export_tables` (`ipmag.*_extract` into
+   `publication_tables/`, never beside the MagIC tables since a tab-delimited
+   `specimens.txt` there would overwrite the real one). The inventory
+   recognises an upload file beside the tables (`Inventory.uploads`) so Home's
+   Import line no longer calls it a file to convert and the Upload stage
+   reports it with its date. `pmagpy_apps/upload.py` is the page: four steps
+   down the page (check, build, validate, publication tables), the slow ones
+   off the event loop (MagIC takes ~70 s on McMurdo), a link to MagIC's upload
+   page for the hand-off. ipmag fixes on the way: `validate_with_public_endpoint`
+   crashed on any non-200 reply (`validation_results` typo); `upload_magic3`
+   forwarded its arguments into the wrong positions; `upload_magic` now always
+   returns the four-tuple and still hands back the file when validation could
+   not reach MagIC; the `*_extract` functions wrote `.xls` (no pandas writer
+   since 1.2), called `dropna('columns')`, wrote literal `\n` into the LaTeX
+   preamble, referenced an undefined `out_file`, and crashed on a sites table
+   without directions or a specimens table without `int_abs`
+   (`map_magic.convert_site_dm3_table_*`); the directions table now comes out
+   in publication column order rather than the file's. *Still to do here*:
+   the private workspace (`upload_to_private_contribution` needs a MagIC
+   login the hub does not hold — see `QUESTIONS.md`); openpyxl is not in the
+   environment, so Excel export falls back to `.tsv` with a note.
+   `validate_contribution` and `validate_magic` were fixed 2026-09-02 (§4).
 4. **Rock magnetism, then Anisotropy.** One experiment type at a time, MPMS DC
    first (pure Bokeh already, simplest), then χ–T/Curie, hysteresis + backfield
    + unmixing, FORC. Each view lands with its notebook switched over and its
    "show code" (§3).
+   **Rock magnetism started 2026-09-01** — `programs/pmagpy_rockmag/`, served
+   by the hub as `/pmagpy_rockmag?dir=` and lit on Home's card once the package
+   imports. `session.py`: `EXPERIMENT_TYPES` (whole-method-code matching, in
+   view order), `experiment_index`, a `Session` with the shared `specimen`.
+   `views.py`: the side column (`DataView`, `ExperimentIndex`) and the views,
+   each buildable from a measurements DataFrame for a notebook. `MpmsDcView`
+   is `plot_mpms_dc` (Bokeh branch; the lone-panel grid layout and the
+   derivative legends were fixed in core). `VerweyView` is
+   `calc_verwey_estimate` with the range/degree sliders, Bokeh panels in
+   `plots.py` from the function's own return values, a KPI line, and a note
+   when the residual has no clear loss inside the excluded range (the example
+   has no magnetite); `calc_zero_crossing` no longer indexes past the start
+   when the residual peaks at an end of the fit range. Show code (§3 item 2)
+   is `pmagpy_panel/code.py` — `call`/`assign`/`script` write real Python
+   from live values, `CodePane` is the toggle, `write_beside` puts the `.py`
+   next to an export — and the emitted text is `exec`-tested. Example data:
+   MagIC contribution 20427 as `data_files/3_0/RMB_oxyhydroxides` (mpms_dc,
+   mpms_ac, χ–T, Ms–T; 1.1 MB).
+
+   **Views added 2026-09-02** — `GoethiteView` (`calc_goethite_removal`, split
+   out of `goethite_removal` so the app draws its own Bokeh panels; the
+   function's fit range and degree are the controls), `AcSusceptibilityView`
+   (`plot_mpms_ac` with its `phase`/`frequency` arguments; the frequency list
+   is read from the run), and the two thermomagnetic views over the shared
+   `ThermomagView` base (experiment picker across χ–T and in-field M–T runs,
+   `temp_unit`/`smooth_window`/`remove_holder` as `prepare_thermomag_branches`
+   takes them; kelvin is adopted for a run staying below 320 K): `ChiTView` is
+   `plot_chi_T` (given a `show_plot` argument and y labels that follow the
+   column), `CurieView` is `curie_temperature_estimates` as a table plus
+   `plot_curie_estimates` in a Matplotlib pane, the method set following the
+   data type the way the function's defaults do (a missing colour for
+   `ms_squared_extrapolation` was fixed in core).
+   `HysteresisView` is `process_hyst_loop` (the IRM decision tree: its
+   `centering_protocol`, `NL_fit`, `fit_open_loop`, `fit_linear_loop` are the
+   controls; the function's own Bokeh figure, a KPI row of Ms/Mr/Bc/Brh/σ/χHF
+   and the Jackson & Solheid quality statistics beside it; the early exits are
+   explained in prose). It needed loops to show, so a second example landed:
+   `data_files/3_0/ECMB_rockmag`, the rock-magnetic subset (VSM loops,
+   backfield, MPMS) of Nick's public MagIC 20213, with the script that rebuilds
+   it (QUESTIONS 16). `BackfieldView` and `UnmixingView` share a
+   `BackfieldBase` (experiment picker over the `LP-BCR` runs and
+   `process_backfield_data`'s `smooth_mode`/`smooth_frac`/`drop_first`; LOWESS
+   offered only when statsmodels is importable, QUESTIONS 19; the SIRM point of
+   a curve starting at zero field is dropped for it, since the function only
+   does that for a positive first field). The first is Bcr and the function's
+   three-panel Bokeh grid (`plot_backfield_data(interactive=True)`); the second
+   is `unmix_coercivity` (method, `n_components`, `vary_skew`; Bayes offered
+   only with dynesty) with a "Choose n" button running `select_n_components`,
+   a table of the components and `plot_coercivity_unmixing` in a Matplotlib
+   pane; the emitted code carries the selection call only while the rule's
+   count is the one shown (QUESTIONS 20–21). `ForcView` is the FORCme
+   pipeline (`forc.py`) on an `LP-FORC` experiment: the pipeline was
+   file-based, so core gained `process_forc_dataframe` (the measurements
+   already in pandas, through the MagIC reader) and a third example landed,
+   `data_files/3_0/FORC_example` — the repo's own raw MicroMag example run
+   exported to a MagIC table by `export_magic_measurements_from_raw`
+   (QUESTIONS 23). The controls are the smoothing (LOESS with its strength, or
+   VARIFORC with a `variforc_settings` preset and smoothing factor), a square
+   diagram window in mT, the colour scale, contours and regridding; the
+   measured curves are drawn in Bokeh beside the pipeline's own ρ figure; the
+   KPI row is curves, field step, drift correction, the LOESS spans or the
+   VARIFORC preset, and the major loop's Bc. The window starts at the extent
+   of the finite ρ rather than the pipeline's header default, because a MagIC
+   table's header is the run's field range (QUESTIONS 24). The tab bar was
+   full at ten views, so "AC susceptibility" became "χ AC". Results go back
+   to `specimens.txt` through `results.SpecimenSave`, one block under the
+   result of the Hysteresis, Backfield, Unmixing and Curie views: the view
+   hands it the core writer (`add_hyst_stats_to_specimens_table`,
+   `add_Bcr_to_specimens_table`, `coercivity_components_table` +
+   `add_unmixing_to_specimens_table`, `add_curie_estimates_to_specimens_table`)
+   as a function of the specimens table together with the notebook lines it
+   stands for; the button runs it through `MagicProject` (one backup of the
+   original into `backup_before_pmagpy_rockmag/`, `write_table`, the
+   contribution re-read), stamps the rows it added or altered with the
+   software tag, appends the analysis and the save's lines to `specimens.py`
+   beside the table (a replayable log of every save) and shows them in the
+   code block — exec'ing that code in a notebook reproduces the table. The
+   Curie view adds an "Estimate to save" picker (heating first; the pick
+   carries across experiments); loops in moment or volume go to
+   `hyst_ms_moment`/`_volume` through a new `magnetization` argument of the
+   hysteresis writer, which also takes a single result dict now. In a notebook
+   session or a directory without `specimens.txt` the block says why it is
+   disabled; a writer's refusal (no row for the experiment) is shown in red
+   and nothing is written (QUESTIONS 27–32).
+   *Anisotropy built* (2026-09-02): `programs/pmagpy_anisotropy/` over a new
+   UI-free `pmagpy/anisotropy.py` — `tensor_table` (the `aniso_s` rows of
+   `specimens.txt` in one frame, rotating specimen tensors to geographic and
+   tilt-corrected with the sample orientations when the table has no row in
+   that frame; `source` says which), `eigen`/`eigenparameters` in float64
+   (`pmag.doseigs` works in float32), `specimen_hext`, `group_statistics`
+   (Hext 1963 and the `pmag.s_boot`/`sbootpars` bootstrap, seeded),
+   `hext_ellipses`/`bootstrap_ellipses` (the same construction as
+   `pmagplotlib.plot_ell`, tested against it), `mean_record` (a
+   sites/samples row with `aniso_v1..v3` cells and `aniso_tilt_correction`).
+   Side column: dataset (a directory needs only `specimens.txt`), selection
+   (group by site/sample/location, frame with counts and a `*` for rotated,
+   type when there are several), tensor inventory. Tabs: **Eigenvectors**
+   (specimen net; mean net with Hext solid / bootstrap dashed ellipses,
+   bootstrap cloud, comparison direction; eigenvalue CDFs; F tests with the
+   verdict; one specimen gets the Hext statistics of its own σ, n),
+   **Shape** (Jelinek P′–T, Flinn; the mean tensor's shape parameters with
+   the specimens' ranges), **Specimens** (the tensor table). The hub counts
+   `aniso_s` rows as an Anisotropy kind, so a specimens-only directory opens
+   there. *Mean save built* (2026-09-02): the "Save to <table>.txt" step is
+   now the toolkit's `pmagpy_panel/results.py: TableSave` (any table; the
+   rockmag `SpecimenSave` is its specimens-only subclass) and the
+   Eigenvectors tab offers it for one site or sample: `mean_record` (the
+   `aniso_*` cells, `method_codes` `LP-AN-ARM:AE-H[:AE-BS[-P]]`, the
+   `specimens` list, the mean tensor and bootstrap parameters as JSON in
+   `description`) → `add_mean_to_table`, a row of its own on `sites.txt` /
+   `samples.txt` replaced on a re-save of the same type and frame; the
+   calls are appended to `sites.py`. *Reduce built* (2026-09-02): the
+   **Reduce** tab fits one tensor per specimen from the directory's
+   `LP-AN-ARM`/`LP-AN-TRM` steps (`anisotropy.reduce_measurements` →
+   `design_matrix`/`fit_tensor`, the field directions from
+   `treat_dc_field_phi/theta` or the 6/9/15-position schemes, the zero-field
+   step before each position as baseline, `LT-PTRM-I` → `aniso_alt`; Hext
+   statistics per specimen) and saves them to `specimens.txt` through
+   `TableSave` (`add_tensors_to_specimens_table`: replace the same
+   type+frame, else a row), after which the session re-reads its tables
+   (`Session.version`) and every tab follows. A directory with anisotropy
+   measurements and no `specimens.txt` now opens, on that tab. Reproduces
+   `aarm_magic` (McMurdo, 17/18) and `atrm_magic` (30 specimens) to 1e-7;
+   differences are logged in QUESTIONS 43. **AMS from Kappabridge positions
+   built 2026-09-02**: `susceptibility_design`/`fit_susceptibility_tensor`
+   (Jelinek's scalar design, `pmag.design(15)` for the standard scheme, nf =
+   n − 6) and `specimen_susceptibility_tensor` reduce the `LP-AN-MS` rows —
+   one `susc_chi_*` along `meas_orient_phi/theta`, the fifteen-position
+   scheme when the table does not say — through the same `reduce_measurements`
+   /`ReduceView`/`TableSave` path (`baseline` greyed out for AMS); reproduces
+   `k15_magic`'s `dok15_s` tensors to 1e-8. `specimen_hext` now takes
+   `aniso_type` so a stored AMS tensor's F-critical and ellipses use n − 6
+   rather than the remanence 3n − 6 (they were ~13 % too tight); `k15_magic`
+   writes `LP-X:LP-AN-MS` on each position and the specimen's name in
+   `experiment` (it wrote a susceptibility value there). QUESTIONS 55. The §4
+   MagIC-layer fixes landed 2026-09-02. *Next*: the notebook switch-over in
+   RockmagPy-notebooks (QUESTIONS 12).
 5. **The rest of Pmag GUI, one decision at a time** — see the table below.
-   *Retires `pmag_gui.py`.*
+   *Retires `pmag_gui.py`.* *Built (first row, 2026-09-02)*: the field
+   notebook is a conversion like any other, so there is no separate
+   Orientation page — `orientation_magic` and `azdip_magic` are Formats
+   `orient` and `azdip` in `convert_registry` (via `Deferred`, so the
+   registry still loads without `ipmag`/pyplot) and the Convert page serves
+   them: `guess_format` recognises a notebook by its header
+   (`sample_name` + `mag_azimuth`), the form asks the orientation and
+   declination-correction conventions, bedding, GMT offset, method codes, and
+   the result reads "24 samples · 2 sites". `Format.replaces` is the one new
+   idea: in a directory where a measurement converter already wrote
+   placeholder sample rows (CIT: azimuth 90, dip −90, `SO-MAG`), the
+   notebook's rows *replace* those rows by name, all of them
+   (`orientation_magic` writes one row per orientation method), while
+   converter-only knowledge in non-orientation columns is carried over
+   (QUESTIONS 46 for the choices).
+   *Built (Kappabridge row, 2026-09-02)*: `k15`, `kly4s`, `sufar4` and the LORE
+   `iodp_kly4s` export are Formats; none is guessed (`.dat`/`.txt` are every
+   instrument's extensions), the analyst picks them from the menu. The
+   inventory's susceptibility kind now needs `LP-X-T`/`-F`/`-H` — a bare `LP-X`
+   is the bulk value the Kappabridge writes beside a tensor, and the Rock
+   magnetism door stays shut on it while Anisotropy opens on the `aniso_s`
+   rows. `kly4s` wrote samples/sites into the cwd (fixed); `pmag.tauV` keeps
+   real eigenvalues real (numpy 2 `eig` returns complex, and every `dostilt`
+   raised a ComplexWarning). QUESTIONS 47 for the choices.
+   *Built (2.5 → 3.0, 2026-09-02)*: `convert_registry.upgrade_2_to_3` wraps
+   `pmag.convert_directory_2_to_3` as the `legacy` Format (takes the directory,
+   no fields); `guess_format` names a directory `legacy` from its 2.5 table
+   names (`magic_measurements`, `er_*`, `pmag_*`, `rmag_*`) ahead of anything
+   else beside them, and tells a 2.5 contribution file from a 3.0 one so Home
+   can say that unpacking it is only the first of two steps. `ages` and
+   `criteria` joined `MAGIC_TABLES`, so the combine step carries them. The 2.5
+   files stay beside the new tables ("17 MagIC 2.5 tables beside the 3.0
+   tables"); `pmag_results` and images are not translated — the log says so
+   and points at MagIC's upgrade tool. QUESTIONS 48.
+   *Built (rock magnetic tables, 2026-09-02)*: `pmag.convert_rmag_2_to_3`
+   translates `rmag_anisotropy`, `rmag_hysteresis`, `rmag_remanence`,
+   `rmag_susceptibility` and `rmag_results` into rows of `specimens` (results
+   naming one sample or site into `samples`/`sites`), the column map read off
+   the 3.0 data model's `previous_columns` (`rmag_2_to_3_map`); `anisotropy_s1..s6`
+   fold into `aniso_s`, a result's `t1/v1_dec/v1_inc` and ellipse into
+   `aniso_v1` as `tau:dec:inc:eta/zeta:eta_dec:eta_inc:eta_semi_angle:zeta_dec:zeta_inc:zeta_semi_angle`
+   (the layout MagIC's upgrade and `ipmag.aniso_magic` write), and a result
+   folds onto the anisotropy row of the same specimen, type and tilt
+   correction (or the hysteresis row when it holds `hyst_*` ratios). Identical
+   2.5 lines are written once. McMurdo gives the 19 AARM + 8 hysteresis rows
+   MagIC's 3.0 copy has; `data_files/ani_depthplot` reproduces MagIC's own
+   upgrade of its 472-line `rmag_anisotropy` cell for cell (431 rows). The
+   Anisotropy app opens the result directly. QUESTIONS 56.
 
 ### Pmag GUI features still to decide
 
 | feature | recommendation | why |
 |---|---|---|
-| `orientation_magic` | **keep**, as the Orientation page | the step between field notebook and MagIC; nothing else does it; form-driven from its conventions |
-| `azdip_magic` | **keep**, as the simple case on the Orientation page | same job, plainer input |
-| IODP sample summaries | **keep**, as formats in the registry | they are conversions |
-| kly4s / k15 / sufar4 | **keep**, as formats in the registry; results open in Anisotropy | conversions |
-| legacy 2.5 → 3.0 | **keep**, one button on Import | cheap; old datasets still arrive |
-| export result tables (`*_extract`) | **keep**, on Upload | publication tables; cheap |
-| criteria editor (`CustomizeCriteria`, unreachable today) | **keep**, as the criteria grid on Metadata | Directions' export already applies criteria; they need a home |
+| `orientation_magic` | **done** (2026-09-02), as the `orient` format on Convert | the step between field notebook and MagIC; nothing else does it; form-driven from its conventions |
+| `azdip_magic` | **done** (2026-09-02), as the `azdip` format on Convert | same job, plainer input |
+| IODP sample summaries | **done**, as the `iodp_*` formats (LIMS samples, SRM section/discrete, JR6, and KLY4S from 2026-09-02) | they are conversions |
+| kly4s / k15 / sufar4 | **done** (2026-09-02), as the `k15`/`kly4s`/`sufar4` formats; the directory opens Anisotropy | conversions |
+| legacy 2.5 → 3.0 | **done** (2026-09-02), as the `legacy` format on Convert, guessed from the 2.5 table names | cheap; old datasets still arrive |
+| export result tables (`*_extract`) | **done** (step 3, 2026-09-01): `magic_upload.export_tables` on Upload, Excel or LaTeX | publication tables; cheap |
+| criteria editor (`CustomizeCriteria`, unreachable today) | **done** (2026-09-02), as the criteria grid on Metadata with defaults and a per-criterion check | criteria need a home; Directions' export applies them, opt-in, since 2026-09-02 |
 | depth plots (`core_depthplot`, `ani_depthplot2`) | **defer** | matplotlib, niche; revisit when a stratigraphic user asks |
 | `ZeqMagic` (unreachable today) | **drop** | Directions covers it |
 | private MagIC workspace | **defer** until its function is fixed | cannot work today |

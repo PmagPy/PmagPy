@@ -94,6 +94,9 @@ class Session(param.Parameterized):
     current = param.Parameter(default=None, doc="selected Component of the current specimen")
     unify_polarity = param.Boolean(default=True, doc="bring VGPs / location directions to a common polarity")
     flip_polarity = param.Boolean(default=False, doc="report the antipodes of the unified set")
+    apply_criteria = param.Boolean(default=False, doc="judge fits and means by the directory's criteria.txt "
+                                                      "(DE-SPEC / DE-SAMP / DE-SITE): failing rows are written "
+                                                      "result_quality 'b' and left out of the level above")
     version = param.Integer(default=0, doc="incremented whenever interpretations or flags change")
     status = param.String(default="")
 
@@ -140,6 +143,7 @@ class Session(param.Parameterized):
             if self.cache:
                 _DATASETS[directory] = (data, stamp)
         self.data = data
+        data.set_criteria(data._table("criteria") if self.apply_criteria else None)   # a cached dataset may differ
         self.colors = ComponentColors()
         remember_recent(directory)
         for comp in data.components:
@@ -216,6 +220,24 @@ class Session(param.Parameterized):
     @param.depends("specimen", watch=True)
     def _on_specimen(self):
         self._sync_current()
+
+    # ------------------------------------------------------------------ criteria
+    def criteria_count(self) -> int:
+        """How many rows of the directory's criteria.txt judge directions (0 = none to apply)."""
+        if self.data is None:
+            return 0
+        table = self.data._table("criteria")
+        if table is None:
+            return 0
+        names = set(dc.DemagData.CRITERION_NAMES.values())
+        return int(table["criterion"].astype(str).str.strip().isin(names).sum()) if "criterion" in table.columns else 0
+
+    @param.depends("apply_criteria", watch=True)
+    def _on_criteria(self):
+        if self.data is None:
+            return
+        self.data.set_criteria(self.data._table("criteria") if self.apply_criteria else None)
+        self.version += 1                  # means, poles and the export follow; nothing to autosave
 
     # ------------------------------------------------------------------ editing
     def _changed(self) -> None:

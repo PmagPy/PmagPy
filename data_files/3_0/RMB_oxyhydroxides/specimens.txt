@@ -1,0 +1,87 @@
+tab 	specimens
+citations	description	method_codes	result_quality	sample	specimen	synthetic_alternatives	volume	weight
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	akaganeite (Dyar) Nanophase 1GOE 07/2010 J. Bosch T-series	akaganeite (Dyar) Nanophase 1GOE 07/2010 J. Bosch T-series Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	akaganeite (Dyar) Sklute, Ak020515	akaganeite (Dyar) Sklute, Ak020515 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	akaganeite (Dyar) Sklute, Ak102315	akaganeite (Dyar) Sklute, Ak102315 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) 1: DB seep surf 2, E. Estes	ferrihydrite (Dyar) 1: DB seep surf 2, E. Estes Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) 10: chat 1-3 <44, E. Estes	ferrihydrite (Dyar) 10: chat 1-3 <44, E. Estes Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) 2: DB seep bio, E. Estes	ferrihydrite (Dyar) 2: DB seep bio, E. Estes Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) 3: Ad, E. Estes	ferrihydrite (Dyar) 3: Ad, E. Estes Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) 4: 22 1, E. Estes	ferrihydrite (Dyar) 4: 22 1, E. Estes Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) 5: ken 1-1, E. Estes	ferrihydrite (Dyar) 5: ken 1-1, E. Estes Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) 6: DB3 fine >44, E. Estes	ferrihydrite (Dyar) 6: DB3 fine >44, E. Estes Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) 7: DB3 fine >74, E. Estes	ferrihydrite (Dyar) 7: DB3 fine >74, E. Estes Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) 8: chat 1 >44, E. Estes	ferrihydrite (Dyar) 8: chat 1 >44, E. Estes Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) 9: chat 1 >74, E. Estes	ferrihydrite (Dyar) 9: chat 1 >74, E. Estes Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) 96214, Smedley's Mine	ferrihydrite (Dyar) 96214, Smedley's Mine Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) air dried	ferrihydrite (Dyar) air dried Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) DB B+1 20 cm, E. Estes	ferrihydrite (Dyar) DB B+1 20 cm, E. Estes Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) Dehouk, FH-150-0-A	ferrihydrite (Dyar) Dehouk, FH-150-0-A Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) Dehouk, FH-150-1-A	ferrihydrite (Dyar) Dehouk, FH-150-1-A Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) Dehouk, FH-40-0-A	ferrihydrite (Dyar) Dehouk, FH-40-0-A Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) Dehouk, FH-40-1-A	ferrihydrite (Dyar) Dehouk, FH-40-1-A Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) Dehouk, FH-40-2-A	ferrihydrite (Dyar) Dehouk, FH-40-2-A Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) Dehouk, FH-40-3-A	ferrihydrite (Dyar) Dehouk, FH-40-3-A Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) Dehouk, FH-40-h-A	ferrihydrite (Dyar) Dehouk, FH-40-h-A Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) Dehouk, FH-ini, 21 may	ferrihydrite (Dyar) Dehouk, FH-ini, 21 may Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) Dehouk, SG-FH-150-0-A	ferrihydrite (Dyar) Dehouk, SG-FH-150-0-A Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) Dehouk, SG-FH-150-1-A	ferrihydrite (Dyar) Dehouk, SG-FH-150-1-A Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) Dehouk, SG-FH-40-0-A	ferrihydrite (Dyar) Dehouk, SG-FH-40-0-A Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) Dehouk, SG-FH-40-4-A	ferrihydrite (Dyar) Dehouk, SG-FH-40-4-A Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) dehydrated JB-JLB-820	ferrihydrite (Dyar) dehydrated JB-JLB-820 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) dehydrated JB-JLB-821	ferrihydrite (Dyar) dehydrated JB-JLB-821 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) dehydrated JB-JLB-822	ferrihydrite (Dyar) dehydrated JB-JLB-822 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) dehydrated JB-JLB-823	ferrihydrite (Dyar) dehydrated JB-JLB-823 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) Icelandic, JA499	ferrihydrite (Dyar) Icelandic, JA499 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) Icelandic, JB 498	ferrihydrite (Dyar) Icelandic, JB 498 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) JB-JLB-499	ferrihydrite (Dyar) JB-JLB-499 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) JB-JLB-499	ferrihydrite (Dyar) JB-JLB-499 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) JB 564 Czech Soos-1	ferrihydrite (Dyar) JB 564 Czech Soos-1 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) JB 565 Czech Soos-2	ferrihydrite (Dyar) JB 565 Czech Soos-2 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) Nanophase 1GOE 03/2010 J. Bosch T-series	ferrihydrite (Dyar) Nanophase 1GOE 03/2010 J. Bosch T-series Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) Nanophase 1GOE 06/2008 J. Bosch T-series	ferrihydrite (Dyar) Nanophase 1GOE 06/2008 J. Bosch T-series Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) Nanophase 1GOE 07/2010 J. Bosch T-series	ferrihydrite (Dyar) Nanophase 1GOE 07/2010 J. Bosch T-series Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) R, E. Estes	ferrihydrite (Dyar) R, E. Estes Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) reduced synthetic, JB 428	ferrihydrite (Dyar) reduced synthetic, JB 428 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) reduced synthetic, JB 431	ferrihydrite (Dyar) reduced synthetic, JB 431 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) synthetic JB46	ferrihydrite (Dyar) synthetic JB46 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) Synthetic, 2nm grain size	ferrihydrite (Dyar) Synthetic, 2nm grain size Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) Synthetic, 4nm grain size	ferrihydrite (Dyar) Synthetic, 4nm grain size Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) Synthetic, 6nm grain size	ferrihydrite (Dyar) Synthetic, 6nm grain size Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) synthetic, JB 409	ferrihydrite (Dyar) synthetic, JB 409 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) synthetic, JB 45	ferrihydrite (Dyar) synthetic, JB 45 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) test E. Sklute	ferrihydrite (Dyar) test E. Sklute Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrite (Dyar) Wet Fh B Frozen, Sully	ferrihydrite (Dyar) Wet Fh B Frozen, Sully Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrites (Dyar) SG-FH-15-0-A, Erwin	ferrihydrites (Dyar) SG-FH-15-0-A, Erwin Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	ferrihydrites (Dyar) SG-FH-40-4-A, Erwin	ferrihydrites (Dyar) SG-FH-40-4-A, Erwin Moss			0.0
+This Study		LP-MASS:LP-VOL	g	ferroxyhyte_Princeton-1985-M1	ferroxyhyte_Princeton-1985-M1-1	ferroxyhyte_Princeton-1985-M1	1.00000001490116e-07	0.0001038599982857
+This Study		LP-MASS:LP-VOL	g	ferroxyhyte_Princeton-1985-M1	ferroxyhyte_Princeton-1985-M1-2	ferroxyhyte_Princeton-1985-M1	1.00000001490116e-07	4.23999987542629e-05
+This Study		LP-MASS:LP-VOL	g	ferroxyhyte_Princeton-1985-M2	ferroxyhyte_Princeton-1985-M2-1	ferroxyhyte_Princeton-1985-M2	1.00000001490116e-07	5.75999990105629e-05
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	goethite (Dyar) 125086	goethite (Dyar) 125086 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	goethite (Dyar) 7nm	goethite (Dyar) 7nm Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	goethite (Dyar) 83831	goethite (Dyar) 83831 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	goethite (Dyar) Florissant, HMM 119377	goethite (Dyar) Florissant, HMM 119377 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	goethite (Dyar) nano YLO 1888D	goethite (Dyar) nano YLO 1888D Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	goethite (Dyar) nano YLO 3288D	goethite (Dyar) nano YLO 3288D Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	goethite (Dyar) Nanophase 1GOE 07/20/10 J. Bosch T-series	goethite (Dyar) Nanophase 1GOE 07/20/10 J. Bosch T-series Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	goethite (Dyar) nanophase, A1	goethite (Dyar) nanophase, A1 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	goethite (Dyar) nanophase, B1	goethite (Dyar) nanophase, B1 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	goethite (Dyar) nanophase, C1	goethite (Dyar) nanophase, C1 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	goethite (Dyar) reduced synthetic, JB 438	goethite (Dyar) reduced synthetic, JB 438 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	goethite (Dyar) Sklute, 030216	goethite (Dyar) Sklute, 030216 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	goethite (Dyar) Sklute, Goet011515	goethite (Dyar) Sklute, Goet011515 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	goethite (Dyar) Sklute, Goet012315	goethite (Dyar) Sklute, Goet012315 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	goethite (Dyar) synthetic JB 54	goethite (Dyar) synthetic JB 54 Moss			0.0
+This Study		LP-MASS:LP-VOL	g	goethite_AA 19496	goethite_AA 19496-1	goethite_AA 19496	1.00000001490116e-07	1.3600000180304e-05
+This Study		LP-MASS:LP-VOL	g	goethite_Pfizer-YLO1888D	goethite_Pfizer-YLO1888D-1	goethite_Pfizer-YLO1888D	1.00000001490116e-07	0.0001420000046491
+This Study		LP-MASS:LP-VOL	g	goethite_Pfizer-YO-5087	goethite_Pfizer-YO-5087-1	goethite_Pfizer-YO-5087	1.00000001490116e-07	1.37200001627207e-05
+This Study		LP-MASS:LP-VOL	g	goethite_Pfizer-YO-6087	goethite_Pfizer-YO-6087-1	goethite_Pfizer-YO-6087	1.00000001490116e-07	1.68999992311001e-05
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	lepidocrocite (Dyar) Sklute, Lep030415	lepidocrocite (Dyar) Sklute, Lep030415 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	lepidocrocite (Dyar) Sklute, LEP052616	lepidocrocite (Dyar) Sklute, LEP052616 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	lepidocrocite (Dyar) Sklute, Lep100615_2	lepidocrocite (Dyar) Sklute, Lep100615_2 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	lepidocrocite (Dyar) synthetic, JB 56	lepidocrocite (Dyar) synthetic, JB 56 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	lepidocrocite (Dyar) synthetic, JB50	lepidocrocite (Dyar) synthetic, JB50 Moss			0.0
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	lepidocrocite (Dyar) Zuckmantel, HMM 81159	lepidocrocite (Dyar) Zuckmantel, HMM 81159 Moss			0.0
+This Study		LP-MASS:LP-VOL	g	lepidocrocite_AA 17531	lepidocrocite_AA 17531_1	lepidocrocite_AA 17531	1.00000001490116e-07	0.0001444800049066
+This Study		LP-MASS:LP-VOL	g	lepidocrocite_Pfizer	lepidocrocite_Pfizer_1	lepidocrocite_Pfizer	1.00000001490116e-07	3.16299982368946e-05
+This Study	data from the Mineral Spectroscopy database, Mt Holyoke College	LP-MASS	g	schwertmannite (Dyar) natural JB130	schwertmannite (Dyar) natural JB130 Moss			0.0

@@ -1,0 +1,3 @@
+tab 	contribution
+contributor	data_model_version	id	lab_names	reference	version
+@polarwander	3.0	20213	Paleomagnetism Laboratory (University of California, Berkeley, USA):Institute for Rock Magnetism (University of Minnesota, USA)	10.1029/2021TC006751	2

@@ -189,6 +189,10 @@ internet at run time.
 
 ### Export
 
+Everything written here comes with a `.py` beside it — `arai_hz05a1.py` next to
+`arai_hz05a1.pdf`, `specimens_export.py` next to the tables — holding the calls
+that produced it, down to the bounds and the criteria set.
+
 A preview of exactly what will be written — specimens, sites or criteria — with
 the merge policy stated above it, then *Validate*, then *Write MagIC tables*.
 Validation is cell-level: it names the table, the row and the column of every
@@ -333,6 +337,11 @@ file operations live in the Export tab and the data dialog.
 * **A session file you can read**, diff and put in a repository.
 * **Publication figures without the GUI** — `publication.py` is importable from a
   script or a notebook.
+* **Show code** — every analysis tab can print the Python that reproduces what
+  it is showing, from the core functions, with your specimen and your
+  parameters in it. Paste it into a notebook and it runs. Every figure and
+  every exported table is written with that script beside it, so a result you
+  find in a folder six months later comes with the calls that made it.
 
 ### What is not here yet
 

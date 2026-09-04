@@ -639,6 +639,7 @@ def plot_mpms_dc(
                 p2.scatter(zfcd["T"], zfcd["dM_dT"], marker=mpl_to_bokeh_markers.get(zfc_marker), 
                            size=symbol_size, color=zfc_color, legend_label="ZFC dM/dT")
             p2.legend.click_policy="hide" 
+            p2.legend.location = "bottom_right"        # dM/dT of a warming curve sits near zero at the top
             p2.xaxis.axis_label_text_font_style = "normal"
             p2.yaxis.axis_label_text_font_style = "normal"        
             figs.append(p2)  
@@ -656,11 +657,16 @@ def plot_mpms_dc(
                 p3.scatter(rwd["T"], rwd["dM_dT"], marker=mpl_to_bokeh_markers.get(rtsirm_warm_marker), 
                            size=symbol_size, color=rtsirm_warm_color, legend_label="warm dM/dT")
             p3.legend.click_policy="hide"  
+            p3.legend.location = "bottom_left"
             p3.xaxis.axis_label_text_font_style = "normal"
             p3.yaxis.axis_label_text_font_style = "normal"
             figs.append(p3)  
 
-        layout = gridplot([figs[:2], figs[2:]], sizing_mode="stretch_width")  
+        # data panels on the first row, their derivatives beneath them; with one
+        # data panel the derivative goes under it rather than beside it
+        n_data = int(fc_zfc_present) + int(rtsirm_present)
+        rows = [figs[:n_data]] + ([figs[n_data:]] if len(figs) > n_data else [])
+        layout = gridplot(rows, sizing_mode="stretch_width")
         if show_plot:
             show(layout)
         return layout if return_figure else None  
@@ -1437,6 +1443,9 @@ def calc_zero_crossing(dM_dT_temps, dM_dT):
     d2M_dT2 = thermomag_derivative(dM_dT_temps, dM_dT)
     d2M_dT2_T_array = d2M_dT2['T'].to_numpy()
     max_index = np.searchsorted(d2M_dT2_T_array, max_dM_dT_temp)
+    # a maximum at either end of the range (no interior peak, i.e. no transition)
+    # is bracketed by the end pair rather than wrapping around to index -1
+    max_index = int(np.clip(max_index, 1, len(d2M_dT2_T_array) - 1))
 
     d2M_dT2_T_before = d2M_dT2['T'][max_index-1]
     d2M_dT2_before = d2M_dT2['dM_dT'][max_index-1]
@@ -1507,18 +1516,73 @@ def zero_crossing(dM_dT_temps, dM_dT, make_plot=False, xlim=None,
     return zero_cross_temp
 
 
+def calc_goethite_removal(rtsirm_warm_data, rtsirm_cool_data, t_min=150, t_max=290, poly_deg=2):
+    """
+    Model the goethite contribution to RTSIRM warming and cooling curves and remove it.
+
+    A polynomial is fitted to the RTSIRM warming curve between ``t_min`` and ``t_max``,
+    where the remanence change is taken to be goethite's alone, and the fit is
+    subtracted from both the warming and the cooling curve. Derivatives of the
+    original and corrected curves are returned for judging the removal.
+
+    Parameters:
+        rtsirm_warm_data (pd.DataFrame): 'meas_temp' and 'magn_mass' of the RTSIRM warming curve.
+        rtsirm_cool_data (pd.DataFrame): 'meas_temp' and 'magn_mass' of the RTSIRM cooling curve.
+        t_min (float, optional): Lower bound of the goethite fit range (K). Default is 150.
+        t_max (float, optional): Upper bound of the goethite fit range (K). Default is 290.
+        poly_deg (int, optional): Degree of the polynomial fitted to the warming curve. Default is 2.
+
+    Returns:
+        dict: with the keys
+            'warm_temps', 'warm_mags', 'cool_temps', 'cool_mags' (pd.Series): the input curves, reindexed;
+            'fit' (np.poly1d): the goethite polynomial;
+            'warm_fit', 'cool_fit' (np.ndarray): the polynomial evaluated at each curve's temperatures;
+            'warm_corrected', 'cool_corrected' (pd.Series): the curves with the fit subtracted;
+            'warm_derivative', 'cool_derivative', 'warm_corrected_derivative', 'cool_corrected_derivative'
+                (pd.DataFrame): dM/dT of each (``thermomag_derivative``, dropping the end point of each
+                sequence that the temperature step does not define).
+
+    Raises:
+        ValueError: when fewer than ``poly_deg + 1`` warming points fall inside the fit range.
+    """
+    warm_temps = rtsirm_warm_data['meas_temp'].reset_index(drop=True).astype(float)
+    warm_mags = rtsirm_warm_data['magn_mass'].reset_index(drop=True).astype(float)
+    cool_temps = rtsirm_cool_data['meas_temp'].reset_index(drop=True).astype(float)
+    cool_mags = rtsirm_cool_data['magn_mass'].reset_index(drop=True).astype(float)
+
+    in_range = (warm_temps > float(t_min)) & (warm_temps < float(t_max))
+    if in_range.sum() < poly_deg + 1:
+        raise ValueError(f"{int(in_range.sum())} warming points between {t_min} and {t_max} K cannot fit a "
+                         f"degree-{poly_deg} polynomial")
+    fit = np.poly1d(np.polyfit(warm_temps[in_range], warm_mags[in_range], poly_deg))
+    warm_fit = fit(warm_temps)
+    cool_fit = fit(cool_temps)
+    warm_corrected = warm_mags - warm_fit
+    cool_corrected = cool_mags - cool_fit
+
+    return {
+        'warm_temps': warm_temps, 'warm_mags': warm_mags, 'cool_temps': cool_temps, 'cool_mags': cool_mags,
+        'fit': fit, 'warm_fit': warm_fit, 'cool_fit': cool_fit,
+        'warm_corrected': warm_corrected, 'cool_corrected': cool_corrected,
+        'cool_derivative': thermomag_derivative(cool_temps, cool_mags, drop_first=True),
+        'warm_derivative': thermomag_derivative(warm_temps, warm_mags, drop_last=True),
+        'cool_corrected_derivative': thermomag_derivative(cool_temps, cool_corrected, drop_first=True),
+        'warm_corrected_derivative': thermomag_derivative(warm_temps, warm_corrected, drop_last=True),
+    }
+
+
 def goethite_removal(rtsirm_warm_data, 
                      rtsirm_cool_data,
                      t_min=150, t_max=290, poly_deg=2,
                      rtsirm_cool_color='#17becf', rtsirm_warm_color='#d62728',
-                     symbol_size=4, return_data=False):
+                     symbol_size=4, return_data=False, show_plot=True, return_figure=False):
     """
     Analyzes and visualizes the removal of goethite signal from Room Temperature Saturation
     Isothermal Remanent Magnetization (RTSIRM) warming and cooling data. The function fits
     a polynomial to the RTSRIM warming curve between specified temperature bounds to model
     the goethite contribution, then subtracts this fit from the original data. The corrected
     and uncorrected magnetizations are plotted, along with their derivatives, to assess the
-    effect of goethite removal.
+    effect of goethite removal. The numbers come from ``calc_goethite_removal``.
 
     Parameters:
         rtsirm_warm_data (pd.DataFrame): DataFrame containing 'meas_temp' and 'magn_mass' columns
@@ -1533,41 +1597,27 @@ def goethite_removal(rtsirm_warm_data,
         symbol_size (int, optional): Size of the markers in the plots. Default is 4.
         return_data (bool, optional): If True, returns the corrected magnetization data for both
                                       warming and cooling. Default is False.
+        show_plot (bool, optional): If True, calls ``plt.show()``. Default is True.
+        return_figure (bool, optional): If True, the matplotlib figure is returned (first, when
+                                        ``return_data`` is also set). Default is False.
 
     Returns:
-        Tuple[pd.Series, pd.Series]: Only if return_data is True. Returns two pandas Series
-                                     containing the corrected magnetization data for the warming
-                                     and cooling sequences, respectively.
+        Tuple[pd.DataFrame, pd.DataFrame]: Only if return_data is True. Two DataFrames with
+                                           'meas_temp' and 'corrected_magn_mass' for the warming
+                                           and cooling sequences, respectively.
     """
-    
-    rtsirm_warm_temps = rtsirm_warm_data['meas_temp']
-    rtsirm_warm_mags = rtsirm_warm_data['magn_mass']
-    rtsirm_cool_temps = rtsirm_cool_data['meas_temp']
-    rtsirm_cool_mags = rtsirm_cool_data['magn_mass']
-    
-    rtsirm_warm_temps.reset_index(drop=True, inplace=True)
-    rtsirm_warm_mags.reset_index(drop=True, inplace=True)
-    rtsirm_cool_temps.reset_index(drop=True, inplace=True)
-    rtsirm_cool_mags.reset_index(drop=True, inplace=True)
-    
-    rtsirm_warm_temps_filtered_indices = [i for i in np.arange(len(rtsirm_warm_temps)) if ((float(rtsirm_warm_temps[i]) > float(t_min)) and (float(rtsirm_warm_temps[i])  < float(t_max)) )]
-    rtsirm_warm_temps_filtered = rtsirm_warm_temps[rtsirm_warm_temps_filtered_indices]
-    rtsirm_warm_mags_filtered = rtsirm_warm_mags[rtsirm_warm_temps_filtered_indices]
-    
-    geothite_fit = np.polyfit(rtsirm_warm_temps_filtered, rtsirm_warm_mags_filtered, poly_deg)
-    rtsirm_warm_mags_polyfit = np.poly1d(geothite_fit)(rtsirm_warm_temps)
-    rtsirm_cool_mags_polyfit = np.poly1d(geothite_fit)(rtsirm_cool_temps)
-    
-    rtsirm_warm_mags_corrected = rtsirm_warm_mags - rtsirm_warm_mags_polyfit
-    rtsirm_cool_mags_corrected = rtsirm_cool_mags - rtsirm_cool_mags_polyfit
-    
+    r = calc_goethite_removal(rtsirm_warm_data, rtsirm_cool_data, t_min=t_min, t_max=t_max, poly_deg=poly_deg)
+    rtsirm_warm_temps, rtsirm_warm_mags = r['warm_temps'], r['warm_mags']
+    rtsirm_cool_temps, rtsirm_cool_mags = r['cool_temps'], r['cool_mags']
+    rtsirm_warm_mags_corrected, rtsirm_cool_mags_corrected = r['warm_corrected'], r['cool_corrected']
+
     fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(12, 8))
     
     axs[0, 0].plot(rtsirm_warm_temps, rtsirm_warm_mags, color=rtsirm_warm_color, 
                    marker='o', linestyle='-', markersize=symbol_size, label='RTSIRM Warming')
     axs[0, 0].plot(rtsirm_cool_temps, rtsirm_cool_mags, color=rtsirm_cool_color, 
                    marker='o', linestyle='-', markersize=symbol_size, label='RTSIRM Cooling')
-    axs[0, 0].plot(rtsirm_warm_temps, rtsirm_warm_mags_polyfit, color=rtsirm_warm_color, 
+    axs[0, 0].plot(rtsirm_warm_temps, r['warm_fit'], color=rtsirm_warm_color, 
                    linestyle='--', label='goethite fit')
     axs[0, 1].plot(rtsirm_warm_temps, rtsirm_warm_mags_corrected, color=rtsirm_warm_color, 
                    marker='s', linestyle='-', markersize=symbol_size, label='RTSIRM Warming (goethite removed)')
@@ -1578,11 +1628,8 @@ def goethite_removal(rtsirm_warm_data,
     rectangle = patches.Rectangle((t_min, ax0.get_ylim()[0]), t_max - t_min, 
                             ax0.get_ylim()[1] - ax0.get_ylim()[0], 
                             linewidth=0, edgecolor=None, facecolor='gray', 
-                            alpha=0.3)
+                            alpha=0.3, label='goethite fit range')
     ax0.add_patch(rectangle)
-    rect_legend_patch = patches.Patch(color='gray', alpha=0.3, label='excluded from background fit')
-    handles, labels = ax0.get_legend_handles_labels()
-    handles.append(rect_legend_patch)  # Add the rectangle legend patch
     
     for ax in axs[0, :]:
         ax.set_xlabel("Temperature (K)")
@@ -1590,24 +1637,14 @@ def goethite_removal(rtsirm_warm_data,
         ax.legend()
         ax.grid(True)
         ax.set_xlim(0, 300)
-             
-    rtsirm_cool_derivative = thermomag_derivative(rtsirm_cool_data['meas_temp'], 
-                                                       rtsirm_cool_data['magn_mass'], drop_first=True)
-    rtsirm_warm_derivative = thermomag_derivative(rtsirm_warm_data['meas_temp'], 
-                                                       rtsirm_warm_data['magn_mass'], drop_last=True)
-    
-    rtsirm_cool_derivative_corrected = thermomag_derivative(rtsirm_cool_data['meas_temp'], 
-                                                       rtsirm_cool_mags_corrected, drop_first=True)
-    rtsirm_warm_derivative_corrected = thermomag_derivative(rtsirm_warm_data['meas_temp'], 
-                                                       rtsirm_warm_mags_corrected, drop_last=True)
 
-    axs[1, 0].plot(rtsirm_cool_derivative['T'], rtsirm_cool_derivative['dM_dT'], 
+    axs[1, 0].plot(r['cool_derivative']['T'], r['cool_derivative']['dM_dT'], 
                    marker='o', linestyle='-', color=rtsirm_cool_color, markersize=symbol_size, label='RTSIRM Cooling Derivative')
-    axs[1, 0].plot(rtsirm_warm_derivative['T'], rtsirm_warm_derivative['dM_dT'], 
+    axs[1, 0].plot(r['warm_derivative']['T'], r['warm_derivative']['dM_dT'], 
                    marker='o', linestyle='-', color=rtsirm_warm_color, markersize=symbol_size, label='RTSIRM Warming Derivative')        
-    axs[1, 1].plot(rtsirm_cool_derivative_corrected['T'], rtsirm_cool_derivative_corrected['dM_dT'], 
+    axs[1, 1].plot(r['cool_corrected_derivative']['T'], r['cool_corrected_derivative']['dM_dT'], 
                    marker='s', linestyle='-', color=rtsirm_cool_color, markersize=symbol_size, label='RTSIRM Cooling Derivative\n(goethite removed)')
-    axs[1, 1].plot(rtsirm_warm_derivative_corrected['T'], rtsirm_warm_derivative_corrected['dM_dT'], 
+    axs[1, 1].plot(r['warm_corrected_derivative']['T'], r['warm_corrected_derivative']['dM_dT'], 
                    marker='s', linestyle='-', color=rtsirm_warm_color, markersize=symbol_size, label='RTSIRM Warming Derivative\n(goethite removed)')  
     for ax in axs[1, :]:
         ax.set_xlabel("Temperature (K)")
@@ -1617,12 +1654,17 @@ def goethite_removal(rtsirm_warm_data,
         ax.set_xlim(0, 300)
 
     fig.tight_layout()
-    plt.show()
+    if show_plot:
+        plt.show()
 
+    out = []
+    if return_figure:
+        out.append(fig)
     if return_data:
-        rtsirm_warm_adjusted = pd.DataFrame({'meas_temp': rtsirm_warm_temps, 'corrected_magn_mass': rtsirm_warm_mags_corrected})
-        rtsirm_cool_adjusted = pd.DataFrame({'meas_temp': rtsirm_cool_temps, 'corrected_magn_mass': rtsirm_cool_mags_corrected})
-        return rtsirm_warm_adjusted, rtsirm_cool_adjusted
+        out.append(pd.DataFrame({'meas_temp': rtsirm_warm_temps, 'corrected_magn_mass': rtsirm_warm_mags_corrected}))
+        out.append(pd.DataFrame({'meas_temp': rtsirm_cool_temps, 'corrected_magn_mass': rtsirm_cool_mags_corrected}))
+    if out:
+        return out[0] if len(out) == 1 else tuple(out)
     
     
 def goethite_removal_interactive(measurements, specimen):
@@ -3885,19 +3927,26 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
 # the highest fields). The full key set is always present in the result so
 # batch tables (process_hyst_loops) and the specimens-table writer keep a
 # stable schema across all three outcomes.
-def _show_hyst_summary_table(summary, width):
-    """Display a one-row Bokeh table of hysteresis summary parameters.
+def _show_hyst_summary_table(summary, width, show_table=True):
+    """Build (and by default display) a one-row Bokeh table of hysteresis
+    summary parameters.
 
     Shared by the full processing path and the decision-tree exits of
     process_hyst_loop, each of which passes only the parameters defined for
-    its outcome.
+    its outcome. Returns the DataTable so a caller that does not want it
+    shown (``show_table=False``) can place it in its own layout; returns
+    None without Bokeh.
     """
+    if not _HAS_BOKEH:
+        return None
     source = ColumnDataSource({name: [value] for name, value in summary.items()})
     columns = [TableColumn(field=name, title=name) for name in summary]
     data_table = DataTable(source=source, columns=columns,
                            width=width, height=100)
     data_table.index_position = None
-    show(column(data_table))
+    if show_table:
+        show(column(data_table))
+    return data_table
 
 
 _HYST_UNDEFINED_RESULTS = {
@@ -3911,6 +3960,7 @@ _HYST_UNDEFINED_RESULTS = {
     'FNL60': np.nan, 'FNL70': np.nan, 'FNL80': np.nan,
     'Ms': np.nan, 'Bc': np.nan, 'M_sn_f': np.nan, 'Qf': np.nan,
     'Fnl_lin': None, 'plot': None,
+    'summary': {}, 'summary_table': None,
 }
 
 
@@ -3959,7 +4009,9 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
     specimen_name : str, optional
         Identifier for the specimen, used for labeling plots.
     show_results_table : bool, optional
-        If True (default), display a summary table of key parameters using Bokeh.
+        If True (default), display a summary table of key parameters using
+        Bokeh. The table is built either way and returned as
+        ``'summary_table'`` (its values as the ``'summary'`` dict).
     show_plot : bool, optional
         If True (default), display the Bokeh plot of the hysteresis loop and processing steps.
     NL_fit : bool, optional
@@ -4019,6 +4071,10 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
             - 'Fnl_lin': F statistic for improvement of the nonlinear over the linear
               high-field fit (None if the loop is saturated and no nonlinear fit is made)
             - 'plot': Bokeh figure with overlaid processing steps
+            - 'summary': dict of the parameters defined for this loop's
+              outcome (what the results table shows)
+            - 'summary_table': the one-row Bokeh DataTable of 'summary'
+              (None without Bokeh)
     """
     # clean the inputs (accepts lists/Series/text columns, drops non-finite
     # pairs, warns on apparent non-tesla field units)
@@ -4053,10 +4109,12 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
                                      specimen_name, line_color='orange',
                                      label='raw loop (statistically linear)',
                                      return_figure=True, show_plot=show_plot)
-            if show_results_table and p is not None:
-                _show_hyst_summary_table(
-                    {'chi_HF': chi_HF,
-                     'FNL': loop_linearity_test_results['FNL']}, p.width)
+        summary = {'chi_HF': chi_HF,
+                   'FNL': loop_linearity_test_results['FNL']}
+        summary_table = None
+        if p is not None:
+            summary_table = _show_hyst_summary_table(summary, p.width,
+                                                     show_table=show_results_table)
         return {**_HYST_UNDEFINED_RESULTS,
                 'gridded_H': grid_fields,
                 'gridded_M': grid_magnetizations,
@@ -4066,7 +4124,8 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
                 'FNL': loop_linearity_test_results['FNL'],
                 'centering_protocol': centering_protocol,
                 'chi_HF': chi_HF,
-                'plot': p}
+                'plot': p,
+                'summary': summary, 'summary_table': summary_table}
 
     # loop centering
     if centering_protocol == 'legacy':
@@ -4132,16 +4191,19 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
             p.line(H, Me, line_color='brown', legend_label='Me', line_width=1)
             if show_plot:
                 show(p)
-            if show_results_table:
-                _show_hyst_summary_table({
-                    'Mr': Mr, 'Brh': Brh,
-                    'Q': loop_centering_results['Q'],
-                    'FNL60': loop_saturation_stats['FNL60'],
-                    'FNL70': loop_saturation_stats['FNL70'],
-                    'FNL80': loop_saturation_stats['FNL80'],
-                    'SNR': loop_closure_test_results['SNR'],
-                    'HAR': loop_closure_test_results['HAR'],
-                }, p.width)
+        summary = {
+            'Mr': Mr, 'Brh': Brh,
+            'Q': loop_centering_results['Q'],
+            'FNL60': loop_saturation_stats['FNL60'],
+            'FNL70': loop_saturation_stats['FNL70'],
+            'FNL80': loop_saturation_stats['FNL80'],
+            'SNR': loop_closure_test_results['SNR'],
+            'HAR': loop_closure_test_results['HAR'],
+        }
+        summary_table = None
+        if p is not None:
+            summary_table = _show_hyst_summary_table(summary, p.width,
+                                                     show_table=show_results_table)
         return {**_HYST_UNDEFINED_RESULTS,
                 'gridded_H': grid_fields,
                 'gridded_M': grid_magnetizations,
@@ -4165,7 +4227,8 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
                 'FNL60': loop_saturation_stats['FNL60'],
                 'FNL70': loop_saturation_stats['FNL70'],
                 'FNL80': loop_saturation_stats['FNL80'],
-                'plot': p}
+                'plot': p,
+                'summary': summary, 'summary_table': summary_table}
 
     if NL_fit:
         loop_saturation_stats['loop_is_saturated'] = False  # force non-linear high-field fitting
@@ -4240,15 +4303,17 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
                'Ms': Ms, 'Bc': Bc, 'M_sn_f': M_sn_f,
                'Qf': Qf, 'Fnl_lin': Fnl_lin,
                'plot': p}
-    
-    if show_results_table and _HAS_BOKEH and p_slope_corr is not None:
-        _show_hyst_summary_table({
-            'Mr': Mr, 'Ms': Ms, 'Bc': Bc, 'Brh': Brh, 'sigma': sigma,
-            'Q': loop_centering_results['Q'], 'Qf': Qf, 'chi_HF': chi_HF,
-            'FNL60': loop_saturation_stats['FNL60'],
-            'FNL70': loop_saturation_stats['FNL70'],
-            'FNL80': loop_saturation_stats['FNL80'],
-        }, p_slope_corr.width)
+    results['summary'] = {
+        'Mr': Mr, 'Ms': Ms, 'Bc': Bc, 'Brh': Brh, 'sigma': sigma,
+        'Q': loop_centering_results['Q'], 'Qf': Qf, 'chi_HF': chi_HF,
+        'FNL60': loop_saturation_stats['FNL60'],
+        'FNL70': loop_saturation_stats['FNL70'],
+        'FNL80': loop_saturation_stats['FNL80'],
+    }
+    results['summary_table'] = None
+    if p_slope_corr is not None:
+        results['summary_table'] = _show_hyst_summary_table(
+            results['summary'], p_slope_corr.width, show_table=show_results_table)
     return results
 
 def process_hyst_loops(
@@ -4325,7 +4390,14 @@ def process_hyst_loops(
     return results_df
 
 
-def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True):
+HYST_MAGNETIZATION_SUFFIX = {'magn_mass': 'mass', 'magn_volume': 'volume',
+                             'magn_moment': 'moment'}
+"""The specimens-table suffix (hyst_ms_<suffix>, hyst_mr_<suffix>) each
+MagIC magnetization column's loop parameters belong under."""
+
+
+def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True,
+                                      magnetization='magn_mass'):
     '''
     Return a copy of the specimens table with hysteresis results added.
 
@@ -4337,15 +4409,22 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
     ----------
     specimens_df : pandas.DataFrame
         dataframe with the specimens data
-    hyst_results : pandas.DataFrame
+    hyst_results : pandas.DataFrame or dict
         DataFrame with hysteresis results including 'specimen' and
         'experiment' columns, as output from rmag.process_hyst_loops.
-        Has a numeric index (one row per experiment).
+        Has a numeric index (one row per experiment). A single loop's
+        results dict from rmag.process_hyst_loop is accepted too, once
+        its 'specimen' and 'experiment' entries have been set.
     overwrite : bool, optional
         If True (default), existing MagIC column values and description stats
         are replaced with new values from hyst_results. If False, existing
         rows are preserved as-is and new rows are appended with the
         hyst results.
+    magnetization : str, optional
+        The measurements column the loops were processed from, which decides
+        where Ms and Mr are recorded: 'magn_mass' (default) fills
+        hyst_ms_mass/hyst_mr_mass, 'magn_volume' the _volume columns and
+        'magn_moment' the _moment columns of the data model.
 
     Returns
     -------
@@ -4356,9 +4435,21 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
     '''
 
     specimens_df = specimens_df.copy()
+    if isinstance(hyst_results, dict):
+        if 'specimen' not in hyst_results or 'experiment' not in hyst_results:
+            raise ValueError("a results dict needs 'specimen' and 'experiment' "
+                             "entries to find its specimens row")
+        one = {key: value for key, value in hyst_results.items()
+               if np.ndim(value) == 0 and key != 'plot'}
+        one.setdefault('processed_by', pmagpy_version)
+        hyst_results = pd.DataFrame([one])
 
+    if magnetization not in HYST_MAGNETIZATION_SUFFIX:
+        raise ValueError(f"magnetization must be one of "
+                         f"{sorted(HYST_MAGNETIZATION_SUFFIX)}, not {magnetization!r}")
+    suffix = HYST_MAGNETIZATION_SUFFIX[magnetization]
     result_keys_MagIC = ['Ms', 'Mr', 'Bc', 'chi_HF']
-    MagIC_columns = ['hyst_ms_mass', 'hyst_mr_mass', 'hyst_bc', 'hyst_xhf']
+    MagIC_columns = [f'hyst_ms_{suffix}', f'hyst_mr_{suffix}', 'hyst_bc', 'hyst_xhf']
 
     additional_keys = ['Q', 'Qf', 'sigma',
                 'Brh', 'FNL', 'FNL60', 'FNL70', 'FNL80',
@@ -4634,10 +4725,13 @@ def plot_chi_T(
     return_figure=False,
     figsize=(6, 6),
     window_type="hanning",
+    show_plot=True,
 ):
     """
     Plot the high-temperature susceptibility curve, and optionally its derivative
-    and reciprocal using Bokeh or Matplotlib.
+    and reciprocal using Bokeh or Matplotlib. Works for an in-field M(T) curve too
+    when ``magnetic_column`` names a magnetization column (e.g. 'magn_mass'); the
+    y axis is labelled accordingly.
 
     Parameters:
         experiment (pandas.DataFrame): MagIC-formatted experiment DataFrame.
@@ -4656,6 +4750,8 @@ def plot_chi_T(
             window, one of 'flat', 'hanning', 'hamming', 'bartlett', or
             'blackman' (default 'hanning'). Only used when smooth_window > 0.
             See prepare_thermomag_branches for a description of each option.
+        show_plot (bool): Display the figures (default True). Set False to only
+            build them, e.g. for an application that lays them out itself.
 
     Returns:
         tuple or None: If return_figure is True, a tuple of the figure
@@ -4684,6 +4780,9 @@ def plot_chi_T(
     scT = cooling["T"] if cooling else empty
     scX = cooling["y"] if cooling else empty
     title = experiment["specimen"].unique()[0]
+    is_susceptibility = _resolve_thermomag_data_type(None, magnetic_column) == "susceptibility"
+    y_label = "χ (m³ kg⁻¹)" if is_susceptibility else "M (Am² kg⁻¹)"
+    y_symbol = "χ" if is_susceptibility else "M"
     figs = []
 
     if interactive:
@@ -4695,7 +4794,7 @@ def plot_chi_T(
             sizing_mode="stretch_width",
             height=bokeh_height,
             x_axis_label=f"Temperature ({_temp_unit_label(temp_unit)})",
-            y_axis_label="χ (m³ kg⁻¹)",
+            y_axis_label=y_label,
             tools="pan,wheel_zoom,box_zoom,reset,save",
         )
         p.xaxis.axis_label_text_font_style = "normal"
@@ -4718,11 +4817,11 @@ def plot_chi_T(
         )
         p.add_tools(
             HoverTool(renderers=[r_warm_c, r_warm_l],
-                      tooltips=[("T", "@x"), ("Heating χ", "@y")])
+                      tooltips=[("T", "@x"), (f"Heating {y_symbol}", "@y")])
         )
         p.add_tools(
             HoverTool(renderers=[r_cool_c, r_cool_l],
-                      tooltips=[("T", "@x"), ("Cooling χ", "@y")])
+                      tooltips=[("T", "@x"), (f"Cooling {y_symbol}", "@y")])
         )
         p.grid.grid_line_color = "lightgray"
         p.outline_line_color = "black"
@@ -4734,11 +4833,11 @@ def plot_chi_T(
         # Derivative
         if plot_derivative:
             p_dx = figure(
-                title=f"{title} – dχ/dT",
+                title=f"{title} – d{y_symbol}/dT",
                 sizing_mode="stretch_width",
                 height=bokeh_height,
                 x_axis_label=f"Temperature ({_temp_unit_label(temp_unit)})",
-                y_axis_label="dχ/dT",
+                y_axis_label=f"d{y_symbol}/dT",
                 tools="pan,wheel_zoom,box_zoom,reset,save",
             )
             p_dx.xaxis.axis_label_text_font_style = "normal"
@@ -4752,28 +4851,28 @@ def plot_chi_T(
             swT_d = swT_d if swT_d.size > 1 else empty
             scT_d = scT_d if scT_d.size > 1 else empty
             r_dx_w = p_dx.line(
-                swT_d, dx_w, legend_label="Heating – dχ/dT",
+                swT_d, dx_w, legend_label=f"Heating – d{y_symbol}/dT",
                 line_width=2, color="red"
             )
             r_dx_w_c = p_dx.scatter(
-                swT_d, dx_w, legend_label="Heating – dχ/dT",
+                swT_d, dx_w, legend_label=f"Heating – d{y_symbol}/dT",
                 color="red", alpha=0.5, size=6
             )
             r_dx_c = p_dx.line(
-                scT_d, dx_c, legend_label="Cooling – dχ/dT",
+                scT_d, dx_c, legend_label=f"Cooling – d{y_symbol}/dT",
                 line_width=2, color="blue"
             )
             r_dx_c_c = p_dx.scatter(
-                scT_d, dx_c, legend_label="Cooling – dχ/dT",
+                scT_d, dx_c, legend_label=f"Cooling – d{y_symbol}/dT",
                 color="blue", alpha=0.5, size=6
             )
             p_dx.add_tools(
                 HoverTool(renderers=[r_dx_w, r_dx_w_c],
-                          tooltips=[("T", "@x"), ("dχ/dT (heat)", "@y")])
+                          tooltips=[("T", "@x"), (f"d{y_symbol}/dT (heat)", "@y")])
             )
             p_dx.add_tools(
                 HoverTool(renderers=[r_dx_c, r_dx_c_c],
-                          tooltips=[("T", "@x"), ("dχ/dT (cool)", "@y")])
+                          tooltips=[("T", "@x"), (f"d{y_symbol}/dT (cool)", "@y")])
             )
             p_dx.grid.grid_line_color = "lightgray"
             p_dx.outline_line_color = "black"
@@ -4785,11 +4884,11 @@ def plot_chi_T(
         # Inverse
         if plot_inverse:
             p_inv = figure(
-                title=f"{title} – 1/χ",
+                title=f"{title} – 1/{y_symbol}",
                 sizing_mode="stretch_width",
                 height=bokeh_height,
                 x_axis_label=f"Temperature ({_temp_unit_label(temp_unit)})",
-                y_axis_label="1/χ",
+                y_axis_label=f"1/{y_symbol}",
                 tools="pan,wheel_zoom,box_zoom,reset,save",
             )
             p_inv.xaxis.axis_label_text_font_style = "normal"
@@ -4831,8 +4930,9 @@ def plot_chi_T(
             p_inv.legend.click_policy = "hide"
             figs.append(p_inv)
 
-        for fig in figs:
-            show(fig)
+        if show_plot:
+            for fig in figs:
+                show(fig)
 
     else:
         fig_kwargs = {"figsize": figsize}
@@ -4843,7 +4943,7 @@ def plot_chi_T(
         ax1.plot(scT, scX, label="Cooling – smoothed", linewidth=2)
         ax1.set_title(title)
         ax1.set_xlabel(f"Temperature ({_temp_unit_label(temp_unit)})")
-        ax1.set_ylabel("χ (m³ kg⁻¹)")
+        ax1.set_ylabel(y_label)
         ax1.grid(True)
         ax1.legend(loc="upper left")
         figs.append(fig1)
@@ -4860,9 +4960,9 @@ def plot_chi_T(
             fig2, ax2 = plt.subplots(**fig_kwargs)
             ax2.plot(swT_d, dx_w, label="Heating – dχ/dT", linewidth=2, marker="o")
             ax2.plot(scT_d, dx_c, label="Cooling – dχ/dT", linewidth=2, marker="o")
-            ax2.set_title(f"{title} – dχ/dT")
+            ax2.set_title(f"{title} – d{y_symbol}/dT")
             ax2.set_xlabel(f"Temperature ({_temp_unit_label(temp_unit)})")
-            ax2.set_ylabel("dχ/dT")
+            ax2.set_ylabel(f"d{y_symbol}/dT")
             ax2.grid(True)
             ax2.legend(loc="upper left")
             figs.append(fig2)
@@ -4875,14 +4975,15 @@ def plot_chi_T(
             fig3, ax3 = plt.subplots(**fig_kwargs)
             ax3.plot(np.array(swT)[mask_w], inv_w[mask_w], label="Heating – 1/χ", linewidth=2, marker="o")
             ax3.plot(np.array(scT)[mask_c], inv_c[mask_c], label="Cooling – 1/χ", linewidth=2, marker="o")
-            ax3.set_title(f"{title} – 1/χ")
+            ax3.set_title(f"{title} – 1/{y_symbol}")
             ax3.set_xlabel(f"Temperature ({_temp_unit_label(temp_unit)})")
-            ax3.set_ylabel("1/χ")
+            ax3.set_ylabel(f"1/{y_symbol}")
             ax3.grid(True)
             ax3.legend(loc="upper left")
             figs.append(fig3)
 
-        plt.show()
+        if show_plot:
+            plt.show()
 
     if return_figure:
         return tuple(figs)
@@ -6167,6 +6268,7 @@ _CURIE_METHOD_COLORS = {
     "two_tangent": "#009E73",            # green
     "inverse_susceptibility": "#D55E00", # vermillion
     "landau": "#CC79A7",                 # purple
+    "ms_squared_extrapolation": "#56B4E9",  # sky blue
 }
 
 
@@ -6484,6 +6586,8 @@ def curie_inverse_susceptibility_interactive(
     branch="heating",
     initial_fit_range=None,
     figsize=(6, 6),
+    show_plot=True,
+    return_figure=False,
 ):
     """
     Interactive (Bokeh) Curie-Weiss fit to inverse susceptibility.
@@ -6514,12 +6618,18 @@ def curie_inverse_susceptibility_interactive(
         temperature range — a starting position only, meant to be dragged.
     figsize : tuple, optional
         (width, height) in inches; height sets the Bokeh plot height.
+    show_plot : bool, optional
+        If True (default), display the layout with ``bokeh.io.show``.
+    return_figure : bool, optional
+        If True, return the Bokeh layout (the figure above the live
+        estimate) so it can be embedded elsewhere; the drag-to-fit callback
+        runs in the browser, so it works there too. Default False.
 
     Returns
     -------
-    None
-        The interactive Bokeh application is displayed as a side effect; no
-        value is returned. For a reproducible, reportable estimate use
+    bokeh.models.Column or None
+        The layout when ``return_figure`` is True, else None. For a
+        reproducible, reportable estimate use
         ``curie_inverse_susceptibility`` with the ``fit_range`` identified
         here.
 
@@ -6604,7 +6714,12 @@ def curie_inverse_susceptibility_interactive(
         }
     """)
     fit_source.js_on_change("data", callback)
-    show(column(p_inv, curie_estimate))
+    layout = column(p_inv, curie_estimate)
+    if show_plot:
+        show(layout)
+    if return_figure:
+        return layout
+    return None
 
 
 def add_curie_estimates_to_specimens_table(
@@ -6673,14 +6788,17 @@ def add_curie_estimates_to_specimens_table(
     # specimen name recorded in the estimates table; exact/token matching is
     # used rather than substring matching so that an experiment name cannot
     # match a longer sibling name (e.g., '...-MST-1' matching '...-MST-10')
-    experiments_column = specimens_df["experiments"]
-    target = (experiments_column == experiment_name).fillna(False).to_numpy(
-        dtype=bool)
-    if not target.any():
-        target = np.array([
-            isinstance(cell, str) and experiment_name in cell.split(":")
-            for cell in experiments_column
-        ])
+    if "experiments" in specimens_df.columns:
+        experiments_column = specimens_df["experiments"]
+        target = (experiments_column == experiment_name).fillna(
+            False).to_numpy(dtype=bool)
+        if not target.any():
+            target = np.array([
+                isinstance(cell, str) and experiment_name in cell.split(":")
+                for cell in experiments_column
+            ])
+    else:
+        target = np.zeros(len(specimens_df), dtype=bool)
     if not target.any() and row["specimen"]:
         target = (specimens_df["specimen"] == row["specimen"]).fillna(
             False).to_numpy(dtype=bool)
@@ -10805,6 +10923,66 @@ def coercivity_unmixing_interactive(x, magnetization, n_components=2,
     return handle
 
 
+def coercivity_components_table(result, experiment, specimen, Bcr=np.nan):
+    """
+    Lay out one unmixing result as the tidy components table the specimens
+    writer takes: one row per component, with the experiment's identity and
+    the fit statistics repeated on each row.
+
+    This is the table unmix_backfield_experiments builds for every
+    experiment it processes; use it to record a single unmix_coercivity
+    result with add_unmixing_to_specimens_table.
+
+    Parameters
+    ----------
+    result : dict
+        Output of unmix_coercivity (any method), optionally carrying the
+        'bootstrap' or 'bayes' uncertainty summary.
+    experiment : str
+        MagIC experiment name the curve came from.
+    specimen : str
+        Specimen the experiment belongs to.
+    Bcr : float, optional
+        Coercivity of remanence of the curve in tesla (from
+        process_backfield_data); recorded in mT as 'Bcr_mT'. NaN when unknown.
+
+    Returns
+    -------
+    pandas.DataFrame
+        One row per component: experiment, specimen, method, n_components,
+        component, success, Bcr_mT, rss, r_squared, aic, bic, the component's
+        parameters (proportion, B_mean_mT, sd_log, skew, ...) and, when the
+        result carries an uncertainty summary, their std and 2.5/97.5
+        percentiles.
+    """
+    stats = result['stats']
+    rows = []
+    for comp_index, prow in result['params'].iterrows():
+        row = {
+            'experiment': experiment,
+            'specimen': specimen,
+            'method': result['method'],
+            'n_components': result['n_components'],
+            'component': comp_index,
+            'success': result['success'],
+            'Bcr_mT': Bcr * 1e3 if np.isfinite(Bcr) else np.nan,
+            'rss': stats['rss'],
+            'r_squared': stats['r_squared'],
+            'aic': stats['aic'],
+            'bic': stats['bic'],
+        }
+        row.update(prow.to_dict())
+        uncertainty = result.get('bootstrap') or result.get('bayes')
+        if uncertainty is not None:
+            summary_row = uncertainty['param_summary'].loc[comp_index]
+            for name in ['proportion', 'B_mean_mT', 'sd_log']:
+                row[f'{name}_std'] = summary_row[f'{name}_std']
+                row[f'{name}_p2_5'] = summary_row[f'{name}_p2_5']
+                row[f'{name}_p97_5'] = summary_row[f'{name}_p97_5']
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
 def unmix_backfield_experiments(measurements, experiments=None,
                                 n_components=2, method=DEFAULT_UNMIX_METHOD,
                                 initial_parameters=None,
@@ -10947,29 +11125,8 @@ def unmix_backfield_experiments(measurements, experiments=None,
 
         results[experiment_name] = result
         stats = result['stats']
-        for comp_index, prow in result['params'].iterrows():
-            row = {
-                'experiment': experiment_name,
-                'specimen': specimen,
-                'method': method,
-                'n_components': n_components,
-                'component': comp_index,
-                'success': result['success'],
-                'Bcr_mT': Bcr * 1e3 if np.isfinite(Bcr) else np.nan,
-                'rss': stats['rss'],
-                'r_squared': stats['r_squared'],
-                'aic': stats['aic'],
-                'bic': stats['bic'],
-            }
-            row.update(prow.to_dict())
-            uncertainty = result.get('bootstrap') or result.get('bayes')
-            if uncertainty is not None:
-                summary_row = uncertainty['param_summary'].loc[comp_index]
-                for name in ['proportion', 'B_mean_mT', 'sd_log']:
-                    row[f'{name}_std'] = summary_row[f'{name}_std']
-                    row[f'{name}_p2_5'] = summary_row[f'{name}_p2_5']
-                    row[f'{name}_p97_5'] = summary_row[f'{name}_p97_5']
-            rows.append(row)
+        rows.extend(coercivity_components_table(
+            result, experiment_name, specimen, Bcr=Bcr).to_dict('records'))
         if verbose:
             summary = ', '.join(
                 f"{prow['B_mean_mT']:.0f} mT ({prow['proportion'] * 100:.0f}%)"

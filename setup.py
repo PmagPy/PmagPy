@@ -23,6 +23,9 @@ app_packages = {
     'pmagpy_panel': 'programs/pmagpy_panel',
     'pmagpy_apps': 'programs/pmagpy_apps',
     'pmagpy_directions': 'programs/pmagpy_directions',
+    'pmagpy_intensity': 'programs/pmagpy_intensity',
+    'pmagpy_rockmag': 'programs/pmagpy_rockmag',
+    'pmagpy_anisotropy': 'programs/pmagpy_anisotropy',
 }
 packages.extend(app_packages)
 
@@ -120,8 +123,9 @@ setup(
     # Install with: pip install pmagpy[maps]
     extras_require={
         'maps': ['cartopy', 'shapely'],
-        # the Panel applications (PmagPy Apps, PmagPy Directions, ...)
-        'apps': ['panel>=1.5', 'bokeh>=3.4', 'param>=2.0'],
+        # the Panel applications (PmagPy Apps, PmagPy Directions, ...);
+        # requests is what the hub's Download and Upload pages talk to MagIC with
+        'apps': ['panel>=1.5', 'bokeh>=3.4', 'param>=2.0', 'requests'],
     },
 
     packages=packages,
@@ -134,6 +138,7 @@ setup(
         'console_scripts': [
             'pmagpy=pmagpy:main',
             'pmagpy-apps=pmagpy_apps.launch:main',
+            'pmagpy-convert=pmagpy.convert_cli:main',
         ],
     },
 )

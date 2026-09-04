@@ -24,10 +24,12 @@ from pmagpy import bicep as bicep_core
 from pmagpy import pint_stats as ps
 from pmagpy import tdt as tdt_reader
 
+from pmagpy_panel import code
 from pmagpy_panel.chooser import DirectoryChooser, shorten
 from pmagpy_panel.widgets import HeightSplitter, Hotkeys
 from pmagpy_panel.theme import (ACCENT, BUTTON_GROUP_CSS, CHECKBOX_CSS, INPUT_CSS, KPI_ITEM,
                                 MUTED_STYLE, SECTION_STYLE, STATS_TABLE_CSS, TABLE_ROW_CSS, kpi)
+from . import APP_NAME
 from . import publication as pub
 from .plots import (AraiPlot, ChecksPlot, DecayPlot, GroupPlot, SpecimenZijderveldPlot,
                     StepNetPlot)
@@ -84,6 +86,23 @@ def next_tick(fn):
         doc.add_next_tick_callback(fn)
     else:
         fn()
+
+
+def preamble(session: Session) -> list:
+    """The lines that get this study into a notebook, the way a script would.
+
+    Every view's "Show code" starts here, so what it shows is a script that
+    runs: the core is UI-free, and the calls below are the ones the panel made.
+    """
+    lines = ["import pmagpy.paleointensity as pint", "from pmagpy import pint_stats as ps", ""]
+    if session.directory:
+        lines.append(code.assign("data", code.call("pint.PintData.from_directory",
+                                                   session.directory)))
+        if session.data is not None and session.data.criteria.name != pint.DEFAULT_CRITERIA:
+            lines.append(code.call("data.set_criteria", session.data.criteria.name))
+    else:
+        lines.append("# data: the PintData this view was given")
+    return lines
 
 
 def _clip(text: str, width: int) -> str:
@@ -290,6 +309,7 @@ class SpecimenView:
         self.size.param.watch(self._on_size, "value_throttled")
         self.hotkeys = Hotkeys()
         self.hotkeys.param.watch(self._on_hotkey, "n")
+        self.code = code.CodePane()
 
         session.param.watch(self._sync, ["specimen", "version", "directory", "normalize",
                                          "show_checks", "criteria_name", "add_ziggie"])
@@ -409,6 +429,27 @@ class SpecimenView:
         self._fill_bound_widgets(spec, bounds)
         self._fill_header(spec)
         self._fill_result(stats)
+        self._fill_code(spec, bounds)
+
+    def _fill_code(self, spec, bounds):
+        """The calls behind this specimen: the segment, its statistics, its intensity."""
+        lines = preamble(self.s)
+        if bounds is None:
+            lines.append(f"# {spec.name}: no interpretation yet")
+            self.code.set(lines)
+            return
+        lines += ["",
+                  code.assign("interp", code.call("data.set_interpretation", spec.name,
+                                                  bounds[0], bounds[1])),
+                  code.assign("result", code.call("data.result", spec.name)),
+                  "print(result.b_anc, result.passed, result.failures)",
+                  "",
+                  "# every statistic of that segment, on its own",
+                  code.assign("exp", code.call("pint.experiment",
+                                               code.Name(f"data.specimens[{spec.name!r}]"))),
+                  code.assign("stats", code.call("ps.all_statistics", code.Name("exp"),
+                                                 bounds[0], bounds[1]))]
+        self.code.set(lines)
 
     def _fill_steps(self, spec, bounds):
         arai = spec.arai
@@ -516,7 +557,8 @@ class SpecimenView:
         figures = pn.FlexBox(self.arai.fig, self.companions, flex_wrap="wrap",
                              align_items="flex-start", gap=f"{self.COMPANION_GAP}px",
                              styles={"width": "100%", "min-width": "0"})
-        return pn.Column(self.header, figures, self.result, sizing_mode="stretch_width",
+        return pn.Column(self.header, figures, self.result, self.code.panel(),
+                         sizing_mode="stretch_width",
                          styles={"min-width": "0", "align-self": "stretch"})
 
 
@@ -737,6 +779,7 @@ class CriteriaView(LazyView):
             stylesheets=[TABLE_ROW_CSS, GROUP_HEADER_CSS])
         self.table.param.watch(lambda e: self._show_detail(), "selection")
         self.detail = pn.pane.HTML("", sizing_mode="stretch_width")
+        self.code = code.CodePane()
         session.param.watch(self._lazy_redraw, ["specimen", "version", "directory",
                                                 "criteria_name", "add_ziggie"])
 
@@ -797,6 +840,23 @@ class CriteriaView(LazyView):
                                 if keep is not None else [])
         self._fill_summary(frame, verdict)
         self._show_detail()
+        bounds = self.s.bounds()
+        lines = preamble(self.s) + [""]
+        if bounds is None:
+            lines.append(f"# {self.s.specimen}: no interpretation yet")
+        else:
+            lines += [code.assign("exp", code.call(
+                          "pint.experiment",
+                          code.Name(f"data.specimens[{self.s.specimen!r}]"))),
+                      code.assign("stats", code.call("ps.all_statistics", code.Name("exp"),
+                                                     bounds[0], bounds[1])),
+                      code.assign("verdict", code.call("data.criteria.evaluate",
+                                                       code.Name("stats"), "specimen")),
+                      "print(verdict['passed'], verdict['failures'])",
+                      "",
+                      "# what any one of them is, and where it comes from",
+                      "print(ps.describe('FRAC'))"]
+        self.code.set(lines)
 
     def _fill_summary(self, frame, verdict):
         tested = frame[frame["verdict"] != ""]
@@ -859,7 +919,8 @@ class CriteriaView(LazyView):
                          sizing_mode="stretch_width")
 
     def panel(self):
-        return pn.Column(self.summary, self.table, self.detail, sizing_mode="stretch_width")
+        return pn.Column(self.summary, self.table, self.detail, self.code.panel(),
+                         sizing_mode="stretch_width")
 
 
 # ---------------------------------------------------------------------------
@@ -1023,6 +1084,7 @@ class GroupView(LazyView):
                                           stylesheets=[TABLE_ROW_CSS])
         self.summary = pn.pane.HTML("", sizing_mode="stretch_width")
         self.members = pn.pane.HTML("", sizing_mode="stretch_width")
+        self.code = code.CodePane()
         session.param.watch(self._lazy_redraw, ["version", "directory", "criteria_name",
                                                 "add_ziggie"])
 
@@ -1064,6 +1126,15 @@ class GroupView(LazyView):
             f"<b>{len(frame)}</b> {level}s", verdict,
             f'<span style="{MUTED_STYLE}">{int(frame["n"].sum()) if len(frame) else 0} specimens '
             f'averaged</span>'])
+        self.code.set(preamble(self.s) + [
+            "", "# the interpretations these means average",
+            code.call("data.auto_interpret_all"),
+            "",
+            code.assign("means", code.call("data.group_results", level=level,
+                                           only_accepted=self.only_accepted.value,
+                                           weighted=self.weighted.value,
+                                           corrected_only=self.corrected_only.value)),
+            "print(means)"])
         self._redraw_plot()
 
     def _redraw_plot(self):
@@ -1092,7 +1163,8 @@ class GroupView(LazyView):
                          self.group, self.members, sizing_mode="stretch_width")
 
     def panel(self):
-        return pn.Column(self.summary, self.plot.fig, self.table, sizing_mode="stretch_width")
+        return pn.Column(self.summary, self.plot.fig, self.table, self.code.panel(),
+                         sizing_mode="stretch_width")
 
 
 # ---------------------------------------------------------------------------
@@ -1137,6 +1209,7 @@ class BicepView(LazyView):
         self.plot = pn.pane.Matplotlib(height=380, sizing_mode="stretch_width", tight=True)
         self.methods = pn.pane.HTML("", sizing_mode="stretch_width")
         self.save_btn = pn.widgets.Button(name="Save posterior", width=150)
+        self.code = code.CodePane()
         self.save_msg = pn.pane.HTML("", sizing_mode="stretch_width")
         self.run_btn.on_click(self._run)
         self.cancel_btn.on_click(self._cancel)
@@ -1289,6 +1362,35 @@ class BicepView(LazyView):
             self.plot.object = pub.bicep_figure(result, prepared)
         self.audit.object = ("<div style='%s'>%s</div>" %
                              (MUTED_STYLE, "<br>".join(self._audit[-8:]))) if self._audit else ""
+        self.code.set(self._code(prepared))
+
+    def _code(self, prepared) -> list:
+        """The calls behind this posterior: a seed and these draws reproduce it exactly."""
+        site = self.site.value
+        excluded = [p.name for p in prepared if not p.included]
+        lines = preamble(self.s) + [
+            "from pmagpy import bicep", "",
+            "# the segments this site's specimens were interpreted over",
+            code.call("data.auto_interpret_all"), "",
+            "# BiCEP is fed the selected part of each Arai plot, and the lab field",
+            f"rows = [(name, spec.arai.x[r.imin:r.imax + 1], spec.arai.y[r.imin:r.imax + 1],",
+            "         spec.blab_uT)",
+            f"        for name in data.specimens_in('site', {site!r})",
+            "        for spec, r in [(data.specimens[name], data.result(name))] if r]",
+            code.assign("specimens", code.call("bicep.prepare", code.Name("rows")))]
+        if excluded:
+            lines += ["", "# the specimens excluded on this panel",
+                      "for item in specimens:",
+                      f"    item.included = item.name not in {excluded!r}"]
+        lines += ["",
+                  code.assign("result", code.call(
+                      "bicep.run", code.Name("specimens"),
+                      method=self.method.value, draws=int(self.draws.value),
+                      warmup=int(self.warmup.value), chains=int(self.chains.value),
+                      seed=int(self.seed.value),
+                      sigma_b_prior_sd=float(self.prior.value), site=site)),
+                  "print(result.summary())"]
+        return lines
 
     def _result_html(self, result) -> str:
         colour = PASS_COLOR if result.converged or result.method == "bootstrap" else FAIL_COLOR
@@ -1330,7 +1432,7 @@ class BicepView(LazyView):
     def panel(self):
         return pn.Column(self.result_pane, self.plot, self.specimens,
                          pn.Row(self.save_btn, self.save_msg), self.methods,
-                         sizing_mode="stretch_width")
+                         self.code.panel(), sizing_mode="stretch_width")
 
 
 # ---------------------------------------------------------------------------
@@ -1432,9 +1534,43 @@ the original tables to a backup folder.
             self.message.object = f'<div style="color:{FAIL_COLOR}">{exc}</div>'
             return
         listed = "<br>".join(os.path.basename(p) for p in written if p)
-        self.message.object = (f'<div style="color:{PASS_COLOR}">wrote {len(written)} files to '
-                               f'{self.s.output_dir}</div><div style="{MUTED_STYLE}">{listed}</div>')
+        # the family's rule: an export comes with the lines that made it. One
+        # script beside the tables, because one call wrote all of them.
+        script = ""
+        tables = [p for p in written if p and p.endswith(".txt")]
+        if tables:
+            script = code.write_beside(tables[0].rsplit(".", 1)[0] + "_export.txt",
+                                       self._export_code())
+        self.message.object = (
+            f'<div style="color:{PASS_COLOR}">wrote {len(written)} files to '
+            f'{self.s.output_dir}</div><div style="{MUTED_STYLE}">{listed}'
+            + (f'<br>{os.path.basename(script)}, the calls that wrote them' if script else "")
+            + "</div>")
         self._validate()
+
+    def _export_code(self) -> str:
+        """The lines that write these tables, as a script beside them."""
+        lines = preamble(self.s) + [
+            "", "# the interpretations this export carries",
+            code.call("data.auto_interpret_all"), "",
+            code.call("data.write_specimens", self.s.output_dir,
+                      analysts=self.analysts.value or None,
+                      only_accepted=self.only_accepted.value)]
+        for level in self.levels.value:
+            lines.append(code.call("data.write_group", self.s.output_dir, level=level,
+                                   analysts=self.analysts.value or None,
+                                   weighted=self.weighted.value))
+        if self.measurements.value:
+            lines.append(code.call("data.write_measurements", self.s.output_dir))
+        lines += [code.call("data.write_criteria", self.s.output_dir),
+                  code.call("data.save_session",
+                            os.path.join(self.s.output_dir, SESSION_NAME)),
+                  "",
+                  "# and the check the panel runs on them",
+                  code.assign("report", code.call("data.validate_output", self.s.output_dir)),
+                  "print({t: 'ok' if f is None else f['failing_items'] "
+                  "for t, f in report.items()})"]
+        return code.script(lines, app=APP_NAME, what="these tables")
 
     def _validate(self, event=None):
         try:
@@ -1522,6 +1658,33 @@ the original tables to a backup folder.
             return pub.study_figure(self.s.data)
         return None
 
+    def _figure_code(self) -> str:
+        """The lines that draw the figure being saved, as a script beside it."""
+        kind, name = self.figure_kind.value, self.s.specimen
+        lines = preamble(self.s) + ["from pmagpy_intensity import publication as pub", ""]
+        if kind in ("arai", "arai_checks"):
+            bounds = self.s.bounds()
+            lines += [code.call("data.set_interpretation", name, *(bounds or (0, 1))),
+                      code.assign("figure", code.call(
+                          "pub.specimen_figure",
+                          code.Name(f"data.specimens[{name!r}]"),
+                          code.Name(f"({bounds[0]}, {bounds[1]})" if bounds else "None"),
+                          code.Name(f"data.statistics({name!r})"),
+                          code.Name(f"data.result({name!r})"),
+                          with_checks=(kind == "arai_checks")))]
+        elif kind == "site":
+            site = self.s.spec.site if self.s.ready else ""
+            lines += [code.call("data.auto_interpret_all"),
+                      f"results = [data.result(n) for n in data.specimens_in('site', {site!r})]",
+                      code.assign("figure", code.call("pub.site_figure", site,
+                                                      code.Name("[r for r in results if r]")))]
+        else:
+            lines += [code.call("data.auto_interpret_all"),
+                      code.assign("figure", code.call("pub.study_figure", code.Name("data")))]
+        lines.append(code.call("figure.savefig", f"{kind}.{self.figure_format.value}",
+                               bbox_inches="tight"))
+        return code.script(lines, app=APP_NAME, what="this figure")
+
     def _save_figure(self, event=None):
         figure = self._figure()
         if figure is None:
@@ -1533,7 +1696,11 @@ the original tables to a backup folder.
         try:
             os.makedirs(self.s.output_dir, exist_ok=True)
             figure.savefig(path, format=self.figure_format.value, bbox_inches="tight")
-            self.message.object = f'<div style="color:{PASS_COLOR}">saved {path}</div>'
+            # the family's rule: an export comes with the lines that made it
+            script = code.write_beside(path, self._figure_code())
+            self.message.object = (f'<div style="color:{PASS_COLOR}">saved {path}</div>'
+                                   f'<div style="{MUTED_STYLE}">and '
+                                   f'{os.path.basename(script)}, the calls that drew it</div>')
         except OSError as exc:
             self.message.object = f'<div style="color:{FAIL_COLOR}">{exc}</div>'
 

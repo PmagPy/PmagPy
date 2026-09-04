@@ -68,18 +68,42 @@ with sync_playwright() as p:
     def highlighted():
         return [int(r.get_attribute("data-i")) for r in page.locator(".step-logger tr.infit").all()]
 
-    # a fit is selected: clicking a step moves its nearest bound, live
-    page.get_by_role("button", name="New fit").click(); time.sleep(1.5)
+    # the rings around the selected step / fit, one per plot: [n points ringed, ...]
+    MARKS_JS = """() => {
+      const doc = Bokeh.documents[0]; const models = doc._all_models ?? doc.all_models;
+      const list = models instanceof Map ? [...models.values()] : [...models];
+      return list.filter(m => m.name === 'step_mark' || m.name === 'step_mark_circle')
+                 .map(m => (m.data_source.data.x ?? m.data_source.data.xs).length);
+    }"""
+
+    def selected():
+        return [int(r.get_attribute("data-i")) for r in page.locator(".step-logger tr.sel").all()]
+
+    # New fit creates and selects a fit at once; the bound selectors move its bounds, live
+    n_steps = page.locator(".step-logger tr[data-i]").count()
+    page.get_by_role("button", name="New fit").click(); time.sleep(2.5)
+    check(highlighted() and highlighted()[-1] == n_steps - 1,
+          f"New fit made a selected fit reaching the last step (got {highlighted()})")
     name_box = page.get_by_role("textbox", name="Component")
-    name_box.fill("UI"); name_box.press("Enter"); time.sleep(0.5)
-    page.locator(".step-logger tr[data-i='2']").click(); time.sleep(1.5)
-    check("bmin" in (page.locator(".step-logger tr[data-i='2']").get_attribute("class") or ""),
-          "first click after New fit marks the lower bound")
-    page.locator(".step-logger tr[data-i='8']").click(); time.sleep(3)
-    check(page.locator("text=UI").count() > 0, "second click creates fit 'UI'")
-    check(highlighted() == list(range(2, 9)), f"new fit spans steps 2–8 (got {highlighted()})")
-    page.locator(".step-logger tr[data-i='10']").click(); time.sleep(3)
-    check(highlighted() == list(range(2, 11)), f"clicking step 10 moved the upper bound (got {highlighted()})")
+    name_box.fill("UI"); name_box.press("Enter"); time.sleep(1.5)
+    check(page.locator("text=UI").count() > 0, "the name field renamed the new fit 'UI'")
+    # a left click in the logger selects the step (rings on the three plots), it does not move a bound
+    check(selected() == [] and sum(page.evaluate(MARKS_JS)) == 0, "no step selected, no rings, at the start")
+    page.locator(".step-logger tr[data-i='2']").click(); time.sleep(2.5)
+    check(selected() == [2], f"clicking step 2 selected it (got {selected()})")
+    check(highlighted()[0] == 0, f"... and left the fit's bounds alone (got {highlighted()[:1]})")
+    marks = page.evaluate(MARKS_JS)
+    check(sorted(marks) == [1, 1, 2], f"the selected step is ringed on all three plots (got {marks})")
+    page.mouse.click(900, 500)
+    page.keyboard.press("ArrowDown"); time.sleep(2)
+    check(selected() == [3], f"↓ moved the selection to step 3 (got {selected()})")
+    page.keyboard.press("ArrowUp"); time.sleep(0.5); page.keyboard.press("ArrowUp"); time.sleep(2)
+    check(selected() == [1], f"↑ ↑ moved the selection to step 1 (got {selected()})")
+    page.screenshot(path=f"{prefix}_specimen_selected.png")
+    page.get_by_label("Lower bound").select_option(index=2); time.sleep(3)
+    check(highlighted()[0] == 2, f"the lower-bound selector moved the lower bound (got {highlighted()})")
+    page.get_by_label("Upper bound").select_option(index=10); time.sleep(3)
+    check(highlighted() == list(range(2, 11)), f"the upper-bound selector moved the upper bound (got {highlighted()})")
     page.mouse.click(900, 500)
     page.keyboard.press("]"); time.sleep(2.5)
     check(highlighted() == list(range(3, 11)), f"']' nudged the lower bound up (got {highlighted()})")
@@ -119,6 +143,7 @@ with sync_playwright() as p:
     page.keyboard.press("ArrowRight")
     time.sleep(2)
     check(page.evaluate(OUTSIDE_JS) == 0, "next specimen reset the zoom")
+    check(selected() == [] and sum(page.evaluate(MARKS_JS)) == 0, "next specimen cleared the step selection")
     page.keyboard.press("ArrowLeft")
     time.sleep(2)
     page.screenshot(path=f"{prefix}_specimen_east.png")
@@ -130,6 +155,20 @@ with sync_playwright() as p:
         check(True, f"{tab} tab rendered")
         if tab in ("Means", "Poles", "Fits"):
             check_nets_circular(page, f"{tab} tab")
+        if tab == "Means":
+            # clicking a listed fit rings it on the net; ↑ ↓ walk the list
+            rows = page.locator(".tabulator-row")
+            check(rows.count() >= 2, f"Means tab lists {rows.count()} fits")
+            base = sum(page.evaluate(MARKS_JS))          # (the Specimen tab's rings may still be in the document)
+            rows.nth(0).click(); time.sleep(2.5)
+            check(sum(page.evaluate(MARKS_JS)) == base + 1,
+                  f"the clicked fit is ringed on the net (got {page.evaluate(MARKS_JS)}, was {base})")
+            page.mouse.click(900, 700)
+            page.keyboard.press("ArrowDown"); time.sleep(2.5)
+            sel = [i for i, r in enumerate(rows.all()) if "tabulator-selected" in (r.get_attribute("class") or "")]
+            check(sel == [1], f"↓ selected the second fit (got {sel})")
+            check(sum(page.evaluate(MARKS_JS)) == base + 1, "... and the ring followed")
+            page.screenshot(path=f"{prefix}_means_selected.png")
         visible = page.locator(".step-logger tr[data-i]").count() > 0 or page.get_by_role("button", name="Change data…").count() > 0
         if tab == "Export":
             check(not visible, f"{tab} tab hides the side column")
@@ -214,7 +253,7 @@ with sync_playwright() as p:
         box.fill(path)
         box.press("Enter")
         time.sleep(0.5)
-        page.get_by_role("button", name="Load", exact=True).click()
+        page.get_by_role("button", name="Open", exact=True).click()
         wait_for(os.path.basename(path.rstrip("/")))
 
     def switch_by_chooser():

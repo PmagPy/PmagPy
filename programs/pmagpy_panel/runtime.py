@@ -38,6 +38,28 @@ def location():
         return None
 
 
+def locked(fn) -> None:
+    """Run ``fn`` under the Bokeh document lock — now, or on the server's next tick.
+
+    Panel runs some callbacks *without* the lock: every ``async`` callback, and
+    the value change of a text field when Enter was pressed (it arrives paired
+    with the enter-pressed event). Panel's own widgets and panes cope, but a
+    change to a raw Bokeh model there (a figure's range, a glyph's data source)
+    raises ``_pending_writes should be non-None`` and leaves the page half
+    updated. Pass the work to this function from such a callback; outside a
+    server session it simply runs at once.
+    """
+    try:
+        import panel as pn
+        doc = pn.state.curdoc
+    except Exception:
+        doc = None
+    if doc is not None and getattr(doc, "session_context", None) is not None:
+        doc.add_next_tick_callback(fn)
+    else:
+        fn()
+
+
 def query_param(name: str, default: str = "") -> str:
     """The value of ``?name=`` on the URL that opened this session, or `default`.
 
@@ -166,8 +188,9 @@ async def choose_directory(start: Optional[str] = None, prompt: str = "Choose a 
         async def _browse(event):
             chosen = await runtime.choose_directory(start)
 
-    Panel runs the callback on its event loop, so the widgets can be updated
-    directly when the dialog closes — no thread, no document lock to worry about.
+    Panel runs the callback on its event loop but without the document lock, so
+    once the dialog closes, update Panel widgets directly and hand anything that
+    touches raw Bokeh models (a session load that redraws figures) to :func:`locked`.
     """
     if stub:
         return stub

@@ -991,6 +991,64 @@ class TestSpecimensExport:
         assert list(data) == ['coercivity_unmixing']
 
 
+class TestCoercivityComponentsTable:
+    """coercivity_components_table turns one unmix_coercivity result into
+    the per-component rows the batch driver builds, so a single fit can feed
+    add_unmixing_to_specimens_table."""
+
+    def test_single_result_matches_batch_rows(self):
+        measurements = make_magic_measurements()
+        experiment = 'synthetic-LP-BCR-BF-1'
+        batch, results = rmag.unmix_backfield_experiments(
+            measurements, n_components=2, vary_skew=False, verbose=False)
+        table = rmag.coercivity_components_table(
+            results[experiment], experiment, 'spec1',
+            Bcr=batch['Bcr_mT'].iloc[0] * 1e-3)
+        expected = batch[batch['experiment'] == experiment].reset_index(
+            drop=True)
+        pd.testing.assert_frame_equal(table, expected)
+        assert list(table['component']) == [1, 2]
+        assert table['Bcr_mT'].notna().all()
+
+    def test_feeds_the_specimens_writer(self):
+        measurements = make_magic_measurements()
+        experiment = 'synthetic-LP-BCR-BF-1'
+        _batch, results = rmag.unmix_backfield_experiments(
+            measurements, n_components=2, vary_skew=False, verbose=False)
+        table = rmag.coercivity_components_table(
+            results[experiment], experiment, 'spec1')
+        specimens = pd.DataFrame({'specimen': ['spec1'],
+                                  'experiments': [experiment]})
+        updated = rmag.add_unmixing_to_specimens_table(specimens, table,
+                                                       mode='rows')
+        new_rows = updated[updated['rem_cmf'].notna()]
+        assert len(new_rows) == 2
+        # no Bcr given -> no rem_bcr on the component rows
+        assert 'rem_bcr' not in updated.columns or \
+            new_rows['rem_bcr'].isna().all()
+
+    def test_uncertainty_columns_follow_bootstrap(self):
+        measurements = make_magic_measurements()
+        experiment = 'synthetic-LP-BCR-BF-1'
+        _batch, results = rmag.unmix_backfield_experiments(
+            measurements, n_components=2, vary_skew=False, verbose=False)
+        plain = rmag.coercivity_components_table(
+            results[experiment], experiment, 'spec1')
+        assert 'B_mean_mT_std' not in plain.columns
+        with_bootstrap = dict(results[experiment])
+        summary = pd.DataFrame(
+            {f'{name}_{stat}': [0.1, 0.2]
+             for name in ['proportion', 'B_mean_mT', 'sd_log']
+             for stat in ['std', 'p2_5', 'p97_5']},
+            index=with_bootstrap['params'].index)
+        with_bootstrap['bootstrap'] = {'param_summary': summary}
+        table = rmag.coercivity_components_table(
+            with_bootstrap, experiment, 'spec1')
+        assert list(table['B_mean_mT_std']) == [0.1, 0.2]
+        assert {'proportion_std', 'B_mean_mT_p2_5', 'sd_log_p97_5'} <= set(
+            table.columns)
+
+
 class TestSpecimenStatExport:
     """add_Bcr_to_specimens_table experiment matching."""
 

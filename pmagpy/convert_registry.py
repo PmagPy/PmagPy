@@ -29,24 +29,58 @@ takes a file, an output directory and named output tables, plus one
 :class:`Format` here with an example file under ``data_files`` — the tests then
 run it with everything else. Nothing in the registry assumes demagnetization
 data; a format may write measurements only (``mini``, the IODP measurement
-converters) or no measurements at all (``iodp_samples``).
+converters) or no measurements at all (``iodp_samples``), and the field
+notebook formats (``orient``, ``azdip``) write the samples and sites the
+measurements will later hang from.
 """
 from __future__ import annotations
 
 import contextlib
+import importlib
 import inspect
 import io
+import json
 import os
 import shutil
 import tempfile
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
 import pandas as pd
 
 from pmagpy import convert_2_magic as convert
 
-MAGIC_TABLES = ("measurements", "specimens", "samples", "sites", "locations")
+MAGIC_TABLES = ("measurements", "specimens", "samples", "sites", "locations", "ages", "criteria", "images")
+#: the record, beside the tables, of the conversions that wrote them (see :func:`record_conversion`)
+CONVERSION_LOG = "pmagpy_conversions.json"
+
+
+class Deferred:
+    """A converter in a module too heavy to import when the registry loads.
+
+    ``ipmag`` brings all of matplotlib.pyplot with it, which every application
+    importing the registry would then pay for at start-up; the field-notebook
+    converters live there. The module is imported the first time the function
+    is called or its signature is asked for.
+    """
+
+    def __init__(self, module: str, name: str):
+        self.module, self.name = module, name
+
+    @property
+    def target(self) -> Callable:
+        return getattr(importlib.import_module(self.module), self.name)
+
+    @property
+    def __signature__(self) -> inspect.Signature:
+        return inspect.signature(self.target)
+
+    def __call__(self, *args, **kwargs):
+        return self.target(*args, **kwargs)
+
+    def __repr__(self) -> str:
+        return f"{self.module}.{self.name}"
 
 
 # ----- describing a converter ----------------------------------------------------------
@@ -68,7 +102,9 @@ class Field:
         help: one sentence for the form; the converter's docstring says the rest.
         default: passed when the user leaves the field alone.
         required: the form insists on a value.
-        choices: for ``choice`` — ``(value, label)`` pairs.
+        choices: for ``choice`` — ``(value, label)`` pairs. A ``bool`` may give
+            two, ``(True, label)`` and ``(False, label)``, when the form should
+            spell out both ways rather than show one checkbox.
     """
     name: str
     kind: str
@@ -93,7 +129,8 @@ class Format:
         input_dir_kw: the keyword for the directory the input is read from ('' when
             the function has none — then the file is passed as a full path).
         output_dir_kw: the keyword for the directory the tables are written to.
-        outputs: MagIC table → the keyword naming that table's output file.
+        outputs: MagIC table → the keyword naming that table's output file, or None
+            when the converter writes it under its fixed name.
         fixed: keywords always passed, whatever the user says.
         extensions: lower-case file extensions the format's files usually have —
             for guessing a format from a directory and for offering its files.
@@ -103,6 +140,13 @@ class Format:
             converters read the ``specimens.txt`` made from the LIMS sample file).
         prepare: turns the canonical values into extra keyword arguments when a
             plain rename will not do (``generic``'s naming lists).
+        replaces: tables in which this format's rows *replace* the rows already
+            naming the same sample or site when the tables are combined — the
+            placeholder a measurement converter wrote for a sample (azimuth 90,
+            dip -90, ``SO-MAG``) gives way to what the field notebook says, however
+            many rows the notebook writes for it (one per orientation method).
+            Measurement converters leave this empty: they know nothing another
+            file should yield to. See :func:`_replace_by_name`.
         examples: paths under ``data_files`` that must convert, each
             ``(relative path, {canonical values})``; the registry's tests run them.
         notes: a line for the form about the format or the files it wants beside the input.
@@ -123,6 +167,7 @@ class Format:
     takes_directory: bool = False
     needs: Dict[str, str] = field(default_factory=dict)
     prepare: Optional[Callable[[dict], dict]] = None
+    replaces: Tuple[str, ...] = ()
     examples: Tuple[Tuple[str, dict], ...] = ()
     notes: str = ""
 
@@ -165,8 +210,9 @@ SPECNUM = Field("specnum", "int", "Specimen characters",
                 default=0)
 LAT = Field("lat", "float", "Latitude", "Of the sites, in decimal degrees; leave blank to fill in later.")
 LON = Field("lon", "float", "Longitude", "Of the sites, in decimal degrees, east positive.")
-NOAVE = Field("noave", "bool", "Keep replicate measurements", "Do not average repeated measurements at a step.",
-              default=False)
+REPLICATES = ((True, "Keep replicate measurements"), (False, "Average replicate measurements"))
+NOAVE = Field("noave", "bool", "Replicate measurements", "Repeated measurements at the same step: kept as separate "
+              "rows, or averaged into one.", default=False, choices=REPLICATES)
 USER = Field("user", "text", "Analyst", "Goes in the analysts column.")
 LABFIELD = Field("labfield", "float", "Lab field (μT)", "DC field of the paleointensity or ARM steps; 0 for none.",
                  default=0)
@@ -259,6 +305,8 @@ def _normalise(result) -> Tuple[bool, str]:
     if isinstance(result, tuple):
         ok = bool(result[0])
         rest = result[1] if len(result) > 1 else ""
+        if rest is None:
+            rest = ""
         return ok, str(rest) if not isinstance(rest, (list, tuple)) else ", ".join(map(str, rest))
     return bool(result), ""
 
@@ -267,13 +315,16 @@ def _normalise(result) -> Tuple[bool, str]:
 
 
 def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: str,
-                  append: bool = False, report: Optional[Callable[[str], None]] = None) -> ConversionResult:
+                  append: bool = False, report: Optional[Callable[[str], None]] = None,
+                  record: bool = True) -> ConversionResult:
     """Convert files (or one directory) with one converter and write the MagIC tables into ``dir_path``.
 
     Each input is converted on its own in a scratch directory; the tables are then
     combined (rows concatenated, exact duplicates dropped) into ``dir_path``'s
     ``measurements.txt``, ``specimens.txt`` … — replacing what is there, or adding
-    to it when ``append`` is set.
+    to it when ``append`` is set. A conversion that wrote tables is added to
+    ``dir_path``'s :data:`CONVERSION_LOG` (:func:`record_conversion`), so the
+    directory remembers which files its tables came from.
 
     Args:
         fmt: the format.
@@ -283,6 +334,7 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
         dir_path: the MagIC directory the tables go to.
         append: add to the tables already in ``dir_path`` instead of replacing them.
         report: called with a line per file for a status bar.
+        record: keep the conversion in the directory's log.
     """
     say = report or (lambda text: None)
     dir_path = os.path.abspath(os.path.expanduser(dir_path))
@@ -322,7 +374,7 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
         tables = {}
         if any(per_table.values()):
             say("Combining the tables …")
-            tables = combine_tables(per_table, dir_path)
+            tables = combine_tables(per_table, dir_path, replaces=fmt.replaces)
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
     n_ok = len(inputs) - len(failed)
@@ -330,21 +382,120 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
         message = f"Nothing converted: {failed[0][1]}" if len(failed) == 1 else f"None of the {len(inputs)} files converted."
         return ConversionResult(False, message, "\n".join(logs), tables, failed)
     what = f"{n_ok} of {len(inputs)} files" if failed else (f"{n_ok} files" if n_ok > 1 else os.path.basename(inputs[0]))
-    rows = tables.get("measurements", 0)
-    message = f"{what} converted · {rows:,} measurements" + (f" · {len(failed)} failed" if failed else "")
-    return ConversionResult(True, message, "\n".join(logs), tables, failed)
+    message = f"{what} converted · {describe_tables(tables)}" + (f" · {len(failed)} failed" if failed else "")
+    result = ConversionResult(True, message, "\n".join(logs), tables, failed)
+    if record and tables:
+        if fmt.takes_directory:
+            names = directory_inputs(fmt, inputs[0])
+        else:
+            names = [os.path.basename(p) for p in inputs if os.path.basename(p) not in {f for f, _ in failed}]
+        record_conversion(dir_path, fmt.key, names, values, append=append, tables=tables,
+                          failed=[f for f, _ in failed], label=fmt.label)
+    return result
 
 
-def combine_tables(per_table: Dict[str, List[str]], dir_path: str) -> Dict[str, int]:
-    """Concatenate each table's files into ``dir_path/<table>.txt``; returns rows per table written."""
+def directory_inputs(fmt: Format, directory: str) -> List[str]:
+    """The files a directory format read: the ones it accepts by extension (the 2.5 tables for ``legacy``).
+
+    When the format lists no extensions, or none match, the directory's own
+    name stands for its contents.
+    """
+    try:
+        names = sorted(n for n in os.listdir(directory) if os.path.isfile(os.path.join(directory, n)))
+    except OSError:
+        names = []
+    if fmt.key == "legacy":
+        hits = [n for n in names if _legacy_table(n.lower())]
+    else:
+        hits = [n for n in names if fmt.extensions and fmt.accepts(n)]
+    return hits or [os.path.basename(os.path.abspath(directory))]
+
+
+# ----- remembering what the tables came from ----------------------------------------------
+
+
+def record_conversion(dir_path: str, format_key: str, files: Sequence[str], values: Optional[dict] = None,
+                      append: bool = False, tables: Optional[Dict[str, int]] = None,
+                      failed: Sequence[str] = (), label: str = "") -> str:
+    """Append one conversion to ``dir_path``'s :data:`CONVERSION_LOG` and return the log's path.
+
+    The log is a JSON list, oldest first; each entry has ``when`` (local time,
+    ISO 8601 to the second), ``format`` (a registry key, or ``"magic"`` for an
+    unpacked contribution file), ``label``, ``files`` (names relative to the
+    directory), ``values`` (the fields the converter was given, blanks left
+    out), ``append``, ``tables`` (rows written per table) and ``failed`` (the
+    files that did not convert). A conversion that replaced the tables makes
+    the earlier entries history rather than provenance; readers look at
+    ``append`` to tell which (see :func:`conversion_sources`).
+    """
+    entry = {
+        "when": datetime.now().replace(microsecond=0).isoformat(),
+        "format": format_key,
+        "label": label or (FORMATS[format_key].label if format_key in FORMATS else format_key),
+        "files": list(files),
+        "values": {k: v for k, v in (values or {}).items() if not (v is None or v is False or v == "" or v == [])},
+        "append": bool(append),
+        "tables": dict(tables or {}),
+        "failed": list(failed),
+    }
+    entries = read_conversions(dir_path)
+    entries.append(entry)
+    path = os.path.join(dir_path, CONVERSION_LOG)
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(entries, fh, indent=1, default=str)
+        fh.write("\n")
+    return path
+
+
+def read_conversions(dir_path: str) -> List[dict]:
+    """The directory's conversion log, oldest first; empty when there is none or it cannot be read."""
+    path = os.path.join(dir_path, CONVERSION_LOG)
+    if not os.path.isfile(path):
+        return []
+    try:
+        with open(path, encoding="utf-8") as fh:
+            entries = json.load(fh)
+    except (OSError, ValueError):
+        return []
+    return [e for e in entries if isinstance(e, dict)] if isinstance(entries, list) else []
+
+
+def conversion_sources(entries: Sequence[dict]) -> List[dict]:
+    """The entries that account for the tables as they stand: the last one that replaced them and every append since."""
+    kept: List[dict] = []
+    for entry in entries:
+        if not entry.get("append"):
+            kept = []
+        kept.append(entry)
+    return kept
+
+
+def describe_tables(tables: Dict[str, int]) -> str:
+    """'309 measurements' when there are any; otherwise the level tables written ('18 samples · 5 sites')."""
+    if "measurements" in tables:
+        return f"{tables['measurements']:,} measurements"
+    return " · ".join(f"{n:,} {t}" for t, n in tables.items()) or "no tables"
+
+
+def combine_tables(per_table: Dict[str, List[str]], dir_path: str, replaces: Sequence[str] = ()) -> Dict[str, int]:
+    """Concatenate each table's files into ``dir_path/<table>.txt``; returns rows per table written.
+
+    Exact duplicate rows are dropped and a row that only names something yields to a
+    fuller row naming it. In the tables named by ``replaces`` (see
+    :attr:`Format.replaces`) the last file naming a sample or site replaces the rows
+    earlier files wrote for it.
+    """
     from pmagpy.magic_project import magic_write
     written = {}
     for table, paths in per_table.items():
         if not paths:
             continue
         frames = [pd.read_csv(p, sep="\t", header=1, dtype=str, keep_default_na=False) for p in paths]
-        df = pd.concat(frames, ignore_index=True, sort=False)
-        df = df.replace("", pd.NA).drop_duplicates()
+        df = pd.concat(frames, ignore_index=True, sort=False).replace("", pd.NA)
+        if table in replaces:
+            df["_file"] = [i for i, frame in enumerate(frames) for _ in range(len(frame))]
+            df = _replace_by_name(df, table)
+        df = df.drop_duplicates()
         df = _drop_redundant(df, table)
         if table == "locations":
             df = _merge_locations(df)
@@ -378,6 +529,44 @@ def _merge_locations(df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(merged).reset_index(drop=True)
 
 
+# What a field notebook says about a sample's orientation (and its height in the
+# section) is taken whole: a blank here in the notebook's row is not filled from
+# the placeholder an earlier file wrote (CIT: azimuth 90, dip -90, height 0).
+ORIENTATION_COLUMNS = ("azimuth", "azimuth_dec_correction", "dip", "bed_dip", "bed_dip_direction",
+                       "orientation_quality", "method_codes", "height")
+
+
+def _replace_by_name(df: pd.DataFrame, table: str) -> pd.DataFrame:
+    """The last file naming a sample/site replaces the rows earlier files wrote for it.
+
+    ``df`` is the concatenation of the files in order — what was already in the
+    directory first, then the files just converted — with the file's position in
+    ``_file``. A name's rows from its last file are kept, all of them (a field
+    notebook writes one row per orientation method), and a column those rows leave
+    entirely blank takes the earlier files' value, except for the orientation
+    columns. Names only earlier files know keep their rows. Row order is preserved.
+    """
+    key = table[:-1]
+    if key not in df or df["_file"].nunique() < 2:
+        return df.drop(columns="_file")
+    kept = []
+    for name, group in df.groupby(key, sort=False, dropna=False):
+        if pd.isna(name):
+            kept.append(group)
+            continue
+        latest = group[group["_file"] == group["_file"].max()].copy()
+        earlier = group[group["_file"] != group["_file"].max()]
+        if len(earlier):
+            known = earlier.ffill().iloc[-1]
+            for col in df.columns:
+                if col in ORIENTATION_COLUMNS or col == "_file":
+                    continue
+                if latest[col].isna().all() and pd.notna(known[col]):
+                    latest[col] = known[col]
+        kept.append(latest)
+    return pd.concat(kept).sort_index().drop(columns="_file").reset_index(drop=True)
+
+
 def _drop_redundant(df: pd.DataFrame, table: str) -> pd.DataFrame:
     """Drop a row that names a specimen/sample/site/location and says nothing else, when a fuller row names it too."""
     key = table[:-1]
@@ -391,6 +580,22 @@ def _drop_redundant(df: pd.DataFrame, table: str) -> pd.DataFrame:
 
 
 # ----- guessing a format from a directory ----------------------------------------------------
+
+
+def _looks_like_orient(head: str) -> bool:
+    """A field notebook: 'tab <location>' then a header line naming sample_name and mag_azimuth."""
+    lines = head.splitlines()
+    if len(lines) < 2:
+        return False
+    header = lines[1].lower().split("\t")
+    return "sample_name" in header and "mag_azimuth" in header
+
+
+def _legacy_table(lower_name: str) -> bool:
+    """A MagIC 2.5 table by its name: magic_measurements, er_*, pmag_*, rmag_*, magic_methods."""
+    return lower_name.endswith(".txt") and (
+        lower_name in ("magic_measurements.txt", "magic_methods.txt")
+        or lower_name.startswith(("er_", "pmag_", "rmag_")))
 
 
 def guess_format(names: Sequence[str], directory: str = "") -> Tuple[str, Dict[str, str]]:
@@ -409,17 +614,30 @@ def guess_format(names: Sequence[str], directory: str = "") -> Tuple[str, Dict[s
             elif any(n.startswith(s) for s in stems):
                 roles[n] = "CIT specimen"
         return "cit", roles
+    legacy = [n for n in names if _legacy_table(lower[n])]
+    if legacy:                           # 2.5 tables: the upgrade is the conversion, whatever else is beside them
+        for n in legacy:
+            roles[n] = "MagIC 2.5 table"
+        return "legacy", roles
+    orient_files = []
     for n in names:                      # a downloaded contribution is a .txt like any other: look inside
-        if lower[n].endswith(".txt") and directory:
+        if lower[n].endswith((".txt", ".tsv")) and directory:
             try:
                 with open(os.path.join(directory, n), encoding="utf-8-sig", errors="replace") as fh:
                     head = fh.read(4096)
             except OSError:
                 continue
             if head.startswith("tab") and ">>>>>>>>>>" in head:
-                roles[n] = "MagIC contribution file"
+                first = head.splitlines()[0].split("\t")
+                old_model = len(first) > 1 and _legacy_table(first[1].strip().lower() + ".txt")
+                roles[n] = "MagIC 2.5 contribution file" if old_model else "MagIC contribution file"
                 return "magic", roles
-    for key in ("jr6_jr6", "pmd", "tdt", "agm", "utrecht", "2g_asc", "2g_bin"):
+            if head.startswith("tab") and _looks_like_orient(head):
+                roles[n] = "Orientation file"
+                orient_files.append(n)
+    if orient_files:
+        return "orient", roles
+    for key in ("jr6_jr6", "pmd", "tdt", "livdb", "agm", "utrecht", "2g_asc", "2g_bin"):
         fmt = FORMATS[key]
         hits = [n for n in names if fmt.accepts(n) and fmt.extensions]
         if hits:
@@ -502,8 +720,7 @@ _add(Format(
             SPECNUM,
             # CIT steps are already averaged over the measurement orientations, so a repeated step
             # is a remeasurement worth keeping; Pmag GUI's CIT dialog also keeps them
-            Field("noave", "bool", "Keep replicate measurements",
-                  "Keep repeated steps as separate rows rather than averaging them.", default=True),
+            Field("noave", "bool", "Replicate measurements", NOAVE.help, default=True, choices=REPLICATES),
             USER,
             Field("methods", "text", "Orientation method codes",
                   "Colon-delimited, e.g. SO-MAG:SO-SUN. A specimen file whose first line says \"sun compass\" turns "
@@ -658,6 +875,26 @@ _add(Format(
     examples=(("tdt_magic", {}),),
     notes="Converts every .tdt file in the directory at once."))
 
+LIVDB_NAMING = (("sample=specimen", "the specimen name"), ("no. of terminate characters", "all but the last N characters"),
+                ("character delimited", "the part before the last delimiter"))
+_add(Format(
+    "livdb", "Livdb (Liverpool)", convert.livdb,
+    fields=(LOCATION,
+            Field("samp_name_con", "choice", "Sample name is", "", default="sample=specimen", choices=LIVDB_NAMING),
+            Field("samp_num_chars", "text", "… N or delimiter", "For the two conventions that need one.", default="0"),
+            Field("site_name_con", "choice", "Site name is", "", default="site=sample",
+                  choices=(("site=sample", "the sample name"),) + LIVDB_NAMING[1:]),
+            Field("site_num_chars", "text", "… N or delimiter", "For the two conventions that need one.", default="0")),
+    kwargs={"location": "location_name"},
+    file_kw="input_dir_path", output_dir_kw="output_dir_path", takes_directory=True,
+    outputs={"measurements": "meas_out", "specimens": "spec_out", "samples": "samp_out",
+             "sites": "site_out", "locations": "loc_out"},
+    extensions=(".livdb", ".livdb.csv"),
+    examples=(("livdb_magic/TH_IZZI+", {"location": "ATPI"}), ("livdb_magic/MW_IZZI+andC++", {"location": "NVPA"}),
+              ("livdb_magic/MW_P", {"location": "Perp"})),
+    notes="Liverpool's Livdb exports (.livdb or .csv), thermal and microwave paleointensity protocols; "
+          "converts every such file in the directory at once, so keep one location per directory."))
+
 _add(Format(
     "agm", "AGM / VSM (MicroMag)", convert.agm,
     fields=(LOCATION, SAMP_CON, SPECNUM, USER, INSTRUMENT,
@@ -718,3 +955,171 @@ _add(Format(
     extensions=(".csv",),
     examples=(("../iodp_magic/U999A/JR6_data/spinner_17_5_2019.csv", {}),),
     notes="convert the LIMS sample report with IODP samples first."))
+
+_add(Format(
+    "iodp_kly4s", "IODP KLY4S (LORE)", convert.iodp_kly4s_lore,
+    fields=(Field("instrument", "text", "Instrument", INSTRUMENT.help, default="IODP-KLY4S"),
+            Field("actual_volume", "float", "Actual volume (cm³)",
+                  "The shipboard software assumes a nominal 8 or 10 cm³; give the real volume to rescale.")),
+    file_kw="kly4s_file",
+    outputs={"measurements": "meas_out", "specimens": "spec_out"},
+    needs={"specimens": "spec_infile"},
+    extensions=(".csv",),
+    examples=(("../iodp_magic/U999A/KLY4S_data/ex-kappa_17_5_2019.csv", {}),),
+    notes="The LORE 'ex-kappa' report: bulk susceptibility and the AMS tensor per specimen. Convert the "
+          "LIMS sample report with IODP samples first; the results open in Anisotropy."))
+
+
+# ----- Kappabridge exports: anisotropy of susceptibility, opened by the Anisotropy app ---------------
+
+KLY_INSTRUMENT = Field("instrument", "text", "Instrument", INSTRUMENT.help, default="SIO-KLY4S")
+SUFAR_OR_CON = Field("or_con", "choice", "Orientation convention",
+                     "Leave 'as written' to take the file's azimuth and dip; otherwise how they give the lab arrow.",
+                     default="", choices=(("", "as written in the file"), *OR_CON.choices))
+STATIC_15 = Field("static_15_position_mode", "bool", "Static 15-position mode",
+                  "The file is from the static (not spinning) 15-position measurement scheme.", default=False)
+SPECNAME_FROM_FILE = Field("specname", "bool", "Specimen name from the file name",
+                           "Use the file's stem as the specimen name instead of the name inside the file.", default=False)
+PRESERVE_CASE = Field("preserve_case", "bool", "Keep the case of names",
+                      "Untick to lower-case specimen, sample and site names as the command-line converter does.",
+                      default=True)
+
+_add(Format(
+    "k15", "Kappabridge 15-position (.k15)", convert.k15,
+    fields=(LOCATION, SAMP_CON, SPECNUM),
+    kwargs={"samp_con": "sample_naming_con"},
+    file_kw="k15file",
+    outputs={"measurements": "meas_file", "specimens": "aniso_outfile", "samples": "samp_file"},
+    extensions=(".k15", ".dat", ".txt"),
+    examples=(("k15_magic/k15_example.dat", {"location": "Trinidad"}),),
+    notes="Jelinek's 15-position scheme: a line 'specimen [azimuth plunge strike dip]' then three lines of five "
+          "susceptibilities per specimen. Writes the 15 measurements and the tensor (aniso_s) per specimen, in "
+          "specimen, geographic and tilt-corrected coordinates when the orientations are given."))
+
+_add(Format(
+    "kly4s", "KLY4S (SIO LabView)", convert.kly4s,
+    fields=(LOCATION, SAMP_CON, SPECNUM, OR_CON, USER, KLY_INSTRUMENT),
+    kwargs={"location": "locname", "instrument": "inst"},
+    file_kw="infile",
+    outputs={"measurements": "measfile", "specimens": "spec_outfile", "samples": "samp_outfile", "sites": "site_outfile"},
+    extensions=(".dat", ".txt"),
+    examples=(("kly4s_magic/KLY4S_magic_example.dat", {"location": "IODP Expedition 318"}),),
+    notes="One line per specimen as the SIO KLY4S LabView program writes it (normalised tensor, bulk "
+          "susceptibility, temperature, field, date, operator). Writes the bulk measurement and the tensor per specimen."))
+
+_add(Format(
+    "sufar4", "SUFAR 4 (AGICO .asc)", convert.sufar4,
+    fields=(LOCATION, SAMP_CON, SPECNUM, SUFAR_OR_CON, STATIC_15, SPECNAME_FROM_FILE, PRESERVE_CASE, USER, INSTRUMENT),
+    kwargs={"location": "locname", "samp_con": "sample_naming_con"},
+    file_kw="ascfile",
+    outputs={"measurements": "meas_output", "specimens": "spec_outfile", "samples": "samp_outfile", "sites": "site_outfile"},
+    extensions=(".asc", ".txt"),
+    examples=(("sufar_asc_magic/sufar4-asc_magic_example.txt", {"location": "IODP Expedition 318"}),),
+    notes="The ASCII report AGICO's SUFAR program writes for a Kappabridge (one or many specimens per file). Writes "
+          "the bulk susceptibility measurement, the tensor per specimen with the file's own orientation, and the "
+          "sample orientation the operator entered."))
+
+
+# ----- field notebooks: the samples and sites, before any measurement ------------------------------
+
+ORIENT_CON = Field("or_con", "choice", "Orientation convention",
+                   "How the notebook's mag_azimuth and field_dip give the lab arrow (hade: degrees from vertical).",
+                   default="1", choices=(("1", "Pomeroy: azimuth of the drill direction; dip = −hade"),
+                                         ("2", "strike of the plane normal to the drill direction; dip = −hade"),
+                                         ("3", "azimuth of the drill direction; dip = 90 − hade"),
+                                         ("4", "azimuth and dip as written (unoriented samples too)"),
+                                         ("5", "AzDip: azimuth; dip = dip − 90"),
+                                         ("6", "azimuth − 90; dip = 90 − hade"),
+                                         ("8", "azimuth − 180; dip = 90 − hade")))
+DEC_CORRECTION_CON = Field("dec_correction_con", "choice", "Magnetic declination",
+                           "How the compass azimuths are corrected to true north.", default="1",
+                           choices=(("1", "IGRF at each site's latitude, longitude and date"),
+                                    ("2", "a correction I supply (below)"),
+                                    ("3", "already corrected in the file"),
+                                    ("4", "correct mag_azimuth but not bedding_dip_direction")))
+DEC_CORRECTION = Field("dec_correction", "float", "Declination correction (°)",
+                       "Added to every azimuth when the declination choice is 'a correction I supply'.", default=0)
+BED_CORRECTION = Field("bed_correction", "bool", "Correct bedding for declination",
+                       "Apply the declination correction to bedding_dip_direction as well.", default=True)
+HOURS_FROM_GMT = Field("hours_from_gmt", "float", "Hours from GMT",
+                       "Subtracted from the notebook's hh:mm to reach GMT, for sun-compass azimuths.", default=0)
+AVERAGE_BEDDING = Field("average_bedding", "bool", "Average the bedding",
+                        "Give every sample the Fisher mean of the bedding poles in the file.", default=False)
+
+
+def _azdip_naming(values: dict) -> dict:
+    """``azdip_magic`` takes the naming code and its character count as two arguments."""
+    code = naming_code(values.get("samp_con") or "1")
+    if "-" in code:
+        samp_con, z = code.split("-", 1)
+        return {"samp_con": samp_con, "Z": int(z)}
+    return {"samp_con": code, "Z": 1}
+
+
+_add(Format(
+    "orient", "Orientation file (field notebook)", Deferred("pmagpy.ipmag", "orientation_magic"),
+    fields=(ORIENT_CON, DEC_CORRECTION_CON, DEC_CORRECTION, BED_CORRECTION, SAMP_CON, HOURS_FROM_GMT,
+            Field("gmeths", "text", "Sampling method codes", GMETHS.help, default="FS-FD:SO-POM"),
+            AVERAGE_BEDDING),
+    kwargs={"gmeths": "method_codes"},
+    file_kw="orient_file", output_dir_kw="output_dir_path",
+    outputs={"samples": "samp_file", "sites": "site_file"},
+    replaces=("samples", "sites"),
+    extensions=(".txt", ".tsv", ".dat"),
+    examples=(("../orientation_magic/orient_example.txt", {"gmeths": "FS-FD"}),),
+    notes="PmagPy's tab-delimited field notebook: 'tab <location>' on the first line, then sample_name, "
+          "mag_azimuth, field_dip, date, lat, long, bedding and the rest; blank cells inherit the row above. "
+          "Writes samples and sites (and images); the measurements come from the lab files afterwards."))
+
+_add(Format(
+    "azdip", "AzDip file", Deferred("pmagpy.ipmag", "azdip_magic"),
+    fields=(LOCATION, SAMP_CON, Field("gmeths", "text", "Sampling method codes", GMETHS.help, default="FS-FD")),
+    kwargs={"location": "location_name", "gmeths": "method_codes"},
+    file_kw="orient_file", input_dir_kw="input_dir", output_dir_kw="output_dir",
+    outputs={"samples": "samp_file"},
+    prepare=_azdip_naming,
+    replaces=("samples",),
+    extensions=(".dat", ".txt"),
+    examples=(("../azdip_magic/azdip_magic_example.dat", {"location": "Iceland"}),),
+    notes="Space-delimited 'sample azimuth dip strike dip' lines, azimuths already true north; the converter "
+          "applies orientation convention 3 (lab arrow dip = 90 − dip) and takes bedding as strike and dip. "
+          "Writes samples only."))
+
+
+# ----- MagIC 2.5 tables: the upgrade, so an old dataset opens like a new one ---------------------------
+
+
+def upgrade_2_to_3(input_dir: str, output_dir: str = ".", meas_fname: str = "magic_measurements.txt"):
+    """MagIC 2.5 tables (``magic_measurements``, ``er_*``, ``pmag_*``, ``rmag_*``, ``pmag_criteria``) in
+    ``input_dir`` → 3.0 ``measurements``, ``specimens`` … ``ages``, ``criteria`` in ``output_dir``.
+
+    Wraps :func:`pmagpy.pmag.convert_directory_2_to_3` so it answers like a converter:
+    ``(ok, message)``, the message naming what was upgraded and what 2.5 cannot be
+    (``pmag_results``, images, results spanning several sites), which MagIC's own
+    upgrade tool handles. The rock magnetic tables become rows of ``specimens``
+    (``aniso_s``/``aniso_v*``, ``hyst_*``, ``rem_*``, ``susc_*``); results naming
+    one sample or site go to ``samples``/``sites``.
+    """
+    from pmagpy import pmag
+    meas, upgraded, no_upgrade = pmag.convert_directory_2_to_3(meas_fname, input_dir=input_dir, output_dir=output_dir)
+    if meas is False:
+        return False, f"no {meas_fname} in the directory — MagIC's upgrade tool (earthref.org/MagIC/upgrade) takes the rest"
+    message = "upgraded " + ", ".join(upgraded)
+    if no_upgrade:
+        message += f"; left as 2.5: {', '.join(sorted(no_upgrade))} (MagIC's upgrade tool at earthref.org/MagIC/upgrade takes those)"
+    print(message)                                # the converters' log is what the page shows
+    return True, message
+
+
+_add(Format(
+    "legacy", "MagIC 2.5 tables (upgrade)", upgrade_2_to_3,
+    fields=(),
+    file_kw="input_dir", input_dir_kw="", output_dir_kw="output_dir", takes_directory=True,
+    outputs={"measurements": None, "specimens": None, "samples": None, "sites": None, "locations": None,
+             "ages": None, "criteria": None},
+    extensions=(".txt",),
+    examples=(("../2_5/McMurdo", {}),),
+    notes="Upgrades the whole directory's 2.5 tables (magic_measurements, er_*, pmag_*, rmag_*, pmag_criteria) "
+          "to 3.0 tables beside them; rmag_anisotropy/rmag_results tensors and eigenparameters, hysteresis, "
+          "remanence and susceptibility parameters become specimen rows. pmag_results and images are not "
+          "translated — MagIC's upgrade tool (earthref.org/MagIC/upgrade) does the full job."))

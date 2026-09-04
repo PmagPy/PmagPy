@@ -796,6 +796,23 @@ class TestAddCurieEstimatesToSpecimensTable:
         )
         assert specimens.iloc[0]["critical_temp_type"] == "Curie"
 
+    def test_table_without_experiments_column(self, heat_cool_experiment):
+        """A specimens table that never recorded experiments (several MagIC
+        contributions) is matched on the specimen name alone."""
+        estimates = rmag.curie_temperature_estimates(
+            heat_cool_experiment, magnetic_column="magn_mass"
+        )
+        specimens = pd.DataFrame({
+            "specimen": ["synthetic-01", "other"],
+            "description": [np.nan, np.nan],
+        })
+        with pytest.warns(UserWarning, match="falling back"):
+            rmag.add_curie_estimates_to_specimens_table(
+                specimens, "SYN-LP-MST-1", estimates
+            )
+        assert specimens.loc[0, "critical_temp_type"] == "Curie"
+        assert pd.isna(specimens.loc[1, "critical_temp"])
+
     def test_missing_experiment_raises(self, heat_cool_experiment):
         estimates = rmag.curie_temperature_estimates(
             heat_cool_experiment, magnetic_column="magn_mass"
@@ -863,6 +880,20 @@ class TestPlotCurieEstimates:
             return_figure=True,
         )
         assert len(axes) == 2  # main + derivative panel
+        import matplotlib.pyplot as plt
+        plt.close(fig)
+
+    def test_every_method_has_a_colour(self, heat_cool_experiment):
+        """ms_squared_extrapolation was missing from the colour table, so asking
+        the plot for every magnetization method raised a KeyError."""
+        fig, axes = rmag.plot_curie_estimates(
+            heat_cool_experiment, magnetic_column="magn_mass",
+            methods=("inflection", "max_curvature", "two_tangent", "landau",
+                     "ms_squared_extrapolation"),
+            return_figure=True,
+        )
+        labels = [line.get_label() for line in axes[0].get_lines()]
+        assert any(label.startswith("ms_squared_extrapolation") for label in labels)
         import matplotlib.pyplot as plt
         plt.close(fig)
 
@@ -1127,3 +1158,29 @@ class TestThermomagPlots:
         })
         with pytest.raises(ValueError):
             rmag.curie_inverse_susceptibility_interactive(df, branch="cooling")
+
+    def test_interactive_inverse_susceptibility_can_return_its_layout_unshown(self, monkeypatch, curie_weiss_chi):
+        pytest.importorskip("bokeh")
+        from bokeh.models import Column, Div
+        from bokeh.plotting import figure as Figure
+        shown = []
+        monkeypatch.setattr(rmag, "show", lambda obj: shown.append(obj))
+        T, chi = curie_weiss_chi
+        df = pd.DataFrame({"meas_temp": T, "susc_chi_mass": chi, "specimen": "cw"})
+        layout = rmag.curie_inverse_susceptibility_interactive(
+            df, temp_unit="K", input_unit="K", remove_holder=False,
+            initial_fit_range=(620, 700), show_plot=False, return_figure=True)
+        assert shown == []
+        assert isinstance(layout, Column)
+        plot, estimate = layout.children
+        assert isinstance(plot, type(Figure())) and isinstance(estimate, Div)
+        assert plot.title.text == "cw – 1/χ (heating)"
+        # the fit endpoints sit on the 1/chi curve at the requested temperatures
+        endpoints = [r for r in plot.renderers if "x" in r.data_source.data
+                     and len(r.data_source.data["x"]) == 2][0].data_source.data
+        assert endpoints["x"] == pytest.approx([620, 700], abs=T[1] - T[0])
+        assert endpoints["y"] == pytest.approx((np.array(endpoints["x"]) - THETA_C) / CURIE_CONSTANT, rel=1e-6)
+        # default: shown, nothing returned
+        assert rmag.curie_inverse_susceptibility_interactive(
+            df, temp_unit="K", input_unit="K", remove_holder=False) is None
+        assert len(shown) == 1

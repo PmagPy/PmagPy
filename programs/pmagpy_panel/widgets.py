@@ -198,8 +198,14 @@ class HeightSplitter(JSComponent):
 
 
 class Hotkeys(JSComponent):
-    """Invisible component forwarding ← → (specimens) and [ ] { } (fit bounds) key presses to Python."""
+    """Invisible component forwarding key presses to Python (not while typing in a field).
 
+    ``keys`` names the ones it takes; by default the arrows (← → specimens,
+    ↑ ↓ the selected row) and [ ] { } (fit bounds).
+    """
+
+    keys = param.List(default=["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown", "[", "]", "{", "}"],
+                      doc="the key values (KeyboardEvent.key) forwarded; the browser's own handling is suppressed")
     key = param.String(default="")
     n = param.Integer(default=0, doc="incremented on every accepted key press")
 
@@ -213,7 +219,7 @@ class Hotkeys(JSComponent):
       };
       document.addEventListener('keydown', (e) => {
         if (editing(e) || e.metaKey || e.ctrlKey || e.altKey) return;
-        if (['ArrowRight', 'ArrowLeft', '[', ']', '{', '}'].includes(e.key)) {
+        if (model.keys.includes(e.key)) {
           e.preventDefault();
           model.key = e.key;
           model.n = model.n + 1;

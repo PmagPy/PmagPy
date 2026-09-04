@@ -493,6 +493,28 @@ def test_magic_round_trip_reproduces_the_distribution(micromag_file):
     assert_allclose(viamagic["rho"][both], direct["rho"][both], rtol=1e-6, atol=1e-12)
 
 
+def test_magic_dataframe_is_processed_like_the_file(micromag_file):
+    """A measurements table in memory gives the same distribution as its file."""
+    import pandas as pd
+    magic_path = forc.export_magic_measurements_from_raw(str(micromag_file))
+    viafile = forc.process_forc(mode="m", path=str(magic_path), plot_hyst=False, verbose=False)
+    measurements = pd.read_csv(magic_path, sep="\t", header=1)
+    viaframe = forc.process_forc_dataframe(measurements, plot_hyst=False, verbose=False)
+
+    assert isinstance(viaframe, dict) and viaframe["magic_specimen"] == "synthetic_specimen"
+    assert viaframe["sample_title"] == "synthetic_specimen" and viaframe["input_path"] == "<DataFrame>"
+    assert_allclose(viaframe["Ha_vals_used"], viafile["Ha_vals_used"], rtol=1e-9, atol=1e-12)
+    both = np.isfinite(viafile["rho"]) & np.isfinite(viaframe["rho"])
+    assert both.sum() > 100
+    assert_allclose(viaframe["rho"][both], viafile["rho"][both], rtol=1e-6, atol=1e-12)
+
+    # Two specimens in one table come back as one result each.
+    second = measurements.assign(specimen="other", experiment="LP-FORC-other")
+    outs = forc.process_forc_dataframe(pd.concat([measurements, second]), plot_hyst=False, plot_rho=False,
+                                       verbose=False)
+    assert [one["magic_specimen"] for one in outs] == ["synthetic_specimen", "other"]
+
+
 # ----------------------------------------------------------------- profiles
 
 def test_profile_binning_follows_the_requested_window(micromag_file):

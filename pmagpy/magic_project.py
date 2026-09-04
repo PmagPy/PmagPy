@@ -416,10 +416,19 @@ def failing_cells(failing_items) -> list[dict]:
             issues = {column: row[column] for column in failing_items.columns
                       if column not in ("num", "issues") and not is_null(row[column])}
         for column, problem in issues.items():
-            cells.append({"row": str(name),
-                          "column": str(column).replace("value_pass_", "").replace("_isIn", ""),
-                          "problem": str(problem)})
+            cells.append({"row": str(name), "column": plain_column_name(str(column)), "problem": str(problem)})
     return cells
+
+
+def plain_column_name(check_column: str) -> str:
+    """The MagIC column behind a validator check column: ``value_pass_lat_checkMax`` -> ``lat``.
+
+    ``validate_upload3`` names each check ``<kind>_pass_<column>_<function>``,
+    with a digit appended when a column has the same check twice.
+    """
+    import re
+    name = re.sub(r"^(value|type|presence)_pass_", "", check_column)
+    return re.sub(r"_(isIn|checkMax|checkMin|cv|required\w*|test_type)\d*$", "", name)
 
 
 # ---------------------------------------------------------------------------
@@ -573,6 +582,14 @@ def magic_write(path: str, df: pd.DataFrame, table: str) -> str:
     mdf = cb.MagicDataFrame(dtype=table, df=df)
     return mdf.write_magic_file(custom_name=os.path.basename(path),
                                 dir_path=os.path.dirname(os.path.realpath(path)) or ".")
+
+
+def table_rows(path: str) -> int:
+    """The number of rows in a MagIC 3 table file (lines after the two header lines); 0 when the file is absent."""
+    if not os.path.isfile(path):
+        return 0
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        return max(0, sum(1 for line in fh if line.strip()) - 2)
 
 
 # ----- MagIC (EarthRef): finding and downloading a public contribution --------------

@@ -5584,7 +5584,10 @@ def validate_with_public_endpoint(contribution_file,verbose=False):
         response['status'] = False
         response['warnings'] = "Status code 500"
     else:
-        response['warnings']=validation_results.json()['errors'][0]['message']
+        try:
+            response['warnings'] = validation_response.json()['errors'][0]['message']
+        except (ValueError, KeyError, IndexError, TypeError):
+            response['warnings'] = "Status code {}".format(validation_response.status_code)
         print ('unable to validate contribution')
     return response
 
@@ -5790,8 +5793,9 @@ def upload_magic2(concat=0, dir_path='.', data_model=None):
 
 
 def upload_magic3(concat=1, dir_path='.', dmodel=None, vocab="", contribution=None):
+    """Deprecated name for :func:`upload_magic`; ``dmodel``, ``vocab`` and ``contribution`` are ignored."""
     print('-W- ipmag.upload_magic3 is deprecated, please switch to using ipmag.upload_magic')
-    return upload_magic(concat, dir_path, dmodel, vocab, contribution)
+    return upload_magic(concat=concat, dir_path=dir_path, input_dir_path=dir_path)
 
 
 def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,verbose=True):
@@ -5813,11 +5817,14 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
         if True print progress and validation results
     Returns
     ----------
-    tuple of either: True/False or (False, error_message, validation dictionary val_response['validation'])
-    if there was a problem creating/validating the upload file
-    or: (filename, '', None) if the file creation was fully successful.
+    (upload_file, validation, None, None) : tuple, always four items
+        upload_file : str path of the file written (named <locations>_<date>.txt),
+            or False when no file could be made
+        validation : dict from validate_with_public_endpoint when validate=True
+            ({'status', 'validation', 'warnings'}; status False with the reason
+            in 'warnings' when MagIC could not be reached), {} when
+            validate=False, or a str message when upload_file is False
     """
-    api = 'https://api.earthref.org/v1/MagIC/{}'
     input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     locations = []
     concat = int(concat)
@@ -5996,7 +6003,8 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
         except Exception as ex:
             print("-E- Couldn't connect to MagIC for validation")
             print(ex)
-            return False, "Could not create an upload file", None, None
+            val_response = {'status': False, 'validation': [],
+                            'warnings': "Could not reach MagIC to validate: {}".format(ex)}
     return new_up, val_response, None, None
 
 
@@ -6156,24 +6164,28 @@ def upload_to_private_contribution(contribution_id, upload_file,username="",pass
     response['errors']='Failed to contact database'
     response['method']='PUT'
     response['upload_file']=upload_file
+    upload_response = None
     try:
-        with open(upload_file, 'rb', encoding="utf-8") as f:
+        # binary mode takes no encoding: open(..., 'rb', encoding=...) raised before any request was made
+        with open(upload_file, 'rb') as f:
             upload_response = requests.put(api.format('private'),
                                           params={'id':contribution_id},
                                           auth=(username, password),
                                           headers={'Content-Type': 'text/plain'},
                                           data=f)
+        response['url']=upload_response.request.url
         if upload_response.status_code==202:
             response['status_code']=True
-            response['url']=upload_response.request.url
             response['errors']='None'
         else:
             response['status_code']=False
-            response['url']=upload_response.request.url
-            #response['errors']=upload_response.json()['errors'][0]['message']
+            try:
+                response['errors']=upload_response.json()['errors'][0]['message']
+            except Exception:
+                response['errors']='HTTP {}'.format(upload_response.status_code)
     except Exception as e:
         print ('trouble uploading:', e)
-        print (upload_response.json()['errors'])
+        response['errors']=str(e)
     return response
 
 
@@ -7127,6 +7139,7 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
     sclass, lithology, sample_type = "", "", ""
     newclass, newlith, newtype = '', '', ''
     BPs = []  # bedding pole declinations, bedding pole inclinations
+    dip_dir = ""  # last recorded bedding dip direction (declination-corrected)
     image_file = "er_images.txt"
     #
     # use 3.0. default filenames when in 3.0.
@@ -7300,6 +7313,11 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
         # the following keys, if blank, used to be defined here as "Not Specified" :
 
         for key in ["sample_class", "sample_lithology", "sample_type"]:
+            # older orient files carry these as site_class etc.
+            # (data_files/orientation_magic/orient_example.txt does)
+            site_key = key.replace("sample_", "site_")
+            if key not in OrRec and OrRec.get(site_key, "") != "":
+                OrRec[key] = OrRec[site_key]
             if key in list(OrRec.keys()) and OrRec[key] != "" and OrRec[key] != "Not Specified":
                 MagRec[key] = OrRec[key]
             elif key in list(Prev_MagRec.keys()) and Prev_MagRec[key] != "" and Prev_MagRec[key] != "Not Specified":
@@ -7415,14 +7433,17 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
         else:
             MagRec["sample_bed_dip"] = '0'
         if "bedding_dip_direction" in list(OrRec.keys()):
-            if OrRec["bedding_dip_direction"] != "" and bed_correction == 1:
-                dd = float(OrRec["bedding_dip_direction"]) + dec_correction
-                if dd > 360.:
-                    dd = dd - 360.
-                MagRec["sample_bed_dip_direction"] = '%7.1f' % (dd)
-                dip_dir = MagRec["sample_bed_dip_direction"]
-            else:
-                MagRec["sample_bed_dip_direction"] = OrRec['bedding_dip_direction']
+            if OrRec["bedding_dip_direction"] != "":
+                if bed_correction == 1:
+                    dd = float(OrRec["bedding_dip_direction"]) + dec_correction
+                    if dd > 360.:
+                        dd = dd - 360.
+                    dip_dir = '%7.1f' % (dd)
+                else:
+                    dip_dir = OrRec['bedding_dip_direction']
+            # a blank inherits the last recorded (corrected) direction,
+            # as bedding_dip does
+            MagRec["sample_bed_dip_direction"] = dip_dir
         else:
             MagRec["sample_bed_dip_direction"] = '0'
         if average_bedding:
@@ -7499,13 +7520,18 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
             SiteRec["er_site_name"] = site
             SiteRec["site_definition"] = "s"
 
-            if "er_location_name" in SiteRec and SiteRec.get("er_location_name"):
+            # location: the orient file's header line, else an appended
+            # site's prior value.  (This used to index with a stale loop
+            # variable, so sites came out with no location column.)
+            if SiteRec.get("er_location_name"):
                 pass
-            elif key in list(Prev_MagRec.keys()) and Prev_MagRec[key] != "":
-                SiteRec[key] = Prev_MagRec[key]
+            elif MagRec.get("er_location_name"):
+                SiteRec["er_location_name"] = MagRec["er_location_name"]
+            elif Prev_MagRec.get("er_location_name"):
+                SiteRec["er_location_name"] = Prev_MagRec["er_location_name"]
             else:
                 print('setting location name to ""')
-                SiteRec[key] = ""
+                SiteRec["er_location_name"] = ""
 
             for key in ["lat", "lon", "height"]:
                 if "site_" + key in list(Prev_MagRec.keys()) and Prev_MagRec["site_" + key] != "":
@@ -7654,12 +7680,15 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
                 GPSRec["sample_declination_correction"] = ''
                 GPSRec["magic_method_codes"] = methcodes + ':SO-GPS-DIFF'
                 SampOuts.append(GPSRec)
-        if average_bedding != "0" and fpars:
-            fpars = pmag.fisher_mean(BPs)
-            print('over-writing all bedding with average ')
+    # average the bedding poles once every sample has been read (this used
+    # to be tested inside the loop against a still-empty fpars, so the
+    # average was never taken)
+    if average_bedding and str(average_bedding) != "0" and BPs:
+        fpars = pmag.fisher_mean(BPs)
+        print('over-writing all bedding with average ')
     Samps = []
     for rec in SampOuts:
-        if average_bedding != "0" and fpars:
+        if fpars:
             rec['sample_bed_dip_direction'] = '%7.1f' % (fpars['dec'])
             rec['sample_bed_dip'] = '%7.1f' % (fpars['inc'] + 90.)
             Samps.append(rec)
@@ -9016,17 +9045,17 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
         f.write(r'\end{longtable}\n')
         sf.write(r'\end{longtable}\n')
         fI.write(r'\end{longtable}\n')
-        f.write(r'\end{document}\n')
-        sf.write(r'\end{document}\n')
-        fI.write(r'\end{document}\n')
+        f.write('\\end{document}\n')
+        sf.write('\\end{document}\n')
+        fI.write('\\end{document}\n')
         if spec_file:
             fsp.write(r'\hline\n')
             fsp.write(r'\end{longtable}\n')
-            fsp.write(r'\end{document}\n')
+            fsp.write('\\end{document}\n')
         if crit_file:
             cr.write(r'\hline\n')
             cr.write(r'\end{longtable}\n')
-            cr.write(r'\end{document}\n')
+            cr.write('\\end{document}\n')
     f.close()
     sf.close()
     fI.close()
@@ -14064,8 +14093,22 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
         return True, [spec_file]
 
 
-def sites_extract(site_file='sites.txt', directions_file='directions.xls',
-                  intensity_file='intensity.xls', info_file='site_info.xls',
+def _to_excel(df, path):
+    """Write a publication table as .xlsx (the .xls writer left pandas in 1.2); returns the path written."""
+    if path.endswith('.xls'):
+        path = path + 'x'
+    try:
+        df.to_excel(path, index=False)
+    except ImportError as ex:                       # no openpyxl: say so and leave a tab-delimited table instead
+        # .tsv, not .txt: specimens.txt or criteria.txt here would overwrite the MagIC table of that name
+        path = os.path.splitext(path)[0] + '.tsv'
+        print("-W- {}; writing {} as tab-delimited text instead".format(ex, path))
+        df.to_csv(path, sep='\t', index=False)
+    return path
+
+
+def sites_extract(site_file='sites.txt', directions_file='directions.xlsx',
+                  intensity_file='intensity.xlsx', info_file='site_info.xlsx',
                   output_dir_path='.', input_dir_path='', latex=False):
     """
     Extracts directional and/or intensity data from a MagIC 3.0 format sites.txt file.
@@ -14108,19 +14151,19 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
     dir_file = pmag.resolve_file_name(directions_file, output_dir_path)
     if len(dir_df):
         if latex:
-            if dir_file.endswith('.xls'):
-                dir_file = dir_file[:-4] + ".tex"
+            if dir_file.endswith(('.xls', '.xlsx')):
+                dir_file = os.path.splitext(dir_file)[0] + ".tex"
             directions_out = open(dir_file, 'w+', errors="backslashreplace")
-            directions_out.write(r'\documentclass{article}\n')
+            directions_out.write('\\documentclass{article}\n')
             directions_out.write('\\usepackage{booktabs}\n')
             directions_out.write('\\usepackage{longtable}\n')
-            directions_out.write('\\begin{document}')
+            directions_out.write('\\begin{document}\n')
             directions_out.write(dir_df.to_latex(
-                index=False, longtable=True, multicolumn=False))
-            directions_out.write(r'\end{document}\n')
+                index=False, longtable=True, multicolumn=False, float_format='%g'))
+            directions_out.write('\\end{document}\n')
             directions_out.close()
         else:
-            dir_df.to_excel(dir_file, index=False)
+            dir_file = _to_excel(dir_df, dir_file)
     else:
         print("No directional data for output.")
         dir_file = None
@@ -14128,20 +14171,20 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
     int_df = map_magic.convert_site_dm3_table_intensity(sites_df)
     if len(int_df):
         if latex:
-            if intensity_file.endswith('.xls'):
-                intensity_file = intensity_file[:-4] + ".tex"
+            if intensity_file.endswith(('.xls', '.xlsx')):
+                intensity_file = os.path.splitext(intensity_file)[0] + ".tex"
             intensities_out = open(intensity_file, 'w+',
                                    errors="backslashreplace")
-            intensities_out.write(r'\documentclass{article}\n')
+            intensities_out.write('\\documentclass{article}\n')
             intensities_out.write('\\usepackage{booktabs}\n')
             intensities_out.write('\\usepackage{longtable}\n')
-            intensities_out.write('\\begin{document}')
+            intensities_out.write('\\begin{document}\n')
             intensities_out.write(int_df.to_latex(
-                index=False, longtable=True, multicolumn=False))
-            intensities_out.write(r'\end{document}\n')
+                index=False, longtable=True, multicolumn=False, float_format='%g'))
+            intensities_out.write('\\end{document}\n')
             intensities_out.close()
         else:
-            int_df.to_excel(intensity_file, index=False)
+            intensity_file = _to_excel(int_df, intensity_file)
     else:
         print("No intensity data for output.")
         intensity_file = None
@@ -14167,26 +14210,26 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
         nfo_df.columns = SiteCols
         nfo_df = nfo_df.astype(object).fillna("")
         if latex:
-            if info_file.endswith('.xls'):
-                info_file = info_file[:-4] + ".tex"
+            if info_file.endswith(('.xls', '.xlsx')):
+                info_file = os.path.splitext(info_file)[0] + ".tex"
             info_out = open(info_file, 'w+', errors="backslashreplace")
-            info_out.write(r'\documentclass{article}\n')
+            info_out.write('\\documentclass{article}\n')
             info_out.write('\\usepackage{booktabs}\n')
             info_out.write('\\usepackage{longtable}\n')
-            info_out.write('\\begin{document}')
+            info_out.write('\\begin{document}\n')
             info_out.write(nfo_df.to_latex(
-                index=False, longtable=True, multicolumn=False))
-            info_out.write(r'\end{document}\n')
+                index=False, longtable=True, multicolumn=False, float_format='%g'))
+            info_out.write('\\end{document}\n')
             info_out.close()
         else:
-            nfo_df.to_excel(info_file, index=False)
+            info_file = _to_excel(nfo_df, info_file)
     else:
         print("No location information for output.")
         info_file = None
     return True, [fname for fname in [info_file, intensity_file, dir_file] if fname]
 
 
-def specimens_extract(spec_file='specimens.txt', output_file='specimens.xls', landscape=False,
+def specimens_extract(spec_file='specimens.txt', output_file='specimens.xlsx', landscape=False,
                       longtable=False, output_dir_path='.', input_dir_path='', latex=False):
     """
     Extracts specimen results  from a MagIC 3.0 format specimens.txt file.
@@ -14223,17 +14266,19 @@ def specimens_extract(spec_file='specimens.txt', output_file='specimens.xls', la
         print("bad specimen file name")
         return False, "bad specimen file name"
     spec_df = pd.read_csv(fname, sep='\t', header=1)
-    spec_df.dropna('columns', how='all', inplace=True)
-    if 'int_abs' in spec_df.columns:
-        spec_df.dropna(subset=['int_abs'], inplace=True)
+    spec_df.dropna(axis='columns', how='all', inplace=True)
+    if 'int_abs' not in spec_df.columns:            # this is a paleointensity table; nothing to make without int_abs
+        print("No specimen intensity data for output.")
+        return True, []
+    spec_df.dropna(subset=['int_abs'], inplace=True)
     if len(spec_df) > 0:
         table_df = map_magic.convert_specimen_dm3_table(spec_df)
         out_file = pmag.resolve_file_name(output_file, output_dir_path)
         if latex:
-            if out_file.endswith('.xls'):
-                out_file = out_file.rsplit('.')[0] + ".tex"
+            if out_file.endswith(('.xls', '.xlsx')):
+                out_file = os.path.splitext(out_file)[0] + ".tex"
             info_out = open(out_file, 'w+', errors="backslashreplace")
-            info_out.write(r'\documentclass{article}\n')
+            info_out.write('\\documentclass{article}\n')
             info_out.write('\\usepackage{booktabs}\n')
             if landscape:
                 info_out.write('\\usepackage{lscape}')
@@ -14243,20 +14288,21 @@ def specimens_extract(spec_file='specimens.txt', output_file='specimens.xls', la
             if landscape:
                 info_out.write('\\begin{landscape}\n')
             info_out.write(table_df.to_latex(index=False, longtable=longtable,
-                                             escape=True, multicolumn=False))
+                                             escape=True, multicolumn=False, float_format='%g'))
             if landscape:
-                info_out.write(r'\end{landscape}\n')
-            info_out.write(r'\end{document}\n')
+                info_out.write('\\end{landscape}\n')
+            info_out.write('\\end{document}\n')
             info_out.close()
         else:
-            table_df.to_excel(out_file, index=False)
+            out_file = _to_excel(table_df, out_file)
 
     else:
         print("No specimen data for output.")
+        return True, []
     return True, [out_file]
 
 
-def criteria_extract(crit_file='criteria.txt', output_file='criteria.xls',
+def criteria_extract(crit_file='criteria.txt', output_file='criteria.xlsx',
                      output_dir_path='.', input_dir_path='', latex=False):
     """
     Extracts criteria  from a MagIC 3.0 format criteria.txt file.
@@ -14300,26 +14346,26 @@ def criteria_extract(crit_file='criteria.txt', output_file='criteria.xls',
         crit_df.columns = ['Table', 'Statistic', 'Threshold', 'Operation']
 
         if latex:
-            if out_file.endswith('.xls'):
-                out_file = out_file.rsplit('.')[0] + ".tex"
+            if out_file.endswith(('.xls', '.xlsx')):
+                out_file = os.path.splitext(out_file)[0] + ".tex"
             crit_df.loc[crit_df['Operation'].str.contains(
                 '<'), 'operation'] = 'maximum'
             crit_df.loc[crit_df['Operation'].str.contains(
                 '>'), 'operation'] = 'minimum'
             crit_df.loc[crit_df['Operation'] == '=', 'operation'] = 'equal to'
             info_out = open(out_file, 'w+', errors="backslashreplace")
-            info_out.write(r'\documentclass{article}\n')
+            info_out.write('\\documentclass{article}\n')
             info_out.write('\\usepackage{booktabs}\n')
             # info_out.write('\\usepackage{longtable}\n')
             # T1 will ensure that symbols like '<' are formatted correctly
             info_out.write("\\usepackage[T1]{fontenc}\n")
-            info_out.write('\\begin{document}')
+            info_out.write('\\begin{document}\n')
             info_out.write(crit_df.to_latex(index=False, longtable=False,
-                                            escape=True, multicolumn=False))
-            info_out.write(r'\end{document}\n')
+                                            escape=True, multicolumn=False, float_format='%g'))
+            info_out.write('\\end{document}\n')
             info_out.close()
         else:
-            crit_df.to_excel(out_file, index=False)
+            out_file = _to_excel(crit_df, out_file)
 
     else:
         print("No criteria for output.")
@@ -16196,46 +16242,34 @@ def validate_magic(top_dir,doi=False,private_key=False,contribution_id=False):
     contribution_id: str
          id of contribution
     private_key : str
-         private key of contribution in private workspace
+         private key of contribution in private workspace (with contribution_id)
+
+    Returns
+    -----------
+    magic_dir, upload_file : str, str
+        the MagIC directory under top_dir and the name of the re-assembled
+        upload file written into it (its validation is printed by upload_magic);
+        (False, False) when nothing could be downloaded
     """
     # set up directories
-    magic_dir=top_dir+'/MagIC'
-    dirs=os.listdir()
-    if top_dir not in dirs:
-        os.makedirs(top_dir)
-    dirs=os.listdir(top_dir)
-    if 'MagIC' not in dirs:
-        os.makedirs(magic_dir)
+    magic_dir=os.path.join(top_dir, 'MagIC')
+    os.makedirs(magic_dir, exist_ok=True)
     if doi:
-        magic_contribution='magic_contribution.txt' # set the file name string
-        download_magic_from_doi(doi) # download the contribution from MagIC
-        os.rename(magic_contribution, magic_dir+'/'+magic_contribution) # move the contribution to the directory
-        download_magic(magic_contribution,dir_path=magic_dir,print_progress=False) # unpack the file
+        ok, message = download_magic_from_doi(doi, dir_path=magic_dir)
+        magic_contribution='magic_contribution.txt'
     elif contribution_id:
-        magic_contribution='magic_contribution_'+str(contribution_id)+'.txt' # set the file name string
-        download_magic_from_id(contribution_id) # download the contribution from MagIC
-        os.rename(magic_contribution, magic_dir+'/'+magic_contribution) # move the contribution to the directory
-        download_magic(magic_contribution,dir_path=magic_dir,print_progress=False) # unpack the file
-        
-    elif private_key:
-        shared_contribution_response = requests.get(api.format('data'), params={'id': contribution_id, 'key': private_key})
-        if (shared_contribution_response.status_code == 200):
-            shared_contribution_text = shared_contribution_response.text
-            print(shared_contribution_text[0:200], '\n')
-        elif (shared_contribution_response.status_code == 204): # bad file
-            print('Contribution ID and/or private key do not match any contributions in MagIC.', '\n')
-        else:
-            print('Error:', shared_contribution_response.json()['err'][0]['message'], '\n')
-            return False,False
-         # save and unpack downloaded data  
-        magic_contribution='magic_contribution_'+str(contribution_id)+'.txt'
-        magic_out=open(magic_dir+'/'+magic_contribution, 'w', errors="backslashreplace")
-        magic_out.write(shared_contribution_text)
-        download_magic(magic_contribution,dir_path=magic_dir,print_progress=False) # unpack the file
+        # a share key downloads a private contribution; every EarthRef call stays in download_magic_from_id
+        ok, message = download_magic_from_id(contribution_id, directory=magic_dir, share_key=private_key or "")
+        magic_contribution=message if ok else ''
+    else:
+        print('validate_magic needs a doi or a contribution_id (with private_key for a private contribution)')
+        return False,False
+    if not ok:
+        print(message)
+        return False,False
+    download_magic(magic_contribution,dir_path=magic_dir,print_progress=False) # unpack the file
     validation=upload_magic(dir_path=magic_dir,input_dir_path=magic_dir,concat=True)
-    upload_file=validation[0].split('/')[-1]
-
-
+    upload_file=validation[0].split('/')[-1] if validation[0] else False
     return magic_dir,upload_file
 
 

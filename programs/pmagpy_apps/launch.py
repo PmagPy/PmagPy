@@ -11,43 +11,31 @@ is done by ``pmagpy_panel.launch``; this only says which files to serve.
 """
 from __future__ import annotations
 
+import importlib
 import os
 import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(_HERE))                    # programs/, for a checkout run as a script
-sys.path.insert(0, os.path.dirname(os.path.dirname(_HERE)))   # repo root, for pmagpy
 
 from pmagpy_panel import launch  # noqa: E402
 
 HUB = os.path.join(_HERE, "pmagpy_apps.py")
 DEFAULT_PORT = 5010
+# the analysis applications, served beside the hub when they are installed
+APPLICATIONS = ("pmagpy_directions", "pmagpy_intensity", "pmagpy_rockmag",
+                "pmagpy_anisotropy")     # Home's order
 
 
 def application_files() -> list:
-    """The served files of the analysis applications installed beside this one.
-
-    One entry per application on Home's Analyze list that can actually be
-    imported, so adding an application to that list is the only place it has to
-    be named -- a door that leads somewhere and a page served under the hub
-    cannot then disagree.
-    """
-    import importlib.util
-
-    # absolute: this file is also run as a script (``python .../launch.py``), and
-    # then it has no package for a relative import to resolve against
-    from pmagpy_apps.home import APPLICATIONS
+    """The served files of the analysis applications installed beside this one."""
     files = []
-    for app in APPLICATIONS:
-        # find_spec, not import_module: the same test as Application.built, and it
-        # locates the package without running the application
-        spec = importlib.util.find_spec(app.app_id)
-        origin = getattr(spec, "origin", None) if spec is not None else None
-        if not origin:
+    for name in APPLICATIONS:
+        try:
+            package = importlib.import_module(name)
+        except ImportError:
             continue
-        served = os.path.join(os.path.dirname(origin), f"{app.app_id}.py")
-        if os.path.exists(served):
-            files.append(served)
+        files.append(os.path.join(os.path.dirname(os.path.abspath(package.__file__)), name + ".py"))
     return files
 
 

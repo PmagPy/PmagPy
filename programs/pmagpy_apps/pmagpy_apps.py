@@ -5,8 +5,8 @@ PmagPy Apps — the served file.
     python programs/pmagpy_apps/launch.py                  # from a checkout
     panel serve programs/pmagpy_apps/pmagpy_apps.py --show # this page alone
 
-``PMAGPY_APPS_DIR`` selects the MagIC directory (default: the McMurdo example);
-``?dir=`` on the URL overrides it for one browser tab.
+``PMAGPY_APPS_DIR`` selects the MagIC directory to open; ``?dir=`` on the URL
+overrides it for one browser tab. With neither, the start page shows.
 """
 import os
 import sys

@@ -18,8 +18,11 @@ elif command.endswith("_a"):
 else:
     mpl_env = prog_env.get(command)
 
-# if backend was already set, skip this step
-if matplotlib.get_backend() in ('WXAgg', 'TKAgg'):
+# if backend was already set (matplotlib.use, MPLBACKEND, matplotlibrc), skip
+# this step.  The raw rcParams entry is read rather than calling
+# matplotlib.get_backend(), which would resolve the automatic backend by
+# importing pyplot and probing the GUI toolkits.
+if isinstance(dict.__getitem__(matplotlib.rcParams, 'backend'), str):
     pass
 # if backend wasn't set yet, set it appropriately
 else:

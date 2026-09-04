@@ -13,6 +13,25 @@ from pmagpy_panel.nets import declutter_labels, keep_circular, net_figure
 from pmagpy_panel.theme import (HORIZONTAL_COLOR, LAND_COLOR, LAND_EDGE, MEAN_COLOR, NET_COLOR, OCEAN_COLOR,
                                 SITE_COLOR, VERTICAL_COLOR, style_figure)
 
+BAD_ALPHA = 0.25        # a step flagged bad stays visible on the net and the M/M₀ strip, but faded
+MARK_COLOR = "#1f2937"  # the ring around the selected step / fit: the same dark as the logger's side bar
+
+
+def add_mark(fig, size=17):
+    """A ring that singles out the selected item on `fig`: a white halo under a dark ring.
+
+    Returns the ring's ColumnDataSource (x, y); an empty source hides the ring.
+    The halo keeps the ring legible over a coloured symbol or a dense cluster,
+    and the ring is open so the symbol underneath stays visible. The renderers
+    are named ``step_mark`` (the UI tests look them up).
+    """
+    src = ColumnDataSource(dict(x=[], y=[]))
+    fig.scatter("x", "y", source=src, size=size, fill_alpha=0.0, line_color="white", line_width=5,
+                name="step_mark_halo")
+    fig.scatter("x", "y", source=src, size=size, fill_alpha=0.0, line_color=MARK_COLOR, line_width=2,
+                name="step_mark")
+    return src
+
 
 class ZijderveldPlot:
     """Orthogonal projection with box/tap selection of steps."""
@@ -78,6 +97,10 @@ class ZijderveldPlot:
         self.heads = ColumnDataSource(dict(x=[], y=[], angle=[], color=[]))
         self.fig.scatter("x", "y", source=self.heads, marker="triangle", size=12, angle="angle",
                          fill_color="color", line_color="color")
+        # the selected step is ringed in both projections
+        self.mark_src = add_mark(self.fig)
+        self._xy = None                      # (x, y_h, y_v) of every step, for mark()
+        self._marked = None
         # axis-end labels at the frame edges: the along-axis coordinate is in screen
         # pixels (the frame is a fixed square), the other one is the axis itself
         # (data 0), so the labels stay at the edges through zoom and pan and never
@@ -108,6 +131,15 @@ class ZijderveldPlot:
         """Undo any zoom/pan on the client (what the toolbar's reset button does)."""
         self._resets += 1
         self.fig.tags = ["reset", self._resets]
+
+    def mark(self, i):
+        """Ring step `i` (both projections); None clears the ring. Survives update()."""
+        self._marked = i
+        if i is None or self._xy is None or not 0 <= i < len(self._xy[0]):
+            self.mark_src.data = dict(x=[], y=[])
+            return
+        x, y_h, y_v = self._xy
+        self.mark_src.data = dict(x=[x[i], x[i]], y=[y_h[i], y_v[i]])
 
     def set_frame(self, frame: int):
         """Resize the square diagram frame, keeping the axis-end labels on its edges.
@@ -143,6 +175,8 @@ class ZijderveldPlot:
         self.src.data = dict(x=z["x"][good], y_h=z["y_h"][good], y_v=z["y_v"][good], label=z["label"][good],
                              text=text[good], seq=z["sequence"][good])
         self.bad.data = dict(x=z["x"][~good], y_h=z["y_h"][~good], y_v=z["y_v"][~good], label=z["label"][~good])
+        self._xy = (z["x"].values, z["y_h"].values, z["y_v"].values)
+        self.mark(self._marked)
         xs, ys, cols, names = [], [], [], []
         hx, hy, hang, hcol = [], [], [], []
         for comp, res, color in fits:
@@ -183,10 +217,13 @@ class StepEqualAreaPlot:
 
     def __init__(self, size=340):
         self.fig = net_figure(None, size)          # no title: the net speaks for itself
-        self.src = ColumnDataSource(dict(x=[], y=[], fill=[], label=[], seq=[]))
-        self.fig.line("x", "y", source=self.src, color="#9aa1ab", line_width=0.8)
+        # every step is a symbol (a bad one faded); the path joins the good ones only
+        self.src = ColumnDataSource(dict(x=[], y=[], fill=[], label=[], seq=[], alpha=[]))
+        self.path = ColumnDataSource(dict(x=[], y=[]))
+        self.fig.line("x", "y", source=self.path, color="#9aa1ab", line_width=0.8)
         pts = self.fig.scatter("x", "y", source=self.src, size=8, fill_color="fill", line_color="#2b2b2b",
-                               nonselection_fill_alpha=1.0, nonselection_line_alpha=1.0)
+                               fill_alpha="alpha", line_alpha="alpha",
+                               nonselection_fill_alpha="alpha", nonselection_line_alpha="alpha")
         self.fig.add_tools(HoverTool(renderers=[pts], tooltips=[("step", "@label")]))
         self.dirs = ColumnDataSource(dict(x=[], y=[], color=[], name=[]))
         stars = self.fig.scatter("x", "y", source=self.dirs, marker="star", size=17, fill_color="color",
@@ -194,10 +231,21 @@ class StepEqualAreaPlot:
         self.fig.add_tools(HoverTool(renderers=[stars], tooltips=[("component", "@name")]))
         self.circles = ColumnDataSource(dict(xs=[], ys=[], color=[]))
         self.fig.multi_line("xs", "ys", source=self.circles, color="color", line_width=2)
+        self.mark_src = add_mark(self.fig, size=16)
+        self._xy = None
+        self._marked = None
 
     def set_size(self, size: int):
         """Resize the square net (the ranges are fixed, so it stays circular)."""
         self.fig.width = self.fig.height = int(size)
+
+    def mark(self, i):
+        """Ring step `i`; None clears the ring. Survives update()."""
+        self._marked = i
+        if i is None or self._xy is None or not 0 <= i < len(self._xy[0]):
+            self.mark_src.data = dict(x=[], y=[])
+            return
+        self.mark_src.data = dict(x=[self._xy[0][i]], y=[self._xy[1][i]])
 
     def on_select(self, callback):
         def handler(attr, old, new):
@@ -215,7 +263,12 @@ class StepEqualAreaPlot:
             if res is not None:
                 fill[res.imin:res.imax + 1] = color
         fill[(steps[inc_col] < 0).values] = "white"
-        self.src.data = dict(x=x, y=y, fill=fill, label=steps["label"], seq=steps["sequence"])
+        good = (steps["quality"] == "g").values
+        self.src.data = dict(x=x, y=y, fill=fill, label=steps["label"], seq=steps["sequence"],
+                             alpha=np.where(good, 1.0, BAD_ALPHA))
+        self.path.data = dict(x=x[good], y=y[good])
+        self._xy = (np.asarray(x), np.asarray(y))
+        self.mark(self._marked)
         dx, dy, dcol, names, gxs, gys, gcol = [], [], [], [], [], [], []
         for comp, res, color in fits:
             if res is None:
@@ -255,13 +308,26 @@ class DecayPlot:
         self.fig.axis.axis_label_text_font_size = "9pt"
         self.fig.axis.major_label_text_font_size = "8pt"
         self.fig.min_border_right = 4          # same right border as the net box above: frames end flush
-        self.src = ColumnDataSource(dict(x=[], y=[], label=[], color=[]))
-        self.fig.line("x", "y", source=self.src, color="#6b7280", line_width=1)
+        self.src = ColumnDataSource(dict(x=[], y=[], label=[], color=[], alpha=[]))
+        self.path = ColumnDataSource(dict(x=[], y=[]))               # good steps only, as on the net
+        self.fig.line("x", "y", source=self.path, color="#6b7280", line_width=1)
         pts = self.fig.scatter("x", "y", source=self.src, size=7, fill_color="color", line_color="#2b2b2b",
-                               line_width=0.5)
+                               line_width=0.5, fill_alpha="alpha", line_alpha="alpha")
         self.fig.add_tools(HoverTool(renderers=[pts], tooltips=[("step", "@label"), ("M/M₀", "@y{0.000}")]))
         self.bounds = ColumnDataSource(dict(x=[], y=[], color=[]))
         self.fig.scatter("x", "y", source=self.bounds, size=17, fill_alpha=0.0, line_color="color", line_width=2)
+        # the selected step's ring is smaller than a bound ring, so both can show on one step
+        self.mark_src = add_mark(self.fig, size=13)
+        self._xy = None
+        self._marked = None
+
+    def mark(self, i):
+        """Ring step `i`; None clears the ring. Survives update()."""
+        self._marked = i
+        if i is None or self._xy is None or not 0 <= i < len(self._xy[0]):
+            self.mark_src.data = dict(x=[], y=[])
+            return
+        self.mark_src.data = dict(x=[self._xy[0][i]], y=[self._xy[1][i]])
 
     def set_size(self, size: int, frame_height: int):
         """Resize the strip: `size` is its width, `frame_height` the plot frame."""
@@ -279,7 +345,12 @@ class DecayPlot:
             color[res.imin:res.imax + 1] = col
             for i in (res.imin, res.imax):
                 bx.append(steps["treat_display"][i]); by.append(steps["moment_norm"][i]); bcol.append(col)
-        self.src.data = dict(x=steps["treat_display"], y=steps["moment_norm"], label=steps["label"], color=color)
+        good = (steps["quality"] == "g").values
+        self.src.data = dict(x=steps["treat_display"], y=steps["moment_norm"], label=steps["label"], color=color,
+                             alpha=np.where(good, 1.0, BAD_ALPHA))
+        self.path.data = dict(x=steps["treat_display"][good], y=steps["moment_norm"][good])
+        self._xy = (steps["treat_display"].values, steps["moment_norm"].values)
+        self.mark(self._marked)
         self.bounds.data = dict(x=bx, y=by, color=bcol)
         self.fig.xaxis.axis_label = {"T": "AF field (mT)", "K": "temperature (°C)"}.get(spec.unit,
                                                                                          f"treatment ({spec.unit})")
@@ -318,6 +389,31 @@ class DirectionsPlot:
         means_r = self.fig.scatter("x", "y", source=self.mean, marker="square", size=14, fill_color="color",
                                    line_color="#2b2b2b", line_width=0.8)
         self.fig.add_tools(HoverTool(renderers=[means_r], tooltips=[("mean", "@name")]))
+        # the fit selected in the table: a ring around its direction, or its great
+        # circle drawn heavy (a halo under it) when the fit is a plane
+        self.mark_circle_src = ColumnDataSource(dict(xs=[], ys=[]))
+        self.fig.multi_line("xs", "ys", source=self.mark_circle_src, color="white", line_width=5)
+        self.fig.multi_line("xs", "ys", source=self.mark_circle_src, color=MARK_COLOR, line_width=2,
+                            name="step_mark_circle")
+        self.mark_src = add_mark(self.fig, size=16)
+
+    def mark(self, dec=None, inc=None, plane=False):
+        """Single out one direction: ring it, or draw its great circle heavy if `plane`.
+
+        Called with no arguments, clears the mark.
+        """
+        if dec is None or inc is None or np.isnan(dec) or np.isnan(inc):
+            self.mark_src.data = dict(x=[], y=[])
+            self.mark_circle_src.data = dict(xs=[], ys=[])
+            return
+        if plane:
+            gx, gy = dc.great_circle_xy(dec, inc)
+            self.mark_circle_src.data = dict(xs=[list(gx)], ys=[list(gy)])
+            self.mark_src.data = dict(x=[], y=[])
+        else:
+            x, y = dc.equal_area_xy([dec], [inc])
+            self.mark_src.data = dict(x=[float(x[0])], y=[float(y[0])])
+            self.mark_circle_src.data = dict(xs=[], ys=[])
 
     def update(self, directions, planes=(), means=(), title=None, plane_vectors=()):
         """directions: iterable of (dec, inc, label, comp_name, colour); means: iterable of (mean dict, colour).

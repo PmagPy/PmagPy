@@ -1,9 +1,9 @@
-﻿{
+{
 	"direction_estimation": {
 		"codes": [
 			{
 				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#DE-BFL"
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-1130009.7"
 				],
 				"code": "DE-BFL",
 				"definition": "Best fit line"
@@ -18,7 +18,7 @@
 			},
 			{
 				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#DE-BFL"
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-1130009.7"
 				],
 				"code": "DE-BFP",
 				"definition": "Best fit plane"
@@ -57,6 +57,10 @@
 				"definition": "Fisher mean: Unit vectors"
 			},
 			{
+				"code": "DE-GRP",
+				"definition": "Grouped flows: Direction is determined from multiple lava flows"
+			},
+			{
 				"code": "DE-K",
 				"definition": "Kappa estimation"
 			},
@@ -78,21 +82,21 @@
 			},
 			{
 				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#PE-MAD"
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-1130009.7"
 				],
 				"code": "DE-MAD",
 				"definition": "Maximum angle of deviation"
 			},
 			{
 				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#PE-MAD"
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-1130009.7"
 				],
 				"code": "DE-MAD-L",
 				"definition": "Maximum angle of deviation: Estimated about best-fit line"
 			},
 			{
 				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#PE-MAD"
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-1130009.7"
 				],
 				"code": "DE-MAD-P",
 				"definition": "Maximum angle of deviation: Estimated about best-fit plane"
@@ -108,6 +112,11 @@
 			{
 				"code": "DE-RAN",
 				"definition": "Uses R to test for randomness of set of directions"
+			},
+			{
+				"code": "DE-TROUT",
+				"definition": "Thermal Resolution of Unblocking Temperatures (TROUT) method",
+				"description": "Direction estimation and automatic component picking using the TROUT method. With this method, the meas_step_min and meas_step_max columns represent the range of temperatures where 95% of the unblocking magnetization is in the considered component"
 			},
 			{
 				"code": "DE-V",
@@ -128,48 +137,29 @@
 	"sample_orientation": {
 		"codes": [
 			{
-				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#SO-CMD"
-				],
 				"code": "SO-ASO",
 				"definition": "Determining orientation by acoustic scanning in drill holes"
 			},
 			{
-				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#SO-CMD"
-				],
 				"code": "SO-CMD-NORTH",
 				"definition": "Correction applied for magnetic declination: True north"
 			},
 			{
-				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#SO-CMD"
-				],
 				"code": "SO-CMD-ZERO",
 				"definition": "Correction applied for magnetic declination: Zero"
 			},
 			{
-				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#SO-CO"
-				],
 				"code": "SO-CO",
 				"definition": "Plaster (or similar substance) cap-oriented samples"
 			},
 			{
-				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#SO-CMD"
-				],
 				"code": "SO-DML",
 				"definition": "Determining orientation by deep matter logging in drill holes"
 			},
 			{
-				"code": "SO-GAD",
-				"definition": "All samples oriented in an arbitrary direction and then corrected assuming GAD direction of 0 or 180 degrees."
+				"code": "SO-GAD"
 			},
 			{
-				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#SO-GPD"
-				],
 				"code": "SO-GPS-DIFF",
 				"definition": "Differential GPS"
 			},
@@ -178,16 +168,10 @@
 				"definition": "Sample orientation uncertainty greater than five degrees"
 			},
 			{
-				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#SO-INCL"
-				],
 				"code": "SO-INCL",
 				"definition": "Inclinometer"
 			},
 			{
-				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#SO-MAG"
-				],
 				"code": "SO-MAG",
 				"definition": "Magnetic compass"
 			},
@@ -197,7 +181,7 @@
 			},
 			{
 				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#SO-POM"
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-1060009.1.2"
 				],
 				"code": "SO-POM",
 				"definition": "Pomeroy orientation device"
@@ -232,22 +216,19 @@
 			},
 			{
 				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#SO-SUN"
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-1060009.1.2"
 				],
 				"code": "SO-SUN",
 				"definition": "Sun compass"
 			},
 			{
 				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#SO-SUN"
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-1060009.1.2"
 				],
 				"code": "SO-SUN-SIGHT",
 				"definition": "Majority sun compass with some sighting"
 			},
 			{
-				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#SO-CMD"
-				],
 				"code": "SO-TENSOR",
 				"definition": "Determining orientation by tensor tool"
 			},
@@ -309,18 +290,17 @@
 				"definition": "Powdering of sample by shatterbox"
 			},
 			{
-				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#SP-SSA"
-				],
 				"code": "SP-SS-A",
 				"definition": "Sub sampling: Archeological artifact"
 			},
 			{
-				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#SP-SSC"
-				],
 				"code": "SP-SS-C",
 				"definition": "Sub sampling: Core"
+			},
+			{
+				"code": "SP-SS-C-PMAG",
+				"definition": "Sub sampling: Core samples cut from a 1 inch diameter core",
+				"description": "The standard paleomagnetc specimen cut from the longer core sampled in the field"
 			},
 			{
 				"code": "SP-SS-U",
@@ -369,7 +349,7 @@
 		"codes": [
 			{
 				"code": "IE-AFAF",
-				"definition": "Best-fit slope through NRM AF demagnetization versus TRM AF demagnetization.",
+				"definition": "Best-fit slope through NRM AF demagnetization versus TRM AF demagnetization",
 				"description": "Like the Shaw (1974) method but without the ARM AF demag steps that are used to check for alteration."
 			},
 			{
@@ -377,49 +357,51 @@
 				"definition": "Intensity normalized by GAD field at sampling location using 8x10^22 Am2 axial dipole moment"
 			},
 			{
-				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch10.html#PE-BETA"
-				],
 				"code": "IE-BETA",
 				"definition": "Standard error of the paleointensity estimated by total least squares (York, 1969) as the slope of the Arai Plot"
 			},
 			{
-				"description": "Specimen level paleointensity and uncertainty determined by averaging all combinations of 4 or more adjacent points within unblocking temperature interval; Sample level paleointensity and standard error estimated by bootstrap resampling of specimen data.",
-				"code": "IE-BOOT",
-				"definition": "Thellier-type intensity and uncertainty estimated by bootstrap resampling of data"
+				"code": "IE-BICEP",
+				"definition": "Bias Corrected Estimation of Paleointensity (BiCEP)",
+				"description": "Bayesian paleointensity estimator of Cych et al. (in prep)."
 			},
 			{
-				"definition": "Multidomain correction based on the back-zero-forth (BZF) and mutiple synthetic Arai signatures",
-				"description": "A paleointensity technique used to account for concave-up Arai diagrams due to multidomain (MD) contributions to determine unbiased paleointensities. A comprehensive back-zero-forth (BZF) heating technique is used in addition to zero-field heating between the Thellier two opposite in-field heating steps in order to estimate paleointensities in various standard protocols and provide internal self-consistency checks. After the first BZF experiment, each sample gets total thermal remanent magnetization (tTRM) by cooling from the Curie point in the presence of a low (15 mT) laboratory- applied field. Then the BZF protocol, with the laboratory-applied tTRM as a synthetic natural remanent magnetization (NRM), using the same laboratory-applied field and temperature steps to obtain the synthetic Arai signatures, which should only represent the domain-state dependent properties of the samples. Then the original Arai diagrams are corrected from the first BZF experiment by using the Arai signatures from the repeated BZF experiment, which neutralizes the typical MD concave-up effect. Wang & Kent (2013)",
+				"code": "IE-BOOT",
+				"definition": "Thellier-type intensity and uncertainty estimated by bootstrap resampling of data",
+				"description": "Specimen level paleointensity and uncertainty determined by averaging all combinations of 4 or more adjacent points within unblocking temperature interval; Sample level paleointensity and standard error estimated by bootstrap resampling of specimen data."
+			},
+			{
 				"code": "IE-BZF-WK",
+				"definition": "Multidomain correction based on the back-zero-forth (BZF) and mutiple synthetic Arai signatures",
+				"description": "A paleointensity technique used to account for concave-up Arai diagrams due to multidomain (MD) contributions to determine unbiased paleointensities. A comprehensive back-zero-forth (BZF) heating technique is used in addition to zero-field heating between the Thellier two opposite in-field heating steps in order to estimate paleointensities in various standard protocols and provide internal self-consistency checks. After the first BZF experiment, each sample gets total thermal remanent magnetization (tTRM) by cooling from the Curie point in the presence of a low (15 mT) laboratory- applied field. Then the BZF protocol, with the laboratory-applied tTRM as a synthetic natural remanent magnetization (NRM), using the same laboratory-applied field and temperature steps to obtain the synthetic Arai signatures, which should only represent the domain-state dependent properties of the samples. Then the original Arai diagrams are corrected from the first BZF experiment by using the Arai signatures from the repeated BZF experiment, which neutralizes the typical MD concave-up effect. Wang & Kent (2013).",
 				"urls": [
 					"https://doi.org/10.1002/ggge.20248"
 				]
 			},
 			{
-				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch10.html#PE-DRATS"
-				],
 				"code": "IE-DRAT",
-				"definition": "pTRM difference ratio (DRAT)"
+				"definition": "pTRM difference ratio (DRAT)",
+				"urls": [
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-244017x7"
+				]
 			},
 			{
-				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch10.html#PE-DRATS"
-				],
 				"code": "IE-DRATS",
-				"definition": "pTRM difference ratio sum (DRATS)"
+				"definition": "pTRM difference ratio sum (DRATS)",
+				"urls": [
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-244017x7"
+				]
 			},
 			{
-				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch10.html#PE-F"
-				],
 				"code": "IE-F",
-				"definition": "Fraction of NRM component (Coe's F number)"
+				"definition": "Fraction of NRM component (Coe's F number)",
+				"urls": [
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-244013x5"
+				]
 			},
 			{
 				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch10.html#PE-FF"
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-2440012"
 				],
 				"code": "IE-FVDS",
 				"definition": "Fraction of vector difference sum of NRM components"
@@ -441,26 +423,23 @@
 				"definition": "Mean of the ratio (TRM/NRM) obtained for different temperature steps"
 			},
 			{
-				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch10.html#PE-R"
-				],
 				"code": "IE-R",
 				"definition": "Ratio of total TRM to NRM"
 			},
 			{
 				"urls": [
-					"https://doi.org/10.1111/j.1365-246X.1974.tb05443.x",
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch10.html#PE-SH"
+					"https://doi.org/10.1111/j.1365-246X.1974.tb05443.x"
 				],
 				"code": "IE-SH",
 				"definition": "Best-fit slope through Shaw data"
 			},
 			{
-				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch10.html#PE-TT"
-				],
 				"code": "IE-TT",
 				"definition": "Best-fit slope through TT data"
+			},
+			{
+				"code": "IE-TTRM",
+				"definition": "Using total TRM"
 			},
 			{
 				"code": "IE-WIN",
@@ -557,14 +536,14 @@
 			},
 			{
 				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#FS-FD"
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-1040011"
 				],
 				"code": "FS-FD",
 				"definition": "Field drilling using a hand-held portable drill"
 			},
 			{
 				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#FS-H"
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-1040022"
 				],
 				"code": "FS-H",
 				"definition": "Hand sampling"
@@ -692,13 +671,27 @@
 	"lab_protocol": {
 		"codes": [
 			{
+				"code": "LP-AF",
+				"definition": "Alternating field demagnetization"
+			},
+			{
 				"code": "LP-AN",
 				"definition": "Anisotropy measurement"
 			},
 			{
-				"description": "Measure of anisotropy of anhysteretic susceptibility (AAS) via ARM acquisition (AARM). A fully demagnetized specimen is subject to ARM in three to fifteen (tensor) directions while being demagnetized after each of the ARM steps in the direction of the next ARM.",
 				"code": "LP-AN-ARM",
-				"definition": "Anisotropy measurement: ARM acquisition"
+				"definition": "Anisotropy measurement: ARM acquisition",
+				"description": "Measure of anisotropy of anhysteretic susceptibility (AAS) via ARM acquisition (AARM). A fully demagnetized specimen is subject to ARM in three to fifteen (tensor) directions while being demagnetized after each of the ARM steps in the direction of the next ARM."
+			},
+			{
+				"code": "LP-AN-DC",
+				"definition": "Anisotropy measurement: ARM acquisition with a DC field",
+				"description": "anisotropy of anhysteretic remanence where the DC bias field was applied from a maximum alternating field to 0 mT."
+			},
+			{
+				"code": "LP-AN-DCP",
+				"definition": "Anisotropy measurement: ARM acquisition with a DC field for part of the acquisition",
+				"description": "Anisotropy measurement: Anisotropy of anhysteretic remanence where the DC bias field was applied from a maximum alternating field to a minimum alternating field, where the minimum AF is > 0 mT."
 			},
 			{
 				"code": "LP-AN-IRM",
@@ -716,6 +709,10 @@
 			{
 				"code": "LP-ARM",
 				"definition": "ARM Acquisition"
+			},
+			{
+				"code": "LP-ARM-P",
+				"definition": "Partial ARM Acquisition"
 			},
 			{
 				"code": "LP-ARM-AFD",
@@ -741,6 +738,46 @@
 				"definition": "Coercivity of remanence: Half delta M"
 			},
 			{
+				"code": "LP-CA",
+				"definition": "Experiment in controlled atmosphere"
+			},
+			{
+				"code": "LP-CA-AIR",
+				"definition": "Experiment in controlled atmosphere: Air"
+			},
+			{
+				"code": "LP-CA-AR",
+				"definition": "Experiment in controlled atmosphere: Argon"
+			},
+			{
+				"code": "LP-CA-CO2",
+				"definition": "Experiment in controlled atmosphere: Carbon Dioxide"
+			},
+			{
+				"code": "LP-CA-HE",
+				"definition": "Experiment in controlled atmosphere: Helium"
+			},
+			{
+				"code": "LP-CA-N",
+				"definition": "Experiment in controlled atmosphere: Nitrogen"
+			},
+			{
+				"code": "LP-CA-VAC",
+				"definition": "Experiment in controlled atmosphere: Under vacuum"
+			},
+			{
+				"code": "LP-CA-UNK",
+				"definition": "Experiment in controlled atmosphere: Not specified"
+			},
+			{
+				"code": "LP-CR-TRM",
+				"definition": "Sets of TRMs acquired with different cooling rates",
+				"description": "",
+				"urls": [
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-1180067"
+				]
+			},
+			{
 				"description": "Variable temperature measurement sequence (e.g. in QD-MPMS) with magnetization measurements while cooling and rewarming.",
 				"code": "LP-CW-NRM",
 				"definition": "Cycling between cooling and warming: Room temperature NRM"
@@ -753,7 +790,7 @@
 			{
 				"IAGA": "DC0",
 				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch16.html#IAGA7"
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-1970341"
 				],
 				"code": "LP-DC0",
 				"definition": "No demagnetization carried out but only NRM values reported"
@@ -761,7 +798,7 @@
 			{
 				"IAGA": "DC1",
 				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch16.html#IAGA7"
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-1970341"
 				],
 				"code": "LP-DC1",
 				"definition": "Pilot demagnetizations on some samples suggest stability but only NRM values reported"
@@ -769,7 +806,7 @@
 			{
 				"IAGA": "DC2",
 				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch16.html#IAGA7"
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-1970341"
 				],
 				"code": "LP-DC2",
 				"definition": "Bulk demagnetization carried out on all samples but no vector diagrams shown"
@@ -777,7 +814,7 @@
 			{
 				"IAGA": "DC3",
 				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch16.html#IAGA7"
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-1970341"
 				],
 				"code": "LP-DC3",
 				"definition": "Vector diagrams or stereoplots with M/Mo justify demagnetization procedures used"
@@ -785,7 +822,7 @@
 			{
 				"IAGA": "DC4",
 				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch16.html#IAGA7"
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-1970341"
 				],
 				"code": "LP-DC4",
 				"definition": "Principal component analysis carried out from analysis of Zijderveld diagrams"
@@ -793,7 +830,7 @@
 			{
 				"IAGA": "DC5",
 				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch16.html#IAGA7"
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-1970341"
 				],
 				"code": "LP-DC5",
 				"definition": "Magnetic vectors isolated using two or more demagnetization methods with principle component analysis"
@@ -849,11 +886,11 @@
 				"definition": "Field cooled: Induced magnetization measured on warming"
 			},
 			{
-				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch7.html#LP-FORC"
-				],
 				"code": "LP-FORC",
-				"definition": "First order reversal curves or FORC analysis"
+				"definition": "First order reversal curves or FORC analysis",
+				"urls": [
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-510005.4"
+				]
 			},
 			{
 				"code": "LP-HC",
@@ -887,36 +924,31 @@
 				"definition": "Induced magnetization as a function of temperature"
 			},
 			{
-				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch5.html#LP-IRMAC"
-				],
-				"description": "After demagnetization a specimen is subject to successively increasing fields, acquiring partial IRMs until saturation is reached (SIRM). Remanence is measured at each step to provide the IRM acquisition curve.",
 				"code": "LP-IRM",
-				"definition": "IRM acquisition"
+				"definition": "IRM acquisition",
+				"description": "After demagnetization a specimen is subject to successively increasing fields, acquiring partial IRMs until saturation is reached (SIRM). Remanence is measured at each step to provide the IRM acquisition curve."
 			},
 			{
-				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch8.html#LP-IRM3D"
-				],
-				"description": "IRM is applied to the specimen along three orthogonal axes at different field strengths (e.g. 5T, 0.4T, 0.12T). Then the specimen is thermally demagnetized and the magnitude along the orthogonal axis (X1,X2,X3) versus temperature is plotted.",
 				"code": "LP-IRM-3D",
-				"definition": "IRM acquisition: Thermal demagnetization of 3-axis IRM"
+				"definition": "IRM acquisition: Thermal demagnetization of 3-axis IRM",
+				"description": "IRM is applied to the specimen along three orthogonal axes at different field strengths (e.g. 5T, 0.4T, 0.12T). Then the specimen is thermally demagnetized and the magnitude along the orthogonal axis (X1,X2,X3) versus temperature is plotted."
 			},
 			{
 				"code": "LP-IRM-AFD",
 				"definition": "IRM acquisition: AF demagnetization"
 			},
 			{
-				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch5.html#LP-DCDMAG"
-				],
-				"description": "DC field is applied to remove IRM. The specimen is then exposed to increasing strengths of the reverse field until the remanence reduces to zero at Bcr. The IRMs are then plotted versus applied field producing the acquisition/removal curves.",
 				"code": "LP-IRM-DCD",
-				"definition": "IRM acquisition: DC demagnetization"
+				"definition": "IRM acquisition: DC demagnetization",
+				"description": "DC field is applied to remove IRM. The specimen is then exposed to increasing strengths of the reverse field until the remanence reduces to zero at Bcr. The IRMs are then plotted versus applied field producing the acquisition/removal curves."
 			},
 			{
 				"code": "LP-LT",
 				"definition": "Lab protocol involving low temperature treatments"
+			},
+			{
+				"code": "LP-MASS",
+				"definition": "Measured the mass of the specimen"
 			},
 			{
 				"code": "LP-MC",
@@ -956,11 +988,15 @@
 			},
 			{
 				"code": "LP-NOMAG",
-				"definition": "Magnetization is not defined. No volume or mass given."
+				"definition": "Magnetization is not defined. No volume or mass given. (LEGACY DATA ONLY)"
 			},
 			{
 				"code": "LP-NO",
-				"definition": "No demagnetization done. The NRM measurement."
+				"definition": "No demagnetization done. The NRM measurement"
+			},
+			{
+				"code": "LP-NONE",
+				"definition": "No measurements performed"
 			},
 			{
 				"code": "LP-PFC",
@@ -988,10 +1024,7 @@
 			{
 				"code": "LP-PI-ALT-AFARM",
 				"definition": "Paleointensity experiment: Alteration check using AF demagnetization of ARM",
-				"description": "A method to detect alteration that uses AF demagnetization of an ARM, before and after heating to impart TRM. Changes in the ARM coercivity spectrum indicate alteration.",
-				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch10.html#IE-S"
-				]
+				"description": "A method to detect alteration that uses AF demagnetization of an ARM, before and after heating to impart TRM. Changes in the ARM coercivity spectrum indicate alteration."
 			},
 			{
 				"code": "LP-PI-ALT-AFTRM",
@@ -1049,8 +1082,8 @@
 			},
 			{
 				"code": "LP-PI-BT-IZZI",
-				"definition": "Paleointensity experiment: Reciprocity check using an in-field step, followed by a zero-field step",
-				"description": "Heating to a specific temperature to remove NRM and then cooling in a known magnetic field to induce TRM. Followed by heating to the same or lower temperature step and then cooling in zero, ambient magnetic field. Yu et al. (2004)",
+				"definition": "Paleointensity experiment: Reciprocity check using an in-field step, followed by two zero-field steps, followed by an in-field step",
+				"description": "Heating to a specific temperature to remove NRM and then cooling in a known magnetic field to induce TRM. Followed by heating to the same or lower temperature step and then cooling in zero ambient magnetic field. Then another zero field step followed an in-field step. Yu et al. (2004)",
 				"urls": [
 					"https://doi.org/10.1029/2003GC000630"
 				]
@@ -1059,22 +1092,6 @@
 				"code": "LP-PI-BT-MD",
 				"definition": "Paleointensity experiment: Reciprocity check using an attempted removal of a previously placed pTRM",
 				"description": "A check carried out during Thellier-type procedures to detect multidomain grains. Additional zero field heating steps are used to remove a previously placed pTRM. The ability to remove a prior pTRM step at the same temperature imparted is used as an indicator of reversal."
-			},
-			{
-				"code": "LP-PI-CA",
-				"definition": "Paleointensity experiment in controlled atmosphere"
-			},
-			{
-				"code": "LP-PI-CA-AR",
-				"definition": "Paleointensity experiment in controlled atmosphere: Argon"
-			},
-			{
-				"code": "LP-PI-CA-N",
-				"definition": "Paleointensity experiment in controlled atmosphere: Nitrogen"
-			},
-			{
-				"code": "LP-PI-CA-VAC",
-				"definition": "Paleointensity experiment in controlled atmosphere: Under vacuum"
 			},
 			{
 				"code": "LP-PI-CHEM",
@@ -1102,12 +1119,17 @@
 			{
 				"code": "LP-PI-M-II",
 				"definition": "Paleointensity experiment: Microwave demagnetization with an in-field step followed by another in-field step (classical Thellier experiment)",
-				"description": "Heating the specimen to the desired temperature step and then cooling in known ambient magnetic field. The same step is then repeated."
+				"description": "Microwave demagnetization of the specimen and then relaxing in known ambient magnetic field. The same step is then repeated."
 			},
 			{
 				"code": "LP-PI-M-IZ",
 				"definition": "Paleointensity experiment: Using a microwave TRM with an in-field step followed by a zero-field step",
-				"description": "Heating the specimen to the desired temperature step and then cooling in known ambient magnetic field. Then heating to the same or lower temperature and then cooling in zero magnetic field to induce pTRM."
+				"description": "Microwave demagnetization of the specimen to the desired step and then relaxing in known ambient magnetic field. Then microwave demagnetization to the same or lower step and then relaxing in zero magnetic field to induce pTRM."
+			},
+			{
+				"code": "LP-PI-M-IZZI",
+				"definition": "Paleointensity experiment: Microwave reciprocity check using an in-field step, followed by two zero-field steps, followed by an in-field step",
+				"description": "Microwave demagnetization to a specific step to remove NRM and then relaxation in a known magnetic field. Followed by microwave demagnetization to the same or lower step and then relaxation in zero ambient magnetic field. Then another zero field step followed an in-field step"
 			},
 			{
 				"code": "LP-PI-M-PERP",
@@ -1150,18 +1172,27 @@
 			},
 			{
 				"code": "LP-PI-PARM",
-				"definition": "Paleointensity experiment: Best-fit slope through NRM remaining versus pARM gained data",
-				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch10.html#PE-PT"
-				]
+				"definition": "Paleointensity experiment: Best-fit slope through NRM remaining versus pARM gained data"
 			},
 			{
 				"code": "LP-PI-REL",
 				"definition": "Paleointensity experiment: Normalized NRM for relative paleofield estimation"
 			},
 			{
+				"code": "LP-PI-REL-PT",
+				"definition": "Paleointensity experiment: Normalized NRM for relative paleofield estimation using the pseudo-Thellier method"
+			},
+			{
 				"code": "LP-PI-SXTAL",
 				"definition": "Paleointensity experiment: Using a single crystal approach"
+			},
+			{
+				"code": "LP-PI-TRIAXE",
+				"definition": "Demagnetization/remagnetization measured continuously at increasing and decreasing temperatures",
+				"description": "Triax paleointensity experiment where the magnetic field is measured insitu while changing the temperature(Le Goff and Gallet, 1961)",
+				"urls": [
+					"https://doi.org/10.1016/j.epsl.2004.10.025"
+				]
 			},
 			{
 				"code": "LP-PI-TRM",
@@ -1211,6 +1242,51 @@
 				"definition": "Paleointensity experiment: Zero-field and in-field pair of steps"
 			},
 			{
+				"code": "LP-QDM",
+				"definition": "A quantum diamond microscope (QDM) experiment",
+				"description": "A quantum diamond microscope is used to measure the magnetic induction over a sample and then the magnetic moment of the sample can be calculated. QDM employs optically addressable nitrogen vacancy centers in diamond that are sensitive to magnetic fields via the Zeeman effect. Glen, et al. and (2017), Fu et al. 2017",
+				"urls": [
+					"https://doi.org/10.1002/2017GC006946",
+					"https://doi.org/10.1016/j.epsl.2016.09.038"
+				]
+			},
+			{
+				"code": "LP-QDM-R",
+				"definition": "A quantum diamond microscope (QDM) experiment - remanent magnetization mapping",
+				"description": "A quantum diamond microscope is used to measure the magnetic induction over a sample and then the magnetic moment of the sample can be calculated. Remanent magnetization mapping is done by adding the two bias field measurements. QDM employs optically addressable nitrogen vacancy centers in diamond that are sensitive to magnetic fields via the Zeeman effect. Glen, et al. and (2017), Fu et al. 2017",
+				"urls": [
+					"https://doi.org/10.1002/2017GC006946",
+					"https://doi.org/10.1016/j.epsl.2016.09.038"
+				]
+			},
+			{
+				"code": "LP-QDM-I",
+				"definition": "A quantum diamond microscope (QDM) experiment - induced magnetization mapping",
+				"description": "A quantum diamond microscope is used to measure the magnetic induction over a sample and then the magnetic moment of the sample can be calculated. Induced magnetization mapping is done by subtracting the two bias field measurements. QDM employs optically addressable nitrogen vacancy centers in diamond that are sensitive to magnetic fields via the Zeeman effect. Glen, et al. and (2017), Fu et al. 2017",
+				"urls": [
+					"https://doi.org/10.1002/2017GC006946",
+					"https://doi.org/10.1016/j.epsl.2016.09.038"
+				]
+			},
+			{
+				"code": "LP-SIM",
+				"definition": "A simulated data set",
+				"description": "Some papers use simulated data sets and these can be labeled with this method code."
+			},
+			{
+				"code": "LP-SQUIDM",
+				"definition": "A SQUID microscopy experiment",
+				"description": "Superconducting quantum interference device (SQUID) microscopy enables ultra-sensitive measurements of net magnetic moments. By employing small (typically <100 μm) pickup loops brought extremely close to the samples, these instruments are capable of mapping the vertical component of the sample magnetic field with resolutions as low as 10 pT at spatial resolutions of 150 μm or better.  Lima and Weiss, (2016) and Fu et al. (2017)",
+				"urls": [
+					"https://doi.org/10.1002/2016GC006487",
+					"https://doi.org/10.1016/j.epsl.2016.09.038"
+				]
+			},
+			{
+				"code": "LP-T",
+				"definition": "Thermal demagnetization"
+			},
+			{
 				"code": "LP-TRM",
 				"definition": "TRM acquisition"
 			},
@@ -1225,6 +1301,10 @@
 			{
 				"code": "LP-U",
 				"definition": "U-Channel"
+			},
+			{
+				"code": "LP-VOL",
+				"definition": "Measured the volume of the specimen"
 			},
 			{
 				"code": "LP-VRM",
@@ -1243,13 +1323,18 @@
 				"definition": "Susceptibility measurement"
 			},
 			{
+				"code": "LP-X-DC",
+				"definition": "Susceptibility measurement: As a function of external DC field",
+				"description": "An external DC field is varied while measuring the susceptibility."
+			},
+			{
 				"code": "LP-X-F",
 				"definition": "Susceptibility measurement: As a function of frequency"
 			},
 			{
-				"description": "Ferromagnetic susceptibility is the low-field minus the high-field susceptibility to correct for paramagnetic contribution.",
 				"code": "LP-X-FERRO",
-				"definition": "Susceptibility measurement: Independent measurements of low field and highfield susceptibility for getting ferromagnetic susceptibility"
+				"definition": "Susceptibility measurement: Independent measurements of low field and highfield susceptibility for getting ferromagnetic susceptibility",
+				"description": "Ferromagnetic susceptibility is the low-field minus the high-field susceptibility to correct for paramagnetic contribution."
 			},
 			{
 				"code": "LP-X-H",
@@ -1258,6 +1343,32 @@
 			{
 				"code": "LP-X-T",
 				"definition": "Susceptibility measurement: As a function of temperature"
+			},
+			{
+				"code": "LP-XPEEM",
+				"definition": "X‐ray photoelectron emission microscopy",
+				"description": "The magnetic contrast is provided by X‐ray magnetic circular dichroism, where the efficiency of electron ejection from the sample's surface by circularly polarized X‐rays depends on the relative orientation of the local magnetic moment and the X‐ray beam. This can be used to calculate the local magnetic moment and paleointensities. (van der Laan, 2013; Bryson, Herrero-Albillos et al., 2014)",
+				"urls": [
+					"https://doi.org/10.1088/1742-6596/430/1/012127",
+					"https://doi.org/10.1016/j.epsl.2014.04.016"
+				]
+			},
+			{
+				"code": "LP-XPEEM-1",
+				"definition": "X‐ray photoelectron emission microscopy: One specimen orientation",
+				"description": "The magnetic contrast is provided by X‐ray magnetic circular dichroism, where the efficiency of electron ejection from the sample's surface by circularly polarized X‐rays depends on the relative orientation of the local magnetic moment and the X‐ray beam. This can be used to calculate the local magnetic moment and paleointensities. Each spot is measured in one orientation. (Bryson et al., 2015; Nichols et al. 2018)",
+				"urls": [
+					"https://doi.org/10.1038/nature14114",
+					"https://doi.org/10.1016/j.gca.2018.03.009"
+				]
+			},
+			{
+				"code": "LP-XPEEM-3",
+				"definition": "X‐ray photoelectron emission microscopy: Three specimen orientations",
+				"description": "The magnetic contrast is provided by X‐ray magnetic circular dichroism, where the efficiency of electron ejection from the sample's surface by circularly polarized X‐rays depends on the relative orientation of the local magnetic moment and the X‐ray beam. This can be used to calculate the local magnetic moment and paleointensities. Each spot is measured in three orientations rotated by 120 degrees. This allows for direct estimates of the direction and intensity of the ancient field. (Bryson et al., 2019)",
+				"urls": [
+					"https://doi.org/10.1029/2019JE005951"
+				]
 			},
 			{
 				"code": "LP-ZFC",
@@ -1281,37 +1392,109 @@
 				"definition": "Alternating field: Triple demagnetization with AF along Y,Z,X measurement followed by AF along Y and AF along Z measurement"
 			},
 			{
+				"code": "LT-AF-I",
 				"IAGA": "A",
 				"urls": [
 					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch5.html#LT-AFI"
 				],
 				"description": "AF demagnetization in a small DC field offset to produce an ARM.",
-				"code": "LT-AF-I",
 				"definition": "Alternating field: In laboratory field"
 			},
 			{
-				"IAGA": "A",
+				"code": "LT-AF-Z",
+				"definition": "Alternating field: In zero field",
+				"description": "A specimen is subject to a decaying and alternating magnetic field such that the magnetic moments with coercivities below the peak field are aligned in opposed directions, and thus cancel. Specimens are typically reoriented in three or more orthogonal axes.",
 				"urls": [
 					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#LT-AFZ"
 				],
-				"description": "A specimen is subject to a decaying and alternating magnetic field such that the magnetic moments with coercivities below the peak field are aligned in opposed directions, and thus cancel. Specimens are typically reoriented in three or more orthogonal axes.",
-				"code": "LT-AF-Z",
-				"definition": "Alternating field: In zero field"
+				"IAGA": "A"
 			},
 			{
-				"description": "A specimen is subject to a decaying and alternating magnetic field using a tumbling demagnetizer such that the magnetic moments with coercivities below the peak field are aligned in opposed directions, and thus cancel. Specimens are typically reoriented in three or more orthogonal axes.",
+				"code": "LT-AF-Z-X",
+				"definition": "Alternating field: In zero field along the X axis only",
+				"description": "A specimen is subject to a decaying and alternating magnetic field such that the magnetic moments with coercivities below the peak field are aligned in opposed directions, and thus cancel. Specimens are oriented along the X axis.",
+				"urls": [
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#LT-AFZ"
+				]
+			},
+			{
+				"code": "LT-AF-Z-XYZ",
+				"definition": "Alternating field: In zero field along the X, then the Y, and then the Z axes",
+				"description": "A specimen is subject to a decaying and alternating magnetic field such that the magnetic moments with coercivities below the peak field are aligned in opposed directions, and thus cancel. Specimens are oriented along the X axis, then the Y axis, and finally the Z axis.",
+				"urls": [
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#LT-AFZ"
+				]
+			},
+			{
+				"code": "LT-AF-Z-XZY",
+				"definition": "Alternating field: In zero field along the X, then the Z, and then the Y axes",
+				"description": "A specimen is subject to a decaying and alternating magnetic field such that the magnetic moments with coercivities below the peak field are aligned in opposed directions, and thus cancel. Specimens are oriented along the X axis, then the Z axis, and finally the Y axis.",
+				"urls": [
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#LT-AFZ"
+				]
+			},
+			{
+				"code": "LT-AF-Z-Y",
+				"definition": "Alternating field: In zero field along the Y axis only",
+				"description": "A specimen is subject to a decaying and alternating magnetic field such that the magnetic moments with coercivities below the peak field are aligned in opposed directions, and thus cancel. Specimens are oriented along the Y axis.",
+				"urls": [
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#LT-AFZ"
+				]
+			},
+			{
+				"code": "LT-AF-Z-YXZ",
+				"definition": "Alternating field: In zero field along the Y, then the X, and then the Z axes",
+				"description": "A specimen is subject to a decaying and alternating magnetic field such that the magnetic moments with coercivities below the peak field are aligned in opposed directions, and thus cancel. Specimens are oriented along the Y axis, then the X axis, and finally the Z axis.",
+				"urls": [
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#LT-AFZ"
+				]
+			},
+			{
+				"code": "LT-AF-Z-YZX",
+				"definition": "Alternating field: In zero field along the Y, then the Z, and then the X axes",
+				"description": "A specimen is subject to a decaying and alternating magnetic field such that the magnetic moments with coercivities below the peak field are aligned in opposed directions, and thus cancel. Specimens are oriented along the Y axis, then the Z axis, and finally the X axis.",
+				"urls": [
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#LT-AFZ"
+				]
+			},
+			{
+				"code": "LT-AF-Z-Z",
+				"definition": "Alternating field: In zero field along the Z axis only",
+				"description": "A specimen is subject to a decaying and alternating magnetic field such that the magnetic moments with coercivities below the peak field are aligned in opposed directions, and thus cancel. Specimens are oriented along the Y axis.",
+				"urls": [
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#LT-AFZ"
+				]
+			},
+			{
+				"code": "LT-AF-Z-ZXY",
+				"definition": "Alternating field: In zero field along the Z, then the X, and then the Y axes",
+				"description": "A specimen is subject to a decaying and alternating magnetic field such that the magnetic moments with coercivities below the peak field are aligned in opposed directions, and thus cancel. Specimens are oriented along the Z axis, then the X axis, and finally the Y axis.",
+				"urls": [
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#LT-AFZ"
+				]
+			},
+			{
+				"code": "LT-AF-Z-ZYX",
+				"definition": "Alternating field: In zero field along the Z, then the Y, and then the X axes",
+				"description": "A specimen is subject to a decaying and alternating magnetic field such that the magnetic moments with coercivities below the peak field are aligned in opposed directions, and thus cancel. Specimens are oriented along the Z axis, then the Y axis, and finally the X axis.",
+				"urls": [
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#LT-AFZ"
+				]
+			},
+			{
 				"code": "LT-AF-Z-TUMB",
+				"description": "A specimen is subject to a decaying and alternating magnetic field using a tumbling demagnetizer such that the magnetic moments with coercivities below the peak field are aligned in opposed directions, and thus cancel. Specimens are typically reoriented in three or more orthogonal axes.",
 				"definition": "Alternating field: In zero field using a tumbling AF demagnetizer"
 			},
 			{
-				"IAGA": "H",
 				"code": "LT-CHEM",
-				"definition": "Cleaning of porous rocks by chemical leaching"
+				"definition": "Cleaning of porous rocks by chemical leaching",
+				"IAGA": "H"
 			},
 			{
-				"IAGA": "H",
 				"code": "LT-CHEM-HCL",
-				"definition": "Cleaning of porous rocks by chemical leaching with HCl"
+				"definition": "Cleaning of porous rocks by chemical leaching with HCl",
+				"IAGA": "H"
 			},
 			{
 				"code": "LT-FC",
@@ -1402,12 +1585,12 @@
 				"definition": "pTRM check: additivity check step while using thermal demagnetization"
 			},
 			{
+				"code": "LT-PTRM-I",
+				"definition": "pTRM check: After zero field step, perform an in field cooling",
+				"description": "After treatment at a particular temperature step, the specimen is then reheated to a lower temperature and cooled with the laboratory field on thus reapplying a pTRM.",
 				"urls": [
 					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch10.html#LT-pTRMI"
-				],
-				"description": "After treatment at a particular temperature step, the specimen is then reheated to a lower temperature and cooled with the laboratory field on thus reapplying a pTRM.",
-				"code": "LT-PTRM-I",
-				"definition": "pTRM check: After zero field step, perform an in field cooling"
+				]
 			},
 			{
 				"description": "A check carried out during Thellier procedures to detect multidomain grains. Additional zero field heating steps are used to remove a previously placed pTRM. The ability to remove a prior pTRM step at the same temperature imparted is used as an indicator of reversal.",
@@ -1423,21 +1606,29 @@
 				"definition": "pTRM tail check After in laboratory field step, perform a zero field cooling at a lower temperature"
 			},
 			{
+				"code": "LT-T-I",
 				"urls": [
 					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch10.html#LT-TI"
 				],
 				"description": "Heating to a specific temperature to remove NRM and then cooling in a known magnetic field to induce TRM.",
-				"code": "LT-T-I",
 				"definition": "Specimen cooling: In laboratory field"
 			},
 			{
+				"code": "LT-T-Z",
 				"IAGA": "T",
+				"definition": "Specimen cooling: In zero field",
+				"description": "Heating the specimen to the desired temperature step and then cooling in zero ambient magnetic field.",
 				"urls": [
 					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch9.html#LT-TZ"
-				],
-				"description": "Heating the specimen to the desired temperature step and then cooling in zero ambient magnetic field.",
-				"code": "LT-T-Z",
-				"definition": "Specimen cooling: In zero field"
+				]
+			},
+			{
+				"code": "LT-T-Z-NRM-PAR",
+				"definition": "Specimen cooling: In field parallel to the NRM",
+				"description": "Heating to temperature  in zero field, then cooling in a field parallel to the NRM. Dekkers and Bohnel (2006), doi:10.1016/j.epsl.2006.05.040",
+				"urls": [
+					"https://doi.org/10.1016/j.epsl.2006.05.040"
+				]
 			},
 			{
 				"IAGA": "V",
@@ -2242,6 +2433,15 @@
 				"definition": "Spectrophotometric"
 			},
 			{
+				"code": "SC-SQUIDM",
+				"definition": "SQUID microscopy",
+				"description": "Superconducting quantum interference device (SQUID) microscopy enables ultra-sensitive measurements of net magnetic moments. By employing small (typically <100 μm) pickup loops brought extremely close to the samples, these instruments are capable of mapping the vertical component of the sample magnetic field with resolutions as low as 10 pT at spatial resolutions of 150 μm or better.  Lima and Weiss, (2016) and Fu et al. (2017)",
+				"urls": [
+					"https://doi.org/10.1002/2016GC006487",
+					"https://doi.org/10.1016/j.epsl.2016.09.038"
+				]
+			},
+			{
 				"code": "SC-SSID",
 				"definition": "Spark source mass spectrometry isotope dilution"
 			},
@@ -2292,6 +2492,14 @@
 			{
 				"code": "SC-WET",
 				"definition": "Wet chemistry"
+			},
+			{
+				"code": "LP-XPEEM",
+				"definition": "X‐ray photoelectron emission microscopy",
+				"description": "The magnetic contrast is provided by X‐ray magnetic circular dichroism, where the efficiency of electron ejection from the sample's surface by circularly polarized X‐rays depends on the relative orientation of the local magnetic moment and the X‐ray beam. This can be used to calculate the local magnetic moment and paleointensities. (Bryson, Herrero-Albillos et al., 2014)",
+				"urls": [
+					"https://doi.org/10.1016/j.epsl.2014.04.016"
+				]
 			},
 			{
 				"code": "SC-XRD",
@@ -2806,25 +3014,28 @@
 			},
 			{
 				"code": "DA-CR",
-				"definition": "Cooling rate correction"
+				"definition": "Cooling rate correction",
+				"urls": [
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-1180067"
+				]
 			},
 			{
 				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch10.html#IC-CR1"
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-1180067"
 				],
 				"code": "DA-CR-EG",
 				"definition": "Cooling rate correction: Educated guess"
 			},
 			{
 				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch10.html#IC-CR2"
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-1180067"
 				],
 				"code": "DA-CR-PS",
 				"definition": "Cooling rate correction: Percent estimated from pilot samples"
 			},
 			{
 				"urls": [
-					"https://earthref.org/MagIC/books/Tauxe/Essentials/WebBook3ch10.html#IC-CR3"
+					"https://earthref.org/MagIC/books/Tauxe/Essentials/#x1-1180067"
 				],
 				"code": "DA-CR-TRM",
 				"definition": "Cooling rate correction: Comparison between 2 TRMs acquired with a slow and rapid cooling rate"
@@ -2916,6 +3127,14 @@
 			{
 				"code": "DA-VRM",
 				"definition": "VRM correction"
+			},
+			{
+				"code": "DA-X-HOLD",
+				"definition": "Susceptibility corrected for the sample holder"
+			},
+			{
+				"code": "DA-X-THERMO",
+				"definition": "Susceptibility corrected for the thermocouple"
 			}
 		],
 		"label": "Data Adjustment"

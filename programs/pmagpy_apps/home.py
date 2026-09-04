@@ -1,14 +1,18 @@
 """
-The Home page: one directory as its subject, the workflow as a strip, the
-applications as a list of doors.
+The Home page: a start page until a directory is open, then that directory as
+the subject, the workflow as a strip, the applications as a list of doors.
 
-Home reads everything it says from an :class:`~pmagpy_apps.inventory.Inventory`
-and renders it as HTML on the shared shell. It has three faces, decided by what
-the directory holds — a MagIC contribution, lab files not yet converted, or
-nothing — and the same layout in all three. There is no form on it; its
-controls are three buttons — "Convert files…" (the Convert page, :mod:`.convert`),
-"Download from MagIC…" and "Change directory…" (dialogs) — and the one that is
-the next thing to do is primary.
+The start page offers the ways in — open a folder, download a contribution from
+MagIC, explore the shipped example — and lists the recently opened directories;
+nothing is loaded behind it. Once a directory is open, Home reads everything it
+says from an :class:`~pmagpy_apps.inventory.Inventory` and renders it as HTML on
+the shared shell. It has three faces, decided by what the directory holds — a
+MagIC contribution, lab files not yet converted, or nothing — and the same layout
+in all three. There is no form on it; its controls are buttons — "Convert files…"
+(the Convert page, :mod:`.convert`), "Metadata…" (the tables in a grid,
+:mod:`.metadata`), "Upload…", "Download from MagIC…" and "Change directory…"
+(dialogs), "Start page" (back) — and the one that is the next thing to do is
+primary.
 """
 from __future__ import annotations
 
@@ -16,13 +20,14 @@ import html
 import importlib.util
 import os
 from dataclasses import dataclass
+from datetime import datetime
 from typing import List, Optional
 from urllib.parse import quote
 
 import panel as pn
 import param
 
-from pmagpy_panel import app_color, datasets, text_on
+from pmagpy_panel import app_color, datasets, runtime, text_on
 from pmagpy_panel.chooser import DirectoryChooser
 from . import APP
 from .inventory import Inventory, take_inventory
@@ -79,24 +84,28 @@ def home_link(directory: str) -> str:
 # ----- the session -------------------------------------------------------------------
 
 
+START_STATUS = "no directory open"
+
+
 class HubSession(param.Parameterized):
     """The directory this session holds, and what is in it.
 
-    ``landing`` is True while the page shows the directory it opened on by
-    default — nothing asked for on the URL or in the environment. Home lists the
-    recent directories only then; once the user has picked one, the page is
-    about that directory.
+    ``landing`` is True while no directory is open: the page is the start page
+    (open a folder, download from MagIC, explore the example, or a recent
+    directory). :meth:`load` turns the page to a directory; :meth:`start` comes
+    back. A directory opened is remembered in the shared recent list unless the
+    caller says not to (the example is not "recent").
     """
     directory = param.String(default="")
-    status = param.String(default="")
+    status = param.String(default=START_STATUS)
     landing = param.Boolean(default=True)
 
-    def __init__(self, directory: str, recent_file: str = "", landing: bool = True, **params):
+    def __init__(self, directory: str = "", recent_file: str = "", **params):
         super().__init__(**params)
         self.recent_file = recent_file
         self.inventory: Inventory = Inventory(directory="")
-        self.load(directory or os.getcwd(), remember=not landing)   # nothing asked for, no example found: start where the server runs
-        self.landing = landing
+        if directory:
+            self.load(directory)
 
     def load(self, directory: str, remember: bool = True) -> bool:
         """Take the directory's inventory and make it the session's. False when it is not a directory."""
@@ -114,6 +123,16 @@ class HubSession(param.Parameterized):
         else:
             self.directory = inv.directory     # last: watchers rebuild the page from the new inventory
         return True
+
+    def start(self) -> None:
+        """Close the directory and go back to the start page."""
+        self.inventory = Inventory(directory="")
+        self.landing = True
+        self.status = START_STATUS
+        if self.directory:
+            self.directory = ""
+        else:
+            self.param.trigger("directory")
 
     def recent(self) -> List[str]:
         """Recently opened directories that still exist, most recent first."""
@@ -137,9 +156,10 @@ CSS = """
 :host { --accent:#1f4e9c; --ink:#2b2b2b; --muted:#6b7280; --line:#e3e6ea; --ok:#2e8b57; --warn:#d97706; --off:#9aa1ab; }
 .home { font-size:15px; color:var(--ink) }
 .section { font-weight:600; font-size:.78rem; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin:0 0 8px }
-.home h1 { font-size:2rem; font-weight:600; margin:2px 0 4px; letter-spacing:-.01em }
-.path { color:var(--muted); font-size:.85rem; font-family:ui-monospace,Menlo,monospace }
-.ref { color:var(--muted); font-size:.9rem; margin-top:6px }
+.home h1 { font-size:2rem; font-weight:600; margin:2px 0 4px; letter-spacing:-.01em; line-height:1.1;
+           overflow-wrap:anywhere }     /* a long directory name wraps rather than running under the buttons */
+.path { color:var(--muted); font-size:.85rem; font-family:ui-monospace,Menlo,monospace; overflow-wrap:anywhere }
+.ref { color:var(--muted); font-size:.9rem; margin:2px 0 0 }
 .ref a { color:var(--accent); text-decoration:none }
 .kpi { display:flex; gap:22px; flex-wrap:wrap; font-size:.95rem; margin:16px 0 4px; font-variant-numeric:tabular-nums }
 .kpi b { font-weight:600 }
@@ -176,10 +196,16 @@ a.bar:hover .open { filter:brightness(.93) }
 .box td.n { text-align:right; color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap; padding-left:12px }
 .box td.file { font-family:ui-monospace,Menlo,monospace; font-size:.82rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:220px }
 .box .none { color:var(--muted); font-size:.88rem }
-.recent { margin:0; padding:0 }
-.recent li { list-style:none; padding:5px 0; font-size:.88rem; border-bottom:1px solid #f0f2f4 }
+.start .lead { color:var(--ink); font-size:1.12rem; white-space:nowrap; margin:14px 0 22px }
+.door h3 { margin:0 0 6px; font-size:1.15rem; font-weight:650; letter-spacing:-.005em }
+.door p { margin:0 0 14px; color:var(--muted); font-size:.93rem; line-height:1.5; min-height:4.5em; max-width:48ch }
+.recent { margin:0 -16px; padding:0 }
+.recent li { list-style:none; font-size:.88rem; border-bottom:1px solid #f0f2f4 }
 .recent li:last-child { border-bottom:0 }
-.recent li a { color:var(--ink); text-decoration:none } .recent li a:hover { color:var(--accent) }
+.recent li a { display:block; padding:7px 16px; text-decoration:none; color:var(--accent) }
+.recent li a:hover { background:#eef3fb }
+.recent li .n { font-weight:600 }
+.recent li .n::after { content:" →"; color:var(--muted); font-weight:400 }
 .recent li .p { color:var(--muted); font-size:.78rem; font-family:ui-monospace,Menlo,monospace; display:block;
                 overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
 """
@@ -198,10 +224,15 @@ def _esc(text: str) -> str:
     return html.escape(str(text), quote=True)
 
 
-def heading_html(inv: Inventory) -> str:
+def title_html(inv: Inventory) -> str:
+    """The directory's name — this shares a row with the buttons, so it stays short."""
     label = "MagIC directory" if inv.is_magic else "Directory"
-    lines = [f'<div class="section">{label}</div>', f"<h1>{_esc(inv.name)}</h1>",
-             f'<div class="path">{_esc(shorten_home(inv.directory))}</div>']
+    return f'<div class="home"><div class="section">{label}</div><h1>{_esc(inv.name)}</h1></div>'
+
+
+def ref_html(inv: Inventory) -> str:
+    """Under the title, at full width: the path, then contribution · DOI · contributor or what the directory lacks."""
+    lines = [f'<div class="path">{_esc(shorten_home(inv.directory))}</div>']
     c = inv.contribution
     if inv.is_magic and c:
         bits = []
@@ -217,6 +248,8 @@ def heading_html(inv: Inventory) -> str:
             lines.append(f'<div class="ref">{" · ".join(bits)}</div>')
     elif inv.is_empty:
         lines.append('<div class="ref">Empty</div>')
+    elif inv.has_level_tables:
+        lines.append('<div class="ref">No measurements yet</div>')
     elif not inv.is_magic:
         lines.append('<div class="ref">No MagIC tables yet</div>')
     return f'<div class="home">{"".join(lines)}</div>'
@@ -236,12 +269,26 @@ def facts_html(inv: Inventory) -> str:
         text = ("Nothing here yet. Copy your measurement files into this directory and convert them, or download "
                 "a published contribution from MagIC by its ID or DOI. Either way the MagIC tables land in this "
                 "directory and this page fills in.")
+    elif inv.has_level_tables:
+        have = [f"<b>{fmt(inv.counts[k])}</b> {k if inv.counts[k] != 1 else k[:-1]}"
+                for k in ("locations", "sites", "samples", "specimens") if inv.counts.get(k)]
+        text = (f"{', '.join(have)} and no measurements yet — the tables a field notebook or a sample list gives. "
+                + (f"The {_esc(inv.format_guess)} files here are the next thing to convert, adding to these tables."
+                   if inv.lab_files else
+                   "Copy the lab files into this directory and convert them, adding to these tables.")
+                + " The measurements then hang from these samples and the analysis applications open.")
     else:
         n = len(inv.files)
         if inv.format_key == "cit":
             guess = " They look like CIT specimen files with a <code>.sam</code> index."
         elif inv.format_key == "magic":
-            guess = " They include a MagIC contribution file, which unpacks into the tables."
+            guess = (" They include a MagIC 2.5 contribution file, which unpacks into 2.5 tables; upgrading those is the step after."
+                     if any(f.role == "MagIC 2.5 contribution file" for f in inv.files)
+                     else " They include a MagIC contribution file, which unpacks into the tables.")
+        elif inv.format_key == "legacy":
+            n_old = len(inv.lab_files)
+            guess = (f" {fmt(n_old)} of them are MagIC 2.5 tables (<code>magic_measurements</code>, <code>er_</code>, "
+                     f"<code>pmag_</code>), which upgrade to 3.0 tables beside them.")
         elif inv.format_key:
             guess = f" They look like {_esc(inv.format_guess)} files."
         else:
@@ -256,15 +303,25 @@ def stages(inv: Inventory) -> list:
     if not inv.is_magic:
         if inv.is_empty:
             imp = ("warn", "convert files, or download from MagIC")
+        elif inv.has_level_tables:
+            n = len(inv.lab_files)
+            imp = ("warn", "samples and sites in; " + (f"{fmt(n)} file{'s' if n != 1 else ''} to convert · {inv.format_guess}?"
+                                                      if n else "measurements to convert"))
         else:
             n = len(inv.files)
             imp = ("warn", f"{fmt(n)} file{'s' if n != 1 else ''} to convert" + (f" · {inv.format_guess}?" if inv.format_guess else ""))
         return [("Import", *imp, True), ("Metadata", "off", "after import", False),
                 ("Analyze", "off", "after import", False), ("Upload", "off", "after import", False)]
-    # Lab files beside the tables are usually the ones the tables came from; the page cannot tell, so it says what it sees.
     others = [f for f in inv.files if f.role]
-    imp = ("ok", f"{len(others)} {inv.format_guess} file{'s' if len(others) != 1 else ''} beside the tables") if others \
-        else ("ok", "tables in place")
+    if inv.conversions:
+        # the conversion log says what the tables came from
+        imp = ("ok", converted_from(inv))
+    elif not others:
+        imp = ("ok", "tables in place")
+    elif inv.format_key == "legacy":
+        imp = ("ok", f"{len(others)} MagIC 2.5 table{'s' if len(others) != 1 else ''} beside the 3.0 tables")
+    else:
+        imp = ("ok", f"{len(others)} {inv.format_guess} file{'s' if len(others) != 1 else ''} beside the tables")
     if inv.gaps:
         g = inv.gaps[0]
         more = len(inv.gaps) - 1
@@ -280,8 +337,38 @@ def stages(inv: Inventory) -> list:
     if a.get("site_intensities"):
         parts.append(f"{fmt(a['site_intensities'])} site intensities")
     ana = ("ok", " · ".join(parts)) if parts else ("warn", "nothing interpreted yet")
+    if inv.uploads:
+        built = os.path.getmtime(os.path.join(inv.directory, inv.uploads[0]))
+        up = ("ok", f"{inv.uploads[0]} · built {datetime.fromtimestamp(built):%-d %b %Y %H:%M}")
+    else:
+        up = ("off", "upload file not built yet")
     return [("Import", *imp, False), ("Metadata", *meta, False), ("Analyze", *ana, not parts),
-            ("Upload", "off", "not validated yet", False)]
+            ("Upload", *up, bool(parts) and not inv.gaps and not inv.uploads)]
+
+
+def converted_from(inv: Inventory) -> str:
+    """'converted from 10 CIT files · 2 Sep 2026' — the log's account of the tables, latest conversion dated."""
+    last = inv.conversions[-1]
+    labels = {e.get("label") or e.get("format", "") for e in inv.conversions} - {""}
+    files = inv.source_files
+    if last.get("format") == "magic":
+        what = f"unpacked from {files[0]}" if len(files) == 1 else f"unpacked from {len(files)} contribution files"
+    elif last.get("format") == "legacy":
+        what = f"upgraded from {fmt(len(files))} MagIC 2.5 table{'s' if len(files) != 1 else ''}"
+    else:
+        label = labels.pop() if len(labels) == 1 else ""
+        if len(files) == 1:
+            what = f"converted from {files[0]}" + (f" ({label})" if label else "")
+        else:
+            what = f"converted from {fmt(len(files))} {label + ' ' if label else ''}files"
+    try:
+        when = datetime.fromisoformat(last.get("when", ""))
+        what += f" · {when:%-d %b %Y}"
+    except ValueError:
+        pass
+    if len(inv.conversions) > 1:
+        what += f" · {len(inv.conversions)} conversions"
+    return what
 
 
 def strip_html(inv: Inventory) -> str:
@@ -295,7 +382,7 @@ def bars_html(inv: Inventory, applications=APPLICATIONS) -> str:
     bars = []
     for app in applications:
         present = [inv.kind(k) for k in app.kinds if inv.kind(k)]
-        if not inv.is_magic:
+        if not inv.is_magic and not present:          # tensors in specimens.txt open Anisotropy without measurements
             bars.append(_bar(app, "no measurements yet", None))
         elif not present:
             bars.append(_bar(app, app.absent, None))
@@ -332,83 +419,178 @@ def _bar(app: Application, fact: str, href: Optional[str], shut: str = "—") ->
             f'<div class="open">{shut}</div></div>')
 
 
-def aside_html(inv: Inventory, recent: List[str]) -> str:
-    """Files beside the tables, and the recent list on a landing. Empty when there is neither.
+def aside_html(inv: Inventory) -> str:
+    """The files waiting in a directory that has no MagIC tables yet — what Import will work on.
 
-    The tables themselves are not listed: the counts line above already says
-    what is in them.
+    Empty for a MagIC directory: the counts line already says what is in the
+    tables, and the files beside them are the Convert page's business.
     """
-    first = ""
-    if not inv.is_magic:
-        shown = inv.files[:6]
-        rows = "".join(f'<tr><td class="file" title="{_esc(f.name)}">{_esc(f.name)}</td><td class="n">{_esc(f.role)}</td></tr>' for f in shown)
-        if len(inv.files) > len(shown):
-            rows += f'<tr><td class="file" style="color:var(--muted)">and {len(inv.files) - len(shown)} more</td><td class="n"></td></tr>'
-        if inv.folders and not inv.files:
-            rows = f'<tr><td class="none">{inv.folders} folder{"s" if inv.folders != 1 else ""}, no files</td></tr>'
-        body = f"<table>{rows}</table>" if rows else '<div class="none">none</div>'
-        first = f'<div class="section">Files</div><div class="box">{body}</div>'
-    elif inv.files:
-        rows = "".join(f'<tr><td class="file" title="{_esc(f.name)}">{_esc(f.name)}</td><td class="n">{_esc(f.role)}</td></tr>'
-                       for f in inv.files[:6])
-        if len(inv.files) > 6:
-            rows += f'<tr><td class="file" style="color:var(--muted)">and {len(inv.files) - 6} more</td><td class="n"></td></tr>'
-        first = f'<div class="section">Other files</div><div class="box"><table>{rows}</table></div>'
-    items = "".join(
-        f'<li><a href="{_esc(home_link(d))}">{_esc(os.path.basename(d.rstrip(os.sep)) or d)}</a>'
-        f'<span class="p" title="{_esc(d)}">{_esc(shorten_home(d))}</span></li>'
-        for d in recent if d != inv.directory)
-    second = (f'<div class="section">Recent</div><div class="box"><ul class="recent">{items}</ul></div>' if items else "")
-    if not first and not second:
+    if inv.is_magic:
         return ""
-    return f'<div class="home">{first}{second}</div>'
+    shown = inv.files[:6]
+    rows = "".join(f'<tr><td class="file" title="{_esc(f.name)}">{_esc(f.name)}</td><td class="n">{_esc(f.role)}</td></tr>' for f in shown)
+    if len(inv.files) > len(shown):
+        rows += f'<tr><td class="file" style="color:var(--muted)">and {len(inv.files) - len(shown)} more</td><td class="n"></td></tr>'
+    if inv.folders and not inv.files:
+        rows = f'<tr><td class="none">{inv.folders} folder{"s" if inv.folders != 1 else ""}, no files</td></tr>'
+    body = f"<table>{rows}</table>" if rows else '<div class="none">none</div>'
+    return f'<div class="home"><div class="section">Files</div><div class="box">{body}</div></div>'
+
+
+def recent_html(recent: List[str]) -> str:
+    """The recently opened directories as links, for the start page. Empty when there are none."""
+    items = "".join(                              # the whole row is the link, name and path alike
+        f'<li><a href="{_esc(home_link(d))}" title="{_esc(d)}"><span class="n">{_esc(os.path.basename(d.rstrip(os.sep)) or d)}</span>'
+        f'<span class="p">{_esc(shorten_home(d))}</span></a></li>' for d in recent)
+    if not items:
+        return ""
+    return f'<div class="home"><div class="section">Recent</div><div class="box"><ul class="recent">{items}</ul></div></div>'
+
+
+START_HTML = '<div class="home start"><p class="lead">Get going with PmagPy Apps by navigating to data</p></div>'
+EXAMPLE_NAME = "McMurdo"
+
+
+@dataclass(frozen=True)
+class Door:
+    """One way in, on the start page.
+
+    Attributes:
+        attribute: the :class:`HomeView` attribute holding its button.
+        title, text: what the card says.
+        label: the button's words.
+        color: the card's top rule.
+    """
+    attribute: str
+    title: str
+    text: str
+    label: str
+    color: str
+
+
+DOORS = (
+    Door("open_btn", "Open MagIC data",
+         "A directory of MagIC tables on this computer — a study in progress, or a contribution you downloaded before.",
+         "Open a directory…", "#1f4e9c"),
+    Door("download_start_btn", "Download from MagIC",
+         "A published contribution by its MagIC ID or the DOI of the paper; its tables land in a folder of your own "
+         "and open here.", "Download…", "#6d4fc2"),
+    Door("convert_start_btn", "Convert measurement files",
+         "Lab files — CIT, 2G, JR6, AGICO, MPMS, VSM and more — become MagIC tables in their folder, which then opens "
+         "here.", "Choose the files' folder…", "#d97706"),
+    Door("example_btn", "Explore an example",
+         f"The {EXAMPLE_NAME} Sound volcanics (Lawrence et al. 2009, MagIC 13436), shipped with PmagPy — "
+         "demagnetization, paleointensity, hysteresis and anisotropy in one study.",
+         "Explore the example", "#2e8b57"),
+)
 
 
 # ----- the view ------------------------------------------------------------------------
 
 
 class HomeView:
-    """Home as Panel objects, rebuilt whenever the session's directory changes."""
+    """Home as Panel objects: the start page while nothing is open, the directory page after; rebuilt
+    whenever the session's directory changes."""
 
     def __init__(self, session: HubSession):
         self.s = session
+        # the start page
+        self.start_heading = pn.pane.HTML(START_HTML, stylesheets=[CSS], sizing_mode="stretch_width")
+        self.doors = []
+        for door in DOORS:
+            button = pn.widgets.Button(name=door.label, button_type="primary", width=220, margin=(0, 0, 6, 0),
+                                       stylesheets=[f".bk-btn-primary, .bk-btn-primary:hover, .bk-btn-primary:focus "
+                                                    f"{{ background-color:{door.color} !important; border-color:{door.color} !important }}"
+                                                    ".bk-btn-primary:hover { filter:brightness(.92) }"])
+            setattr(self, door.attribute, button)
+            self.doors.append(pn.Column(
+                pn.pane.HTML(f'<div class="home door"><h3>{_esc(door.title)}</h3><p>{_esc(door.text)}</p></div>',
+                             stylesheets=[CSS], sizing_mode="stretch_width"),
+                button, sizing_mode="stretch_width", margin=(0, 10, 16, 0),
+                styles={"background": "#fff", "border": "1px solid #e3e6ea", "border-top": f"5px solid {door.color}",
+                        "border-radius": "10px", "padding": "18px 20px 14px", "box-shadow": "0 1px 3px rgba(0,0,0,.05)"}))
+        self.recent_pane = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width", margin=(20, 0, 0, 0))
+        self.example_btn.on_click(lambda e: self.open_example())
+        # the directory page
         self.heading = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width")
+        self.ref = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width", margin=(-6, 10, 0, 10))
         self.facts = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width")
         self.strip = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width")
         self.bars = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width")
-        self.aside = pn.pane.HTML("", stylesheets=[CSS], width=340, sizing_mode="fixed")
-        self.spacer = pn.Spacer(width=28, sizing_mode="fixed")
+        self.aside = pn.pane.HTML("", stylesheets=[CSS], width=340)
+        self.spacer = pn.Spacer(width=28)
         self.change_btn = pn.widgets.Button(name="Change directory…", button_type="primary", width=170,
                                             margin=(30, 0, 0, 0))
         self.download_btn = pn.widgets.Button(name="Download from MagIC…", button_type="default", width=200,
                                               margin=(30, 10, 0, 0))
         self.convert_btn = pn.widgets.Button(name="Convert files…", button_type="default", width=150,
                                              margin=(30, 10, 0, 0))
+        self.metadata_btn = pn.widgets.Button(name="Metadata…", button_type="default", width=120,
+                                              margin=(30, 10, 0, 0))
+        self.upload_btn = pn.widgets.Button(name="Upload…", button_type="default", width=110,
+                                            margin=(30, 10, 0, 0))
+        self.start_btn = pn.widgets.Button(name="Start page", button_type="light", width=100, margin=(30, 0, 0, 10))
+        self.start_btn.on_click(lambda e: self.go_start())
+        self.start = pn.Column(self.start_heading, pn.GridBox(*self.doors, ncols=2, sizing_mode="stretch_width"),
+                               self.recent_pane, sizing_mode="stretch_width")
+        self.work = pn.Column(
+            pn.Row(self.heading, self.convert_btn, self.metadata_btn, self.upload_btn, self.download_btn, self.change_btn,
+                   self.start_btn, sizing_mode="stretch_width"),
+            self.ref, self.facts, self.strip,
+            pn.Row(self.bars, self.spacer, self.aside, sizing_mode="stretch_width", margin=(28, 0, 0, 0)),
+            sizing_mode="stretch_width")
         session.param.watch(lambda e: self.refresh(), "directory")
         self.refresh()
 
+    def open_example(self) -> bool:
+        """Open the shipped example; it is not remembered as a recent directory."""
+        path = datasets.example_dir(EXAMPLE_NAME)
+        if not path:
+            self.s.status = f"the {EXAMPLE_NAME} example is not installed with this copy of PmagPy"
+            return False
+        if self.s.load(path, remember=False):
+            _set_url(path)
+            return True
+        return False
+
+    def go_start(self) -> None:
+        self.s.start()
+        _set_url("")
+
     def refresh(self) -> None:
+        self.start.visible = self.s.landing
+        self.work.visible = not self.s.landing
+        if self.s.landing:
+            self.recent_pane.object = recent_html(self.s.recent())
+            return
         inv = self.s.inventory
-        self.heading.object = heading_html(inv)
+        self.heading.object = title_html(inv)
+        self.ref.object = ref_html(inv)
         self.facts.object = facts_html(inv)
         self.strip.object = strip_html(inv)
         self.bars.object = bars_html(inv)
-        self.aside.object = aside_html(inv, self.s.recent() if self.s.landing else [])
+        self.aside.object = aside_html(inv)
         self.aside.visible = self.spacer.visible = bool(self.aside.object)     # no column when there is nothing to put in it
-        # The next thing to do is the primary button: pick a directory when this is a MagIC one,
-        # download into it when it is empty, convert when it holds lab files and no tables.
-        self.change_btn.button_type = "primary" if inv.is_magic else "default"
+        # The next thing to do is the primary button: download into an empty directory, convert when it
+        # holds lab files and no tables, fill the metadata when the tables have gaps, otherwise pick a directory.
+        self.change_btn.button_type = "primary" if inv.is_magic and not inv.gaps and inv.uploads else "default"
+        self.upload_btn.button_type = "primary" if inv.is_magic and not inv.gaps and not inv.uploads else "default"
         self.download_btn.button_type = "primary" if inv.is_empty else "default"
-        self.convert_btn.button_type = "primary" if inv.files and not inv.is_magic else "default"
+        self.convert_btn.button_type = "primary" if (inv.files or inv.has_level_tables) and not inv.is_magic else "default"
         self.convert_btn.visible = not inv.is_empty
+        self.metadata_btn.button_type = "primary" if inv.is_magic and inv.gaps else "default"
+        self.metadata_btn.visible = inv.is_magic
+        self.upload_btn.visible = inv.is_magic
 
     def panel(self) -> pn.Column:
-        return pn.Column(
-            pn.Row(self.heading, self.convert_btn, self.download_btn, self.change_btn, sizing_mode="stretch_width"),
-            self.facts, self.strip,
-            pn.Row(self.bars, self.spacer, self.aside, sizing_mode="stretch_width", margin=(28, 0, 0, 0)),
-            sizing_mode="stretch_width", max_width=1100, margin=(18, 40, 40, 40),
-        )
+        return pn.Column(self.start, self.work, sizing_mode="stretch_width", max_width=1100, margin=(18, 40, 40, 40))
+
+
+def _set_url(directory: str) -> None:
+    """Put the open directory on the browser's URL (``?dir=``), or clear it, so a reload comes back to the same page."""
+    location = runtime.location()
+    if location is not None:
+        location.search = f"?dir={quote(directory)}" if directory else ""
 
 
 # ----- opening a different directory -----------------------------------------------------

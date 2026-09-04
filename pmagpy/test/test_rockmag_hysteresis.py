@@ -710,6 +710,44 @@ class TestOpenLoopBrh:
         assert res_open['loop_is_closed'] is False
         assert set(res_full) == set(res_lin) == set(res_open)
 
+    def test_the_summary_table_is_returned_not_only_shown(self, monkeypatch):
+        # each outcome reports the parameters defined for it; with
+        # show_results_table=False nothing is shown, but the one-row table
+        # and its values come back for a caller to place in its own layout
+        import warnings as _warnings
+        pytest.importorskip('bokeh')
+        from bokeh.models import DataTable
+        shown = []
+        monkeypatch.setattr(rmag, 'show', lambda obj: shown.append(obj))
+        H_full, M_full = synthetic_loop(noise=5e-4, chi=0.2)
+        H_lin, M_lin = synthetic_loop(Ms=0.0, chi=0.2, noise=1e-4)
+        H_open, M_open = synthetic_loop(Ms=0.65, Bc=0.05, w=0.03,
+                                        hard_Ms=1.0, hard_Bc=2.0,
+                                        hard_w=1.5, noise=2e-4)
+        with _warnings.catch_warnings():
+            _warnings.simplefilter('ignore')
+            res_full, res_lin, res_open = [
+                rmag.process_hyst_loop(H, M, show_results_table=False,
+                                       show_plot=False)
+                for H, M in ((H_full, M_full), (H_lin, M_lin),
+                             (H_open, M_open))]
+        assert shown == []
+        assert set(res_full['summary']) == {'Mr', 'Ms', 'Bc', 'Brh', 'sigma',
+                                            'Q', 'Qf', 'chi_HF',
+                                            'FNL60', 'FNL70', 'FNL80'}
+        assert set(res_lin['summary']) == {'chi_HF', 'FNL'}
+        assert set(res_open['summary']) == {'Mr', 'Brh', 'Q', 'FNL60',
+                                            'FNL70', 'FNL80', 'SNR', 'HAR'}
+        for res in (res_full, res_lin, res_open):
+            assert isinstance(res['summary_table'], DataTable)
+            table_values = {col.field: res['summary_table'].source.data[col.field][0]
+                            for col in res['summary_table'].columns}
+            assert table_values == res['summary']
+        assert res_full['summary']['Ms'] == res_full['Ms']
+        # the default still shows it (once per loop), alongside the plot
+        rmag.process_hyst_loop(H_full, M_full, show_plot=False)
+        assert len(shown) == 1
+
 
 class TestSparseLoopSaturation:
     def test_sparse_loop_does_not_abort(self):
@@ -777,6 +815,49 @@ class TestHystStatsDescriptionJSON:
         assert data['coercivity_unmixing'] == {'B1': 30.0}
         assert data['Q'] == pytest.approx(5.0)
         assert data['loop_is_closed'] is True
+
+    def test_single_result_dict_is_accepted(self):
+        # the writer also takes the dict process_hyst_loop returns for one
+        # loop, once it has been told which specimen/experiment it belongs to;
+        # arrays and the plot are left out of the specimens row
+        H, M = synthetic_loop()
+        results = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                         show_plot=False)
+        specimens = pd.DataFrame([{
+            'specimen': 'spec1', 'experiments': 'spec1-HYS1',
+        }])
+        with pytest.raises(ValueError, match="'specimen' and 'experiment'"):
+            rmag.add_hyst_stats_to_specimens_table(specimens, results)
+        results.update(specimen='spec1', experiment='spec1-HYS1')
+        out = rmag.add_hyst_stats_to_specimens_table(specimens, results)
+        assert len(out) == 1
+        assert out.loc[0, 'hyst_bc'] == pytest.approx(results['Bc'])
+        assert out.loc[0, 'hyst_mr_mass'] == pytest.approx(results['Mr'])
+        text, data = rmag.parse_specimen_description(
+            out.loc[0, 'description'])
+        assert data['Q'] == pytest.approx(results['Q'])
+        assert 'gridded_H' not in data and 'plot' not in data
+        # the same table comes out of the batch path
+        batch = rmag.add_hyst_stats_to_specimens_table(
+            specimens, pd.DataFrame([{k: v for k, v in results.items()
+                                      if np.ndim(v) == 0 and k != 'plot'}]))
+        assert out.loc[0, 'hyst_xhf'] == batch.loc[0, 'hyst_xhf']
+
+    def test_magnetization_picks_the_columns(self):
+        # a loop in Am2 or A/m is not a mass-normalised one: its Ms and Mr go
+        # to the data model's _moment / _volume columns, never to _mass
+        specimens = pd.DataFrame([{
+            'specimen': 'spec1', 'experiments': 'spec1-HYS1',
+        }])
+        out = rmag.add_hyst_stats_to_specimens_table(
+            specimens, self._hyst_results(), magnetization='magn_moment')
+        assert out.loc[0, 'hyst_ms_moment'] == pytest.approx(1.0)
+        assert out.loc[0, 'hyst_mr_moment'] == pytest.approx(0.4)
+        assert out.loc[0, 'hyst_bc'] == pytest.approx(0.05)
+        assert 'hyst_ms_mass' not in out.columns
+        with pytest.raises(ValueError, match='magnetization'):
+            rmag.add_hyst_stats_to_specimens_table(
+                specimens, self._hyst_results(), magnetization='magn_r')
 
     def test_legacy_dict_cell_migrated(self):
         # legacy str(dict) cells written by older versions are parsed and
