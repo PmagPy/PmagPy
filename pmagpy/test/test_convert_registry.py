@@ -448,6 +448,10 @@ class TestFieldNotebook:
         assert len(samples) == result.tables["samples"] > 0
         assert samples["sample"].is_unique
         assert (samples["method_codes"] == "FS-FD:SO-NO").all() and (samples["location"] == "Iceland").all()
+        # 'is001a 183 14 149 5': bedding by the right-hand rule dips to the right of the strike
+        is001a = samples[samples["sample"] == "is001a"].iloc[0]
+        assert (float(is001a["bed_dip_direction"]), float(is001a["bed_dip"])) == (239.0, 5.0)
+        assert (float(is001a["azimuth"]), float(is001a["dip"])) == (183.0, 76.0)   # convention 3, see QUESTIONS 46
 
     def test_normalise_accepts_none(self):
         assert reg._normalise((True, None)) == (True, "")

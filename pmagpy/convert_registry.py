@@ -1082,8 +1082,8 @@ _add(Format(
     extensions=(".dat", ".txt"),
     examples=(("../azdip_magic/azdip_magic_example.dat", {"location": "Iceland"}),),
     notes="Space-delimited 'sample azimuth dip strike dip' lines, azimuths already true north; the converter "
-          "applies orientation convention 3 (lab arrow dip = 90 − dip) and takes bedding as strike and dip. "
-          "Writes samples only."))
+          "applies orientation convention 3 (lab arrow dip = 90 − dip) and takes bedding as strike and dip "
+          "with the right-hand rule (dip direction = strike + 90). Writes samples only."))
 
 
 # ----- MagIC 2.5 tables: the upgrade, so an old dataset opens like a new one ---------------------------

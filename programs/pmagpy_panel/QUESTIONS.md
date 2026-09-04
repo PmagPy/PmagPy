@@ -525,6 +525,27 @@ the bottom; struck through once settled.
       is the AzDip file format's meaning? The Convert note now just states
       what the converter does (convention 3) rather than either docstring.
 
+    *Nick, 2026-09-04*: (i) `build_orientation` now ranks a sample's rows
+    by azimuth source (`magic_project.SO_PRIORITY`, as `pmag.set_priorities`: sun compass /
+    differential GPS / sighting, then `SO-CMD-NORTH`, then raw compass or
+    unlabelled; first in the table among equals); `orient` keeps writing
+    one row per method. (ii) The `azdip` bedding was a bug: now
+    `bed_dip_direction = (strike + 90) % 360` (right-hand rule), docstrings
+    and the Convert note say so, and the Iceland example's `is001a` gives
+    239 (was 59). (iii) The dip convention (hade vs inclination from
+    horizontal) is to be asked of Lisa; convention 3 stays until then.
+    Draft for Lisa:
+
+    > The AzDip format (`azdip_magic`) reads `sample az dip strike dip` and
+    > calls `pmag.orient(az, dip, or_con=3)`, i.e. lab arrow dip = 90 − dip,
+    > which treats the file's dip as a hade (degrees from vertical). The
+    > function's docstring says the dip is "degrees from horizontal of the
+    > drill direction", and `pmag.orient` has a separate convention 5
+    > labelled "AZDIP" that does dip − 90. For `is001a 183 14` in the
+    > shipped example these give lab dips of 76 and −76. Which is the AzDip
+    > file's meaning — was 14 a hade or a plunge from horizontal? We want to
+    > document it and, if convention 3 is wrong, fix it.
+
 47. **Kappabridge converters as Convert formats** (2026-09-02). `k15`,
     `kly4s`, `sufar4` and the LORE `iodp_kly4s` export are registry Formats;
     a directory converted from any of them opens Anisotropy. Choices made

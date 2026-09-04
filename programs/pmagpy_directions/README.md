@@ -376,8 +376,12 @@ re-interpretation).
   `cb.Contribution` and builds one tidy step table per specimen
   (`SpecimenData.steps`): `sequence`, `treat_type`, `treat_value` (SI),
   `label`, `dec_s/inc_s`, `dec_g/inc_g`, `dec_t/inc_t`, `moment`,
-  `moment_norm`, `csd`, `quality`. Multi-row samples tables are handled;
-  `orientation_quality == 'b'` rows are skipped.
+  `moment_norm`, `csd`, `quality`. Multi-row samples tables are handled:
+  `orientation_quality == 'b'` rows are skipped and, when a sample has a
+  row per orientation method (as `orientation_magic` writes), the azimuth
+  comes from the best source — sun compass, differential GPS or sighting
+  over a declination-corrected compass over a raw compass reading
+  (`magic_project.SO_PRIORITY`, the order `pmag.set_priorities` uses).
 * `Component` bounds are step indices, so duplicate treatment values and
   unit conversions never bite; `DirectionResult` carries MagIC 3 names.
 * `fit()` (cached) delegates to `pmag.domean`; `mean_directions()` to

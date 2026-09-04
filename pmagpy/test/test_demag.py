@@ -88,6 +88,25 @@ class TestLoading:
         assert "SO-GPS-DIFF" in orient.method_codes
         assert "SO-POM" not in orient.method_codes
 
+    def test_orientation_prefers_sun_then_corrected_over_raw_compass(self):
+        """orientation_magic writes one row per method; the raw compass row comes first but must not win."""
+        import pandas as pd
+        rows = pd.DataFrame({
+            "sample": ["mc123a"] * 3,
+            "azimuth": [258.0, 48.3, 200.1], "dip": [-38.0, -38.0, -38.0],
+            "bed_dip_direction": [np.nan, np.nan, 100.0], "bed_dip": [np.nan, np.nan, 20.0],
+            "method_codes": ["FS-FD:SO-MAG", "FS-FD:SO-CMD-NORTH", "FS-FD:SO-SUN"],
+        })
+        orient = build_orientation(rows, "mc123a")
+        assert orient.azimuth == 200.1 and orient.method_codes == ["SO-SUN"]
+        assert (orient.bed_dip_direction, orient.bed_dip) == (100.0, 20.0)
+        without_sun = build_orientation(rows.iloc[:2], "mc123a")
+        assert without_sun.azimuth == 48.3 and without_sun.method_codes == ["SO-CMD-NORTH"]
+        # a flagged sun row drops out; among equals the first row in the table wins
+        rows.loc[2, "orientation_quality"] = "b"
+        rows.loc[1, "method_codes"] = "FS-FD:SO-MAG"
+        assert build_orientation(rows, "mc123a").azimuth == 258.0
+
     def test_site_coords(self, dmag):
         lat, lon = dmag.site_coords["jm002"]
         assert 70 < lat < 72 and 351 < lon < 352
