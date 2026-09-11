@@ -791,3 +791,69 @@ class TestHystStatsDescriptionJSON:
             out.loc[0, 'description'])
         assert data['old_stat'] == pytest.approx(1.5)
         assert data['Brh'] == pytest.approx(0.08)
+
+
+class TestSummaryTableUnits:
+    """Units reported with the hysteresis summary parameters (issue #889)."""
+
+    def test_units_of_each_reported_parameter(self):
+        # moment parameters take the magnetization unit, the characteristic
+        # fields are in tesla, the closure-test ratios are logarithmic, and
+        # the ratio/F-statistic parameters are dimensionless
+        assert rmag._hyst_param_unit('Ms') == 'Am²/kg'
+        assert rmag._hyst_param_unit('Mr') == 'Am²/kg'
+        assert rmag._hyst_param_unit('Bc') == 'T'
+        assert rmag._hyst_param_unit('Brh') == 'T'
+        assert rmag._hyst_param_unit('SNR') == 'dB'
+        assert rmag._hyst_param_unit('HAR') == 'dB'
+        for dimensionless in ('Q', 'Qf', 'sigma', 'FNL', 'FNL60', 'FNL80'):
+            assert rmag._hyst_param_unit(dimensionless) == ''
+
+    def test_chi_HF_unit_follows_magnetization_unit(self):
+        # chi_HF = mu_0 dM/dB, so mass-normalized magnetization gives a
+        # mass-specific susceptibility and volume-normalized magnetization
+        # gives the dimensionless SI susceptibility
+        assert rmag._hyst_param_unit('chi_HF') == 'm³/kg'
+        assert rmag._hyst_param_unit('chi_HF', 'A/m') == 'SI'
+        assert rmag._hyst_param_unit('chi_HF', 'Am²') == 'm³'
+        # an unrecognized magnetization unit is reported without a guess
+        assert rmag._hyst_param_unit('chi_HF', 'emu/g') == ''
+
+    def test_labels_append_unit_only_when_defined(self):
+        assert rmag._hyst_param_label('Bc') == 'Bc (T)'
+        assert rmag._hyst_param_label('Ms', 'A/m') == 'Ms (A/m)'
+        assert rmag._hyst_param_label('Q') == 'Q'
+
+    def test_summary_table_headers_carry_units(self, monkeypatch):
+        pytest.importorskip("bokeh")
+        shown = []
+        monkeypatch.setattr(rmag, 'show', shown.append)
+        rmag._show_hyst_summary_table(
+            {'Ms': 1.0, 'Bc': 0.05, 'chi_HF': 1e-7, 'Q': 5.0}, 600)
+        data_table = shown[0].children[0]
+        titles = [col.title for col in data_table.columns]
+        assert titles == ['Ms (Am²/kg)', 'Bc (T)', 'chi_HF (m³/kg)', 'Q']
+        # the underlying field names are unchanged, so the values still map
+        # to the parameter keys used by the results dictionary
+        assert [col.field for col in data_table.columns] == [
+            'Ms', 'Bc', 'chi_HF', 'Q']
+
+    def test_batch_unit_inferred_from_magic_column(self, monkeypatch):
+        pytest.importorskip("bokeh")
+        captured = {}
+
+        def fake_table(summary, width, magn_unit=rmag._DEFAULT_MAGN_UNIT):
+            captured['magn_unit'] = magn_unit
+
+        monkeypatch.setattr(rmag, '_show_hyst_summary_table', fake_table)
+        H, M = synthetic_loop(Ms=1.0, Bc=0.05, w=0.03, chi=0.2, noise=5e-4)
+        measurements = pd.DataFrame({'experiment': 'exp1',
+                                     'meas_field_dc': H,
+                                     'magn_volume': M})
+        experiments = pd.DataFrame([{'experiment': 'exp1',
+                                     'specimen': 'spec1'}])
+        rmag.process_hyst_loops(experiments, measurements,
+                                magn_col='magn_volume', show_plots=False)
+        # volume-normalized measurements are labeled A/m rather than the
+        # mass-normalized default
+        assert captured['magn_unit'] == 'A/m'
