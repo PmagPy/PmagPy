@@ -13,7 +13,6 @@ import panel as pn
 
 import pmagpy.demag as dc
 
-from . import publication as pub
 from .logger import StepLogger
 from pmagpy_panel.widgets import HeightSplitter, Hotkeys
 from .plots import DecayPlot, DirectionsPlot, PoleMapPlot, StepEqualAreaPlot, ZijderveldPlot
@@ -35,6 +34,17 @@ SIDE_PLOT = 380      # equal-area net in the side column, inside its 450 px defa
 def next_tick(fn):
     """Run ``fn`` under the Bokeh document lock (immediately when not serving)."""
     runtime.locked(fn)
+
+
+def _pub():
+    """The publication-figure module, imported when a figure is first asked for.
+
+    It brings in matplotlib's pyplot and with it the font cache, which a fresh
+    machine (or a packaged build on its first launch) takes tens of seconds to
+    build; the interactive views need none of it.
+    """
+    from . import publication
+    return publication
 
 
 def section(text: str):
@@ -68,9 +78,23 @@ def plot_box(fig, size):
 
 
 class LazyView:
-    """Mixin: redraw immediately while visible, otherwise remember to redraw on activation."""
+    """Mixin: redraw immediately while visible, otherwise remember to redraw on activation.
+
+    A view built for a tab that is not on show is constructed with
+    ``active=False``: it draws nothing until its tab is opened, so the page
+    appears as soon as the Specimen tab is ready rather than after every tab
+    has computed its means.
+    """
 
     active = True
+
+    def _start(self, active: bool) -> None:
+        """The first draw: now, or when the tab is first shown."""
+        self.active = active
+        if active:
+            self.redraw()
+        else:
+            self._dirty = True
 
     def _lazy_redraw(self, *events):
         if self.active:
@@ -464,8 +488,9 @@ class SpecimenView:
 class MeansView(LazyView):
     """Sample / site / location means: plot specimen fits or lower-level means."""
 
-    def __init__(self, session: Session):
+    def __init__(self, session: Session, active: bool = True):
         self.s = session
+        self.active = active
         self.level = pn.widgets.RadioButtonGroup(options=["sample", "site", "location"], value="site",
                                                  button_type="primary", button_style="outline", stylesheets=[BUTTON_GROUP_CSS])
         self.name = pn.widgets.Select(name="Name", options=[], width=220)
@@ -515,11 +540,11 @@ class MeansView(LazyView):
         self.on_goto = None          # set by the app: switches to the Specimen tab
         self.level.param.watch(self._on_level, "value")      # options first ...
         for w in (self.level, self.name, self.comp, self.show, self.stat):
-            w.param.watch(self.redraw, "value")               # ... then redraw
+            w.param.watch(self._lazy_redraw, "value")         # ... then redraw (when the tab is on show)
         session.param.watch(self._on_level, ["version"])
         session.param.watch(self._lazy_redraw, ["coord", "version", "unify_polarity", "flip_polarity"])
         self._on_level()
-        self.redraw()
+        self._start(active)
 
     def _on_level(self, *events):
         s = self.s
@@ -598,9 +623,10 @@ class MeansView(LazyView):
                                 "n": int(m.get("dir_n_specimens", 0)), "_comp": None, "_color": color,
                                 "_specimens": m.get("specimens", ""),
                                 "_dec": m["dir_dec"], "_inc": m["dir_inc"], "_plane": False})
+        # only the group on show is averaged (the polarity axis of a location's mean
+        # is still the whole study's, so the row is the one the full table would hold)
         means = s.data.mean_directions(level, coord, comp, over=over, common_polarity=s.unify_polarity,
-                                       flip=s.flip_polarity) if name else pd.DataFrame()
-        means = means[means[level] == name] if len(means) else means
+                                       flip=s.flip_polarity, group=name) if name else pd.DataFrame()
         # each great circle carries the point the mean is actually formed from
         # (MM88), resolved per component exactly as the mean is
         vectors = []
@@ -763,7 +789,7 @@ class MeansView(LazyView):
         dirs, planes, means, _, _, vectors = self._collect()
         comp = self.comp.value
         title = f"{comp} · {self.level.value} {self.name.value}" if comp != "all" else f"{self.level.value} {self.name.value}"
-        fig = pub.directions_figure([(d[0], d[1], d[2], d[4]) for d in dirs], title=title, planes=planes,
+        fig = _pub().directions_figure([(d[0], d[1], d[2], d[4]) for d in dirs], title=title, planes=planes,
                                     caption=f"({dc.COORD_NAMES[self.s.coord]})",
                                     means=self._plotted_means(means, dirs),
                                     mean_label=self.STAT_LABELS[self.stat.value], plane_vectors=vectors)
@@ -789,8 +815,9 @@ class PolesView(LazyView):
 
     CENTRES = {"pole": "pole", "sites": "sites", "N pole": "north", "S pole": "south", "custom": "custom"}
 
-    def __init__(self, session: Session):
+    def __init__(self, session: Session, active: bool = True):
         self.s = session
+        self.active = active
         self._syncing = False
         self.comp = pn.widgets.Select(name="Component", options=[], width=140)
         self.level = pn.widgets.RadioButtonGroup(options=["site", "sample"], value="site", button_type="primary",
@@ -817,11 +844,11 @@ class PolesView(LazyView):
         self.download = pn.widgets.FileDownload(callback=self._figure_bytes, filename="vgps.pdf",
                                                 label="Download figure (PDF)", button_type="primary", width=220)
         for w in (self.comp, self.level, self.centre):
-            w.param.watch(self.redraw, "value")
+            w.param.watch(self._lazy_redraw, "value")
         for w in (self.lon0, self.lat0):
             w.param.watch(self._on_slider, "value_throttled")
         session.param.watch(self._lazy_redraw, ["coord", "version", "unify_polarity", "flip_polarity"])
-        self.redraw()
+        self._start(active)
 
     # --- data ---------------------------------------------------------------
     def _compute(self):
@@ -939,7 +966,7 @@ class PolesView(LazyView):
         centre = self._centre(pole, rows, sites)
         title = f"{self.comp.value} VGPs ({dc.COORD_NAMES[self.s.coord]}" + \
             (", polarity flipped)" if self.s.flip_polarity else ")")
-        fig = pub.vgp_map_figure(rows, pole or None, sites, centre=centre, title=title,
+        fig = _pub().vgp_map_figure(rows, pole or None, sites, centre=centre, title=title,
                                  color=self.s.color_of(self.comp.value) if self.comp.value else "#3b6fb6")
         buf = io.BytesIO()
         fig.savefig(buf, format="pdf", bbox_inches="tight")
@@ -960,8 +987,9 @@ class PolesView(LazyView):
 class InterpretationsView(LazyView):
     """The *Fits* tab: every fit in the study; jump to a specimen, delete or flag in bulk, propagate a fit."""
 
-    def __init__(self, session: Session):
+    def __init__(self, session: Session, active: bool = True):
         self.s = session
+        self.active = active
         self.table = pn.widgets.Tabulator(pd.DataFrame(), height=560, show_index=False, disabled=True,
                                           selectable="checkbox", sizing_mode="stretch_width",
                                           # local pagination: with "remote" the header
@@ -1003,7 +1031,7 @@ class InterpretationsView(LazyView):
         self._poll = None
         self.table.param.watch(self._redraw_plot, ["selection", "filters"])
         session.param.watch(self._lazy_redraw, ["coord", "version"])
-        self.redraw()
+        self._start(active)
 
     def set_active(self, active: bool):
         super().set_active(active)
@@ -1324,7 +1352,7 @@ class ExportView:
         spec = s.data.specimens[name]
         coord = self.fig_coord.value if spec.has_coord(self.fig_coord.value) else dc.COORD_SPECIMEN
         fits = s.fits(name, coord)
-        return pub.specimen_figure(spec, fits, coord=coord, projection=self.fig_proj.value,
+        return _pub().specimen_figure(spec, fits, coord=coord, projection=self.fig_proj.value,
                                    layout=self.fig_layout.value)
 
     def _preview(self):
@@ -1336,25 +1364,25 @@ class ExportView:
     def _save_current_figure(self, event=None):
         fig = self._specimen_figure(self.s.specimen)
         path = os.path.join(self._figures_dir(), f"{self.s.specimen}.{self.fig_format.value}")
-        self.status.object = f"Saved `{pub.save_figure(fig, path)}`"
+        self.status.object = f"Saved `{_pub().save_figure(fig, path)}`"
         self.preview.object = fig
 
     def _save_all_figures(self, event=None):
         names = sorted({c.specimen for c in self.s.data.components}, key=dc._natural_key)
         out = self._figures_dir()
         for name in names:
-            pub.save_figure(self._specimen_figure(name), os.path.join(out, f"{name}.{self.fig_format.value}"))
+            _pub().save_figure(self._specimen_figure(name), os.path.join(out, f"{name}.{self.fig_format.value}"))
         self.status.object = f"Saved {len(names)} specimen figures to `{out}`"
 
     def _save_overview(self, event=None):
         coord = self.fig_coord.value
         try:
-            fig = pub.components_overview_figure(self.s.data, coord, color_of=self.s.color_of)
+            fig = _pub().components_overview_figure(self.s.data, coord, color_of=self.s.color_of)
         except ValueError as exc:
             self.status.object = f"**No overview:** {exc}"
             return
         path = os.path.join(self._figures_dir(), f"directions_{dc.COORD_NAMES[coord]}.{self.fig_format.value}")
-        self.status.object = f"Saved `{pub.save_figure(fig, path)}`"
+        self.status.object = f"Saved `{_pub().save_figure(fig, path)}`"
         self.preview.object = fig
 
     def _save_vgp_maps(self, event=None):
@@ -1371,8 +1399,8 @@ class ExportView:
                 continue
             rows = [(v["vgp_lon"], v["vgp_lat"], v["site"], bool(v.get("flipped", False))) for _, v in vgps.iterrows()]
             title = f"{comp} VGPs ({dc.COORD_NAMES[coord]}" + (", polarity flipped)" if self.s.flip_polarity else ")")
-            fig = pub.vgp_map_figure(rows, pole or None, sites, title=title, color=self.s.color_of(comp))
-            saved.append(pub.save_figure(fig, os.path.join(self._figures_dir(),
+            fig = _pub().vgp_map_figure(rows, pole or None, sites, title=title, color=self.s.color_of(comp))
+            saved.append(_pub().save_figure(fig, os.path.join(self._figures_dir(),
                                                            f"vgps_{comp}_{dc.COORD_NAMES[coord]}.{self.fig_format.value}")))
             self.preview.object = fig
         self.status.object = ("Saved:\n" + "\n".join(f"- `{p}`" for p in saved)) if saved else \

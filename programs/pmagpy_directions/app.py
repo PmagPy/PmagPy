@@ -5,7 +5,7 @@ import os
 
 import panel as pn
 
-from pmagpy_panel import runtime, shell
+from pmagpy_panel import datasets, runtime, shell
 from pmagpy_panel.theme import TABS_CSS
 from .session import APP, Session, session_directory
 from .views import DataView, ExportView, InterpretationsView, MeansView, PolesView, SpecimenView
@@ -24,9 +24,11 @@ def build_body(session: Session) -> shell.Body:
     """
     dataview = DataView(session)
     specimen = SpecimenView(session)
-    means = MeansView(session)
-    poles = PolesView(session)
-    interps = InterpretationsView(session)
+    # the tabs that are not on show draw nothing until they are opened: the page is
+    # ready when the Specimen tab is, not after every mean in the study is computed
+    means = MeansView(session, active=False)
+    poles = PolesView(session, active=False)
+    interps = InterpretationsView(session, active=False)
     export = ExportView(session)
 
     # analysis order: interpret specimens, review every fit, then means, poles, export
@@ -66,6 +68,7 @@ def build_body(session: Session) -> shell.Body:
 
     dataview.change_btn.on_click(lambda e: body.open_modal())
     dataview.on_loaded = lambda: body.close_modal()
+    dataview.busy = main             # a spinner over the plots while the next dataset is read
     return body
 
 
@@ -80,8 +83,27 @@ def create_app(directory: str, output_dir: str | None = None):
 
 
 def serve_default():
-    """The page for the directory this session asked for: ``?dir=``, then the environment, then McMurdo."""
-    repo = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    """The page for the directory this session asked for: ``?dir=``, then the environment, then McMurdo.
+
+    The page is served at once with a loading line and fills in when the dataset
+    has been read (:func:`pmagpy_panel.shell.deferred_template`): a study of a
+    thousand specimens takes a second or two, and the analyst sees the header
+    and the spinner instead of a blank tab. ``session`` is set on the template
+    once the body is built (immediately outside a served session).
+    """
     # PMAGPY_DIRECTIONS_OUTPUT is a base: every dataset gets <base>/<dataset>/ (default_output_dir),
-    # the first one included
-    return create_app(session_directory(os.path.join(repo, "data_files", "3_0", "McMurdo")))
+    # the first one included. The example is found wherever this copy of PmagPy keeps
+    # its data files — a checkout, a wheel's sys.prefix, or the packaged build's bundle
+    directory = session_directory(datasets.example_dir("McMurdo"))
+    name = os.path.basename(directory.rstrip("/")) or directory
+    holder = {}
+
+    def build():
+        session = Session(directory, None, cache=True)
+        holder["session"] = session
+        if session.data is None:
+            return pn.pane.Markdown(f"## Could not load `{directory}`\n\n{session.status}")
+        return build_body(session)
+    template = shell.deferred_template(APP, LOGO, build, hub_url=runtime.hub_url(), loading=f"Loading {name} …")
+    template.session = holder.get("session")
+    return template

@@ -69,15 +69,34 @@ def default_output_dir(directory: str) -> str:
 
 
 _DATASETS: dict = {}          # directory -> (DemagData, code stamp); shared by all browser sessions
+AUTOSAVE_DELAY = 0.8          # seconds of quiet after an edit before the .redo is written
+
+
+def _server_document():
+    """The Bokeh document of the served session this code runs in, or None outside one."""
+    try:
+        import panel as pn
+        doc = pn.state.curdoc
+    except Exception:
+        return None
+    if doc is not None and getattr(doc, "session_context", None) is not None:
+        return doc
+    return None
 
 
 def _code_stamp() -> float:
-    """Newest modification time of the app's source files (invalidates the cache after edits)."""
+    """Newest modification time of the app's source files (invalidates the cache after edits).
+
+    Zero in a packaged build, where the sources are frozen into an archive and
+    there is nothing on disk to date (the code cannot change under a running app).
+    """
     here = os.path.dirname(os.path.abspath(__file__))
     core = os.path.dirname(os.path.abspath(dc.__file__))
-    files = [os.path.join(core, "demag.py"), os.path.join(core, "demag_geo.py")] + \
-            [os.path.join(here, f) for f in os.listdir(here) if f.endswith(".py")]
-    return max(os.path.getmtime(f) for f in files if os.path.exists(f))
+    files = [os.path.join(core, "demag.py"), os.path.join(core, "demag_geo.py")]
+    if os.path.isdir(here):
+        files += [os.path.join(here, f) for f in os.listdir(here) if f.endswith(".py")]
+    stamps = [os.path.getmtime(f) for f in files if os.path.exists(f)]
+    return max(stamps) if stamps else 0.0
 
 
 class Session(param.Parameterized):
@@ -106,6 +125,9 @@ class Session(param.Parameterized):
         self.data: Optional[dc.DemagData] = None
         self.colors = ComponentColors()
         self.autosave_enabled = True
+        self.autosave_delay = AUTOSAVE_DELAY
+        self._autosave_doc = None     # the Bokeh document holding a pending autosave, and its callback
+        self._autosave_pending = None
         self.cache = cache            # reuse an already loaded dataset (its interpretations included)
         if directory:
             self.load(directory, output_dir)
@@ -116,6 +138,7 @@ class Session(param.Parameterized):
         if not looks_like_magic_dir(directory):
             self.status = f"{directory} has no measurements.txt"
             return False
+        self.flush_autosave()         # the dataset being left keeps its last edits
         self.output_dir = output_dir or default_output_dir(directory)
         stamp = _code_stamp()
         cached = _DATASETS.get(directory) if self.cache else None
@@ -158,6 +181,9 @@ class Session(param.Parameterized):
                           coord=data.default_coord(),
                           status=f"{len(names)} specimens from {os.path.basename(directory.rstrip('/'))}; {message}",
                           version=self.version + 1)
+        # re-opening the directory that is already open leaves `specimen` unchanged, so
+        # its watcher does not run: the selected fit is settled here in every case
+        self._sync_current()
         return True
 
     # ------------------------------------------------------------------ accessors
@@ -243,7 +269,7 @@ class Session(param.Parameterized):
     def _changed(self) -> None:
         self.version += 1
         if self.autosave_enabled:
-            self.autosave()
+            self.request_autosave()
 
     def add_component(self, name: str, imin: int, imax: int, fit_type: str = "DE-BFL") -> dc.Component:
         comp = self.data.add_component(self.specimen, name or "A", imin, imax, fit_type,
@@ -338,11 +364,47 @@ class Session(param.Parameterized):
         return os.path.join(self.output_dir, AUTOSAVE_NAME)
 
     def autosave(self) -> None:
+        """Write the auto-saved ``.redo`` now."""
+        self._autosave_pending = None
+        if self.data is None:
+            return
         try:
             os.makedirs(self.output_dir, exist_ok=True)
             self.data.write_redo(self.autosave_path, current_specimen=self.specimen)
         except OSError as exc:
             self.status = f"autosave failed: {exc}"
+
+    def request_autosave(self) -> None:
+        """Auto-save soon: once, ``autosave_delay`` seconds after the last edit.
+
+        Writing the whole study's fits takes about a tenth of a second, which is
+        most of what a bound nudge used to cost. Inside a served session the
+        write is deferred on the session's document (so the file is written
+        under the document lock, like any other change) and every edit within
+        the delay restarts the clock; outside one — a script, a test — it
+        happens at once.
+        """
+        doc = _server_document()
+        if doc is None:
+            self.autosave()
+            return
+        if self._autosave_pending is not None and self._autosave_doc is doc:
+            try:
+                doc.remove_timeout_callback(self._autosave_pending)
+            except ValueError:
+                pass
+        self._autosave_doc = doc
+        self._autosave_pending = doc.add_timeout_callback(self.autosave, int(self.autosave_delay * 1000))
+
+    def flush_autosave(self) -> None:
+        """Write a pending autosave now (before the dataset or the output directory changes)."""
+        if self._autosave_pending is None:
+            return
+        try:
+            self._autosave_doc.remove_timeout_callback(self._autosave_pending)
+        except (ValueError, AttributeError):
+            pass
+        self.autosave()
 
     def save_redo(self, path: str) -> str:
         os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
@@ -382,6 +444,7 @@ class Session(param.Parameterized):
         so that the original contribution can always be recovered.
         """
         os.makedirs(self.output_dir, exist_ok=True)
+        self.flush_autosave()
         self.backup_originals(levels, write_measurements)
         written = []
         p = self.data.write_specimens(self.output_dir, coords=coords, analysts=analysts)

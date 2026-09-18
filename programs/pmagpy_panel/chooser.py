@@ -83,6 +83,7 @@ class DirectoryChooser:
         self.s = session
         self.recent_file = recent_file
         self.on_loaded: Optional[Callable[[], None]] = None     # set by the app: closes the modal
+        self.busy: Optional[pn.viewable.Viewable] = None        # set by the app: shows a spinner while loading
         self.chooser = chooser
         self.chooser_stub = chooser_stub
         self.chooser_available = (runtime.native_chooser_available(stub=chooser_stub)
@@ -159,7 +160,14 @@ class DirectoryChooser:
             self.message.object = f'<div style="{MUTED_STYLE}">No folder chosen.</div>'
 
     def load(self, event=None) -> bool:
-        """Open the directory in the path field. False, with the reason shown, when it cannot."""
+        """Open the directory in the path field. False, with the reason shown, when it cannot.
+
+        Reading a large study takes seconds, so in a served session the page
+        first shows "Loading …" (and the spinner over ``busy``, when the
+        application gave one) and the read itself runs on the next tick; the
+        result is then reported the same way. Outside a session the read runs
+        at once and the return value is its outcome.
+        """
         text = self.path.value.strip()
         if not text:
             return False
@@ -172,7 +180,24 @@ class DirectoryChooser:
                                    f' in <code>{target}</code></div>')
             return False
         self.message.object = f'<div style="{MUTED_STYLE}">Loading {target} …</div>'
-        if not self.s.load(target):
+        self.load_btn.disabled = True
+        if self.busy is not None:
+            self.busy.loading = True
+        outcome = {}
+
+        def finish():
+            outcome["ok"] = self._finish_load(target)
+        runtime.locked(finish)
+        return outcome.get("ok", True)
+
+    def _finish_load(self, target: str) -> bool:
+        try:
+            ok = self.s.load(target)
+        finally:
+            self.load_btn.disabled = False
+            if self.busy is not None:
+                self.busy.loading = False
+        if not ok:
             self.message.object = f'<div style="color:{FAIL_COLOR}">{self.s.status}</div>'
             return False
         self.message.object = f'<div style="color:{OK_COLOR}">{self.s.status}</div>'

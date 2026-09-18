@@ -192,14 +192,18 @@ def experiment_kinds(measurements: pd.DataFrame) -> List[Kind]:
     if "method_codes" not in measurements or "specimen" not in measurements:
         return []
     codes = measurements["method_codes"].fillna("").astype(str)
+    # a table has tens of thousands of rows but only a few dozen distinct code
+    # strings: each is split and matched once, and the rows follow by lookup
+    distinct = {text: [c.strip() for c in text.split(":") if c.strip()] for text in codes.unique()}
     kinds = []
     for key, label, prefixes, variants in KIND_RULES:
-        per_row = codes.str.split(":").apply(lambda cs: [c.strip() for c in cs if _matches(c.strip(), prefixes)])
-        hit = per_row.str.len() > 0
-        if not hit.any():
+        matched = {text: [c for c in cs if _matches(c, prefixes)] for text, cs in distinct.items()}
+        hits = {text for text, cs in matched.items() if cs}
+        if not hits:
             continue
+        hit = codes.isin(hits)
         n = measurements.loc[hit, "specimen"].nunique()
-        seen = set(c for cs in per_row[hit] for c in cs)
+        seen = set(c for text in hits for c in matched[text])
         details = []
         for prefix, word in variants.items():
             if any(c == prefix or c.startswith(prefix + "-") for c in seen) and word not in details:

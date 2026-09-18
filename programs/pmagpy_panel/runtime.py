@@ -20,9 +20,26 @@ import os
 import shutil
 import subprocess
 import sys
-from typing import Optional
+from typing import Callable, Optional
 
 HUB_URL_VAR = "PMAGPY_APPS_URL"       # set by the hub's launcher for the applications it serves
+
+# A packaged build (a native window, HUB_PLAN.md §8) brings its own folder dialog
+# and registers it here: ``(start, prompt) -> path or None``, blocking, callable
+# from any thread. Everything below then uses it instead of the platform's
+# command-line dialog; nothing else in the family knows the difference.
+_folder_dialog: Optional[Callable[[Optional[str], str], Optional[str]]] = None
+
+
+def set_folder_dialog(dialog: Optional[Callable[[Optional[str], str], Optional[str]]]) -> None:
+    """Install (or, with None, remove) the host's own folder dialog."""
+    global _folder_dialog
+    _folder_dialog = dialog
+
+
+def folder_dialog():
+    """The installed folder dialog, or None when the platform's command is to be used."""
+    return _folder_dialog
 
 
 # ----- the session ------------------------------------------------------------
@@ -101,9 +118,10 @@ def hub_url() -> str:
 def open_ui(url: str) -> None:
     """Show the served page to the analyst.
 
-    Today that is a tab in the default browser. A packaged build (HUB_PLAN.md §8)
-    will show it in a native window instead — pywebview, whose window also brings
-    real file dialogs on every platform — and this is the one call that changes.
+    From the command line that is a tab in the default browser. The packaged
+    build (``pmagpy_apps.desktop``) shows the page in its own window instead and
+    never calls this; its folder dialog reaches the family through
+    :func:`set_folder_dialog`.
     """
     import webbrowser
     webbrowser.open(url)
@@ -148,6 +166,8 @@ def native_chooser_available(stub: str = "") -> bool:
         return True
     if not is_local_session():
         return False
+    if _folder_dialog is not None:
+        return True
     if sys.platform == "darwin":
         return shutil.which("osascript") is not None
     if sys.platform.startswith("linux"):
@@ -169,6 +189,12 @@ def native_choose_directory(start: Optional[str] = None, prompt: str = "Choose a
     if stub:
         return stub
     start = start if start and os.path.isdir(start) else os.path.expanduser("~")
+    if _folder_dialog is not None:
+        try:
+            chosen = _folder_dialog(start, prompt)
+        except Exception:
+            return None
+        return chosen.rstrip("/") or None if chosen else None
     cmd = _chooser_command(start, prompt)
     if cmd is None:
         return None
@@ -195,6 +221,10 @@ async def choose_directory(start: Optional[str] = None, prompt: str = "Choose a 
     if stub:
         return stub
     start = start if start and os.path.isdir(start) else os.path.expanduser("~")
+    if _folder_dialog is not None:
+        # the host's dialog blocks its caller; a worker thread keeps the server serving
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, native_choose_directory, start, prompt)
     cmd = _chooser_command(start, prompt)
     if cmd is None:
         return None

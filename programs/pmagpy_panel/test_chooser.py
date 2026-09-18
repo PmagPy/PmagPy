@@ -205,3 +205,27 @@ def test_the_toolkit_knows_nothing_about_either_science():
     code = "".join(line.split("#")[0] for line in source.splitlines(keepends=True))
     for word in ("demag", "thellier", "arai", "specimen", "paleointensity", "zijderveld"):
         assert word not in code.lower(), f"chooser.py's code mentions {word}"
+
+
+def test_loading_shows_its_state_first_and_clears_the_spinner_after(chooser, tmp_path):
+    session, view = chooser
+    busy = pn.Column()
+    view.busy = busy
+    seen = {}
+    real = session.load
+
+    def load(path):
+        seen["busy_while_loading"] = busy.loading
+        seen["button_disabled"] = view.load_btn.disabled
+        seen["message"] = view.message.object
+        return real(path)
+    session.load = load
+    other = tmp_path / "other"
+    other.mkdir()
+    shutil.copy(os.path.join(DATA, "measurements.txt"), other)
+    view.path.value = str(other)
+    assert view.load() is True
+    assert seen["busy_while_loading"] and seen["button_disabled"] and "Loading" in seen["message"]
+    assert not busy.loading and not view.load_btn.disabled and "loaded" in view.message.object
+    session.refuse = True
+    assert view.load() is False and not busy.loading and not view.load_btn.disabled

@@ -19,7 +19,7 @@ copied between the applications' ``app.py`` files; they live here now.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Callable, Optional
+from typing import Callable, Optional, Union
 
 import panel as pn
 
@@ -191,4 +191,54 @@ def template(body: Body, logo: str, hub_url: str = "") -> pn.template.FastListTe
         body.close_modal = tmpl.close_modal
     tmpl.workspace = workspace
     tmpl.body = body
+    return tmpl
+
+
+def deferred_template(info: AppInfo, logo: str, build: Callable[[], Union[Body, pn.viewable.Viewable]],
+                      hub_url: str = "", loading: str = "Loading …") -> pn.template.FastListTemplate:
+    """A page that shows at once and fills in when its body has been built.
+
+    Reading a study takes seconds; a browser tab that stays blank for those
+    seconds looks broken. This serves the header, the application's colour and
+    a loading line immediately, runs `build` once the page has rendered
+    (``pn.state.onload``) and mounts what it returns — the side column, main
+    pane, status line and modal of a :class:`Body`, or a plain viewable (an
+    error message) in the main pane. Outside a served session `build` runs at
+    once, so a test sees the finished page.
+
+    Returns:
+        the template, with ``body`` (the built :class:`Body`, or None until it
+        is built) and ``workspace`` set on it.
+    """
+    side_holder = pn.Column(sizing_mode="stretch_width")
+    main_holder = pn.Column(sizing_mode="stretch_both", loading=True, min_height=300)
+    header_holder = pn.Row(pn.pane.HTML(f'<span style="{STATUS_STYLE}">{loading}</span>', margin=(0, 0, 0, 0)),
+                           sizing_mode="stretch_width")
+    modal_holder = pn.Column()
+    frame = Body(info=info, main=main_holder, side=side_holder, header=header_holder, modal=modal_holder)
+    tmpl = template(frame, logo=logo, hub_url=hub_url)
+    tmpl.body = None
+
+    def fill():
+        try:
+            built = build()
+        except Exception as exc:                          # the page must never stay blank
+            built = pn.pane.Markdown(f"## {info.name} could not open this dataset\n\n`{exc}`")
+        main_holder.loading = False
+        if not isinstance(built, Body):
+            header_holder[:] = []
+            main_holder[:] = [built]
+            tmpl.workspace.show_side(False)
+            return
+        if built.side is not None:
+            side_holder[:] = [built.side]
+        else:
+            tmpl.workspace.show_side(False)
+        main_holder[:] = [built.main]
+        header_holder[:] = [built.header] if built.header is not None else []
+        modal_holder[:] = [built.modal] if built.modal is not None else []
+        built.open_modal, built.close_modal = tmpl.open_modal, tmpl.close_modal
+        built.show_side = tmpl.workspace.show_side
+        tmpl.body = built
+    pn.state.onload(fill)
     return tmpl

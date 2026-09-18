@@ -166,3 +166,38 @@ class TestLaunch:
         assert cmd[cmd.index("--index") + 1] == "pmagpy_apps" and "--dev" not in cmd
         i = cmd.index("--static-dirs")
         assert cmd[i + 1].startswith("pmagpy_apps_assets=") and cmd[i + 2].startswith("pmagpy_directions_assets=")
+
+
+class TestDeferredTemplate:
+    def test_the_page_fills_in_when_the_body_is_built(self):
+        built = []
+
+        def build():
+            built.append(True)
+            return shell.Body(info=INFO, main=pn.Column(pn.pane.HTML("the main pane")),
+                              side=pn.Column(pn.pane.HTML("the side column")), header=pn.pane.HTML("status"),
+                              modal=pn.pane.HTML("the modal"))
+        tmpl = shell.deferred_template(INFO, LOGO, build, loading="Loading X …")
+        assert built == [True]                                   # outside a served session: at once
+        body = tmpl.body
+        assert isinstance(body, shell.Body)
+        assert tmpl.workspace.main_area.objects[0].objects[0] is body.main and not tmpl.workspace.main_area.objects[0].loading
+        assert tmpl.workspace.side_area.visible
+        assert tmpl.header[0].objects[0] is body.header
+        assert tmpl.modal[0].objects[0] is body.modal
+        assert body.open_modal == tmpl.open_modal and body.close_modal == tmpl.close_modal
+        body.show_side(False)
+        assert not tmpl.workspace.side_area.visible
+
+    def test_a_message_instead_of_a_body_takes_the_main_pane(self):
+        tmpl = shell.deferred_template(INFO, LOGO, lambda: pn.pane.Markdown("## could not open"))
+        assert tmpl.body is None
+        assert tmpl.workspace.main_area.objects[0].objects[0].object == "## could not open"
+        assert not tmpl.workspace.side_area.visible
+
+    def test_a_failing_build_leaves_a_message_not_a_blank_page(self):
+        def build():
+            raise ValueError("boom")
+        tmpl = shell.deferred_template(INFO, LOGO, build)
+        shown = tmpl.workspace.main_area.objects[0].objects[0]
+        assert "boom" in shown.object and not tmpl.workspace.main_area.objects[0].loading

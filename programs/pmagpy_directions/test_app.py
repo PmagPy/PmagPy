@@ -769,3 +769,132 @@ class TestMeansView:
 
         means.stat.value = "fisher"
         assert len(means.plot.mean.data["x"]) == fisher_stars
+
+
+class TestAutosaveDebounce:
+    """Every edit used to rewrite the whole .redo; edits now coalesce into one write."""
+
+    class FakeDoc:
+        """Enough of a Bokeh document: timeout callbacks that a test fires by hand."""
+        session_context = object()
+
+        def __init__(self):
+            self.pending = {}
+            self.n = 0
+
+        def add_timeout_callback(self, fn, ms):
+            self.n += 1
+            self.pending[self.n] = (fn, ms)
+            return self.n
+
+        def remove_timeout_callback(self, handle):
+            if handle not in self.pending:
+                raise ValueError(handle)
+            del self.pending[handle]
+
+        def fire(self):
+            for fn, _ in list(self.pending.values()):
+                fn()
+            self.pending.clear()
+
+    def test_outside_a_session_the_autosave_is_immediate(self, workdir):
+        src, out = workdir
+        s = Session(src, out)
+        s.add_component("Z", 1, 5)
+        assert os.path.exists(os.path.join(out, AUTOSAVE_NAME))
+
+    def test_inside_a_session_edits_coalesce_into_one_write(self, workdir, monkeypatch):
+        from pmagpy_directions import session as sess
+        src, out = workdir
+        s = Session(src, out)
+        doc = self.FakeDoc()
+        monkeypatch.setattr(sess, "_server_document", lambda: doc)
+        writes = []
+        real = s.data.write_redo
+        monkeypatch.setattr(s.data, "write_redo", lambda path, **kw: writes.append(path) or real(path, **kw))
+        cur = s.current
+        for _ in range(5):
+            s.update_component(cur, imin=cur.imin + 1)
+        assert writes == [] and len(doc.pending) == 1                 # five edits, one pending write
+        _, ms = next(iter(doc.pending.values()))
+        assert ms == int(sess.AUTOSAVE_DELAY * 1000)
+        doc.fire()
+        assert writes == [s.autosave_path] and s._autosave_pending is None
+        # a dataset switch flushes what is pending before the output directory moves on
+        s.update_component(cur, imax=cur.imax - 1)
+        assert len(doc.pending) == 1
+        s.load(src, out)
+        assert len(writes) == 2 and not doc.pending
+        # so does an export (the reload made a new dataset object: patch its writer too)
+        real = s.data.write_redo
+        monkeypatch.setattr(s.data, "write_redo", lambda path, **kw: writes.append(path) or real(path, **kw))
+        cur = s.current
+        s.update_component(cur, imax=cur.imax + 1)
+        assert len(doc.pending) == 1
+        s.export_tables(coords=(dc.COORD_SPECIMEN,), levels=(), write_measurements=False)
+        assert writes[2] == s.autosave_path and len(writes) == 4      # the flush, then the export's own .redo
+        assert s._autosave_pending is None and not doc.pending
+
+
+class TestLazyFirstDraw:
+    def test_views_built_for_hidden_tabs_draw_nothing_until_shown(self, tmp_path):
+        pytest.importorskip("panel")
+        from pmagpy_directions.views import InterpretationsView, MeansView, PolesView
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        means, poles, fits = MeansView(s, active=False), PolesView(s, active=False), InterpretationsView(s, active=False)
+        assert len(means.table.value) == 0 and len(poles.table.value) == 0 and len(fits.table.value) == 0
+        assert means._dirty and poles._dirty and fits._dirty
+        means.set_active(True)
+        poles.set_active(True)
+        fits.set_active(True)
+        assert len(fits.table.value) == len(s.data.components) > 0
+        assert len(means.table.value) > 0 and not means._dirty
+        # the default is still to draw at once
+        assert len(MeansView(s).table.value) > 0
+
+    def test_a_single_group_mean_equals_its_row_in_the_full_table(self, tmp_path):
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        full = s.data.mean_directions("site", dc.COORD_GEOGRAPHIC)
+        site = full["site"].iloc[0]
+        one = s.data.mean_directions("site", dc.COORD_GEOGRAPHIC, group=site)
+        assert list(one["site"]) == [site] * len(one)
+        pd.testing.assert_frame_equal(one.reset_index(drop=True), full[full["site"] == site].reset_index(drop=True))
+        # at the location level the polarity axis is the whole study's, so the row is the same too
+        full = s.data.mean_directions("location", dc.COORD_GEOGRAPHIC)
+        loc = full["location"].iloc[0]
+        one = s.data.mean_directions("location", dc.COORD_GEOGRAPHIC, group=loc)
+        pd.testing.assert_frame_equal(one.reset_index(drop=True), full[full["location"] == loc].reset_index(drop=True))
+        assert len(s.data.mean_directions("site", dc.COORD_GEOGRAPHIC, group="no-such-site")) == 0
+
+
+class TestFrozenBuild:
+    def test_the_code_stamp_survives_a_missing_source_directory(self, monkeypatch):
+        from pmagpy_directions import session as sess
+        monkeypatch.setattr(sess.os.path, "isdir", lambda p: False)
+        assert sess._code_stamp() >= 0.0                                # the core files still date it
+        monkeypatch.setattr(sess.os.path, "exists", lambda p: False)
+        assert sess._code_stamp() == 0.0                                # nothing on disk at all: no crash
+
+
+class TestServeDefault:
+    def test_the_default_dataset_is_the_shipped_example_wherever_it_lives(self, monkeypatch, tmp_path):
+        """The packaged build flattens programs/ away, so the example must not be found relative to this file."""
+        pytest.importorskip("panel")
+        from pmagpy_panel import datasets
+        from pmagpy_directions import app
+        monkeypatch.delenv("PMAGPY_DIRECTIONS_DIR", raising=False)
+        monkeypatch.delenv("DEMAG_DIR", raising=False)
+        monkeypatch.setenv("PMAGPY_DIRECTIONS_OUTPUT", str(tmp_path))
+        seen = {}
+        monkeypatch.setattr(app, "build_body", lambda session: seen.setdefault("dir", session.directory) and _stub_body(session))
+        tmpl = app.serve_default()
+        assert seen["dir"] == datasets.example_dir("McMurdo") != ""
+        assert tmpl.session is not None and tmpl.session.directory == seen["dir"]
+        assert tmpl.body is not None
+
+
+def _stub_body(session):
+    import panel as pn
+    from pmagpy_panel import shell
+    from pmagpy_directions.session import APP
+    return shell.Body(info=APP, main=pn.Column(), side=pn.Column())
