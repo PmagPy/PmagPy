@@ -792,6 +792,53 @@ class TestHystStatsDescriptionJSON:
         assert data['old_stat'] == pytest.approx(1.5)
         assert data['Brh'] == pytest.approx(0.08)
 
+    def test_results_without_unit_column_are_mass_normalized(self):
+        # results written by versions before magn_unit was recorded keep
+        # the original behavior: Ms and Mr go to the *_mass columns and
+        # the description records the assumed unit
+        specimens = pd.DataFrame([{'specimen': 'spec1',
+                                   'experiments': 'spec1-HYS1'}])
+        out = rmag.add_hyst_stats_to_specimens_table(specimens,
+                                                     self._hyst_results())
+        assert out.loc[0, 'hyst_ms_mass'] == pytest.approx(1.0)
+        assert out.loc[0, 'hyst_mr_mass'] == pytest.approx(0.4)
+        assert 'hyst_ms_volume' not in out.columns
+        _, data = rmag.parse_specimen_description(out.loc[0, 'description'])
+        assert data['magn_unit'] == 'Am²/kg'
+
+    def test_volume_normalized_results_go_to_volume_columns(self):
+        # A/m results must not be written to the Am^2/kg columns; the MagIC
+        # data model provides hyst_ms_volume / hyst_mr_volume for them
+        results = self._hyst_results()
+        results['magn_unit'] = 'A/m'
+        specimens = pd.DataFrame([{'specimen': 'spec1',
+                                   'experiments': 'spec1-HYS1',
+                                   'hyst_ms_mass': 7.0}])
+        out = rmag.add_hyst_stats_to_specimens_table(specimens, results)
+        assert out.loc[0, 'hyst_ms_volume'] == pytest.approx(1.0)
+        assert out.loc[0, 'hyst_mr_volume'] == pytest.approx(0.4)
+        assert out.loc[0, 'hyst_bc'] == pytest.approx(0.05)
+        # the pre-existing mass column is left untouched
+        assert out.loc[0, 'hyst_ms_mass'] == pytest.approx(7.0)
+
+    def test_unit_spelling_variant_maps_to_magic_column(self):
+        results = self._hyst_results()
+        results['magn_unit'] = 'Am^2'
+        specimens = pd.DataFrame([{'specimen': 'spec1',
+                                   'experiments': 'spec1-HYS1'}])
+        out = rmag.add_hyst_stats_to_specimens_table(specimens, results)
+        assert out.loc[0, 'hyst_ms_moment'] == pytest.approx(1.0)
+
+    def test_non_magic_unit_is_refused(self):
+        # there is no MagIC column that can hold Ms in emu without
+        # misstating its unit, so the writer refuses rather than guessing
+        results = self._hyst_results()
+        results['magn_unit'] = 'emu/g'
+        specimens = pd.DataFrame([{'specimen': 'spec1',
+                                   'experiments': 'spec1-HYS1'}])
+        with pytest.raises(ValueError, match='emu/g'):
+            rmag.add_hyst_stats_to_specimens_table(specimens, results)
+
 
 class TestSummaryTableUnits:
     """Units reported with the hysteresis summary parameters (issue #889)."""
@@ -824,6 +871,32 @@ class TestSummaryTableUnits:
         assert rmag._hyst_param_label('Ms', 'A/m') == 'Ms (A/m)'
         assert rmag._hyst_param_label('Q') == 'Q'
 
+    def test_unit_spelling_is_normalized(self):
+        # None means the default, and ASCII exponents / spaces are
+        # canonicalized so spelling variants share one susceptibility unit
+        assert rmag._normalize_magn_unit(None) == 'Am²/kg'
+        assert rmag._normalize_magn_unit('') == 'Am²/kg'
+        for variant in ('Am^2/kg', 'A m2 / kg', 'Am²/kg'):
+            assert rmag._normalize_magn_unit(variant) == 'Am²/kg'
+            assert rmag._hyst_param_unit('chi_HF', variant) == 'm³/kg'
+        assert rmag._normalize_magn_unit('Am^2') == 'Am²'
+        assert rmag._hyst_param_label('Ms', None) == 'Ms (Am²/kg)'
+        # an unrecognized unit passes through rather than being rejected
+        assert rmag._normalize_magn_unit('emu/g') == 'emu/g'
+
+    def test_values_shown_to_four_significant_figures(self):
+        # values spanning many decades each keep four significant figures,
+        # switching to scientific notation only where needed
+        fmt = rmag._format_hyst_value
+        assert fmt(1.23456789) == '1.235'
+        assert fmt(0.0512345) == '0.05123'
+        assert fmt(1.23456e-8) == '1.235e-08'
+        assert fmt(12345.678) == '1.235e+04'
+        assert fmt(np.float64(0.5)) == '0.5'
+        assert fmt(np.nan) == 'NaN'
+        assert fmt(None) == ''
+        assert fmt(True) == 'True'
+
     def test_summary_table_headers_carry_units(self, monkeypatch):
         pytest.importorskip("bokeh")
         shown = []
@@ -837,6 +910,73 @@ class TestSummaryTableUnits:
         # to the parameter keys used by the results dictionary
         assert [col.field for col in data_table.columns] == [
             'Ms', 'Bc', 'chi_HF', 'Q']
+        # cells carry the rounded display strings, not full-precision floats
+        assert data_table.source.data['chi_HF'] == ['1e-07']
+        assert data_table.source.data['Bc'] == ['0.05']
+
+    def test_plot_axis_label_follows_unit(self):
+        pytest.importorskip("bokeh")
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+        H, M = synthetic_loop()
+        p = rmag.plot_hyst_loop(H, M, 'syn', show_plot=False,
+                                return_figure=True, magn_unit='A/m')
+        assert p.yaxis.axis_label == 'Magnetization (A/m)'
+        p = rmag.plot_hyst_loop(H, M, 'syn', show_plot=False,
+                                return_figure=True, magn_unit=None)
+        assert p.yaxis.axis_label == 'Magnetization (Am²/kg)'
+        fig, ax = rmag.plot_hyst_loop(H, M, 'syn', interactive=False,
+                                      show_plot=False, return_figure=True,
+                                      magn_unit='Am^2')
+        assert ax.get_ylabel() == 'Magnetization (Am²)'
+        plt.close(fig)
+
+    def test_results_record_normalized_unit_on_every_path(self):
+        import warnings as _warnings
+        # full processing, linear exit and open-loop exit all report the
+        # (normalized) magnetization unit so batch tables can carry it to
+        # the specimens-table writer
+        H, M = synthetic_loop(noise=5e-4, chi=0.2)
+        full = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                      show_plot=False, magn_unit='A/m')
+        assert full['magn_unit'] == 'A/m'
+        H, M = synthetic_loop(Ms=0.0, chi=0.2, noise=1e-4)
+        linear = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                        show_plot=False, magn_unit='Am^2/kg')
+        assert linear['loop_is_linear']
+        assert linear['magn_unit'] == 'Am²/kg'
+        H, M = synthetic_loop(noise=2e-3, hard_Ms=0.3, hard_Bc=1.5)
+        with _warnings.catch_warnings():
+            _warnings.simplefilter('ignore', RuntimeWarning)
+            opened = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                            show_plot=False)
+        assert opened['loop_is_closed'] is False
+        assert opened['magn_unit'] == 'Am²/kg'
+
+    def test_unrecognized_magn_col_warns(self):
+        H, M = synthetic_loop(noise=5e-4, chi=0.2)
+        measurements = pd.DataFrame({'experiment': 'exp1',
+                                     'meas_field_dc': H,
+                                     'moment_emu': M})
+        experiments = pd.DataFrame([{'experiment': 'exp1',
+                                     'specimen': 'spec1'}])
+        with pytest.warns(UserWarning, match='moment_emu'):
+            out = rmag.process_hyst_loops(experiments, measurements,
+                                          magn_col='moment_emu',
+                                          show_results_table=False,
+                                          show_plots=False)
+        assert out.loc[0, 'magn_unit'] == 'Am²/kg'
+        # an explicit unit suppresses the guess
+        import warnings as _warnings
+        with _warnings.catch_warnings():
+            _warnings.simplefilter('error', UserWarning)
+            out = rmag.process_hyst_loops(experiments, measurements,
+                                          magn_col='moment_emu',
+                                          magn_unit='Am²',
+                                          show_results_table=False,
+                                          show_plots=False)
+        assert out.loc[0, 'magn_unit'] == 'Am²'
 
     def test_batch_unit_inferred_from_magic_column(self, monkeypatch):
         pytest.importorskip("bokeh")
@@ -857,3 +997,31 @@ class TestSummaryTableUnits:
         # volume-normalized measurements are labeled A/m rather than the
         # mass-normalized default
         assert captured['magn_unit'] == 'A/m'
+
+    def test_every_magic_magnetization_column_is_recognized(self):
+        # the MagIC measurements table stores magnetization intensities in
+        # magn_mass, magn_volume, magn_moment and magn_uncal; none of them
+        # may trip the unrecognized-column warning
+        import warnings as _warnings
+        H, M = synthetic_loop(noise=5e-4, chi=0.2)
+        experiments = pd.DataFrame([{'experiment': 'exp1',
+                                     'specimen': 'spec1'}])
+        expected = {'magn_mass': 'Am²/kg', 'magn_volume': 'A/m',
+                    'magn_moment': 'Am²', 'magn_uncal': 'uncalibrated'}
+        for col, unit in expected.items():
+            measurements = pd.DataFrame({'experiment': 'exp1',
+                                         'meas_field_dc': H, col: M})
+            with _warnings.catch_warnings():
+                _warnings.simplefilter('error', UserWarning)
+                out = rmag.process_hyst_loops(experiments, measurements,
+                                              magn_col=col,
+                                              show_results_table=False,
+                                              show_plots=False)
+            assert out.loc[0, 'magn_unit'] == unit
+        # uncalibrated data has no susceptibility unit and no MagIC
+        # specimens column to receive Ms and Mr
+        assert rmag._hyst_param_label('chi_HF', 'uncalibrated') == 'chi_HF'
+        with pytest.raises(ValueError, match='uncalibrated'):
+            rmag.add_hyst_stats_to_specimens_table(
+                pd.DataFrame([{'specimen': 'spec1',
+                               'experiments': 'exp1'}]), out)
