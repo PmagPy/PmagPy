@@ -40,7 +40,7 @@ import pandas as pd
 import pmagpy.contribution_builder as cb
 from pmagpy import magic_project as mp
 from pmagpy import pint_stats as ps
-from pmagpy.magic_project import (COORD_GEOGRAPHIC, COORD_SPECIMEN, COORD_TILT, KELVIN_OFFSET,
+from pmagpy.magic_project import (COORD_GEOGRAPHIC, COORD_SPECIMEN, COORD_TILT, KELVIN_OFFSET, is_null,
                                   carry_metadata, is_metadata_column, split_codes, join_codes,
                                   natural_key, to_float, trim_to_model, validate_directory)
 
@@ -420,6 +420,10 @@ def _step_kind(codes: Sequence[str]) -> Optional[str]:
     return None
 
 
+STEP_SOURCE_COLUMNS = ("method_codes", "dir_dec", "dir_inc", "treat_temp", "treat_dc_field", "treat_dc_field_phi",
+                       "treat_dc_field_theta", "quality", "measurement", "description", "specimen", "sequence")
+
+
 def build_step_table(spec_meas: pd.DataFrame, intensity_col: str,
                      warnings: Optional[list] = None) -> pd.DataFrame:
     """Turn a specimen's paleointensity measurement rows into an ordered step table.
@@ -427,22 +431,35 @@ def build_step_table(spec_meas: pd.DataFrame, intensity_col: str,
     Rows that belong to another experiment sharing the file (anisotropy, TRM
     acquisition, cooling rate, AF demagnetisation) are left out; they are read
     separately by :class:`PintData`.
-    """
-    df = spec_meas.copy()
-    if "sequence" in df.columns:
-        order = pd.to_numeric(df["sequence"], errors="coerce")
-        df = df.assign(_order=order.fillna(pd.Series(range(len(df)), index=df.index)))
-    else:
-        df = df.assign(_order=range(len(df)))
-    df = df.sort_values("_order", kind="stable")
 
+    The rows are read as plain dicts and the table built once at the end: a
+    study of a few hundred specimens opens in a fraction of the time a
+    row-by-row ``iterrows`` pass took.
+    """
+    n = len(spec_meas)
+    if n == 0:
+        return pd.DataFrame()
+    # only the columns a step is read from: a MagIC measurements table has a hundred
+    # columns, and turning every one of them into a dict per row is most of the cost
+    wanted = [c for c in STEP_SOURCE_COLUMNS + (intensity_col,) if c in spec_meas.columns]
+    records = spec_meas[wanted].to_dict("records")
+    for rec, index in zip(records, spec_meas.index):
+        rec["_index"] = index
+    if "sequence" in spec_meas.columns:
+        order = pd.to_numeric(spec_meas["sequence"], errors="coerce").tolist()
+        keys = [o if (o is not None and o == o) else float(k) for k, o in enumerate(order)]
+    else:
+        keys = list(range(n))
+    records = [rec for _, rec in sorted(zip(keys, records), key=lambda kv: kv[0])]   # a stable sort
+
+    protocols, excluded = set(PI_PROTOCOLS), set(EXCLUDED_PROTOCOLS)
     rows = []
-    for pos, (_, rec) in enumerate(df.iterrows()):
+    for pos, rec in enumerate(records):
         codes = split_codes(rec.get("method_codes", ""))
         cset = set(codes)
-        if not (cset & set(PI_PROTOCOLS)):
+        if not (cset & protocols):
             continue
-        if cset & set(EXCLUDED_PROTOCOLS):
+        if cset & excluded:
             continue
         kind = _step_kind(codes)
         if kind is None:
@@ -451,8 +468,11 @@ def build_step_table(spec_meas: pd.DataFrame, intensity_col: str,
         dec, inc = to_float(rec.get("dir_dec")), to_float(rec.get("dir_inc"))
         if np.isnan(moment) or np.isnan(dec) or np.isnan(inc):
             if warnings is not None:
+                measurement = rec.get("measurement")
+                if measurement is None or is_null(measurement):
+                    measurement = pos
                 warnings.append(f"{rec.get('specimen', '?')}: step "
-                                f"{rec.get('measurement', pos)} has no direction or moment; skipped")
+                                f"{measurement} has no direction or moment; skipped")
             continue
         temp = to_float(rec.get("treat_temp"), np.nan)
         if np.isnan(temp):
@@ -463,9 +483,15 @@ def build_step_table(spec_meas: pd.DataFrame, intensity_col: str,
             pair = "ZI"
         elif "LP-PI-TRM-IZ" in cset:
             pair = "IZ"
+        quality = rec.get("quality", "g")
+        quality = "g" if quality is None or is_null(quality) else (str(quality).strip() or "g")
+        description = rec.get("description", "")
+        description = "" if description is None or is_null(description) else str(description)
+        measurement = rec.get("measurement", "")
+        measurement = "" if measurement is None or is_null(measurement) else str(measurement)
         rows.append({
-            "meas_pos": rec.name,
-            "measurement": str(rec.get("measurement", "")),
+            "meas_pos": rec["_index"],
+            "measurement": measurement,
             "sequence": len(rows),
             "kind": kind,
             "treat_temp": float(temp),
@@ -475,14 +501,14 @@ def build_step_table(spec_meas: pd.DataFrame, intensity_col: str,
             "dec": dec, "inc": inc, "moment": moment,
             "x": vec[0], "y": vec[1], "z": vec[2],
             "pair": pair,
-            "quality": str(rec.get("quality", "g") or "g").strip() or "g",
+            "quality": quality,
             "method_codes": join_codes(codes),
-            "description": str(rec.get("description", "") or ""),
+            "description": description,
         })
     steps = pd.DataFrame(rows)
     if len(steps):
-        steps["label"] = [f"{t - KELVIN_OFFSET:.0f}°C" for t in steps["treat_temp"]]
-        steps.loc[steps["kind"] == STEP_NRM, "label"] = "NRM"
+        labels = [f"{t - KELVIN_OFFSET:.0f}°C" for t in steps["treat_temp"]]
+        steps["label"] = ["NRM" if k == STEP_NRM else lab for k, lab in zip(steps["kind"], labels)]
     return steps
 
 
@@ -518,28 +544,35 @@ def build_arai(steps: pd.DataFrame, warnings: Optional[list] = None) -> Optional
         return None
     notes: List[str] = []
     usable = steps.copy()
+    # the rows as dicts, indexed by (kind, temperature) in table order: every
+    # lookup below is a dictionary read rather than a boolean filter of the frame
+    records = usable.to_dict("records")
+    by_kind_temp: Dict[tuple, list] = {}
+    for rec in records:
+        by_kind_temp.setdefault((rec["kind"], float(rec["treat_temp"])), []).append(rec)
 
-    def pick(kind: str, temp: float) -> Optional[pd.Series]:
+    def pick(kind: str, temp: float) -> Optional[dict]:
         """The first good row of ``kind`` at ``temp``; None when all are bad."""
-        rows = usable[(usable["kind"] == kind) & (usable["treat_temp"] == temp)]
-        if len(rows) == 0:
+        rows = by_kind_temp.get((kind, float(temp)), [])
+        if not rows:
             return None
-        good = rows[rows["quality"] != "b"]
-        if len(good) == 0:
+        good = [r for r in rows if r["quality"] != "b"]
+        if not good:
             notes.append(f"{temp - KELVIN_OFFSET:.0f}°C {STEP_LABELS[kind]}: every measurement "
                          f"is flagged bad")
             return None
         if len(good) < len(rows):
             notes.append(f"{temp - KELVIN_OFFSET:.0f}°C {STEP_LABELS[kind]}: a flagged duplicate "
                          f"was replaced by a good repeat")
-        return good.iloc[0]
+        return good[0]
 
-    nrm_rows = usable[usable["kind"] == STEP_NRM]
+    nrm_rows = [r for r in records if r["kind"] == STEP_NRM]
+    nrm_temps = {float(r["treat_temp"]) for r in nrm_rows}
     # the original Thellier-Thellier protocol has no zero-field step: each
     # temperature is measured twice in antiparallel fields, and the NRM left
     # and the pTRM gained are the half sum and half difference of the pair
     antiparallel = _antiparallel_pairs(usable)
-    zero_temps = sorted(set(usable[usable["kind"].isin([STEP_NRM, STEP_Z])]["treat_temp"])
+    zero_temps = sorted({float(r["treat_temp"]) for r in records if r["kind"] in (STEP_NRM, STEP_Z)}
                         | set(antiparallel))
     x, y, temps, nrmv, trmv, labels, rows = [], [], [], [], [], [], []
     for temp in zero_temps:
@@ -561,14 +594,14 @@ def build_arai(steps: pd.DataFrame, warnings: Optional[list] = None) -> Optional
             rows.append({"z": int(first["sequence"]), "i": int(second["sequence"]),
                          "temp": float(temp)})
             continue
-        kind = STEP_NRM if (len(nrm_rows) and temp in set(nrm_rows["treat_temp"])) else STEP_Z
+        kind = STEP_NRM if temp in nrm_temps else STEP_Z
         z_row = pick(kind, temp)
         if z_row is None and kind == STEP_NRM:
             z_row = pick(STEP_Z, temp)
         if z_row is None:
             continue
         i_row = pick(STEP_I, temp)
-        has_infield = len(usable[(usable["kind"] == STEP_I) & (usable["treat_temp"] == temp)]) > 0
+        has_infield = bool(by_kind_temp.get((STEP_I, float(temp))))
         if has_infield and i_row is None:
             notes.append(f"{temp - KELVIN_OFFSET:.0f}°C: the in-field half of the pair is flagged "
                          f"bad, so the whole Arai point is left out")
@@ -608,7 +641,7 @@ def build_arai(steps: pd.DataFrame, warnings: Optional[list] = None) -> Optional
     index_of = {t: k for k, t in enumerate(temps)}
     # a bad NRM does not stop the analysis: the first good zero-field step
     # normalises instead (issue #170, and Tauxe's comment on it)
-    if labels and labels[0] != STEP_NRM and len(nrm_rows) and (nrm_rows["quality"] == "b").all():
+    if labels and labels[0] != STEP_NRM and nrm_rows and all(r["quality"] == "b" for r in nrm_rows):
         notes.append("the NRM step is flagged bad; the first good zero-field step normalises the plot")
 
     # walk the measurement sequence to attach the checks to the state they were
@@ -630,7 +663,7 @@ def build_arai(steps: pd.DataFrame, warnings: Optional[list] = None) -> Optional
             return default
         below = [k for k, t in enumerate(temps) if t <= peak]
         return below[-1] if below else default
-    for _, row in usable.sort_values("sequence").iterrows():
+    for row in sorted(records, key=lambda r: r["sequence"]):
         vec = np.array([row["x"], row["y"], row["z"]], dtype=float)
         kind, temp, bad = row["kind"], float(row["treat_temp"]), row["quality"] == "b"
         if kind == STEP_PTRM and temp in index_of:
@@ -1103,18 +1136,23 @@ class PintData:
 
     def _load_auxiliary(self, spec_df) -> None:
         """Read the anisotropy tensors, NLT coefficients and cooling-rate data."""
+        # the readers filter by specimen themselves; handing each the specimen's own
+        # rows (grouped once) instead of the whole table is what makes a large study open quickly
+        by_specimen = {name: rows for name, rows in self.measurements.groupby("specimen", sort=False)}
+        empty = self.measurements.iloc[0:0]
         for name, spec in self.specimens.items():
-            aniso = anisotropy_from_measurements(self.measurements, name, spec.steps)
+            own = by_specimen.get(name, empty)
+            aniso = anisotropy_from_measurements(own, name, spec.steps)
             if aniso is None:
                 aniso = anisotropy_from_specimens_table(spec_df, name)
             if aniso is not None:
                 self.anisotropy[name] = aniso
-            nlt = nlt_from_measurements(self.measurements, name)
+            nlt = nlt_from_measurements(own, name)
             if nlt is not None:
                 self.nlt[name] = nlt
             rate = self.sample_cooling_rate.get(spec.sample)
             if rate:
-                cr = cooling_rate_from_measurements(self.measurements, name, rate)
+                cr = cooling_rate_from_measurements(own, name, rate)
                 if cr is not None:
                     self.cooling_rate[name] = cr
         # a specimen without its own cooling-rate experiment inherits its
