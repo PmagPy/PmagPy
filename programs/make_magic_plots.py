@@ -290,11 +290,14 @@ def main():
                 missing = check_for_reqd_cols(data, ['dir_dec', 'dir_inc'])
                 if not missing:
                     #CMD = "eqarea_magic.py -f tmp_measurements.txt -obj spc -sav -no-tilt -fmt " + fmt
-                    CMD = "ipmag.eqarea_magic(fmt='png', n_plots='all', ignore_tilt=True, plot_by='spc', contribution={}, source_table='measurements', image_records=True)".format(con)
+                    # measurement dir_dec/dir_inc are in specimen coordinates
+                    # (MagIC data model) and are not rotated here, so crd="s"
+                    CMD = "ipmag.eqarea_magic(fmt='png', n_plots='all', ignore_tilt=True, plot_by='spc', crd='s', contribution={}, source_table='measurements', image_records=True)".format(con)
                     print(CMD)
                     info_log(CMD, loc, "eqarea_magic.py")
                     res, outfiles, eqarea_spc_images = ipmag.eqarea_magic(fmt="png", n_plots='all',
                                                                           ignore_tilt=True, plot_by="spc",
+                                                                          crd="s",
                                                                           contribution=con,
                                                                           source_table="measurements",
                                                                           image_records=True)

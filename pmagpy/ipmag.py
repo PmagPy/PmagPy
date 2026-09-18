@@ -11426,22 +11426,20 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
             files = {key: loc + "_" + group_val + "_" + crd + "_aniso-" + key + ".png"
                      for (key, value) in figs.items()}
             if pmagplotlib.isServer:
-                titles = {}
+                # the coordinate system goes in the file name so that the
+                # specimen/geographic/tilt-corrected runs do not overwrite
+                # each other
                 for key in figs.keys():
-                    files[key] = "LO:_" + loc + "_" + group_tag + ":_" + group_val + '_TY:_aniso_' + key + '_.' + fmt
-                    titles = {}
-                    titles['data'] = "Eigenvectors"
-                    titles['tcdf'] = "Eigenvalue Confidence"
-                    titles['conf'] = "Confidence Ellipses"
-                    for key in figs:
-                        if key not in titles:
-                            titles[key] = key
+                    files[key] = "LO:_" + loc + "_" + group_tag + ":_" + group_val + \
+                        '_CO:_' + crd + '_TY:_aniso_' + key + '_.' + fmt
+                titles = aniso_server_titles(figs, crd)
                 pmagplotlib.add_borders(figs, titles, con_id=con_id)
 
             if image_records:
                 for plot_type, fname in files.items():
                     image_rec = {group_col: group_val, 'file': fname, 'type': PLOT_TYPES[plot_type],
-                                 'title': "{} {}".format(group_val, PLOT_TYPES[plot_type]),
+                                 'title': add_coordinate_system("{} {}".format(group_val, PLOT_TYPES[plot_type]),
+                                                                crd if plot_type in ANISO_DIRECTIONAL_PLOTS else ""),
                                  'timestamp': date.today().isoformat(), 'software_packages': version.version}
                     image_recs.append(image_rec)
 
@@ -11480,21 +11478,15 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
         locs = "-".join(locs)
         files = {key:  locs + "_" + crd + "_aniso-" + key + ".png" for (key, value) in figs.items()}
         if pmagplotlib.isServer:
-            titles = {}
             for key in figs.keys():
-                files[key] = 'MC:_' + con_id + '_TY:_aniso_' + key + '_.' + fmt
-                titles = {}
-                titles['data'] = "Eigenvectors"
-                titles['tcdf'] = "Eigenvalue Confidence"
-                titles['conf'] = "Confidence Ellipses"
-                for key in figs:
-                    if key not in titles:
-                        titles[key] = key
+                files[key] = 'MC:_' + con_id + '_CO:_' + crd + '_TY:_aniso_' + key + '_.' + fmt
+            titles = aniso_server_titles(figs, crd)
             pmagplotlib.add_borders(figs, titles, con_id=con_id)
         if image_records:
             for plot_type, fname in files.items():
                 image_rec = {'location': locs, 'file': fname, 'type': PLOT_TYPES[plot_type],
-                             'title': "{} {}".format(locs, PLOT_TYPES[plot_type]),
+                             'title': add_coordinate_system("{} {}".format(locs, PLOT_TYPES[plot_type]),
+                                                            crd if plot_type in ANISO_DIRECTIONAL_PLOTS else ""),
                              'timestamp': date.today().isoformat(), 'software_packages': version.version}
                 image_recs.append(image_rec)
 
@@ -13271,8 +13263,11 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
         spec_df_af = spec_df[spec_df.method_codes.str.contains('LT-AF-Z')]
         this_spec_meas_df = None
         datablock = None
+        # measurement directions start out in specimen coordinates;
+        # transform_to_geographic reports what it was able to rotate them into
+        used_coord = "-1"
         if (not len(spec_df_th.index) > 1) and (not len(spec_df_af.index) > 1):
-            return False, False
+            return False, False, used_coord
         if len(spec_df_th.index) > 1:  # this is a thermal run
             this_spec_meas_df = pd.concat([spec_df_nrm, spec_df_th])
             # make sure all decs/incs are filled in
@@ -13282,14 +13277,15 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
                 print('-W- Some dec/inc/moment data were missing for specimen {}, so {} measurement row(s) were excluded'.format(s, n_rows - len(this_spec_meas_df)))
             # geographic transformation
             if coord != "-1" and len(samp_df):
-                this_spec_meas_df = transform_to_geographic(this_spec_meas_df, samp_df, samp, coord)
+                this_spec_meas_df, used_coord = transform_to_geographic(
+                    this_spec_meas_df, samp_df, samp, coord, return_coord=True)
             units = 'K'  # units are kelvin
             try:
                 this_spec_meas_df['magn_moment'] = this_spec_meas_df['magn_moment'].astype(float)
                 this_spec_meas_df['treat_temp'] = this_spec_meas_df['treat_temp'].astype(float)
             except (ValueError, KeyError):
                 print('-W- There are malformed or missing data for specimen {}, skipping'.format(spec))
-                return False, False
+                return False, False, used_coord
             datablock = this_spec_meas_df[['treat_temp', 'dir_dec', 'dir_inc',
                                  'magn_moment', 'blank', 'quality']].values.tolist()
             ZED = pmagplotlib.plot_zed(ZED, datablock, angle, s, units)
@@ -13302,18 +13298,21 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
                 print('-W- Some dec/inc/moment data were missing for specimen {}, so {} measurement row(s) were excluded'.format(s, n_rows - len(this_spec_meas_df)))
             # geographic transformation
             if coord != "-1" and len(samp_df):
-                this_spec_meas_df = transform_to_geographic(this_spec_meas_df, samp_df, samp, coord)
+                this_spec_meas_df, used_coord = transform_to_geographic(
+                    this_spec_meas_df, samp_df, samp, coord, return_coord=True)
             units = 'T'  # these are AF data
             try:
                 this_spec_meas_df['magn_moment'] = this_spec_meas_df['magn_moment'].astype(float)
                 this_spec_meas_df['treat_ac_field'] = this_spec_meas_df['treat_ac_field'].astype(float)
             except Exception:
                 print('-W- There are malformed or missing data for specimen {}, skipping'.format(spec))
-                return False, False
+                return False, False, used_coord
             datablock = this_spec_meas_df[['treat_ac_field', 'dir_dec', 'dir_inc',
                                  'magn_moment', 'blank', 'quality']].values.tolist()
             ZED = pmagplotlib.plot_zed(ZED, datablock, angle, s, units)
-        return plot_interpretations(ZED, spec_container, s, this_spec_meas_df, datablock, coord)
+        ZED, interpretations = plot_interpretations(
+            ZED, spec_container, s, this_spec_meas_df, datablock, coord)
+        return ZED, interpretations, used_coord
 
     # beginning of zeq_magic
     if interactive:
@@ -13398,11 +13397,14 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
         specimens = [specimen]
     for s in specimens:
         s = str(s)
-        ZED, interpretations = make_plots(s, cnt, meas_df, spec_container, samp_container)
+        ZED, interpretations, used_coord = make_plots(s, cnt, meas_df, spec_container, samp_container)
         if not ZED:
             if pmagplotlib.verbose:
                 print('No plots could be created for specimen:', s)
-                continue
+            continue
+        # the requested coordinate system is not always the one that could be
+        # used (a sample with no azimuth stays in specimen coordinates)
+        used_crd = TILT_CORRECTION_CODES.get(used_coord, "")
         titles = {key: s + "_" + key + "." + fmt for key in ZED}
         # try to get the full hierarchy for plot names
         df_slice = meas_container.df[meas_container.df['specimen'] == s]
@@ -13411,8 +13413,10 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
         sample = str(meas_container.get_name('sample', df_slice))
         if pmagplotlib.isServer:
             titles = {}
-            titles['eqarea'] = 'Equal Area Plot'
-            titles['zijd'] = 'Zijderveld Plot'
+            # the Zijderveld and demagnetization plots are made from the same
+            # rotated directions, so they carry the coordinate system too
+            titles['eqarea'] = add_coordinate_system('Equal Area Plot', used_crd)
+            titles['zijd'] = add_coordinate_system('Zijderveld Plot', used_crd)
             titles['demag'] = 'Demagnetization Plot'
             con_id = ""
             if 'contribution' in contribution.tables:
@@ -13424,13 +13428,16 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
                 if interpretations and title == "eqarea":
                     int_str = "_interpretations"
                 filename = 'LO:_'+location+'_SI:_'+site+'_SA:_'+sample + \
-                    '_SP:_'+str(s)+'_CO:_' + '_TY:_'+title+int_str+'_.png'
+                    '_SP:_'+str(s)+'_CO:_'+used_crd+'_TY:_'+title+int_str+'_.png'
                 titles[title] = filename
         if image_records:
             for title, filename in titles.items():
+                image_title = " ".join([s, PLOT_TYPES[title]])
+                if title in ('eqarea', 'zijd'):
+                    image_title = add_coordinate_system(image_title, used_crd)
                 image_rec = {'location': location, 'site': site, 'sample': sample, 'specimen': s,
                               'file': filename, 'type': PLOT_TYPES[title],
-                              'title': " ".join([s, PLOT_TYPES[title]]), 'timestamp': time.time(),
+                              'title': image_title, 'timestamp': time.time(),
                               'software_packages': version.version}
                 image_recs.append(image_rec)
         if save_plots:
@@ -13448,22 +13455,42 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
         return True, saved, image_recs
     return True, saved
 
-def transform_to_geographic(this_spec_meas_df, samp_df, samp, coord="0"):
+def transform_to_geographic(this_spec_meas_df, samp_df, samp, coord="0",
+                            return_coord=False):
     """
     Transform decs/incs to geographic coordinates.
     Calls pmag.dogeo_V for the heavy lifting
+
+    The requested transformation is not always possible: if the sample has no
+    azimuth, the measurements are returned untouched (i.e. still in specimen
+    coordinates), and if tilt correction is requested but the sample has no
+    bedding orientation, only the geographic rotation is applied.  Use
+    return_coord=True to find out which coordinate system the returned
+    directions are actually in.
 
     Parameters
     ----------
     this_spec_meas_df : pandas dataframe of measurements for a single specimen
     samp_df : pandas dataframe of samples
     samp : samp name
+    coord : str
+        requested coordinate system, "0" (geographic, default) or
+        "100" (tilt-corrected)
+    return_coord : bool
+        if True, also return the coordinate system actually used, default False
 
     Returns
     ---------
     this_spec_meas_df : measurements dataframe with transformed coordinates
+    used_coord : str (only if return_coord is True)
+        coordinate system of the returned directions:
+        "-1" (specimen), "0" (geographic), or "100" (tilt-corrected)
     """
-    # we could return the type of coordinates ACTUALLY used
+    def result(df, used_coord):
+        if return_coord:
+            return df, used_coord
+        return df
+
     # transform geographic
     decs = this_spec_meas_df['dir_dec'].values.tolist()
     incs = this_spec_meas_df['dir_inc'].values.tolist()
@@ -13474,10 +13501,11 @@ def transform_to_geographic(this_spec_meas_df, samp_df, samp, coord="0"):
     # if azimuth/dip is missing, or orientation is bad,
     # stick with specimen coordinates
     else:
-        return this_spec_meas_df
+        return result(this_spec_meas_df, "-1")
     dirs = [decs, incs, azimuths, dips]
     dirs_geo = np.array(list(map(list, list(zip(*dirs)))))
     decs, incs = pmag.dogeo_V(dirs_geo)
+    used_coord = "0"
     if coord == '100' and 'bed_dip_direction' in or_info.keys() and or_info['bed_dip_direction']!="":  # need to do tilt correction too
         bed_dip_dirs = len(decs)*[or_info['bed_dip_direction']]
         bed_dips = len(decs) * [or_info['bed_dip']]
@@ -13485,9 +13513,10 @@ def transform_to_geographic(this_spec_meas_df, samp_df, samp, coord="0"):
         ## this transposes the columns and rows of the list of lists
         dirs_tilt = np.array(list(map(list, list(zip(*dirs)))))
         decs, incs = pmag.dotilt_V(dirs_tilt)
+        used_coord = "100"
     this_spec_meas_df['dir_dec'] = decs
     this_spec_meas_df['dir_inc'] = incs
-    return this_spec_meas_df
+    return result(this_spec_meas_df, used_coord)
 
 
 def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path="",
@@ -13673,10 +13702,12 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
                         files[key] = "SP:_{}_TY:_{}_.{}".format(this_specimen, key, fmt)
                     titles = {}
                     titles['deremag'] = 'DeReMag Plot'
-                    titles['zijd'] = 'Zijderveld Plot'
+                    # thellier_magic never rotates, so directions are in
+                    # specimen coordinates (MagIC measurement dir_dec/dir_inc)
+                    titles['zijd'] = add_coordinate_system('Zijderveld Plot', 's')
                     titles['arai'] = 'Arai Plot'
                     titles['TRM'] = 'TRM Acquisition data'
-                    titles['eqarea'] = 'Equal Area Plot'
+                    titles['eqarea'] = add_coordinate_system('Equal Area Plot', 's')
                     zed = pmagplotlib.add_borders(
                         zed, titles, con_id=con_id)
 
@@ -13691,7 +13722,8 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
                 for plot_type, filename in files.items():
                     image_rec = {'specimen': this_specimen,
                                 'file': os.path.split(filename)[1], 'type': PLOT_TYPES[plot_type],
-                                 'title': " ".join([this_specimen, PLOT_TYPES[plot_type]]),
+                                 'title': add_coordinate_system(" ".join([this_specimen, PLOT_TYPES[plot_type]]),
+                                                                "s" if plot_type in ("zijd", "eqarea") else ""),
                                 'timestamp': time.time(), 'software_packages': version.version}
                     image_recs.append(image_rec)
         # no plots were produced
@@ -14349,6 +14381,11 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
             s : specimen coordinates, aniso_tile_correction = -1
             g : geographic coordinates, aniso_tile_correction = 0 (default)
             t : tilt corrected coordinates, aniso_tile_correction = 100
+            Records are selected on dir_tilt_correction to match, never rotated.
+            crd is ignored when plotting the measurements table, whose
+            directions are in specimen coordinates by definition.
+            The coordinate system that was actually plotted is reported in the
+            plot title and in the file name.
         ignore_tilt : bool
             default False.  If True, data are unoriented (allows plotting of measurement dec/inc)
         save_plots : bool
@@ -14463,6 +14500,31 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
     # the actual DataFrame:
     data = data_container.df
     plot_type = data_container.dtype
+
+    # Work out which coordinate system the plotted directions are actually in,
+    # which is not always the one that was requested.  Directions are only
+    # selected here (on dir_tilt_correction), never rotated, so the requested
+    # coordinate system is honored for tables that carry interpreted
+    # directions.  Measurement dir_dec/dir_inc, however, are defined by the
+    # MagIC data model as being in specimen coordinates.
+    data_crd = crd
+    if plot_type == "measurements":
+        if crd != "s":
+            print('-W- Measurement directions are in specimen coordinates, so that is what will be plotted (crd="{}" ignored)'.format(crd))
+        data_crd = "s"
+        # measurements carry no dir_tilt_correction, so filtering on it would
+        # discard every record: the tilt filter only makes sense for
+        # interpreted directions
+        ignore_tilt = True
+    elif ignore_tilt:
+        # records were not filtered on dir_tilt_correction, so crd cannot be
+        # taken at face value; it still holds if every record agrees on one
+        # tilt correction, otherwise the directions are of mixed provenance
+        data_crd = ""
+        if tilt_key in data.columns:
+            data_crd = tilt_correction_crd(data[tilt_key])
+            if not data_crd and data[tilt_key].notnull().any():
+                print('-W- Directions with more than one tilt correction are being plotted together, so no coordinate system will be reported')
 
     if plot_key != "all" and plot_key not in data.columns:
         print("-E- You can't plot by {} with the data provided".format(plot_key))
@@ -14769,17 +14831,19 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
             #    filename += '.' + fmt
             if pmagplotlib.isServer:  # use server plot naming convention
                 if plot_key == 'all':
-                    filename = 'LO:_'+locations+'_SI:__SA:__SP:__CO:_'+crd+'_TY:_'+key+'_.'+fmt
+                    filename = 'LO:_'+locations+'_SI:__SA:__SP:__CO:_'+data_crd+'_TY:_'+key+'_.'+fmt
                 else:
                     filename = 'LO:_'+locations+'_SI:_'+site+'_SA:_'+sample + \
-                        '_SP:_'+str(specimen)+'_CO:_'+crd+'_TY:_'+key+'_.'+fmt
+                        '_SP:_'+str(specimen)+'_CO:_'+data_crd+'_TY:_'+key+'_.'+fmt
             elif plot_key == 'all':
                 filename = 'all'
                 if locs:
                     loc_string = "_".join(
                         [str(loc).replace(' ', '_') for loc in locs])
                     filename += "_" + loc_string
-                filename += "_" + crd + "_" + key
+                if data_crd:
+                    filename += "_" + data_crd
+                filename += "_" + key
                 filename += ".{}".format(fmt)
             else:  # use more readable naming convention
                 filename = ''
@@ -14788,7 +14852,7 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
                              'sample': [locations, site, sample],
                              'specimen': [locations, site, sample, specimen]}
                 use = use_names[plot_key]
-                use.extend([crd, key])
+                use.extend([data_crd, key])
                 # [locations, site, sample, specimen, crd, key]:
                 for item in use:
                     if item:
@@ -14808,14 +14872,14 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
                 image_rec = {'location': locations, 'site': site,
                             'sample': sample, 'specimen': specimen,
                             'file': filename, 'type': PLOT_TYPES[file_type],
-                            'title': " ".join([name, PLOT_TYPES[file_type]]),
+                            'title': add_coordinate_system(" ".join([name, PLOT_TYPES[file_type]]), data_crd),
                             'timestamp': time.time(),
                             'software_packages': version.version}
                 image_recs.append(image_rec)
 
         saved_figs = []
         if pmagplotlib.isServer:
-            titles = {'eqarea': 'Equal Area Plot'}
+            titles = {'eqarea': add_coordinate_system('Equal Area Plot', data_crd)}
             FIG = pmagplotlib.add_borders(FIG, titles, con_id=con_id)
             saved_figs = pmagplotlib.save_plots(FIG, files)
         elif save_plots:
@@ -15081,7 +15145,7 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
             pmagplotlib.plot_init(FIG['map_{}'.format(ind)], 6, 6)
             pmagplotlib.plot_map(FIG['map_{}'.format(ind)], [90.], [0.], base_Opts)
             pmagplotlib.plot_map(ind+2, [lat], [lon], Opts)
-            titles["map_{}".format(ind)] = location
+            titles["map_{}".format(ind)] = add_coordinate_system(location, crd)
             if crd:
                 fname = "LO:_{}{}_TY:_POLE_map_{}.{}".format(location, polarity, crd, fmt)
                 fname_short = "LO:_{}{}_TY:_POLE_map_{}".format(location, polarity, crd)
@@ -15090,7 +15154,7 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
                 fname_short = "LO:_{}{}_TY:_POLE_map".format(location, polarity)
             if image_records:
                 image_rec = {'location': location, 'file': fname, 'type': 'Pole Map',
-                             'title': 'Pole map ' + location,
+                             'title': add_coordinate_system('Pole map ' + location, crd),
                              'timestamp': date.today().isoformat(),
                              'software_packages': version.version}
                 image_recs.append(image_rec)
@@ -15185,6 +15249,7 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
                     pole_string = "pole"
             title = "MagIC contribution {}\n {} {}{} {}".format(con_id, loc_string, npole_string, rpole_string, pole_string)
             titles['map'] = title.replace('  ', ' ')
+        titles['map'] = add_coordinate_system(titles['map'], crd)
         FIG = pmagplotlib.add_borders(FIG, titles, black, purple, con_id)
         save_plots = True
     elif interactive:
@@ -15685,6 +15750,11 @@ def vgpmap_magic(dir_path=".", results_file="sites.txt", crd="",
     # use tilt correction
     if coord and 'dir_tilt_correction' in Results.columns:
         Results = Results[Results['dir_tilt_correction'] == coord]
+    # the frame of the plotted VGPs: the requested one, or otherwise whatever
+    # single tilt correction the plotted sites share
+    vgp_crd = crd
+    if not vgp_crd and 'dir_tilt_correction' in Results.columns:
+        vgp_crd = tilt_correction_crd(Results['dir_tilt_correction'])
     # get location name and average ages
     locs = Results['location'].dropna().unique()
     if len(locs):
@@ -15807,7 +15877,7 @@ def vgpmap_magic(dir_path=".", results_file="sites.txt", crd="",
         black = '#000000'
         purple = '#800080'
         titles = {}
-        titles['map'] = location + ' VGP map'
+        titles['map'] = add_coordinate_system(location + ' VGP map', vgp_crd)
         FIG = pmagplotlib.add_borders(FIG, titles, black, purple)
         save_plots = True
     elif interactive:
@@ -15825,7 +15895,7 @@ def vgpmap_magic(dir_path=".", results_file="sites.txt", crd="",
         pmagplotlib.save_plots(FIG, files)
         if image_records:
             for file_type, filename in files.items():
-                image_rec = {'file': filename, 'title': "map of VGPs", 'type': 'VGP Map',
+                image_rec = {'file': filename, 'title': add_coordinate_system("map of VGPs", vgp_crd), 'type': 'VGP Map',
                              'keywords': "", 'software_packages': version_num,
                              'timestamp': date.today().isoformat()}
                 image_recs.append(image_rec)
@@ -16131,6 +16201,104 @@ PLOT_TYPES = {'eqarea': "Equal Area Plot", "arai": "ARAI plot",
               "tcdf": "tcdf", "cdf_0": "cdf_0", "cdf_1": "cdf_1", "cdf_2": "cdf_2",
               "day": "Day Plot", "S-Bcr": "Day Plot", "S-Bc": "Day Plot",
               "bcr1-bcr2": "Day Plot"}
+
+# spelled out names for the coordinate system codes used throughout PmagPy,
+# for labeling plots so that the reference frame is never left to be inferred
+COORDINATE_SYSTEMS = {"s": "specimen coordinates",
+                      "g": "geographic coordinates",
+                      "t": "tilt-corrected coordinates"}
+
+# map the MagIC dir_tilt_correction values onto the same codes
+TILT_CORRECTION_CODES = {"-1": "s", "0": "g", "100": "t"}
+
+
+def tilt_correction_crd(values):
+    """
+    Work out the coordinate system of a set of records from their
+    dir_tilt_correction values.
+
+    Parameters:
+        values : iterable
+            dir_tilt_correction values (-1, 0, 100; str or numeric; NaN/None
+            are ignored)
+
+    Returns:
+        str : 's', 'g' or 't' if every record shares one tilt correction,
+            otherwise "" (mixed provenance, or no values at all)
+    """
+    codes = set()
+    for val in pd.Series(list(values)).dropna().unique():
+        try:
+            codes.add(TILT_CORRECTION_CODES.get(str(int(float(val))), ""))
+        except (TypeError, ValueError):
+            codes.add("")
+    if len(codes) == 1:
+        return codes.pop()
+    return ""
+
+
+def coordinate_system_name(crd):
+    """
+    Spell out a PmagPy coordinate system code for use in a plot title.
+
+    Parameters:
+        crd : str
+            coordinate system code: 's' (specimen), 'g' (geographic),
+            or 't' (tilt-corrected)
+
+    Returns:
+        str : the spelled out name, e.g. "geographic coordinates",
+            or "" if crd is not a recognized code
+    """
+    return COORDINATE_SYSTEMS.get(str(crd).lower(), "")
+
+
+# anisotropy plots whose content depends on the coordinate system
+# (eigenvalue CDFs do not)
+ANISO_DIRECTIONAL_PLOTS = ("data", "conf")
+
+
+def aniso_server_titles(figs, crd):
+    """
+    Server titles for the anisotropy plots, with the coordinate system on
+    the plots that depend on it.
+
+    Parameters:
+        figs : dict
+            figure dictionary from plot_aniso
+        crd : str
+            coordinate system code ['s', 'g', 't']
+
+    Returns:
+        dict : {plot key: title}
+    """
+    titles = {'data': add_coordinate_system("Eigenvectors", crd),
+              'tcdf': "Eigenvalue Confidence",
+              'conf': add_coordinate_system("Confidence Ellipses", crd)}
+    for key in figs:
+        if key not in titles:
+            titles[key] = key
+    return titles
+
+
+def add_coordinate_system(title, crd):
+    """
+    Append the coordinate system to a plot title, if it is known.
+
+    Parameters:
+        title : str
+            plot title, e.g. "Equal Area Plot"
+        crd : str
+            coordinate system code ['s', 'g', 't']
+
+    Returns:
+        str : e.g. "Equal Area Plot (geographic coordinates)".
+            The title is returned unchanged if crd is not a recognized code.
+    """
+    crd_name = coordinate_system_name(crd)
+    if not crd_name:
+        return title
+    return "{} ({})".format(title, crd_name)
 
 def df_depthplot(df,d_key='core_depth',fmt='png',location='unknown',save=False):
     """

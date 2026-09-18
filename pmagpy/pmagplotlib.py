@@ -59,6 +59,81 @@ version_num = pmag.get_version()
 if isServer:
     matplotlib.pyplot.switch_backend('Agg')
 
+# Styling for the plots generated as MagIC thumbnails (isServer).  The
+# thumbnails are small, so the data has to be the loudest thing on them:
+# recessive axes, thin lines, modest markers, and text in ink tones rather
+# than in the data colors.  Hues are the first three slots of a palette that
+# has been checked for color-vision-deficiency separation.
+SERVER_STYLE = {
+    'ink': '#1a1a1a',          # titles, specimen names
+    'ink_secondary': '#5b5b5b',  # subtitles, footers, axis labels
+    'axis': '#8a8a8a',         # spines, ticks, the equal area net
+    'series_1': '#2a78d6',     # blue: measurements
+    'series_2': '#eb6834',     # orange: interpretations / fits
+    'series_3': '#1baf7a',     # aqua: secondary curve (vector difference)
+    'bad': '#8a8a8a',          # rejected measurements
+    'surface': '#ffffff',
+    'marker_size': 5.5,        # points, for plt.plot markers
+    'scatter_size': 30,        # points^2, for plt.scatter markers
+    'brand': '#6a3d9a',        # earthref purple, footer link only
+}
+SERVER_RC = {
+    'font.size': 9,
+    'axes.titlesize': 10,
+    'axes.titleweight': 'semibold',
+    'axes.labelsize': 9,
+    'axes.labelcolor': SERVER_STYLE['ink_secondary'],
+    'axes.edgecolor': SERVER_STYLE['axis'],
+    'axes.linewidth': 0.8,
+    'axes.titlecolor': SERVER_STYLE['ink'],
+    'xtick.color': SERVER_STYLE['axis'],
+    'ytick.color': SERVER_STYLE['axis'],
+    'xtick.labelcolor': SERVER_STYLE['ink_secondary'],
+    'ytick.labelcolor': SERVER_STYLE['ink_secondary'],
+    'xtick.labelsize': 8,
+    'ytick.labelsize': 8,
+    'xtick.major.width': 0.8,
+    'ytick.major.width': 0.8,
+    'lines.linewidth': 1.5,
+    'lines.markersize': SERVER_STYLE['marker_size'],
+    'legend.fontsize': 8,
+    'legend.frameon': False,
+}
+
+
+def apply_server_style():
+    """
+    Set the matplotlib rcParams used for MagIC thumbnail plots.
+    Only ever called when isServer is True.
+    """
+    matplotlib.rcParams.update(SERVER_RC)
+
+
+if isServer:
+    apply_server_style()
+
+
+def label_every(n, max_labels=8):
+    """
+    Choose which of n sequential points to label so that at most
+    max_labels labels are drawn (first and last always included).
+
+    Parameters
+    __________
+    n : number of points
+    max_labels : upper bound on labels, default 8
+
+    Returns
+    _______
+    set of indices to label
+    """
+    if n <= max_labels:
+        return set(range(n))
+    step = int(np.ceil((n - 1) / float(max_labels - 1)))
+    picks = set(range(0, n, step))
+    picks.add(n - 1)
+    return picks
+
 if Version(matplotlib.__version__) < Version('2.1'):
     print("""-W- Please upgrade to matplotlib >= 2.1
     On the command line, for Anaconda users:
@@ -148,6 +223,7 @@ def plot_init(fignum, w, h):
     dpi = 80
     if isServer:
         dpi = 240
+        apply_server_style()
     # plt.ion()
     plt_num += 1
     fig = plt.figure(num=fignum, figsize=(w, h), dpi=dpi, clear=True)
@@ -522,7 +598,11 @@ def plot_net(fignum):
         XY = pmag.dimap(Dcirc[k], Icirc[k])
         Xcirc.append(XY[0])
         Ycirc.append(XY[1])
-    plt.plot(Xcirc, Ycirc, 'k')
+    # on the server the net is recessive: gray hairline, dots for the
+    # inclination ticks, and no bounding box
+    net_color = SERVER_STYLE['axis'] if isServer else 'k'
+    tick_style = dict(marker='.', ms=3, ls='none', color=net_color) if isServer else dict(marker='+', ls='none', color='k')
+    plt.plot(Xcirc, Ycirc, color=net_color, linewidth=1.0 if isServer else 1.5)
 #
 # put on the tick marks
     Xsym, Ysym = [], []
@@ -530,34 +610,35 @@ def plot_net(fignum):
         XY = pmag.dimap(0., I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    plt.plot(Xsym, Ysym, 'k+')
+    plt.plot(Xsym, Ysym, **tick_style)
     Xsym, Ysym = [], []
     for I in range(10, 90, 10):
         XY = pmag.dimap(90., I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    plt.plot(Xsym, Ysym, 'k+')
+    plt.plot(Xsym, Ysym, **tick_style)
     Xsym, Ysym = [], []
     for I in range(10, 90, 10):
         XY = pmag.dimap(180., I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    plt.plot(Xsym, Ysym, 'k+')
+    plt.plot(Xsym, Ysym, **tick_style)
     Xsym, Ysym = [], []
     for I in range(10, 90, 10):
         XY = pmag.dimap(270., I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    plt.plot(Xsym, Ysym, 'k+')
+    plt.plot(Xsym, Ysym, **tick_style)
     for D in range(0, 360, 10):
         Xtick, Ytick = [], []
         for I in range(4):
             XY = pmag.dimap(D, I)
             Xtick.append(XY[0])
             Ytick.append(XY[1])
-        plt.plot(Xtick, Ytick, 'k')
-    BoxX, BoxY = [-1.1, 1.1, 1.1, -1.1, -1.1], [-1.1, -1.1, 1.1, 1.1, -1.1]
-    plt.plot(BoxX, BoxY, 'k-', linewidth=.5)
+        plt.plot(Xtick, Ytick, color=net_color, linewidth=1.0 if isServer else 1.5)
+    if not isServer:
+        BoxX, BoxY = [-1.1, 1.1, 1.1, -1.1, -1.1], [-1.1, -1.1, 1.1, 1.1, -1.1]
+        plt.plot(BoxX, BoxY, 'k-', linewidth=.5)
     plt.gca().set_aspect("equal")
 
 
@@ -585,16 +666,25 @@ def plot_di(fignum, DIblock):
             X_up.append(XY[0])
             Y_up.append(XY[1])
 #
+    if isServer:
+        # smaller markers with a surface-colored ring so overlapping points
+        # still read as separate; lower hemisphere filled, upper open
+        color = SERVER_STYLE['series_1']
+        size = SERVER_STYLE['scatter_size']
+        down_kw = dict(marker='o', s=size, c=color, edgecolor=SERVER_STYLE['surface'], linewidth=0.8, zorder=3)
+        up_kw = dict(marker='o', s=size, facecolor=SERVER_STYLE['surface'], edgecolor=color, linewidth=1.2, zorder=3)
+    else:
+        down_kw = dict(marker='o', c='blue')
+        up_kw = dict(marker='o', facecolor='white', edgecolor='blue')
     if len(X_down) > 0:
         #        plt.scatter(X_down,Y_down,marker='s',c='r')
-        plt.scatter(X_down, Y_down, marker='o', c='blue')
+        plt.scatter(X_down, Y_down, **down_kw)
         if globals != 0:
             globals.DIlist = X_down
             globals.DIlisty = Y_down
     if len(X_up) > 0:
         #        plt.scatter(X_up,Y_up,marker='s',facecolor='none',edgecolor='black')
-        plt.scatter(X_up, Y_up, marker='o',
-                    facecolor='white', edgecolor='blue')
+        plt.scatter(X_up, Y_up, **up_kw)
         if globals != 0:
             globals.DIlist = X_up
             globals.DIlisty = Y_up
@@ -737,36 +827,64 @@ def plot_zij(fignum, datablock, angle, s, norm=True):
         globals.Zlist = gXYZ['x'].tolist()
         globals.Zlisty = gXYZ['y'].tolist()
         globals.Zlistz = gXYZ['z'].tolist()
-    if len(bXYZ) > 0:
-        plt.scatter(bXYZ[0], bXYZ[1], marker='d', c='y', s=30)
-        plt.scatter(bXYZ[0], bXYZ[2], marker='d', c='y', s=30)
-    plt.plot(gXYZ['X'].values, gXYZ['Y'].values, 'ro')
-    plt.plot(gXYZ['X'].values, gXYZ['Z'].values, 'ws', markeredgecolor='blue')
-    plt.plot(gXYZ['X'].values, gXYZ['Y'].values, 'r-')
-    plt.plot(gXYZ['X'].values, gXYZ['Z'].values, 'b-')
-    
-
-    for k in range(len(gXYZ)):
-        plt.annotate(str(k), (gXYZ['X'][k], gXYZ['Z']
-                              [k]), ha='left', va='bottom')
     if amin > 0 and amax >0:amin=0 # complete the line
     if amin < 0 and amax <0:amax=0 # complete the line
     xline = [amin, amax]
    # yline=[-amax,-amin]
     yline = [amax, amin]
     zline = [0, 0]
-    plt.plot(xline, zline, 'k-')
-    plt.plot(zline, xline, 'k-')
-    if angle != 0:
+    if isServer:
+        # one hue, two marker shapes: filled circles for the horizontal
+        # projection, open squares for the vertical; axes recessive; only
+        # a handful of step labels so they do not pile up on dense data
+        color = SERVER_STYLE['series_1']
+        ring = SERVER_STYLE['surface']
+        plt.plot(xline, zline, '-', color=SERVER_STYLE['axis'], linewidth=0.8, zorder=1)
+        plt.plot(zline, xline, '-', color=SERVER_STYLE['axis'], linewidth=0.8, zorder=1)
+        if len(bXYZ) > 0:
+            plt.scatter(bXYZ[0], bXYZ[1], marker='d', c=SERVER_STYLE['bad'], s=25, zorder=2)
+            plt.scatter(bXYZ[0], bXYZ[2], marker='d', c=SERVER_STYLE['bad'], s=25, zorder=2)
+        plt.plot(gXYZ['X'].values, gXYZ['Y'].values, '-', color=color, linewidth=1.2, zorder=2)
+        plt.plot(gXYZ['X'].values, gXYZ['Z'].values, '-', color=color, linewidth=1.2, zorder=2)
+        plt.plot(gXYZ['X'].values, gXYZ['Y'].values, 'o', color=color,
+                 markeredgecolor=ring, markeredgewidth=0.8, zorder=3)
+        plt.plot(gXYZ['X'].values, gXYZ['Z'].values, 's', color=ring,
+                 markeredgecolor=color, markeredgewidth=1.2, zorder=3)
+        for k in label_every(len(gXYZ)):
+            plt.annotate(str(k), (gXYZ['X'][k], gXYZ['Z'][k]), xytext=(4, 3),
+                         textcoords='offset points', ha='left', va='bottom',
+                         fontsize=7, color=SERVER_STYLE['ink_secondary'])
+        plt.xlabel("X" if angle == 0 else "X (rotated to Dec = %.1f)" % angle)
+        plt.ylabel("Y (filled circles),  Z (open squares)")
+        plt.title(s)
+        plt.gca().text(0.98, 0.98, 'NRM = %.2e Am$^2$' % (datablock[0][3]),
+                       transform=plt.gca().transAxes, ha='right', va='top',
+                       fontsize=8, color=SERVER_STYLE['ink_secondary'])
+    else:
+        if len(bXYZ) > 0:
+            plt.scatter(bXYZ[0], bXYZ[1], marker='d', c='y', s=30)
+            plt.scatter(bXYZ[0], bXYZ[2], marker='d', c='y', s=30)
+        plt.plot(gXYZ['X'].values, gXYZ['Y'].values, 'ro')
+        plt.plot(gXYZ['X'].values, gXYZ['Z'].values, 'ws', markeredgecolor='blue')
+        plt.plot(gXYZ['X'].values, gXYZ['Y'].values, 'r-')
+        plt.plot(gXYZ['X'].values, gXYZ['Z'].values, 'b-')
+        for k in range(len(gXYZ)):
+            plt.annotate(str(k), (gXYZ['X'][k], gXYZ['Z']
+                                  [k]), ha='left', va='bottom')
+        plt.plot(xline, zline, 'k-')
+        plt.plot(zline, xline, 'k-')
         xlab = "X: rotated to Dec = " + '%7.1f' % (angle)
-    if angle == 0:
-        xlab = "X: rotated to Dec = " + '%7.1f' % (angle)
-    plt.xlabel(xlab)
-    plt.ylabel('Circles: Y; Squares: Z')
-    tstring = s + ': NRM = ' + '%9.2e' % (datablock[0][3])
-    plt.axis([amin, amax, amax, amin])
+        plt.xlabel(xlab)
+        plt.ylabel('Circles: Y; Squares: Z')
+        tstring = s + ': NRM = ' + '%9.2e' % (datablock[0][3])
+        plt.title(tstring)
+    if isServer:
+        # a little air so end markers and their labels are not clipped
+        pad = 0.05 * (amax - amin)
+        plt.axis([amin - pad, amax + pad, amax + pad, amin - pad])
+    else:
+        plt.axis([amin, amax, amax, amin])
     plt.gca().set_aspect("equal")
-    plt.title(tstring)
 #
 #
 
@@ -847,7 +965,7 @@ def plot_mag(fignum, datablock, s, num, units, norm):
             for el in rec:
                 recbak.append(el)
             delta = .005 * M[0]
-            if num == 1:
+            if num == 1 and not isServer:
                 if recnum % 2 == 0:
                     plt.text(T[-1] + delta, M[-1],
                              (' ' + str(recnum)), fontsize=9)
@@ -862,17 +980,37 @@ def plot_mag(fignum, datablock, s, num, units, norm):
     if globals != 0:
         globals.MTlist = T
         globals.MTlisty = M
-    if len(Mex) > 0 and len(Tex) > 0:
-        plt.scatter(Tex, Mex, marker='d', color='k')
     if len(Vdif) > 0:
         Vdif.append(vdir[2]/Ints[-1])
         Vdif.append(0)
     if Tv:
         Tv.append(Tv[-1])
-    plt.plot(T, M)
-    plt.plot(T, M, 'ro')
-    if len(Tv) == len(Vdif) and norm:
-        plt.plot(Tv, Vdif, 'g-')
+    if isServer:
+        color = SERVER_STYLE['series_1']
+        if len(Mex) > 0 and len(Tex) > 0:
+            plt.scatter(Tex, Mex, marker='d', color=SERVER_STYLE['bad'], s=25, zorder=2)
+        plt.plot(T, M, '-', color=color, linewidth=1.5, zorder=2, label='magnetization')
+        plt.plot(T, M, 'o', color=color, markeredgecolor=SERVER_STYLE['surface'],
+                 markeredgewidth=0.8, zorder=3)
+        if num == 1:
+            for k in label_every(len(T)):
+                plt.annotate(str(k), (T[k], M[k]), xytext=(4, 3), textcoords='offset points',
+                             ha='left', va='bottom', fontsize=7, color=SERVER_STYLE['ink_secondary'])
+        if len(Tv) == len(Vdif) and norm:
+            plt.plot(Tv, Vdif, '-', color=SERVER_STYLE['series_3'], linewidth=1.2,
+                     zorder=1, label='vector difference')
+            plt.legend(loc='upper right', frameon=False)
+        plt.axvline(0, color=SERVER_STYLE['axis'], linewidth=0.8, zorder=1)
+        plt.axhline(0, color=SERVER_STYLE['axis'], linewidth=0.8, zorder=1)
+    else:
+        if len(Mex) > 0 and len(Tex) > 0:
+            plt.scatter(Tex, Mex, marker='d', color='k')
+        plt.plot(T, M)
+        plt.plot(T, M, 'ro')
+        if len(Tv) == len(Vdif) and norm:
+            plt.plot(Tv, Vdif, 'g-')
+        plt.axvline(0, color='k')
+        plt.axhline(0, color='k')
     if units == "T":
         plt.xlabel("Step (mT)")
     elif units == "K":
@@ -885,8 +1023,6 @@ def plot_mag(fignum, datablock, s, num, units, norm):
         plt.ylabel("Fractional Magnetization")
     if norm == 0:
         plt.ylabel("Magnetization")
-    plt.axvline(0, color='k')
-    plt.axhline(0, color='k')
     tstring = s
     plt.title(tstring)
     plt.draw()
@@ -917,6 +1053,9 @@ def plot_zed(ZED, datablock, angle, s, units):
        calls plotting functions for equal area, zijderveld and demag figures
 
     """
+    if isServer:
+        # zeq_magic builds its figures without plot_init
+        apply_server_style()
     for fignum in list(ZED.keys()):
         fig = plt.figure(num=ZED[fignum])
         plt.clf()
@@ -949,12 +1088,14 @@ def plot_zed(ZED, datablock, angle, s, units):
     AngleX.append(XY[0])
     AngleY.append(XY[1])
     plt.figure(num=ZED['eqarea'])
-    # Draw a line for Zijderveld horizontal axis
-    plt.plot(AngleX, AngleY, 'r-')
-    if AngleX[-1] == 0:
-        AngleX[-1] = 0.01
-    plt.text(AngleX[-1] + (AngleX[-1]/abs(AngleX[-1])) * .1,
-             AngleY[-1] + (AngleY[-1]/abs(AngleY[-1])) * .1, 'X')
+    # Draw a line for Zijderveld horizontal axis (not on the server, where
+    # the angle is always 0 and the line just duplicates the net's axis)
+    if not isServer:
+        plt.plot(AngleX, AngleY, 'r-')
+        if AngleX[-1] == 0:
+            AngleX[-1] = 0.01
+        plt.text(AngleX[-1] + (AngleX[-1]/abs(AngleX[-1])) * .1,
+                 AngleY[-1] + (AngleY[-1]/abs(AngleY[-1])) * .1, 'X')
     norm = 1
     #if units=="U": norm=0
     # if there are NO good points, don't try to plot
@@ -1008,7 +1149,11 @@ def plot_dir(ZED, pars, datablock, angle):
         XY = pmag.dimap(pars["specimen_dec"], pars["specimen_inc"])
         x.append(XY[0])
         y.append(XY[1])
-        plt.scatter(x, y, marker='d', s=80, c='b')
+        if isServer:
+            plt.scatter(x, y, marker='D', s=60, c=SERVER_STYLE['series_2'],
+                        edgecolor=SERVER_STYLE['surface'], linewidth=0.8, zorder=4)
+        else:
+            plt.scatter(x, y, marker='d', s=80, c='b')
         x, y, z = [], [], []
         StartDir[0] = StartDir[0] - angle
         EndDir[0] = EndDir[0] - angle
@@ -1021,10 +1166,17 @@ def plot_dir(ZED, pars, datablock, angle):
         y.append(XYZe[1])
         z.append(XYZe[2])
         plt.figure(num=ZED['zijd'])
-        plt.scatter(x, y, marker='d', s=80, c='g')
-        plt.scatter(x, z, marker='d', s=80, c='g')
-        plt.scatter(x, y, marker='o', c='r', s=20)
-        plt.scatter(x, z, marker='s', c='w', s=20)
+        if isServer:
+            # mark the fitted interval's end points in the accent hue
+            plt.scatter(x, y, marker='D', s=45, c=SERVER_STYLE['series_2'],
+                        edgecolor=SERVER_STYLE['surface'], linewidth=0.8, zorder=4)
+            plt.scatter(x, z, marker='D', s=45, c=SERVER_STYLE['series_2'],
+                        edgecolor=SERVER_STYLE['surface'], linewidth=0.8, zorder=4)
+        else:
+            plt.scatter(x, y, marker='d', s=80, c='g')
+            plt.scatter(x, z, marker='d', s=80, c='g')
+            plt.scatter(x, y, marker='o', c='r', s=20)
+            plt.scatter(x, z, marker='s', c='w', s=20)
 #
 # put on best fit line
 # new way (from Jeff Gee's favorite website http://GET THIS):
@@ -1063,8 +1215,9 @@ def plot_dir(ZED, pars, datablock, angle):
             py.append((cm[1] - P[1]))
             pz.append((cm[2] - P[2]))
 
-        plt.plot(px, py, 'g', linewidth=2)
-        plt.plot(px, pz, 'g', linewidth=2)
+        fit_color = SERVER_STYLE['series_2'] if isServer else 'g'
+        plt.plot(px, py, color=fit_color, linewidth=2, zorder=3)
+        plt.plot(px, pz, color=fit_color, linewidth=2, zorder=3)
         plt.gca().set_aspect("equal")
     else:
         plt.figure(num=ZED['eqarea'])
@@ -1529,7 +1682,10 @@ def plot_eq(fignum, DIblock, s):
 #
     plot_di(fignum, DIblock)  # plot directions
     plt.gca().set_aspect("equal")
-    plt.text(-1.1, 1.15, s)
+    if isServer:
+        plt.title(s)
+    else:
+        plt.text(-1.1, 1.15, s)
     plt.draw()
 
 
@@ -1556,7 +1712,10 @@ def plot_eq_sym(fignum, DIblock, s, sym):
 #
     plot_di_sym(fignum, DIblock, sym)  # plot directions with symbols in sym
     plt.gca().set_aspect("equal")
-    plt.text(-1.1, 1.15, s)
+    if isServer:
+        plt.title(s)
+    else:
+        plt.text(-1.1, 1.15, s)
 #
 
 
@@ -2863,6 +3022,8 @@ def add_borders(Figs, titles, border_color='#000000', text_color='#800080', con_
     Default border color: black
     Default text color: purple
     """
+    max_chars = 30
+
     def split_title(s):
         """
         Add '\n's to split of overly long titles
@@ -2873,14 +3034,36 @@ def add_borders(Figs, titles, border_color='#000000', text_color='#800080', con_
         line = []
         for i in s_list:
             tot += len(i)
-            if tot < 30:
+            if tot < max_chars:
                 line.append(i + ",")
             else:
                 lines.append(" ".join(line))
                 line = [i]
                 tot = 0
         lines.append(" ".join(line))
-        return "\n".join(lines).strip(',')
+        title = "\n".join(lines).strip(',')
+        # give a trailing parenthetical (e.g. the coordinate system) its own
+        # line rather than breaking it across lines
+        split_lines = []
+        for line in title.split("\n"):
+            if len(line) > max_chars and " (" in line:
+                head, _, tail = line.rpartition(" (")
+                split_lines.extend([head, "(" + tail])
+            else:
+                split_lines.append(line)
+        return "\n".join(split_lines)
+
+    def title_size(title, fig_width, default=20):
+        """
+        Shrink the title font, if need be, to keep it inside the figure
+        """
+        longest = max(len(line) for line in title.split("\n"))
+        if not longest:
+            return default
+        # matplotlib's default sans-serif runs about 0.6 em per character;
+        # leave a margin by fitting the title into 92% of the figure width
+        points = 0.92 * fig_width * 72. / (0.6 * longest)
+        return int(max(10, min(default, points)))
 
     # format contribution id if available
     if con_id:
@@ -2888,23 +3071,29 @@ def add_borders(Figs, titles, border_color='#000000', text_color='#800080', con_
             con_id = "/" + str(con_id)
 
     import datetime
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(datetime.timezone.utc)
 
     for key in list(Figs.keys()):
 
         fig = plt.figure(Figs[key])
         plot_title = split_title(titles[key]).strip().strip('\n')
+        # a trailing parenthetical (the coordinate system) becomes a subtitle
+        subtitle = ""
+        lines = plot_title.split("\n")
+        if len(lines) > 1 and lines[-1].startswith("(") and lines[-1].endswith(")"):
+            subtitle = lines[-1][1:-1]
+            plot_title = "\n".join(lines[:-1])
         fig.set_figheight(5.5)
         fig.set_figwidth(5.5)
 
-        # make space for the title and borders
-        # centered with at least 10% on the sides and 20% on the top and bottom
+        # make space for the title and footer: the plot gets the middle
+        # ~70% of the figure height, centered horizontally
         for ax in fig.axes:
             pos = ax.get_position() # get returns: Bbox with x0, y0, x1, y1
-            w = min((pos.x1 - pos.x0), 0.8)
-            h = min((pos.y1 - pos.y0), 0.6)
+            w = min((pos.x1 - pos.x0), 0.78)
+            h = min((pos.y1 - pos.y0), 0.70)
             x = (1 - w)/2
-            y = (1 - h)/2
+            y = 0.10 + (0.72 - h)/2
             ax.set_position([x, y, w, h]) # set takes: left, bottom, width, height
 
         # add an axis covering the entire figure
@@ -2913,22 +3102,29 @@ def add_borders(Figs, titles, border_color='#000000', text_color='#800080', con_
         border_ax.set_xticks([])
         border_ax.set_yticks([])
 
-        # add text
-        border_ax.text(0.03, 0.03, now.strftime("%Y-%m-%d, %I:%M:%S {}".format('UT')),
-                       horizontalalignment='left',
-                       verticalalignment='top',
-                       color=text_color,
-                       size=10)
-        border_ax.text(0.5, 0.98, plot_title,
+        # add text: title in ink, subtitle and footer in secondary ink,
+        # the earthref link in the brand color
+        border_ax.text(0.5, 0.965, plot_title,
                        horizontalalignment='center',
                        verticalalignment='top',
-                       color=text_color,
-                       size=20)
-        border_ax.text(0.97, 0.03, 'earthref.org/MagIC{}'.format(con_id),
+                       color=SERVER_STYLE['ink'],
+                       size=title_size(plot_title, fig.get_figwidth(), default=15))
+        if subtitle:
+            border_ax.text(0.5, 0.905, subtitle,
+                           horizontalalignment='center',
+                           verticalalignment='top',
+                           color=SERVER_STYLE['ink_secondary'],
+                           size=10)
+        border_ax.text(0.04, 0.035, now.strftime("%Y-%m-%d %H:%M UT"),
+                       horizontalalignment='left',
+                       verticalalignment='bottom',
+                       color=SERVER_STYLE['ink_secondary'],
+                       size=8)
+        border_ax.text(0.96, 0.035, 'earthref.org/MagIC{}'.format(con_id),
                        horizontalalignment='right',
-                       verticalalignment='top',
-                       color=text_color,
-                       size=10)
+                       verticalalignment='bottom',
+                       color=SERVER_STYLE['brand'],
+                       size=8)
     return Figs
 
 def plot_map(fignum, lats, lons, Opts):

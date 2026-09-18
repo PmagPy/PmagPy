@@ -946,7 +946,7 @@ class TestEqareaMagic(unittest.TestCase):
                                            ignore_tilt=True,
                                            source_table="measurements", n_plots=20)
         self.assertTrue(res)
-        self.assertTrue(os.path.exists('McMurdo_mc20_mc20f_g_eqarea.png'))
+        self.assertTrue(os.path.exists('McMurdo_mc20_mc20f_s_eqarea.png'))
         self.assertEqual(len(outfiles), 20)
 
     def test_success_with_images(self):
@@ -957,7 +957,7 @@ class TestEqareaMagic(unittest.TestCase):
                                             source_table="measurements", n_plots=20,
                                             image_records=True)
         self.assertTrue(res)
-        self.assertTrue(os.path.exists('McMurdo_mc20_mc20f_g_eqarea.png'))
+        self.assertTrue(os.path.exists('McMurdo_mc20_mc20f_s_eqarea.png'))
         self.assertEqual(len(outfiles), 20)
         print('image_recs', image_recs)
         self.assertTrue(image_recs)
