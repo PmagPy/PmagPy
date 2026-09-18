@@ -562,7 +562,18 @@ def paleolatitude(pole_lon: float, pole_lat: float, site_lon: float, site_lat: f
 # ---------------------------------------------------------------------------
 # Loading
 # ---------------------------------------------------------------------------
-def build_step_table(spec_meas: pd.DataFrame, intensity_col: str, warnings: Optional[list] = None) -> pd.DataFrame:
+STEP_SOURCE_COLUMNS = ("method_codes", "dir_dec", "dir_inc", "treat_ac_field", "treat_temp", "treat_mw_power",
+                       "treat_mw_time", "treat_step_num", "dir_csd", "quality", "measurement", "experiment",
+                       "specimen")     # the measurement columns a step table is read from (plus the intensity)
+
+
+def _column(frame: pd.DataFrame, name: str, n: int) -> list:
+    """One column of a specimen's rows as a plain list (``None`` for every row when absent)."""
+    return frame[name].tolist() if name in frame.columns else [None] * n
+
+
+def build_step_table(spec_meas: pd.DataFrame, intensity_col: str, warnings: Optional[list] = None,
+                     orientation: Optional[Orientation] = None) -> pd.DataFrame:
     """Turn a specimen's measurement rows into an ordered demag step table.
 
     Rows are kept in file order. Only zero-field demagnetization steps are
@@ -570,89 +581,149 @@ def build_step_table(spec_meas: pd.DataFrame, intensity_col: str, warnings: Opti
     in-field Thellier steps, pTRM checks, ARM/TRM acquisition and anisotropy
     experiments are dropped. Steps without an intensity are skipped (and
     reported in ``warnings``) rather than given a made-up moment.
+
+    Args:
+        orientation: when given, the geographic and tilt-corrected columns
+            (``dec_g``/``inc_g``, ``dec_t``/``inc_t``) are filled in the same
+            pass — see :func:`add_transformed_coordinates`, which does it later.
+
+    The rows are read as plain lists and the table is built once at the end:
+    a thousand specimens are read in well under a second this way, where a
+    row-by-row ``iterrows`` pass took several.
     """
-    records = []
-    for pos, row in spec_meas.iterrows():
-        codes = _codes(row.get("method_codes", ""))
+    n = len(spec_meas)
+    columns = {name: _column(spec_meas, name, n) for name in STEP_SOURCE_COLUMNS + (intensity_col,)}
+    return steps_from_columns(columns, spec_meas.index.tolist(), intensity_col, warnings, orientation)
+
+
+def steps_from_columns(columns: dict, positions: list, intensity_col: str, warnings: Optional[list] = None,
+                       orientation: Optional[Orientation] = None) -> pd.DataFrame:
+    """:func:`build_step_table` over the specimen's rows given column by column.
+
+    Args:
+        columns: ``{column name: values}`` for :data:`STEP_SOURCE_COLUMNS` and the
+            intensity column, each a list (or array) of the rows' values.
+        positions: the rows' positions in the measurements table (``meas_pos``).
+    """
+    n = len(positions)
+    col = lambda name: columns.get(name) if columns.get(name) is not None else [None] * n     # noqa: E731
+    method_codes = col("method_codes")
+    decs, incs = col("dir_dec"), col("dir_inc")
+    moments = col(intensity_col)
+    ac_fields, temps = col("treat_ac_field"), col("treat_temp")
+    mw_powers, mw_times = col("treat_mw_power"), col("treat_mw_time")
+    step_nums, csds = col("treat_step_num"), col("dir_csd")
+    qualities = col("quality")
+    names = col("measurement")
+    experiments = col("experiment")
+    specimens = col("specimen")
+
+    cols = {key: [] for key in ("meas_pos", "measurement", "experiment", "treat_type", "treat_value", "treat_unit",
+                                "dec_s", "inc_s", "moment", "csd", "quality", "method_codes")}
+    for i in range(n):
+        codes = _codes(method_codes[i])
         if any(c in EXCLUDED_PROTOCOL_CODES for c in codes):
             continue
         if not any(c in INCLUDED_STEP_CODES for c in codes):
             continue
-        dec = _to_float(row.get("dir_dec"))
-        inc = _to_float(row.get("dir_inc"))
+        dec, inc = _to_float(decs[i]), _to_float(incs[i])
         if np.isnan(dec) or np.isnan(inc):
             continue
-        moment = _to_float(row.get(intensity_col))
+        moment = _to_float(moments[i])
         if np.isnan(moment):
             if warnings is not None:
-                warnings.append(f"{row.get('specimen', '?')}: measurement {row.get('measurement', pos)} "
+                measurement = names[i] if names[i] is not None and not mp.is_null(names[i]) else positions[i]
+                warnings.append(f"{specimens[i] if specimens[i] is not None else '?'}: measurement {measurement} "
                                 f"has no {intensity_col}; step skipped")
             continue
         if "LT-NO" in codes:
             treat_type, value, unit = "NRM", 0.0, ""
         elif "LT-AF-Z" in codes:
-            treat_type, value, unit = "AF", _to_float(row.get("treat_ac_field"), 0.0), "T"
+            treat_type, value, unit = "AF", _to_float(ac_fields[i], 0.0), "T"
         elif "LT-T-Z" in codes or "LT-LT-Z" in codes:
-            treat_type, value, unit = "T", _to_float(row.get("treat_temp"), KELVIN_OFFSET), "K"
+            treat_type, value, unit = "T", _to_float(temps[i], KELVIN_OFFSET), "K"
         elif "LT-M-Z" in codes:
-            power = _to_float(row.get("treat_mw_power"))
-            time = _to_float(row.get("treat_mw_time"))
-            value = power * time if not (np.isnan(power) or np.isnan(time)) else _to_float(row.get("treat_step_num"), 0.0)
+            power, time = _to_float(mw_powers[i]), _to_float(mw_times[i])
+            value = power * time if not (np.isnan(power) or np.isnan(time)) else _to_float(step_nums[i], 0.0)
             treat_type, unit = "MW", "J"
         else:
             continue
-        quality = "b" if str(row.get("quality", "g")).strip() == "b" else "g"
-        records.append({
-            "meas_pos": int(pos),
-            "measurement": str(row.get("measurement", "")),
-            "experiment": str(row.get("experiment", "")),
-            "treat_type": treat_type,
-            "treat_value": value,
-            "treat_unit": unit,
-            "dec_s": dec,
-            "inc_s": inc,
-            "moment": moment,
-            "csd": _to_float(row.get("dir_csd")),
-            "quality": quality,
-            "method_codes": ":".join(codes),
-        })
-    steps = pd.DataFrame(records)
-    if len(steps) == 0:
-        return steps
+        cols["meas_pos"].append(int(positions[i]))
+        cols["measurement"].append("" if names[i] is None or mp.is_null(names[i]) else str(names[i]))
+        cols["experiment"].append("" if experiments[i] is None or mp.is_null(experiments[i]) else str(experiments[i]))
+        cols["treat_type"].append(treat_type)
+        cols["treat_value"].append(value)
+        cols["treat_unit"].append(unit)
+        cols["dec_s"].append(dec)
+        cols["inc_s"].append(inc)
+        cols["moment"].append(moment)
+        cols["csd"].append(_to_float(csds[i]))
+        cols["quality"].append("b" if str("g" if qualities[i] is None or mp.is_null(qualities[i]) else qualities[i]).strip() == "b" else "g")
+        cols["method_codes"].append(":".join(codes))
+    n_steps = len(cols["meas_pos"])
+    if n_steps == 0:
+        return pd.DataFrame()
     # Duplicate rows (repeated NRM measurements from a second experiment,
     # re-measured steps) are deliberately kept: the legacy GUI keeps them, the
     # published interpretations count them, and the step logger shows them so
     # that the analyst can flag one of them bad if that is what they want.
     # NRM steps inherit the unit of the following demag protocol
-    units = steps["treat_unit"].replace("", np.nan).bfill().ffill().fillna("")
-    steps["treat_unit"] = units
-    steps.insert(0, "sequence", np.arange(len(steps)))
-    steps["label"] = [step_label(v, u, t) for v, u, t in
-                      zip(steps["treat_value"], steps["treat_unit"], steps["treat_type"])]
-    steps["treat_display"] = [display_value(v, u, t) for v, u, t in
-                              zip(steps["treat_value"], steps["treat_unit"], steps["treat_type"])]
-    nrm = steps["moment"].iloc[0]
-    steps["moment_norm"] = steps["moment"] / nrm if nrm else steps["moment"]
-    return steps
+    units = list(cols["treat_unit"])
+    last = ""
+    for i in range(n_steps - 1, -1, -1):             # back-fill ...
+        if units[i]:
+            last = units[i]
+        else:
+            units[i] = last
+    last = ""
+    for i in range(n_steps):                         # ... then forward-fill what is still blank
+        if units[i]:
+            last = units[i]
+        else:
+            units[i] = last
+    cols["treat_unit"] = units
+    values, types = cols["treat_value"], cols["treat_type"]
+    moments = np.asarray(cols["moment"], dtype=float)
+    nrm = moments[0]
+    text = lambda key: np.array(cols[key], dtype=object)                                   # noqa: E731
+    table = {"sequence": np.arange(n_steps), "meas_pos": np.asarray(cols["meas_pos"], dtype=np.int64),
+             "measurement": text("measurement"), "experiment": text("experiment"), "treat_type": text("treat_type"),
+             "treat_value": np.asarray(values, dtype=float), "treat_unit": np.array(units, dtype=object),
+             "dec_s": np.asarray(cols["dec_s"], dtype=float), "inc_s": np.asarray(cols["inc_s"], dtype=float),
+             "moment": moments, "csd": np.asarray(cols["csd"], dtype=float), "quality": text("quality"),
+             "method_codes": text("method_codes"),
+             "label": np.array([step_label(v, u, t) for v, u, t in zip(values, units, types)], dtype=object),
+             "treat_display": np.asarray([display_value(v, u, t) for v, u, t in zip(values, units, types)], dtype=float),
+             "moment_norm": moments / nrm if nrm else moments}
+    table.update(zip(("dec_g", "inc_g", "dec_t", "inc_t"), _transformed_arrays(table["dec_s"], table["inc_s"], orientation)))
+    return pd.DataFrame(table)
+
+
+def _transformed_arrays(dec_s: np.ndarray, inc_s: np.ndarray, orientation: Optional[Orientation]) -> tuple:
+    """(dec_g, inc_g, dec_t, inc_t) for specimen directions under an orientation (NaN where it has none)."""
+    n = len(dec_s)
+    blank = np.full(n, np.nan)
+    if orientation is None or not orientation.has_geographic or n == 0:
+        return blank, blank.copy(), blank.copy(), blank.copy()
+    geo_in = np.column_stack([dec_s, inc_s, np.full(n, orientation.azimuth), np.full(n, orientation.dip)])
+    dec_g, inc_g = (np.asarray(a, dtype=float) for a in pmag.dogeo_V(geo_in))
+    if not orientation.has_tilt:
+        return dec_g, inc_g, blank, blank.copy()
+    tilt_in = np.column_stack([dec_g, inc_g, np.full(n, orientation.bed_dip_direction), np.full(n, orientation.bed_dip)])
+    dec_t, inc_t = (np.asarray(a, dtype=float) for a in pmag.dotilt_V(tilt_in))
+    return dec_g, inc_g, dec_t, inc_t
 
 
 def add_transformed_coordinates(steps: pd.DataFrame, orientation: Optional[Orientation]) -> pd.DataFrame:
     """Add dec_g/inc_g and dec_t/inc_t columns using pmag.dogeo_V / dotilt_V."""
     steps = steps.copy()
-    for col in ("dec_g", "inc_g", "dec_t", "inc_t"):
-        steps[col] = np.nan
-    if orientation is None or not orientation.has_geographic or len(steps) == 0:
+    if len(steps) == 0:
+        for col in ("dec_g", "inc_g", "dec_t", "inc_t"):
+            steps[col] = np.nan
         return steps
-    n = len(steps)
-    geo_in = np.column_stack([steps["dec_s"].values, steps["inc_s"].values,
-                              np.full(n, orientation.azimuth), np.full(n, orientation.dip)])
-    dec_g, inc_g = pmag.dogeo_V(geo_in)
-    steps["dec_g"], steps["inc_g"] = np.asarray(dec_g, float), np.asarray(inc_g, float)
-    if orientation.has_tilt:
-        tilt_in = np.column_stack([steps["dec_g"].values, steps["inc_g"].values,
-                                   np.full(n, orientation.bed_dip_direction), np.full(n, orientation.bed_dip)])
-        dec_t, inc_t = pmag.dotilt_V(tilt_in)
-        steps["dec_t"], steps["inc_t"] = np.asarray(dec_t, float), np.asarray(inc_t, float)
+    arrays = _transformed_arrays(steps["dec_s"].values.astype(float), steps["inc_s"].values.astype(float), orientation)
+    for col, values in zip(("dec_g", "inc_g", "dec_t", "inc_t"), arrays):
+        steps[col] = values
     return steps
 
 
@@ -754,13 +825,35 @@ class DemagData:
         self.hierarchy = self._build_hierarchy(meas, spec_df, samp_df, site_df)
         self.site_coords = self._build_site_coords(site_df, samp_df)
 
-        for name, spec_meas in meas.groupby("specimen", sort=False):
-            steps = build_step_table(spec_meas, intensity_col, self.warnings)
+        # the samples table is grouped once and each sample's orientation worked out
+        # once, however many specimens share it (scanning the table per specimen
+        # was most of the cost of opening a large study)
+        sample_rows: dict = {}
+        if samp_df is not None and "sample" in samp_df.columns:
+            for row in samp_df.to_dict("records"):
+                sample_rows.setdefault(str(row["sample"]), []).append(row)
+        orientations: dict = {}
+        hierarchy = self.hierarchy[["sample", "site", "location"]].to_dict("index")
+        # the measurement columns are pulled out of the table once and sliced per
+        # specimen: reading them out of a thousand small frames took longer than
+        # everything else put together
+        arrays = {name: meas[name].to_numpy(dtype=object) for name in STEP_SOURCE_COLUMNS + (intensity_col,)
+                  if name in meas.columns}
+        index = meas.index.to_numpy()
+        for name, rows in meas.groupby("specimen", sort=False).indices.items():
+            levels = hierarchy[name]
+            sample, site, location = levels["sample"], levels["site"], levels["location"]
+            if sample:
+                if sample not in orientations:
+                    orientations[sample] = mp.orientation_from_rows(sample_rows.get(str(sample), []), sample) \
+                        if str(sample) in sample_rows else None
+                orientation = orientations[sample]
+            else:
+                orientation = None
+            columns = {key: values[rows].tolist() for key, values in arrays.items()}
+            steps = steps_from_columns(columns, index[rows].tolist(), intensity_col, self.warnings, orientation)
             if len(steps) < 2:
                 continue
-            sample, site, location = self.hierarchy.loc[name, ["sample", "site", "location"]]
-            orientation = build_orientation(samp_df, sample) if sample else None
-            steps = add_transformed_coordinates(steps, orientation)
             self.specimens[name] = SpecimenData(name=name, sample=sample, site=site,
                                                 location=location, steps=steps,
                                                 orientation=orientation,
@@ -1189,13 +1282,16 @@ class DemagData:
     def mean_directions(self, level: str = "site", coord: int = COORD_GEOGRAPHIC,
                         component: Optional[str] = None, include_bad: bool = False,
                         over: str = "specimens", common_polarity: bool = True,
-                        flip: bool = False) -> pd.DataFrame:
+                        flip: bool = False, group: Optional[str] = None) -> pd.DataFrame:
         """Fisher means of lines and planes (McFadden & McElhinny, 1988) per group.
 
         Args:
             level: 'sample', 'site' or 'location'.
             coord: coordinate system of the specimen directions averaged.
             component: restrict to one dir_comp name (None = each name separately).
+            group: restrict to one sample/site/location name. The polarity axis
+                a location's directions are unified about is still that of the
+                whole study, so the one mean is the same row the full table holds.
             include_bad: include components flagged result_quality 'b'.
             over: 'specimens' averages specimen directions directly; 'samples'
                 (for sites) or 'sites' (for locations) averages the means of
@@ -1218,7 +1314,10 @@ class DemagData:
         if level not in ("sample", "site", "location"):
             raise ValueError(level)
         if over != "specimens":
-            return self._mean_of_means(level, coord, component, include_bad, over, common_polarity, flip)
+            means = self._mean_of_means(level, coord, component, include_bad, over, common_polarity, flip)
+            if group is not None and len(means):
+                means = means[means[level].astype(str) == str(group)].reset_index(drop=True)
+            return means
         results = self.fit_all(coord)
         failing = self.failing_components() if not include_bad else set()
         failing_sites = self.failing_groups("site", coord) if level == "location" and not include_bad else set()
@@ -1244,7 +1343,10 @@ class DemagData:
         axes = {name: polarity_axis(g[["dir_dec", "dir_inc"]].values) for name, g in df.groupby("dir_comp")} \
             if level == "location" and common_polarity else {}
         out = []
+        wanted = group
         for (group, comp_name), grp in df.groupby(["group", "dir_comp"], sort=False):
+            if wanted is not None and str(group) != str(wanted):
+                continue
             recs = grp.to_dict("records")
             reversed_perc = 0.0
             if level == "location" and (common_polarity or flip):

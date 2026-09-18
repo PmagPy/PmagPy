@@ -159,34 +159,44 @@ def build_orientation(samp_df: Optional[pd.DataFrame], sample: str) -> Optional[
     row with both azimuth and dip provides the geographic transform, and
     bedding is taken from the same row or, failing that, from any row of the
     sample that carries it.
+
+    ``samp_df`` may be the whole table or just this sample's rows (a caller
+    opening a large study groups the table once and passes each sample's rows).
     """
-    if samp_df is None or "sample" not in samp_df.columns:
+    if samp_df is None or "sample" not in samp_df.columns or len(samp_df) == 0:
         return None
-    rows = samp_df[samp_df["sample"].astype(str) == str(sample)]
-    if len(rows) == 0:
-        return None
-    if "orientation_quality" in rows.columns:
-        rows = rows[rows["orientation_quality"].astype(str).str.strip() != "b"]
-    if len(rows) == 0:
+    names = samp_df["sample"]
+    if len(samp_df) > 1 or str(names.iloc[0]) != str(sample):
+        samp_df = samp_df[names.astype(str) == str(sample)]
+        if len(samp_df) == 0:
+            return None
+    # a sample has a handful of rows: plain dicts are far quicker than a frame here
+    return orientation_from_rows(samp_df.to_dict("records"), sample)
+
+
+def orientation_from_rows(rows: list, sample: str) -> Optional[Orientation]:
+    """:func:`build_orientation` over a sample's rows as dicts (see there for the rules)."""
+    rows = [r for r in rows if str(r.get("orientation_quality", "")).strip() != "b"] \
+        if any("orientation_quality" in r for r in rows) else list(rows)
+    if not rows:
         return None
     orient = Orientation(sample=str(sample))
-    if "azimuth" in rows.columns and "dip" in rows.columns:
-        az = pd.to_numeric(rows["azimuth"], errors="coerce")
-        dip = pd.to_numeric(rows["dip"], errors="coerce")
-        ok = az.notna() & dip.notna()
-        if ok.any():
-            row = rows[ok].iloc[0]
-            orient.azimuth = float(az[ok].iloc[0])
-            orient.dip = float(dip[ok].iloc[0])
-            so_codes = [c for c in split_codes(row.get("method_codes", ""))
-                        if c.startswith("SO-") and c not in NON_PRIMARY_SO_CODES]
-            orient.method_codes = so_codes
-            for col, attr in (("bed_dip_direction", "bed_dip_direction"), ("bed_dip", "bed_dip")):
-                if col in rows.columns:
-                    val = to_float(row.get(col))
-                    if np.isnan(val):
-                        val = to_float(first_valid(pd.to_numeric(rows[col], errors="coerce")))
-                    setattr(orient, attr, val)
+    for row in rows:
+        if "azimuth" not in row or "dip" not in row:
+            break
+        az, dip = to_float(row.get("azimuth")), to_float(row.get("dip"))
+        if np.isnan(az) or np.isnan(dip):
+            continue
+        orient.azimuth, orient.dip = az, dip
+        orient.method_codes = [c for c in split_codes(row.get("method_codes", ""))
+                               if c.startswith("SO-") and c not in NON_PRIMARY_SO_CODES]
+        for col in ("bed_dip_direction", "bed_dip"):
+            if any(col in r for r in rows):
+                val = to_float(row.get(col))
+                if np.isnan(val):
+                    val = next((v for v in (to_float(r.get(col)) for r in rows) if not np.isnan(v)), np.nan)
+                setattr(orient, col, val)
+        break
     return orient
 
 
