@@ -136,9 +136,15 @@ class Workspace:
 
 
 def back_link(hub_url: str) -> pn.pane.HTML:
-    """The header's way back to the hub, for an application served under one."""
+    """The header's way back to the hub, for an application served under one.
+
+    The link carries the page's query string (``?dir=<the open directory>``,
+    which the chooser keeps current) so the hub comes back to that directory's
+    page rather than to the start page; with nothing open it is the plain hub.
+    """
     return pn.pane.HTML(
-        f'<a href="{hub_url}" style="{STATUS_STYLE};text-decoration:none;white-space:nowrap;'
+        f'<a href="{hub_url}" onclick="this.href=\'{hub_url}\' + (window.location.search || \'\')" '
+        f'style="{STATUS_STYLE};text-decoration:none;white-space:nowrap;'
         f'padding-right:14px;border-right:1px solid currentColor;margin-right:4px">'
         f'&larr; PmagPy Apps</a>', margin=(0, 0, 0, 0))
 

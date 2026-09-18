@@ -79,6 +79,8 @@ class TestShell:
         body = _body()
         assert len(shell.template(body, logo=LOGO).header) == 0
         under_hub = shell.template(_body(), logo=LOGO, hub_url="http://localhost:5010/")
+        # the way back carries the open directory (the page's ?dir=) so the hub reopens it
+        assert "window.location.search" in under_hub.header[0].object
         assert len(under_hub.header) == 1 and 'href="http://localhost:5010/"' in under_hub.header[0].object
 
 
