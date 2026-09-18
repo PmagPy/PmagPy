@@ -5,7 +5,7 @@ import os
 
 import panel as pn
 
-from pmagpy_panel import runtime, shell
+from pmagpy_panel import datasets, runtime, shell
 from pmagpy_panel.theme import TABS_CSS
 from .session import APP, Session, session_directory
 from .views import (BicepView, CorrectionsView, CriteriaView, DataView, ExportView, GroupView,
@@ -85,6 +85,7 @@ def build_body(session: Session) -> shell.Body:
 
     dataview.change_btn.on_click(lambda e: body.open_modal())
     dataview.on_loaded = lambda: body.close_modal()
+    dataview.busy = tabs                 # a spinner over the tabs while the next dataset is read
     return body
 
 
@@ -99,6 +100,25 @@ def create_app(directory: str, output_dir: str | None = None):
 
 
 def serve_default():
-    """The page for the directory this session asked for: ``?dir=``, then the environment, then Megiddo."""
-    repo = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-    return create_app(session_directory(os.path.join(repo, "data_files", "3_0", "Megiddo")))
+    """The page for the directory this session asked for: ``?dir=``, then the environment, then an example.
+
+    The page is served at once with a loading line and fills in when the study
+    has been read (:func:`pmagpy_panel.shell.deferred_template`); ``session`` is
+    set on the template once the body is built (immediately outside a served
+    session). The example is Megiddo, or McMurdo where a build ships only that
+    one; either is found wherever this copy of PmagPy keeps its data files.
+    """
+    directory = session_directory(datasets.example_dir("Megiddo") or datasets.example_dir("McMurdo"))
+    name = os.path.basename(directory.rstrip("/")) or directory
+    holder = {}
+
+    def build():
+        session = Session(directory, None, cache=True)
+        holder["session"] = session
+        if session.data is None:
+            return pn.pane.Markdown(f"## Could not load `{directory}`\n\n{session.status}")
+        return build_body(session)
+    template = shell.deferred_template(APP, LOGO, build, hub_url=runtime.hub_url(), loading=f"Loading {name} …",
+                                       side_width=SIDE_WIDTH)
+    template.session = holder.get("session")
+    return template

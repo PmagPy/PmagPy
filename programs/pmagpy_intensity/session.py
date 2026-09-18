@@ -66,6 +66,19 @@ def default_output_dir(directory: str) -> str:
 
 
 _DATASETS: dict = {}        # directory -> (PintData, code stamp); shared by all browser sessions
+AUTOSAVE_DELAY = 0.8        # seconds of quiet after an edit before the session file is written
+
+
+def _server_document():
+    """The Bokeh document of the served session this code runs in, or None outside one."""
+    try:
+        import panel as pn
+        doc = pn.state.curdoc
+    except Exception:
+        return None
+    if doc is not None and getattr(doc, "session_context", None) is not None:
+        return doc
+    return None
 
 
 def _code_stamp() -> float:
@@ -74,8 +87,10 @@ def _code_stamp() -> float:
     core = os.path.dirname(os.path.abspath(pint.__file__))
     files = [os.path.join(core, name) for name in
              ("paleointensity.py", "pint_stats.py", "magic_project.py", "tdt.py", "bicep.py")]
-    files += [os.path.join(here, f) for f in os.listdir(here) if f.endswith(".py")]
-    return max(os.path.getmtime(f) for f in files if os.path.exists(f))
+    if os.path.isdir(here):                       # a packaged build has no source directory on disk
+        files += [os.path.join(here, f) for f in os.listdir(here) if f.endswith(".py")]
+    stamps = [os.path.getmtime(f) for f in files if os.path.exists(f)]
+    return max(stamps) if stamps else 0.0
 
 
 class Session(param.Parameterized):
@@ -97,6 +112,9 @@ class Session(param.Parameterized):
         super().__init__(**params)
         self.data: Optional[pint.PintData] = None
         self.autosave_enabled = True
+        self.autosave_delay = AUTOSAVE_DELAY
+        self._autosave_doc = None       # the document holding a pending autosave, and its callback
+        self._autosave_pending = None
         self.cache = cache
         self.bicep_results: dict = {}
         if directory:
@@ -108,6 +126,7 @@ class Session(param.Parameterized):
         if not looks_like_magic_dir(directory):
             self.status = f"{directory} has no measurements.txt"
             return False
+        self.flush_autosave()           # the dataset being left keeps its last edits
         self.output_dir = output_dir or default_output_dir(directory)
         stamp = _code_stamp()
         cached = _DATASETS.get(directory) if self.cache else None
@@ -198,7 +217,7 @@ class Session(param.Parameterized):
     # ------------------------------------------------------------------ editing
     def _changed(self) -> None:
         self.version += 1
-        self.autosave()
+        self.request_autosave()
 
     def set_bounds(self, imin: int, imax: int) -> None:
         if not self.ready:
@@ -291,6 +310,8 @@ class Session(param.Parameterized):
         return os.path.join(self.output_dir, AUTOSAVE_NAME)
 
     def autosave(self) -> None:
+        """Write the session file now."""
+        self._autosave_pending = None
         if not (self.autosave_enabled and self.data is not None and self.output_dir):
             return
         try:
@@ -298,6 +319,39 @@ class Session(param.Parameterized):
             self.data.save_session(self.autosave_path)
         except OSError as exc:                             # a read-only directory must not block work
             self.status = f"could not auto-save: {exc}"
+
+    def request_autosave(self) -> None:
+        """Auto-save soon: once, ``autosave_delay`` seconds after the last edit.
+
+        Inside a served session the write is deferred on the session's document
+        (under the document lock, like any other change) and every edit within
+        the delay restarts the clock, so nudging a bound does not rewrite the
+        whole study's session file at every key press; outside a session it
+        happens at once.
+        """
+        if not self.autosave_enabled:
+            return
+        doc = _server_document()
+        if doc is None:
+            self.autosave()
+            return
+        if self._autosave_pending is not None and self._autosave_doc is doc:
+            try:
+                doc.remove_timeout_callback(self._autosave_pending)
+            except ValueError:
+                pass
+        self._autosave_doc = doc
+        self._autosave_pending = doc.add_timeout_callback(self.autosave, int(self.autosave_delay * 1000))
+
+    def flush_autosave(self) -> None:
+        """Write a pending autosave now (before the dataset or the output directory changes)."""
+        if self._autosave_pending is None:
+            return
+        try:
+            self._autosave_doc.remove_timeout_callback(self._autosave_pending)
+        except (ValueError, AttributeError):
+            pass
+        self.autosave()
 
     def save_session(self, path: str) -> str:
         return self.data.save_session(path)
@@ -328,6 +382,7 @@ class Session(param.Parameterized):
                       only_accepted: bool = False, weighted: bool = False) -> list:
         """Write the MagIC 3 tables to ``output_dir``; returns the paths written."""
         os.makedirs(self.output_dir, exist_ok=True)
+        self.flush_autosave()
         self.data.project.backup_originals(self.output_dir, self.BACKUP_TABLES)
         written = []
         path = self.data.write_specimens(self.output_dir, analysts=analysts,

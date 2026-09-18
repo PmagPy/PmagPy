@@ -195,7 +195,8 @@ def template(body: Body, logo: str, hub_url: str = "") -> pn.template.FastListTe
 
 
 def deferred_template(info: AppInfo, logo: str, build: Callable[[], Union[Body, pn.viewable.Viewable]],
-                      hub_url: str = "", loading: str = "Loading …") -> pn.template.FastListTemplate:
+                      hub_url: str = "", loading: str = "Loading …",
+                      side_width: int = SIDE_WIDTH) -> pn.template.FastListTemplate:
     """A page that shows at once and fills in when its body has been built.
 
     Reading a study takes seconds; a browser tab that stays blank for those
@@ -206,6 +207,10 @@ def deferred_template(info: AppInfo, logo: str, build: Callable[[], Union[Body, 
     error message) in the main pane. Outside a served session `build` runs at
     once, so a test sees the finished page.
 
+    Args:
+        side_width: the side column's starting width, as the application's own
+            :class:`Body` would set it.
+
     Returns:
         the template, with ``body`` (the built :class:`Body`, or None until it
         is built) and ``workspace`` set on it.
@@ -215,7 +220,8 @@ def deferred_template(info: AppInfo, logo: str, build: Callable[[], Union[Body, 
     header_holder = pn.Row(pn.pane.HTML(f'<span style="{STATUS_STYLE}">{loading}</span>', margin=(0, 0, 0, 0)),
                            sizing_mode="stretch_width")
     modal_holder = pn.Column()
-    frame = Body(info=info, main=main_holder, side=side_holder, header=header_holder, modal=modal_holder)
+    frame = Body(info=info, main=main_holder, side=side_holder, header=header_holder, modal=modal_holder,
+                 side_width=side_width)
     tmpl = template(frame, logo=logo, hub_url=hub_url)
     tmpl.body = None
 

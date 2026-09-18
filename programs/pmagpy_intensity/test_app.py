@@ -724,3 +724,91 @@ class TestApp:
         names = list(tabs._names)
         assert names[:3] == ["Specimen", "Interpretations", "Criteria & statistics"]
         assert names[-1] == "Export"
+
+
+class TestStartUp:
+    """What the packaged build and a served session need of the page."""
+
+    @staticmethod
+    def _stub_body(session):
+        import panel as pn
+        from pmagpy_panel import shell
+        from pmagpy_intensity.session import APP
+        return shell.Body(info=APP, main=pn.Column(), side=pn.Column())
+
+    def test_the_default_dataset_is_a_shipped_example_wherever_it_lives(self, monkeypatch, tmp_path):
+        """The packaged build flattens programs/ away, so the example must not be found relative to this file."""
+        from pmagpy_panel import datasets
+        from pmagpy_intensity import app
+        for var in ("PMAGPY_INTENSITY_DIR", "THELLIER_DIR"):
+            monkeypatch.delenv(var, raising=False)
+        monkeypatch.setenv("PMAGPY_INTENSITY_OUTPUT", str(tmp_path))
+        seen = {}
+        mcmurdo = datasets.example_dir("McMurdo")
+
+        def stub(session):
+            seen["dir"] = session.directory
+            return self._stub_body(session)
+        monkeypatch.setattr(app, "build_body", stub)
+        tmpl = app.serve_default()
+        assert seen["dir"] == datasets.example_dir("Megiddo") != ""
+        assert tmpl.session is not None and tmpl.body is not None
+        # a build that ships only McMurdo falls back to it
+        monkeypatch.setattr(app.datasets, "example_dir", lambda name: mcmurdo if name == "McMurdo" else "")
+        app.serve_default()
+        assert seen["dir"] == mcmurdo
+
+    def test_the_publication_module_is_not_imported_at_start(self):
+        import importlib
+        import subprocess
+        code = ("import sys, os; os.environ['MPLBACKEND']='Agg'; sys.path.insert(0, %r); "
+                "import pmagpy_intensity.app; print('matplotlib.pyplot' in sys.modules)" % os.path.dirname(HERE))
+        out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, timeout=300)
+        assert out.stdout.strip().endswith("False"), out.stdout + out.stderr
+
+    def test_edits_coalesce_into_one_autosave_inside_a_session(self, workdir, monkeypatch):
+        from pmagpy_intensity import session as sess
+
+        class FakeDoc:
+            session_context = object()
+
+            def __init__(self):
+                self.pending, self.n = {}, 0
+
+            def add_timeout_callback(self, fn, ms):
+                self.n += 1
+                self.pending[self.n] = (fn, ms)
+                return self.n
+
+            def remove_timeout_callback(self, handle):
+                del self.pending[handle]
+
+            def fire(self):
+                for fn, _ in list(self.pending.values()):
+                    fn()
+                self.pending.clear()
+        src, out = workdir
+        study = Session(src, out)
+        doc = FakeDoc()
+        monkeypatch.setattr(sess, "_server_document", lambda: doc)
+        writes = []
+        monkeypatch.setattr(study.data, "save_session", lambda path: writes.append(path) or path)
+        name = study.specimen
+        for k in range(4):
+            study.set_bounds(1 + (k % 2), 6)
+        assert writes == [] and len(doc.pending) == 1                # four edits, one pending write
+        doc.fire()
+        assert writes == [study.autosave_path]
+        study.set_bounds(1, 7)
+        study.flush_autosave()
+        assert len(writes) == 2 and not doc.pending
+        study.autosave_enabled = False
+        study.set_bounds(1, 5)
+        assert len(writes) == 2 and not doc.pending                  # disabled: nothing scheduled
+
+    def test_the_code_stamp_survives_a_frozen_build(self, monkeypatch):
+        from pmagpy_intensity import session as sess
+        monkeypatch.setattr(sess.os.path, "isdir", lambda p: False)
+        assert sess._code_stamp() >= 0.0
+        monkeypatch.setattr(sess.os.path, "exists", lambda p: False)
+        assert sess._code_stamp() == 0.0

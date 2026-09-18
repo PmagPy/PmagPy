@@ -30,7 +30,6 @@ from pmagpy_panel.widgets import HeightSplitter, Hotkeys
 from pmagpy_panel.theme import (ACCENT, BUTTON_GROUP_CSS, CHECKBOX_CSS, INPUT_CSS, KPI_ITEM,
                                 MUTED_STYLE, SECTION_STYLE, STATS_TABLE_CSS, TABLE_ROW_CSS, kpi)
 from . import APP_NAME
-from . import publication as pub
 from .plots import (AraiPlot, ChecksPlot, DecayPlot, GroupPlot, SpecimenZijderveldPlot,
                     StepNetPlot)
 from .session import AUTOSAVE_NAME, RECENT_FILE, REDO_NAME, SESSION_NAME, Session, env
@@ -118,6 +117,17 @@ def _stat_html(stat: ps.Stat, decimals: Optional[int] = None) -> str:
         return stat.rounded(decimals)
     tip = stat.reason.replace('"', "'")
     return f'<span style="color:{NA_COLOR}" title="{tip}">{stat.text()}</span>'
+
+
+def _pub():
+    """The publication-figure module, imported when a figure is first asked for.
+
+    It brings in matplotlib's pyplot and with it the font cache, which a fresh
+    machine (or a packaged build on its first launch) takes tens of seconds to
+    build; the interactive views need none of it.
+    """
+    from . import publication
+    return publication
 
 
 class LazyView:
@@ -1359,7 +1369,7 @@ class BicepView(LazyView):
             self.methods.object = (f'<div style="{SECTION_STYLE}">Methods and citation</div>'
                                    f'<pre style="white-space:pre-wrap;font-size:0.82rem">'
                                    f'{result.methods_block()}</pre>')
-            self.plot.object = pub.bicep_figure(result, prepared)
+            self.plot.object = _pub().bicep_figure(result, prepared)
         self.audit.object = ("<div style='%s'>%s</div>" %
                              (MUTED_STYLE, "<br>".join(self._audit[-8:]))) if self._audit else ""
         self.code.set(self._code(prepared))
@@ -1644,18 +1654,18 @@ the original tables to a backup folder.
     def _figure(self):
         kind = self.figure_kind.value
         if kind in ("arai", "arai_checks") and self.s.ready:
-            return pub.specimen_figure(self.s.spec, self.s.bounds(), self.s.statistics(),
+            return _pub().specimen_figure(self.s.spec, self.s.bounds(), self.s.statistics(),
                                        self.s.result, with_checks=(kind == "arai_checks"))
         if kind == "site" and self.s.ready:
             site = self.s.spec.site
             results = [r for r in (self.s.data.result(n)
                                    for n in self.s.data.specimens_in("site", site))
                        if r is not None]
-            return pub.site_figure(site, results,
+            return _pub().site_figure(site, results,
                                    accepted={r.specimen for r in results
                                              if self.s.data.is_accepted(r)})
         if kind == "study":
-            return pub.study_figure(self.s.data)
+            return _pub().study_figure(self.s.data)
         return None
 
     def _figure_code(self) -> str:
