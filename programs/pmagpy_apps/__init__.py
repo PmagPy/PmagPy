@@ -21,8 +21,9 @@ desktop      the packaged build: the family in its own window, behind a
 splash       the splash screen's HTML
 
 An *edition* (:class:`Edition`) is the subset of the family a build offers;
-``PMAGPY_APPS_EDITION`` selects it, and the desktop build of PmagPy Directions
-is the ``directions`` edition.
+``PMAGPY_APPS_EDITION`` selects it. The desktop application is the ``desktop``
+edition (Convert, Directions and Intensity); ``directions`` is the same with
+Directions alone.
 """
 import os
 from dataclasses import dataclass
@@ -75,6 +76,10 @@ EDITIONS = {
     "directions": Edition("directions", "PmagPy Directions",
                           "Convert measurement files into MagIC tables, then interpret the directions.",
                           ("pmagpy_directions",), ("open_btn", "convert_start_btn", "example_btn"), ()),
+    # the desktop application: the analysis applications that are ready, behind the Convert page
+    "desktop": Edition("desktop", APP_NAME,
+                       "Convert measurement files into MagIC tables, then interpret directions and paleointensity.",
+                       ("pmagpy_directions", "pmagpy_intensity"), ("open_btn", "convert_start_btn", "example_btn"), ()),
 }
 EDITION_VAR = "PMAGPY_APPS_EDITION"
 

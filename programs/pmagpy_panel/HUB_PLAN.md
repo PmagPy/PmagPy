@@ -912,11 +912,12 @@ code does not change between rungs; only the wrapper does.
    lines covers many who would rather not.
 
 2. **A signed desktop bundle** for everyone else, and the successor to the
-   PyInstaller standalones PmagPy has shipped before. **First build 2026-09-17**:
-   `PmagPy Directions.app`, the *Directions edition* of the hub (Convert +
-   Directions; `pmagpy_apps.EDITIONS`) in a pywebview window behind a splash
-   screen, the server in-process (`pmagpy_panel/serve.py`), PyInstaller one-folder
-   from `pmagpy_directions.spec`; ad-hoc signed only. How to build and what it
+   PyInstaller standalones PmagPy has shipped before. **First builds 2026-09-17**:
+   `PmagPy Apps.app` (the *desktop edition*: Convert + Directions + Intensity)
+   and `PmagPy Directions.app` (Convert + Directions), editions of the hub
+   (`pmagpy_apps.EDITIONS`) in a pywebview window behind a splash screen, the
+   server in-process (`pmagpy_panel/serve.py`), PyInstaller one-folder from
+   `pmagpy_apps.spec`; ad-hoc signed only. How to build and what it
    ships: [../pmagpy_apps/DESKTOP.md](../pmagpy_apps/DESKTOP.md). Two recommendations:
    * **`pywebview` for the window.** It shows the Panel page in the system's
      web view (WebKit on macOS, WebView2 on Windows, GTK on Linux), so the

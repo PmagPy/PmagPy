@@ -176,3 +176,25 @@ class TestDesktop:
         assert desktop.main(edition="directions", argv=["--no-window"]) == 0
         assert started["server"].url.startswith("http://localhost:")
         started["server"].thread.join(timeout=10)
+
+
+class TestDesktopEdition:
+    def test_the_desktop_edition_adds_intensity_beside_directions(self):
+        ed = EDITIONS["desktop"]
+        assert ed.applications == ("pmagpy_directions", "pmagpy_intensity")
+        assert ed.doors == EDITIONS["directions"].doors and ed.pages == ()
+        assert ed.title == "PmagPy Apps"
+        here = os.path.dirname(os.path.abspath(desktop.__file__))
+        for key, entry in (("desktop", "desktop_apps.py"), ("directions", "desktop_directions.py")):
+            assert os.path.isfile(os.path.join(here, entry)), entry    # the spec starts from these
+
+    def test_the_directory_page_offers_both_applications_on_mcmurdo(self):
+        html = page_html(app.create_app(MCMURDO, edition=EDITIONS["desktop"]))
+        assert app.app_link("pmagpy_directions", MCMURDO) in html
+        assert app.app_link("pmagpy_intensity", MCMURDO) in html      # McMurdo has Thellier experiments
+        assert "<h3>Rock magnetism</h3>" not in html
+
+    def test_the_site_serves_both_applications(self):
+        panels, static = family_site(list(EDITIONS["desktop"].applications))
+        assert set(panels) == {"/", "/pmagpy_apps", "/pmagpy_directions", "/pmagpy_intensity"}
+        assert "pmagpy_intensity_assets" in static

@@ -1,13 +1,14 @@
 """
 PmagPy Directions as a desktop application: the entry point the packaged build
-starts from (see ``pmagpy_directions.spec`` at the repository root).
+starts from (``PMAGPY_BUILD_EDITION=directions`` with ``pmagpy_apps.spec`` at the repository root).
 
     python programs/pmagpy_apps/desktop_directions.py               # from a checkout, with pywebview
     python programs/pmagpy_apps/desktop_directions.py --no-window   # serve only; print the URL
 
 It is the Directions edition of PmagPy Apps — convert measurement files into
 MagIC tables, then interpret directions — in its own window, behind the splash
-screen, with the server in the same process.
+screen, with the server in the same process. ``desktop_apps.py`` is the
+``desktop`` edition, with PmagPy Intensity beside Directions.
 """
 import os
 import sys
