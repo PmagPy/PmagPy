@@ -17,6 +17,7 @@ import asyncio
 import importlib
 import os
 import socket
+import sys
 import threading
 import time
 import urllib.request
@@ -51,6 +52,18 @@ def _page_builder(app_id: str) -> Callable:
     return module.serve_default
 
 
+def _report_import_failure(app_id: str, exc: BaseException) -> None:
+    """An application that is present but will not import is a defect, not an absence.
+
+    In a packaged build this is usually a module the size trim excluded
+    (programs/pmagpy_apps/bundle.py); the traceback names it.
+    """
+    import traceback
+    sys.stderr.write(f"-E- {app_id} is installed but could not be imported and is left out of the site:\n")
+    sys.stderr.write("".join(traceback.format_exception(type(exc), exc, exc.__traceback__)))
+    sys.stderr.flush()
+
+
 def family_site(app_ids: Sequence[str], hub: bool = True) -> tuple:
     """(panels, static_dirs) for ``pn.serve``: the hub (when asked) at ``/`` and ``/pmagpy_apps``,
     each application at ``/<app_id>``, each ``assets/`` at ``/<app_id>_assets``.
@@ -65,7 +78,13 @@ def family_site(app_ids: Sequence[str], hub: bool = True) -> tuple:
     for app_id in ids:
         try:
             builder = _page_builder(app_id)
-        except ImportError:
+        except ModuleNotFoundError as exc:
+            if exc.name in (app_id, f"{app_id}.app"):
+                continue                                  # not installed: the site simply has no such door
+            _report_import_failure(app_id, exc)
+            continue
+        except Exception as exc:                          # installed but broken: say so, loudly
+            _report_import_failure(app_id, exc)
             continue
         if app_id == HUB_ID:
             panels["/"] = builder

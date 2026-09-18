@@ -29,6 +29,10 @@ PMAGPY_BUILD_EDITION="$EDITION" MPLBACKEND=Agg pyinstaller --noconfirm --clean p
 
 APP="dist/$NAME.app"
 if [ -d "$APP" ]; then
+  # the size trim (programs/pmagpy_apps/bundle.py) removes libraries whose versioned
+  # aliases PyInstaller still symlinks; a dangling link must not go into the bundle
+  find "$APP" "dist/$NAME" -type l ! -exec test -e {} \; -delete
+  echo "size trim report: build/pmagpy_apps/trim_report.txt"
   # an ad-hoc signature is what lets an unsigned build run at all on Apple silicon; a
   # Developer ID certificate goes here when there is one (see DESKTOP.md)
   codesign --force --deep --sign "${PMAGPY_CODESIGN_IDENTITY:--}" "$APP" 2>/dev/null || true

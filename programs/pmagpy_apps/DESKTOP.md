@@ -72,6 +72,59 @@ Checking a build without a window:
 (A frozen build started by double-click gets no arguments; started from a
 terminal it takes the same options as `desktop.py`.)
 
+The full check of a build, as run after the size trim was introduced — the
+browser suites need the set-up each documents: Directions opened on
+`dmag_magic` with the chooser stub answering McMurdo, Intensity on a study
+with interpretations (the Beaver Bay data here; McMurdo trips two of its fixed
+waits):
+
+```bash
+PMAGPY_DIRECTIONS_DIR=$PWD/data_files/dmag_magic \
+PMAGPY_DIRECTIONS_CHOOSER_STUB=$PWD/data_files/3_0/McMurdo \
+PMAGPY_DIRECTIONS_OUTPUT=/tmp/out PMAGPY_INTENSITY_OUTPUT=/tmp/out_pint \
+  "dist/PmagPy Apps.app/Contents/MacOS/PmagPy Apps" --no-window --port 5166 &
+python programs/pmagpy_apps/bundle_audit.py http://localhost:5166 \
+  "$PWD/dist/PmagPy Apps.app/Contents/Frameworks/data_files/3_0/McMurdo"   # no bundled 404s
+python programs/pmagpy_apps/bundle_audit.py --libs "dist/PmagPy Apps.app"  # no dropped library is linked
+(cd programs/pmagpy_directions && python ui_test.py http://localhost:5166/pmagpy_directions /tmp/shots/dir)
+(cd programs/pmagpy_intensity && python ui_test.py "http://localhost:5166/pmagpy_intensity?dir=/path/to/a/study" /tmp/shots/int)
+```
+
+## What the bundle leaves out, and why (size)
+
+An untrimmed build was 372 MB on disk and 145 MB zipped; about half of it was
+material the applications never touch. Trimmed, PmagPy Apps.app is 213 MB on
+disk and 92 MB zipped (2026-09-18). `pmagpy_apps.spec` therefore trims the
+bundle by the rules in [`bundle.py`](bundle.py), whose docstring is the full
+account. In short: Panel's bundled JavaScript is cut to the components the
+family renders (the Fast template, Tabulator, the ES-module shim), the
+unminified Bokeh/Panel builds and the runtime compiler go, the standard-library
+`sqlite3` module is excluded (conda-forge's sqlite links the 42 MB ICU
+libraries), and plotly, Tcl/Tk and pyzmq are excluded. Pillow's text-shaping
+chain, WebP and the X11 client libraries stay: matplotlib, libtiff and Pillow
+link them in conda-forge's builds, and the first trimmed build failed to import
+without them. Every file removed is listed in `build/pmagpy_apps/trim_report.txt`
+after a build, and the spec prints the same report; the build script then
+removes the dangling symlinks PyInstaller leaves for the dropped libraries'
+versioned aliases.
+
+**If a packaged build misbehaves where a checkout does not, suspect the trim
+first**: a 404 in the browser console for a `bundled/…` file means a component
+was added to a view without being added to `KEEP_BUNDLED`; a missing shared
+library or an `ImportError` names something in `EXCLUDE_MODULES` or
+`DROP_BINARY_PREFIXES`. Add it back, rebuild, and run the browser suites.
+[`bundle_audit.py`](bundle_audit.py) repeats the measurement the keep list was
+made from — it walks every tab of every application in a browser, logs every
+static request and compares the bundled folders asked for with the keep list —
+and `test_desktop.py` checks the keep list against the resources Panel's own
+Tabulator and Fast template classes declare. `bundle_audit.py --libs "dist/PmagPy Apps.app"`
+cross-checks every kept extension module's shared-library references against
+the drop list, which is how the three chains above were found.
+
+The Fast theme asks Google Fonts for Open Sans; offline that request fails
+quietly and the system font is used. Nothing else in the page reaches the
+network.
+
 ## Signing, and what an unsigned build means
 
 The build script signs the bundle *ad hoc* (`codesign --sign -`), which is what

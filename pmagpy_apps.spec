@@ -27,6 +27,7 @@ REPO = os.path.abspath(os.getcwd())
 PROGRAMS = os.path.join(REPO, "programs")
 sys.path.insert(0, PROGRAMS)
 from pmagpy_apps import EDITIONS  # noqa: E402
+from pmagpy_apps import bundle    # noqa: E402  what is trimmed from the bundle, and why
 
 EDITION = os.environ.get("PMAGPY_BUILD_EDITION", "desktop")
 if EDITION not in EDITIONS:
@@ -74,6 +75,7 @@ excludes = [
     "IPython", "ipykernel", "ipywidgets", "jupyter", "jupyter_client", "jupyter_core", "notebook",
     "cartopy", "geopandas", "fiona", "pyproj", "shapely", "osgeo", "sklearn", "skimage", "astropy",
     "playwright", "pytest", "PyInstaller", "cmdstanpy",          # BiCEP's built-in sampler serves the build
+    *bundle.EXCLUDE_MODULES,                                    # size: see programs/pmagpy_apps/bundle.py
 ]
 
 a = Analysis(
@@ -89,6 +91,19 @@ a = Analysis(
     excludes=excludes,
     noarchive=False,
 )
+# ---- size: drop what the family never serves or loads (programs/pmagpy_apps/bundle.py) ----
+# Panel's bundled JavaScript for components the family does not render, the unminified
+# Bokeh/Panel builds, and the shared libraries that only the excluded modules needed.
+# Every file removed is listed in build/<name>/trim_report.txt; if a packaged build
+# shows a 404 or a missing library that a checkout does not, start there.
+a.datas, _dropped_data = bundle.trim(a.datas, bundle.keep_data)
+a.binaries, _dropped_binaries = bundle.trim(a.binaries, bundle.keep_binary)
+_report = bundle.report(_dropped_data, _dropped_binaries)
+os.makedirs(os.path.join(workpath), exist_ok=True)
+with open(os.path.join(workpath, "trim_report.txt"), "w") as fh:
+    fh.write(_report)
+print(_report)
+
 pyz = PYZ(a.pure)
 exe = EXE(
     pyz, a.scripts, [],

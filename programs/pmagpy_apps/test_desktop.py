@@ -198,3 +198,72 @@ class TestDesktopEdition:
         panels, static = family_site(list(EDITIONS["desktop"].applications))
         assert set(panels) == {"/", "/pmagpy_apps", "/pmagpy_directions", "/pmagpy_intensity"}
         assert "pmagpy_intensity_assets" in static
+
+
+class TestBundleTrim:
+    """The size rules of the packaged build (pmagpy_apps/bundle.py) keep what the family serves."""
+
+    def test_panel_components_the_family_uses_are_kept(self):
+        from pmagpy_apps import bundle
+        for dest in ("panel/dist/bundled/datatabulator/tabulator-tables@6.4.0/dist/js/tabulator.min.js",
+                     "panel/dist/bundled/@microsoft/fast-components@2.30.6/dist/fast-components.js",
+                     "panel/dist/bundled/fastlisttemplate/fast_list_template.css",
+                     "panel/dist/bundled/fastbasetemplate/fast_template.js",
+                     "panel/dist/bundled/fast/js/fast_design.js",
+                     "panel/dist/bundled/theme/fast.css",
+                     "panel/dist/bundled/font-awesome/css/all.min.css",
+                     "panel/dist/bundled/reactiveesm/es-module-shims@^1.10.0/dist/es-module-shims.min.js",
+                     "panel/dist/panel.min.js", "panel/dist/panel.json", "panel/dist/css/loading.css",
+                     "bokeh/server/static/js/bokeh.min.js", "bokeh/server/static/js/bokeh-mathjax.min.js",
+                     "bokeh/server/static/js/bokeh-gl.min.js",
+                     "pmagpy/data_model/data_model.json", "data_files/3_0/McMurdo/measurements.txt"):
+            assert bundle.keep_data(dest), dest
+
+    def test_what_the_family_never_serves_is_dropped(self):
+        from pmagpy_apps import bundle
+        for dest in ("panel/dist/bundled/deckglplot/deck.min.js", "panel/dist/bundled/aceplot/ace.js",
+                     "panel/dist/bundled/abstractvtkplot/vtk.js", "panel/dist/bundled/plotlyplot/plotly.min.js",
+                     "panel/dist/bundled/bootstrap5/css/bootstrap.min.css",
+                     "bokeh/server/static/js/bokeh.js", "bokeh/server/static/js/compiler.js",
+                     "bokeh/server/static/js/lib/index.d.ts", "panel/dist/panel.js", "panel/dist/panel.js.map"):
+            assert not bundle.keep_data(dest), dest
+
+    def test_the_library_chains_are_dropped_and_pillows_core_kept(self):
+        from pmagpy_apps import bundle
+        for name in ("libicudata.78.3.dylib", "libicuuc.78.dylib", "libsqlite3.0.dylib", "libtk8.6.dylib",
+                     "libtcl8.6.dylib"):
+            assert not bundle.keep_binary(name), name
+        # linked by matplotlib's ft2font (raqm chain), libtiff (webp) and Pillow (xcb): must stay
+        for name in ("libfreetype.6.dylib", "libpng16.16.dylib", "libjpeg.8.dylib", "libtiff.6.dylib",
+                     "libLerc.4.dylib", "libopenblas.0.dylib", "libpython3.12.dylib",
+                     "libraqm.0.dylib", "libharfbuzz.0.dylib", "libglib-2.0.0.dylib", "libwebp.7.dylib",
+                     "libxcb.1.dylib", "libXau.6.dylib",
+                     "PIL/_imaging.cpython-312-darwin.so", "numpy/_core/_multiarray_umath.cpython-312-darwin.so"):
+            assert bundle.keep_binary(name), name
+
+    def test_the_keep_list_covers_what_panels_own_classes_declare(self):
+        """Panel serves a template's _css/_js files from bundled/<class name>/ and Tabulator names
+        its stylesheets outright: every folder that resolution reaches must be kept."""
+        import re
+        from pmagpy_apps import bundle
+        named = set()
+        for cls in pn.template.FastListTemplate.__mro__:
+            if vars(cls).get("_css") or vars(cls).get("_js"):       # a class with files of its own
+                named.add(cls.__name__.lower())                     # template/base.py: bundled/{tmpl_name}/{file}
+        for item in pn.widgets.Tabulator._stylesheets:
+            named.update(re.findall(r"bundled/([^/]+)/", str(item)))
+        # what a browser asked for on every tab of both applications (bundle_audit.py, 2026-09-18)
+        named.update({"@microsoft", "datatabulator", "fast", "fastbasetemplate", "fastlisttemplate",
+                      "font-awesome", "reactiveesm", "theme"})
+        assert {"fastlisttemplate", "fastbasetemplate", "font-awesome"} <= named
+        assert named <= set(bundle.KEEP_BUNDLED), named - set(bundle.KEEP_BUNDLED)
+
+    def test_the_report_accounts_for_every_dropped_file(self, tmp_path):
+        from pmagpy_apps import bundle
+        f = tmp_path / "x.js"
+        f.write_bytes(b"0" * 2_000_000)
+        kept, dropped = bundle.trim([("panel/dist/bundled/deckglplot/deck.js", str(f), "DATA"),
+                                     ("panel/dist/bundled/theme/fast.css", str(f), "DATA")], bundle.keep_data)
+        assert [e[0] for e in kept] == ["panel/dist/bundled/theme/fast.css"] and len(dropped) == 1
+        text = bundle.report(dropped, [])
+        assert "1 files, 2.0 MB" in text and "panel/dist/bundled/deckglplot" in text and "bundle.py" in text
