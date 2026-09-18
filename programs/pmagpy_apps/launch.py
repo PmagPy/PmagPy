@@ -19,6 +19,7 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(_HERE))                    # programs/, for a checkout run as a script
 
 from pmagpy_panel import launch  # noqa: E402
+from pmagpy_apps import current_edition  # noqa: E402
 
 HUB = os.path.join(_HERE, "pmagpy_apps.py")
 DEFAULT_PORT = 5010
@@ -28,9 +29,12 @@ APPLICATIONS = ("pmagpy_directions", "pmagpy_intensity", "pmagpy_rockmag",
 
 
 def application_files() -> list:
-    """The served files of the analysis applications installed beside this one."""
+    """The served files of the analysis applications installed beside this one (that the edition offers)."""
     files = []
+    edition = current_edition()
     for name in APPLICATIONS:
+        if not edition.offers(name):
+            continue
         try:
             package = importlib.import_module(name)
         except ImportError:

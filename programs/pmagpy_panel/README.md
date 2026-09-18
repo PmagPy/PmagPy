@@ -59,8 +59,11 @@ demagnetization step or a Thellier step *is*, it does not belong here.
   `query_param()` (the `?dir=` of this session), `is_local_session()`, the
   system folder dialog as a blocking call (`native_choose_directory`) and as a
   coroutine (`choose_directory`, for `async` widget callbacks — no thread),
-  `hub_url()` and `open_ui()`. A packaged build (HUB_PLAN.md §8) changes this
-  file and nothing else.
+  `hub_url()` and `open_ui()`. A packaged build registers its own folder dialog
+  with `set_folder_dialog()` and changes nothing else.
+* **`serve.py`** — the family as one Bokeh server inside this process
+  (`FamilyServer`, `family_site()`), for the packaged desktop build; the
+  command-line launcher still runs `panel serve` as a child process.
 * **`datasets.py`** — a MagIC directory as a thing to choose, remember and
   validate: `env()`, `looks_like_magic_dir()`, `default_output_dir()`,
   `session_directory()` (`?dir=` → environment → default), the recent list

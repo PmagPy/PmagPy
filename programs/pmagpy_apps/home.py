@@ -29,7 +29,7 @@ import param
 
 from pmagpy_panel import app_color, datasets, runtime, text_on
 from pmagpy_panel.chooser import DirectoryChooser
-from . import APP
+from . import APP, EDITIONS, Edition
 from .inventory import Inventory, take_inventory
 
 # ----- which applications there are ------------------------------------------------
@@ -197,6 +197,7 @@ a.bar:hover .open { filter:brightness(.93) }
 .box td.file { font-family:ui-monospace,Menlo,monospace; font-size:.82rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:220px }
 .box .none { color:var(--muted); font-size:.88rem }
 .start .lead { color:var(--ink); font-size:1.12rem; white-space:nowrap; margin:14px 0 22px }
+.start .tagline { color:var(--muted); font-size:.95rem; margin:-14px 0 22px }
 .door h3 { margin:0 0 6px; font-size:1.15rem; font-weight:650; letter-spacing:-.005em }
 .door p { margin:0 0 14px; color:var(--muted); font-size:.93rem; line-height:1.5; min-height:4.5em; max-width:48ch }
 .recent { margin:0 -16px; padding:0 }
@@ -298,8 +299,18 @@ def facts_html(inv: Inventory) -> str:
     return f'<div class="home"><p class="empty">{text}</p></div>'
 
 
-def stages(inv: Inventory) -> list:
-    """(name, state class, one line, is-next) for Import → Metadata → Analyze → Upload."""
+def stages(inv: Inventory, edition: Optional[Edition] = None) -> list:
+    """(name, state class, one line, is-next) for Import → Metadata → Analyze → Upload.
+
+    An edition without the Metadata or Upload page leaves those stages out.
+    """
+    edition = edition or EDITIONS["full"]
+    wanted = ["Import"] + (["Metadata"] if edition.has_page("metadata") else []) + ["Analyze"] \
+        + (["Upload"] if edition.has_page("upload") else [])
+    return [s for s in _stages(inv) if s[0] in wanted]
+
+
+def _stages(inv: Inventory) -> list:
     if not inv.is_magic:
         if inv.is_empty:
             imp = ("warn", "convert files, or download from MagIC")
@@ -371,11 +382,11 @@ def converted_from(inv: Inventory) -> str:
     return what
 
 
-def strip_html(inv: Inventory) -> str:
-    cells = "".join(
-        f'<div class="stage{" next" if nxt else ""}"><div class="name"><span class="dot {cls}"></span>{name}</div>'
-        f'<div class="state">{_esc(line)}</div></div>' for name, cls, line, nxt in stages(inv))
-    return f'<div class="home"><div class="strip">{cells}</div></div>'
+def strip_html(inv: Inventory, edition: Optional[Edition] = None) -> str:
+    cells = [f'<div class="stage{" next" if nxt else ""}"><div class="name"><span class="dot {cls}"></span>{name}</div>'
+             f'<div class="state">{_esc(line)}</div></div>' for name, cls, line, nxt in stages(inv, edition)]
+    return (f'<div class="home"><div class="strip" style="grid-template-columns:repeat({len(cells)},1fr)">'
+            f'{"".join(cells)}</div></div>')
 
 
 def bars_html(inv: Inventory, applications=APPLICATIONS) -> str:
@@ -490,25 +501,39 @@ DOORS = (
 
 class HomeView:
     """Home as Panel objects: the start page while nothing is open, the directory page after; rebuilt
-    whenever the session's directory changes."""
+    whenever the session's directory changes.
 
-    def __init__(self, session: HubSession):
+    Args:
+        edition: which doors, pages and applications to offer (the full family
+            by default).
+    """
+
+    def __init__(self, session: HubSession, edition: Optional[Edition] = None):
         self.s = session
+        self.edition = edition or EDITIONS["full"]
+        self.applications = tuple(a for a in APPLICATIONS if self.edition.offers(a.app_id))
         # the start page
-        self.start_heading = pn.pane.HTML(START_HTML, stylesheets=[CSS], sizing_mode="stretch_width")
+        lead = START_HTML
+        if self.edition.tagline:
+            lead = lead.replace("</p></div>", f'</p><p class="tagline">{_esc(self.edition.tagline)}</p></div>')
+        self.start_heading = pn.pane.HTML(lead, stylesheets=[CSS], sizing_mode="stretch_width")
         self.doors = []
+        shown = []
         for door in DOORS:
             button = pn.widgets.Button(name=door.label, button_type="primary", width=220, margin=(0, 0, 6, 0),
                                        stylesheets=[f".bk-btn-primary, .bk-btn-primary:hover, .bk-btn-primary:focus "
                                                     f"{{ background-color:{door.color} !important; border-color:{door.color} !important }}"
                                                     ".bk-btn-primary:hover { filter:brightness(.92) }"])
             setattr(self, door.attribute, button)
-            self.doors.append(pn.Column(
+            card = pn.Column(
                 pn.pane.HTML(f'<div class="home door"><h3>{_esc(door.title)}</h3><p>{_esc(door.text)}</p></div>',
                              stylesheets=[CSS], sizing_mode="stretch_width"),
                 button, sizing_mode="stretch_width", margin=(0, 10, 16, 0),
                 styles={"background": "#fff", "border": "1px solid #e3e6ea", "border-top": f"5px solid {door.color}",
-                        "border-radius": "10px", "padding": "18px 20px 14px", "box-shadow": "0 1px 3px rgba(0,0,0,.05)"}))
+                        "border-radius": "10px", "padding": "18px 20px 14px", "box-shadow": "0 1px 3px rgba(0,0,0,.05)"})
+            self.doors.append(card)
+            if door.attribute in self.edition.doors:          # every button exists; the edition says which are shown
+                shown.append(card)
         self.recent_pane = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width", margin=(20, 0, 0, 0))
         self.example_btn.on_click(lambda e: self.open_example())
         # the directory page
@@ -531,7 +556,7 @@ class HomeView:
                                             margin=(30, 10, 0, 0))
         self.start_btn = pn.widgets.Button(name="Start page", button_type="light", width=100, margin=(30, 0, 0, 10))
         self.start_btn.on_click(lambda e: self.go_start())
-        self.start = pn.Column(self.start_heading, pn.GridBox(*self.doors, ncols=2, sizing_mode="stretch_width"),
+        self.start = pn.Column(self.start_heading, pn.GridBox(*shown, ncols=2, sizing_mode="stretch_width"),
                                self.recent_pane, sizing_mode="stretch_width")
         self.work = pn.Column(
             pn.Row(self.heading, self.convert_btn, self.metadata_btn, self.upload_btn, self.download_btn, self.change_btn,
@@ -567,8 +592,8 @@ class HomeView:
         self.heading.object = title_html(inv)
         self.ref.object = ref_html(inv)
         self.facts.object = facts_html(inv)
-        self.strip.object = strip_html(inv)
-        self.bars.object = bars_html(inv)
+        self.strip.object = strip_html(inv, self.edition)
+        self.bars.object = bars_html(inv, self.applications)
         self.aside.object = aside_html(inv)
         self.aside.visible = self.spacer.visible = bool(self.aside.object)     # no column when there is nothing to put in it
         # The next thing to do is the primary button: download into an empty directory, convert when it
@@ -579,8 +604,9 @@ class HomeView:
         self.convert_btn.button_type = "primary" if (inv.files or inv.has_level_tables) and not inv.is_magic else "default"
         self.convert_btn.visible = not inv.is_empty
         self.metadata_btn.button_type = "primary" if inv.is_magic and inv.gaps else "default"
-        self.metadata_btn.visible = inv.is_magic
-        self.upload_btn.visible = inv.is_magic
+        self.metadata_btn.visible = inv.is_magic and self.edition.has_page("metadata")
+        self.upload_btn.visible = inv.is_magic and self.edition.has_page("upload")
+        self.download_btn.visible = self.edition.has_page("download")
 
     def panel(self) -> pn.Column:
         return pn.Column(self.start, self.work, sizing_mode="stretch_width", max_width=1100, margin=(18, 40, 40, 40))

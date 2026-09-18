@@ -77,6 +77,13 @@ panel serve programs/pmagpy_directions/pmagpy_directions.py --show --dev
 the app's source files the server reloads itself — refresh the browser tab,
 no restart needed. Running it again replaces the running instance.
 
+There is also a **desktop application** for people who do not install Python:
+`PmagPy Directions.app`, the Directions edition of PmagPy Apps (the hub's
+Convert page plus this application) in a window of its own behind a splash
+screen. How it is built and what it ships is in
+[../pmagpy_apps/DESKTOP.md](../pmagpy_apps/DESKTOP.md); the same pages from a
+checkout are `PMAGPY_APPS_EDITION=directions pmagpy-apps`.
+
 `PMAGPY_DIRECTIONS_DIR` selects the MagIC directory opened at start (default
 `data_files/3_0/McMurdo`); datasets can also be switched inside the app
 (*Data › Change data…* at the top of the side column: *Browse with Finder…*
