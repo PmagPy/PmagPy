@@ -163,6 +163,31 @@ class TestProgramImports:
         assert offenders == []
 
 
+class TestProgramEnvsFromCommandLine:
+    """Each program listed in programs/program_envs.py gets its backend when run as a script.
+
+    programs/__init__.py reads the program name from sys.argv[0] and asks for
+    the backend in prog_env before the module itself runs, so the module's
+    own request (e.g. WXAgg in ani_depthplot2 or tdt_magic) is not a no-op
+    behind an earlier TKAgg choice.
+    """
+
+    @pytest.mark.parametrize("program, expected", sorted(
+        __import__("programs.program_envs", fromlist=["prog_env"]).prog_env.items()))
+    def test_package_init_picks_backend_for_program(self, program, expected):
+        repo_root = str(__import__("pathlib").Path(set_env.__file__).resolve().parents[1])
+        env = dict(os.environ)
+        env.pop("MPLBACKEND", None)
+        env["PYTHONPATH"] = repo_root + os.pathsep + env.get("PYTHONPATH", "")
+        code = (f"import sys; sys.argv = [{program + '.py'!r}]\n"
+                "import matplotlib, programs\n"
+                "print(matplotlib.get_backend())")
+        result = subprocess.run([sys.executable, "-c", code], env=env,
+                                capture_output=True, text=True, timeout=120)
+        assert result.returncode == 0, result.stderr
+        assert result.stdout.strip().lower() == expected.lower()
+
+
 class TestSubprocessInheritingInlineBackend:
     """A program started from a notebook cell with ``!`` must still get a GUI backend.
 
