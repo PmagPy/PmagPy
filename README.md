@@ -62,13 +62,22 @@ To get the full use of PmagPy functionality, you will first have to have a Pytho
 - Update pip: type on the command line: ```pip install --upgrade pip```
 - Install or update pmagpy: use the command: ```pip install --upgrade pmagpy```
 - Install or update pmagpy-cli, use the command: ```pip install --upgrade pmagpy-cli```
-- If you want to make maps, install with the optional `[maps]` extra to pull in cartopy and shapely: ```pip install --upgrade pmagpy[maps]``` (or ```pip install --upgrade pmagpy-cli[maps]``` for the cli).  These dependencies are optional because they require system libraries (GEOS, PROJ) that pip can't always install cleanly across platforms; if the install fails, conda-forge handles them well.
+- If you want to make maps, install with the optional `[maps]` extra to pull in cartopy and shapely: ```pip install --upgrade "pmagpy[maps]"``` (or ```pip install --upgrade "pmagpy-cli[maps]"``` for the cli).  These dependencies are optional because they require system libraries (GEOS, PROJ) that pip can't always install cleanly across platforms; if the install fails, conda-forge handles them well.
 - To uninstall, use the commands: ```pip uninstall pmagpy``` and ```pip uninstall pmagpy-cli```
 - If you run into trouble, use pip to uninstall both pmagpy and pmagpy-cli, then try again to install first pmagpy and then pmagpy-cli
 
-If you want access to the master branch rather than the latest release, see the [developer install instructions](https://pmagpy.github.io/PmagPy-docs/installation/developer_install.html).
+### Developer install
 
-<!-- Alternatively if you want simply to install the latest under development version without messing with environment variables you can download or clone the repository and run `python setup.py install` and it will use setup tools to install PmagPy somewhere where it is accessible to python and in your path. This, however, does not update your in path version of the library when you update using `git pull origin master` but rather you must update using setup tools manually.-->
+To work from the source code (the master branch or your own fork) rather than a release, clone the repository and install it in editable mode:
+
+```
+git clone https://github.com/PmagPy/PmagPy.git
+cd PmagPy
+pip install -e ".[maps]"
+```
+
+Edits to the code, and `git pull`, take effect immediately without reinstalling. The command-line programs and GUIs can be run from the `programs` directory, or installed from the released `pmagpy-cli` package alongside the editable library. Full details are in the [developer install instructions](https://pmagpy.github.io/PmagPy-docs/installation/developer_install.html).
+
 
 ## Background and support
 
