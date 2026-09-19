@@ -3,7 +3,7 @@
 Runs Demag GUI PmagPy's main analysis GUI for demagnetization data. This
 can be used for PCA of both AF and Thermal demag data, and calculation
 of VGP's. It allows export of figures and analysis results for upload to
-the MagIC database and/or publication. For more information on how to interpret or use the GUI's many functions see the Help menu in the open GUI. More documentation can be found on all of PmagPy's functionality at the PmagPy cookbook which can be found here: earthref.org/PmagPy/cookbook/
+the MagIC database and/or publication. For more information on how to interpret or use the GUI's many functions see the Help menu in the open GUI. More documentation can be found at the PmagPy documentation site: https://pmagpy.github.io/PmagPy-docs/programs/demag_gui.html
 
 SYNTAX
     demag_gui.py [command line options]
@@ -927,7 +927,7 @@ class Demag_GUI(wx.Frame):
         Analysis : Acceptance Criteria, Sample Orientation, Flag
         Interpretaions
         Tools : Interpretation Editor, VGP Viewer
-        Help : Usage and Tips, PmagPy Cookbook, Open Docs, Github Page, Open
+        Help : Usage and Tips, PmagPy Documentation, Open Docs, Github Page, Open
         Debugger
         """
         self.menubar = wx.MenuBar()
@@ -1133,7 +1133,7 @@ class Demag_GUI(wx.Frame):
         m_help = menu_Help.Append(-1, "&Usage and Tips\tCtrl-H", "")
         self.Bind(wx.EVT_MENU, self.on_menu_help, m_help)
 
-        m_cookbook = menu_Help.Append(-1, "&PmagPy Cookbook\tCtrl-Shift-W", "")
+        m_cookbook = menu_Help.Append(-1, "&PmagPy Documentation\tCtrl-Shift-W", "")
         self.Bind(wx.EVT_MENU, self.on_menu_cookbook, m_cookbook)
 
         m_docs = menu_Help.Append(-1, "&Open Docs\tCtrl-Shift-H", "")
@@ -7609,10 +7609,10 @@ class Demag_GUI(wx.Frame):
         self.helper.BeginContextHelp(self)
 
     def on_menu_docs(self, event):
-        webopen("https://earthref.org/PmagPy/cookbook/#x1-350005.1.1", new=2)
+        webopen("https://pmagpy.github.io/PmagPy-docs/programs/demag_gui.html", new=2)
 
     def on_menu_cookbook(self, event):
-        webopen("http://earthref.org/PmagPy/cookbook/", new=2)
+        webopen("https://pmagpy.github.io/PmagPy-docs/", new=2)
 
     def on_menu_git(self, event):
         webopen("https://github.com/ltauxe/PmagPy", new=2)
