@@ -2066,6 +2066,104 @@ def mpms_signal_blender_interactive(measurement_1, measurement_2,
 # hysteresis functions
 # ------------------------------------------------------------------------------------------------------------------
 
+# Default unit of the magnetization passed to the hysteresis functions:
+# mass-normalized Am²/kg, which is the MagIC magn_mass convention.
+_DEFAULT_MAGN_UNIT = 'Am²/kg'
+
+# Units of the parameters reported in the hysteresis summary table. The
+# moment parameters carry the unit of the input magnetization and the
+# characteristic fields are in tesla (fields are required to be in tesla by
+# the chi_HF conversion). The signal and harmonic ratios of the closure test
+# are logarithmic (dB). Parameters that are ratios, logarithms of ratios, or
+# F statistics (Q, Qf, sigma, the FNL family) are dimensionless and are
+# reported without a unit.
+_HYST_MAGN_PARAMS = ('Mr', 'Ms', 'Mrh', 'Mih', 'Me')
+_HYST_FIELD_PARAMS = ('Bc', 'Brh')
+_HYST_DB_PARAMS = ('SNR', 'HAR')
+
+# Unit of the high-field susceptibility implied by the (normalized)
+# magnetization unit. chi_HF is returned as mu_0 * dM/dB, so its unit is the
+# magnetization unit times m/A: mass-normalized Am²/kg gives m³/kg,
+# volume-normalized A/m gives the dimensionless SI susceptibility, and a raw
+# moment in Am² gives m³.
+_HYST_CHI_UNITS = {'Am²/kg': 'm³/kg', 'A/m': 'SI', 'Am²': 'm³'}
+
+# Magnetization unit of each MagIC measurements column, used to label batch
+# processing output when the caller does not state the unit explicitly.
+# magn_uncal holds uncalibrated (dimensionless) intensities: its moment
+# parameters are labeled as such, chi_HF has no derivable unit, and
+# add_hyst_stats_to_specimens_table refuses it since MagIC has no hyst_ms_*
+# column for uncalibrated data.
+_MAGN_COL_UNITS = {
+    'magn_mass': 'Am²/kg',
+    'magn_volume': 'A/m',
+    'magn_moment': 'Am²',
+    'magn_uncal': 'uncalibrated',
+}
+
+# Suffix of the MagIC specimens columns (hyst_ms_*, hyst_mr_*) that hold a
+# moment parameter in each magnetization unit.
+_MAGN_UNIT_MAGIC_SUFFIX = {'Am²/kg': 'mass', 'A/m': 'volume', 'Am²': 'moment'}
+
+
+def _normalize_magn_unit(magn_unit):
+    """Return a magnetization unit string in canonical spelling.
+
+    None or an empty string means the default (mass-normalized Am²/kg).
+    Spaces are dropped and ASCII exponents ('^2', 'm2') become superscripts,
+    so 'Am^2/kg', 'A m2 / kg' and 'Am²/kg' all normalize to 'Am²/kg' and
+    look up the same susceptibility unit and MagIC column. Unrecognized
+    units are returned (normalized) as given rather than rejected, since
+    process_hyst_loop accepts any consistent magnetization unit.
+    """
+    if magn_unit is None or str(magn_unit).strip() == '':
+        return _DEFAULT_MAGN_UNIT
+    unit = str(magn_unit).replace(' ', '')
+    unit = unit.replace('^2', '²').replace('^3', '³')
+    unit = unit.replace('m2', 'm²').replace('m3', 'm³')
+    return unit
+
+
+def _hyst_param_unit(param, magn_unit=_DEFAULT_MAGN_UNIT):
+    """Return the unit string for a hysteresis parameter.
+
+    Parameters
+    ----------
+    param : str
+        Name of the hysteresis parameter (e.g. 'Ms', 'Bc', 'chi_HF').
+    magn_unit : str, optional
+        Unit of the magnetization that was processed, in any spelling
+        accepted by `_normalize_magn_unit`. Defaults to mass-normalized
+        Am²/kg (the MagIC magn_mass convention).
+
+    Returns
+    -------
+    unit : str
+        The unit of the parameter, or an empty string for dimensionless
+        parameters and for a susceptibility whose unit cannot be derived
+        from an unrecognized `magn_unit`.
+    """
+    magn_unit = _normalize_magn_unit(magn_unit)
+    if param in _HYST_MAGN_PARAMS:
+        return magn_unit
+    if param in _HYST_FIELD_PARAMS:
+        return 'T'
+    if param in _HYST_DB_PARAMS:
+        return 'dB'
+    if param == 'chi_HF':
+        return _HYST_CHI_UNITS.get(magn_unit, '')
+    return ''
+
+
+def _hyst_param_label(param, magn_unit=_DEFAULT_MAGN_UNIT):
+    """Return a parameter name with its unit in parentheses, e.g. 'Bc (T)'.
+
+    Dimensionless parameters are returned unchanged.
+    """
+    unit = _hyst_param_unit(param, magn_unit)
+    return f'{param} ({unit})' if unit else param
+
+
 def extract_hyst_data(df, specimen_name):
     """
     Extracts hysteresis loop data for a specific specimen from a dataframe.
@@ -2091,16 +2189,21 @@ def extract_hyst_data(df, specimen_name):
 
     return hyst_data
 
-def plot_hyst_loop(field, magnetization, specimen_name, p=None, interactive=True, show_plot=True, return_figure=False, line_color='grey', line_width=1, label='', legend_location='bottom_right'):
+def plot_hyst_loop(field, magnetization, specimen_name, p=None, interactive=True, show_plot=True, return_figure=False, line_color='grey', line_width=1, label='', legend_location='bottom_right',
+                   magn_unit=_DEFAULT_MAGN_UNIT):
     '''
     function to plot a hysteresis loop
 
     Parameters
     ----------
     field : numpy array or list
-        hysteresis loop field values
+        hysteresis loop field values (tesla)
     magnetization : numpy array or list
         hysteresis loop magnetization values
+    magn_unit : str, optional
+        Unit of the magnetization values, used to label the y axis.
+        Defaults to mass-normalized Am²/kg (the MagIC magn_mass
+        convention).
 
     Returns
     -------
@@ -2109,11 +2212,12 @@ def plot_hyst_loop(field, magnetization, specimen_name, p=None, interactive=True
     '''
     _check_bokeh()
     assert len(field) == len(magnetization), 'Field and magnetization arrays must be the same length'
+    magn_unit = _normalize_magn_unit(magn_unit)
     if interactive:
         if p is None:
             p = figure(title=f'{specimen_name} hysteresis loop',
                     x_axis_label='Field (T)',
-                    y_axis_label='Magnetization (Am\u00B2/kg)',
+                    y_axis_label=f'Magnetization ({magn_unit})',
                     width=600,
                     height=600, aspect_ratio=1)
             p.axis.axis_label_text_font_size = '12pt'
@@ -2139,8 +2243,11 @@ def plot_hyst_loop(field, magnetization, specimen_name, p=None, interactive=True
     ax.plot(field, magnetization, color=line_color, linewidth=line_width, label=label)
     ax.set_title(f'{specimen_name} hysteresis loop')
     ax.set_xlabel('Field (T)')
-    ax.set_ylabel('Magnetization (Am²/kg)')
-    ax.legend(loc=legend_location)
+    ax.set_ylabel(f'Magnetization ({magn_unit})')
+    # legend_location uses Bokeh's naming ('bottom_right'); translate to the
+    # matplotlib equivalent ('lower right') so both backends accept it
+    ax.legend(loc=legend_location.replace('bottom', 'lower')
+              .replace('top', 'upper').replace('_', ' '))
     ax.grid(True)
     if show_plot:
         plt.show()
@@ -3880,26 +3987,70 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
     return final_result_dict
 
 
-# Values reported by process_hyst_loop for quantities that are undefined at a
-# decision-tree exit (statistically linear loop, or loop that remains open at
-# the highest fields). The full key set is always present in the result so
-# batch tables (process_hyst_loops) and the specimens-table writer keep a
-# stable schema across all three outcomes.
-def _show_hyst_summary_table(summary, width):
+# significant figures shown for each value in the hysteresis summary table
+_HYST_TABLE_SIG_FIGS = 4
+
+
+def _format_hyst_value(value, sig_figs=_HYST_TABLE_SIG_FIGS):
+    """Format a summary-table value to a fixed number of significant figures.
+
+    General format is used so that quantities spanning many decades (Ms of
+    order 1 Am²/kg next to chi_HF of order 1e-8 m³/kg) each keep the same
+    number of significant figures, switching to scientific notation only
+    where fixed notation would lose them. None becomes an empty cell and
+    non-numeric values (booleans, strings) are shown as-is.
+    """
+    if value is None:
+        return ''
+    if isinstance(value, (bool, np.bool_, str)):
+        return str(value)
+    try:
+        value = float(value)
+    except (TypeError, ValueError):
+        return str(value)
+    if np.isnan(value):
+        return 'NaN'
+    return f'{value:.{sig_figs}g}'
+
+
+def _show_hyst_summary_table(summary, width, magn_unit=_DEFAULT_MAGN_UNIT):
     """Display a one-row Bokeh table of hysteresis summary parameters.
+
+    Column headers spell out the unit of each parameter (see
+    `_hyst_param_unit`); dimensionless parameters are headed by their name
+    alone. Values are shown to `_HYST_TABLE_SIG_FIGS` significant figures;
+    the full-precision values remain in the returned results dictionary.
+    Columns are sized to their content (`width` is a minimum), so neither
+    headers nor values are clipped.
 
     Shared by the full processing path and the decision-tree exits of
     process_hyst_loop, each of which passes only the parameters defined for
     its outcome.
     """
-    source = ColumnDataSource({name: [value] for name, value in summary.items()})
-    columns = [TableColumn(field=name, title=name) for name in summary]
+    cells = {name: _format_hyst_value(value) for name, value in summary.items()}
+    source = ColumnDataSource({name: [text] for name, text in cells.items()})
+    # give each column room for the longer of its header and its value
+    # (about 7 px per character in Bokeh's default 12 px table font, plus
+    # cell padding) and let the table be wider than the plot if the ~13
+    # columns need it; otherwise Bokeh squeezes them into the plot width
+    # and clips headers and values such as '2.059e-07'
+    columns, total_width = [], 0
+    for name in summary:
+        title = _hyst_param_label(name, magn_unit)
+        col_width = 7 * max(len(title), len(cells[name])) + 14
+        columns.append(TableColumn(field=name, title=title, width=col_width))
+        total_width += col_width
     data_table = DataTable(source=source, columns=columns,
-                           width=width, height=100)
+                           width=max(width, total_width), height=100)
     data_table.index_position = None
     show(column(data_table))
 
 
+# Values reported by process_hyst_loop for quantities that are undefined at a
+# decision-tree exit (statistically linear loop, or loop that remains open at
+# the highest fields). The full key set is always present in the result so
+# batch tables (process_hyst_loops) and the specimens-table writer keep a
+# stable schema across all three outcomes.
 _HYST_UNDEFINED_RESULTS = {
     'loop_centering_results': None, 'centered_H': None, 'centered_M': None,
     'drift_corrected_M': None, 'slope_corrected_M': None,
@@ -3916,7 +4067,8 @@ _HYST_UNDEFINED_RESULTS = {
 
 def process_hyst_loop(field, magnetization, specimen_name='', show_results_table=True, show_plot=True,
                       NL_fit=False, centering_protocol='legacy',
-                      fit_open_loop=False, fit_linear_loop=False):
+                      fit_open_loop=False, fit_linear_loop=False,
+                      magn_unit=_DEFAULT_MAGN_UNIT):
     """
     Process a magnetic hysteresis loop using the IRM decision tree workflow.
 
@@ -3956,6 +4108,8 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
     magnetization : array_like
         Array of magnetization values (same length as `field`), in any
         consistent unit; mass-normalized Am²/kg matches MagIC conventions.
+        Report the unit of these values with `magn_unit` so that the plot
+        and summary table are labeled correctly.
     specimen_name : str, optional
         Identifier for the specimen, used for labeling plots.
     show_results_table : bool, optional
@@ -3988,11 +4142,23 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
         the loop passing the whole-loop linearity test; the ferromagnetic
         parameters from such a loop should be interpreted alongside the
         quality statistics.
+    magn_unit : str, optional
+        Unit of the `magnetization` values, used to label the plot axis and
+        the summary table headers (the moment parameters are reported in
+        this unit and chi_HF in the susceptibility unit it implies, e.g.
+        m³/kg for Am²/kg) and recorded in the results so that
+        add_hyst_stats_to_specimens_table writes to the matching MagIC
+        columns. None or the default is mass-normalized Am²/kg, the MagIC
+        magn_mass convention; 'A/m' (volume-normalized) and 'Am²' (moment)
+        are the other MagIC conventions. Spelling variants such as 'Am^2/kg'
+        are accepted. The values themselves are not converted.
 
     Returns
     -------
     results : dict
         Dictionary containing the following keys:
+            - 'magn_unit': normalized unit of the magnetization (and so of
+              the moment parameters below)
             - 'gridded_H': gridded field values
             - 'gridded_M': gridded magnetization values
             - 'linearity_test_results': results of the initial linearity test
@@ -4008,13 +4174,16 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
             - 'loop_saturation_stats': saturation test results
             - 'loop_is_saturated': whether the loop is saturated
             - 'M_sn', 'Q': quality metrics from centering
-            - 'H', 'Mr', 'Mrh', 'Mih', 'Me', 'Brh': characteristic field and moment parameters
-            - 'sigma': shape parameter (Fabian, 2003)
-            - 'chi_HF': high-field susceptibility
+            - 'H', 'Mr', 'Mrh', 'Mih', 'Me': characteristic field (tesla) and
+              moment parameters (in `magn_unit`)
+            - 'Brh': median field of Mrh (where Mrh falls to Mr/2), in tesla
+            - 'sigma': shape parameter (Fabian, 2003), dimensionless
+            - 'chi_HF': high-field susceptibility, in the unit implied by
+              `magn_unit` (m³/kg for mass-normalized Am²/kg)
             - 'FNL60', 'FNL70', 'FNL80': high-field nonlinearity F statistics for windows
               starting at 60%, 70%, and 80% of the maximum field
-            - 'Ms': saturation magnetization
-            - 'Bc': coercive field
+            - 'Ms': saturation magnetization, in `magn_unit`
+            - 'Bc': coercive field, in tesla
             - 'M_sn_f', 'Qf': quality metrics for ferromagnetic component
             - 'Fnl_lin': F statistic for improvement of the nonlinear over the linear
               high-field fit (None if the loop is saturated and no nonlinear fit is made)
@@ -4023,6 +4192,7 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
     # clean the inputs (accepts lists/Series/text columns, drops non-finite
     # pairs, warns on apparent non-tesla field units)
     field, magnetization = sanitize_hyst_inputs(field, magnetization)
+    magn_unit = _normalize_magn_unit(magn_unit)
 
     # record the original sweep order before gridding canonicalizes it: the
     # drift correction is time-order sensitive and needs to know whether the
@@ -4052,12 +4222,15 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
             p = plot_hyst_loop(grid_fields, grid_magnetizations,
                                      specimen_name, line_color='orange',
                                      label='raw loop (statistically linear)',
-                                     return_figure=True, show_plot=show_plot)
+                                     return_figure=True, show_plot=show_plot,
+                                     magn_unit=magn_unit)
             if show_results_table and p is not None:
                 _show_hyst_summary_table(
                     {'chi_HF': chi_HF,
-                     'FNL': loop_linearity_test_results['FNL']}, p.width)
+                     'FNL': loop_linearity_test_results['FNL']}, p.width,
+                    magn_unit=magn_unit)
         return {**_HYST_UNDEFINED_RESULTS,
+                'magn_unit': magn_unit,
                 'gridded_H': grid_fields,
                 'gridded_M': grid_magnetizations,
                 'measured_descending_first': descending_first,
@@ -4122,7 +4295,8 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
         p = None
         if _HAS_BOKEH:
             p = plot_hyst_loop(grid_fields, grid_magnetizations, specimen_name, line_color='orange', label='raw loop',
-                                     return_figure=True, show_plot=False)
+                                     return_figure=True, show_plot=False,
+                                     magn_unit=magn_unit)
             p = plot_hyst_loop(centered_H, centered_M, specimen_name, p=p, line_color='red', label=specimen_name+' offset corrected',
                                      return_figure=True, show_plot=False)
             p = plot_hyst_loop(centered_H, drift_corr_M, specimen_name, p=p, line_color='pink', label=specimen_name+' drift corrected (open loop)',
@@ -4141,8 +4315,9 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
                     'FNL80': loop_saturation_stats['FNL80'],
                     'SNR': loop_closure_test_results['SNR'],
                     'HAR': loop_closure_test_results['HAR'],
-                }, p.width)
+                }, p.width, magn_unit=magn_unit)
         return {**_HYST_UNDEFINED_RESULTS,
+                'magn_unit': magn_unit,
                 'gridded_H': grid_fields,
                 'gridded_M': grid_magnetizations,
                 'measured_descending_first': descending_first,
@@ -4197,7 +4372,8 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
     if _HAS_BOKEH:
         # plot original loop
         p = plot_hyst_loop(grid_fields, grid_magnetizations, specimen_name, line_color='orange', label='raw loop', 
-                                 return_figure=True, show_plot=False)
+                                 return_figure=True, show_plot=False,
+                                 magn_unit=magn_unit)
         # plot centered loop
         p_centered = plot_hyst_loop(centered_H, centered_M, specimen_name, p=p, line_color='red', label=specimen_name+' offset corrected', 
                                           return_figure=True, show_plot=False)
@@ -4213,7 +4389,8 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
         p_slope_corr.line(H, Me, line_color='brown', legend_label='Me', line_width=1)
         if show_plot:
             show(p_slope_corr)
-    results = {'gridded_H': grid_fields,
+    results = {'magn_unit': magn_unit,
+               'gridded_H': grid_fields,
                'gridded_M': grid_magnetizations,
                'measured_descending_first': descending_first,
                'linearity_test_results': loop_linearity_test_results,
@@ -4248,7 +4425,7 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
             'FNL60': loop_saturation_stats['FNL60'],
             'FNL70': loop_saturation_stats['FNL70'],
             'FNL80': loop_saturation_stats['FNL80'],
-        }, p_slope_corr.width)
+        }, p_slope_corr.width, magn_unit=magn_unit)
     return results
 
 def process_hyst_loops(
@@ -4261,6 +4438,7 @@ def process_hyst_loops(
     centering_protocol='legacy',
     fit_open_loop=False,
     fit_linear_loop=False,
+    magn_unit=None,
 ):
     """
     Process multiple hysteresis loops in batch.
@@ -4292,13 +4470,36 @@ def process_hyst_loops(
         Passed through to process_hyst_loop: if True, statistically linear
         loops are processed in full rather than terminating with chi_HF
         only (default False).
+    magn_unit : str, optional
+        Unit of the values in `magn_col`, used to label the plots and the
+        summary table headers and recorded in the results so that
+        add_hyst_stats_to_specimens_table writes to the matching MagIC
+        columns. By default the unit is taken from the MagIC column name
+        (magn_mass -> Am²/kg, magn_volume -> A/m, magn_moment -> Am²,
+        magn_uncal -> uncalibrated). For a column name outside these
+        conventions a warning is issued and Am²/kg is assumed; pass
+        `magn_unit` explicitly in that case.
 
     Returns
     -------
     results_df : pandas.DataFrame
         DataFrame with hysteresis results for each experiment.
         Has a numeric index with 'specimen' and 'experiment' as columns.
+        Column names carry no units: the moment parameters (Ms, Mr) are in
+        the unit recorded in the 'magn_unit' column, the characteristic
+        fields (Bc, Brh) are in tesla, and chi_HF is in the susceptibility
+        unit implied by 'magn_unit' (m³/kg for mass-normalized Am²/kg).
     """
+    if magn_unit is None:
+        if magn_col not in _MAGN_COL_UNITS:
+            warnings.warn(
+                f"magnetization column '{magn_col}' is not a MagIC "
+                "convention (magn_mass, magn_volume, magn_moment, "
+                "magn_uncal), so its "
+                f"unit cannot be inferred; assuming {_DEFAULT_MAGN_UNIT}. "
+                "Pass magn_unit to label the output correctly.",
+                stacklevel=2)
+        magn_unit = _MAGN_COL_UNITS.get(magn_col, _DEFAULT_MAGN_UNIT)
     results = []
     for _, row in hyst_experiments.iterrows():
         exp = row["experiment"]
@@ -4316,6 +4517,7 @@ def process_hyst_loops(
             centering_protocol=centering_protocol,
             fit_open_loop=fit_open_loop,
             fit_linear_loop=fit_linear_loop,
+            magn_unit=magn_unit,
         )
         res['specimen'] = spec
         res['experiment'] = exp
@@ -4340,7 +4542,12 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
     hyst_results : pandas.DataFrame
         DataFrame with hysteresis results including 'specimen' and
         'experiment' columns, as output from rmag.process_hyst_loops.
-        Has a numeric index (one row per experiment).
+        Has a numeric index (one row per experiment). The 'magn_unit'
+        column selects the MagIC columns that receive Ms and Mr:
+        Am²/kg -> hyst_ms_mass/hyst_mr_mass, A/m -> hyst_ms_volume/
+        hyst_mr_volume, Am² -> hyst_ms_moment/hyst_mr_moment. Results
+        without this column (written by earlier versions) are taken to be
+        mass-normalized.
     overwrite : bool, optional
         If True (default), existing MagIC column values and description stats
         are replaced with new values from hyst_results. If False, existing
@@ -4353,17 +4560,48 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
         A new DataFrame with hysteresis results added.
         If a specimen has multiple experiments, its row is duplicated
         so that each experiment gets its own row.
+
+    Raises
+    ------
+    ValueError
+        If a row's 'magn_unit' is not one of the MagIC conventions, since
+        there is then no specimens column that can hold Ms and Mr without
+        misstating their unit.
     '''
 
     specimens_df = specimens_df.copy()
 
+    # the MagIC columns for Ms and Mr depend on the magnetization unit of
+    # each result row (see _MAGN_UNIT_MAGIC_SUFFIX); Bc is always in tesla.
+    # hyst_xhf is the only high-field slope column MagIC provides and is
+    # declared in m^3 (moment-based); there is no normalized alternative, so
+    # chi_HF is written to it in the susceptibility unit that matches the
+    # processed magnetization (m³/kg for mass-normalized data) and the unit
+    # is recorded alongside the other stats in the description payload.
+    hyst_results = hyst_results.copy()
+    if 'magn_unit' not in hyst_results.columns:
+        hyst_results['magn_unit'] = _DEFAULT_MAGN_UNIT
+    hyst_results['magn_unit'] = hyst_results['magn_unit'].map(
+        _normalize_magn_unit)
+    unrecognized = set(hyst_results['magn_unit']) - set(_MAGN_UNIT_MAGIC_SUFFIX)
+    if unrecognized:
+        raise ValueError(
+            f'magn_unit {sorted(unrecognized)} has no MagIC specimens '
+            'column for Ms and Mr; the MagIC conventions are '
+            f'{list(_MAGN_UNIT_MAGIC_SUFFIX)}')
+
+    def magic_columns(magn_unit):
+        suffix = _MAGN_UNIT_MAGIC_SUFFIX[magn_unit]
+        return [f'hyst_ms_{suffix}', f'hyst_mr_{suffix}', 'hyst_bc', 'hyst_xhf']
+
     result_keys_MagIC = ['Ms', 'Mr', 'Bc', 'chi_HF']
-    MagIC_columns = ['hyst_ms_mass', 'hyst_mr_mass', 'hyst_bc', 'hyst_xhf']
+    MagIC_columns = sorted({col for unit in set(hyst_results['magn_unit'])
+                            for col in magic_columns(unit)})
 
     additional_keys = ['Q', 'Qf', 'sigma',
                 'Brh', 'FNL', 'FNL60', 'FNL70', 'FNL80',
                 'Fnl_lin', 'loop_is_linear', 'loop_is_closed', 'loop_is_saturated',
-                'processed_by']
+                'magn_unit', 'processed_by']
 
     # ensure MagIC columns exist in specimens_df
     for col in MagIC_columns:
@@ -4420,8 +4658,10 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
             )
             ipos = len(specimens_df) - 1
 
-        # write MagIC columns
-        for result_key, col in zip(result_keys_MagIC, MagIC_columns):
+        # write MagIC columns (Ms and Mr go to the columns for this row's
+        # magnetization unit)
+        for result_key, col in zip(result_keys_MagIC,
+                                   magic_columns(row['magn_unit'])):
             specimens_df.iloc[ipos, specimens_df.columns.get_loc(col)] = row[result_key]
 
         # merge the additional stats into the description cell using the
