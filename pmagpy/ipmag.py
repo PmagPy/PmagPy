@@ -15945,6 +15945,48 @@ def histplot(infile="", data=(), outfile="",
         return True, [outfile]
 
 
+def select_demag_records(data_container, LT, XLP=None):
+    """
+    Select the demagnetization measurements for one lab treatment.
+
+    Parameters:
+        data_container (MagicDataFrame):
+            measurements table (e.g. contribution.tables['measurements'])
+        LT (str):
+            lab-treatment method code, one of "LT-AF-Z", "LT-T-Z", "LT-M-Z"
+        XLP (str or list, optional):
+            method-code strings to exclude, e.g. "LP-PI", ["LP-PI", "LP-AN"]
+            or the colon-delimited "LP-PI:LP-AN". Matching is by substring,
+            so "LP-PI" excludes every LP-PI-* protocol.
+
+    Returns:
+        pandas.DataFrame:
+            the records with method code LT. If any of them carry an
+            LP-DIR-* experiment code, only those are returned; zero-field
+            steps that belong to other protocols (for example the 180 mT
+            ARM steps of an LP-AN-ARM experiment, or the zero-field steps of
+            a Thellier-type LP-PI-* experiment) are dropped. If none carry an
+            LP-DIR-* code (older converters wrote only LT codes), all records
+            with LT are returned. Records matching any XLP string are
+            removed in either case.
+    """
+    data = data_container.get_records_for_code(LT)
+    if 'method_codes' in data.columns:
+        has_dir = data['method_codes'].str.contains('LP-DIR', na=False)
+        if has_dir.any():
+            data = data[has_dir]
+    if XLP:
+        if isinstance(XLP, str):
+            XLP = XLP.split(':')
+        for code in XLP:
+            code = code.strip()
+            if code:
+                data = data_container.get_records_for_code(
+                    code, incl=False, use_slice=True, sli=data,
+                    strict_match=False)
+    return data
+
+
 def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
                spec_file="specimens.txt", samp_file="samples.txt",
                site_file="sites.txt", loc_file="locations.txt",
@@ -15974,9 +16016,11 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
             lab treatment [T, AF, M], default AF
         norm (bool): 
             normalize by NRM magnetization, default True
-        XLP (str):
-            exclude specific  lab protocols, (for example, method codes like LP-PI)
-            default ""
+        XLP (str or list):
+            exclude records whose method codes contain any of these strings
+            (for example "LP-PI" or ["LP-PI", "LP-AN"]); a single string may
+            also be colon-delimited ("LP-PI:LP-AN"). Default "" (nothing
+            excluded beyond the LP-DIR rule described in the notes).
         save_plots (bool): 
             plot and save non-interactively, default True
         fmt (str): str
@@ -15990,6 +16034,15 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
         contribution : cb.Contribution, default None
             if provided, use Contribution object instead of reading in
             data from files
+
+    Notes:
+        Records are selected by lab treatment (LT-AF-Z, LT-T-Z or LT-M-Z).
+        When any of the selected records carry an LP-DIR-* experiment code,
+        only those records are plotted, so that zero-field steps belonging to
+        other protocols (ARM anisotropy, Thellier-type paleointensity, ...)
+        do not contaminate the demagnetization curves. Data whose method
+        codes carry no LP-DIR-* code at all are plotted unchanged. Use XLP to
+        exclude further protocols. See select_demag_records.
 
     Returns:
         True or False indicating if conversion was successful, file name(s) written
@@ -16044,12 +16097,8 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
         #contribution.propagate_name_down(plot_key, 'measurements')
         contribution.propagate_location_to_measurements()
     data_container = contribution.tables[file_type]
-    # pare down to only records with useful data
-    # grab records that have the requested code
-    data_slice = data_container.get_records_for_code(LT)
-    # and don't have the offending code
-    data = data_container.get_records_for_code(XLP, incl=False, use_slice=True,
-                                               sli=data_slice, strict_match=False)
+    # pare down to the demagnetization records for this lab treatment
+    data = select_demag_records(data_container, LT, XLP)
 
     # make sure quality is in the dataframe
     if 'quality' not in data.columns:
