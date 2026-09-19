@@ -6,12 +6,13 @@
 
 import os
 import sys
+import importlib
 import warnings
 
 import numpy as np
 import pandas as pd
 warnings.filterwarnings("ignore")  # what you don't know won't hurt you, or will it?
-from distutils.version import LooseVersion
+from packaging.version import Version
 
 # no longer setting backend here
 from pmag_env import set_env
@@ -22,18 +23,31 @@ from pmagpy import pmag
 from pmagpy import find_pmag_dir
 from pmagpy import contribution_builder as cb
 has_cartopy, Cartopy = pmag.import_cartopy()
+cfeature = ccrs = config = LongitudeFormatter = LatitudeFormatter = None
+LONGITUDE_FORMATTER = LATITUDE_FORMATTER = None
+NaturalEarthFeature = LAND = COASTLINE = OCEAN = LAKES = BORDERS = None
 if has_cartopy:
-    import cartopy.crs as ccrs
-    from cartopy import config
-    from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
-    from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-    from cartopy import feature as cfeature
-    from cartopy.feature import NaturalEarthFeature, LAND, COASTLINE, OCEAN, LAKES, BORDERS
+    ccrs = importlib.import_module('cartopy.crs')
+    config = Cartopy.config
+    cfeature = importlib.import_module('cartopy.feature')
+    cartopy_ticker = importlib.import_module('cartopy.mpl.ticker')
+    LongitudeFormatter = cartopy_ticker.LongitudeFormatter
+    LatitudeFormatter = cartopy_ticker.LatitudeFormatter
+    cartopy_gridliner = importlib.import_module('cartopy.mpl.gridliner')
+    LONGITUDE_FORMATTER = cartopy_gridliner.LONGITUDE_FORMATTER
+    LATITUDE_FORMATTER = cartopy_gridliner.LATITUDE_FORMATTER
+    NaturalEarthFeature = cfeature.NaturalEarthFeature
+    LAND = cfeature.LAND
+    COASTLINE = cfeature.COASTLINE
+    OCEAN = cfeature.OCEAN
+    LAKES = cfeature.LAKES
+    BORDERS = cfeature.BORDERS
 
 import os
 import matplotlib
 from matplotlib import cm as color_map
 from matplotlib import pyplot as plt
+from matplotlib.backend_bases import NonGuiException
 from pylab import meshgrid  # matplotlib's meshgrid function
 import matplotlib.ticker as mticker
 globals = 0
@@ -45,7 +59,7 @@ version_num = pmag.get_version()
 if isServer:
     matplotlib.pyplot.switch_backend('Agg')
 
-if matplotlib.__version__ < '2.1':
+if Version(matplotlib.__version__) < Version('2.1'):
     print("""-W- Please upgrade to matplotlib >= 2.1
     On the command line, for Anaconda users:
        conda upgrade matplotlib
@@ -138,14 +152,19 @@ def plot_init(fignum, w, h):
     plt_num += 1
     fig = plt.figure(num=fignum, figsize=(w, h), dpi=dpi, clear=True)
     if (not isServer) and (not set_env.IS_NOTEBOOK):
-        plt.get_current_fig_manager().show()
-        # plt.get_current_fig_manager().window.wm_geometry('+%d+%d' %
-        # (fig_x_pos,fig_y_pos)) # this only works with matplotlib.use('TKAgg')
-        fig_x_pos = fig_x_pos + dpi * (w) + 25
-        if plt_num == 3:
-            plt_num = 0
-            fig_x_pos = 25
-            fig_y_pos = fig_y_pos + dpi * (h) + 25
+        try:
+            plt.get_current_fig_manager().show()
+            # plt.get_current_fig_manager().window.wm_geometry('+%d+%d' %
+            # (fig_x_pos,fig_y_pos)) # this only works with matplotlib.use('TKAgg')
+            fig_x_pos = fig_x_pos + dpi * (w) + 25
+            if plt_num == 3:
+                plt_num = 0
+                fig_x_pos = 25
+                fig_y_pos = fig_y_pos + dpi * (h) + 25
+        except NonGuiException:
+            # non-GUI backend (Agg, inline, the PDF/SVG writers): there is no
+            # window to raise or place, but the figure itself is fine (#781)
+            pass
         plt.figtext(.02, .01, version_num)
 # plt.connect('button_press_event',click)
 #
@@ -1157,7 +1176,7 @@ def plot_arai(fignum, indata, s, units):
         if len(x_iz) > 0:
             plt.scatter(x_iz, y_iz, marker='s', c='b',
                         faceted="True")  # infield-zerofield
-    except:
+    except Exception:
         if len(x_zi) > 0:
             plt.scatter(x_zi, y_zi, marker='o', c='r')  # zero field-infield
         if len(x_iz) > 0:
@@ -1175,7 +1194,7 @@ def plot_arai(fignum, indata, s, units):
     try:
         plt.axhline(0, color='k')
         plt.axvline(0, color='k')
-    except:
+    except Exception:
         pass
     plt.xlabel("pTRM gained")
     plt.ylabel("NRM remaining")
@@ -2012,7 +2031,7 @@ def plot_hys(fignum, B, M, s):
         poly = np.polyfit(Baz, Maz, 1)
         Bac = -poly[1] / poly[0]  # x intercept
         hpars['hysteresis_bc'] = '%8.3e' % (0.5 * (abs(Bc) + abs(Bac)))
-    except:
+    except Exception:
         hpars['hysteresis_bc'] = '0'
     return hpars, deltaM, Bdm
 #
@@ -2126,7 +2145,7 @@ def plot_hdd(HDD, B, M, s):
             plt.axhline(0, color='k')
             plt.axvline(0, color='k')
             plot_d_delta_m(HDD['DdeltaM'], Bdm, DdeltaM, s)
-    except:
+    except Exception:
         hpars['hysteresis_bcr'] = '0'
         hpars['magic_method_codes'] = ""
     return hpars
@@ -3372,7 +3391,7 @@ def plot_mag_map(fignum, element, lons, lats, element_type, cmap='coolwarm', lon
     if proj == 'Mollweide':
         fig = plt.figure(fignum)
         # this issue is fixed in >=0.17
-        if not LooseVersion(Cartopy.__version__) > LooseVersion('0.16.0'):
+        if not Version(Cartopy.__version__) > Version('0.16.0'):
             if lon_0 != 0:
                 print('This projection requires lon_0=0')
                 return
@@ -3692,12 +3711,12 @@ def msp_magic(spec_df,axa="",axb="",site='site',labels=['a)','b)'],save_plots=Fa
     """
     try: 
         import seaborn as sns
-    except:
+    except Exception:
         " You must install seaborn to use this " 
         return False,False, axa, axb
     try: 
         import scipy.stats as stats
-    except:
+    except Exception:
         " You must install scipy " 
         return False,False, axa, axb
     fontsize=14
@@ -3777,4 +3796,3 @@ def msp_magic(spec_df,axa="",axb="",site='site',labels=['a)','b)'],save_plots=Fa
         plt.tight_layout()
         plt.savefig('site.'+fmt)
     return res.intercept,.5*ts*res.intercept_stderr,res.intercept_stderr,axa,axb
-

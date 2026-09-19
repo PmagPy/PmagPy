@@ -98,7 +98,7 @@ def main():
             Nfo=file.split('_')[0].split('-')
             try:
                 sect=int(Nfo[3][:-1])
-            except:
+            except Exception:
                 sect=1
             input=open(file,'r').readlines()
             MagRec,SpecRec,SampRec={},{},{}

@@ -31,7 +31,7 @@ class MainFrame(wx.Frame):
     def __init__(self, WD=None, name='Main Frame', dmodel=None, title=None, contribution=None, errors={}):
         try:
             version = pmag.get_version()
-        except:
+        except Exception:
             version = ""
         if not title:
             title = "MagIC GUI   version: %s" % version

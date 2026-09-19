@@ -6,6 +6,7 @@ assorted wxPython custom widgets
 
 import os
 import wx
+from dialogs import gui_theme
 import wx.html
 import webbrowser
 # ******
@@ -69,14 +70,12 @@ class NotEmptyValidator(wx.PyValidator):
         if len(text) == 0:
             print("textCtrl.Name:", textCtrl.Name)
             wx.MessageBox("{} must contain some text!".format(str(textCtrl.Name)), "Error")
-            textCtrl.SetBackgroundColour("pink")
+            gui_theme.style_control(textCtrl, gui_theme.ERROR)
             textCtrl.SetFocus()
             textCtrl.Refresh()
             return False
         else:
-            textCtrl.SetBackgroundColour(
-                wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
-            textCtrl.Refresh()
+            gui_theme.style_control(textCtrl)
             return True
 
     def TransferToWindow(self):
@@ -507,9 +506,7 @@ class experiment_type(wx.StaticBoxSizer):
     def __init__(self, parent, experiment_names=exp_names):
         box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(experiment_type, self).__init__(box, orient=wx.VERTICAL)
-        num_rows = len(experiment_names) / 3
-        if len(experiment_names) % 3 != 0:
-            num_rows += 1
+        num_rows = (len(experiment_names) + 2) // 3
         gridSizer2 = wx.GridSizer(num_rows, 3, 0, 0)
         self.boxes = []
 

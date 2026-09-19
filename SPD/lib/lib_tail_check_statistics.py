@@ -11,7 +11,7 @@ def get_n_tail(tmax, tail_temps):
         return 0
     try:
         t_index = list(tail_temps).index(tmax)
-    except: # finds correct tmax if there was no tail check performed at tmax
+    except Exception: # finds correct tmax if there was no tail check performed at tmax
         for temp in tail_temps:
             if temp <= tmax:
                 adj_tmax = temp

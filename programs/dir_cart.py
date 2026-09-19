@@ -52,7 +52,7 @@ def main():
                 dir.append(float(ans))
                 cart= pmag.dir2cart(dir)  # send dir to dir2cart and spit out result
                 print('%8.4e %8.4e %8.4e'%(cart[0],cart[1],cart[2]))
-            except:
+            except Exception:
                 print('\n Good-bye \n')
                 sys.exit()
     elif '-f' in sys.argv:

@@ -203,7 +203,7 @@ def main(command_line=True, **kwargs):
             try:
                 Samps, file_type = pmag.magic_read(
                     os.path.join(input_dir_path, 'er_samples.txt'))
-            except:
+            except Exception:
                 print(
                     "there is no er_samples.txt file in your input directory - you can't use naming convention #6")
                 return False, "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
@@ -226,7 +226,7 @@ def main(command_line=True, **kwargs):
         for samp in Samps:
             if samp['er_sample_name'] not in samplist:
                 samplist.append(samp['er_sample_name'])
-    except:
+    except Exception:
         Samps = []
     MagRecs = []
     try:

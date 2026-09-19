@@ -82,6 +82,7 @@ from dialogs.demag_interpretation_editor import InterpretationEditorFrame
 from pmagpy.demag_gui_utilities import *
 from pmagpy.Fit import *
 import dialogs.demag_dialogs as demag_dialogs
+from dialogs import gui_theme
 import pmagpy.contribution_builder as cb
 from pmagpy.mapping import map_magic
 import help_files.demag_gui_help as dgh
@@ -131,6 +132,7 @@ class Demag_GUI(wx.Frame):
         default_style = wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN | wx.NO_FULL_REPAINT_ON_RESIZE | wx.WS_EX_CONTEXTHELP | wx.FRAME_EX_CONTEXTHELP
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title,
                           style=default_style, name='demag gui')
+        gui_theme.bind_theme_updates(self)
         self.parent = parent
         self.set_test_mode(test_mode_on)
         self.evt_quit = evt_quit
@@ -220,7 +222,7 @@ class Demag_GUI(wx.Frame):
         self.list_bound_loc = 0
         self.color_dict = {}
         self.colors = ['#4ED740', '#9840D7', '#FFBD4C',
-                       '#398AAD', '#E96640', "#CB1A9F", "55C2B6", "FFD44C"]
+                       '#398AAD', '#E96640', "#CB1A9F", "#55C2B6", "#FFD44C"]
         for name, hexval in matplotlib.colors.cnames.items():
             if name == 'black' or name == 'blue' or name == 'red':
                 continue
@@ -439,8 +441,8 @@ class Demag_GUI(wx.Frame):
         for parameter in ['mean_type', 'dec', 'inc', 'alpha95', 'K', 'R', 'n_lines', 'n_planes']:
             COMMAND = "self.%s_window=wx.TextCtrl(self.scrolled_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))" % parameter
             exec(COMMAND)
-            COMMAND = "self.%s_window.SetBackgroundColour(wx.WHITE)" % parameter
-            exec(COMMAND)
+            gui_theme.style_control(
+                getattr(self, "{}_window".format(parameter)))
             COMMAND = "self.%s_window.SetFont(font2)" % parameter
             exec(COMMAND)
             COMMAND = "self.%s_outer_window = wx.GridSizer(1,2,5*self.GUI_RESOLUTION,15*self.GUI_RESOLUTION)" % parameter
@@ -468,6 +470,7 @@ class Demag_GUI(wx.Frame):
 
         self.logger = wx.ListCtrl(self.side_panel, id=wx.ID_ANY, size=(
             100*self.GUI_RESOLUTION, 100*self.GUI_RESOLUTION), style=wx.LC_REPORT)
+        gui_theme.style_control(self.logger)
         self.logger.SetFont(font1)
         self.logger.InsertColumn(0, 'i', width=25*self.GUI_RESOLUTION)
         self.logger.InsertColumn(1, 'Step', width=25*self.GUI_RESOLUTION)
@@ -619,8 +622,8 @@ class Demag_GUI(wx.Frame):
         for parameter in ['dec', 'inc', 'n', 'mad', 'dang', 'alpha95']:
             COMMAND = "self.s%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(25*self.GUI_RESOLUTION,25))" % parameter
             exec(COMMAND)
-            COMMAND = "self.s%s_window.SetBackgroundColour(wx.WHITE)" % parameter
-            exec(COMMAND)
+            gui_theme.style_control(
+                getattr(self, "s{}_window".format(parameter)))
             COMMAND = "self.s%s_window.SetFont(font2)" % parameter
             exec(COMMAND)
 
@@ -1887,15 +1890,16 @@ class Demag_GUI(wx.Frame):
             if fit == self.current_fit:
                 for item in range(self.logger.GetItemCount()):
                     if item >= tmin_index and item <= tmax_index:
-                        self.logger.SetItemBackgroundColour(item, "LIGHT BLUE")
+                        role = gui_theme.ANALYSIS
                     else:
-                        self.logger.SetItemBackgroundColour(item, "WHITE")
+                        role = gui_theme.NORMAL
                     try:
                         relability = self.Data[self.s]['measurement_flag'][item]
                     except IndexError:
                         relability = 'b'
                     if relability == 'b':
-                        self.logger.SetItemBackgroundColour(item, "red")
+                        role = gui_theme.ERROR
+                    gui_theme.style_list_item(self.logger, item, role)
 
         if problems != {}:
             if 'no bounds' in list(problems.keys()):
@@ -5583,8 +5587,27 @@ class Demag_GUI(wx.Frame):
             PmagSamps, SampDirs = [], []
             PmagSites = []  # list of all site data
             SampInts = []
-            renamelnp = {'R': 'dir_r', 'n': 'dir_n_samples', 'n_total': 'dir_n_specimens', 'alpha95': 'dir_alpha95',
-                         'n_lines': 'dir_n_specimens_lines', 'K': 'dir_k', 'dec': 'dir_dec', 'n_planes': 'dir_n_specimens_planes', 'inc': 'dir_inc'}
+            # n_total = number of specimens averaged.  Used for sample means and
+            # for site means computed directly over specimens.
+            renamelnp_specimens = {'R': 'dir_r', 'n_total': 'dir_n_specimens', 'alpha95': 'dir_alpha95',
+                                   'n_lines': 'dir_n_specimens_lines', 'K': 'dir_k', 'dec': 'dir_dec',
+                                   'n_planes': 'dir_n_specimens_planes', 'inc': 'dir_inc'}
+            # n_total = number of samples averaged.  Used for site means computed over
+            # sample means.  The *_lines/_planes columns retain the dir_n_specimens_*
+            # names because the MagIC 3.0 controlled vocabulary has no dir_n_samples_*
+            # counterparts.
+            renamelnp_samples = {'R': 'dir_r', 'n_total': 'dir_n_samples', 'alpha95': 'dir_alpha95',
+                                 'n_lines': 'dir_n_specimens_lines', 'K': 'dir_k', 'dec': 'dir_dec',
+                                 'n_planes': 'dir_n_specimens_planes', 'inc': 'dir_inc'}
+            # renamelnp is applied in the site loop below.  The condition must mirror
+            # the dirlist selection at the top of the site loop: only when both
+            # combo_site_mean == 'samples' *and* avg_directions_by_sample is True does
+            # the site loop iterate over sample means; otherwise it iterates over
+            # specimens and n_total is a specimen count.
+            if dia.combo_site_mean.GetValue() == 'samples' and avg_directions_by_sample:
+                renamelnp = renamelnp_samples
+            else:
+                renamelnp = renamelnp_specimens
             for samp in samples:  # run through the sample names
                 if not avg_directions_by_sample:
                     break
@@ -5606,8 +5629,8 @@ class Demag_GUI(wx.Frame):
                             x for x in CompDir if 'result_quality' in x and x['result_quality'] == 'g']
                         if len(CompDir) <= 0:
                             continue  # no data for comp
-                        PmagSampRec = pmag.dolnp3_0(CompDir)
-                        for k, v in list(renamelnp.items()):
+                        PmagSampRec = pmag.dolnp(CompDir, 'direction_type')
+                        for k, v in list(renamelnp_specimens.items()):
                             if k in PmagSampRec:
                                 PmagSampRec[v] = PmagSampRec[k]
                                 del PmagSampRec[k]
@@ -5719,8 +5742,36 @@ class Demag_GUI(wx.Frame):
                         if len(siteD) <= 0:
                             # print("no data for comp %s in site %s. skipping"%(comp,site))
                             continue
-                        PmagSiteRec = PmagSampRec = pmag.dolnp3_0(
-                            siteD)  # get an average for this site
+                        if dia.combo_site_mean.GetValue() == 'samples' and avg_directions_by_sample:
+                            # At the site level, sample means are usually directed lines,
+                            # so DE-BFP should be stripped from method_codes to prevent
+                            # dolnp from misclassifying the sample as a pole to a plane.
+                            #
+                            # Exception: when a sample has exactly 1 BFP specimen and no
+                            # line specimens, dolnp's N=1 path stored the raw pole
+                            # (dir_dec/dir_inc = pole to great circle) in the sample
+                            # record unchanged.  In that case DE-BFP must be kept so that
+                            # dolnp at the site level correctly treats dir_dec/dir_inc
+                            # as a plane normal and applies McFadden-McElhinny rather than
+                            # using the pole as a directed line.
+                            siteD_for_mean = []
+                            for d in siteD:
+                                try:
+                                    n_lines = int(float(d.get('dir_n_specimens_lines', 0) or 0))
+                                    n_planes = int(float(d.get('dir_n_specimens_planes', 0) or 0))
+                                except (ValueError, TypeError):
+                                    n_lines, n_planes = 0, 0
+                                # single-BFP-only sample: dir_dec/dir_inc is the raw pole — keep DE-BFP
+                                if n_lines == 0 and n_planes == 1:
+                                    siteD_for_mean.append(d)
+                                else:
+                                    siteD_for_mean.append({**d, 'method_codes': ':'.join(
+                                        c for c in d.get('method_codes', '').split(':')
+                                        if c != 'DE-BFP'
+                                    )})
+                            PmagSiteRec = pmag.dolnp(siteD_for_mean, 'direction_type')  # get an average for this site
+                        else:
+                            PmagSiteRec = pmag.dolnp(siteD, 'direction_type')  # get an average for this site
                         for k, v in list(renamelnp.items()):
                             if k in PmagSiteRec:
                                 PmagSiteRec[v] = PmagSiteRec[k]
@@ -6284,10 +6335,10 @@ class Demag_GUI(wx.Frame):
                 if 'bfv_dec' not in list(mpars.keys()):
                     self.calculate_best_fit_vectors()
             self.sdec_window.SetValue("%.1f" % mpars[dec_key])
-            self.sdec_window.SetBackgroundColour(wx.WHITE)
+            gui_theme.style_control(self.sdec_window)
         else:
             self.sdec_window.SetValue("")
-            self.sdec_window.SetBackgroundColour(wx.Colour('grey'))
+            gui_theme.style_control(self.sdec_window, gui_theme.INACTIVE)
 
         if mpars and 'specimen_inc' in list(mpars.keys()):
             inc_key = 'specimen_inc'
@@ -6298,38 +6349,38 @@ class Demag_GUI(wx.Frame):
                 if 'bfv_inc' not in list(mpars.keys()):
                     self.calculate_best_fit_vectors()
             self.sinc_window.SetValue("%.1f" % mpars[inc_key])
-            self.sinc_window.SetBackgroundColour(wx.WHITE)
+            gui_theme.style_control(self.sinc_window)
         else:
             self.sinc_window.SetValue("")
-            self.sinc_window.SetBackgroundColour(wx.Colour('grey'))
+            gui_theme.style_control(self.sinc_window, gui_theme.INACTIVE)
 
         if mpars and 'specimen_n' in list(mpars.keys()):
             self.sn_window.SetValue("%i" % mpars['specimen_n'])
-            self.sn_window.SetBackgroundColour(wx.WHITE)
+            gui_theme.style_control(self.sn_window)
         else:
             self.sn_window.SetValue("")
-            self.sn_window.SetBackgroundColour(wx.Colour('grey'))
+            gui_theme.style_control(self.sn_window, gui_theme.INACTIVE)
 
         if mpars and 'specimen_mad' in list(mpars.keys()):
             self.smad_window.SetValue("%.1f" % mpars['specimen_mad'])
-            self.smad_window.SetBackgroundColour(wx.WHITE)
+            gui_theme.style_control(self.smad_window)
         else:
             self.smad_window.SetValue("")
-            self.smad_window.SetBackgroundColour(wx.Colour('grey'))
+            gui_theme.style_control(self.smad_window, gui_theme.INACTIVE)
 
         if mpars and 'specimen_dang' in list(mpars.keys()) and float(mpars['specimen_dang']) != -1:
             self.sdang_window.SetValue("%.1f" % mpars['specimen_dang'])
-            self.sdang_window.SetBackgroundColour(wx.WHITE)
+            gui_theme.style_control(self.sdang_window)
         else:
             self.sdang_window.SetValue("")
-            self.sdang_window.SetBackgroundColour(wx.Colour('grey'))
+            gui_theme.style_control(self.sdang_window, gui_theme.INACTIVE)
 
         if mpars and 'specimen_alpha95' in list(mpars.keys()) and float(mpars['specimen_alpha95']) != -1:
             self.salpha95_window.SetValue("%.1f" % mpars['specimen_alpha95'])
-            self.salpha95_window.SetBackgroundColour(wx.WHITE)
+            gui_theme.style_control(self.salpha95_window)
         else:
             self.salpha95_window.SetValue("")
-            self.salpha95_window.SetBackgroundColour(wx.Colour('grey'))
+            gui_theme.style_control(self.salpha95_window, gui_theme.INACTIVE)
 
         if self.orthogonal_box.GetValue() == "X=best fit line dec":
             if mpars and 'specimen_dec' in list(mpars.keys()):
@@ -6626,18 +6677,16 @@ class Demag_GUI(wx.Frame):
 
     def set_mean_stats_color(self):
         for val in ['mean_type', 'dec', 'inc', 'alpha95', 'K', 'R', 'n_lines', 'n_planes']:
-            command = """
-if self.%s_window.GetValue()=="": self.%s_window.SetBackgroundColour(wx.Colour('grey'))
-else: self.%s_window.SetBackgroundColour(wx.WHITE)
-            """ % (val, val, val)
-            exec(command)
+            window = getattr(self, "{}_window".format(val))
+            role = gui_theme.NORMAL if window.GetValue() \
+                else gui_theme.INACTIVE
+            gui_theme.style_control(window, role)
         if self.ie_open:
             for val in ['mean_type', 'dec', 'inc', 'alpha95', 'K', 'R', 'n_lines', 'n_planes']:
-                command = """
-if self.ie.%s_window.GetValue()=="": self.ie.%s_window.SetBackgroundColour(wx.Colour('grey'))
-else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
-                """ % (val, val, val)
-                exec(command)
+                window = getattr(self.ie, "{}_window".format(val))
+                role = gui_theme.NORMAL if window.GetValue() \
+                    else gui_theme.INACTIVE
+                gui_theme.style_control(window, role)
 
     def clear_boxes(self):
         """
@@ -6664,8 +6713,9 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         for parameter in ['dec', 'inc', 'n', 'mad', 'dang', 'alpha95']:
             COMMAND = "self.s%s_window.SetValue('')" % parameter
             exec(COMMAND)
-            COMMAND = "self.s%s_window.SetBackgroundColour(wx.Colour('grey'))" % parameter
-            exec(COMMAND)
+            gui_theme.style_control(
+                getattr(self, "s{}_window".format(parameter)),
+                gui_theme.INACTIVE)
 
     def clear_high_level_pars(self):
         """
@@ -8128,11 +8178,12 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
             self.logger.SetItem(i, 4, "%.1f" % Inc)
             self.logger.SetItem(i, 5, "%.2e" % Int)
             self.logger.SetItem(i, 6, csd)
-            self.logger.SetItemBackgroundColour(i, "WHITE")
+            role = gui_theme.NORMAL
             if i >= tmin_index and i <= tmax_index:
-                self.logger.SetItemBackgroundColour(i, "LIGHT BLUE")
+                role = gui_theme.ANALYSIS
             if self.Data[self.s]['measurement_flag'][i] == 'b':
-                self.logger.SetItemBackgroundColour(i, "red")
+                role = gui_theme.ERROR
+            gui_theme.style_list_item(self.logger, i, role)
 
     def on_click_listctrl(self, event):
         if not self.current_fit:

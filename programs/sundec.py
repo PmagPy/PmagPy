@@ -58,7 +58,7 @@ def main():
             print ("Time difference between Greenwich Mean Time (hrs to subtract from local time to get GMT): ")
             try:
                 sundata["delta_u"]=input("<cntl-D> to quit ")
-            except:
+            except Exception:
                 print("\n Good-bye\n")
                 sys.exit()
             date=""

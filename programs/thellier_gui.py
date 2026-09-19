@@ -196,6 +196,7 @@ import json
 import sys
 import os
 import copy
+import importlib
 import pdb
 from webbrowser import open as webopen
 import pmagpy.pmag as pmag
@@ -217,6 +218,7 @@ import wx.lib.scrolledpanel
 import wx.grid
 import wx.lib.agw.floatspin as FS
 from dialogs import demag_dialogs
+from dialogs import gui_theme
 from dialogs import pmag_widgets as pw
 import dialogs.thellier_consistency_test as thellier_consistency_test
 import dialogs.thellier_gui_dialogs as thellier_gui_dialogs
@@ -242,14 +244,26 @@ except ImportError:
 version = version + ": thellier_gui." + CURRENT_VERSION
 
 has_cartopy, cartopy = pmag.import_cartopy()
+cfeature = ccrs = config = LongitudeFormatter = LatitudeFormatter = None
+LONGITUDE_FORMATTER = LATITUDE_FORMATTER = None
+NaturalEarthFeature = LAND = COASTLINE = OCEAN = LAKES = BORDERS = None
 if has_cartopy:
     # import some cartopy stuff
-    import cartopy.crs as ccrs
-    from cartopy import config
-    from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
-    from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-    from cartopy import feature as cfeature
-    from cartopy.feature import NaturalEarthFeature, LAND, COASTLINE, OCEAN, LAKES, BORDERS
+    ccrs = importlib.import_module('cartopy.crs')
+    config = cartopy.config
+    cfeature = importlib.import_module('cartopy.feature')
+    cartopy_ticker = importlib.import_module('cartopy.mpl.ticker')
+    LongitudeFormatter = cartopy_ticker.LongitudeFormatter
+    LatitudeFormatter = cartopy_ticker.LatitudeFormatter
+    cartopy_gridliner = importlib.import_module('cartopy.mpl.gridliner')
+    LONGITUDE_FORMATTER = cartopy_gridliner.LONGITUDE_FORMATTER
+    LATITUDE_FORMATTER = cartopy_gridliner.LATITUDE_FORMATTER
+    NaturalEarthFeature = cfeature.NaturalEarthFeature
+    LAND = cfeature.LAND
+    COASTLINE = cfeature.COASTLINE
+    OCEAN = cfeature.OCEAN
+    LAKES = cfeature.LAKES
+    BORDERS = cfeature.BORDERS
     import matplotlib.ticker as mticker
 
 
@@ -305,6 +319,7 @@ DESCRIPTION
         FIRST_RUN = True if standalone else False
         wx.Frame.__init__(self, parent, wx.ID_ANY,
                           self.title, name='thellier gui')
+        gui_theme.bind_theme_updates(self)
         self.set_test_mode(test_mode)
         self.redo_specimens = {}
         self.evt_quit = evt_quit
@@ -548,18 +563,32 @@ DESCRIPTION
 
         h_space = 4
         v_space = 4
+        v_space_half = max(0, int(round(v_space / 2.0)))
+
+        # wx font/size APIs expect integer pixel and point-size values
+        ui_w50 = max(1, int(round(50 * self.GUI_RESOLUTION)))
+        ui_w75 = max(1, int(round(75 * self.GUI_RESOLUTION)))
+        ui_w100 = max(1, int(round(100 * self.GUI_RESOLUTION)))
+        ui_w250 = max(1, int(round(250 * self.GUI_RESOLUTION)))
+        ui_h25 = 25
+        logger_w45 = max(1, int(round(45 * self.GUI_RESOLUTION)))
+        logger_w65 = max(1, int(round(65 * self.GUI_RESOLUTION)))
+        logger_w75 = max(1, int(round(75 * self.GUI_RESOLUTION)))
 
         # set font size and style
         #font1 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Comic Sans MS')
         FONT_RATIO = self.GUI_RESOLUTION + (self.GUI_RESOLUTION - 1) * 5
-        font1 = wx.Font(9 + FONT_RATIO, wx.SWISS, wx.NORMAL,
+        font1_pt = max(1, int(round(9 + FONT_RATIO)))
+        font3_pt = max(1, int(round(11 + FONT_RATIO)))
+        system_font_pt = max(1, int(round(10 + FONT_RATIO)))
+        font1 = wx.Font(font1_pt, wx.SWISS, wx.NORMAL,
                         wx.NORMAL, False, self.font_type)
         # GUI headers
 
-        font3 = wx.Font(11 + FONT_RATIO, wx.SWISS, wx.NORMAL,
+        font3 = wx.Font(font3_pt, wx.SWISS, wx.NORMAL,
                         wx.NORMAL, False, self.font_type)
         font = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
-        font.SetPointSize(10 + FONT_RATIO)
+        font.SetPointSize(system_font_pt)
 
         #--------------------------------------------------------------------
         # Create Figures and FigCanvas objects.
@@ -641,14 +670,15 @@ DESCRIPTION
         #--------------------------------------------------------------------
 
         self.logger = wx.ListCtrl(self.side_panel, id=wx.ID_ANY, size=(
-            100 * self.GUI_RESOLUTION, 100 * self.GUI_RESOLUTION), style=wx.LC_REPORT)
+            ui_w100, ui_w100), style=wx.LC_REPORT)
+        gui_theme.style_control(self.logger)
         self.logger.SetFont(font1)
-        self.logger.InsertColumn(0, 'i', width=45 * self.GUI_RESOLUTION)
-        self.logger.InsertColumn(1, 'Step', width=45 * self.GUI_RESOLUTION)
-        self.logger.InsertColumn(2, 'Tr', width=65 * self.GUI_RESOLUTION)
-        self.logger.InsertColumn(3, 'Dec', width=65 * self.GUI_RESOLUTION)
-        self.logger.InsertColumn(4, 'Inc', width=65 * self.GUI_RESOLUTION)
-        self.logger.InsertColumn(5, 'M', width=75 * self.GUI_RESOLUTION)
+        self.logger.InsertColumn(0, 'i', width=logger_w45)
+        self.logger.InsertColumn(1, 'Step', width=logger_w45)
+        self.logger.InsertColumn(2, 'Tr', width=logger_w65)
+        self.logger.InsertColumn(3, 'Dec', width=logger_w65)
+        self.logger.InsertColumn(4, 'Inc', width=logger_w65)
+        self.logger.InsertColumn(5, 'M', width=logger_w75)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED,
                   self.on_click_listctrl, self.logger)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,
@@ -659,7 +689,7 @@ DESCRIPTION
         #--------------------------------------------------------------------
 
         # Combo-box with a list of specimen
-        self.specimens_box = wx.ComboBox(self.top_panel, wx.ID_ANY, self.s, (250 * self.GUI_RESOLUTION, 25),
+        self.specimens_box = wx.ComboBox(self.top_panel, wx.ID_ANY, self.s, (ui_w250, ui_h25),
                                          wx.DefaultSize, self.specimens, wx.CB_DROPDOWN | wx.TE_PROCESS_ENTER, name="specimen")
         self.specimens_box.SetFont(font2)
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_specimen, self.specimens_box)
@@ -668,12 +698,12 @@ DESCRIPTION
 
         # buttons to move forward and backwards from specimens
         nextbutton = wx.Button(self.top_panel, id=wx.ID_ANY, label='next', size=(
-            75 * self.GUI_RESOLUTION, 25))  # ,style=wx.BU_EXACTFIT)#, size=(175, 28))
+            ui_w75, ui_h25))  # ,style=wx.BU_EXACTFIT)#, size=(175, 28))
         self.Bind(wx.EVT_BUTTON, self.on_next_button, nextbutton)
         nextbutton.SetFont(font2)
 
         prevbutton = wx.Button(self.top_panel, id=wx.ID_ANY, label='previous', size=(
-            75 * self.GUI_RESOLUTION, 25))  # ,style=wx.BU_EXACTFIT)#, size=(175, 28))
+            ui_w75, ui_h25))  # ,style=wx.BU_EXACTFIT)#, size=(175, 28))
         prevbutton.SetFont(font2)
         self.Bind(wx.EVT_BUTTON, self.on_prev_button, prevbutton)
 
@@ -693,10 +723,10 @@ DESCRIPTION
             self.T_list = []
 
         self.tmin_box = wx.ComboBox(self.top_panel, wx.ID_ANY, size=(
-            100 * self.GUI_RESOLUTION, 25), choices=self.T_list, style=wx.CB_DROPDOWN | wx.TE_READONLY)
+            ui_w100, ui_h25), choices=self.T_list, style=wx.CB_DROPDOWN | wx.TE_READONLY)
         self.Bind(wx.EVT_COMBOBOX, self.get_new_T_PI_parameters, self.tmin_box)
 
-        self.tmax_box = wx.ComboBox(self.top_panel, -1, size=(100 * self.GUI_RESOLUTION, 25),
+        self.tmax_box = wx.ComboBox(self.top_panel, -1, size=(ui_w100, ui_h25),
                                     choices=self.T_list, style=wx.CB_DROPDOWN | wx.TE_READONLY)
         self.Bind(wx.EVT_COMBOBOX, self.get_new_T_PI_parameters, self.tmax_box)
 
@@ -706,10 +736,10 @@ DESCRIPTION
 
         # save/delete interpretation buttons
         self.save_interpretation_button = wx.Button(self.top_panel, id=-1, label='save', size=(
-            75 * self.GUI_RESOLUTION, 25))  # ,style=wx.BU_EXACTFIT)#, size=(175, 28))
+            ui_w75, ui_h25))  # ,style=wx.BU_EXACTFIT)#, size=(175, 28))
         self.save_interpretation_button.SetFont(font2)
         self.delete_interpretation_button = wx.Button(self.top_panel, id=-1, label='delete', size=(
-            75 * self.GUI_RESOLUTION, 25))  # ,style=wx.BU_EXACTFIT)#, size=(175, 28))
+            ui_w75, ui_h25))  # ,style=wx.BU_EXACTFIT)#, size=(175, 28))
         self.delete_interpretation_button.SetFont(font2)
         self.Bind(wx.EVT_BUTTON, self.on_save_interpretation_button,
                   self.save_interpretation_button)
@@ -727,22 +757,23 @@ DESCRIPTION
         #--------------------------------------------------------------------
 
         self.Blab_window = wx.TextCtrl(
-            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(50 * self.GUI_RESOLUTION, 25))
+            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(ui_w50, ui_h25))
         self.Banc_window = wx.TextCtrl(
-            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(50 * self.GUI_RESOLUTION, 25))
+            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(ui_w50, ui_h25))
         self.Aniso_factor_window = wx.TextCtrl(
-            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(50 * self.GUI_RESOLUTION, 25))
+            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(ui_w50, ui_h25))
         self.NLT_factor_window = wx.TextCtrl(
-            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(50 * self.GUI_RESOLUTION, 25))
+            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(ui_w50, ui_h25))
         self.CR_factor_window = wx.TextCtrl(
-            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(50 * self.GUI_RESOLUTION, 25))
+            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(ui_w50, ui_h25))
         self.declination_window = wx.TextCtrl(
-            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(50 * self.GUI_RESOLUTION, 25))
+            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(ui_w50, ui_h25))
         self.inclination_window = wx.TextCtrl(
-            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(50 * self.GUI_RESOLUTION, 25))
+            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(ui_w50, ui_h25))
 
         for stat in ['Blab', 'Banc', 'Aniso_factor', 'NLT_factor', 'CR_factor', 'declination', 'inclination']:
-            exec("self.%s_window.SetBackgroundColour(wx.WHITE)" % stat)
+            gui_theme.style_control(
+                getattr(self, "{}_window".format(stat)))
 
         self.Blab_label = wx.StaticText(
             self.top_panel, label="\nB_lab", style=wx.ALIGN_CENTRE)
@@ -793,9 +824,10 @@ DESCRIPTION
         #--------------------------------------------------------------------
 
         for key in ["sample_int_n", "sample_int_uT", "sample_int_sigma", "sample_int_sigma_perc"]:
-            command = "self.%s_window=wx.TextCtrl(self.top_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))" % key
+            command = "self.%s_window=wx.TextCtrl(self.top_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(%d,%d))" % (key, ui_w50, ui_h25)
             exec(command)
-            exec("self.%s_window.SetBackgroundColour(wx.WHITE)" % key)
+            gui_theme.style_control(
+                getattr(self, "{}_window".format(key)))
 
         sample_mean_label = wx.StaticText(
             self.top_panel, label="\nmean", style=wx.TE_CENTER)
@@ -836,13 +868,13 @@ DESCRIPTION
 
         for statistic in self.preferences['show_statistics_on_gui']:
             self.stat_windows[statistic] = wx.TextCtrl(
-                self.bottom_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(50 * self.GUI_RESOLUTION, 25))
-            self.stat_windows[statistic].SetBackgroundColour(wx.WHITE)
+                self.bottom_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(ui_w50, ui_h25))
+            gui_theme.style_control(self.stat_windows[statistic])
             self.stat_windows[statistic].SetFont(font2)
             self.threshold_windows[statistic] = wx.TextCtrl(
-                self.bottom_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(50 * self.GUI_RESOLUTION, 25))
+                self.bottom_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(ui_w50, ui_h25))
             self.threshold_windows[statistic].SetFont(font2)
-            self.threshold_windows[statistic].SetBackgroundColour(wx.WHITE)
+            gui_theme.style_control(self.threshold_windows[statistic])
             label = statistic.replace("specimen_", "").replace("int_", "")
             self.stat_labels[statistic] = wx.StaticText(
                 self.bottom_panel, label=label, style=wx.ALIGN_CENTRE_HORIZONTAL | wx.ALIGN_BOTTOM)
@@ -860,8 +892,9 @@ DESCRIPTION
                                   (self.canvas5, 1, wx.EXPAND)])
 
         sizer_plots_outer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_plots_outer.Add(self.canvas1, 1, wx.EXPAND)
-        sizer_plots_outer.Add(sizer_grid_plots, 1, wx.EXPAND)
+        plot_sizer_flags = wx.SHAPED | wx.ALIGN_CENTER_VERTICAL
+        sizer_plots_outer.Add(self.canvas1, 1, plot_sizer_flags)
+        sizer_plots_outer.Add(sizer_grid_plots, 1, plot_sizer_flags)
 
         # Top Bar Sizer-------------------------------------------------------
         #-------------Specimens Sizer----------------------------------------
@@ -948,9 +981,9 @@ DESCRIPTION
         sizer_logger_plots.Add(self.plot_panel, 3, wx.EXPAND | wx.ALIGN_LEFT)
 
         sizer_outer = wx.BoxSizer(wx.VERTICAL)
-        sizer_outer.AddMany([(self.top_panel, 1, wx.EXPAND | wx.ALIGN_TOP | wx.BOTTOM, v_space / 2),
+        sizer_outer.AddMany([(self.top_panel, 1, wx.EXPAND | wx.ALIGN_TOP | wx.BOTTOM, v_space_half),
                              (sizer_logger_plots, 4, wx.EXPAND |
-                              wx.ALIGN_TOP | wx.BOTTOM, v_space / 2),
+                      wx.ALIGN_TOP | wx.BOTTOM, v_space_half),
                              (self.bottom_panel, 1, wx.EXPAND | wx.ALIGN_TOP)])
 
         self.SetSizer(sizer_outer)
@@ -1084,8 +1117,9 @@ else:
             crit = "specimen_" + crit_short_name
             if self.acceptance_criteria[crit]['value'] == -999:
                 self.threshold_windows[crit_short_name].SetValue("")
-                self.threshold_windows[crit_short_name].SetBackgroundColour(
-                    wx.Colour(128, 128, 128))
+                gui_theme.style_control(
+                    self.threshold_windows[crit_short_name],
+                    gui_theme.INACTIVE)
                 self.ignore_parameters[crit] = True
                 continue
             elif crit == "specimen_scat":
@@ -1095,10 +1129,9 @@ else:
                     #self.scat_threshold_window.SetBackgroundColour(wx.SetBackgroundColour(128, 128, 128))
                 else:
                     value = "f"
-                    #value = "False"
-                    self.threshold_windows['scat'].SetBackgroundColour(
-                        (128, 128, 128))
-                    #self.scat_threshold_window.SetBackgroundColour((128, 128, 128))
+                    gui_theme.style_control(
+                        self.threshold_windows['scat'],
+                        gui_theme.INACTIVE)
 
             elif type(self.acceptance_criteria[crit]['value']) == int:
                 value = "%i" % self.acceptance_criteria[crit]['value']
@@ -1112,8 +1145,8 @@ else:
                 continue
 
             self.threshold_windows[crit_short_name].SetValue(value)
-            self.threshold_windows[crit_short_name].SetBackgroundColour(
-                wx.WHITE)
+            gui_theme.style_control(
+                self.threshold_windows[crit_short_name])
 
     #----------------------------------------------------------------------
 
@@ -1229,13 +1262,12 @@ else:
                                     float(rec['measurement_inc']))
                 self.logger.SetItem(i, 5, "%.2e" % float(
                     rec['measurement_magn_moment']))
-            self.logger.SetItemBackgroundColour(i, "WHITE")
+            role = gui_theme.NORMAL
             if i >= tmin_index and i <= tmax_index:
-                self.logger.SetItemBackgroundColour(i, "LIGHT BLUE")
+                role = gui_theme.ANALYSIS
             if 'measurement_flag' not in list(rec.keys()):
                 rec['measurement_flag'] = 'g'
-#            elif rec['measurement_flag'] != 'g':
-#                self.logger.SetItemBackgroundColour(i,"red")
+            gui_theme.style_list_item(self.logger, i, role)
 
     def on_click_listctrl(self, event):
         meas_i = int(event.GetText())
@@ -1762,31 +1794,38 @@ else:
 
         self.Blab_window.SetValue("")
         self.Banc_window.SetValue("")
-        self.Banc_window.SetBackgroundColour(wx.Colour('grey'))
+        gui_theme.style_control(self.Banc_window, gui_theme.INACTIVE)
         self.Aniso_factor_window.SetValue("")
-        self.Aniso_factor_window.SetBackgroundColour(wx.Colour('grey'))
+        gui_theme.style_control(
+            self.Aniso_factor_window, gui_theme.INACTIVE)
         self.NLT_factor_window.SetValue("")
-        self.NLT_factor_window.SetBackgroundColour(wx.Colour('grey'))
+        gui_theme.style_control(
+            self.NLT_factor_window, gui_theme.INACTIVE)
         self.CR_factor_window.SetValue("")
-        self.CR_factor_window.SetBackgroundColour(wx.Colour('grey'))
+        gui_theme.style_control(
+            self.CR_factor_window, gui_theme.INACTIVE)
         self.declination_window.SetValue("")
-        self.declination_window.SetBackgroundColour(wx.Colour('grey'))
+        gui_theme.style_control(
+            self.declination_window, gui_theme.INACTIVE)
         self.inclination_window.SetValue("")
-        self.inclination_window.SetBackgroundColour(wx.Colour('grey'))
+        gui_theme.style_control(
+            self.inclination_window, gui_theme.INACTIVE)
 
         window_list = ['sample_int_n', 'sample_int_uT',
                        'sample_int_sigma', 'sample_int_sigma_perc']
         for key in window_list:
             command = "self.%s_window.SetValue(\"\")" % key
             exec(command)
-            command = "self.%s_window.SetBackgroundColour(wx.Colour('grey'))" % key
-            exec(command)
+            gui_theme.style_control(
+                getattr(self, "{}_window".format(key)),
+                gui_theme.INACTIVE)
 
         # window_list=['int_n','int_ptrm_n','frac','scat','gmax','f','fvds','b_beta','g','q','int_mad','int_dang','drats','md','ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
         # for key in window_list:
         for key in self.preferences['show_statistics_on_gui']:
             self.stat_windows[key].SetValue("")
-            self.stat_windows[key].SetBackgroundColour(wx.Colour('grey'))
+            gui_theme.style_control(
+                self.stat_windows[key], gui_theme.INACTIVE)
 
     def write_sample_box(self):
         """
@@ -1837,11 +1876,12 @@ else:
             self.sample_int_uT_window.SetValue("")
             self.sample_int_sigma_window.SetValue("")
             self.sample_int_sigma_perc_window.SetValue("")
-            self.sample_int_uT_window.SetBackgroundColour(wx.Colour('grey'))
-            self.sample_int_n_window.SetBackgroundColour(wx.Colour('grey'))
-            self.sample_int_sigma_window.SetBackgroundColour(wx.Colour('grey'))
-            self.sample_int_sigma_perc_window.SetBackgroundColour(
-                wx.Colour('grey'))
+            for window in (
+                    self.sample_int_uT_window,
+                    self.sample_int_n_window,
+                    self.sample_int_sigma_window,
+                    self.sample_int_sigma_perc_window):
+                gui_theme.style_control(window, gui_theme.INACTIVE)
 
             return()
 
@@ -1861,10 +1901,12 @@ else:
         self.sample_int_uT_window.SetValue("%.1f" % (B_mean))
         self.sample_int_sigma_window.SetValue("%.1f" % (B_std))
         self.sample_int_sigma_perc_window.SetValue("%.1f" % (B_std_perc))
-        self.sample_int_n_window.SetBackgroundColour(wx.WHITE)
-        self.sample_int_uT_window.SetBackgroundColour(wx.WHITE)
-        self.sample_int_sigma_window.SetBackgroundColour(wx.WHITE)
-        self.sample_int_sigma_perc_window.SetBackgroundColour(wx.WHITE)
+        for window in (
+                self.sample_int_n_window,
+                self.sample_int_uT_window,
+                self.sample_int_sigma_window,
+                self.sample_int_sigma_perc_window):
+            gui_theme.style_control(window)
 
         fail_flag = False
         fail_int_n = False
@@ -1876,29 +1918,35 @@ else:
             if N < self.acceptance_criteria['sample_int_n']['value']:
                 fail_int_n = True
                 sample_failed = True
-                self.sample_int_n_window.SetBackgroundColour(wx.RED)
+                gui_theme.style_control(
+                    self.sample_int_n_window, gui_theme.ERROR)
             else:
-                self.sample_int_n_window.SetBackgroundColour(wx.GREEN)
+                gui_theme.style_control(
+                    self.sample_int_n_window, gui_theme.SUCCESS)
         else:
-            self.sample_int_n_window.SetBackgroundColour(wx.WHITE)
+            gui_theme.style_control(self.sample_int_n_window)
 
         if self.acceptance_criteria['sample_int_sigma']['value'] != -999:
             if B_std * 1.e-6 > self.acceptance_criteria['sample_int_sigma']['value']:
                 fail_int_sigma = True
-                self.sample_int_sigma_window.SetBackgroundColour(wx.RED)
+                gui_theme.style_control(
+                    self.sample_int_sigma_window, gui_theme.ERROR)
             else:
-                self.sample_int_sigma_window.SetBackgroundColour(wx.GREEN)
+                gui_theme.style_control(
+                    self.sample_int_sigma_window, gui_theme.SUCCESS)
         else:
-            self.sample_int_sigma_window.SetBackgroundColour(wx.WHITE)
+            gui_theme.style_control(self.sample_int_sigma_window)
 
         if self.acceptance_criteria['sample_int_sigma_perc']['value'] != -999:
             if B_std_perc > self.acceptance_criteria['sample_int_sigma_perc']['value']:
                 fail_int_sigma_perc = True
-                self.sample_int_sigma_perc_window.SetBackgroundColour(wx.RED)
+                gui_theme.style_control(
+                    self.sample_int_sigma_perc_window, gui_theme.ERROR)
             else:
-                self.sample_int_sigma_perc_window.SetBackgroundColour(wx.GREEN)
+                gui_theme.style_control(
+                    self.sample_int_sigma_perc_window, gui_theme.SUCCESS)
         else:
-            self.sample_int_sigma_perc_window.SetBackgroundColour(wx.WHITE)
+            gui_theme.style_control(self.sample_int_sigma_perc_window)
 
         if self.acceptance_criteria['sample_int_sigma']['value'] == -999 and fail_int_sigma_perc:
             sample_failed = True
@@ -1909,9 +1957,11 @@ else:
                 sample_failed = True
 
         if sample_failed:
-            self.sample_int_uT_window.SetBackgroundColour(wx.RED)
+            gui_theme.style_control(
+                self.sample_int_uT_window, gui_theme.ERROR)
         else:
-            self.sample_int_uT_window.SetBackgroundColour(wx.GREEN)
+            gui_theme.style_control(
+                self.sample_int_uT_window, gui_theme.SUCCESS)
 
     #----------------------------------------------------------------------
     # menu bar options:
@@ -5812,7 +5862,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
             # self.mplot.clear()
             self.mplot.scatter(np.array(self.Data[self.s]['NLT_parameters']['B_NLT']) * 1e6, self.Data[self.s]
                                ['NLT_parameters']['M_NLT_norm'], marker='o', facecolor='b', edgecolor='k', s=15, clip_on=False)
-            self.mplot.set_xlabel("$\mu$ T", fontsize=8)
+            self.mplot.set_xlabel(r"$\mu$ T", fontsize=8)
             self.mplot.set_ylabel(
                 "M / M[%.0f]" % (self.Data[self.s]['lab_dc_field'] * 1e6), fontsize=8)
             try:
@@ -5913,17 +5963,19 @@ You can combine multiple measurement files into one measurement file using Pmag 
         if 'specimen_dec' in list(self.pars.keys()):
             self.declination_window.SetValue(
                 "%.1f" % (self.pars['specimen_dec']))
-            self.declination_window.SetBackgroundColour(wx.WHITE)
+            gui_theme.style_control(self.declination_window)
         else:
             self.declination_window.SetValue("")
-            self.declination_window.SetBackgroundColour(wx.Colour('grey'))
+            gui_theme.style_control(
+                self.declination_window, gui_theme.INACTIVE)
         if 'specimen_inc' in list(self.pars.keys()):
             self.inclination_window.SetValue(
                 "%.1f" % (self.pars['specimen_inc']))
-            self.inclination_window.SetBackgroundColour(wx.WHITE)
+            gui_theme.style_control(self.inclination_window)
         else:
             self.inclination_window.SetValue("")
-            self.inclination_window.SetBackgroundColour(wx.Colour('grey'))
+            gui_theme.style_control(
+                self.inclination_window, gui_theme.INACTIVE)
 
         # PI statsistics
         flag_Fail = False
@@ -5952,26 +6004,26 @@ You can combine multiple measurement files into one measurement file using Pmag 
             # set backgound color
             cutoff_value = self.acceptance_criteria[stat]['value']
             if cutoff_value == -999:
-                self.stat_windows[short_stat].SetBackgroundColour(wx.WHITE)
-                # # set text color
+                gui_theme.style_control(self.stat_windows[short_stat])
             elif stat == "specimen_k" or stat == "specimen_k_prime":
                 if abs(self.pars[stat]) > cutoff_value:
-                    self.stat_windows[short_stat].SetBackgroundColour(wx.RED)
-                    # # set text color
+                    gui_theme.style_control(
+                        self.stat_windows[short_stat], gui_theme.ERROR)
                     flag_Fail = True
                 else:
-                    self.stat_windows[short_stat].SetBackgroundColour(wx.GREEN)
-                    # # set text color
+                    gui_theme.style_control(
+                        self.stat_windows[short_stat], gui_theme.SUCCESS)
             elif self.acceptance_criteria[stat]['threshold_type'] == 'high' and self.pars[stat] > cutoff_value:
-                self.stat_windows[short_stat].SetBackgroundColour(wx.RED)
-                # # set text color
+                gui_theme.style_control(
+                    self.stat_windows[short_stat], gui_theme.ERROR)
                 flag_Fail = True
             elif self.acceptance_criteria[stat]['threshold_type'] == 'low' and self.pars[stat] < cutoff_value:
-                self.stat_windows[short_stat].SetBackgroundColour(wx.RED)
-                # # set text color
+                gui_theme.style_control(
+                    self.stat_windows[short_stat], gui_theme.ERROR)
                 flag_Fail = True
             else:
-                self.stat_windows[short_stat].SetBackgroundColour(wx.GREEN)
+                gui_theme.style_control(
+                    self.stat_windows[short_stat], gui_theme.SUCCESS)
 
         # specimen_scat
         # if 'scat' in self.preferences['show_statistics_on_gui']:
@@ -5982,23 +6034,23 @@ You can combine multiple measurement files into one measurement file using Pmag 
             if self.pars["specimen_scat"] in ['Pass', 't']:
                 scat_window.SetValue("Pass")
                 if in_acceptance:
-                    scat_window.SetBackgroundColour(
-                        wx.GREEN)  # set background color
+                    gui_theme.style_control(
+                        scat_window, gui_theme.SUCCESS)
                 else:
-                    scat_window.SetBackgroundColour(wx.WHITE)
+                    gui_theme.style_control(scat_window)
             else:
                 scat_window.SetValue("Fail")
                 if in_acceptance:
-                    scat_window.SetBackgroundColour(
-                        wx.RED)  # set background color
+                    gui_theme.style_control(
+                        scat_window, gui_theme.ERROR)
                 else:
-                    scat_window.SetBackgroundColour(wx.WHITE)
+                    gui_theme.style_control(scat_window)
 
         else:
             try:
                 scat_window.SetValue("")
-                scat_window.SetBackgroundColour(
-                    wx.Colour('grey'))  # set text color
+                gui_theme.style_control(
+                    scat_window, gui_theme.INACTIVE)
             # don't break if SCAT is not displayed
             except UnboundLocalError:
                 pass
@@ -6010,48 +6062,57 @@ You can combine multiple measurement files into one measurement file using Pmag 
 
         self.Banc_window.SetValue("%.1f" % (self.pars['specimen_int_uT']))
         if flag_Fail:
-            self.Banc_window.SetBackgroundColour(wx.RED)
+            gui_theme.style_control(self.Banc_window, gui_theme.ERROR)
         else:
-            self.Banc_window.SetBackgroundColour(wx.GREEN)
+            gui_theme.style_control(self.Banc_window, gui_theme.SUCCESS)
 
         if "AniSpec" in self.Data[self.s]:
             self.Aniso_factor_window.SetValue(
                 "%.2f" % (self.pars['Anisotropy_correction_factor']))
             if self.pars["AC_WARNING"] != "" and\
                     ("TRM" in self.pars["AC_WARNING"] and self.pars["AC_anisotropy_type"] == "ATRM" and "alteration" in self.pars["AC_WARNING"]):
-                self.Aniso_factor_window.SetBackgroundColour(wx.RED)
+                gui_theme.style_control(
+                    self.Aniso_factor_window, gui_theme.ERROR)
             elif self.pars["AC_WARNING"] != "" and\
                     (("TRM" in self.pars["AC_WARNING"] and self.pars["AC_anisotropy_type"] == "ATRM" and "F-test" in self.pars["AC_WARNING"] and "alteration" not in self.pars["AC_WARNING"])
                      or
                      ("ARM" in self.pars["AC_WARNING"] and self.pars["AC_anisotropy_type"] == "AARM" and "F-test" in self.pars["AC_WARNING"])):
-                self.Aniso_factor_window.SetBackgroundColour('#FFFACD')
+                gui_theme.style_control(
+                    self.Aniso_factor_window, gui_theme.WARNING)
             else:
-                self.Aniso_factor_window.SetBackgroundColour(wx.GREEN)
+                gui_theme.style_control(
+                    self.Aniso_factor_window, gui_theme.SUCCESS)
 
         else:
             self.Aniso_factor_window.SetValue("")
-            self.Aniso_factor_window.SetBackgroundColour(wx.Colour('grey'))
+            gui_theme.style_control(
+                self.Aniso_factor_window, gui_theme.INACTIVE)
 
         if self.pars['NLT_specimen_correction_factor'] != -1:
             self.NLT_factor_window.SetValue(
                 "%.2f" % (self.pars['NLT_specimen_correction_factor']))
+            gui_theme.style_control(self.NLT_factor_window)
         else:
             self.NLT_factor_window.SetValue("")
-            self.NLT_factor_window.SetBackgroundColour(wx.Colour("grey"))
+            gui_theme.style_control(
+                self.NLT_factor_window, gui_theme.INACTIVE)
 
         if self.pars['specimen_int_corr_cooling_rate'] != -1 and self.pars['specimen_int_corr_cooling_rate'] != -999:
             self.CR_factor_window.SetValue(
                 "%.2f" % (self.pars['specimen_int_corr_cooling_rate']))
             if 'CR_flag' in list(self.pars.keys()) and self.pars['CR_flag'] == "calculated":
-                self.CR_factor_window.SetBackgroundColour(wx.GREEN)
+                gui_theme.style_control(
+                    self.CR_factor_window, gui_theme.SUCCESS)
             elif 'CR_WARNING' in list(self.pars.keys()) and 'inferred' in self.pars['CR_WARNING']:
-                self.CR_factor_window.SetBackgroundColour('#FFFACD')
+                gui_theme.style_control(
+                    self.CR_factor_window, gui_theme.WARNING)
             else:
-                self.CR_factor_window.SetBackgroundColour(wx.WHITE)
+                gui_theme.style_control(self.CR_factor_window)
 
         else:
             self.CR_factor_window.SetValue("")
-            self.CR_factor_window.SetBackgroundColour(wx.Colour('grey'))
+            gui_theme.style_control(
+                self.CR_factor_window, gui_theme.INACTIVE)
 
         # sample
         self.write_sample_box()
@@ -7676,8 +7737,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 #  https://github.com/pandas-dev/pandas/issues/14955,
                 #  hence the try/except)
                 try:
-                    samples = samples.groupby(samples.index, sort=False).fillna(
-                        method='ffill').groupby(samples.index, sort=False).fillna(method='bfill')
+                    samples = samples.groupby(samples.index, sort=False).ffill(
+                    ).groupby(samples.index, sort=False).bfill()
                 except ValueError:
                     pass
                 # then get rid of any duplicates

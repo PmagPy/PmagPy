@@ -81,12 +81,12 @@ class Forc(object):
                     try:
                         grid_data.append(
                             [x_range[m+s+i], y_range[n-s-j], matrix_z.item(n-s-j, m+s+i)])
-                    except:
+                    except Exception:
                         try:
                             for i, j in itertools.product(np.arange(3), np.arange(3)):
                                 grid_data.append(
                                     [x_range[m+i], y_range[n-j], matrix_z.item(n-j, m+i)])
-                        except:
+                        except Exception:
                             pass
                 # print(grid_data)
                 '''
@@ -108,7 +108,7 @@ class Forc(object):
                 except Exception as e:
                     # print(e)
                     pass
-            except:
+            except Exception:
                 pass
 
         '''

@@ -6,6 +6,7 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
 from matplotlib.figure import Figure
 import help_files.demag_interpretation_editor_help as dieh
+from dialogs import gui_theme
 from pmagpy.demag_gui_utilities import *
 from pmagpy.Fit import *
 from pmagpy.pmag import get_version
@@ -28,6 +29,7 @@ class InterpretationEditorFrame(wx.Frame):
         #call init of super class
         default_style = wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN | wx.NO_FULL_REPAINT_ON_RESIZE | wx.WS_EX_CONTEXTHELP | wx.FRAME_EX_CONTEXTHELP
         wx.Frame.__init__(self, self.parent, title="Interpretation Editor version:%s"%CURRENT_VERSION,style=default_style, size=(675*self.GUI_RESOLUTION,425*self.GUI_RESOLUTION))
+        gui_theme.bind_theme_updates(self)
         self.Bind(wx.EVT_CLOSE, self.on_close_edit_window)
         #setup wx help provider class to give help messages
         provider = wx.SimpleHelpProvider()
@@ -237,8 +239,8 @@ class InterpretationEditorFrame(wx.Frame):
         for parameter in ['mean_type','dec','inc','alpha95','K','R','n_lines','n_planes']:
             COMMAND="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(100*self.GUI_RESOLUTION,25))"%parameter
             exec(COMMAND)
-            COMMAND="self.%s_window.SetBackgroundColour(wx.WHITE)"%parameter
-            exec(COMMAND)
+            gui_theme.style_control(
+                getattr(self, "{}_window".format(parameter)))
             COMMAND="self.%s_window.SetFont(font2)"%parameter
             exec(COMMAND)
             COMMAND="self.%s_outer_window = wx.GridSizer(1,2,5*self.GUI_RESOLUTION,15*self.GUI_RESOLUTION)"%parameter

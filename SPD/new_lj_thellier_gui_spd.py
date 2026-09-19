@@ -17,7 +17,7 @@ import math
 ##    pass
 try:
     import thellier_gui_preferences
-except:
+except Exception:
     pass
 #import copy
 #import stat
@@ -126,7 +126,7 @@ class Arai_GUI(object):
 #{'treatment_ac_field': '0', 'treatment_dc_field_theta': '90', 'measurement_temp': '273', 'er_citation_names': 'This study', 'measurement_magn_moment': '1.98e-09', 'treatment_temp': '373', 'measurement_number': '1', 'measurement_standard': 'u', 'er_site_name': '0238x', 'er_sample_name': '0238x601104', 'treatment_dc_field_phi': '0', 'measurement_inc': '-8.1', 'er_location_name': '238', 'measurement_dec': '255.7', 'magic_experiment_name': '0238x6011043:LP-PI-TRM:LP-PI-ALT-PTRM:LP-PI-BT-MD:LP-PI-BT-IZZI', 'measurement_flag': 'g', 'er_specimen_name': '0238x6011043', 'measurement_csd': '0.7', 'treatment_dc_field': '4e-05', 'magic_method_codes': 'LT-T-I:LP-PI-TRM-IZ:LP-PI-TRM:LP-PI-ALT-PTRM:LP-PI-BT-MD:LP-PI-BT-IZZI'}
 # so, first is a zero field, heated to 273 and measured at 273.  second is infield, heated to 373 but measured at 273.
 # actual measurements: measurement_magn_moment, measurement_inc, measurement_dec, and measurement_csd.  inc == inclination (how a compass would want to point down through the earth to get to the N pole, at least while in northern hemisphere)  magn_moment = "The product of the pole strength of a magnet and the distance between the poles."  dec == declination.
-      except:
+      except Exception:
           print("-E- ERROR: Cant read magic_measurement.txt file. File is corrupted.")
           return {},{}
 
@@ -282,14 +282,14 @@ class Arai_GUI(object):
       try:
           rmag_anis_data,file_type=self.magic_read(self.WD+'/rmag_anisotropy.txt')
           print( "-I- Anisotropy data read  %s/from rmag_anisotropy.txt\n"%self.WD)
-      except:
+      except Exception:
           print("-W- WARNING cant find rmag_anisotropy in working directory\n")
 
       try:
           results_anis_data,file_type=self.magic_read(self.WD+'/rmag_results.txt')
           print( "-I- Anisotropy data read  %s/from rmag_anisotropy.txt\n"%self.WD)
 
-      except:
+      except Exception:
           print("-W- WARNING cant find rmag_anisotropy in working directory\n")
 
 
@@ -512,7 +512,7 @@ class Arai_GUI(object):
               try:
                   ancient_cooling_rate=float(self.Data_info["er_samples"][sample]['sample_cooling_rate'])
                   ancient_cooling_rate = ancient_cooling_rate / (1e6*365*24*60) # change to K/minute
-              except:
+              except Exception:
                   print("-W- Cant find ancient cooling rate estimation for sample %s"%sample)
                   continue
               self.Data_info["er_samples"]
@@ -787,7 +787,7 @@ class Arai_GUI(object):
                         x_ptrm_check.append(ptrm_checks[k][3] / NRM)
                         y_ptrm_check.append(zerofields[index_zerofield][3] / NRM)
                         ptrm_checks_temperatures.append(ptrm_checks[k][0])
-                    except:
+                    except Exception:
                         pass
 
                 # microwave
@@ -804,7 +804,7 @@ class Arai_GUI(object):
                         x_ptrm_check.append(ptrm_checks[k][3] / NRM)
                         y_ptrm_check.append(zerofields[index_zerofield][3] / NRM)
                         ptrm_checks_temperatures.append(ptrm_checks[k][0])
-                    except:
+                    except Exception:
                         pass
 
 
@@ -855,7 +855,7 @@ class Arai_GUI(object):
                         tail_check_temperatures.append(ptrm_tail[k][0])
 
                         break
-                    except:
+                    except Exception:
                         pass
 
 
@@ -938,7 +938,7 @@ class Arai_GUI(object):
                     #print ""
                     #lj
 
-                except:
+                except Exception:
                     pass
 
         x_AC=numpy.array(x_AC)
@@ -1013,20 +1013,20 @@ class Arai_GUI(object):
 
         try:
             data_er_samples=read_magic_file(self.WD+"/er_samples.txt",'er_sample_name')
-        except:
+        except Exception:
             print("-W- Cant find er_sample.txt in project directory\n")
 
         try:
             data_er_sites=read_magic_file(self.WD+"/er_sites.txt",'er_site_name')
-        except:
+        except Exception:
             print ("-W- Cant find er_sites.txt in project directory\n")
 
         try:
             data_er_ages=read_magic_file(self.WD+"/er_ages.txt",'er_sample_name')
-        except:
+        except Exception:
             try:
                 data_er_ages=read_magic_file(self.WD+"/er_ages.txt",'er_site_name')
-            except:
+            except Exception:
                 print ("-W- Cant find er_ages in project directory\n")
 
 
@@ -1068,7 +1068,7 @@ class Arai_GUI(object):
         Decs = (numpy.arctan2(Ys,Xs) / rad)%360. # calculate declination taking care of correct quadrants (arctan2) and making modulo 360.
         try:
             Incs = numpy.arcsin(Zs / Rs) / rad # calculate inclination (converting to degrees) #
-        except:
+        except Exception:
             print('trouble in cart2dir') # most likely division by zero somewhere
             return numpy.zeros(3)
 
@@ -1103,7 +1103,7 @@ class Arai_GUI(object):
         hold,magic_data,magic_record,magic_keys=[],[],{},[]
         try:
             f=open(infile,"r")
-        except:
+        except Exception:
             return [],'bad_file'
         d = f.readline()[:-1].strip('\n')
         if d[0]=="s" or d[1]=="s":
