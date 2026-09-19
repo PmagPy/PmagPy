@@ -1085,7 +1085,7 @@ def close_window(SELF, command, outfile, ellipses=False):
 # menu events
 
 def on_cookbook(event):
-    webbrowser.open("http://earthref.org/PmagPy/cookbook/", new=2)
+    webbrowser.open("https://pmagpy.github.io/PmagPy-docs/", new=2)
 
 def on_git(event):
     webbrowser.open("https://github.com/ltauxe/PmagPy", new=2)

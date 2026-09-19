@@ -10,15 +10,15 @@ DESCRIPTION
     if you have no idea what those are, unless you need immediate quick
     updates to PmagPy, it may be better to use the pip or binary installs of
     this software instructions here:
-    (https://earthref.org/PmagPy/cookbook/#pip_install).
+    (https://pmagpy.github.io/PmagPy-docs/installation/pip_install.html).
     Note for OSX users: you must use bash as your shell (not csh, zsh, etc.).
     To switch to bash, select Terminal --> Preferences --> General,
     and choose "default login shell".
     Last, this script MUST BE RUN FROM THE PMAGPY DIRECTORY.
 
     Note for Windows users: This functionality is not currently available for Windows.
-    Please follow the Cookbook instructions to edit your path by hand:
-    https://earthref.org/PmagPy/cookbook/#setting_path
+    Please follow the documentation instructions to edit your path by hand:
+    https://pmagpy.github.io/PmagPy-docs/installation/developer_install.html#running-the-command-line-programs
 
 
 SYNTAX

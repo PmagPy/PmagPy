@@ -31,7 +31,7 @@ def main():
         - ATRM: zerofield (baseline) magnetization is subtructed from all infield measurements
         - AARM: The program uses measurement number (running number) to to infer the direction of the applied field
                 assuming the SIO protocol for 6,9,15 measurements scheme.
-                See cookbook for diagram and details.
+                See https://pmagpy.github.io/PmagPy-docs/documentation_notebooks/PmagPy_calculations.html#aarm-magic for details.
         - AARM: zerofield (baseline) are assumed to be before any infield, and the baseline is subtructed from the 
                 subsequent infield magnetization.
       

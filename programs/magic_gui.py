@@ -368,7 +368,7 @@ class MagICMenu(wx.MenuBar):
         self.Append(file_menu, 'File')
 
         help_menu = wx.Menu()
-        help_cookbook = help_menu.Append(wx.ID_ANY, '&PmagPy Cookbook\tCtrl-Shift-H',
+        help_cookbook = help_menu.Append(wx.ID_ANY, '&PmagPy Documentation\tCtrl-Shift-H',
                                          'Access the online documentation')
         help_git = help_menu.Append(wx.ID_ANY, '&Github Page\tCtrl-Shift-G',
                                     'Access the PmagPy repository')
@@ -418,7 +418,7 @@ class MagICMenu(wx.MenuBar):
 
     #def on_help(self, event):
     #    """
-    #    point user to Cookbook help
+    #    point user to the online documentation
     #    """
     #    #for use on the command line
     #    path = find_pmag_dir.get_pmag_dir()
@@ -465,7 +465,7 @@ EXAMPLE
     magic_gui.py -WD projects/my_project
 
 INFORMATION
-    See https://earthref.org/PmagPy/cookbook/#magic_gui.py for a complete tutorial
+    See https://pmagpy.github.io/PmagPy-docs/MagIC/MagIC.html for documentation of the MagIC tables this GUI edits
 """
         print(help_msg)
         sys.exit()
