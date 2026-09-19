@@ -31,8 +31,10 @@ def main():
         -obj OBJ: specify  object  [loc, sit, sam, spc] for plot,
                default is by location
         -LT [AF,T,M]: specify lab treatment type, default AF
-        -XLP [PI]: exclude specific  lab protocols,
-               (for example, method codes like LP-PI)
+        -XLP [PI]: exclude specific lab protocols by method code substring
+               (for example LP-PI); colon-delimit several (LP-PI:LP-AN).
+               By default, when any selected record has an LP-DIR-* code,
+               only LP-DIR-* records are plotted.
         -N do not normalize by NRM magnetization
         -sav save plots silently and quit
         -fmt [svg,jpg,png,pdf] set figure format [default is svg]
