@@ -8372,6 +8372,11 @@ class Demag_GUI(wx.Frame):
            (self.T_list.index(tmax) <= self.T_list.index(tmin)):
             return
 
+        # both bounds picked with no fit yet: auto-create one (issue #360)
+        if self.current_fit is None:
+            self.on_btn_add_fit(event)
+            return
+
         PCA_type = self.PCA_type_box.GetValue()
         if PCA_type == "line":
             calculation_type = "DE-BFL"
