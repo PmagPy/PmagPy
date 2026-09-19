@@ -2,9 +2,8 @@
 from builtins import range
 import sys
 import numpy
-import matplotlib
-if matplotlib.get_backend() != "TKAgg":
-  matplotlib.use("TKAgg")
+from pmag_env import set_env
+set_env.set_backend_if_unset("TKAgg")
 
 import pylab
 #pylab.ion()
