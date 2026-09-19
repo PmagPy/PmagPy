@@ -8603,10 +8603,12 @@ class Demag_GUI(wx.Frame):
         ------
         pmag_results_data
         """
-        # use whatever bounds are already selected in the dropdowns, falling
-        # back to the full range of steps if nothing has been selected yet
-        fmin = str(self.tmin_box.GetValue()) or None
-        fmax = str(self.tmax_box.GetValue()) or None
+        # only honor dropdown bounds when there's no current fit (issue #360);
+        # otherwise a new fit would just clone the currently selected fit's bounds
+        fmin = fmax = None
+        if self.current_fit is None:
+            fmin = str(self.tmin_box.GetValue()) or None
+            fmax = str(self.tmax_box.GetValue()) or None
         if self.T_list:
             if fmin is None:
                 fmin = self.T_list[0]
