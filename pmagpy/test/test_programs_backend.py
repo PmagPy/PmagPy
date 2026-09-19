@@ -8,6 +8,7 @@ stopped appearing (issue #909). They now go through
 set_env.set_backend_if_unset, which only picks a backend when nothing else has.
 """
 import importlib
+import importlib.util
 import queue
 import sys
 
@@ -142,6 +143,11 @@ class TestNotebookInlinePlotting:
     def test_importing_program_keeps_inline_backend(self):
         """Importing a programs module in a kernel leaves inline plotting working."""
         repo_root = str(__import__("pathlib").Path(set_env.__file__).resolve().parents[1])
+        # programs/conversion_scripts/__init__.py imports tdt_magic eagerly and
+        # tdt_magic needs wxPython, which CI does not install; the kernel runs
+        # on this same interpreter so check here
+        conversion_import = ("from programs.conversion_scripts import cit_magic"
+                             if importlib.util.find_spec("wx") else "")
         code = f"""
 import sys
 sys.path.insert(0, {repo_root!r})
@@ -151,7 +157,7 @@ print("IS_NOTEBOOK", set_env.IS_NOTEBOOK)
 before = matplotlib.get_backend()
 import programs.common_mean
 import programs.eqarea_magic
-from programs.conversion_scripts import cit_magic
+{conversion_import}
 after = matplotlib.get_backend()
 print("BACKEND", before, after)
 import matplotlib.pyplot as plt
