@@ -52,10 +52,7 @@ You’ll find the latest stable release here: [Mac PmagPy Executable Application
 
 You’ll find the latest stable release here: [Windows PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-Windows/releases/latest)
 
-####  Linux Standalone download
-
-This binary has only been tested on a Ubuntu 14.04 (Trusty) distribution and might experience problems on other distributions.
-You’ll find the latest stable release here: [Linux PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-Linux/releases)
+Note: standalone GUI binaries are available only for macOS and Windows. Linux users should use the [pip install](https://pmagpy.github.io/PmagPy-docs/installation/pip_install.html) instead — it works smoothly on Linux when combined with conda for the GUI dependencies.
 
 ### Full PmagPy install
 

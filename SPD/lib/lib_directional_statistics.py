@@ -111,7 +111,7 @@ def cart2dir(cart):
     try:
         Decs=(numpy.arctan2(Ys,Xs) / rad)%360. # calculate declination taking care of correct quadrants (arctan2) and making modulo 360.
         Incs = numpy.arcsin(Zs / Rs) / rad # calculate inclination (converting to degrees) #
-    except:
+    except Exception:
         print('trouble in cart2dir') # most likely division by zero somewhere
         return numpy.zeros(3)
     return numpy.array([Decs,Incs,Rs]).transpose() # return the directions list

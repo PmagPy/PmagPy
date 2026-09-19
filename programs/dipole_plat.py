@@ -38,7 +38,7 @@ def main():
            try:
                inc=input("Inclination for converting to paleolatitude: <cntl-D> to quit ")
                print('%7.1f'%(pmag.plat(float(inc))))
-           except:
+           except Exception:
                print('\n Good-bye \n')
                sys.exit()
 

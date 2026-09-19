@@ -4,6 +4,7 @@ import os
 import string
 import sys
 import time
+import importlib
 
 import numpy as np
 from numpy import random
@@ -4786,40 +4787,120 @@ def fisher_by_pol(data):
     return FisherByPoles
 
 
-def dolnp(data, direction_type_key):
+def dolnp3_0(Data):
     """
-    Returns fisher mean, a95 for data using the method of McFadden and McElhinny 1988 for lines and planes.
+    Compute the Fisher mean for a list of dicts using data-model 3.0 keys.
+    Translates 3.0-style records (with `dir_dec`, `dir_inc`, `dir_tilt_correction`,
+    and `method_codes` containing `DE-BFP` for planes) into the 2.5-style format
+    that dolnp() expects, then calls dolnp() and returns the result.
+
+    Used by demag_gui.py for computing sample- and site-level Fisher means
+    when saving MagIC tables.
 
     Parameters
     ----------
     Data : nested list of dictionaries with keys
-        Data model 3.0:
-            dir_dec
-            dir_inc
-            dir_tilt_correction
-            method_codes
-        Data model 2.5:
-            dec
-            inc
-            tilt_correction
-            magic_method_codes
-    direction_type_key :  ['specimen_direction_type']
-    
+        dir_dec
+        dir_inc
+        dir_tilt_correction
+        method_codes
+
     Returns
     -------
-    ReturnData : dictionary with keys
-        dec : fisher mean dec of data in Data
-        inc : fisher mean inc of data in Data
-        n_lines : number of directed lines [method_code = DE-BFL or DE-FM]
-        n_planes : number of best fit planes [method_code = DE-BFP]
-        alpha95  : fisher confidence circle from Data
-        R : fisher R value of Data
-        K : fisher k value of Data
-        
+        ReturnData : dictionary with keys
+            dec : fisher mean dec of data in Data
+            inc : fisher mean inc of data in Data
+            n_lines : number of directed lines [method_code = DE-BFL or DE-FM]
+            n_planes : number of best fit planes [method_code = DE-BFP]
+            alpha95  : fisher confidence circle from Data
+            R : fisher R value of Data
+            K : fisher k value of Data
+    Effects
+        prints to screen in case of no data
+    """
+    if len(Data) == 0:
+        print("This function requires input Data have at least 1 entry")
+        return {}
+    if len(Data) == 1:
+        ReturnData = {}
+        ReturnData["dec"] = Data[0]['dir_dec']
+        ReturnData["inc"] = Data[0]['dir_inc']
+        ReturnData["n_total"] = '1'
+        if "DE-BFP" in Data[0]['method_codes']:
+            ReturnData["n_lines"] = '0'
+            ReturnData["n_planes"] = '1'
+        else:
+            ReturnData["n_planes"] = '0'
+            ReturnData["n_lines"] = '1'
+        ReturnData["alpha95"] = ""
+        ReturnData["R"] = ""
+        ReturnData["K"] = ""
+        return ReturnData
+    else:
+        LnpData = []
+        for n, d in enumerate(Data):
+            LnpData.append({})
+            LnpData[n]['dec'] = d['dir_dec']
+            LnpData[n]['inc'] = d['dir_inc']
+            LnpData[n]['tilt_correction'] = d['dir_tilt_correction']
+            if 'method_codes' in list(d.keys()):
+                if "DE-BFP" in d['method_codes']:
+                    LnpData[n]['dir_type'] = 'p'
+                else:
+                    LnpData[n]['dir_type'] = 'l'
+        # get a sample average from all specimens
+        ReturnData = dolnp(LnpData, 'dir_type')
+        return ReturnData
+
+
+def dolnp(data, direction_type_key):
+    """
+    Returns fisher mean, a95 for data using the method of McFadden and McElhinny 1988 for lines and planes.
+    Handles both data-model 3.0 (dir_dec, dir_inc, method_codes) and 2.5 (dec, inc, magic_method_codes) records.
+
+    Parameters
+    ----------
+    data : list of dicts with keys:
+        Data model 3.0: dir_dec, dir_inc, dir_tilt_correction, method_codes
+        Data model 2.5: dec, inc, tilt_correction, magic_method_codes
+    direction_type_key : key for line/plane classification ('direction_type', 'dir_type', etc.).
+        If absent from records, classification falls back to checking method_codes for DE-BFP.
+
+    Returns
+    -------
+    dict with keys: dec, inc, n_total, n_lines, n_planes, alpha95, R, K
+
     Effects
     -------
     prints to screen in case of no data
     """
+    if len(data) == 0:
+        print("This function requires input Data have at least 1 entry")
+        return {}
+    dec_key = 'dir_dec' if 'dir_dec' in data[0] else 'dec'
+    inc_key = 'dir_inc' if dec_key == 'dir_dec' else 'inc'
+    meth_key = 'method_codes' if dec_key == 'dir_dec' else 'magic_method_codes'
+    if len(data) == 1:
+        tilt_key = 'dir_tilt_correction' if dec_key == 'dir_dec' else 'tilt_correction'
+        rec = data[0]
+        tc = str(rec[tilt_key]) if tilt_key in rec else '-1'
+        # Line/plane classification mirrors process_data_for_mean: when
+        # direction_type_key is present it is authoritative; only otherwise do we
+        # fall back to checking method_codes for DE-BFP.
+        if direction_type_key in rec:
+            is_plane = rec[direction_type_key] == 'p'
+        else:
+            is_plane = "DE-BFP" in rec.get(meth_key, '')
+        n_lines, n_planes = (0, 1) if is_plane else (1, 0)
+        return {
+            "dec": '%7.1f ' % float(rec[dec_key]),
+            "inc": '%7.1f ' % float(rec[inc_key]),
+            "n_total": '%i ' % 1,
+            "n_lines": '%i ' % n_lines,
+            "n_planes": '%i ' % n_planes,
+            "alpha95": "", "R": "", "K": "",
+            "tilt_correction": tc,
+        }
     if 'dir_dec' in data[0].keys():
         tilt_key = 'dir_tilt_correction'  # this is data model 3.0
     else:
@@ -4939,7 +5020,8 @@ def calculate_best_fit_vectors(L, E, V, n_planes):
                 V[c] = U[c] / R
             XX = vclose(L[k], V)
             ang = XX[0] * XV[k][0] + XX[1] * XV[k][1] + XX[2] * XV[k][2]
-            angles.append(np.arccos(ang) * 180. / np.pi)
+            # unit-vector dot products can exceed 1 by rounding; clip before arccos
+            angles.append(np.arccos(np.clip(ang, -1.0, 1.0)) * 180. / np.pi)
             for c in range(3):
                 XV[k][c] = XX[c]
                 U[c] = U[c] + XX[c]
@@ -6156,15 +6238,27 @@ def doreverse_list(decs, incs):
     return decs_flipped, incs_flipped
 
 
-def doincfish(inc):
+def doincfish(inc, method='mcfadden_reid'):
     """
-    Calculates Fisher mean inclination from inclination-only data. This function uses
-    the method of McFadden and Reid (1982), and incorporates asymmetric confidence limits
-    after McElhinny and McFadden (2000).
+    Calculates Fisher mean inclination from inclination-only data.
 
     Parameters
     ----------
     inc: list of inclination values
+    method : str, default 'mcfadden_reid'
+        'mcfadden_reid' : the estimator of McFadden and Reid (1982), with
+            asymmetric confidence limits after McElhinny and McFadden (2000).
+            Its fitness equation can have no solution for steep, scattered
+            data, in which case an absolute-minimum fallback is used and a
+            warning is printed.
+        'arason_levi' : the maximum likelihood estimator of Arason and Levi
+            (2010, doi:10.1111/j.1365-246X.2010.04671.x), which is robust for
+            steep data. The angular standard deviation and alpha95 follow
+            their eqs 22 and 23; the implementation reproduces the numerical
+            example of their Table 2 (Im = 71.85, kappa = 32.45,
+            alpha95 = 9.17). A maximum at inclination 90 indicates that a
+            unique solution does not exist for the data (their Section 7);
+            the profile-likelihood limits then bound the plausible range.
 
     Returns
     -------
@@ -6178,6 +6272,11 @@ def doincfish(inc):
         'upper_confidence_limit' : estimated upper confidence limit of inclination
         'lower_confidence_limit' : estimated lower confidence limit of inclination
         'csd' : estimated circular standard deviation
+        With method='arason_levi', two additional keys
+        'profile_lower_confidence_limit' and 'profile_upper_confidence_limit'
+        give a 95% interval on the mean inclination from the profile
+        likelihood (the marginal-likelihood style interval recommended by
+        Arason and Levi for near-vertical solutions).
 
     Examples
     --------
@@ -6193,6 +6292,10 @@ def doincfish(inc):
      'csd': 11.165922232016465}
     """
 
+    if method == 'arason_levi':
+        return _doincfish_arason_levi(inc)
+    if method != 'mcfadden_reid':
+        raise ValueError("method must be 'mcfadden_reid' or 'arason_levi'")
     abinc = []
     for i in inc:
         abinc.append(abs(i))
@@ -6201,15 +6304,6 @@ def doincfish(inc):
     N = len(inc)  # number of data
     fpars['n'] = N
     fpars['ginc'] = MI
-    if MI < 30:
-        fpars['inc'] = MI
-        fpars['k'] = 0
-        fpars['upper_confidence_limit'] = 0
-        fpars['lower_confidence_limit'] = 0
-        fpars['csd'] = 0
-        fpars['r'] = 0
-        print('WARNING: mean inc < 30, returning gaussian mean')
-        return fpars
     inc = np.array(inc)
     coinc = np.deg2rad(90. - np.abs(inc))  # sum over all incs (but take only positive inc)
     SCOi = np.cos(coinc).sum()
@@ -6223,26 +6317,34 @@ def doincfish(inc):
     idx_zeros = np.argwhere(np.diff(np.sign(misfit)))
     if len(idx_zeros)==0:
         idx_zeros = np.argmin(abs(misfit))
-        print("No zeros found to fitness function of McFadden and Reed 1982, returning absolute minimum which is at %.3f instead.\nThis likely indicates that your inclinations are too steep for this method you may wish to consider an alternate technique."%misfit[idx_zeros])
-    ML_zeros = np.array(Oo[idx_zeros])
-    ML_matrix = (np.ones([len(coinc),1]) @ ML_zeros.reshape(1,ML_zeros.shape[0])).T
-    #    print(coinc.shape,ML_zeros.shape,ML_matrix.shape)
-    U = 0.5 * N * ((1 / (np.cos(ML_zeros) ** 2)) - (
+        print("No zeros found to fitness function of McFadden and Reid 1982, returning absolute minimum which is at %.3f instead.\nThis likely indicates that your inclinations are too steep for this method; consider doincfish(inc, method='arason_levi')."%misfit[idx_zeros])
+    # roots as a flat array: ravel handles both argwhere's (m, 1) output and
+    # the scalar index assigned by the no-zero fallback
+    ML_zeros = np.ravel(Oo[idx_zeros])
+    ML_matrix = (np.ones([len(coinc), 1]) @ ML_zeros.reshape(1, ML_zeros.size)).T
+    # second derivative U of McFadden and Reid (1982, eq. 19a): negative only
+    # at the true likelihood maximum, positive at the spurious roots
+    U = 0.5 * N * ((1 / (np.sin(ML_zeros) ** 2)) - (
                 np.cos(ML_matrix - coinc).sum(axis=1) / (N - np.cos(ML_matrix - coinc).sum(axis=1))))
-    #    print("Found Zeros: ", ML_zeros, "Second Derivative: ", U)
-    Oo = ML_zeros[np.argmin(U)]
+    i_root = np.argmin(U)
+    if U[i_root] > 0:
+        print("Warning: no root of the McFadden and Reid 1982 fitness "
+              "function has negative curvature (their eq. 19a), so the "
+              "returned inclination is not a likelihood maximum; consider "
+              "doincfish(inc, method='arason_levi').")
+    Oo = ML_zeros[i_root]
     C = np.cos(Oo-coinc).sum()
     S = np.sin(Oo-coinc).sum()
     k = (N - 1.) / (2. * (N - C))
     Imle = 90. - np.rad2deg(Oo)
-    fpars["inc"] = Imle[0]
+    fpars["inc"] = Imle
     fpars["r"], R = (2. * C - N), (2 * C - N)
     fpars["k"] = k
     f = fcalc(2, N - 1)  # the 'g' of MM2000
     a95 = np.rad2deg(np.arccos(1. - (0.5) * (S / C) ** 2 - (f * (N - C)) / (C * (N - 1))))
     # calculating the upper and lower confidence intervals
-    lower_confidence_limit = Imle[0] + (180 * S) / (np.pi * C) - a95
-    upper_confidence_limit = Imle[0] + (180 * S) / (np.pi * C) + a95
+    lower_confidence_limit = Imle + (180 * S) / (np.pi * C) - a95
+    upper_confidence_limit = Imle + (180 * S) / (np.pi * C) + a95
     csd = 81. / np.sqrt(k)
 
     # the upper and lower confidence intervals as values
@@ -6250,6 +6352,116 @@ def doincfish(inc):
     fpars["lower_confidence_limit"] = lower_confidence_limit
     fpars["alpha95"] = a95
     fpars["csd"] = csd
+    return fpars
+
+
+def _doincfish_arason_levi(inc):
+    """
+    Maximum likelihood mean inclination for inclination-only data, called by
+    doincfish(inc, method='arason_levi').
+
+    Follows Arason and Levi (2010), doi:10.1111/j.1365-246X.2010.04671.x:
+    with declinations unknown, each inclination is described by the marginal
+    Fisher likelihood (their eq. 2), and the mean inclination and precision
+    parameter are found by maximizing the joint log-likelihood (their eq. 5)
+    numerically over a grid refined by golden-section search. The angular
+    standard deviation and alpha95 follow their eqs 22 and 23. Profile
+    likelihood confidence limits (chi-squared, one degree of freedom) are
+    also returned: for near-vertical solutions, where a unique maximum does
+    not exist (their Section 7), they bound the plausible inclination range
+    in the spirit of the marginal-likelihood interval of Enkin and Watson
+    (1996) that Arason and Levi recommend.
+
+    Validated against the numerical example of Arason and Levi (2010,
+    Table 2): the nine Icelandic lava-flow inclinations of Fisher (1953)
+    give Im = 71.85, kappa = 32.45, alpha95 = 9.17.
+    """
+    from scipy.special import ive
+    from scipy.optimize import minimize_scalar
+
+    inc = np.abs(np.array(inc, dtype=np.float64))
+    n = inc.size
+    cotheta = np.deg2rad(90. - inc)  # co-inclinations of the data
+
+    def loglike(theta0, logk):
+        """Marginal Fisher log-likelihood at mean co-inclination theta0."""
+        k = np.exp(logk)
+        x = k * np.sin(cotheta) * np.sin(theta0)
+        log_bessel = np.log(ive(0, x)) + np.abs(x)
+        log_norm = np.log(k) - (k + np.log1p(-np.exp(-2. * k)))
+        return np.sum(log_norm + k * np.cos(cotheta) * np.cos(theta0)
+                      + log_bessel)
+
+    def profile(theta0):
+        """Log-likelihood maximized over kappa at fixed mean co-inclination."""
+        best = minimize_scalar(lambda logk: -loglike(theta0, logk),
+                               bounds=(-3., 12.), method='bounded')
+        return -best.fun, best.x
+
+    # coarse grid over the mean co-inclination, refined by golden section
+    thetas = np.deg2rad(np.arange(0., 90.5, 0.5))
+    profiles = np.array([profile(t)[0] for t in thetas])
+    i_best = int(np.argmax(profiles))
+    lo = thetas[max(0, i_best - 1)]
+    hi = thetas[min(thetas.size - 1, i_best + 1)]
+    refine = minimize_scalar(lambda t: -profile(t)[0], bounds=(lo, hi),
+                             method='bounded')
+    theta_ml = refine.x
+    ll_max, logk_ml = profile(theta_ml)
+
+    # 95% profile-likelihood interval: 2*(ll_max - ll) <= chi2_95(1) = 3.841
+    threshold = ll_max - 0.5 * 3.841
+    above = profiles >= threshold
+    if above.any():
+        # outermost grid points inside the interval, with the threshold
+        # crossings interpolated linearly between the bracketing grid points
+        i_lo = int(np.argmax(above))
+        i_hi = int(above.size - 1 - np.argmax(above[::-1]))
+        theta_lo = thetas[i_lo]
+        if i_lo > 0:
+            frac = ((profiles[i_lo] - threshold)
+                    / (profiles[i_lo] - profiles[i_lo - 1]))
+            theta_lo = thetas[i_lo] - frac * (thetas[i_lo] - thetas[i_lo - 1])
+        theta_hi = thetas[i_hi]
+        if i_hi < thetas.size - 1:
+            frac = ((profiles[i_hi] - threshold)
+                    / (profiles[i_hi] - profiles[i_hi + 1]))
+            theta_hi = thetas[i_hi] + frac * (thetas[i_hi + 1] - thetas[i_hi])
+        profile_upper = 90. - np.rad2deg(theta_lo)
+        profile_lower = 90. - np.rad2deg(theta_hi)
+    else:
+        profile_upper = profile_lower = 90. - np.rad2deg(theta_ml)
+
+    inc_ml = 90. - np.rad2deg(theta_ml)
+    k = float(np.exp(logk_ml))
+
+    # angular standard deviation and alpha95, Arason & Levi (2010) eqs 22, 23
+    cos_t63 = 1. + np.log(1. - 0.63 * (1. - np.exp(-2. * k))) / k
+    csd = np.rad2deg(np.arccos(np.clip(cos_t63, -1., 1.)))
+    cos_a95 = 1. - ((n - 1.) / (n * (k - 1.) + 1.)) * (20.**(1. / (n - 1.)) - 1.)
+    a95 = np.rad2deg(np.arccos(np.clip(cos_a95, -1., 1.)))
+
+    if logk_ml > 11.9:
+        print("Arason & Levi kappa estimate is at the upper search bound "
+              "(~1.6e5): the inclinations are nearly identical and kappa "
+              "is effectively unconstrained from above.")
+    if inc_ml > 89.99:
+        print("Arason & Levi maximum is at the vertical: a unique solution "
+              "does not exist for these data (their Section 7); the true "
+              "inclination is probably steep and kappa is likely a lower "
+              "limit. Use the profile confidence limits.")
+
+    fpars = {'n': n,
+             'ginc': inc.mean(),
+             'inc': inc_ml,
+             'r': n - (n - 1.) / k,
+             'k': k,
+             'alpha95': a95,
+             'csd': csd,
+             'upper_confidence_limit': min(90., inc_ml + a95),
+             'lower_confidence_limit': inc_ml - a95,
+             'profile_lower_confidence_limit': profile_lower,
+             'profile_upper_confidence_limit': profile_upper}
     return fpars
 
 
@@ -11091,9 +11303,9 @@ def get_samp_con():
 
 def get_tilt(dec_geo, inc_geo, dec_tilt, inc_tilt):
     """
-    Function to return the dip direction and dip that would yield the tilt
-    corrected direction if applied to the uncorrected direction (geographic
-    coordinates).
+    Return the bedding orientation (dip direction, dip) such that applying
+    pmag.dotilt to (dec_geo, inc_geo) with that bedding yields
+    (dec_tilt, inc_tilt). This is the inverse of pmag.dotilt.
 
     Parameters
     ----------
@@ -11104,74 +11316,120 @@ def get_tilt(dec_geo, inc_geo, dec_tilt, inc_tilt):
 
     Returns
     -------
-    DipDir, Dip : tuple of dip direction and dip
-    
+    DipDir, Dip : tuple of dip direction (degrees, 0-360) and dip
+        (degrees, 0-90). When the geographic and tilt-corrected
+        directions are identical (no tilt), bedding is undefined and
+        the function returns (0.0, 0.0).
+
     Examples
     --------
     >>> pmag.get_tilt(85,110,80.2,112.3)
     (223.67057238530975, 2.95374920443805)
     """
-# strike is horizontal line equidistant from two input directions
-    SCart = [0, 0, 0]  # cartesian coordites of Strike
-    SCart[2] = 0.  # by definition
-    # cartesian coordites of Geographic D
-    GCart = dir2cart([dec_geo, inc_geo, 1.])
-    TCart = dir2cart([dec_tilt, inc_tilt, 1.])  # cartesian coordites of Tilt D
-    X = (TCart[1] - GCart[1]) / (GCart[0] - TCart[0])
-    SCart[1] = np.sqrt(1 / (X**2 + 1.))
-    SCart[0] = SCart[1] * X
+    GCart = np.asarray(dir2cart([dec_geo, inc_geo, 1.]), dtype=float)
+    TCart = np.asarray(dir2cart([dec_tilt, inc_tilt, 1.]), dtype=float)
+    # No tilt: bedding is undefined; return a horizontal-bedding answer.
+    if np.allclose(GCart, TCart):
+        return 0.0, 0.0
+    # Strike axis is the horizontal unit vector S with G·S = T·S, i.e.
+    # (G - T) · S = 0. Equivalently, S is perpendicular to the horizontal
+    # projection of (G - T): if Dh = (Gx - Tx, Gy - Ty), then S is one of
+    # ±(Dh.y, -Dh.x, 0) / |Dh|.
+    Dx, Dy = GCart[0] - TCart[0], GCart[1] - TCart[1]
+    Dh = np.sqrt(Dx * Dx + Dy * Dy)
+    if Dh < 1e-12:
+        # G and T share their horizontal direction but differ vertically —
+        # not produced by a normal bedding tilt; treat as degenerate.
+        return 0.0, 0.0
+    SCart = np.array([Dy / Dh, -Dx / Dh, 0.])
+    # Two strike directions are mathematically equidistant; dotilt's
+    # rotation axis is the one for which the rotation from G to T around
+    # +S (right-hand rule) is positive — i.e. (G × T) · S > 0.
+    if np.dot(np.cross(GCart, TCart), SCart) < 0:
+        SCart = -SCart
     SDir = cart2dir(SCart)
+    # dotilt rotates around an axis at azimuth (dip_direction + 90°),
+    # so dip direction = strike azimuth - 90°.
     DipDir = (SDir[0] - 90.) % 360.
-    DipDir = (SDir[0] + 90.) % 360.
-# D is great circle distance between geo direction and strike
-# theta is GCD between geo and tilt (on unit sphere).  use law of cosines
-# to get small cirlce between geo and tilt (dip)
-    cosd = GCart[0] * SCart[0] + GCart[1] * \
-        SCart[1]  # cosine of angle between two
-    d = np.arccos(cosd)
-    cosTheta = GCart[0] * TCart[0] + GCart[1] * TCart[1] + GCart[2] * TCart[2]
-    Dip = (180. / np.pi) * np.arccos(-((cosd**2 - cosTheta) / np.sin(d)**2))
-    if Dip > 90:
-        Dip = -Dip
+    # Dip is the rotation angle around the strike axis. Use spherical
+    # law of cosines on the triangle (G, T, strike): G and T are both
+    # at angle d from S, and the angle at S equals the dip.
+    cosd = GCart[0] * SCart[0] + GCart[1] * SCart[1]
+    cosTheta = float(np.dot(GCart, TCart))
+    Dip = np.degrees(np.arccos((cosTheta - cosd**2) / (1. - cosd**2)))
     return DipDir, Dip
-#
 
 
 def get_azpl(cdec, cinc, gdec, ginc):
     """
-    Gets azimuth and plunge from specimen declination, inclination, and (geographic) coordinates.
-    
+    Recover the sample-orientation azimuth and plunge (az, pl) such that
+    pmag.dogeo(cdec, cinc, az, pl) yields (gdec, ginc). This is the
+    inverse of pmag.dogeo.
+
     Parameters
     ----------
     cdec : specimen declination
     cinc : specimen inclination
     gdec : geographic declination
     ginc : geographic inclination
-    
+
     Returns
     -------
-    list of the two values for the azmiuth and plunge 
-    
+    az, pl : tuple of azimuth (degrees, 0-360) and plunge (degrees).
+
+    Notes
+    -----
+    The forward map (az, pl) -> (gdec, ginc) for a fixed specimen
+    direction is generally 2-to-1: two distinct (az, pl) pairs produce
+    the same geographic direction. To match the previous function's
+    convention (and the conventional drill range), the lower of the two
+    valid plunges is returned. When the specimen direction lies along
+    the +/- y axis the plunge is undetermined; this function returns 0
+    in that case.
+
     Examples
     --------
-    >>> pmag.get_azpl(85,110,80.2,112.3)
-    (323.77999999985053, -12.079999999990653)
+    >>> pmag.get_azpl(85, 110, 80.2, 112.3)
+    (324.08509406620256, -12.050207555689255)
     """
-    TOL = 1e-4
-    Xp = dir2cart([gdec, ginc, 1.])
-    X = dir2cart([cdec, cinc, 1.])
-    # find plunge first
-    az, pl, zdif, ang = 0., -90., 1., 360.
-    while zdif > TOL and pl < 180.:
-        znew = X[0] * np.sin(np.radians(pl)) + X[2] * np.cos(np.radians(pl))
-        zdif = abs(Xp[2] - znew)
-        pl += .01
-
-    while ang > 0.1 and az < 360.:
-        d, i = dogeo(cdec, cinc, az, pl)
-        ang = angle([gdec, ginc], [d, i])
-        az += .01
-    return az - .01, pl - .01
+    X = np.asarray(dir2cart([cdec, cinc, 1.]), dtype=float)
+    Xp = np.asarray(dir2cart([gdec, ginc, 1.]), dtype=float)
+    a, b = float(X[0]), float(X[2])
+    zp = float(Xp[2])
+    # Solve a*sin(pl) + b*cos(pl) = zp for pl by writing the LHS as
+    # R*sin(pl + phi) with R = sqrt(a^2 + b^2), phi = atan2(b, a).
+    r2 = a * a + b * b
+    if r2 < 1e-12:
+        # Specimen direction along +/- y axis: plunge has no effect on
+        # how X maps to Xp, so it is undetermined. Default to pl = 0.
+        pl_rad = 0.0
+    else:
+        R = np.sqrt(r2)
+        phi = np.arctan2(b, a)
+        s = np.arcsin(np.clip(zp / R, -1.0, 1.0))
+        # Two candidate plunges; both round-trip exactly through dogeo.
+        candidates = [(raw + np.pi) % (2 * np.pi) - np.pi
+                      for raw in (s - phi, np.pi - s - phi)]
+        # Match the previous function's scan range pl in [-90, 180]
+        # degrees; otherwise accept the smaller candidate.
+        in_range = [c for c in candidates
+                    if -np.pi / 2 - 1e-9 <= c <= np.pi + 1e-9]
+        pl_rad = min(in_range) if in_range else min(candidates)
+    # With pl known, az comes from the 2D rotation
+    #     [xp, yp] = R(az) . [u, v]
+    # where u = cos(pl)*X[0] - sin(pl)*X[2] and v = X[1].
+    u = np.cos(pl_rad) * a - np.sin(pl_rad) * b
+    v = float(X[1])
+    xp, yp = float(Xp[0]), float(Xp[1])
+    az_deg = float(np.degrees(np.arctan2(yp * u - xp * v,
+                                         xp * u + yp * v)))
+    # Wrap to [0, 360); guard against tiny negative float values that
+    # would otherwise alias to 360.
+    if az_deg < 0:
+        az_deg += 360.
+    if az_deg >= 360.:
+        az_deg -= 360.
+    return az_deg, float(np.degrees(pl_rad))
 
 
 def set_priorities(SO_methods, ask):
@@ -11210,8 +11468,6 @@ def set_priorities(SO_methods, ask):
             SO_priorities.append(pri)
             del prior_list[prior_list.index(pri)]
     return SO_priorities
-#
-#
 
 
 def get_EOL(file):
@@ -11236,7 +11492,6 @@ def get_EOL(file):
         EOL = '\n'
     f.close()
     return EOL
-#
 
 
 def sortshaw(s, datablock):
@@ -11298,8 +11553,6 @@ def sortshaw(s, datablock):
                 break
     shawblock = (NRM, TRM, ARM1, ARM2, TRM_ADJ)
     return shawblock, field
-#
-#
 
 
 def makelist(List):
@@ -11387,7 +11640,6 @@ def s_l(l, alpha=27.7):
     c_a = 0.547
     s_l = np.sqrt(((c_a**(2. * l)) * a2)/ ((l + 1.) * (2. * l + 1.)))
     return s_l
-#
 
 
 def mktk03(terms, G2, G3, G1=-18e3, verbose=False, random_seed=None):
@@ -11452,8 +11704,6 @@ def mktk03(terms, G2, G3, G1=-18e3, verbose=False, random_seed=None):
             if verbose:
                 print(l, m, gnew, hnew)
     return gh
-#
-#
 
 
 def pinc(lat):
@@ -11477,7 +11727,6 @@ def pinc(lat):
     tanl = np.tan(np.radians(lat))
     inc = np.arctan(2. * tanl)
     return np.degrees(inc)
-#
 
 
 def plat(inc):
@@ -11501,8 +11750,6 @@ def plat(inc):
     tani = np.tan(np.radians(inc))
     lat = np.arctan(tani/2.)
     return np.degrees(lat)
-#
-#
 
 
 def pseudo(DIs, random_seed=None):
@@ -13317,7 +13564,7 @@ def import_cartopy():
     cartopy = None
     has_cartopy = True
     try:
-        import cartopy
+        cartopy = importlib.import_module('cartopy')
         WARNINGS['has_cartopy'] = True
     except ImportError:
         has_cartopy = False

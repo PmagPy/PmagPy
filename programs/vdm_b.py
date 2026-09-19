@@ -52,7 +52,7 @@ def main():
             try:
                 vdm=float(input('V[A]DM in Am^2: <cntl-D to quit '))
                 lat=float(input('Latitude: '))
-            except:
+            except Exception:
                 print("\nGood bye\n")
                 sys.exit()
                  

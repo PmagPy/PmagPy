@@ -316,7 +316,7 @@ def main():
                                    pmagplotlib.draw_figs(AZD)
                            else:
                                print('error on specimen ',s)
-                       except:
+                       except Exception:
                          pass
                    if pmagplotlib.verbose and found==0: print('    None found :(  ')
                if spc!="":
@@ -383,7 +383,7 @@ def main():
                                try:
                                    specimen =sids.index(spec)
                                    keepon=0
-                               except:
+                               except Exception:
                                    tmplist=[]
                                    for qq in range(len(sids)):
                                        if spec in sids[qq]:tmplist.append(sids[qq])

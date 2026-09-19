@@ -178,7 +178,7 @@ def main(command_line=True, **kwargs):
     if magfile:
         try:
             input=open(magfile,'r')
-        except:
+        except Exception:
             print("bad mag file name")
             return False, "bad mag file name"
     else: 

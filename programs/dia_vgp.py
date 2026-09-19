@@ -57,7 +57,7 @@ def main():
                 slon =float(ans)
                 plong,plat,dp,dm = pmag.dia_vgp(Dec,Inc,a95,slat,slon)
                 print('%7.1f %7.1f %7.1f %7.1f'%(plong,plat,dp,dm)) # print out returned stuff
-            except:
+            except Exception:
                 print("\n Good-bye\n")
                 sys.exit()
             

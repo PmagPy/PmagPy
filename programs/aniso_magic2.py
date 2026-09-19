@@ -523,7 +523,7 @@ def main():
                             PDir.append(float(di[0]))
                             PDir.append(float(di[1]))
                             con = 0
-                        except:
+                        except Exception:
                             cnt += 1
                             if cnt < 10:
                                 print(
@@ -549,7 +549,7 @@ def main():
                         try:
                             k = sitelist.index(site)
                             keepon = 0
-                        except:
+                        except Exception:
                             tmplist = []
                             for qq in range(len(sitelist)):
                                 if site in sitelist[qq]:

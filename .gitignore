@@ -1,6 +1,12 @@
 Essentials_Problem_Datafiles
 *.pyc
 
+# Python and numba (forc._get_numba_kernel cache=True) compilation caches
+__pycache__/
+*/__pycache__/
+*.nbi
+*.nbc
+
 *.pyc
 */*.pyc
 *.*~

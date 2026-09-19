@@ -64,7 +64,7 @@ The `dialogs` directory contains GUI components that are used to build the graph
 
 - `help_files` contains html help that is used in the GUIs.
 
-- `setup_scripts` contains scripts that are used in created standalone releases of the GUIs for Mac, Windows, and Linux.
+- `setup_scripts` contains scripts that are used in creating standalone releases of the GUIs for Mac and Windows.
 
 - `bin` contains some scripts that are used in creating the Anaconda part of a pip release.
 
@@ -122,7 +122,7 @@ PmagPy ships in two forms, released on different cadences:
 
 - __pip packages__ (`pmagpy` and `pmagpy-cli`) — released several times per year. The full process is documented in [pip_README.md](pip_README.md): prerequisites, pre-release testing on Colab from a feature branch, the build/upload commands for both packages, the optional TestPyPI rehearsal, and tagging plus GitHub release.
 
-- __Standalone GUI executables__ (Windows, Mac, Linux) — released less frequently. See the [setup_scripts README](https://github.com/PmagPy/PmagPy/tree/master/setup_scripts) for the build process.
+- __Standalone GUI executables__ (macOS and Windows) — released less frequently. See the [setup_scripts README](https://github.com/PmagPy/PmagPy/tree/master/setup_scripts) for the build process.
 
 ## Resources
 

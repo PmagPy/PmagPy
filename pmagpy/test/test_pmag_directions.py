@@ -212,3 +212,29 @@ class TestAngle:
         ab = pmag.angle([30, 45], [120, -10])
         ba = pmag.angle([120, -10], [30, 45])
         assert_allclose(ab, ba, atol=1e-10)
+
+
+class TestDolnpNumericalRobustness:
+    """Regression: the lines-and-planes iteration in calculate_best_fit_vectors takes
+    arccos of a unit-vector dot product that can exceed 1 by rounding, which used
+    to emit 'invalid value encountered in arccos' and put NaN in the iteration.
+    These are five best-fit lines and one best-fit plane from site jm014 of
+    data_files/dmag_magic (geographic coordinates) that trigger the case."""
+
+    RECORDS = [(5.057320282895684, 70.06186579031898, "l"),
+               (71.40960066375155, 57.878884977660974, "l"),
+               (38.868855733573945, 65.31852731726742, "l"),
+               (53.37056662657344, 58.77777240824211, "l"),
+               (53.970581484312085, 60.878599930481776, "l"),
+               (173.18711294502168, 20.31114096934146, "p")]
+
+    def test_dolnp_lines_and_planes_emits_no_arccos_warning(self):
+        import warnings
+        data = [{"dir_dec": dec, "dir_inc": inc, "dir_tilt_correction": 0, "dir_type": kind}
+                for dec, inc, kind in self.RECORDS]
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", RuntimeWarning)
+            result = pmag.dolnp(data, "dir_type")
+        assert_allclose([float(result["dec"]), float(result["inc"])], [47.0, 63.6], atol=0.1)
+        assert_allclose(float(result["alpha95"]), 9.4, atol=0.1)
+        assert int(result["n_lines"]) == 5 and int(result["n_planes"]) == 1
