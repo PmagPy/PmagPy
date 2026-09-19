@@ -17,7 +17,15 @@ Good code must be readable.  To that end, we request that contributors try to wr
 
 ## Testing guidelines
 
-For information about writing and running tests, see the [testing README](https://github.com/PmagPy/PmagPy/blob/master/pmagpy_tests/README.md).
+The active test suite lives in `pmagpy/test/` and uses pytest. Run it from the repository root with:
+
+```
+pytest pmagpy/test
+```
+
+This is the suite that GitHub Actions runs on every pull request (Python 3.10 and 3.12). New tests belong here: one file per module or topic (for example `test_pmag_directions.py`, `test_rockmag_hysteresis.py`), plain pytest classes and functions, and analytical or reference values where the science allows. Tests that need cartopy or Bokeh should skip cleanly when those optional packages are missing (`pytest.importorskip`).
+
+`pmagpy_tests/` is the legacy unittest suite. It is not run in CI, needs the unlisted `scripttest` dependency to import, and is kept only until its remaining useful cases (mainly the converter tests in `test_imports3.py`) are ported to `pmagpy/test/`. Do not add tests there.
 
 
 ## Directory structure
@@ -56,9 +64,6 @@ The `dialogs` directory contains GUI components that are used to build the graph
 #### pmag_env
 `pmag_env` is a module that sets the backend for plotting as either TKAgg (for non-wxPython programs) or WXAgg (for wxPython programs).
 
-#### locator
-`locator` is a module that finds the directory where PmagPy is installed.  __Please__ use caution in modifying this module!  You can break a lot of things.
-
 
 ### Less key directories
 
@@ -83,7 +88,6 @@ Here is a visual representation of the directory structure:
 ├── dialogs
 │   └── help_files
 ├── help_files
-├── locator
 ├── pmag_env
 ├── pmagpy
 │   ├── data_model
