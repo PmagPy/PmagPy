@@ -4020,18 +4020,28 @@ def _show_hyst_summary_table(summary, width, magn_unit=_DEFAULT_MAGN_UNIT):
     `_hyst_param_unit`); dimensionless parameters are headed by their name
     alone. Values are shown to `_HYST_TABLE_SIG_FIGS` significant figures;
     the full-precision values remain in the returned results dictionary.
+    Columns are sized to their content (`width` is a minimum), so neither
+    headers nor values are clipped.
 
     Shared by the full processing path and the decision-tree exits of
     process_hyst_loop, each of which passes only the parameters defined for
     its outcome.
     """
-    source = ColumnDataSource({name: [_format_hyst_value(value)]
-                               for name, value in summary.items()})
-    columns = [TableColumn(field=name,
-                           title=_hyst_param_label(name, magn_unit))
-               for name in summary]
+    cells = {name: _format_hyst_value(value) for name, value in summary.items()}
+    source = ColumnDataSource({name: [text] for name, text in cells.items()})
+    # give each column room for the longer of its header and its value
+    # (about 7 px per character in Bokeh's default 12 px table font, plus
+    # cell padding) and let the table be wider than the plot if the ~13
+    # columns need it; otherwise Bokeh squeezes them into the plot width
+    # and clips headers and values such as '2.059e-07'
+    columns, total_width = [], 0
+    for name in summary:
+        title = _hyst_param_label(name, magn_unit)
+        col_width = 7 * max(len(title), len(cells[name])) + 14
+        columns.append(TableColumn(field=name, title=title, width=col_width))
+        total_width += col_width
     data_table = DataTable(source=source, columns=columns,
-                           width=width, height=100)
+                           width=max(width, total_width), height=100)
     data_table.index_position = None
     show(column(data_table))
 

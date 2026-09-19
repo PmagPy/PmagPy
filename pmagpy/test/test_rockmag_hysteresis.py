@@ -913,6 +913,15 @@ class TestSummaryTableUnits:
         # cells carry the rounded display strings, not full-precision floats
         assert data_table.source.data['chi_HF'] == ['1e-07']
         assert data_table.source.data['Bc'] == ['0.05']
+        # each column is at least wide enough for its header or value, and
+        # the table grows past the requested width when the columns need it
+        for col in data_table.columns:
+            longest = max(len(col.title), len(data_table.source.data[col.field][0]))
+            assert col.width >= 7 * longest
+        assert data_table.width >= 600
+        shown.clear()
+        rmag._show_hyst_summary_table({f'FNL{i}': 1.0 for i in range(20)}, 100)
+        assert shown[0].children[0].width > 100
 
     def test_plot_axis_label_follows_unit(self):
         pytest.importorskip("bokeh")
