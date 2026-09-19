@@ -6,10 +6,17 @@ import time whenever the backend was not already that GUI backend. Importing
 one of them from a notebook therefore replaced the inline backend and figures
 stopped appearing (issue #909). They now go through
 set_env.set_backend_if_unset, which only picks a backend when nothing else has.
+
+The one backend it does override is an inline backend inherited from a parent
+Jupyter kernel through MPLBACKEND (the ``!eqarea.py ...`` pattern in notebook
+cells): outside IPython nothing can display it, so the program's GUI backend
+is used instead.
 """
 import importlib
 import importlib.util
+import os
 import queue
+import subprocess
 import sys
 
 import matplotlib
@@ -33,7 +40,7 @@ class TestSetBackendIfUnset:
         """With no backend chosen yet, the preferred GUI backend is requested."""
         calls = []
         monkeypatch.setattr(matplotlib, "use", lambda *a, **k: calls.append(a))
-        monkeypatch.setattr(set_env, "backend_already_chosen", lambda: False)
+        monkeypatch.setattr(set_env, "chosen_backend", lambda: None)
         monkeypatch.setattr(set_env, "IS_NOTEBOOK", False)
         assert set_env.set_backend_if_unset("WXAgg") is True
         assert calls == [("WXAgg",)]
@@ -42,10 +49,68 @@ class TestSetBackendIfUnset:
         """Inside a notebook the backend is never touched, whatever its state."""
         calls = []
         monkeypatch.setattr(matplotlib, "use", lambda *a, **k: calls.append(a))
-        monkeypatch.setattr(set_env, "backend_already_chosen", lambda: False)
+        monkeypatch.setattr(set_env, "chosen_backend", lambda: None)
         monkeypatch.setattr(set_env, "IS_NOTEBOOK", True)
         assert set_env.set_backend_if_unset("TKAgg") is False
         assert calls == []
+
+    def test_chosen_backend_reports_resolved_backend(self):
+        """Once pyplot is in use the resolved backend name is reported."""
+        assert set_env.chosen_backend().lower() == "agg"
+
+    def test_replaces_inline_backend_inherited_outside_ipython(self, monkeypatch):
+        """A kernel's inline backend leaking into a plain subprocess is replaced.
+
+        ipykernel exports MPLBACKEND=module://matplotlib_inline.backend_inline
+        and every ``!program.py`` subprocess inherits it. Without IPython in
+        the process that backend cannot show anything, so the program gets
+        its GUI backend as it always did.
+        """
+        calls = []
+        monkeypatch.setattr(matplotlib, "use", lambda *a, **k: calls.append(a))
+        monkeypatch.setattr(set_env, "chosen_backend",
+                            lambda: "module://matplotlib_inline.backend_inline")
+        monkeypatch.setattr(set_env, "IS_NOTEBOOK", False)
+        monkeypatch.setattr(set_env, "IN_IPYTHON", False)
+        assert set_env.set_backend_if_unset("TKAgg") is True
+        assert calls == [("TKAgg",)]
+
+    def test_keeps_inline_backend_in_unrecognised_ipython_shell(self, monkeypatch):
+        """Inline stays when IPython is running but the shell class is unknown.
+
+        Some notebook front ends subclass the kernel shell under another name
+        (issue #781), so IS_NOTEBOOK is False although the inline backend
+        can render. Never override it while IPython is in the process.
+        """
+        calls = []
+        monkeypatch.setattr(matplotlib, "use", lambda *a, **k: calls.append(a))
+        monkeypatch.setattr(set_env, "chosen_backend",
+                            lambda: "module://matplotlib_inline.backend_inline")
+        monkeypatch.setattr(set_env, "IS_NOTEBOOK", False)
+        monkeypatch.setattr(set_env, "IN_IPYTHON", True)
+        assert set_env.set_backend_if_unset("TKAgg") is False
+        assert calls == []
+
+    def test_keeps_non_inline_backend_outside_ipython(self, monkeypatch):
+        """MPLBACKEND=Agg (or any non-inline choice) is still respected."""
+        calls = []
+        monkeypatch.setattr(matplotlib, "use", lambda *a, **k: calls.append(a))
+        monkeypatch.setattr(set_env, "chosen_backend", lambda: "agg")
+        monkeypatch.setattr(set_env, "IS_NOTEBOOK", False)
+        monkeypatch.setattr(set_env, "IN_IPYTHON", False)
+        assert set_env.set_backend_if_unset("TKAgg") is False
+        assert calls == []
+
+    @pytest.mark.parametrize("name, expected", [
+        ("module://matplotlib_inline.backend_inline", True),
+        ("module://ipykernel.pylab.backend_inline", True),
+        ("agg", False),
+        ("TkAgg", False),
+        ("module://ipympl.backend_nbagg", False),
+        (None, False),
+    ])
+    def test_is_inline_backend(self, name, expected):
+        assert set_env.is_inline_backend(name) is expected
 
 
 class TestProgramImports:
@@ -88,12 +153,45 @@ class TestProgramImports:
                 continue
             for line in path.read_text(errors="ignore").splitlines():
                 stripped = line.strip()
-                if stripped.startswith("#"):
+                if stripped.startswith("#") or line[:1] in (" ", "\t"):
+                    # comments and indented lines (inside functions or
+                    # ``if __name__ == "__main__"`` blocks) do not run on import
                     continue
-                # unindented => module level, i.e. runs on import
-                if line.startswith("matplotlib.use(") or "get_backend() !=" in stripped:
+                if (line.startswith(("matplotlib.use(", "mpl.use("))
+                        or "get_backend() !=" in stripped):
                     offenders.append(f"{path.relative_to(programs_dir)}: {stripped}")
         assert offenders == []
+
+
+class TestSubprocessInheritingInlineBackend:
+    """A program started from a notebook cell with ``!`` must still get a GUI backend.
+
+    The kernel exports MPLBACKEND=module://matplotlib_inline.backend_inline
+    to its children. This reproduces that child process directly.
+    """
+
+    INLINE = "module://matplotlib_inline.backend_inline"
+
+    def _run(self, code, mplbackend):
+        repo_root = str(__import__("pathlib").Path(set_env.__file__).resolve().parents[1])
+        env = dict(os.environ, MPLBACKEND=mplbackend)
+        env["PYTHONPATH"] = repo_root + os.pathsep + env.get("PYTHONPATH", "")
+        result = subprocess.run([sys.executable, "-c", code], env=env,
+                                capture_output=True, text=True, timeout=120)
+        assert result.returncode == 0, result.stderr
+        return result.stdout.strip().splitlines()[-1]
+
+    def test_program_replaces_inherited_inline_backend(self):
+        """Importing a program in a plain process discards the inline backend."""
+        backend = self._run("import matplotlib, programs.common_mean\n"
+                            "print(matplotlib.get_backend())", self.INLINE)
+        assert backend.lower() == "tkagg", backend
+
+    def test_program_keeps_inherited_agg_backend(self):
+        """A non-inline MPLBACKEND, e.g. Agg on a server, is still respected."""
+        backend = self._run("import matplotlib, programs.common_mean\n"
+                            "print(matplotlib.get_backend())", "Agg")
+        assert backend.lower() == "agg", backend
 
 
 def _run_in_fresh_kernel(code, timeout=90):
@@ -149,7 +247,7 @@ class TestNotebookInlinePlotting:
         conversion_import = ("from programs.conversion_scripts import cit_magic"
                              if importlib.util.find_spec("wx") else "")
         code = f"""
-import sys
+import subprocess, sys
 sys.path.insert(0, {repo_root!r})
 import matplotlib
 from pmag_env import set_env
@@ -160,6 +258,13 @@ import programs.eqarea_magic
 {conversion_import}
 after = matplotlib.get_backend()
 print("BACKEND", before, after)
+# what a ``!eqarea.py ...`` cell does: a child process inheriting MPLBACKEND
+child = subprocess.run([sys.executable, "-c",
+                        "import sys; sys.path.insert(0, {repo_root!r}); "
+                        "import matplotlib, programs.common_mean; "
+                        "print(matplotlib.get_backend())"],
+                       capture_output=True, text=True)
+print("CHILD", child.stdout.strip() or child.stderr.strip().replace(chr(10), " | "))
 import matplotlib.pyplot as plt
 fig = plt.figure()
 plt.plot([0, 1], [0, 1])
@@ -172,4 +277,6 @@ plt.show()
         before, after = lines["BACKEND"].split()
         assert "inline" in before.lower(), stdout
         assert after == before, f"import changed backend {before} -> {after}"
+        assert lines["CHILD"].lower() == "tkagg", (
+            f"subprocess from the kernel should get the GUI backend, got {lines['CHILD']!r}")
         assert n_display == 1, f"expected one inline figure, got {n_display}"
