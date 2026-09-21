@@ -450,7 +450,7 @@ def convert_lat(Recs):
 
 
 def convert_ages(Recs, data_model=3):
-    """
+    r"""
     Converts ages in a list of dictionaries to units of Millions of years ago, Ma. 
     
     Parameters
@@ -2824,8 +2824,8 @@ def dms2dd(d):
           [354.2,    45.1, 45]])
     >>> pmag.dms2dd(data)
     [ 16.   30.5   6.9 352.5 354.2] [43.  53.6 33.2 40.2 45.1] [33. 58.  8. 52. 45.]
-array([ 16.72583333333333 ,  31.409444444444446,   7.455555555555557,
-       353.18444444444447 , 354.96416666666664 ])
+    array([ 16.72583333333333 ,  31.409444444444446,   7.455555555555557,
+           353.18444444444447 , 354.96416666666664 ])
     """
     # converts list or array of degree, minute, second locations to array of
     # decimal degrees
@@ -5113,11 +5113,13 @@ def b_vdm(B, lat):
     or a virtual axial dipole moment (VADM).
     
     Parameters
+    ----------
     B: local magnetic field strength in tesla, as a value or list of values
     lat: latitude of site in degrees
 
     Returns
-    VDM or V(A)DM in units of Am^2
+    -------
+    Vs : VDM or V(A)DM in units of Am^2
 
     Examples
     --------

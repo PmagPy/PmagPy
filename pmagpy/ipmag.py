@@ -345,11 +345,11 @@ def kent_distribution_95(dec=None, inc=None, di_block=None):
     dictionary with the Kent mean and statistical parameters.
 
     Parameters:
-    dec: list of declinations
-    inc: list of inclinations
-    di_block: a nested list of [dec,inc,1.0]
-        A di_block can be provided instead of dec, inc lists in which case it will
-        be used. Either dec, inc lists or a di_block need to passed to the function.
+        dec: list of declinations
+        inc: list of inclinations
+        di_block: a nested list of [dec,inc,1.0]
+            A di_block can be provided instead of dec, inc lists in which case it will
+            be used. Either dec, inc lists or a di_block need to passed to the function.
 
     Returns:
         dictionary containing Kent mean and associated statistics.
@@ -367,6 +367,7 @@ def kent_distribution_95(dec=None, inc=None, di_block=None):
         'Einc': 64.23659892174429,
         'Zeta': 13.677129096579478,
         'Eta': 1.4597607031196376}
+
         Use a di_block to calculate a Kent mean (will give the same output as the
         example with the lists):
 
@@ -1889,7 +1890,7 @@ def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False,
     the data into two polarities using the pmag.flip() function and flipping
     the reverse direction to their antipode.
 
-     Parameters:
+    Parameters:
         dec (list, optional): List of declinations.
         inc (list, optional): List of inclinations.
         di_block (list of lists, optional): Nested list of [dec,inc]. If provided, it 
@@ -2212,7 +2213,7 @@ def lat_from_inc(inc, a95=None):
     """
     Calculate paleolatitude from inclination using the dipole equation.
 
-    Parameter:
+    Parameters:
         inc: (paleo)magnetic inclination in degrees
         a95: 95% confidence interval from Fisher mean
 
@@ -2266,7 +2267,7 @@ def inc_from_lat(lat):
     """
     Calculate inclination predicted from latitude using the dipole equation.
 
-    Parameter:
+    Parameters:
         lat : latitude in degrees
 
     Returns:
@@ -2274,6 +2275,7 @@ def inc_from_lat(lat):
 
     Examples:
         Calculate the inclination implied by an latitude of 45 degrees:
+
         >>> ipmag.inc_from_lat(45)
         63.434948822922
     """
@@ -8302,19 +8304,17 @@ def smooth(x, window_len, window='bartlett'):
     with average of the first (last) ten values of the signal, to evoid jumps
     at the beginning/end. Output is an array of the smoothed signal.
 
-    Required Parameters
+    Parameters
     ----------
     x : the input signal, equally spaced!
     window_len : the dimension of the smoothing window
-
-    Optional Parameters (defaults are used if not specified)
-    ----------
-    window : type of window from numpy library ['flat','hanning','hamming','bartlett','blackman']
+    window : optional, type of window from numpy library ['flat','hanning','hamming','bartlett','blackman']
         (default is Bartlett)
-        -flat window will produce a moving average smoothing.
-        -Bartlett window is very similar to triangular window,
-            but always ends with zeros at points 1 and n.
-        -hanning,hamming,blackman are used for smoothing the Fourier transform
+
+        - flat window will produce a moving average smoothing.
+        - Bartlett window is very similar to triangular window,
+          but always ends with zeros at points 1 and n.
+        - hanning,hamming,blackman are used for smoothing the Fourier transform
     """
     warnings.warn(
         "ipmag.smooth is deprecated and will be removed in a future release. "
@@ -10484,34 +10484,39 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
 def zeq(path_to_file='.', file='', data="", units='U', calculation_type="DE-BFL",
         save=False, save_folder='.', fmt='svg', begin_pca="", end_pca="", angle=0,make_plots=True,show_data=True):
     """
-    NAME
-       zeq.py
+    Plots demagnetization data for a single specimen as a Zijderveld diagram,
+    an equal area projection and a demagnetization diagram. Data are read from
+    a file or taken from a pandas DataFrame with specimen, treatment, intensity,
+    declination and inclination as columns.
 
-    DESCRIPTION
-       plots demagnetization data for a single specimen:
-          - The solid (open) symbols in the Zijderveld diagram are X,Y (X,Z) pairs.  The demagnetization diagram plots the
-          fractional remanence remaining after each step. The green line is the fraction of the total remaence removed
-          between each step.  If the principle direction is desired, specify begin_pca and end_pca steps as bounds for calculation.
+    - The solid (open) symbols in the Zijderveld diagram are X,Y (X,Z) pairs.
+      If the principal direction is desired, specify begin_pca and end_pca steps
+      as bounds for calculation.
+    - The equal area projection has the X direction (usually North in geographic
+      coordinates) to the top. The red line is the X axis of the Zijderveld diagram.
+      Solid symbols are lower hemisphere.
+    - The demagnetization diagram plots the fractional remanence remaining after
+      each step (red dots and blue line). The green line is the fraction of the
+      total remanence removed between each step.
 
-          -The equal area projection has the X direction (usually North in geographic coordinates)
-          to the top.  The red line is the X axis of the Zijderveld diagram.  Solid symbols are lower hemisphere.
-
-          - red dots and blue line is the remanence remaining after each step.  The green line is the partial TRM removed in each interval
-
-    INPUT FORMAT
-       reads from  file_name or takes a  Pandas DataFrame data with specimen treatment intensity declination inclination   as columns
-
-    Keywords:
-        file= FILE   a space or tab delimited file with
-            specimen  treatment  declination inclination intensity
-        units= [mT,C] specify units of mT OR C, default is unscaled
-        save=[True,False]  save figure and quit, default is False
-        fmt [svg,jpg,png,pdf] set figure format [default is svg]
-        begin_pca [step number] treatment step for beginning of PCA calculation, default
-        end_pca [step number] treatment step for end of PCA calculation, last step is default
-        calculation_type [DE-BFL,DE-BFP,DE-FM] Calculation Type: best-fit line,  plane or fisher mean; line is default
-        angle=[0-360]: angle to subtract from declination to rotate in horizontal plane, default is 0
-
+    Parameters:
+        path_to_file : path to the directory containing file, default is "."
+        file : name of a space or tab delimited file with columns
+            specimen treatment intensity declination inclination
+        data : pandas DataFrame with the columns specimen, treatment, intensity,
+            declination, inclination (used if file is not provided)
+        units : units of the treatment steps, 'mT' or 'C', default is 'U' (unscaled)
+        calculation_type : 'DE-BFL', 'DE-BFP' or 'DE-FM' for best-fit line,
+            plane or Fisher mean, default is 'DE-BFL'
+        save : if True, save the figures, default is False
+        save_folder : not currently used, figures are saved to the current directory
+        fmt : format of saved figures ('svg', 'jpg', 'png', 'pdf'), default is 'svg'
+        begin_pca : index of the treatment step for the beginning of the PCA calculation
+        end_pca : index of the treatment step for the end of the PCA calculation
+        angle : angle (0-360) to subtract from declination to rotate in
+            horizontal plane, default is 0
+        make_plots : if True, make the plots, default is True
+        show_data : if True, print the data for the specimen, default is True
     """
     if units == "C":
         SIunits = "K"
@@ -13093,6 +13098,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
               samp_file='samples.txt', contribution=None,fignum=1, image_records=False):
     """
     eeq_magic makes zijderveld and equal area plots for magic formatted measurements files.
+
     Parameters
     ----------
     meas_file : str
@@ -13133,7 +13139,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
         bool, default False
 
     Returns
-    ---------
+    -------
     if image_records == False:
         Tuple : (True or False indicating if conversion was successful, output file name written)
     if image_records == True:
@@ -14278,10 +14284,10 @@ def criteria_extract(crit_file='criteria.txt', output_file='criteria.xls',
         latex : boolean, default False
             if True, output file should be latex formatted table with a .tex ending
 
-    Returns :
+    Returns:
         [True,False],  data table error type : True if successful
 
-    Effects :
+    Notes:
         writes xls or latex formatted tables for use in publications
     """
     input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, output_dir_path)
@@ -16239,8 +16245,9 @@ def df_depthplot(df,d_key='core_depth',fmt='png',location='unknown',save=False):
 def validate_magic(top_dir,doi=False,private_key=False,contribution_id=False):
     """
     download and validate a magic contribution
+
     Parameters
-    -----------
+    ----------
     top_dir: str
         name of project
     doi: str
@@ -16356,14 +16363,14 @@ def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_re
     field. Original written in Python by S. Bogue, translated to PmagPy functionality by AFP.
 
     Parameters:
-    sec_var: kappa estimate of regional secular variation (probably 30 or 40)
-    alpha: angle between paleomagnetic directions (or poles)
-    delta1: distance of direction 1 from mean direction
-    delta2: distance of direction 2 from mean direction
-    trials: the number of simulations, default=10,000
-    print_result: the probability value printed as a sentence, default=False
-    random_seed: None, int, or numpy.random.Generator, optional
-        Seed for reproducible Monte Carlo sampling (default None).
+        sec_var: kappa estimate of regional secular variation (probably 30 or 40)
+        alpha: angle between paleomagnetic directions (or poles)
+        delta1: distance of direction 1 from mean direction
+        delta2: distance of direction 2 from mean direction
+        trials: the number of simulations, default=10,000
+        print_result: the probability value printed as a sentence, default=False
+        random_seed: None, int, or numpy.random.Generator, optional
+            Seed for reproducible Monte Carlo sampling (default None).
 
     Returns:
         float
