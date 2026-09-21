@@ -6446,11 +6446,12 @@ class Demag_GUI(wx.Frame):
         if self.s not in list(self.Data.keys()):
             self.select_specimen(list(self.Data.keys())[0])
         self.T_list = self.Data[self.s]['zijdblock_steps']
+        self.tmin_box.SetItems(self.T_list)
+        self.tmax_box.SetItems(self.T_list)
         if self.current_fit:
-            self.tmin_box.SetItems(self.T_list)
-            self.tmax_box.SetItems(self.T_list)
-            if type(self.current_fit.tmin) is str and type(self.current_fit.tmax) is str:
+            if self.current_fit.tmin:
                 self.tmin_box.SetStringSelection(self.current_fit.tmin)
+            if self.current_fit.tmax:
                 self.tmax_box.SetStringSelection(self.current_fit.tmax)
         if self.ie_open:
             self.ie.update_bounds_boxes(self.T_list)
@@ -6694,15 +6695,13 @@ class Demag_GUI(wx.Frame):
         """
         self.tmin_box.Clear()
         self.tmin_box.SetStringSelection("")
-        if self.current_fit:
-            self.tmin_box.SetItems(self.T_list)
-            self.tmin_box.SetSelection(-1)
+        self.tmin_box.SetItems(self.T_list)
+        self.tmin_box.SetSelection(-1)
 
         self.tmax_box.Clear()
         self.tmax_box.SetStringSelection("")
-        if self.current_fit:
-            self.tmax_box.SetItems(self.T_list)
-            self.tmax_box.SetSelection(-1)
+        self.tmax_box.SetItems(self.T_list)
+        self.tmax_box.SetSelection(-1)
 
         self.fit_box.Clear()
         self.fit_box.SetStringSelection("")
@@ -8373,6 +8372,11 @@ class Demag_GUI(wx.Frame):
            (self.T_list.index(tmax) <= self.T_list.index(tmin)):
             return
 
+        # both bounds picked with no fit yet: auto-create one (issue #360)
+        if self.current_fit is None:
+            self.on_btn_add_fit(event)
+            return
+
         PCA_type = self.PCA_type_box.GetValue()
         if PCA_type == "line":
             calculation_type = "DE-BFL"
@@ -8604,10 +8608,21 @@ class Demag_GUI(wx.Frame):
         ------
         pmag_results_data
         """
+        # only honor dropdown bounds when there's no current fit (issue #360);
+        # otherwise a new fit would just clone the currently selected fit's bounds
+        fmin = fmax = None
+        if self.current_fit is None:
+            fmin = str(self.tmin_box.GetValue()) or None
+            fmax = str(self.tmax_box.GetValue()) or None
+        if self.T_list:
+            if fmin is None:
+                fmin = self.T_list[0]
+            if fmax is None:
+                fmax = self.T_list[-1]
         if self.auto_save.GetValue():
-            self.current_fit = self.add_fit(self.s, None, None, None, saved=True)
+            self.current_fit = self.add_fit(self.s, None, fmin, fmax, saved=True)
         else:
-            self.current_fit = self.add_fit(self.s, None, None, None, saved=False)
+            self.current_fit = self.add_fit(self.s, None, fmin, fmax, saved=False)
         self.generate_warning_text()
         self.update_warning_box()
 
