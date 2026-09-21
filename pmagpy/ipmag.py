@@ -11358,6 +11358,21 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
     else:
         con = contribution
         dir_path = con.directory
+    # the specimens table with the anisotropy tensors is required
+    problem = ""
+    if 'specimens' not in con.tables:
+        if contribution is None:
+            problem = "could not read a specimens table from {}".format(
+                os.path.join(input_dir_path, infile))
+        else:
+            problem = "the contribution has no specimens table"
+    elif 'aniso_s' not in con.tables['specimens'].df.columns:
+        problem = "the specimens table has no aniso_s column, so there are no anisotropy data to plot"
+    if problem:
+        print("-E- aniso_magic: " + problem)
+        if image_records:
+            return False, [], []
+        return False, []
     # get contribution id if available
     con_id = ""
     if 'contribution' in con.tables:

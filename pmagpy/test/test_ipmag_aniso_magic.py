@@ -17,6 +17,7 @@ import sys
 
 import matplotlib
 import matplotlib.pyplot as plt
+import pandas as pd
 import pytest
 
 from pmagpy import ipmag
@@ -56,19 +57,30 @@ def scratch_dir(tmp_path, monkeypatch):
     assert os.listdir(elsewhere) == []
 
 
-@pytest.fixture
-def atrm_dir(scratch_dir):
-    # data_files/atrm_magic: 30 specimens with anisotropy tensors, one per
-    # sample, in ten sites; sites ak01 and ak04 have four specimens each
-    copy_tables('atrm_magic', scratch_dir, ['specimens.txt', 'samples.txt', 'sites.txt'])
-    return str(scratch_dir)
+# three sites of data_files/3_0/Megiddo (location Tel Megiddo): 37 specimens
+# with anisotropy tensors in samples mgh12t1PI, mgk09t1PI, mgq05t1PI and mgq05t2PI
+MEGIDDO_SITES = ['mgh12', 'mgk09', 'mgq05']
 
 
 @pytest.fixture
-def aarm_dir(scratch_dir):
-    # data_files/aarm_magic: six specimens with anisotropy tensors, all from
-    # sample bg2 of location Bushveld
-    copy_tables('aarm_magic', scratch_dir, ['specimens.txt', 'samples.txt', 'sites.txt'])
+def megiddo_dir(scratch_dir):
+    """Write the specimens, samples and sites tables for MEGIDDO_SITES."""
+    def read(table):
+        return pd.read_csv(os.path.join(DATA_FILES, '3_0', 'Megiddo', table + '.txt'),
+                           sep='\t', header=1, dtype=str)
+
+    def write(table, records):
+        with open(os.path.join(str(scratch_dir), table + '.txt'), 'w') as magic_file:
+            magic_file.write('tab\t{}\n'.format(table))
+            records.to_csv(magic_file, sep='\t', index=False)
+
+    samples = read('samples')
+    samples = samples[samples['site'].isin(MEGIDDO_SITES)]
+    specimens = read('specimens')
+    sites = read('sites')
+    write('samples', samples)
+    write('specimens', specimens[specimens['sample'].isin(samples['sample'])])
+    write('sites', sites[sites['site'].isin(MEGIDDO_SITES)])
     return str(scratch_dir)
 
 
@@ -78,81 +90,105 @@ def hext_plots(dir_path, **kwargs):
                              verbose=False, **kwargs)
 
 
+def plots_for(*groups):
+    """Names of the plots aniso_magic saves for each group of Tel Megiddo data."""
+    names = []
+    for group in groups:
+        middle = '_' + group if group else ''
+        names.extend(['Tel Megiddo{}_s_aniso-conf.png'.format(middle),
+                      'Tel Megiddo{}_s_aniso-data.png'.format(middle)])
+    return sorted(names)
+
+
 class TestAnisoMagicSelection:
 
-    def test_whole_file(self, atrm_dir):
-        ok, saved = hext_plots(atrm_dir)
+    def test_whole_file(self, megiddo_dir):
+        ok, saved = hext_plots(megiddo_dir)
         assert ok
-        assert plot_names(atrm_dir) == ['unknown_s_aniso-conf.png',
-                                        'unknown_s_aniso-data.png']
+        assert plot_names(megiddo_dir) == plots_for('')
         assert len(saved) == 2
 
-    def test_plots_are_saved_in_dir_path(self, atrm_dir):
+    def test_plots_are_saved_in_dir_path(self, megiddo_dir):
         # run from another directory (see scratch_dir); the plots belong with
         # the tables in dir_path, as for the other *_magic plotting functions
-        assert os.path.realpath(os.getcwd()) != os.path.realpath(atrm_dir)
-        ok, saved = hext_plots(atrm_dir)
+        assert os.path.realpath(os.getcwd()) != os.path.realpath(megiddo_dir)
+        ok, saved = hext_plots(megiddo_dir)
         assert ok
-        assert len(plot_names(atrm_dir)) == 2
+        assert len(plot_names(megiddo_dir)) == 2
         assert plot_names(os.getcwd()) == []
 
-    def test_listed_sites_each_get_their_own_plots(self, atrm_dir):
-        ok, saved = hext_plots(atrm_dir, sites=['ak01', 'ak04'])
+    def test_listed_sites_each_get_their_own_plots(self, megiddo_dir):
+        ok, saved = hext_plots(megiddo_dir, sites=['mgh12', 'mgq05'])
         assert ok
-        assert plot_names(atrm_dir) == ['unknown_ak01_s_aniso-conf.png',
-                                        'unknown_ak01_s_aniso-data.png',
-                                        'unknown_ak04_s_aniso-conf.png',
-                                        'unknown_ak04_s_aniso-data.png']
+        assert plot_names(megiddo_dir) == plots_for('mgh12', 'mgq05')
         assert len(saved) == 4
 
-    def test_single_site_given_as_a_string(self, atrm_dir):
-        ok, saved = hext_plots(atrm_dir, sites='ak01')
+    def test_single_site_given_as_a_string(self, megiddo_dir):
+        ok, saved = hext_plots(megiddo_dir, sites='mgk09')
         assert ok
-        assert plot_names(atrm_dir) == ['unknown_ak01_s_aniso-conf.png',
-                                        'unknown_ak01_s_aniso-data.png']
+        assert plot_names(megiddo_dir) == plots_for('mgk09')
 
-    def test_site_missing_from_the_data_is_skipped(self, atrm_dir):
-        ok, saved = hext_plots(atrm_dir, sites=['ak01', 'not_a_site'])
+    def test_site_missing_from_the_data_is_skipped(self, megiddo_dir):
+        ok, saved = hext_plots(megiddo_dir, sites=['mgk09', 'not_a_site'])
         assert ok
-        assert plot_names(atrm_dir) == ['unknown_ak01_s_aniso-conf.png',
-                                        'unknown_ak01_s_aniso-data.png']
+        assert plot_names(megiddo_dir) == plots_for('mgk09')
 
-    def test_group_sites_pools_the_listed_sites_into_one_plot(self, atrm_dir):
-        ok, saved = hext_plots(atrm_dir, sites=['ak01', 'ak04'], group_sites=True)
+    def test_group_sites_pools_the_listed_sites_into_one_plot(self, megiddo_dir):
+        ok, saved = hext_plots(megiddo_dir, sites=['mgh12', 'mgk09'], group_sites=True)
         assert ok
-        assert plot_names(atrm_dir) == ['unknown_s_aniso-conf.png',
-                                        'unknown_s_aniso-data.png']
+        assert plot_names(megiddo_dir) == plots_for('')
 
-    def test_group_samples_pools_the_listed_samples_into_one_plot(self, atrm_dir):
-        ok, saved = hext_plots(atrm_dir, samples=['ak01a', 'ak01b', 'ak01c', 'ak01d'],
+    def test_listed_sample_gets_its_own_plots(self, megiddo_dir):
+        ok, saved = hext_plots(megiddo_dir, samples=['mgq05t1PI'])
+        assert ok
+        assert plot_names(megiddo_dir) == plots_for('mgq05t1PI')
+
+    def test_group_samples_pools_the_listed_samples_into_one_plot(self, megiddo_dir):
+        ok, saved = hext_plots(megiddo_dir, samples=['mgq05t1PI', 'mgq05t2PI'],
                                group_samples=True)
         assert ok
-        assert plot_names(atrm_dir) == ['unknown_s_aniso-conf.png',
-                                        'unknown_s_aniso-data.png']
+        assert plot_names(megiddo_dir) == plots_for('')
 
-    def test_listed_sample_gets_its_own_plots(self, aarm_dir):
-        ok, saved = hext_plots(aarm_dir, samples=['bg2'])
+    def test_isample_iterates_over_all_samples(self, megiddo_dir):
+        ok, saved = hext_plots(megiddo_dir, isample=True)
         assert ok
-        assert plot_names(aarm_dir) == ['Bushveld_bg2_s_aniso-conf.png',
-                                        'Bushveld_bg2_s_aniso-data.png']
-
-    def test_isample_iterates_over_all_samples(self, aarm_dir):
-        ok, saved = hext_plots(aarm_dir, isample=True)
-        assert ok
-        assert plot_names(aarm_dir) == ['Bushveld_bg2_s_aniso-conf.png',
-                                        'Bushveld_bg2_s_aniso-data.png']
+        assert plot_names(megiddo_dir) == plots_for('mgh12t1PI', 'mgk09t1PI',
+                                                    'mgq05t1PI', 'mgq05t2PI')
 
     @pytest.mark.parametrize("conflict", [
         dict(isite=True, isample=True),
-        dict(isite=True, sites=['ak01'], group_sites=True),
-        dict(isample=True, samples=['ak01a'], group_samples=True),
+        dict(isite=True, sites=['mgh12'], group_sites=True),
+        dict(isample=True, samples=['mgq05t1PI'], group_samples=True),
     ])
-    def test_conflicting_options_raise(self, atrm_dir, conflict):
+    def test_conflicting_options_raise(self, megiddo_dir, conflict):
         with pytest.raises(ValueError):
-            hext_plots(atrm_dir, **conflict)
+            hext_plots(megiddo_dir, **conflict)
 
     def test_aniso_magic_nb_is_the_same_function(self):
         assert ipmag.aniso_magic_nb is ipmag.aniso_magic
+
+
+class TestAnisoMagicMissingInput:
+    # these used to surface as a bare KeyError: 'specimens' or 'aniso_s'
+
+    def test_missing_specimens_file_is_reported(self, scratch_dir, capsys):
+        result = ipmag.aniso_magic(infile='no_such_file.txt', dir_path=str(scratch_dir))
+        assert result == (False, [])
+        message = capsys.readouterr().out
+        assert '-E- aniso_magic' in message
+        assert 'no_such_file.txt' in message
+
+    def test_missing_specimens_file_with_image_records(self, scratch_dir):
+        result = ipmag.aniso_magic(infile='no_such_file.txt', dir_path=str(scratch_dir),
+                                   image_records=True)
+        assert result == (False, [], [])
+
+    def test_specimens_table_without_anisotropy_data(self, scratch_dir, capsys):
+        with open(os.path.join(str(scratch_dir), 'specimens.txt'), 'w') as table:
+            table.write('tab\tspecimens\nspecimen\tsample\nspc01\tsmp01\n')
+        result = ipmag.aniso_magic(dir_path=str(scratch_dir))
+        assert result == (False, [])
+        assert 'aniso_s' in capsys.readouterr().out
 
 
 @pytest.fixture(scope="module")
