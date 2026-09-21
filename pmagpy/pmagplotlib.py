@@ -726,9 +726,12 @@ def plot_zij(fignum, datablock, angle, s, norm=True):
     amax = np.maximum(amax, gXYZ.Y.max())
     amin = np.minimum(gXYZ.X.min(), gXYZ.Z.min())
     amin = np.minimum(amin, gXYZ.Y.min())
+    bXYZ = pmag.dir2cart(bdata[['dec', 'inc', 'int']].values).transpose()
+    if bXYZ.size > 0:  # keep steps flagged bad within the plot as well
+        amax = np.maximum(amax, bXYZ.max())
+        amin = np.minimum(amin, bXYZ.min())
     if amin > 0:
         amin = 0
-    bXYZ = pmag.dir2cart(bdata[['dec', 'inc', 'int']].values).transpose()
 # plotting stuff
     if angle != 0:
         tempstr = "\n Declination rotated by: " + str(angle) + '\n'
@@ -749,14 +752,11 @@ def plot_zij(fignum, datablock, angle, s, norm=True):
     for k in range(len(gXYZ)):
         plt.annotate(str(k), (gXYZ['X'][k], gXYZ['Z']
                               [k]), ha='left', va='bottom')
-    if amin > 0 and amax >0:amin=0 # complete the line
-    if amin < 0 and amax <0:amax=0 # complete the line
-    xline = [amin, amax]
-   # yline=[-amax,-amin]
-    yline = [amax, amin]
-    zline = [0, 0]
-    plt.plot(xline, zline, 'k-')
-    plt.plot(zline, xline, 'k-')
+    if amin > 0 and amax >0:amin=0 # include the origin
+    if amin < 0 and amax <0:amax=0 # include the origin
+    # axis lines through the origin that span the full frame
+    plt.axhline(0, color='k')
+    plt.axvline(0, color='k')
     if angle != 0:
         xlab = "X: rotated to Dec = " + '%7.1f' % (angle)
     if angle == 0:
@@ -764,7 +764,11 @@ def plot_zij(fignum, datablock, angle, s, norm=True):
     plt.xlabel(xlab)
     plt.ylabel('Circles: Y; Squares: Z')
     tstring = s + ': NRM = ' + '%9.2e' % (datablock[0][3])
-    plt.axis([amin, amax, amax, amin])
+    # pad the frame beyond the extent of the data so that the points at the
+    # extremes are not clipped and so that the axis lines do not fall on the
+    # frame when the data are all on one side of the origin (issue #922)
+    pad = 0.08 * (amax - amin)
+    plt.axis([amin - pad, amax + pad, amax + pad, amin - pad])
     plt.gca().set_aspect("equal")
     plt.title(tstring)
 #
