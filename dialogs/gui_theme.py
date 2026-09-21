@@ -46,6 +46,10 @@ _SEMANTIC_PALETTES = {
     },
 }
 
+# Base window colours and blend fraction used by ``get_tint_colours``.
+_TINT_BASES = {False: "#FFFFFF", True: "#1E1E1E"}
+_TINT_STRENGTH = 0.45
+
 
 def _get_wx():
     """Import and return wxPython only when a GUI operation requires it."""
@@ -113,7 +117,47 @@ def style_control(control, role=NORMAL, dark=None, refresh=True):
     return background, foreground
 
 
-def style_list_item(list_control, index, role=NORMAL, dark=None, refresh=True):
+def get_tint_colours(colour, dark=None, strength=_TINT_STRENGTH):
+    """Return a readable ``(background, foreground)`` pair tinted by *colour*.
+
+    The background is *colour* blended into the light or dark base window
+    colour, so that a row can be associated with a plotted element (e.g. the
+    colour of an interpretation) without the saturated plot colour making the
+    text hard to read.  The foreground is whichever of black or white
+    contrasts best with that background.
+
+    Parameters
+    ----------
+    colour : str
+        Hexadecimal colour (``#RRGGBB``) to tint toward.
+    dark : bool or None
+        Explicit appearance used mainly for testing.  When omitted, the
+        current operating-system appearance is used.
+    strength : float
+        Fraction of *colour* in the blend (0 is the base colour, 1 is
+        *colour* itself).
+    """
+    if dark is None:
+        dark = is_dark_mode()
+    value = colour.lstrip("#")
+    base = _TINT_BASES[bool(dark)].lstrip("#")
+    blended = []
+    for position in (0, 2, 4):
+        colour_channel = int(value[position:position + 2], 16)
+        base_channel = int(base[position:position + 2], 16)
+        blended.append(int(round(
+            strength * colour_channel + (1 - strength) * base_channel
+        )))
+    background = "#{:02X}{:02X}{:02X}".format(*blended)
+    foreground = max(
+        ("#000000", "#FFFFFF"),
+        key=lambda candidate: contrast_ratio(background, candidate),
+    )
+    return background, foreground
+
+
+def style_list_item(list_control, index, role=NORMAL, dark=None, refresh=True,
+                    tint=None):
     """Apply a readable theme role to one row of a ``wx.ListCtrl``.
 
     List controls keep item colours separately from the colours of the
@@ -121,13 +165,26 @@ def style_list_item(list_control, index, role=NORMAL, dark=None, refresh=True):
     light background with the system's dark-mode foreground, making the row
     unreadable.  This helper always applies both colours and remembers the
     role so it can be reapplied after a system theme change.
+
+    When *tint* (a ``#RRGGBB`` string) is given, the row colours come from
+    ``get_tint_colours`` instead of the palette for *role*; the role is
+    still remembered, along with the tint.
     """
-    background, foreground = get_control_colours(role, dark=dark)
+    if tint is None:
+        background, foreground = get_control_colours(role, dark=dark)
+    else:
+        background, foreground = get_tint_colours(tint, dark=dark)
     list_control.SetItemBackgroundColour(index, background)
     list_control.SetItemTextColour(index, foreground)
     roles = getattr(list_control, "_pmag_item_theme_roles", {})
     roles[index] = _ROLE_ALIASES.get(role, role)
     list_control._pmag_item_theme_roles = roles
+    tints = getattr(list_control, "_pmag_item_theme_tints", {})
+    if tint is None:
+        tints.pop(index, None)
+    else:
+        tints[index] = tint
+    list_control._pmag_item_theme_tints = tints
     if refresh:
         list_control.RefreshItem(index)
     return background, foreground
@@ -139,10 +196,12 @@ def refresh_window_colours(window):
     if role is not None:
         style_control(window, role)
     item_roles = getattr(window, "_pmag_item_theme_roles", {})
+    item_tints = getattr(window, "_pmag_item_theme_tints", {})
     for index, item_role in item_roles.items():
         if index < window.GetItemCount():
             style_list_item(
-                window, index, item_role, refresh=False
+                window, index, item_role, refresh=False,
+                tint=item_tints.get(index),
             )
     if item_roles:
         window.Refresh()
