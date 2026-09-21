@@ -11291,7 +11291,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
             g : geographic coordinates, aniso_tile_correction = 0
             t : tilt corrected coordinates, aniso_tile_correction = 100
         num_bootstraps : how many bootstraps to do, default 1000
-        dir_path : directory path
+        dir_path : directory with the input files, in which the plots are also saved
         fignum : matplotlib figure number, default 1
         save_plots : bool, default True
             if True, create and save all requested plots
@@ -11457,12 +11457,12 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                     image_recs.append(image_rec)
 
             if save_plots:
-                saved.extend(pmagplotlib.save_plots(figs, files))
+                saved.extend(pmagplotlib.save_plots(figs, files, dir_path=dir_path))
             elif interactive:
                 pmagplotlib.draw_figs(figs)
                 ans = pmagplotlib.save_or_quit()
                 if ans == 'a':
-                    saved.extend(pmagplotlib.save_plots(figs, files))
+                    saved.extend(pmagplotlib.save_plots(figs, files, dir_path=dir_path))
                 else:
                     continue
             else:
@@ -11511,12 +11511,12 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
 
 
         if save_plots:
-            saved.extend(pmagplotlib.save_plots(figs, files))
+            saved.extend(pmagplotlib.save_plots(figs, files, dir_path=dir_path))
         elif interactive:
             pmagplotlib.draw_figs(figs)
             ans = pmagplotlib.save_or_quit()
             if ans == 'a':
-                saved.extend(pmagplotlib.save_plots(figs, files))
+                saved.extend(pmagplotlib.save_plots(figs, files, dir_path=dir_path))
     if image_records:
         return True, saved, image_recs
     return True, saved
