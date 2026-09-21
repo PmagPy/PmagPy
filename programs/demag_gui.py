@@ -1886,7 +1886,7 @@ class Demag_GUI(wx.Frame):
             tmax_ax.set_xlim(tmax_xmin, tmax_xmax)
             tmax_ax.set_ylim(tmax_ymin, tmax_ymax)
 
-            # logger: tint the steps within the bounds with the fit's colour
+            # logger: tint the steps within the bounds with the fit's color
             if fit == self.current_fit:
                 for item in range(self.logger.GetItemCount()):
                     tint = None
@@ -8192,17 +8192,17 @@ class Demag_GUI(wx.Frame):
 
     def get_logger_tint(self, fit):
         """
-        Get the colour used to tint the steps of a fit in the measurement
+        Get the color used to tint the steps of a fit in the measurement
         list so that they match the fit as drawn on the plots.
 
         Parameters
         ----------
-        fit : Fit object whose colour should be used
+        fit : Fit object whose color should be used
 
         Returns
         -------
-        hexadecimal colour string, or None (the default highlight colour is
-        then used) if the fit colour is not one matplotlib can interpret
+        hexadecimal color string, or None (the default highlight color is
+        then used) if the fit color is not one matplotlib can interpret
         """
         try:
             return matplotlib.colors.to_hex(fit.color)

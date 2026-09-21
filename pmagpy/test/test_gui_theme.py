@@ -110,31 +110,31 @@ def test_style_list_item_sets_both_colours_and_remembers_role():
     assert gui_theme.contrast_ratio(background, foreground) >= 4.5
 
 
-# interpretation colours cycled through by demag_gui
-FIT_COLOURS = ('#4ED740', '#9840D7', '#FFBD4C', '#398AAD',
+# interpretation colors cycled through by demag_gui
+FIT_COLORS = ('#4ED740', '#9840D7', '#FFBD4C', '#398AAD',
                '#E96640', '#CB1A9F', '#55C2B6', '#FFD44C')
 
 
 @pytest.mark.parametrize("dark", (False, True))
-@pytest.mark.parametrize("colour", FIT_COLOURS + ("#000000", "#FFFFFF"))
-def test_tint_colours_have_readable_contrast(colour, dark):
-    background, foreground = gui_theme.get_tint_colours(colour, dark=dark)
+@pytest.mark.parametrize("color", FIT_COLORS + ("#000000", "#FFFFFF"))
+def test_tint_colors_have_readable_contrast(color, dark):
+    background, foreground = gui_theme.get_tint_colors(color, dark=dark)
 
     assert gui_theme.contrast_ratio(background, foreground) >= 4.5
 
 
-def test_tint_colours_blend_toward_the_requested_colour():
-    assert gui_theme.get_tint_colours("#FF0000", dark=False, strength=0) == \
+def test_tint_colors_blend_toward_the_requested_color():
+    assert gui_theme.get_tint_colors("#FF0000", dark=False, strength=0) == \
         ("#FFFFFF", "#000000")
-    assert gui_theme.get_tint_colours("#FF0000", dark=False, strength=1) == \
+    assert gui_theme.get_tint_colors("#FF0000", dark=False, strength=1) == \
         ("#FF0000", "#000000")
-    background, _ = gui_theme.get_tint_colours(
+    background, _ = gui_theme.get_tint_colors(
         "#00FF00", dark=False, strength=0.5
     )
     assert background == "#80FF80"
 
 
-def test_style_list_item_tint_overrides_role_colours_and_is_remembered():
+def test_style_list_item_tint_overrides_role_colors_and_is_remembered():
     list_control = FakeListControl()
 
     background, foreground = gui_theme.style_list_item(
@@ -142,7 +142,7 @@ def test_style_list_item_tint_overrides_role_colours_and_is_remembered():
     )
 
     assert (background, foreground) == \
-        gui_theme.get_tint_colours("#4ED740", dark=False)
+        gui_theme.get_tint_colors("#4ED740", dark=False)
     assert list_control.backgrounds[0] == background
     assert list_control.foregrounds[0] == foreground
     assert list_control._pmag_item_theme_roles[0] == gui_theme.ANALYSIS

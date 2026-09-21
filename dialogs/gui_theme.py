@@ -46,7 +46,7 @@ _SEMANTIC_PALETTES = {
     },
 }
 
-# Base window colours and blend fraction used by ``get_tint_colours``.
+# Base window colors and blend fraction used by ``get_tint_colors``.
 _TINT_BASES = {False: "#FFFFFF", True: "#1E1E1E"}
 _TINT_STRENGTH = 0.45
 
@@ -117,36 +117,36 @@ def style_control(control, role=NORMAL, dark=None, refresh=True):
     return background, foreground
 
 
-def get_tint_colours(colour, dark=None, strength=_TINT_STRENGTH):
-    """Return a readable ``(background, foreground)`` pair tinted by *colour*.
+def get_tint_colors(color, dark=None, strength=_TINT_STRENGTH):
+    """Return a readable ``(background, foreground)`` pair tinted by *color*.
 
-    The background is *colour* blended into the light or dark base window
-    colour, so that a row can be associated with a plotted element (e.g. the
-    colour of an interpretation) without the saturated plot colour making the
+    The background is *color* blended into the light or dark base window
+    color, so that a row can be associated with a plotted element (e.g. the
+    color of an interpretation) without the saturated plot color making the
     text hard to read.  The foreground is whichever of black or white
     contrasts best with that background.
 
     Parameters
     ----------
-    colour : str
-        Hexadecimal colour (``#RRGGBB``) to tint toward.
+    color : str
+        Hexadecimal color (``#RRGGBB``) to tint toward.
     dark : bool or None
         Explicit appearance used mainly for testing.  When omitted, the
         current operating-system appearance is used.
     strength : float
-        Fraction of *colour* in the blend (0 is the base colour, 1 is
-        *colour* itself).
+        Fraction of *color* in the blend (0 is the base color, 1 is
+        *color* itself).
     """
     if dark is None:
         dark = is_dark_mode()
-    value = colour.lstrip("#")
+    value = color.lstrip("#")
     base = _TINT_BASES[bool(dark)].lstrip("#")
     blended = []
     for position in (0, 2, 4):
-        colour_channel = int(value[position:position + 2], 16)
+        color_channel = int(value[position:position + 2], 16)
         base_channel = int(base[position:position + 2], 16)
         blended.append(int(round(
-            strength * colour_channel + (1 - strength) * base_channel
+            strength * color_channel + (1 - strength) * base_channel
         )))
     background = "#{:02X}{:02X}{:02X}".format(*blended)
     foreground = max(
@@ -166,14 +166,14 @@ def style_list_item(list_control, index, role=NORMAL, dark=None, refresh=True,
     unreadable.  This helper always applies both colours and remembers the
     role so it can be reapplied after a system theme change.
 
-    When *tint* (a ``#RRGGBB`` string) is given, the row colours come from
-    ``get_tint_colours`` instead of the palette for *role*; the role is
+    When *tint* (a ``#RRGGBB`` string) is given, the row colors come from
+    ``get_tint_colors`` instead of the palette for *role*; the role is
     still remembered, along with the tint.
     """
     if tint is None:
         background, foreground = get_control_colours(role, dark=dark)
     else:
-        background, foreground = get_tint_colours(tint, dark=dark)
+        background, foreground = get_tint_colors(tint, dark=dark)
     list_control.SetItemBackgroundColour(index, background)
     list_control.SetItemTextColour(index, foreground)
     roles = getattr(list_control, "_pmag_item_theme_roles", {})
