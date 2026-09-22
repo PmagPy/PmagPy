@@ -46,7 +46,7 @@ class AraiPlot:
 
     def __init__(self, frame: int = FRAME):
         self.frame = frame
-        self.fig = figure(frame_width=frame, frame_height=frame, width=frame + 70,
+        self.fig = figure(frame_width=frame, frame_height=frame, width=self.outer_width(frame),
                           height=frame + self.CHROME, match_aspect=False,
                           tools="box_zoom,box_select,tap,pan,wheel_zoom,reset,save",
                           active_drag="box_zoom", active_tap="tap", sizing_mode="fixed",
@@ -122,11 +122,16 @@ class AraiPlot:
         self._resets += 1
         self.fig.tags = [self._resets]
 
+    @staticmethod
+    def outer_width(frame: int) -> int:
+        """The figure's outer width for a square frame of ``frame`` pixels."""
+        return frame + 70
+
     def set_frame(self, frame: int) -> None:
         self.frame = frame
         self.fig.frame_width = frame
         self.fig.frame_height = frame
-        self.fig.width = frame + 70
+        self.fig.width = self.outer_width(frame)
         self.fig.height = frame + self.CHROME
 
     # ----- drawing ----------------------------------------------------------

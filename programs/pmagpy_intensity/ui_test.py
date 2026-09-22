@@ -18,6 +18,9 @@ import time
 
 from playwright.sync_api import sync_playwright
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # programs/
+from pmagpy_panel.ui_checks import drag_plot_handle  # noqa: E402
+
 url = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:5101/pmagpy_intensity"
 prefix = sys.argv[2] if len(sys.argv) > 2 else "screenshots/app"
 os.makedirs(os.path.dirname(prefix) or ".", exist_ok=True)
@@ -194,17 +197,34 @@ with sync_playwright() as playwright:
                   and abs(after["y1"] - before["y1"]) < 1e-9)
     check(same_range, f"the Arai data range survives repeated resizing (saw {ratios})")
 
-    # ---- the plot-size slider --------------------------------------------
+    # ---- the handle under the plots ------------------------------------
+    # the plots follow the handle, keep it where it was let go, and the Arai
+    # frame stays square at its new size
     frame_before = arai_scaling(page)["w"]
-    page.evaluate("""() => {
-      const found = [];
-      const walk = (root) => root.querySelectorAll('*').forEach(el => {
-        if (el.shadowRoot) walk(el.shadowRoot);
-        if (el.classList && el.classList.contains('noUi-target')) found.push(el);
-      });
-      walk(document);
-      return found.length;
-    }""")
+    drag = drag_plot_handle(page, 60)
+    check(drag is not None, "the plots have a resize handle under them")
+    if drag:
+        check(drag["height_after"] > drag["height_before"] + 40,
+              f"dragging the handle down enlarges the plots ({drag['height_before']:.0f} -> "
+              f"{drag['height_after']:.0f} px)")
+        check(drag["drift"] <= 3, f"the handle stays where it was released (drifted {drag['drift']:.1f} px)")
+        check(drag["misfit"] <= 0.05,
+              f"every figure is drawn to its own size (canvas off by {100 * drag['misfit']:.1f}%)")
+        scaling = arai_scaling(page)
+        check(scaling["w"] > frame_before and abs(scaling["w"] - scaling["h"]) <= 1,
+              f"the Arai frame grew and stayed square ({scaling['w']:.0f} x {scaling['h']:.0f})")
+        # dragging far past what fits beside the Arai plot must not wrap the
+        # companions below it: the handle stops where the plots fill the pane
+        drag = drag_plot_handle(page, 400)
+        check(drag["drift"] <= 3 and drag["final"] - drag["dropped"] <= 3,
+              f"an oversized drag stops at the pane's width, without a jump "
+              f"(drifted {drag['drift']:.1f} px)")
+        # (a long drag ends a few pixels from its estimate, which is eased out)
+        drag = drag_plot_handle(page, -250)
+        check(drag["height_after"] < drag["height_before"] and drag["drift"] <= 5,
+              f"dragging up shrinks the plots smoothly (drifted {drag['drift']:.1f} px)")
+        check(drag["misfit"] <= 0.05, f"... and every figure is drawn to its own size "
+                                      f"(canvas off by {100 * drag['misfit']:.1f}%)")
     page.screenshot(path=f"{prefix}_resized.png")
 
     # ---- the other tabs render -------------------------------------------

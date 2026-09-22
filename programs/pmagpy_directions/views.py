@@ -206,13 +206,18 @@ class SpecimenView:
     SIDE_RATIO = ZijderveldPlot.SIDE / ZijderveldPlot.FRAME
 
     def _on_plot_size(self, event):
-        """Rescale the three plots together, as they are built in __init__."""
+        """Rescale the three plots together, as they are built in __init__.
+
+        The changes go to the browser as one message, so the figures are laid
+        out once and change size together rather than one after another.
+        """
         frame = int(event.new)
         side = max(140, int(round(frame * self.SIDE_RATIO)))
-        self.zij.set_frame(frame)
-        self.eq.set_size(side)
-        self.decay.set_size(side, ZijderveldPlot.TOP + frame - side - DecayPlot.TOP)
-        self.plot_col.width = side + 10
+        with pn.io.hold():
+            self.zij.set_frame(frame)
+            self.eq.set_size(side)
+            self.decay.set_size(side, ZijderveldPlot.TOP + frame - side - DecayPlot.TOP)
+            self.plot_col.width = side + 10
 
     # --- interaction ----------------------------------------------------------
     def _on_coord_widget(self, event):

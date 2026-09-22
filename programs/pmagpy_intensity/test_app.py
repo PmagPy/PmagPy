@@ -258,9 +258,35 @@ class TestSpecimenView:
     def test_resizing_keeps_the_arai_frame_square(self, workdir):
         src, out = workdir
         view = SpecimenView(Session(src, out))
-        view.size.value = 500
-        view._on_size(type("E", (), {"new": 500})())
+        view.plot_size.value = 500
         assert view.arai.fig.frame_width == view.arai.fig.frame_height == 500
+
+    def test_the_plot_handle_scales_the_companions_with_the_arai_plot(self, workdir):
+        """The companions keep their share of the Arai frame and stay one aligned block."""
+        from pmagpy_intensity.plots import AraiPlot
+        from pmagpy_intensity.views import TILE, companion_tile, figure_block_height, figure_block_width
+        src, out = workdir
+        view = SpecimenView(Session(src, out))
+        view.plot_size.value = 500
+        tile = companion_tile(500)
+        assert tile == round(500 * TILE / AraiPlot.FRAME)
+        assert view.net.fig.width == view.net.fig.height == tile
+        assert view.zij.fig.width == view.decay.fig.width == view.checks.fig.width == tile
+        assert all(column.width == tile for column in view.tiles)
+        assert view.companions.width == 2 * tile + view.COMPANION_GAP
+        # the handle is told how the block's height follows the frame, so it can
+        # keep itself under the cursor: the block grows faster than the frame
+        # because the companions are the taller part and scale with it
+        assert view.plot_size.px_per_value > 1
+        assert figure_block_height(520) > figure_block_height(500)
+        # and how fast it widens, so that it is never dragged wider than the pane
+        # (the flex box would wrap the companions below the Arai plot)
+        assert view.plot_size.width_per_value > view.plot_size.px_per_value
+        assert figure_block_width(500) == (view.arai.fig.width + view.COMPANION_GAP
+                                           + view.companions.width)
+
+        view.plot_size.value = view.plot_size.default_value
+        assert view.net.fig.width == TILE and view.arai.fig.frame_width == AraiPlot.FRAME
 
     def test_flagging_a_step_from_the_table_explains_itself(self, workdir):
         src, out = workdir

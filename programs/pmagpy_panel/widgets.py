@@ -109,24 +109,49 @@ class Splitter(JSComponent):
 
 
 class HeightSplitter(JSComponent):
-    """A horizontal drag handle that reports the height the plots above it should take.
+    """A horizontal drag handle under a block of figures that sets how large they are drawn.
 
-    The side panel's ``Splitter`` resizes DOM elements itself, but the plots are
-    Bokeh figures whose geometry belongs in ``plots.py`` — the frame, the square
-    net beside it and the M/M₀ strip under that are tied together — so this
-    handle reports a height and Python resizes the figures.
+    Place it directly after the block in a column. It reports a single number,
+    ``value`` (the application decides what it means: the Zijderveld frame in
+    Directions, the Arai frame in Intensity), and the application resizes its
+    figures from it in Python, since their geometry is tied together there.
 
-    Re-laying out those figures costs about 100 ms whoever asks for it (the
-    same in the browser as through Python), far too slow to follow a cursor.
-    So the drag scales the plots with a CSS transform, which is free and
-    immediate, and the real resize happens once, on release: live to the eye,
-    crisp when it settles.
+    Re-laying out Bokeh figures costs about 100 ms, far too slow to follow a
+    cursor. So the drag scales the block with a CSS transform, which is free
+    and immediate, and the real resize happens once, on release. How the two
+    are joined is what makes the resize feel smooth:
+
+    * during the drag the block's bottom edge follows the cursor, so the handle
+      stays under it; ``px_per_value`` (block height gained per unit of
+      ``value``) converts that height into a value;
+    * after release the preview stays on until the resized figures arrive, so
+      the plots never fall back to their size before the drag;
+    * when they arrive, the transform comes off and Bokeh is asked to lay the
+      block out again. Bokeh measures its views with getBoundingClientRect,
+      which includes a transform, and measures again only when a view's box
+      changes size, which removing a transform does not do: without this a
+      figure laid out under the preview keeps a canvas sized for the scaled
+      box, and is drawn too large or too small from then on;
+    * whatever small difference is left between the preview and the real
+      layout (a uniform scale cannot follow axes and legends, which do not
+      grow with the frame) is eased out with a transform alone, so nothing is
+      laid out, or measured, while it runs.
+
+    Given ``width_per_value`` (how much wider the figures get per unit of
+    value), the figures may not be dragged wider than the block: a block that
+    wraps (a flex box) would otherwise drop half its figures below the rest on
+    release, a jump far from where the handle was let go.
     """
 
-    value = param.Integer(default=430, doc="height in pixels the plot frame should take")
-    default_value = param.Integer(default=430, doc="height restored by a double click")
-    minimum = param.Integer(default=240, doc="smallest the plots may be dragged to")
-    maximum = param.Integer(default=1000, doc="largest the plots may be dragged to")
+    value = param.Integer(default=430, doc="the size the application draws its figures at")
+    default_value = param.Integer(default=430, doc="value restored by a double click")
+    minimum = param.Integer(default=240, doc="smallest value the handle may be dragged to")
+    maximum = param.Integer(default=1000, doc="largest value the handle may be dragged to")
+    px_per_value = param.Number(default=1.0, bounds=(0.05, None),
+                                doc="height the block gains per unit of value (updated by the application)")
+    width_per_value = param.Number(default=None, allow_None=True, bounds=(0.05, None),
+                                   doc="width the figures gain per unit of value; if given, they are kept "
+                                       "within the block's width (updated by the application)")
 
     _esm = """
     export function render({ model, el }) {
@@ -134,30 +159,118 @@ class HeightSplitter(JSComponent):
       bar.className = 'hsplitter';
       bar.title = 'drag to resize the plots · double click to reset';
       const host = () => el.getRootNode().host || el;
-      const plots = () => host().previousElementSibling;       // the row of figures
-      let startY = 0, startV = 0, box = null, pending = null, frame = null;
-      const clamp = (v) => Math.max(model.minimum, Math.min(model.maximum, v));
-      // the preview: the row is scaled where it stands, and its box is scaled with
-      // it so that whatever sits below moves too and nothing overflows sideways
-      const preview = (scale) => {
-        const t = plots();
-        if (!t || !box) return;
-        t.style.transformOrigin = 'top left';
-        t.style.transform = scale === null ? '' : 'scale(' + scale + ')';
-        t.style.width = scale === null ? '' : (box.width * scale) + 'px';
-        t.style.height = scale === null ? '' : (box.height * scale) + 'px';
+      const block = () => host().previousElementSibling;      // the figures above the handle
+      // The figures' laid-out extent, measured from the block's top left corner.
+      // They are found however deep the layout nests them, and the scale the
+      // preview has put on the block is divided out, so this is the size the
+      // figures really have, even mid-preview and however a flex box has wrapped them.
+      let scale = 1;
+      const figures = () => {
+        const out = [], walk = (root) => {
+          for (const e of root.querySelectorAll('*')) {
+            if (e.classList.contains('bk-Figure')) out.push(e);
+            else if (e.shadowRoot) walk(e.shadowRoot);
+          }
+        };
+        const b = block();
+        if (b && b.shadowRoot) walk(b.shadowRoot);
+        return out;
       };
+      const extent = () => {
+        const b = block();
+        if (!b) return {w: 0, h: 0};
+        const origin = b.getBoundingClientRect();
+        let w = 0, h = 0;
+        for (const f of figures()) {
+          const r = f.getBoundingClientRect();
+          w = Math.max(w, r.right - origin.left); h = Math.max(h, r.bottom - origin.top);
+        }
+        return {w: w / scale, h: h / scale};
+      };
+      const clamp = (v) => Math.max(model.minimum, Math.min(model.maximum, v));
+
+      // v0/h0: the value and the figures' height when the drag started; below:
+      // the block's own height beyond its figures (margins); vmax: the largest
+      // value that keeps the figures within the block's width (width_per_value);
+      // target: the height the figures are shown at
+      let startY = 0, v0 = 0, h0 = 0, below = 0, vmax = Infinity, target = null, pending = null, frame = null;
+      let observer = null, fallback = null, easing = null;
+
+      const reset = () => {
+        const b = block();
+        if (b) for (const k of ['transform', 'transformOrigin', 'height', 'transition'])
+          b.style[k] = '';
+        scale = 1;
+      };
+      // Show the block `target` tall, whatever size its figures have reached. The
+      // block's own height is set too, so that what lies below moves with it.
+      const show = () => {
+        const b = block(), h = extent().h;
+        if (!b || !h) return;
+        scale = target / h;
+        b.style.transition = '';
+        b.style.transformOrigin = 'top left';
+        b.style.transform = 'scale(' + scale + ')';
+        b.style.height = (target + below) + 'px';
+      };
+      const stopWatching = () => {
+        if (observer) { observer.disconnect(); observer = null; }
+        if (fallback !== null) { clearTimeout(fallback); fallback = null; }
+      };
+      // Lay the block out again, measured without a transform (see the docstring).
+      const relayout = () => {
+        const b = block(), B = window.Bokeh;
+        if (!b || !B || !B.index || typeof B.index.query !== 'function') return;
+        for (const view of B.index.query((v) => v.el === b)) { view.compute_layout(); break; }
+      };
+      // The figures are in: hand over to them, easing out what is left.
+      const land = () => {
+        stopWatching();
+        const b = block(), shown = target;
+        reset(); target = null;
+        if (!b) return;
+        relayout();
+        const h = extent().h;
+        if (!shown || !h || Math.abs(shown / h - 1) < 0.002) return;
+        b.style.transformOrigin = 'top left';
+        b.style.transform = 'scale(' + (shown / h) + ')';
+        void b.offsetHeight;             // commit the start of the transition
+        b.style.transition = 'transform 160ms ease-out';
+        b.style.transform = 'scale(1)';
+        easing = setTimeout(() => { easing = null; reset(); }, 200);
+      };
+      // Drop a hand-over still running (a new drag takes over from it).
+      const interrupt = () => {
+        const busy = target !== null || easing !== null;
+        stopWatching();
+        if (easing !== null) { clearTimeout(easing); easing = null; }
+        reset(); target = null;
+        if (busy) relayout();
+      };
+      // Ask for `v` and keep the block `target` tall until the figures have it.
+      const commit = (v) => {
+        if (v === model.value) { land(); return; }
+        show();
+        // a ResizeObserver reports every element once when it starts watching;
+        // the figures are in when one of them has a new size
+        const sizes = new Map(figures().map((f) => [f, f.offsetWidth + 'x' + f.offsetHeight]));
+        observer = new ResizeObserver(() => {
+          for (const [f, size] of sizes) {
+            if (f.offsetWidth + 'x' + f.offsetHeight !== size) { land(); return; }
+          }
+        });
+        for (const f of sizes.keys()) observer.observe(f);
+        fallback = setTimeout(land, 2000);        // should nothing arrive, do not stay scaled
+        model.value = v;
+      };
+
       const onMove = (e) => {
-        pending = clamp(startV + (e.clientY - startY));
+        pending = Math.min(vmax, clamp(v0 + (e.clientY - startY) / model.px_per_value));
         if (frame === null) {
-          // the frame takes the whole change in height, so the preview scales the
-          // row by the ratio that moves its bottom edge exactly that far: the
-          // handle stays under the cursor and lands where the resize will put it.
-          // (A uniform scale stretches the legend and toolbar strip too, which the
-          // resize leaves alone, so the width is a few per cent out mid-drag.)
           frame = requestAnimationFrame(() => {
             frame = null;
-            preview((box.height + (pending - startV)) / box.height);
+            target = h0 + (pending - v0) * model.px_per_value;
+            show();
           });
         }
       };
@@ -167,23 +280,36 @@ class HeightSplitter(JSComponent):
         document.body.style.cursor = ''; document.body.style.userSelect = '';
         bar.classList.remove('dragging');
         if (frame !== null) { cancelAnimationFrame(frame); frame = null; }
-        preview(null);               // hand the size over to the real figures
-        if (pending !== null) model.value = Math.round(pending);
-        pending = null; box = null;
+        const v = pending === null ? v0 : Math.min(vmax, Math.round(pending));
+        pending = null;
+        target = h0 + (v - v0) * model.px_per_value;
+        commit(v);
       };
       bar.addEventListener('mousedown', (e) => {
-        const t = plots();
-        if (!t) return;
-        startY = e.clientY; startV = model.value;
-        const r = t.getBoundingClientRect();
-        box = {width: r.width, height: r.height};
+        if (!block()) return;
+        interrupt();
+        startY = e.clientY; v0 = model.value;
+        const b = block(), size = extent();
+        h0 = size.h; below = Math.max(0, b.offsetHeight - size.h);
+        // (12 px in hand: the figures' containers, a grid with its gaps, are a
+        // little wider than the figures, and the application rounds its sizes)
+        vmax = model.width_per_value && size.w > 0
+          ? Math.max(v0, Math.floor(v0 + (b.clientWidth - 12 - size.w) / model.width_per_value))
+          : Infinity;
         bar.classList.add('dragging');
         document.body.style.cursor = 'row-resize'; document.body.style.userSelect = 'none';
         document.addEventListener('mousemove', onMove);
         document.addEventListener('mouseup', onUp);
         e.preventDefault();
       });
-      bar.addEventListener('dblclick', () => { model.value = model.default_value; });
+      bar.addEventListener('dblclick', () => {
+        if (!block()) return;
+        interrupt();
+        const b = block(), h = extent().h;
+        below = Math.max(0, b.offsetHeight - h);
+        target = h + (model.default_value - model.value) * model.px_per_value;
+        commit(model.default_value);
+      });
       return bar;
     }
     """

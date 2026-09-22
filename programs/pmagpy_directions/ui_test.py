@@ -5,10 +5,14 @@
 Exercises the step logger (left click = bounds, right click = good/bad),
 adds a fit, and screenshots every tab. Exits non-zero on failure.
 """
+import os
 import sys
 import time
 
 from playwright.sync_api import sync_playwright
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # programs/
+from pmagpy_panel.ui_checks import drag_plot_handle  # noqa: E402
 
 url = sys.argv[1]
 prefix = sys.argv[2]
@@ -52,6 +56,19 @@ with sync_playwright() as p:
     check("PmagPy Directions" in page.title(), f"window title is '{page.title()}'")
     check_nets_circular(page, "specimen tab")
     page.screenshot(path=f"{prefix}_specimen.png")
+
+    # the handle under the plots: they follow it and keep it where it was let go
+    for dy in (120, -120):
+        drag = drag_plot_handle(page, dy)
+        check(drag is not None and abs(drag["height_after"] - drag["height_before"] - dy) <= 3
+              and drag["drift"] <= 3,
+              f"dragging the plot handle {dy:+d} px resizes the plots by as much, smoothly "
+              f"({drag and round(drag['height_after'] - drag['height_before'])} px, "
+              f"drifted {drag and drag['drift']:.1f} px)")
+        check(drag is not None and drag["misfit"] <= 0.05,
+              f"after a {dy:+d} px drag every figure is drawn to its own size "
+              f"(canvas off by {drag and 100 * drag['misfit']:.1f}%)")
+    check_nets_circular(page, "after resizing the plots")
 
     # right click toggles good/bad on row 5
     row5 = page.locator(".step-logger tr[data-i='5']")

@@ -112,7 +112,9 @@ together, so a large screen can give the diagram more room and a small
 one can take some back to bring the fits above the fold. Re-laying out
 Bokeh figures costs about 100 ms, too slow to follow a cursor, so the
 drag previews the new size with a CSS transform and the figures are
-resized once, on release. On the Zijderveld plot, drag = zoom
+resized once, on release; the preview holds until the resized figures
+arrive, so the plots stay where the handle was let go rather than
+jumping back and then forward. On the Zijderveld plot, drag = zoom
 box, tap = pick a step, and box-select is one click away in the toolbar.
 
 Performance notes: the loaded dataset (interpretations included) is shared by

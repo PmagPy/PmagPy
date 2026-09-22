@@ -87,8 +87,10 @@ same width so the block reads as one thing. The step table is in the side
 column and the current result runs along the bottom.
 
 The whole tab fits a 1440-wide window without scrolling. Narrower than that and
-the pane scrolls sideways; drag the handle between the columns, or pull the
-**plot size** slider down — it scales the companions with the Arai plot.
+the pane scrolls sideways; drag the handle between the columns, or drag the
+handle under the plots up — it scales the companions with the Arai plot
+(double-click resets it). Dragging it down enlarges the plots until they fill
+the pane's width, and no further, so the companions stay beside the Arai plot.
 
 * **Choosing the interval.** Box-select two points on the Arai plot to set both
   bounds, click one point to move the nearer bound, use the `T min`/`T max`

@@ -44,7 +44,13 @@ demagnetization step or a Thellier step *is*, it does not belong here.
   `asset_data_uri()`.
 * **`widgets.py`** — the custom `JSComponent`s: `Splitter` (the vertical
   boundary between the side column and the main pane, which moves *both*),
-  `HeightSplitter` (resizes the plots), `Hotkeys` (forwards key presses).
+  `HeightSplitter` (the handle under a block of figures that resizes them;
+  each application maps its `value` onto its own geometry and tells it how
+  fast the block grows, `px_per_value` and optionally `width_per_value`),
+  `Hotkeys` (forwards key presses).
+* **`ui_checks.py`** — browser checks shared by the applications' Playwright
+  suites: `drag_plot_handle()` drags the plot handle and reports, frame by
+  frame, whether the plots stayed where it was let go and were drawn to size.
 * **`nets.py`** — equal-area primitives. `net_figure()` builds a square,
   toolbar-less figure and `keep_circular()` guards it; `declutter_labels()`
   thins labels where symbols pile up.
@@ -257,6 +263,14 @@ Each of these was found the hard way in Directions; none is obvious.
   from Python (~230 ms end to end) or from JavaScript against the models
   (90–120 ms). Nothing can follow a cursor at frame rate: preview a resize with
   a CSS transform and do the real resize once, on release.
+* **Bokeh measures its views with `getBoundingClientRect()`**, which includes
+  CSS transforms, and measures again only when a view's box changes size —
+  which adding or removing a transform does not do. A figure laid out while an
+  ancestor is scaled keeps a canvas sized for the scaled box, drawn too large
+  or too small, until something else resizes it. Take the transform off and
+  call the layout's `compute_layout()` before showing figures that were laid
+  out under one (`HeightSplitter` does), and never animate a layout property
+  of a Bokeh element under a transform.
 * **Equal-area nets go elliptical** when Bokeh aligns the frames of plots that
   share a layout. Build them with `net_figure()` (which sets
   `frame_align=False` and installs `keep_circular`) and assert circularity in
@@ -277,9 +291,12 @@ Each of these was found the hard way in Directions; none is obvious.
   pixels.** A `stretch_width` `FlexBox` inside one therefore never re-measures,
   and `flex-wrap` never fires however the window is resized — the pane scrolls
   instead. Size a block of figures for the width you expect to have and give
-  the analyst a handle, a size slider or both; do not expect CSS wrapping to
-  rescue a layout that does not fit. (Found in Intensity, laying the four
-  companion plots out beside the Arai plot.)
+  the analyst a handle; do not expect CSS wrapping to rescue a layout that
+  does not fit. (Found in Intensity, laying the four companion plots out
+  beside the Arai plot.) The converse also holds: when the *figures* change
+  size, Bokeh re-measures and the box does wrap, dropping half the block below
+  the rest — which is why `HeightSplitter` takes `width_per_value` and stops
+  the plots at the pane's width.
 * **A figure's chrome is not a constant you can guess.** Bokeh fits the frame
   into whatever the declared outer box leaves after the axes, labels, toolbar
   and legend — so an allowance that is too small *silently squashes the frame*

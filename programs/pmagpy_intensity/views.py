@@ -39,6 +39,7 @@ from .session import AUTOSAVE_NAME, RECENT_FILE, REDO_NAME, SESSION_NAME, Sessio
 #: needs around its frame (``CHROME_W``/``CHROME_H``), so a tile is defined by
 #: its *outer* width and the frame is worked back from it.
 TILE = 240                 # outer width of one companion tile
+COMPANION_GAP = 10         # between the Arai plot and the block, and between the block's columns
 SHORT = 0.62               # the decay and check tiles are wider than they are tall
 
 
@@ -49,6 +50,39 @@ def tile_frames(tile: int = TILE) -> dict:
             "net": tile,                       # net_figure's outer size *is* its size
             "decay": (tile - DecayPlot.CHROME_W, short),
             "checks": (tile - ChecksPlot.CHROME_W, short)}
+
+
+def companion_tile(frame: int) -> int:
+    """Outer width of a companion tile for an Arai frame: the block scales with the Arai plot."""
+    return max(180, round(frame * TILE / AraiPlot.FRAME))
+
+
+#: what captioned() adds to a figure's height: the caption, its margin, the tile's margin
+CAPTION_H = 16 + 1 + 6
+
+
+def figure_block_height(frame: int) -> int:
+    """Height in pixels of the Arai plot with the 2 x 2 companions beside it.
+
+    The block is as tall as the taller of the two: at every size the handle
+    offers that is the companions, whose tiles scale with the Arai frame.
+    """
+    frames = tile_frames(companion_tile(frame))
+    top = max(frames["zij"] + SpecimenZijderveldPlot.CHROME_H, frames["net"])
+    bottom = max(frames["decay"][1] + DecayPlot.CHROME_H, frames["checks"][1] + ChecksPlot.CHROME_H)
+    return max(frame + AraiPlot.CHROME, top + bottom + 2 * CAPTION_H)
+
+
+def figure_block_width(frame: int) -> int:
+    """Width in pixels of the Arai plot and the 2 x 2 companions side by side."""
+    return AraiPlot.outer_width(frame) + COMPANION_GAP + 2 * companion_tile(frame) + COMPANION_GAP
+
+
+def block_px_per_frame(frame: int, step: int = 20) -> tuple:
+    """How much taller and wider the figure block gets per pixel of Arai frame, around ``frame``."""
+    tall = (figure_block_height(frame + step) - figure_block_height(frame - step)) / (2 * step)
+    wide = (figure_block_width(frame + step) - figure_block_width(frame - step)) / (2 * step)
+    return tall, wide
 
 
 def captioned(caption: str, fig, width: int = TILE) -> pn.Column:
@@ -253,7 +287,7 @@ class DataView(DirectoryChooser):
 class SpecimenView:
     """One specimen: the Arai plot and its companions, the bounds and the result."""
 
-    COMPANION_GAP = 10
+    COMPANION_GAP = COMPANION_GAP
 
     def __init__(self, session: Session):
         self.s = session
@@ -314,9 +348,12 @@ class SpecimenView:
         self.notes = pn.pane.HTML("", sizing_mode="stretch_width")
         self.header = pn.pane.HTML("", sizing_mode="stretch_width")
         self.result = pn.pane.HTML("", sizing_mode="stretch_width")
-        self.size = pn.widgets.IntSlider(name="plot size", start=280, end=620,
-                                         value=AraiPlot.FRAME, step=10, width=200)
-        self.size.param.watch(self._on_size, "value_throttled")
+        # the handle under the figures: its value is the Arai frame, and the
+        # companions follow it (see _on_plot_size)
+        tall, wide = block_px_per_frame(AraiPlot.FRAME)
+        self.plot_size = HeightSplitter(value=AraiPlot.FRAME, default_value=AraiPlot.FRAME,
+                                        minimum=280, maximum=620, px_per_value=tall, width_per_value=wide)
+        self.plot_size.param.watch(self._on_plot_size, "value")
         self.hotkeys = Hotkeys()
         self.hotkeys.param.watch(self._on_hotkey, "n")
         self.code = code.CodePane()
@@ -326,19 +363,26 @@ class SpecimenView:
         self._sync()
 
     # ----- events -----------------------------------------------------------
-    def _on_size(self, event):
+    def _on_plot_size(self, event):
+        """Resize the Arai plot and scale the companions with it.
+
+        The changes go to the browser as one message, so the figures are laid
+        out once and change size together rather than one after another.
+        """
         frame = int(event.new)
-        self.arai.set_frame(frame)
-        tile = max(180, round(frame * TILE / AraiPlot.FRAME))
+        tile = companion_tile(frame)
         frames = tile_frames(tile)
-        self.zij.set_size(frames["zij"])
-        self.net.set_size(frames["net"])
-        self.decay.set_size(*frames["decay"])
-        self.checks.set_size(*frames["checks"])
-        for column in self.tiles:
-            column.width = column[0].width = tile
-        self.companions.width = 2 * tile + self.COMPANION_GAP
-        self.redraw()
+        with pn.io.hold():
+            self.arai.set_frame(frame)
+            self.zij.set_size(frames["zij"])
+            self.net.set_size(frames["net"])
+            self.decay.set_size(*frames["decay"])
+            self.checks.set_size(*frames["checks"])
+            for column in self.tiles:
+                column.width = column[0].width = tile
+            self.companions.width = 2 * tile + self.COMPANION_GAP
+            self.plot_size.px_per_value, self.plot_size.width_per_value = block_px_per_frame(frame)
+            self.redraw()
 
     def _on_bound(self, event):
         if self._updating or not self.s.ready:
@@ -543,7 +587,6 @@ class SpecimenView:
             pn.Row(self.auto_btn, self.clear_btn, self.flag_btn),
             pn.Row(self.copy_level, self.copy_btn),
             pn.Row(self.normalize, self.show_checks, stylesheets=[CHECKBOX_CSS]),
-            self.size,
             pn.pane.HTML(f'<div style="{SECTION_STYLE}">Steps</div>'),
             self.steps, self.flag_step, self.step_help, self.notes,
             self.hotkeys, sizing_mode="stretch_width")
@@ -561,13 +604,13 @@ class SpecimenView:
         horizontally: Bokeh sizes each container to its content and writes the
         result in pixels, so a flex box inside it never re-measures and CSS
         wrapping does not fire. The three things that do adapt are the drag
-        handle, the plot-size slider (which scales the block with the Arai
-        plot) and the browser's own zoom.
+        handle between the columns, the handle under the figures (which scales
+        the block with the Arai plot) and the browser's own zoom.
         """
         figures = pn.FlexBox(self.arai.fig, self.companions, flex_wrap="wrap",
                              align_items="flex-start", gap=f"{self.COMPANION_GAP}px",
                              styles={"width": "100%", "min-width": "0"})
-        return pn.Column(self.header, figures, self.result, self.code.panel(),
+        return pn.Column(self.header, figures, self.plot_size, self.result, self.code.panel(),
                          sizing_mode="stretch_width",
                          styles={"min-width": "0", "align-self": "stretch"})
 
