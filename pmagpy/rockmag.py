@@ -3493,7 +3493,7 @@ def hyst_loop_saturation_test(grid_field, grid_magnetization, max_field_cutoff=0
 
 def loop_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
                       Mr=None, Brh=None, Ms=None, criterion='magnitude',
-                      openness_tolerance=0.10, n_sigma=2.0):
+                      openness_tolerance=0.05, n_sigma=2.0):
     '''
     Test whether a hysteresis loop is closed at high field.
 
@@ -3550,7 +3550,7 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
         decision rule (default 'magnitude')
     openness_tolerance : float, keyword-only
         f_open at and above which the loop is classified as open (default
-        0.10, i.e. 10% of Mr)
+        0.05, i.e. 5% of Mr)
     n_sigma : float, keyword-only
         half-width of the confidence interval in standard errors (default 2)
 
@@ -4214,7 +4214,7 @@ def _print_closure_flag(specimen_name, closure):
 def process_hyst_loop(field, magnetization, specimen_name='', show_results_table=True, show_plot=True,
                       NL_fit=False, centering_protocol='legacy',
                       fit_open_loop=False, fit_linear_loop=False,
-                      magn_unit=_DEFAULT_MAGN_UNIT, openness_tolerance=0.10,
+                      magn_unit=_DEFAULT_MAGN_UNIT, openness_tolerance=0.05,
                       closure_criterion='magnitude'):
     """
     Process a magnetic hysteresis loop using the IRM decision tree workflow.
@@ -4277,7 +4277,7 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
         exited).
     openness_tolerance : float, optional
         f_open (high-field Mrh as a fraction of Mr) at and above which the
-        loop is classified as open and flagged (default 0.10; see
+        loop is classified as open and flagged (default 0.05; see
         `loop_closure_test`).
     closure_criterion : {'magnitude', 'SNR_HAR'}, optional
         Decision rule for the closure test (default 'magnitude'; 'SNR_HAR'
@@ -4529,7 +4529,7 @@ def process_hyst_loops(
     fit_open_loop=False,
     fit_linear_loop=False,
     magn_unit=None,
-    openness_tolerance=0.10,
+    openness_tolerance=0.05,
     closure_criterion='magnitude',
 ):
     """
@@ -4563,7 +4563,7 @@ def process_hyst_loops(
         only (default False).
     openness_tolerance : float, optional
         Passed through to process_hyst_loop: f_open at and above which a
-        loop is classified as open (default 0.10).
+        loop is classified as open (default 0.05).
     closure_criterion : {'magnitude', 'SNR_HAR'}, optional
         Passed through to process_hyst_loop (default 'magnitude').
     magn_unit : str, optional

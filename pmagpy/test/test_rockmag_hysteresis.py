@@ -446,11 +446,11 @@ class TestClosureMagnitude:
 
     def test_openness_tolerance(self):
         # the verdict is on the openness alone: a 3% opening is below the
-        # default 10% tolerance, a 15% opening is above it, and the
+        # default 5% tolerance, a 15% opening is above it, and the
         # tolerance is a parameter
         small = self._closure(*synthetic_loop(noise=2e-3,
                                               hard_Ms=_hard_Ms_for_openness(0.03)))
-        assert small['tolerance'] == 0.10
+        assert small['tolerance'] == 0.05
         assert small['closure_state'] == 'closed'
         assert (small['HF_cutoff'], small['max_field_cutoff']) == (0.8, 0.99)
         large = self._closure(*synthetic_loop(noise=2e-3,
