@@ -3260,36 +3260,36 @@ def calc_Mr_Mrh_Mih_Brh(grid_field, grid_magnetization):
 
     H = upper_branch[0]
     Mr = np.interp(0, H, Mrh)
+    Brh = _median_remanent_field(H, Mrh, Mr)
 
-    # Brh is the field corresponding to the m=Mr/2
-    pos_H = H[np.where(H > 0)]
-    pos_Mrh = Mrh[np.where(H > 0)]
-    neg_H = H[np.where(H < 0)]
-    neg_Mrh = Mrh[np.where(H < 0)]
-    Brh_pos = _find_y_crossing(pos_H, pos_Mrh, Mr/2)
-    Brh_neg = _find_y_crossing(neg_H, neg_Mrh, Mr/2)
-    # Mrh may never fall to Mr/2 within the measured field range (e.g. a loop
-    # dominated by an unsaturated high-coercivity phase such as hematite);
-    # report Brh as NaN rather than failing, so such loops still process and
-    # the closure test downstream can flag them as open
+    return H, Mr, Mrh, Mih, Me, Brh
+
+
+def _median_remanent_field(H, Mrh, Mr):
+    """Brh: the field at which Mrh falls to Mr/2, averaged over the two field
+    polarities. NaN, with a warning, when Mrh never falls to Mr/2 within the
+    measured field range (e.g. a loop dominated by an unsaturated
+    high-coercivity phase), so such loops still process and the closure test
+    can flag them."""
+    pos = H > 0
+    neg = H < 0
+    Brh_pos = _find_y_crossing(H[pos], Mrh[pos], Mr/2)
+    Brh_neg = _find_y_crossing(H[neg], Mrh[neg], Mr/2)
     if Brh_pos is None and Brh_neg is None:
         warnings.warn(
             'Mrh does not fall to Mr/2 within the measured field range, so '
             'the median remanent field Brh cannot be determined (NaN); the '
             'loop likely contains an unsaturated high-coercivity component',
-            RuntimeWarning, stacklevel=2)
-        Brh = np.nan
-    elif Brh_pos is None or Brh_neg is None:
+            RuntimeWarning, stacklevel=3)
+        return np.nan
+    if Brh_pos is None or Brh_neg is None:
         found = Brh_pos if Brh_pos is not None else Brh_neg
         warnings.warn(
             'the Mr/2 crossing of Mrh was found for only one field polarity; '
             'Brh is taken from that crossing alone',
-            RuntimeWarning, stacklevel=2)
-        Brh = float(np.abs(found))
-    else:
-        Brh = np.abs((Brh_pos - Brh_neg)/2)
-
-    return H, Mr, Mrh, Mih, Me, Brh
+            RuntimeWarning, stacklevel=3)
+        return float(np.abs(found))
+    return float(np.abs((Brh_pos - Brh_neg)/2))
 
 def calc_Bc(H, M):
     '''
@@ -3589,12 +3589,7 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
     if Mr is None:
         Mr = float(np.interp(0, H, Mrh))
     if Brh is None:
-        # field at which Mrh falls to half of Mr (the definition used in
-        # calc_Mr_Mrh_Mih_Brh, averaged over the two field polarities)
-        crossings = [c for c in (_find_y_crossing(H[H > 0], Mrh[H > 0], Mr/2),
-                                 _find_y_crossing(H[H < 0], Mrh[H < 0], Mr/2))
-                     if c is not None]
-        Brh = float(np.mean(np.abs(crossings))) if crossings else np.nan
+        Brh = _median_remanent_field(H, Mrh, Mr)
 
     pos_H_index = np.where(H > 0)
     neg_H_index = np.where(H < 0)
@@ -3608,12 +3603,16 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
     pos_HF_Mrh = Mrh[pos_HF_index]
     neg_HF_Mrh = Mrh[neg_HF_index]
 
-    # field-reflection average of Mrh (signal); negative values are noise
-    # excursions and are set to 0 so that only positive signal is counted
-    average_Mrh = (pos_Mrh + neg_Mrh[::-1])/2
-    average_Mrh[average_Mrh < 0] = 0
-    average_HF_Mrh = (pos_HF_Mrh + neg_HF_Mrh[::-1])/2
-    average_HF_Mrh[average_HF_Mrh < 0] = 0
+    # even part of Mrh (field-reflection average) and odd part (residual
+    # between the field polarities, zero for a symmetric loop)
+    even_Mrh = (pos_Mrh + neg_Mrh[::-1])/2
+    even_HF_Mrh = (pos_HF_Mrh + neg_HF_Mrh[::-1])/2
+    odd_HF_Mrh = pos_HF_Mrh - neg_HF_Mrh[::-1]
+
+    # the SNR/HAR signal: the even part with negative values (noise
+    # excursions) set to 0 so that only positive signal is counted
+    average_Mrh = np.clip(even_Mrh, 0, None)
+    average_HF_Mrh = np.clip(even_HF_Mrh, 0, None)
 
     if Me is not None:
         # noise from the high-field portion of the err(H) curve, over both
@@ -3622,10 +3621,10 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
         assert len(Me) == len(H), 'H, Me must have the same length'
         hf_noise = Me[(np.abs(H) > HF_cutoff*max_H) & (np.abs(H) <= max_field_cutoff*max_H)]
     else:
-        # fall back to the odd part of Mrh (the residual between the field
-        # polarities); for white noise this runs ~3 dB below the err(H)-based
-        # estimate, biasing slightly toward classifying loops as open
-        hf_noise = pos_HF_Mrh - neg_HF_Mrh[::-1]
+        # fall back to the odd part of Mrh; for white noise this runs ~3 dB
+        # below the err(H)-based estimate, biasing slightly toward
+        # classifying loops as open
+        hf_noise = odd_HF_Mrh
 
     HF_Mrh_signal_RMS = np.sqrt(np.mean(average_HF_Mrh**2))
     HF_Mrh_noise_RMS = np.sqrt(np.mean(hf_noise**2))
@@ -3638,14 +3637,12 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
     loop_is_closed_SNR_HAR = bool((SNR < 8) or (HAR < -48))
 
     # openness: the signed mean of the even high-field Mrh over Mr
-    even_HF_Mrh = (pos_HF_Mrh + neg_HF_Mrh[::-1])/2
     n_HF = len(even_HF_Mrh)
     HF_Mrh_mean = float(np.mean(even_HF_Mrh))
     # standard error of the window mean: noise amplitude from the odd part
-    # of Mrh (zero for a symmetric loop; var(even) = var(odd)/4), and an
-    # effective sample size from the lag-1 autocorrelation of the detrended
-    # even part, since gridding correlates neighboring values
-    odd_HF_Mrh = pos_HF_Mrh - neg_HF_Mrh[::-1]
+    # (var(even) = var(odd)/4), and an effective sample size from the lag-1
+    # autocorrelation of the detrended even part, since gridding correlates
+    # neighboring values
     sigma_even = float(np.sqrt(np.mean(odd_HF_Mrh**2)))/2
     if n_HF > 3 and sigma_even > 0:
         x = np.arange(n_HF)
@@ -4172,11 +4169,11 @@ def _show_hyst_summary_table(summary, width, magn_unit=_DEFAULT_MAGN_UNIT):
     show(column(data_table))
 
 
-# Values reported by process_hyst_loop for quantities that are undefined at a
-# decision-tree exit (statistically linear loop, or loop that remains open at
-# the highest fields). The full key set is always present in the result so
-# batch tables (process_hyst_loops) and the specimens-table writer keep a
-# stable schema across all three outcomes.
+# Values reported by process_hyst_loop for quantities that are undefined at
+# the decision-tree exit for a statistically linear loop. The full key set is
+# always present in the result so batch tables (process_hyst_loops) and the
+# specimens-table writer keep a stable schema whether or not the exit was
+# taken.
 _HYST_UNDEFINED_RESULTS = {
     'loop_centering_results': None, 'centered_H': None, 'centered_M': None,
     'drift_corrected_M': None, 'slope_corrected_M': None,
