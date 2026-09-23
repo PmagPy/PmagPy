@@ -4200,15 +4200,16 @@ def _print_closure_flag(specimen_name, closure):
     f = closure['HF_Mrh_fraction']
     se = closure['HF_Mrh_fraction_se']
     lo, hi = 100*closure['HF_cutoff'], 100*closure['max_field_cutoff']
-    stat = (f'f_open = {100*f:.1f} +/- {100*se:.2g}% of Mrs '
-            f'(HF_Mrh_fraction: mean of the field-reflection-averaged Mrh over '
-            f'{lo:.0f}-{hi:.0f}% of the peak field, divided by Mr)')
+    if np.isfinite(f):
+        stat = (f'f_open = {100*f:.1f} +/- {100*se:.2g}% of Mrs '
+                f'(HF_Mrh_fraction: mean of the field-reflection-averaged Mrh '
+                f'over {lo:.0f}-{hi:.0f}% of the peak field, divided by Mr)')
+    else:
+        stat = ('the remanence Mr does not stand above the noise, so the '
+                'high-field Mrh cannot be expressed as a fraction of it')
     if closure['criterion'] == 'SNR_HAR':
         stat = (f"SNR = {closure['SNR']:.1f} dB, HAR = {closure['HAR']:.1f} dB; "
                 + stat)
-    elif not np.isfinite(f):
-        stat = ('the remanence Mr does not stand above the noise, so the '
-                'high-field Mrh cannot be expressed as a fraction of it')
     if closure['closure_state'] == 'open':
         print(f'-W- {label}loop is open at high field: {stat}; the high-field '
               'fit, and so Ms and chi_HF, are biased by the unsaturated fraction')
