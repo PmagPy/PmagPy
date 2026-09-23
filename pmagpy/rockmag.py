@@ -3656,7 +3656,9 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
     else:
         n_eff = n_HF
     HF_Mrh_mean_se = sigma_even/np.sqrt(n_eff) if n_HF > 0 else np.nan
-    Mr_usable = np.isfinite(Mr) and Mr > 0
+    # Mr must stand clear of the noise for a fraction of it to mean anything
+    # (a paramagnetic loop has an Mr of noise-level size and random sign)
+    Mr_usable = bool(np.isfinite(Mr) and Mr > n_sigma*sigma_even)
     HF_Mrh_fraction = HF_Mrh_mean/Mr if Mr_usable else np.nan
     HF_Mrh_fraction_se = HF_Mrh_mean_se/Mr if Mr_usable else np.nan
     HF_Mrh_fraction_rms = float(HF_Mrh_signal_RMS/Mr) if Mr_usable else np.nan
@@ -4204,6 +4206,9 @@ def _print_closure_flag(specimen_name, closure):
     if closure['criterion'] == 'SNR_HAR':
         stat = (f"SNR = {closure['SNR']:.1f} dB, HAR = {closure['HAR']:.1f} dB; "
                 + stat)
+    elif not np.isfinite(f):
+        stat = ('the remanence Mr does not stand above the noise, so the '
+                'high-field Mrh cannot be expressed as a fraction of it')
     if closure['closure_state'] == 'open':
         print(f'-W- {label}loop is open at high field: {stat}; the high-field '
               'fit, and so Ms and chi_HF, are biased by the unsaturated fraction')

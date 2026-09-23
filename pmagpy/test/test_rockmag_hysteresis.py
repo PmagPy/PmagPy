@@ -495,6 +495,17 @@ class TestClosureMagnitude:
         assert results['closure_state'] == 'indeterminate'
         assert results['loop_is_closed']
 
+    def test_noise_level_Mr_is_not_normalized(self):
+        # a paramagnetic loop has an Mr of noise-level size and random sign;
+        # f_open is undefined for it rather than a huge meaningless number
+        H, M = synthetic_loop(Ms=0.0, chi=0.2, noise=1e-4,
+                              rng=np.random.default_rng(5))
+        Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
+        results = rmag.loop_closure_test(Hu, Mrh, Me=Me)
+        assert np.isnan(results['HF_Mrh_fraction'])
+        assert results['tolerance'] is None
+        assert results['closure_state'] in ('closed', 'indeterminate')
+
     def test_explicit_Mr_and_Brh_match_defaults(self):
         H, M = synthetic_loop(noise=2e-3, hard_Ms=0.1)
         Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
