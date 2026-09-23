@@ -3657,7 +3657,7 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
         n_eff = n_HF*(1 - rho)/(1 + rho)
     else:
         n_eff = n_HF
-    HF_Mrh_mean_se = sigma_even/np.sqrt(n_eff) if n_HF > 0 else np.nan
+    HF_Mrh_mean_se = float(sigma_even/np.sqrt(n_eff)) if n_HF > 0 else np.nan
     # Mr must stand clear of the noise for a fraction of it to mean anything
     # (a paramagnetic loop has an Mr of noise-level size and random sign)
     Mr_usable = bool(np.isfinite(Mr) and Mr > n_sigma*sigma_even)
