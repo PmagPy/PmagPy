@@ -1028,29 +1028,22 @@ class InterpretationsView(LazyView):
         # ticked — every fit the header filters leave listed
         self.plot = DirectionsPlot("Fits", size=SIDE_PLOT)
         self.plot_note = pn.pane.HTML("", sizing_mode="stretch_width")
-        # A header filter typed in the browser reaches `table.filters`, but Panel
-        # suppresses watchers while it syncs the table's own state back, so the change
-        # arrives silently: the value is polled instead while the tab is on show.
-        # (The watcher still covers ticking and programmatic filters.)
-        self._filters_seen = []
-        self._poll = None
-        self.table.param.watch(self._redraw_plot, ["selection", "filters"])
+        self.table.param.watch(self._on_table_change, ["selection", "filters"])
         session.param.watch(self._lazy_redraw, ["coord", "version"])
         self._start(active)
 
-    def set_active(self, active: bool):
-        super().set_active(active)
-        if active and self._poll is None and pn.state.curdoc is not None:
-            self._poll = pn.state.add_periodic_callback(self._poll_filters, period=350)
-        elif not active and self._poll is not None:
-            self._poll.stop()
-            self._poll = None
+    def _on_table_change(self, *events):
+        """A tick or a header filter changed what the table shows: redraw the side plot.
 
-    def _poll_filters(self):
-        current = list(self.table.filters or [])
-        if current != self._filters_seen:
-            self._filters_seen = current
-            self._redraw_plot()
+        The redraw is scheduled for the server's next tick rather than run here.
+        A header filter typed in the browser reaches this watcher while Panel is
+        still syncing the table's state, and changes made to other panes at that
+        point never reach the page: the side plot kept showing every fit. (It was
+        once polled instead, but a periodic callback marks the server busy on
+        every run, and the page's busy spinner turned for as long as the tab was
+        open.) Without a server, as in the tests, it runs at once.
+        """
+        pn.state.execute(self._redraw_plot, schedule=True)
 
     def _sync_pickers(self, names):
         self._syncing = True

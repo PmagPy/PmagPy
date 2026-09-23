@@ -36,6 +36,27 @@ NETS_JS = """() => {
 }"""
 
 
+# the page's busy spinner (top right): how much of `ms` it spends turning
+BUSY_JS = """async (ms) => {
+  const el = [...document.querySelectorAll('#busy-container *')].find(e => e.classList.contains('loader'));
+  if (!el) return null;
+  let on = 0, n = 0;
+  for (const t0 = performance.now(); performance.now() - t0 < ms; n++) {
+    await new Promise(r => setTimeout(r, 25));
+    if (el.classList.contains('spin')) on++;
+  }
+  return on / n;
+}"""
+
+# the Fits side column's caption ("12 of 996 fits listed", "2 fits ticked in the table")
+FITS_NOTE_JS = """() => {
+  const all = [], walk = (root) => root.querySelectorAll('*').forEach(e => { all.push(e); if (e.shadowRoot) walk(e.shadowRoot); });
+  walk(document);
+  const hit = all.find(e => e.tagName === 'SPAN' && /fits? (listed|ticked)/.test(e.textContent) && e.getBoundingClientRect().width > 0);
+  return hit ? hit.textContent : '';
+}"""
+
+
 def check_nets_circular(page, where):
     """Every rendered equal-area net must map data to pixels identically in x and y."""
     nets = page.evaluate(NETS_JS)
@@ -194,6 +215,25 @@ with sync_playwright() as p:
         if tab == "Fits":
             # the side column plots what the table lists, and says how many
             check(page.get_by_text("fits listed").count() > 0, "Fits tab: side column reports the plotted fits")
+            # nothing runs in the background while the tab is open
+            busy = page.evaluate(BUSY_JS, 3000)
+            check(busy == 0, f"Fits tab: the busy spinner is idle (turning {busy!r} of the time)")
+            # a header filter typed in the browser narrows the side plot, and clearing it restores it
+            before = page.evaluate(FITS_NOTE_JS)
+            box = page.locator(".tabulator-header-filter input").first
+            box.click(); box.type(page.locator(".tabulator-row .tabulator-cell[tabulator-field='specimen']").first.inner_text()[:4], delay=40)
+            time.sleep(2.5)
+            narrowed = page.evaluate(FITS_NOTE_JS)
+            check(narrowed.split(" of ")[0] != before.split(" of ")[0],
+                  f"Fits tab: a header filter narrows the side plot ({before.split(' ·')[0]} -> {narrowed.split(' ·')[0]})")
+            box.fill(""); box.press("Enter"); time.sleep(2.5)
+            check(page.evaluate(FITS_NOTE_JS) == before, "Fits tab: clearing the filter restores the side plot")
+            # ticking rows plots just those
+            ticks = page.locator(".tabulator-row input[type='checkbox']")
+            ticks.nth(0).click(); ticks.nth(1).click(); time.sleep(2.5)
+            ticked = page.evaluate(FITS_NOTE_JS)
+            check("2 fits ticked" in ticked, f"Fits tab: ticking two rows plots just those ({ticked.split(' ·')[0]})")
+            ticks.nth(0).click(); ticks.nth(1).click(); time.sleep(2.5)
         if tab == "Poles":
             n_land = page.evaluate("""() => {
               const doc = Bokeh.documents[0];
