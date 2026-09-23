@@ -3552,7 +3552,12 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
         f_open at and above which the loop is classified as open (default
         0.05, i.e. 5% of Mr)
     n_sigma : float, keyword-only
-        half-width of the confidence interval in standard errors (default 2)
+        number of standard errors used throughout the test (default 2):
+        the half-width of the confidence interval on f_open, the margin by
+        which Mr must exceed the noise amplitude for f_open to be defined,
+        and, when Mr does not, the significance level at which a nonzero
+        high-field Mrh makes the verdict 'indeterminate' rather than
+        'closed'
 
     Returns
     -------
