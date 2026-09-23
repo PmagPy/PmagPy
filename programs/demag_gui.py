@@ -1886,11 +1886,13 @@ class Demag_GUI(wx.Frame):
             tmax_ax.set_xlim(tmax_xmin, tmax_xmax)
             tmax_ax.set_ylim(tmax_ymin, tmax_ymax)
 
-            # logger
+            # logger: tint the steps within the bounds with the fit's color
             if fit == self.current_fit:
                 for item in range(self.logger.GetItemCount()):
+                    tint = None
                     if item >= tmin_index and item <= tmax_index:
                         role = gui_theme.ANALYSIS
+                        tint = self.get_logger_tint(fit)
                     else:
                         role = gui_theme.NORMAL
                     try:
@@ -1899,7 +1901,8 @@ class Demag_GUI(wx.Frame):
                         relability = 'b'
                     if relability == 'b':
                         role = gui_theme.ERROR
-                    gui_theme.style_list_item(self.logger, item, role)
+                        tint = None
+                    gui_theme.style_list_item(self.logger, item, role, tint=tint)
 
         if problems != {}:
             if 'no bounds' in list(problems.keys()):
@@ -8178,11 +8181,33 @@ class Demag_GUI(wx.Frame):
             self.logger.SetItem(i, 5, "%.2e" % Int)
             self.logger.SetItem(i, 6, csd)
             role = gui_theme.NORMAL
+            tint = None
             if i >= tmin_index and i <= tmax_index:
                 role = gui_theme.ANALYSIS
+                tint = self.get_logger_tint(self.current_fit)
             if self.Data[self.s]['measurement_flag'][i] == 'b':
                 role = gui_theme.ERROR
-            gui_theme.style_list_item(self.logger, i, role)
+                tint = None
+            gui_theme.style_list_item(self.logger, i, role, tint=tint)
+
+    def get_logger_tint(self, fit):
+        """
+        Get the color used to tint the steps of a fit in the measurement
+        list so that they match the fit as drawn on the plots.
+
+        Parameters
+        ----------
+        fit : Fit object whose color should be used
+
+        Returns
+        -------
+        hexadecimal color string, or None (the default highlight color is
+        then used) if the fit color is not one matplotlib can interpret
+        """
+        try:
+            return matplotlib.colors.to_hex(fit.color)
+        except ValueError:
+            return None
 
     def on_click_listctrl(self, event):
         if not self.current_fit:
