@@ -423,6 +423,29 @@ class TestClosureMagnitude:
                                                                rel=0.05)
             assert results['HF_Mrh_fraction_se'] < 0.1 * target
 
+    def test_standard_error_matches_empirical_scatter(self):
+        # on noisy loops the reported SE must track the actual scatter of
+        # f_open across noise realizations (the noise-free test above has
+        # SE = 0 exactly and cannot see a regression in the SE code)
+        hard_Ms = _hard_Ms_for_openness(0.03)
+        reported_se = {}
+        for noise in (1e-3, 1e-2):
+            rng = np.random.default_rng(int(noise * 1e6))
+            estimates, ses = [], []
+            for _ in range(30):
+                H, M = synthetic_loop(noise=noise, hard_Ms=hard_Ms, rng=rng)
+                r = self._closure(H, M)
+                estimates.append(r['HF_Mrh_fraction'])
+                ses.append(r['HF_Mrh_fraction_se'])
+            empirical = np.std(estimates, ddof=1)
+            reported_se[noise] = np.median(ses)
+            assert reported_se[noise] > 0
+            # calibrated to within a factor of ~2
+            assert 0.4 < reported_se[noise] / empirical < 2.5, \
+                (noise, reported_se[noise], empirical)
+        # and the SE scales with the noise level
+        assert reported_se[1e-2] > 3 * reported_se[1e-3]
+
     def test_closed_loop_reports_zero_openness(self):
         results = self._closure(*synthetic_loop(noise=2e-3))
         assert results['closure_state'] == 'closed'
