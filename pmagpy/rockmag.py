@@ -3492,8 +3492,8 @@ def hyst_loop_saturation_test(grid_field, grid_magnetization, max_field_cutoff=0
 
 
 def loop_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
-                      Mr=None, Brh=None, Ms=None, criterion='magnitude',
-                      openness_tolerance=0.05, n_sigma=2.0):
+                      Ms=None, Mr=None, Brh=None, criterion='magnitude',
+                      openness_tolerance=0.02, n_sigma=2.0):
     '''
     Test whether a hysteresis loop is closed at high field.
 
@@ -3501,25 +3501,31 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
     field-reflection average (Mrh(+H) + Mrh(-H))/2 over a high-field window
     is zero once the branches have merged and positive while they are still
     separated. The openness statistic f_open (``HF_Mrh_fraction``) is the
-    mean of this average over the window, divided by Mr: the fraction of
-    the saturation remanence still carried by unswitched grains at those
-    fields. It is negative when the branches cross, which usually indicates
-    residual drift. The window is HF_cutoff to max_field_cutoff of the peak
-    field (80-99% by default); f_open depends on the window, which is
-    returned with it. The standard error is estimated from the noise in
-    the odd part of Mrh, Mrh(+H) - Mrh(-H), which is zero for a symmetric
-    loop.
+    mean of this average over the window, divided by the saturation
+    magnetization Ms from the high-field fit: the unswitched irreversible
+    moment at those fields as a fraction of the ferromagnetic moment, which
+    is also the approximate relative error that the opening induces in the
+    fitted Ms. It is negative when the branches cross, which usually
+    indicates residual drift. The same quantity divided by Mr
+    (``HF_Mrh_fraction_Mr``, the fraction of the saturation remanence still
+    unswitched) is returned as well; it does not depend on the fit but
+    overstates the opening for material with a small Mr/Ms. The window is
+    HF_cutoff to max_field_cutoff of the peak field (80-99% by default);
+    f_open depends on the window, which is returned with it. The standard
+    error is estimated from the noise in the odd part of Mrh,
+    Mrh(+H) - Mrh(-H), which is zero for a symmetric loop.
 
     With criterion='magnitude' (default), the loop is 'open' when
     f_open - n_sigma*SE reaches openness_tolerance, 'closed' when
     f_open + n_sigma*SE is below it and the interval half-width is smaller
-    than the tolerance, and 'indeterminate' otherwise. With
-    criterion='SNR_HAR', the HystLab rule (Paterson et al., 2018) is used:
-    'open' when the signal-to-noise ratio of the high-field Mrh is at least
-    8 dB and the ratio of high-field to total Mrh area is at least -48 dB.
-    SNR and HAR are returned under both criteria; the SNR rule depends on
-    the measurement noise rather than on the size of the opening, which is
-    why 'magnitude' is the default (PmagPy issue #902).
+    than the tolerance, and 'indeterminate' otherwise. This criterion
+    requires Ms. With criterion='SNR_HAR', the HystLab rule (Paterson et
+    al., 2018) is used: 'open' when the signal-to-noise ratio of the
+    high-field Mrh is at least 8 dB and the ratio of high-field to total
+    Mrh area is at least -48 dB. SNR and HAR are returned under both
+    criteria; the SNR rule depends on the measurement noise rather than on
+    the size of the opening, which is why 'magnitude' is the default
+    (PmagPy issue #902).
 
     Parameters
     ----------
@@ -3536,44 +3542,45 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
     max_field_cutoff : float, keyword-only
         upper edge of the window as a fraction of the peak field (default
         0.99, excluding the loop tips)
+    Ms : float, keyword-only
+        saturation magnetization from the high-field fit, the normalization
+        of f_open; required for criterion='magnitude'
     Mr : float, optional, keyword-only
-        saturation remanence used to normalize f_open; by default
-        interpolated from Mrh at zero field
+        saturation remanence, the normalization of HF_Mrh_fraction_Mr; by
+        default interpolated from Mrh at zero field
     Brh : float, optional, keyword-only
         median remanent coercivity in the units of H; by default the field
         at which Mrh falls to Mr/2
-    Ms : float, optional, keyword-only
-        saturation magnetization from the high-field fit; when supplied,
-        the predicted relative bias of Ms, f_open*Mr/Ms, is returned as a
-        diagnostic (it does not enter the verdict)
     criterion : {'magnitude', 'SNR_HAR'}, keyword-only
         decision rule (default 'magnitude')
     openness_tolerance : float, keyword-only
         f_open at and above which the loop is classified as open (default
-        0.05, i.e. 5% of Mr)
+        0.02, i.e. 2% of Ms)
     n_sigma : float, keyword-only
         number of standard errors used throughout the test (default 2):
         the half-width of the confidence interval on f_open, the margin by
-        which Mr must exceed the noise amplitude for f_open to be defined,
-        and, when Mr does not, the significance level at which a nonzero
-        high-field Mrh makes the verdict 'indeterminate' rather than
-        'closed'
+        which Ms (and Mr) must exceed the noise amplitude for the
+        normalized openness to be defined, and, when Ms does not, the
+        significance level at which a nonzero high-field Mrh makes the
+        verdict 'indeterminate' rather than 'closed'
 
     Returns
     -------
     results : dict
         - 'closure_state': 'closed', 'open' or 'indeterminate'
         - 'loop_is_closed': bool, False only when closure_state is 'open'
-        - 'HF_Mrh_fraction': f_open (signed)
+        - 'HF_Mrh_fraction': f_open, the mean even high-field Mrh over Ms
+          (signed; NaN when Ms was not supplied or does not stand above
+          the noise)
         - 'HF_Mrh_fraction_se': its standard error
+        - 'HF_Mrh_fraction_Mr', 'HF_Mrh_fraction_Mr_se': the same over Mr
+          (NaN when Mr does not stand above the noise)
         - 'HF_cutoff', 'max_field_cutoff': the window used
         - 'tolerance': the openness tolerance applied (None under the
-          SNR_HAR criterion, or when Mr is not positive, in which case the
+          SNR_HAR criterion, or when Ms is not usable, in which case the
           loop is 'closed' if no high-field Mrh is detectable and
           'indeterminate' otherwise)
         - 'Brh_fraction': Brh divided by the peak field
-        - 'Ms_bias_predicted', 'Ms_bias_predicted_se': f_open*Mr/Ms and its
-          standard error (NaN unless Ms was supplied and positive)
         - 'SNR', 'HAR': the HystLab statistics in dB
         - 'HF_Mrh_fraction_rms': the clipped RMS of the even high-field Mrh
           over Mr (the signal entering SNR)
@@ -3588,6 +3595,10 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
     if np.ndim(HF_cutoff) != 0 or not (0 < float(HF_cutoff) < 1):
         raise ValueError('HF_cutoff must be a scalar fraction of the maximum '
                          'field in (0, 1); pass the err(H) curve as Me=Me')
+    if criterion == 'magnitude' and Ms is None:
+        raise ValueError("criterion='magnitude' normalizes the opening by the "
+                         'fitted saturation magnetization; pass Ms=..., or '
+                         "use criterion='SNR_HAR'")
     H = np.asarray(H, dtype=float)
     Mrh = np.asarray(Mrh, dtype=float)
     max_H = np.max(np.abs(H))
@@ -3658,17 +3669,20 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
     else:
         n_eff = n_HF
     HF_Mrh_mean_se = float(sigma_even/np.sqrt(n_eff)) if n_HF > 0 else np.nan
-    # Mr must stand clear of the noise for a fraction of it to mean anything
-    # (a paramagnetic loop has an Mr of noise-level size and random sign)
-    Mr_usable = bool(np.isfinite(Mr) and Mr > n_sigma*sigma_even)
-    HF_Mrh_fraction = HF_Mrh_mean/Mr if Mr_usable else np.nan
-    HF_Mrh_fraction_se = HF_Mrh_mean_se/Mr if Mr_usable else np.nan
+    # the normalization must stand clear of the noise for a fraction of it
+    # to mean anything (a paramagnetic loop has an Mr, and a fitted Ms, of
+    # noise-level size and random sign)
+    def _usable(value):
+        return bool(value is not None and np.isfinite(value)
+                    and value > n_sigma*sigma_even)
+    Mr_usable = _usable(Mr)
+    Ms_usable = _usable(Ms)
+    HF_Mrh_fraction = HF_Mrh_mean/Ms if Ms_usable else np.nan
+    HF_Mrh_fraction_se = HF_Mrh_mean_se/Ms if Ms_usable else np.nan
+    HF_Mrh_fraction_Mr = HF_Mrh_mean/Mr if Mr_usable else np.nan
+    HF_Mrh_fraction_Mr_se = HF_Mrh_mean_se/Mr if Mr_usable else np.nan
     HF_Mrh_fraction_rms = float(HF_Mrh_signal_RMS/Mr) if Mr_usable else np.nan
     Brh_over_max_H = float(Brh/max_H)
-
-    Ms_usable = Ms is not None and np.isfinite(Ms) and Ms > 0 and Mr_usable
-    Ms_bias_predicted = HF_Mrh_fraction*Mr/Ms if Ms_usable else np.nan
-    Ms_bias_predicted_se = HF_Mrh_fraction_se*Mr/Ms if Ms_usable else np.nan
 
     def _state(value, se, tol):
         half_width = n_sigma*se
@@ -3681,10 +3695,10 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
     if criterion == 'SNR_HAR':
         tolerance = None
         closure_state = 'closed' if loop_is_closed_SNR_HAR else 'open'
-    elif not Mr_usable:
-        # no remanence to normalize by (e.g. a paramagnetic loop): the loop
-        # is closed if no high-field Mrh is detectable, and otherwise the
-        # openness cannot be sized
+    elif not Ms_usable:
+        # no ferromagnetic moment to normalize by (e.g. a paramagnetic
+        # loop): the loop is closed if no high-field Mrh is detectable, and
+        # otherwise the openness cannot be sized
         tolerance = None
         closure_state = ('closed' if abs(HF_Mrh_mean) <= n_sigma*HF_Mrh_mean_se
                          else 'indeterminate')
@@ -3696,10 +3710,10 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
                'HAR': float(HAR),
                'HF_Mrh_fraction': HF_Mrh_fraction,
                'HF_Mrh_fraction_se': HF_Mrh_fraction_se,
+               'HF_Mrh_fraction_Mr': HF_Mrh_fraction_Mr,
+               'HF_Mrh_fraction_Mr_se': HF_Mrh_fraction_Mr_se,
                'HF_Mrh_fraction_rms': HF_Mrh_fraction_rms,
                'Brh_fraction': Brh_over_max_H,
-               'Ms_bias_predicted': Ms_bias_predicted,
-               'Ms_bias_predicted_se': Ms_bias_predicted_se,
                'HF_cutoff': float(HF_cutoff),
                'max_field_cutoff': float(max_field_cutoff),
                'tolerance': tolerance,
@@ -4184,7 +4198,8 @@ _HYST_UNDEFINED_RESULTS = {
     'drift_corrected_M': None, 'slope_corrected_M': None,
     'loop_closure_test_results': None, 'loop_is_closed': None,
     'closure_state': None, 'HF_Mrh_fraction': np.nan,
-    'HF_Mrh_fraction_se': np.nan, 'Ms_bias_predicted': np.nan,
+    'HF_Mrh_fraction_se': np.nan, 'HF_Mrh_fraction_Mr': np.nan,
+    'low_quality': None,
     'loop_saturation_stats': None, 'loop_is_saturated': None,
     'M_sn': np.nan, 'Q': np.nan,
     'H': None, 'Mr': np.nan, 'Mrh': None, 'Mih': None, 'Me': None,
@@ -4203,11 +4218,17 @@ def _print_closure_flag(specimen_name, closure):
     se = closure['HF_Mrh_fraction_se']
     lo, hi = 100*closure['HF_cutoff'], 100*closure['max_field_cutoff']
     if np.isfinite(f):
-        stat = (f'f_open = {100*f:.1f} +/- {100*se:.2g}% of Mrs '
+        stat = (f'f_open = {100*f:.1f} +/- {100*se:.2g}% of Ms '
                 f'(HF_Mrh_fraction: mean of the field-reflection-averaged Mrh '
-                f'over {lo:.0f}-{hi:.0f}% of the peak field, divided by Mr)')
+                f'over {lo:.0f}-{hi:.0f}% of the peak field, divided by the '
+                'fitted Ms')
+        f_Mr = closure['HF_Mrh_fraction_Mr']
+        if np.isfinite(f_Mr):
+            stat += f'; {100*f_Mr:.1f}% of Mr)'
+        else:
+            stat += ')'
     else:
-        stat = ('the remanence Mr does not stand above the noise, so the '
+        stat = ('the fitted Ms does not stand above the noise, so the '
                 'high-field Mrh cannot be expressed as a fraction of it')
     if closure['criterion'] == 'SNR_HAR':
         stat = (f"SNR = {closure['SNR']:.1f} dB, HAR = {closure['HAR']:.1f} dB; "
@@ -4219,11 +4240,22 @@ def _print_closure_flag(specimen_name, closure):
         print(f'-W- {label}loop closure at high field cannot be resolved: {stat}')
 
 
+def _print_quality_flag(specimen_name, Q, Qf, threshold):
+    """Print the -W- line for a loop whose quality factor is below the
+    threshold at which the summary parameters become suspect."""
+    label = f'{specimen_name}: ' if specimen_name else ''
+    Qf_text = f', Qf = {Qf:.2f}' if np.isfinite(Qf) else ''
+    print(f'-W- {label}low loop quality: Q = {Q:.2f}{Qf_text} (threshold '
+          f'{threshold:g}; Q is the log10 signal-to-noise ratio of the loop, '
+          'Qf that of its ferromagnetic part); the summary parameters '
+          'should be treated with caution')
+
+
 def process_hyst_loop(field, magnetization, specimen_name='', show_results_table=True, show_plot=True,
                       NL_fit=False, centering_protocol='legacy',
                       fit_open_loop=False, fit_linear_loop=False,
-                      magn_unit=_DEFAULT_MAGN_UNIT, openness_tolerance=0.05,
-                      closure_criterion='magnitude'):
+                      magn_unit=_DEFAULT_MAGN_UNIT, openness_tolerance=0.02,
+                      closure_criterion='magnitude', quality_threshold=2.0):
     """
     Process a magnetic hysteresis loop using the IRM decision tree workflow.
 
@@ -4246,16 +4278,24 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
     the undefined quantities as NaN/None so batch tables keep a stable
     schema. Passing fit_linear_loop=True overrides this exit.
 
-    Loop closure at high field is tested (`loop_closure_test`) and
-    reported, but does not stop processing: every parameter is computed for
-    every loop. A loop that is still open at the highest fields contains an
-    unsaturated high-coercivity fraction that biases the high-field fit and
-    hence Ms and chi_HF, so open loops (and loops whose closure the data
-    cannot resolve) are flagged with a printed '-W-' line quoting the
-    openness statistic f_open, and 'closure_state', 'HF_Mrh_fraction' and
-    'HF_Mrh_fraction_se' are returned for every loop so a batch can be
-    filtered on them. `add_hyst_stats_to_specimens_table` can withhold the
-    slope-dependent parameters of open loops from the MagIC columns.
+    Loop closure at high field is tested (`loop_closure_test`, after the
+    high-field fit so that the opening can be expressed as a fraction of
+    the fitted Ms) and reported, but does not stop processing: every
+    parameter is computed for every loop. A loop that is still open at the
+    highest fields contains an unsaturated high-coercivity fraction that
+    biases the high-field fit and hence Ms and chi_HF, so open loops (and
+    loops whose closure the data cannot resolve) are flagged with a printed
+    '-W-' line quoting the openness statistic f_open, and 'closure_state',
+    'HF_Mrh_fraction' and 'HF_Mrh_fraction_se' are returned for every loop
+    so a batch can be filtered on them. `add_hyst_stats_to_specimens_table`
+    can withhold the slope-dependent parameters of open loops from the
+    MagIC columns.
+
+    Loops whose quality factor Q, or that of the isolated ferromagnetic
+    loop Qf, falls below `quality_threshold` are likewise flagged with a
+    '-W-' line and 'low_quality' is set in the results; the summary
+    parameters of such loops are suspect, and the horizontal offset
+    correction is not applied to them (see the centering step).
 
     Parameters
     ----------
@@ -4284,12 +4324,16 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
         Accepted for compatibility and ignored (open loops are flagged, not
         exited).
     openness_tolerance : float, optional
-        f_open (high-field Mrh as a fraction of Mr) at and above which the
-        loop is classified as open and flagged (default 0.05; see
+        f_open (high-field Mrh as a fraction of the fitted Ms) at and above
+        which the loop is classified as open and flagged (default 0.02; see
         `loop_closure_test`).
     closure_criterion : {'magnitude', 'SNR_HAR'}, optional
         Decision rule for the closure test (default 'magnitude'; 'SNR_HAR'
         is the HystLab rule, see `loop_closure_test`).
+    quality_threshold : float, optional
+        Quality factor (Q or Qf) below which the loop is flagged as low
+        quality (default 2.0, the level below which the horizontal offset
+        correction is also skipped).
     fit_linear_loop : bool, optional
         If True, process a statistically linear loop in full rather than
         terminating with chi_HF only (default False). Useful when a weak
@@ -4442,7 +4486,7 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
         openness_tolerance=openness_tolerance)
     HF_Mrh_fraction = loop_closure_test_results['HF_Mrh_fraction']
     HF_Mrh_fraction_se = loop_closure_test_results['HF_Mrh_fraction_se']
-    Ms_bias_predicted = loop_closure_test_results['Ms_bias_predicted']
+    HF_Mrh_fraction_Mr = loop_closure_test_results['HF_Mrh_fraction_Mr']
     closure_state = loop_closure_test_results['closure_state']
     if closure_state != 'closed':
         _print_closure_flag(specimen_name, loop_closure_test_results)
@@ -4452,6 +4496,14 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
 
     # calculate the Msn and Q factor for the ferromagentic component
     M_sn_f, Qf = calc_Q(centered_H, slope_corr_M)
+
+    # flag a loop whose signal-to-noise ratio is too low for its summary
+    # parameters to be trusted
+    Q = loop_centering_results['Q']
+    low_quality = bool((np.isfinite(Q) and Q < quality_threshold)
+                       or (np.isfinite(Qf) and Qf < quality_threshold))
+    if low_quality:
+        _print_quality_flag(specimen_name, Q, Qf, quality_threshold)
 
     # calculate the coercivity Bc
     Bc = calc_Bc(centered_H, slope_corr_M)
@@ -4500,7 +4552,8 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
                 'closure_state': closure_state,
                 'HF_Mrh_fraction': HF_Mrh_fraction,
                 'HF_Mrh_fraction_se': HF_Mrh_fraction_se,
-                'Ms_bias_predicted': Ms_bias_predicted,
+                'HF_Mrh_fraction_Mr': HF_Mrh_fraction_Mr,
+                'low_quality': low_quality,
                'loop_saturation_stats': loop_saturation_stats,
                 'loop_is_saturated': loop_saturation_stats['loop_is_saturated'],
                'M_sn':loop_centering_results['M_sn'],
@@ -4537,8 +4590,9 @@ def process_hyst_loops(
     fit_open_loop=False,
     fit_linear_loop=False,
     magn_unit=None,
-    openness_tolerance=0.05,
+    openness_tolerance=0.02,
     closure_criterion='magnitude',
+    quality_threshold=2.0,
 ):
     """
     Process multiple hysteresis loops in batch.
@@ -4571,9 +4625,12 @@ def process_hyst_loops(
         only (default False).
     openness_tolerance : float, optional
         Passed through to process_hyst_loop: f_open at and above which a
-        loop is classified as open (default 0.05).
+        loop is classified as open (default 0.02).
     closure_criterion : {'magnitude', 'SNR_HAR'}, optional
         Passed through to process_hyst_loop (default 'magnitude').
+    quality_threshold : float, optional
+        Passed through to process_hyst_loop: Q or Qf below which a loop is
+        flagged as low quality (default 2.0).
     magn_unit : str, optional
         Unit of the values in `magn_col`, used to label the plots and the
         summary table headers and recorded in the results so that
@@ -4624,6 +4681,7 @@ def process_hyst_loops(
             magn_unit=magn_unit,
             openness_tolerance=openness_tolerance,
             closure_criterion=closure_criterion,
+            quality_threshold=quality_threshold,
         )
         res['specimen'] = spec
         res['experiment'] = exp
@@ -4636,10 +4694,11 @@ def process_hyst_loops(
         n_open = int((states == 'open').sum())
         n_ind = int((states == 'indeterminate').sum())
         n_lin = int(results_df['loop_is_linear'].fillna(False).astype(bool).sum())
+        n_lowq = int(results_df['low_quality'].fillna(False).astype(bool).sum())
         print(f'-I- {n_open} of {n} loops open at high field, {n_ind} of '
-              f'unresolved closure, {n_lin} statistically linear; see the '
-              "'closure_state', 'HF_Mrh_fraction' and 'loop_is_linear' "
-              'columns')
+              f'unresolved closure, {n_lin} statistically linear, {n_lowq} of '
+              f"low quality; see the 'closure_state', 'HF_Mrh_fraction', "
+              "'loop_is_linear' and 'low_quality' columns")
     return results_df
 
 
@@ -4724,7 +4783,8 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
     additional_keys = ['Q', 'Qf', 'sigma',
                 'Brh', 'FNL', 'FNL60', 'FNL70', 'FNL80',
                 'Fnl_lin', 'loop_is_linear', 'loop_is_closed', 'closure_state',
-                'HF_Mrh_fraction', 'HF_Mrh_fraction_se', 'loop_is_saturated',
+                'HF_Mrh_fraction', 'HF_Mrh_fraction_se', 'HF_Mrh_fraction_Mr',
+                'low_quality', 'loop_is_saturated',
                 'magn_unit', 'processed_by']
 
     # ensure MagIC columns exist in specimens_df
