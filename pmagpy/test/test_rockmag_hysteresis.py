@@ -711,6 +711,105 @@ class TestNonlinearFit:
         nl = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM')
         assert nl['Fnl_lin'] < 3.5
 
+    @staticmethod
+    def _weak_unsaturated_loop(Ms, chi_HF, Hmax=1.0):
+        """An unsaturated loop of the given magnitude on a linear
+        background with chi_HF in SI (m³/kg for Am²/kg data)."""
+        H, M = synthetic_loop(Ms=Ms, Hmax=Hmax, noise=Ms * 1e-3,
+                              ats_alpha=0.05 * Ms,
+                              rng=np.random.default_rng(1))
+        return rmag.grid_hyst_loop(H, M + chi_HF / (4 * np.pi / 1e7) * H)
+
+    def test_fit_is_independent_of_magnitude(self):
+        # the former fixed initial guess [1, 1, -0.1, -0.1] left Ms tens of
+        # percent to orders of magnitude in error for specimens below
+        # ~1e-3 Am²/kg; the fit is now done in normalized units and must
+        # give the same relative answer at any magnitude
+        reference = None
+        for Ms_true, chi_true in ((1.0, 1e-7), (1e-3, 1e-8), (1e-5, 1e-9)):
+            gH, gM = self._weak_unsaturated_loop(Ms_true, chi_true)
+            nl = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM')
+            assert nl['fit_success']
+            assert nl['Ms'] == pytest.approx(Ms_true, rel=0.01)
+            assert nl['chi_HF'] == pytest.approx(chi_true, rel=0.05)
+            relative = (nl['Ms'] / Ms_true, nl['a_1'] / Ms_true,
+                        nl['Fnl_lin'])
+            if reference is None:
+                reference = relative
+            else:
+                assert relative == pytest.approx(reference, rel=1e-3)
+
+    def test_fit_recovers_diamagnetic_slope(self):
+        # a diamagnetic matrix has a negative chi_HF, which the former lower
+        # bound of zero on chi_HF could not represent
+        gH, gM = self._weak_unsaturated_loop(1e-3, -3e-9)
+        nl = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM')
+        assert nl['chi_HF'] == pytest.approx(-3e-9, rel=0.05)
+        assert nl['Ms'] == pytest.approx(1e-3, rel=0.01)
+
+    def test_fit_is_independent_of_magnitude_at_any_peak_field(self):
+        # the normalization uses the peak field as well as the moment scale;
+        # both models must give the same relative Ms at 1 and 1e-3 Am²/kg
+        # whatever the peak field (the fixed-beta model is a model mismatch
+        # for this 1/H fixture, so only its invariance is tested)
+        for Hmax in (0.5, 1.8):
+            for fit_type in ('IRM', 'Fabian_fixed_beta'):
+                relative = []
+                for Ms_true in (1.0, 1e-3):
+                    gH, gM = self._weak_unsaturated_loop(Ms_true, 1e-8 * Ms_true,
+                                                         Hmax=Hmax)
+                    nl = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6,
+                                                             fit_type)
+                    assert nl['fit_success'], (Hmax, fit_type, Ms_true)
+                    relative.append(nl['Ms'] / Ms_true)
+                assert relative[0] == pytest.approx(relative[1], rel=1e-3), (
+                    Hmax, fit_type)
+                if fit_type == 'IRM':
+                    assert relative[0] == pytest.approx(1.0, rel=0.01), Hmax
+
+    def test_explicit_initial_guess_and_bounds_are_honored(self):
+        gH, gM = self._weak_unsaturated_loop(1e-3, 1e-8)
+        seeded = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM')
+        explicit = rmag.hyst_HF_nonlinear_optimization(
+            gH, gM, 0.6, 'IRM',
+            initial_guess=[1e-8, 1e-3, -1e-5, -1e-5])
+        assert explicit['Ms'] == pytest.approx(seeded['Ms'], rel=1e-4)
+        # a bound that excludes the solution is respected: a_1 (about
+        # -5e-5 here) confined to [-1e-9, 0] pins it there and moves Ms
+        bounded = rmag.hyst_HF_nonlinear_optimization(
+            gH, gM, 0.6, 'IRM',
+            bounds=([-np.inf, 0, -1e-9, -np.inf], [np.inf, np.inf, 0, 0]))
+        assert seeded['a_1'] < -1e-5
+        assert -1e-9 <= bounded['a_1'] <= 0
+        assert bounded['Ms'] != pytest.approx(seeded['Ms'], rel=1e-4)
+
+    def test_max_field_cutoff_is_a_parameter(self):
+        gH, gM = self._weak_unsaturated_loop(1e-3, 1e-8)
+        default = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM')
+        same = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM',
+                                                   max_field_cutoff=0.97)
+        narrower = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM',
+                                                       max_field_cutoff=0.9)
+        assert same == default
+        assert narrower['Fnl_lin'] != default['Fnl_lin']
+
+    def test_unknown_fit_type_raises(self):
+        gH, gM = self._weak_unsaturated_loop(1e-3, 1e-8)
+        with pytest.raises(ValueError, match='Fit type'):
+            rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'spline')
+
+    def test_pipeline_weak_unsaturated_loop(self):
+        # through process_hyst_loop, which forces the nonlinear fit for an
+        # unsaturated loop, a 1e-4 Am²/kg specimen gets the same relative
+        # Ms as a 1 Am²/kg one
+        for Ms_true in (1.0, 1e-4):
+            H, M = synthetic_loop(Ms=Ms_true, noise=Ms_true * 1e-3,
+                                  ats_alpha=0.05 * Ms_true,
+                                  rng=np.random.default_rng(1))
+            results = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                             show_plot=False, NL_fit=True)
+            assert results['Ms'] == pytest.approx(Ms_true, rel=0.01)
+
 
 class TestProcessHystLoop:
     def test_full_pipeline_saturated(self):

@@ -4025,37 +4025,55 @@ def _Fabian_nonlinear_fit_fix_beta_cost_function(params, H, M_obs):
     prediction = Fabian_nonlinear_fit(H, chi_HF, Ms, alpha, beta)
     return M_obs - prediction
 
-def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 1, -0.1, -0.1], bounds=([0, 0, -np.inf, -np.inf], [np.inf, np.inf, 0, 0])):
+def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=None,
+                                   bounds=None, max_field_cutoff=0.97):
     '''
-    Optimize a high-field nonlinear fit
+    Optimize a high-field nonlinear (approach-to-saturation) fit
 
     Parameters
     ----------
     H : numpy.ndarray
-        Array of field values.
+        Array of field values (tesla).
     M : numpy.ndarray
         Array of magnetization values.
     HF_cutoff : float
         Fraction of max(|H|) defining the lower bound of the high-field region.
     fit_type : {'IRM', 'Fabian', 'Fabian_fixed_beta'}
-        Type of nonlinear model to fit.
+        Type of nonlinear model to fit: the inverse-field model of the
+        Institute for Rock Magnetism processing software
+        (M = chi_HF*H + Ms + a_1/H + a_2/H^2), the Fabian (2006) power-law
+        model (M = chi_HF*H + Ms + alpha*H^beta), or the latter with beta
+        fixed at -2.
     initial_guess : list of float, optional
-        Initial parameter guess for the optimizer.
-        Defaults to [1, 1, -0.1, -0.1]:
-        χ_HF = 1, Mₛ = 1, a₁ = –0.1, a₂ = –0.1 (or α, β for Fabian).
+        Starting parameters [chi_HF, Ms, a_1, a_2] (or [chi_HF, Ms, alpha,
+        beta]; the fixed-beta form uses the first three). By default the
+        linear fit to the same window seeds chi_HF and Ms, the nonlinear
+        coefficients start at -2% of the magnetization scale (with beta =
+        -1 for the free-beta Fabian form), so the starting point is at the
+        scale of the data whatever its units. A fixed guess is far from the
+        solution for weak specimens -- the former default of
+        [1, 1, -0.1, -0.1] left Ms tens of percent to orders of magnitude
+        in error below ~1e-3 Am²/kg because the optimizer stopped short of
+        it -- so pass initial_guess only when the data are at that scale or
+        the linear seed is known to be poor.
     bounds : tuple of array-like, optional
-        Lower and upper bounds for each parameter.
-        Defaults to ([0, 0, -∞, -∞], [∞, ∞, 0, 0]):
-        - Lower: χ_HF ≥ 0, Mₛ ≥ 0, a₁ ≥ –∞, a₂ ≥ –∞  
-        - Upper: χ_HF ≤ ∞, Mₛ ≤ ∞, a₁ ≤ 0, a₂ ≤ 0  
-        (for Fabian, α and β follow the same positions/limits).
-    
+        (lower, upper) bounds per parameter, in the order of
+        `initial_guess`. Default: chi_HF unbounded (a diamagnetic matrix
+        has negative chi_HF), Ms >= 0, and the nonlinear coefficients
+        a_1, a_2 <= 0 (alpha <= 0 and beta <= 0 for the Fabian forms), the
+        sign the approach to saturation requires.
+    max_field_cutoff : float, optional
+        Upper edge of the fit window as a fraction of max(|H|) (default
+        0.97, the IRM convention that keeps the loop tips out of the fit).
+
     Returns
     -------
     dict
         Fit results with keys:
         - 'chi_HF', 'Ms', 'a_1', 'a_2' (for IRM) or
-          'chi_HF', 'Ms', 'alpha', 'beta' (for Fabian variants)
+          'chi_HF', 'Ms', 'alpha', 'beta' (for Fabian variants); chi_HF is
+          in SI units (the fitted slope in field units of tesla multiplied
+          by mu_0), as returned by `linear_HF_fit`
         - 'Fnl_lin': float, F statistic for the improvement of the nonlinear fit
           over a linear fit (Jackson and Solheid, 2010, equation 21); values above
           ~3-3.5 indicate a statistically significant improvement for the
@@ -4065,36 +4083,118 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
           under the null (saturated loops give values well below the critical
           value, occasionally marginally negative when the bounded fit is a hair
           worse than unconstrained least squares).
+        - 'fit_success': bool, whether the optimizer reported convergence
+          (a warning is also issued when it did not, or when Ms ended on
+          its lower bound of zero)
+        - 'fit_message': str, the optimizer's termination message
     '''
-    HF_index = np.where((np.abs(H) >= HF_cutoff*np.max(np.abs(H))) & (np.abs(H) <= 0.97*np.max(np.abs(H))))[0]
+    if fit_type not in ('IRM', 'Fabian', 'Fabian_fixed_beta'):
+        raise ValueError("Fit type must be 'IRM', 'Fabian' or 'Fabian_fixed_beta'")
+    H = np.asarray(H, dtype=float)
+    M = np.asarray(M, dtype=float)
+    max_H = np.max(np.abs(H))
+    HF_index = np.where((np.abs(H) >= HF_cutoff*max_H) & (np.abs(H) <= max_field_cutoff*max_H))[0]
 
     HF_field = np.abs(H[HF_index])
     HF_magnetization = np.where(H[HF_index] >= 0, M[HF_index], -M[HF_index])
 
-    if fit_type == 'IRM':
-        cost_function = _IRM_nonlinear_fit_cost_function
-        results = least_squares(cost_function, initial_guess, bounds=bounds, args=(HF_field, HF_magnetization))
-    elif fit_type == 'Fabian':
-        cost_function = _Fabian_nonlinear_fit_cost_function
-        results = least_squares(cost_function, initial_guess, bounds=bounds, args=(HF_field, HF_magnetization))
-    elif fit_type == 'Fabian_fixed_beta':
-        cost_function = _Fabian_nonlinear_fit_fix_beta_cost_function
-        results = least_squares(cost_function, initial_guess[:3], bounds=(bounds[0][:3], bounds[1][:3]), args=(HF_field, HF_magnetization))
-    else:
-        raise ValueError('Fit type must be either IRM or Fabian')
+    n_params = 3 if fit_type == 'Fabian_fixed_beta' else 4
 
+    # fit in normalized units -- field as a fraction of the peak field and
+    # magnetization relative to the linear-fit intercept -- so that the
+    # optimizer's absolute tolerances (ftol, xtol, gtol) mean the same thing
+    # for a 1e-5 Am²/kg specimen as for a 1 Am²/kg one; the parameters are
+    # scaled back to the units of H and M on return
+    slope_lin, Ms_lin = np.polyfit(HF_field, HF_magnetization, 1)
+    m0 = abs(Ms_lin) if Ms_lin != 0 else np.max(np.abs(HF_magnetization))
+    if m0 == 0:
+        raise ValueError('the high-field magnetization is identically zero; '
+                         'no approach-to-saturation fit is possible')
+    h0 = max_H
+    field_n = HF_field / h0
+    magnetization_n = HF_magnetization / m0
+    # parameter scale factors (physical = normalized * factor); the model's
+    # chi_HF is the raw slope times mu_0, so its factor carries m0/h0
+    mu_0 = 4*np.pi/1e7
     if fit_type == 'IRM':
-        final_result = {'chi_HF': results.x[0], 'Ms': results.x[1], 'a_1': results.x[2], 'a_2': results.x[3]}
-        chi_HF, Ms, a_1, a_2 = results.x
+        factors = np.array([m0/h0, m0, m0*h0, m0*h0**2])
+    elif fit_type == 'Fabian':
+        # alpha*H^beta = (alpha*h0^beta/m0) * H'^beta: alpha's factor depends
+        # on beta, so it is applied after the fit; beta is dimensionless
+        factors = np.array([m0/h0, m0, np.nan, 1.0])
+    else:
+        factors = np.array([m0/h0, m0, m0*h0**2])
+
+    def to_normalized(params):
+        params = np.asarray(params, dtype=float)
+        if fit_type == 'Fabian':
+            beta = params[3]
+            alpha_factor = m0 / h0**beta if np.isfinite(beta) else m0
+            f = np.array([factors[0], factors[1], alpha_factor, 1.0])
+            return params / f
+        return params / factors
+
+    if initial_guess is None:
+        # the linear fit seeds chi_HF and Ms; the nonlinear coefficients
+        # start at -2% of the moment scale with beta = -1 for the free-beta
+        # Fabian form
+        chi_n = slope_lin * mu_0 * h0 / m0
+        Ms_n = Ms_lin / m0 if Ms_lin > 0 else 0.1
+        if fit_type == 'IRM':
+            x0 = [chi_n, Ms_n, -0.02, -0.02]
+        elif fit_type == 'Fabian':
+            x0 = [chi_n, Ms_n, -0.02, -1.0]
+        else:
+            x0 = [chi_n, Ms_n, -0.02]
+    else:
+        x0 = list(to_normalized(list(initial_guess)[:n_params]))
+    if bounds is None:
+        bounds = ([-np.inf, 0, -np.inf, -np.inf], [np.inf, np.inf, 0, 0])
+    lower = to_normalized(list(bounds[0])[:n_params])
+    upper = to_normalized(list(bounds[1])[:n_params])
+    if fit_type == 'Fabian':
+        # alpha's scale factor depends on the (unknown) beta; its bounds are
+        # sign constraints in practice, which the normalization preserves
+        lower[2] = -np.inf if not np.isfinite(bounds[0][2]) else lower[2]
+        upper[2] = 0.0 if bounds[1][2] == 0 else upper[2]
+    if initial_guess is None:
+        # keep the generated seed inside caller-supplied bounds
+        x0 = list(np.clip(x0, lower, upper))
+
+    cost_function = {'IRM': _IRM_nonlinear_fit_cost_function,
+                     'Fabian': _Fabian_nonlinear_fit_cost_function,
+                     'Fabian_fixed_beta': _Fabian_nonlinear_fit_fix_beta_cost_function}[fit_type]
+    results = least_squares(cost_function, x0, bounds=(lower, upper),
+                            args=(field_n, magnetization_n))
+
+    # scale the parameters back to the units of H and M
+    x = np.asarray(results.x, dtype=float)
+    if fit_type == 'IRM':
+        chi_HF, Ms, a_1, a_2 = x * factors
+        final_result = {'chi_HF': chi_HF, 'Ms': Ms, 'a_1': a_1, 'a_2': a_2}
         nonlinear_fit = IRM_nonlinear_fit(HF_field, chi_HF, Ms, a_1, a_2)
     elif fit_type == 'Fabian':
-        final_result = {'chi_HF': results.x[0], 'Ms': results.x[1], 'alpha': results.x[2], 'beta': results.x[3]}
-        chi_HF, Ms, alpha, beta = results.x
+        beta = x[3]
+        chi_HF, Ms = x[0]*factors[0], x[1]*factors[1]
+        alpha = x[2] * m0 / h0**beta
+        final_result = {'chi_HF': chi_HF, 'Ms': Ms, 'alpha': alpha, 'beta': beta}
         nonlinear_fit = Fabian_nonlinear_fit(HF_field, chi_HF, Ms, alpha, beta)
-    elif fit_type == 'Fabian_fixed_beta':
-        final_result = {'chi_HF': results.x[0], 'Ms': results.x[1], 'alpha': results.x[2], 'beta': -2}
-        chi_HF, Ms, alpha = results.x
+    else:
+        chi_HF, Ms, alpha = x * factors
+        final_result = {'chi_HF': chi_HF, 'Ms': Ms, 'alpha': alpha, 'beta': -2}
         nonlinear_fit = Fabian_nonlinear_fit(HF_field, chi_HF, Ms, alpha, -2)
+
+    if not results.success:
+        warnings.warn(
+            f'the {fit_type} approach-to-saturation fit did not converge '
+            f'({results.message}); Ms and chi_HF from it are unreliable',
+            RuntimeWarning, stacklevel=2)
+    elif Ms <= 0:
+        warnings.warn(
+            f'the {fit_type} approach-to-saturation fit put Ms on its lower '
+            'bound of zero; the high-field curve has no resolvable '
+            'ferromagnetic intercept and Ms from it is unreliable',
+            RuntimeWarning, stacklevel=2)
 
     # Fnl_lin (Jackson and Solheid, 2010, equation 21) tests whether the nonlinear fit
     # significantly improves on a linear fit:
@@ -4107,10 +4207,12 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
 
     n_points = len(HF_magnetization)
     p_lin = 2
-    p_nl = 3 if fit_type == 'Fabian_fixed_beta' else 4
+    p_nl = n_params
     Fnl_lin = ((SSD_lin - SSD_nl) / (p_nl - p_lin)) / (SSD_nl / (n_points - p_nl))
 
     final_result['Fnl_lin'] = Fnl_lin
+    final_result['fit_success'] = bool(results.success)
+    final_result['fit_message'] = str(results.message)
     final_result_dict = _to_native_python(final_result)
     return final_result_dict
 
