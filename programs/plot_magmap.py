@@ -4,8 +4,8 @@ from builtins import str
 import numpy as np
 import sys
 import matplotlib
-if matplotlib.get_backend() != "TKAgg":
-    matplotlib.use("TKAgg")
+from pmag_env import set_env
+set_env.set_backend_if_unset("TKAgg")
 import pylab as plt
 try:
     import cartopy.crs as ccrs

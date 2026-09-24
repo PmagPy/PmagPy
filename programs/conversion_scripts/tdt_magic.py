@@ -21,9 +21,10 @@ Log:
     Initial revision 4/24/2014
     some bug fix 06/12/2015
 """
-# setting backend to wx somehow prevents this import from hanging
-import matplotlib
-matplotlib.use('WXAgg')
+# wx needs the WXAgg backend when run from the command line (the import hung
+# without it); a backend chosen earlier, e.g. inline in a notebook, is kept
+from pmag_env import set_env
+set_env.set_backend_if_unset("WXAgg")
 
 import wx
 import sys
