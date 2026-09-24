@@ -8106,6 +8106,11 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
     (Neel, 1955; plots after Tauxe et al., 2002); plots 'linear mixing'
     curve from Dunlop and Carter-Stiglitz (2006).
 
+    .. deprecated:: 4.6.0
+        ``ipmag.dayplot_magic`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.plot_day_magic`` (MagIC specimens table)
+        or ``pmagpy.rockmag.plot_day`` (arrays) instead.
+
     Parameters:
         path_to_file : path to directory that contains files (default is current directory, '.')
         the default input file is 'specimens.txt' (data_model=3
@@ -8118,6 +8123,12 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
         image_records (boolean): generate and return a record for each image in a list of dicts which can be ingested by pmag.magic_write, default is False
 
     """
+    warnings.warn(
+        "ipmag.dayplot_magic is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.plot_day_magic or pmagpy.rockmag.plot_day instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     hyst_path = os.path.join(path_to_file, hyst_file)
     if data_model == 2 and rem_file != '':
         rem_path = os.path.join(path_to_file, rem_file)
@@ -8220,7 +8231,10 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
         plt.figure(num=DSC['S-Bcr'], figsize=(5, 5))
         plt.figure(num=DSC['bcr1-bcr2'], figsize=(5, 5))
 
-        pmagplotlib.plot_day(DSC['day'], Bcr1Bc, S1, 'ro')
+        with warnings.catch_warnings():
+            # nested deprecated call; the caller has already warned
+            warnings.filterwarnings('ignore', message=r'^(ipmag|pmagplotlib)\.\w+ is deprecated', category=FutureWarning)
+            pmagplotlib.plot_day(DSC['day'], Bcr1Bc, S1, 'ro')
         pmagplotlib.plot_s_bcr(DSC['S-Bcr'], Bcr1, S1, 'ro')
         #pmagplotlib.plot_init(DSC['bcr1-bcr2'], 5, 5)
         pmagplotlib.plot_bcr(DSC['bcr1-bcr2'], Bcr1, Bcr2)
@@ -8256,7 +8270,10 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
         #plt.figure(num=DSC['bcr1-bcr2'], figsize=(5, 5))
         del DSC['bcr1-bcr2']
         # do other plots instead
-        pmagplotlib.plot_day(DSC['day'], BcrBc, S, 'bs')
+        with warnings.catch_warnings():
+            # nested deprecated call; the caller has already warned
+            warnings.filterwarnings('ignore', message=r'^(ipmag|pmagplotlib)\.\w+ is deprecated', category=FutureWarning)
+            pmagplotlib.plot_day(DSC['day'], BcrBc, S, 'bs')
         pmagplotlib.plot_s_bcr(DSC['S-Bcr'], Bcr, S, 'bs')
         pmagplotlib.plot_s_bc(DSC['S-Bc'], Bc, S, 'bs')
     if pmagplotlib.isServer:
@@ -8293,7 +8310,7 @@ def smooth(x, window_len, window='bartlett'):
     Smooth the data using a sliding window with requested size - meant to be
     used with the ipmag function curie().
 
-    .. deprecated::
+    .. deprecated:: 4.6.0
         ``ipmag.smooth`` is deprecated and will be removed in a future
         release. Use ``pmagpy.rockmag.smooth_moving_average`` instead.
 
@@ -8362,7 +8379,7 @@ def curie(path_to_file='.', file_name='', magic=False,
     The estimated curie temperation is the maximum of the 2nd derivative.
     Temperature steps should be in multiples of 1.0 degrees.
 
-    .. deprecated::
+    .. deprecated:: 4.6.0
         ``ipmag.curie`` is deprecated and will be removed in a future release.
         It reports a single Curie temperature from the maximum of the smoothed
         second derivative. Use the multi-method estimators in ``pmagpy.rockmag``
@@ -9216,12 +9233,23 @@ def iplot_hys(fignum, B, M, s):
     This function has been adapted from pmagplotlib.iplot_hys for specific use
     within a Jupyter notebook.
 
+    .. deprecated:: 4.6.0
+        ``ipmag.iplot_hys`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.plot_hyst_loop`` and other
+        ``pmagpy.rockmag`` hysteresis functions instead.
+
     Parameters:
         fignum : reference number for matplotlib figure being created
         B : list of B (flux density) values of hysteresis experiment
         M : list of M (magnetization) values of hysteresis experiment
         s : specimen name
     """
+    warnings.warn(
+        "ipmag.iplot_hys is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.plot_hyst_loop instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     if fignum != 0:
         plt.figure(num=fignum)
         plt.clf()
@@ -9323,6 +9351,11 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
     If selected, this function also plots hysteresis loops, delta M curves,
     d (Delta M)/dB curves, and IRM backfield curves.
 
+    .. deprecated:: 4.6.0
+        ``ipmag.hysteresis_magic2`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.process_hyst_loops`` and other
+        ``pmagpy.rockmag`` hysteresis functions instead.
+
     Parameters:
         path_to_file : path to directory that contains files (default is current directory, '.')
         hyst_file : hysteresis file (default is 'rmag_hysteresis.txt')
@@ -9331,6 +9364,12 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
         fmt : format of saved figures (default is 'pdf')
         plots: whether or not to display the plots (default is true)
     """
+    warnings.warn(
+        "ipmag.hysteresis_magic2 is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.process_hyst_loops instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     user, meas_file, rmag_out, rmag_file = "", "agm_measurements.txt", "rmag_hysteresis.txt", ""
     pltspec = ""
     dir_path = save_folder
@@ -9428,7 +9467,10 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
                 hmeths.append(meth)
     #         fignum = 1
             fig = plt.figure(figsize=(8, 8))
-            hpars, deltaM, Bdm, B, Mnorm, MadjN = iplot_hys(1, B, M, sample)
+            with warnings.catch_warnings():
+                # nested deprecated call; the caller has already warned
+                warnings.filterwarnings('ignore', message=r'^(ipmag|pmagplotlib)\.\w+ is deprecated', category=FutureWarning)
+                hpars, deltaM, Bdm, B, Mnorm, MadjN = iplot_hys(1, B, M, sample)
             ax1 = fig.add_subplot(2, 2, 1)
             ax1.axhline(0, color='k')
             ax1.axvline(0, color='k')
@@ -13737,6 +13779,11 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
     Plotting may be called interactively with save_plots==False,
     or be suppressed entirely with make_plots==False.
 
+    .. deprecated:: 4.6.0
+        ``ipmag.hysteresis_magic`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.process_hyst_loops`` and other
+        ``pmagpy.rockmag`` hysteresis functions instead.
+
     Parameters:
         output_dir_path : str, default "."
             Note: if using Windows, all figures will be saved to working directly
@@ -13767,6 +13814,12 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
         Tuple 
             (True or False indicating if conversion was successful, output file names written)
     """
+    warnings.warn(
+        "ipmag.hysteresis_magic is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.process_hyst_loops instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     # put plots in output_dir_path, unless isServer
     incl_directory = True
     if pmagplotlib.isServer or set_env.IS_WIN:
@@ -13900,7 +13953,10 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
             for meth in meths:
                 hmeths.append(meth)
 
-            hpars = pmagplotlib.plot_hdd(HDD, B, M, e)
+            with warnings.catch_warnings():
+                # nested deprecated call; the caller has already warned
+                warnings.filterwarnings('ignore', message=r'^(ipmag|pmagplotlib)\.\w+ is deprecated', category=FutureWarning)
+                hpars = pmagplotlib.plot_hdd(HDD, B, M, e)
             if interactive:
                 if not set_env.IS_WIN:
                     pmagplotlib.draw_figs(HDD)
@@ -13934,7 +13990,10 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
                 if make_plots and (not save_plots):
                     pmagplotlib.plot_init(HDD['irm'], 5, 5)
                 irm_init = 1
-            rpars = pmagplotlib.plot_irm(HDD['irm'], Bdcd, Mdcd, irm_exp)
+            with warnings.catch_warnings():
+                # nested deprecated call; the caller has already warned
+                warnings.filterwarnings('ignore', message=r'^(ipmag|pmagplotlib)\.\w+ is deprecated', category=FutureWarning)
+                rpars = pmagplotlib.plot_irm(HDD['irm'], Bdcd, Mdcd, irm_exp)
             HystRec['rem_mr_moment'] = rpars['remanence_mr_moment']
             HystRec['rem_bcr'] = rpars['remanence_bcr']
             HystRec['experiments'] = specimen+':'+irm_exp

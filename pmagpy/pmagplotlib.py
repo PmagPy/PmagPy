@@ -1920,6 +1920,12 @@ def plot_vs(fignum, Xs, c, ls):
 def plot_hys(fignum, B, M, s):
     """
    function to plot hysteresis data
+
+   .. deprecated:: 4.6.0
+       ``pmagplotlib.plot_hys`` is deprecated and will be removed in a future
+       release. Use ``pmagpy.rockmag.plot_hyst_loop`` and other
+       ``pmagpy.rockmag`` hysteresis functions instead.
+
    Parameters:
    _____________________
    Input :
@@ -1933,6 +1939,12 @@ def plot_hys(fignum, B, M, s):
        Bdm : field values
 
     """
+    warnings.warn(
+        "pmagplotlib.plot_hys is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.plot_hyst_loop instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     B = list(B)
     from . import spline
     if fignum != 0:
@@ -2160,6 +2172,10 @@ def plot_day(fignum, BcrBc, S, sym, **kwargs):
     """
     function to plot Day plots
 
+    .. deprecated:: 4.6.0
+        ``pmagplotlib.plot_day`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.plot_day`` instead.
+
     Parameters
     _________
     fignum : matplotlib figure number
@@ -2168,6 +2184,12 @@ def plot_day(fignum, BcrBc, S, sym, **kwargs):
     sym : matplotlib symbol (e.g., 'rs' for red squares)
     **kwargs :  dictionary with {'names':[list of names for symbols]}
     """
+    warnings.warn(
+        "pmagplotlib.plot_day is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.plot_day instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     plt.figure(num=fignum)
     plt.plot(BcrBc, S, sym)
     plt.axhline(0, color='k')
@@ -2303,6 +2325,10 @@ def plot_irm(fignum, B, M, title):
     """
     function to plot IRM backfield curves
 
+    .. deprecated:: 4.6.0
+        ``pmagplotlib.plot_irm`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.plot_backfield_data`` instead.
+
     Parameters
     _________
     fignum : matplotlib figure number
@@ -2310,6 +2336,12 @@ def plot_irm(fignum, B, M, title):
     M : list or array of magnetizations
     title : string title for plot
     """
+    warnings.warn(
+        "pmagplotlib.plot_irm is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.plot_backfield_data instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     rpars = {}
     Mnorm = []
     backfield = 0
