@@ -1920,6 +1920,12 @@ def plot_vs(fignum, Xs, c, ls):
 def plot_hys(fignum, B, M, s):
     """
    function to plot hysteresis data
+
+    .. deprecated::
+        ``pmagpy.pmagplotlib.plot_hys`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.plot_hyst_loop`` and other ``pmagpy.rockmag`` 
+        hysteresis functions instead.
+   
    Parameters:
    _____________________
    Input :
@@ -2160,6 +2166,10 @@ def plot_day(fignum, BcrBc, S, sym, **kwargs):
     """
     function to plot Day plots
 
+    .. deprecated::
+        ``pmagpy.pmagplotlib.plot_day`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.plot_day`` instead.
+
     Parameters
     _________
     fignum : matplotlib figure number
@@ -2302,6 +2312,10 @@ def plot_hpars(HDD, hpars, sym):
 def plot_irm(fignum, B, M, title):
     """
     function to plot IRM backfield curves
+
+    .. deprecated::
+        ``pmagpy.pmagplotlib.plot_irm`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.plot_backfield`` instead.
 
     Parameters
     _________
