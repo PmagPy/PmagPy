@@ -3513,7 +3513,9 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
     HF_cutoff to max_field_cutoff of the peak field (80-99% by default);
     f_open depends on the window, which is returned with it. The standard
     error is estimated from the noise in the odd part of Mrh,
-    Mrh(+H) - Mrh(-H), which is zero for a symmetric loop.
+    Mrh(+H) - Mrh(-H), which is zero for a symmetric loop; it does not
+    include the uncertainty of the fitted Ms, which is second order once
+    Ms stands well above the noise.
 
     With criterion='magnitude' (default), the loop is 'open' when
     f_open - n_sigma*SE reaches openness_tolerance, 'closed' when
@@ -4293,9 +4295,11 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
 
     Loops whose quality factor Q, or that of the isolated ferromagnetic
     loop Qf, falls below `quality_threshold` are likewise flagged with a
-    '-W-' line and 'low_quality' is set in the results; the summary
-    parameters of such loops are suspect, and the horizontal offset
-    correction is not applied to them (see the centering step).
+    '-W-' line and 'low_quality' is set in the results, since their
+    summary parameters are suspect. The default threshold of 2 coincides
+    with the fixed level below which the centering step declines to apply
+    the horizontal offset correction; changing `quality_threshold` moves
+    the flag, not that correction.
 
     Parameters
     ----------
@@ -4332,8 +4336,9 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
         is the HystLab rule, see `loop_closure_test`).
     quality_threshold : float, optional
         Quality factor (Q or Qf) below which the loop is flagged as low
-        quality (default 2.0, the level below which the horizontal offset
-        correction is also skipped).
+        quality (default 2.0, which coincides with the fixed level below
+        which the horizontal offset correction is skipped; this parameter
+        does not change that).
     fit_linear_loop : bool, optional
         If True, process a statistically linear loop in full rather than
         terminating with chi_HF only (default False). Useful when a weak
@@ -4370,6 +4375,12 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
             - 'slope_corrected_M': slope-corrected magnetization
             - 'loop_closure_test_results': results of closure test
             - 'loop_is_closed': whether the loop is closed
+            - 'closure_state': 'closed', 'open' or 'indeterminate'
+            - 'HF_Mrh_fraction', 'HF_Mrh_fraction_se': the openness
+              statistic f_open (high-field Mrh as a fraction of the fitted
+              Ms) and its standard error
+            - 'HF_Mrh_fraction_Mr': the same opening as a fraction of Mr
+            - 'low_quality': whether Q or Qf is below `quality_threshold`
             - 'loop_saturation_stats': saturation test results
             - 'loop_is_saturated': whether the loop is saturated
             - 'M_sn', 'Q': quality metrics from centering
@@ -4469,7 +4480,7 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
         loop_saturation_stats['loop_is_saturated'] = False  # force non-linear high-field fitting
 
     # high-field fit for chi_HF and Ms (before the closure test, which
-    # reports the predicted bias of the fitted Ms as a diagnostic)
+    # expresses the opening as a fraction of the fitted Ms)
     if loop_saturation_stats['loop_is_saturated']:
         # linear high field correction
         chi_HF, Ms = linear_HF_fit(centered_H, drift_corr_M, loop_saturation_stats['saturation_cutoff'])
