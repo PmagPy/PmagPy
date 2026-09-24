@@ -4543,7 +4543,10 @@ class Demag_GUI(wx.Frame):
                 print(("-E- specimen %s does not exist in measurement data" % (spec)))
                 continue
             fname = fdict[i][fnames]
-            if fname is None or (spec in list(self.pmag_results_data['specimens'].keys()) and fname in [x.name for x in self.pmag_results_data['specimens'][spec]]):
+            # rows with no component name are not demagnetization fits (e.g.
+            # paleointensity or anisotropy results for the same specimen);
+            # a blank cell is NaN rather than None with current pandas (#587)
+            if pd.isnull(fname) or (spec in list(self.pmag_results_data['specimens'].keys()) and fname in [x.name for x in self.pmag_results_data['specimens'][spec]]):
                 continue
             if fdict[i]['meas_step_unit'] == "K":
                 fmin = int(float(fdict[i]['meas_step_min'])-273)
@@ -4673,8 +4676,15 @@ class Demag_GUI(wx.Frame):
                     self.loc_data['location'] = self.loc_data.index
                 loc2_data = self.loc_data.rename(
                     columns=map_magic.loc_magic3_2_magic2_map)
-     # there were problems with this command in some contributions:
-                #data_er_locations = loc2_data.to_dict('index') #TRY
+                # a location can have several rows (e.g. one per result), so
+                # loc2_data.to_dict('index') fails on the repeated names (#587);
+                # keep the first value that is not null in each column
+                for loc_rec in loc2_data.to_dict('records'):
+                    er_location = data_er_locations.setdefault(
+                        loc_rec['er_location_name'], {})
+                    for key, value in loc_rec.items():
+                        if key not in er_location and cb.not_null(value, False):
+                            er_location[key] = value
             else:
                 self.con.add_empty_magic_table('locations')
                 self.loc_data = self.con.tables['locations'].df
