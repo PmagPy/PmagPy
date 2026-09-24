@@ -8106,6 +8106,11 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
     (Neel, 1955; plots after Tauxe et al., 2002); plots 'linear mixing'
     curve from Dunlop and Carter-Stiglitz (2006).
 
+    .. deprecated::
+        ` ``ipmag.dayplot_magic`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.plot_hyst_loop`` and other ``pmagpy.rockmag`` 
+        hysteresis functions instead.`
+
     Parameters:
         path_to_file : path to directory that contains files (default is current directory, '.')
         the default input file is 'specimens.txt' (data_model=3
@@ -9216,6 +9221,11 @@ def iplot_hys(fignum, B, M, s):
     This function has been adapted from pmagplotlib.iplot_hys for specific use
     within a Jupyter notebook.
 
+    .. deprecated::
+        ``ipmag.iplot_hys`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.plot_hyst_loop`` and other ``pmagpy.rockmag`` 
+        hysteresis functions instead.
+
     Parameters:
         fignum : reference number for matplotlib figure being created
         B : list of B (flux density) values of hysteresis experiment
@@ -9322,6 +9332,11 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
     Calculates hysteresis parameters, saves them in rmag_hysteresis format file.
     If selected, this function also plots hysteresis loops, delta M curves,
     d (Delta M)/dB curves, and IRM backfield curves.
+
+        .. deprecated::
+            ``ipmag.hysteresis_magic2`` is deprecated and will be removed in a future
+            release. Use ``pmagpy.rockmag.plot_hyst_loop`` and other ``pmagpy.rockmag`` 
+            hysteresis functions instead.
 
     Parameters:
         path_to_file : path to directory that contains files (default is current directory, '.')
@@ -13736,6 +13751,11 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
     Calculate hysteresis parameters and plot hysteresis data.
     Plotting may be called interactively with save_plots==False,
     or be suppressed entirely with make_plots==False.
+
+    .. deprecated::
+            ``ipmag.hysteresis_magic`` is deprecated and will be removed in a future
+            release. Use ``pmagpy.rockmag.plot_hyst_loop`` and other ``pmagpy.rockmag`` 
+            hysteresis functions instead.
 
     Parameters:
         output_dir_path : str, default "."
