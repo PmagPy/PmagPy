@@ -12088,6 +12088,7 @@ def chi_SP(SP_size, T):
 def SP_SD_mixture(SP_size, SD_Mr_Ms = 0.5, SD_Bcr_Bc = 1.25, X_sd = 3, T = 300):
     '''
     function to calculate the SP/SD mixture curve according to Dunlop (2002)
+
     Parameters
     ----------
     SP_size : float
@@ -12100,6 +12101,7 @@ def SP_SD_mixture(SP_size, SD_Mr_Ms = 0.5, SD_Bcr_Bc = 1.25, X_sd = 3, T = 300):
         approximate Mrs/Bc slope. The default is 3 for magnetite
     T : float, optional
         temperature in Kelvin. The default is 300.
+
     Returns
     -------
     Bcr_Bc : numpy.ndarray
@@ -12147,6 +12149,7 @@ def SD_MD_mixture(Mr_Ms_SD = 0.5, Mr_Ms_MD = 0.019,
                   Xr_SD = 0.48, Xr_MD = 0.039):
     '''
     function to calculate the SD/MD mixture curve according to Dunlop (2002)
+
     Parameters
     ----------
     Mr_Ms_SD : float
@@ -12169,6 +12172,7 @@ def SD_MD_mixture(Mr_Ms_SD = 0.5, Mr_Ms_MD = 0.019,
         approximate Mrs/Bcr slope for SD. The default is 0.48.
     Xr_MD : float
         approximate Mrs/Bcr slope for MD. The default is 0.039.
+
     Returns
     -------
     Bcr_Bc : numpy.ndarray
