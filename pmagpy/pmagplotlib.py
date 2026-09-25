@@ -11,7 +11,6 @@ import warnings
 
 import numpy as np
 import pandas as pd
-warnings.filterwarnings("ignore")  # what you don't know won't hurt you, or will it?
 from packaging.version import Version
 
 # no longer setting backend here
@@ -43,12 +42,10 @@ if has_cartopy:
     LAKES = cfeature.LAKES
     BORDERS = cfeature.BORDERS
 
-import os
 import matplotlib
 from matplotlib import cm as color_map
 from matplotlib import pyplot as plt
 from matplotlib.backend_bases import NonGuiException
-from pylab import meshgrid  # matplotlib's meshgrid function
 import matplotlib.ticker as mticker
 globals = 0
 graphmenu = 0
