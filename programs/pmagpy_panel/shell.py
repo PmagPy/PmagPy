@@ -30,6 +30,10 @@ from .widgets import Splitter
 SIDE_WIDTH = 450       # default width of the side column
 HANDLE_WIDTH = 14      # the drag handle between the side column and the main pane
 HEADER_HEIGHT = 52     # the template's header, which the panes sit under
+#: how long, at least, the header's busy spinner stays on once it has started (ms).
+#: Panel's default is 500: every tab switch then looked like half a second of work,
+#: however quick it was (a switch to a tab already shown takes about 15 ms)
+BUSY_MIN_MS = 100
 STATUS_STYLE = "color:inherit;opacity:.88;font-size:0.85rem"   # follows the header's text colour
 
 
@@ -256,6 +260,7 @@ def template(body: Body, logo: str, hub_url: str = "") -> pn.template.FastListTe
         header_background=body.info.color, header_color=text_on(body.info.color),   # the application's colour
         accent_base_color=ACCENT,                                                   # buttons stay the family's
         collapsed_sidebar=True, main_max_width="100%", raw_css=[RAW_CSS],
+        busy_indicator=pn.indicators.LoadingSpinner(width=20, height=20, throttle=BUSY_MIN_MS),
     )
     if body.modal is not None:
         tmpl.modal.append(body.modal)

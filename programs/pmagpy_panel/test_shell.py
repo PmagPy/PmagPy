@@ -82,6 +82,12 @@ class TestLazyTabs:
 
 
 class TestShell:
+    def test_the_busy_spinner_stays_on_only_briefly_after_quick_work(self):
+        """Panel keeps it on for at least 500 ms, which made every tab switch look slow."""
+        first, second = shell.template(_body(), logo=LOGO), shell.template(_body(), logo=LOGO)
+        assert first.busy_indicator.throttle == shell.BUSY_MIN_MS < 500
+        assert first.busy_indicator is not second.busy_indicator        # each page has its own
+
     def test_template_wraps_a_body_and_wires_the_modal(self):
         """The host owns the modal; the body only asks for it to open and close."""
         modal = pn.Column(pn.pane.HTML("choose"))
