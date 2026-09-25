@@ -109,6 +109,7 @@ def main():
         aniso_magic.py [-h] [command line options]
     OPTIONS
         -h plots help message and quits
+        -WD DIR, directory with the input files, in which plots are also saved, default is current directory
         -f AFILE, specify specimens.txt formatted file for input
         -fsa SAMPFILE, specify samples.txt file (required to plot by site)
         -fsi SITEFILE, specify site file (required to include location information)
@@ -176,11 +177,13 @@ def main():
         ind = args.index('-d')
         vec = int(args[ind+1])-1
         Dir = [float(args[ind+2]), float(args[ind+3])]
-    ipmag.aniso_magic_nb(infile, samp_file, site_file, verbose,
-                         ipar, ihext, ivec, isite, iboot,
-                         vec, Dir, PDir, crd, num_bootstraps,
-                         dir_path, save_plots=save_plots, interactive=interactive,
-                         fmt=fmt)
+    # pass everything by keyword so that parameters added to ipmag.aniso_magic
+    # cannot shift the arguments given here
+    ipmag.aniso_magic(infile=infile, samp_file=samp_file, site_file=site_file,
+                      verbose=verbose, ipar=ipar, ihext=ihext, ivec=ivec,
+                      isite=isite, iboot=iboot, vec=vec, Dir=Dir, PDir=PDir,
+                      crd=crd, num_bootstraps=num_bootstraps, dir_path=dir_path,
+                      save_plots=save_plots, interactive=interactive, fmt=fmt)
 
 
 

@@ -11,7 +11,6 @@ import warnings
 
 import numpy as np
 import pandas as pd
-warnings.filterwarnings("ignore")  # what you don't know won't hurt you, or will it?
 from packaging.version import Version
 
 # no longer setting backend here
@@ -43,12 +42,10 @@ if has_cartopy:
     LAKES = cfeature.LAKES
     BORDERS = cfeature.BORDERS
 
-import os
 import matplotlib
 from matplotlib import cm as color_map
 from matplotlib import pyplot as plt
 from matplotlib.backend_bases import NonGuiException
-from pylab import meshgrid  # matplotlib's meshgrid function
 import matplotlib.ticker as mticker
 globals = 0
 graphmenu = 0
@@ -1937,7 +1934,12 @@ def plot_vs(fignum, Xs, c, ls):
 
 def plot_hys(fignum, B, M, s):
     """
-    function to plot hysteresis data
+    Plot hysteresis data.
+
+    .. deprecated:: 4.6.0
+       ``pmagplotlib.plot_hys`` is deprecated and will be removed in a future
+       release. Use ``pmagpy.rockmag.plot_hyst_loop`` and other
+       ``pmagpy.rockmag`` hysteresis functions instead.
 
     Parameters
     ----------
@@ -1949,10 +1951,19 @@ def plot_hys(fignum, B, M, s):
     Returns
     -------
     hpars : dictionary of hysteresis parameters
-        keys: ['hysteresis_xhf', 'hysteresis_ms_moment', 'hysteresis_mr_moment', 'hysteresis_bc']
-    deltaM : list of differences between down and upgoing loops
-    Bdm : field values
+        Keys: ``'hysteresis_xhf'``, ``'hysteresis_ms_moment'``,
+        ``'hysteresis_mr_moment'``, ``'hysteresis_bc'``.
+    deltaM : list
+        Differences between descending and ascending loop branches.
+    Bdm : list
+        Field values corresponding to ``deltaM``.
     """
+    warnings.warn(
+        "pmagplotlib.plot_hys is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.plot_hyst_loop instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     B = list(B)
     from . import spline
     if fignum != 0:
@@ -2181,6 +2192,10 @@ def plot_day(fignum, BcrBc, S, sym, **kwargs):
     """
     function to plot Day plots
 
+    .. deprecated:: 4.6.0
+        ``pmagplotlib.plot_day`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.plot_day`` instead.
+
     Parameters
     _________
     fignum : matplotlib figure number
@@ -2189,6 +2204,12 @@ def plot_day(fignum, BcrBc, S, sym, **kwargs):
     sym : matplotlib symbol (e.g., 'rs' for red squares)
     **kwargs :  dictionary with {'names':[list of names for symbols]}
     """
+    warnings.warn(
+        "pmagplotlib.plot_day is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.plot_day instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     plt.figure(num=fignum)
     plt.plot(BcrBc, S, sym)
     plt.axhline(0, color='k')
@@ -2324,6 +2345,10 @@ def plot_irm(fignum, B, M, title):
     """
     function to plot IRM backfield curves
 
+    .. deprecated:: 4.6.0
+        ``pmagplotlib.plot_irm`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.plot_backfield_data`` instead.
+
     Parameters
     _________
     fignum : matplotlib figure number
@@ -2331,6 +2356,12 @@ def plot_irm(fignum, B, M, title):
     M : list or array of magnetizations
     title : string title for plot
     """
+    warnings.warn(
+        "pmagplotlib.plot_irm is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.plot_backfield_data instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     rpars = {}
     Mnorm = []
     backfield = 0
