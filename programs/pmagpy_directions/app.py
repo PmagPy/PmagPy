@@ -41,14 +41,13 @@ def build_body(session: Session) -> shell.Body:
     # the side column follows the active tab: specimen steps, or what is plotted —
     # the fits the table lists on Fits, the plotted fits on Means, the VGPs on Poles.
     # Only Export uses the full width (it writes tables, it plots nothing)
-    side_panels = {0: specimen.sidebar(), 1: interps.sidebar(), 2: means.sidebar(), 3: poles.sidebar()}
-    side_holder = pn.Column(side_panels[0], sizing_mode="stretch_width")
+    side = shell.SidePanels({0: specimen.sidebar(), 1: interps.sidebar(), 2: means.sidebar(), 3: poles.sidebar()})
     full_width_tabs = {4}
 
     # the hotkeys listener lives beside the tabs, never in a side panel: the side
     # column is swapped per tab, and a component that is off the page cannot report
     main = pn.Column(specimen.hotkeys, tabs, margin=0, sizing_mode="stretch_both")
-    body = shell.Body(info=APP, main=main, side=pn.Column(dataview.sidebar(), side_holder, sizing_mode="stretch_width"),
+    body = shell.Body(info=APP, main=main, side=pn.Column(dataview.sidebar(), side.column, sizing_mode="stretch_width"),
                       header=shell.status_line(session), modal=dataview.modal())
 
     def _on_tab(event):
@@ -59,7 +58,7 @@ def build_body(session: Session) -> shell.Body:
         show = event.new not in full_width_tabs
         body.show_side(show)
         if show:
-            side_holder[:] = [side_panels.get(event.new, side_panels[0])]
+            side.show(event.new)
     tabs.param.watch(_on_tab, "active")
 
     def _goto_specimen():

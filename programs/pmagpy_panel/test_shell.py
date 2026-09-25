@@ -26,6 +26,32 @@ def _body(**kw):
     return shell.Body(info=INFO, main=pn.Column(pn.pane.HTML("main")), **kw)
 
 
+class TestSidePanels:
+    def test_a_panel_joins_the_page_when_first_shown_and_then_only_its_visibility_changes(self):
+        panels = {0: pn.Column(name="steps"), 1: pn.Column(name="fits"), 2: pn.Column(name="means")}
+        side = shell.SidePanels(panels)
+        assert side.column.objects == [panels[0]]            # only the first tab's panel at the start
+
+        side.show(1)
+        assert side.column.objects == [panels[0], panels[1]]
+        assert [p.visible for p in side.column.objects] == [False, True]
+
+        side.show(0)                                          # back: nothing added, visibility swapped
+        assert side.column.objects == [panels[0], panels[1]]
+        assert [p.visible for p in side.column.objects] == [True, False]
+
+        side.show(1)
+        side.show(1)                                          # the same tab twice adds nothing
+        assert side.column.objects == [panels[0], panels[1]]
+
+    def test_a_tab_without_a_panel_shows_the_default(self):
+        panels = {0: pn.Column(name="steps"), 1: pn.Column(name="fits")}
+        side = shell.SidePanels(panels)
+        side.show(1)
+        side.show(4)
+        assert [p.visible for p in side.column.objects] == [True, False]
+
+
 class TestShell:
     def test_template_wraps_a_body_and_wires_the_modal(self):
         """The host owns the modal; the body only asks for it to open and close."""

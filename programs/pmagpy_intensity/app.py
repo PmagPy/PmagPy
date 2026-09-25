@@ -51,9 +51,8 @@ def build_body(session: Session) -> shell.Body:
     for index, view in lazy.items():
         view.set_active(index == tabs.active)
 
-    side_panels = {0: specimen.sidebar(), 1: interps.sidebar(), 2: criteria.sidebar(),
-                   3: corrections.sidebar(), 4: groups.sidebar(), 5: bicep.sidebar()}
-    side_holder = pn.Column(side_panels[0], sizing_mode="stretch_width")
+    side = shell.SidePanels({0: specimen.sidebar(), 1: interps.sidebar(), 2: criteria.sidebar(),
+                             3: corrections.sidebar(), 4: groups.sidebar(), 5: bicep.sidebar()})
     full_width_tabs = {6}          # only Export uses the whole width
 
     def status() -> str:
@@ -68,7 +67,7 @@ def build_body(session: Session) -> shell.Body:
 
     body = shell.Body(
         info=APP, main=tabs, header=header, modal=dataview.modal(), side_width=SIDE_WIDTH,
-        side=pn.Column(dataview.sidebar(), side_holder, sizing_mode="stretch_width"))
+        side=pn.Column(dataview.sidebar(), side.column, sizing_mode="stretch_width"))
 
     def _on_tab(event):
         for index, view in lazy.items():
@@ -76,7 +75,7 @@ def build_body(session: Session) -> shell.Body:
         show = event.new not in full_width_tabs
         body.show_side(show)
         if show:
-            side_holder[:] = [side_panels.get(event.new, side_panels[0])]
+            side.show(event.new)
     tabs.param.watch(_on_tab, "active")
 
     def _goto_specimen():

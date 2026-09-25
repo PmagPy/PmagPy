@@ -6,6 +6,7 @@ Exercises the step logger (left click = bounds, right click = good/bad),
 adds a fit, and screenshots every tab. Exits non-zero on failure.
 """
 import os
+import re
 import sys
 import time
 
@@ -55,6 +56,12 @@ FITS_NOTE_JS = """() => {
   const hit = all.find(e => e.tagName === 'SPAN' && /fits? (listed|ticked)/.test(e.textContent) && e.getBoundingClientRect().width > 0);
   return hit ? hit.textContent : '';
 }"""
+
+
+def open_tab(page, name):
+    """Click the tab called `name` (not merely the first text that reads so: the side
+    column has a "Specimen" label, and it stays in the page, hidden, on other tabs)."""
+    page.locator(".bk-tab").filter(has_text=re.compile(rf"^{name}$", re.I)).first.click()
 
 
 def check_nets_circular(page, where):
@@ -187,7 +194,7 @@ with sync_playwright() as p:
     page.screenshot(path=f"{prefix}_specimen_east.png")
 
     for tab in ("Means", "Poles", "Fits", "Export"):
-        page.get_by_text(tab, exact=True).first.click()
+        open_tab(page, tab)
         time.sleep(5)
         page.screenshot(path=f"{prefix}_{tab.lower()}.png")
         check(True, f"{tab} tab rendered")
@@ -207,7 +214,9 @@ with sync_playwright() as p:
             check(sel == [1], f"↓ selected the second fit (got {sel})")
             check(sum(page.evaluate(MARKS_JS)) == base + 1, "... and the ring followed")
             page.screenshot(path=f"{prefix}_means_selected.png")
-        visible = page.locator(".step-logger tr[data-i]").count() > 0 or page.get_by_role("button", name="Change data…").count() > 0
+        # (the side panels stay in the page once shown, hidden while another tab is on show)
+        visible = (page.locator(".step-logger tr[data-i]:visible").count() > 0
+                   or page.get_by_role("button", name="Change data…").count() > 0)
         if tab == "Export":
             check(not visible, f"{tab} tab hides the side column")
         else:
@@ -265,7 +274,7 @@ with sync_playwright() as p:
         return [c for c in page.locator(sel).all_inner_texts() if c.strip()]
 
     def verify(name, n_expected, foreign, switched=True):
-        page.get_by_text("Specimen", exact=True).first.click()
+        open_tab(page, "Specimen")
         time.sleep(3)
         if switched:      # (earlier steps overwrite the load message with fit-editing status)
             check(page.get_by_text(f"specimens from {name}").count() > 0, f"[{name}] header reports the dataset")
@@ -276,33 +285,33 @@ with sync_playwright() as p:
         check(page.locator(".step-logger tr[data-i]").count() > 3, f"[{name}] logger shows steps")
         check(page.get_by_text(current, exact=True).count() > 0, f"[{name}] information line names {current}")
         page.screenshot(path=f"{prefix}_{name}_specimen.png")
-        page.get_by_text("Fits", exact=True).first.click()
+        open_tab(page, "Fits")
         time.sleep(5)
         names = cells(".tabulator-cell[tabulator-field='specimen']")
         check(names and not any(c.startswith(foreign) for c in names), f"[{name}] Fits tab lists {len(names)} own fits on page 1")
         check(page.get_by_text("specimens interpreted").count() > 0, f"[{name}] Fits summary present")
         page.screenshot(path=f"{prefix}_{name}_interpretations.png")
-        page.get_by_text("Means", exact=True).first.click()
+        open_tab(page, "Means")
         time.sleep(4)
         site = page.locator("select").nth(0).evaluate("el => el.value")
         check(site and not site.startswith(foreign), f"[{name}] Means offers site {site}")
         listed = cells(".tabulator-cell[tabulator-field='specimen']")
         check(listed and not any(c.startswith(foreign) for c in listed), f"[{name}] Means lists {len(listed)} own fits")
         page.screenshot(path=f"{prefix}_{name}_means.png")
-        page.get_by_text("Poles", exact=True).first.click()
+        open_tab(page, "Poles")
         time.sleep(5)
         sites = cells(".tabulator-cell[tabulator-field='site']")
         check(sites and not any(c.startswith(foreign) for c in sites), f"[{name}] Poles table lists {len(sites)} own sites")
         check(page.get_by_text("A95").count() > 0, f"[{name}] Poles shows a mean pole")
         page.screenshot(path=f"{prefix}_{name}_poles.png")
-        page.get_by_text("Export", exact=True).first.click()
+        open_tab(page, "Export")
         time.sleep(3)
         redo = page.get_by_role("textbox", name=".redo file").input_value()
         check(name in redo, f"[{name}] Export .redo path is {os.path.basename(os.path.dirname(redo))}/{os.path.basename(redo)}")
         page.screenshot(path=f"{prefix}_{name}_export.png")
 
     def switch_by_path(path):
-        page.get_by_text("Specimen", exact=True).first.click()
+        open_tab(page, "Specimen")
         time.sleep(2)
         page.get_by_role("button", name="Change data…").click()
         time.sleep(2)
@@ -314,7 +323,7 @@ with sync_playwright() as p:
         wait_for(os.path.basename(path.rstrip("/")))
 
     def switch_by_chooser():
-        page.get_by_text("Specimen", exact=True).first.click()
+        open_tab(page, "Specimen")
         time.sleep(2)
         page.get_by_role("button", name="Change data…").click()
         time.sleep(2)

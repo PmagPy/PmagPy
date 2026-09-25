@@ -95,6 +95,36 @@ def status_line(session, text: Optional[Callable[[], str]] = None) -> pn.pane.HT
     return pane
 
 
+class SidePanels:
+    """The side column's content, one panel per tab, following the tab on show.
+
+    A panel goes into the page the first time its tab is shown and stays
+    there; after that a switch only changes which panel is visible. Replacing
+    the column's content instead, on every switch, makes the server rebuild
+    the panel's models and send them again, plots and all: 430 kB and a fifth
+    of a second for the Directions *Fits* panel, whose net holds every fit in
+    the study, each time that tab was opened.
+
+    Args:
+        panels: the panel for each tab, by tab index.
+        default: the tab whose panel is shown first, and for a tab with none.
+    """
+
+    def __init__(self, panels: dict, default: int = 0):
+        self.panels = panels
+        self.default = default
+        self.column = pn.Column(panels[default], sizing_mode="stretch_width")
+
+    def show(self, index: int) -> None:
+        """Show the panel of tab ``index`` (the default's, if it has none) and hide the rest."""
+        panel = self.panels.get(index, self.panels[self.default])
+        with pn.io.hold():
+            if not any(p is panel for p in self.column.objects):
+                self.column.append(panel)
+            for p in self.column.objects:
+                p.visible = p is panel
+
+
 class Workspace:
     """A body laid out: side column, drag handle, main pane.
 
