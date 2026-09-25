@@ -125,6 +125,42 @@ class SidePanels:
                 p.visible = p is panel
 
 
+def lazy_tabs(*items, **params) -> pn.Tabs:
+    """Tabs whose content goes into the page the first time a tab is shown, and stays there.
+
+    Panel's ``dynamic=True`` keeps only the tab on show in the page, so every
+    switch rebuilds the tab's models on the server, sends them again and has
+    the browser construct them afresh: 100 to 300 kB and a few hundred
+    milliseconds for each of the Directions tabs. Keeping every tab in the page
+    from the start makes the first page slower instead. Here a tab holds an
+    empty placeholder until it is first opened; its content then replaces the
+    placeholder, once, and later switches are the browser's alone.
+
+    The content is added before the application's own watchers on ``active``
+    run (it is registered first), so the tab appears at once even when a view
+    computes for seconds when first shown (Intensity's group results take
+    seven): the layout arrives, then its numbers.
+
+    Args:
+        items: ``(title, content)`` pairs, as for ``pn.Tabs``.
+        params: passed to ``pn.Tabs`` (``dynamic`` is always False).
+    """
+    items = list(items)
+    params["dynamic"] = False
+    active = params.get("active", 0)
+    tabs = pn.Tabs(*[(title, content if i == active else pn.Column(margin=0))
+                     for i, (title, content) in enumerate(items)], **params)
+    shown = {active}
+
+    def _add(event):
+        i = event.new
+        if i is not None and 0 <= i < len(items) and i not in shown:
+            shown.add(i)
+            tabs[i] = items[i]
+    tabs.param.watch(_add, "active")
+    return tabs
+
+
 class Workspace:
     """A body laid out: side column, drag handle, main pane.
 

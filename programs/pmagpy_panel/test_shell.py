@@ -52,6 +52,35 @@ class TestSidePanels:
         assert [p.visible for p in side.column.objects] == [True, False]
 
 
+class TestLazyTabs:
+    def test_a_tab_joins_the_page_when_first_shown_and_stays(self):
+        a, b, c = pn.pane.Markdown("a"), pn.pane.Markdown("b"), pn.pane.Markdown("c")
+        tabs = shell.lazy_tabs(("A", a), ("B", b), ("C", c))
+        assert tabs.dynamic is False
+        assert tabs._names == ["A", "B", "C"]
+        assert tabs[0] is a and tabs[1] is not b and tabs[2] is not c      # placeholders until opened
+
+        tabs.active = 2
+        assert tabs[2] is c and tabs[1] is not b
+        tabs.active = 0
+        tabs.active = 2                                    # back again: nothing replaced a second time
+        assert tabs[0] is a and tabs[2] is c and tabs._names == ["A", "B", "C"]
+
+    def test_the_content_is_added_before_the_applications_own_watchers(self):
+        """The tab appears at once, however long the application's watcher then computes."""
+        b = pn.pane.Markdown("")
+        tabs = shell.lazy_tabs(("A", pn.pane.Markdown("a")), ("B", b))
+        seen = []
+        tabs.param.watch(lambda e: seen.append(tabs[1] is b), "active")
+        tabs.active = 1
+        assert seen == [True]
+
+    def test_another_tab_can_be_on_show_first(self):
+        a, b = pn.pane.Markdown("a"), pn.pane.Markdown("b")
+        tabs = shell.lazy_tabs(("A", a), ("B", b), active=1)
+        assert tabs[1] is b and tabs[0] is not a
+
+
 class TestShell:
     def test_template_wraps_a_body_and_wires_the_modal(self):
         """The host owns the modal; the body only asks for it to open and close."""

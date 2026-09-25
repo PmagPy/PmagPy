@@ -39,14 +39,14 @@ def build_body(session: Session) -> shell.Body:
 
     # the analysis order: interpret a specimen, review every interpretation,
     # understand why each passed or failed, correct, average, and export
-    tabs = pn.Tabs(("Specimen", specimen.main()),
-                   ("Interpretations", interps.panel()),
-                   ("Criteria & statistics", criteria.panel()),
-                   ("Corrections", corrections.panel()),
-                   ("Group results", groups.panel()),
-                   ("BiCEP", bicep.panel()),
-                   ("Export", export.panel()),
-                   dynamic=True, stylesheets=[TABS_CSS])
+    tabs = shell.lazy_tabs(("Specimen", specimen.main()),
+                           ("Interpretations", interps.panel()),
+                           ("Criteria & statistics", criteria.panel()),
+                           ("Corrections", corrections.panel()),
+                           ("Group results", groups.panel()),
+                           ("BiCEP", bicep.panel()),
+                           ("Export", export.panel()),
+                           stylesheets=[TABS_CSS])
     lazy = {1: interps, 2: criteria, 3: corrections, 4: groups, 5: bicep}
     for index, view in lazy.items():
         view.set_active(index == tabs.active)

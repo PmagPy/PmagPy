@@ -23,7 +23,7 @@ def build_body(session: Session) -> shell.Body:
     selection = SelectionView(session)
     inventory = Inventory(session)
     views = {key: cls(session) for key, _, cls in TABS}
-    tabs = pn.Tabs(*[(label, views[key].panel()) for key, label, _ in TABS], dynamic=True, stylesheets=[TABS_CSS])
+    tabs = shell.lazy_tabs(*[(label, views[key].panel()) for key, label, _ in TABS], stylesheets=[TABS_CSS])
 
     body = shell.Body(info=APP, main=tabs,
                       side=pn.Column(dataview.sidebar(), selection.panel(), inventory.panel(),

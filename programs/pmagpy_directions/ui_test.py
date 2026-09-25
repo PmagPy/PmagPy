@@ -58,6 +58,28 @@ FITS_NOTE_JS = """() => {
 }"""
 
 
+# Mark the table rows the analyst can see. A tab once opened stays in the page,
+# hidden, and Tabulator sets its rows back to `visibility: visible`, so Playwright's
+# :visible still counts the rows of a hidden tab's table; an ancestor hidden by
+# the tabs is what tells them apart.
+MARK_SHOWN_ROWS_JS = """() => {
+  const all = [], walk = (r) => r.querySelectorAll('*').forEach(e => { all.push(e); if (e.shadowRoot) walk(e.shadowRoot); });
+  walk(document);
+  const hidden = (e) => { for (let a = e.parentElement || e.getRootNode().host; a; a = a.parentElement || (a.getRootNode() && a.getRootNode().host))
+                            if (getComputedStyle(a).visibility === 'hidden' || getComputedStyle(a).display === 'none') return true;
+                          return false; };
+  for (const r of all.filter(e => e.classList && e.classList.contains('tabulator-row'))) {
+    if (hidden(r)) r.removeAttribute('data-shown'); else r.setAttribute('data-shown', '1');
+  }
+}"""
+
+
+def shown_rows(page):
+    """The table rows on show (see MARK_SHOWN_ROWS_JS)."""
+    page.evaluate(MARK_SHOWN_ROWS_JS)
+    return page.locator(".tabulator-row[data-shown]")
+
+
 def open_tab(page, name):
     """Click the tab called `name` (not merely the first text that reads so: the side
     column has a "Specimen" label, and it stays in the page, hidden, on other tabs)."""
@@ -202,7 +224,7 @@ with sync_playwright() as p:
             check_nets_circular(page, f"{tab} tab")
         if tab == "Means":
             # clicking a listed fit rings it on the net; ↑ ↓ walk the list
-            rows = page.locator(".tabulator-row")
+            rows = shown_rows(page)
             check(rows.count() >= 2, f"Means tab lists {rows.count()} fits")
             base = sum(page.evaluate(MARKS_JS))          # (the Specimen tab's rings may still be in the document)
             rows.nth(0).click(); time.sleep(2.5)
@@ -210,6 +232,7 @@ with sync_playwright() as p:
                   f"the clicked fit is ringed on the net (got {page.evaluate(MARKS_JS)}, was {base})")
             page.mouse.click(900, 700)
             page.keyboard.press("ArrowDown"); time.sleep(2.5)
+            rows = shown_rows(page)
             sel = [i for i, r in enumerate(rows.all()) if "tabulator-selected" in (r.get_attribute("class") or "")]
             check(sel == [1], f"↓ selected the second fit (got {sel})")
             check(sum(page.evaluate(MARKS_JS)) == base + 1, "... and the ring followed")

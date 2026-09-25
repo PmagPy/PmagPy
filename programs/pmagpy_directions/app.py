@@ -32,8 +32,8 @@ def build_body(session: Session) -> shell.Body:
     export = ExportView(session)
 
     # analysis order: interpret specimens, review every fit, then means, poles, export
-    tabs = pn.Tabs(("Specimen", specimen.main()), ("Fits", interps.panel()), ("Means", means.panel()),
-                   ("Poles", poles.panel()), ("Export", export.panel()), dynamic=True, stylesheets=[TABS_CSS])
+    tabs = shell.lazy_tabs(("Specimen", specimen.main()), ("Fits", interps.panel()), ("Means", means.panel()),
+                           ("Poles", poles.panel()), ("Export", export.panel()), stylesheets=[TABS_CSS])
     lazy = {1: interps, 2: means, 3: poles}
     for i, view in lazy.items():
         view.set_active(i == tabs.active)
