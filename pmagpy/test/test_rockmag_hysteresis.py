@@ -410,6 +410,21 @@ def _hard_Ms_for_openness(fraction, hard_Bc=0.7, hard_w=0.5, Hmax=1.0,
     return fraction * soft_Mr / (hard_unit - fraction * hard_Mr_unit)
 
 
+def _hard_Ms_for_openness_Ms(fraction, **kw):
+    """hard_Ms giving a noise-free openness `fraction` of Ms (= 1 + hard_Ms)
+    for the synthetic_loop model.
+
+    openness_Ms = hard_Ms*hard_unit / (1 + hard_Ms), with hard_unit the
+    window mean of the hard tanh pair (see _hard_Ms_for_openness).
+    """
+    hard_Bc = kw.get('hard_Bc', 0.7); hard_w = kw.get('hard_w', 0.5)
+    Hmax = kw.get('Hmax', 1.0)
+    H = np.linspace(0.8 * Hmax, 0.99 * Hmax, 2000)
+    hard_unit = np.mean(np.tanh((H + hard_Bc) / hard_w)
+                        - np.tanh((H - hard_Bc) / hard_w)) / 2
+    return fraction / (hard_unit - fraction)
+
+
 class TestClosureTest:
     """The SNR/HAR closure statistics of Paterson et al. (2018),
     selected with criterion='SNR_HAR'."""
@@ -447,7 +462,7 @@ class TestClosureTest:
         H, M = synthetic_loop(noise=2e-3, hard_Ms=0.1)
         Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
         legacy = rmag.loop_closure_test(Hu, Mrh, Me=Me, criterion='SNR_HAR')
-        new = rmag.loop_closure_test(Hu, Mrh, Me=Me)
+        new = rmag.loop_closure_test(Hu, Mrh, Me=Me, Ms=1.1)
         assert new['loop_is_closed_SNR_HAR'] == legacy['loop_is_closed']
         assert new['SNR'] == legacy['SNR'] and new['HAR'] == legacy['HAR']
 
@@ -471,36 +486,48 @@ class TestClosureTest:
 
 class TestClosureMagnitude:
     """The default closure criterion: the openness statistic f_open
-    (HF_Mrh_fraction) against a tolerance."""
+    (HF_Mrh_fraction, the high-field Mrh as a fraction of the fitted Ms)
+    against a tolerance."""
 
     @staticmethod
-    def _closure(H, M, **kwargs):
+    def _closure(H, M, Ms, **kwargs):
         Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
-        return rmag.loop_closure_test(Hu, Mrh, Me=Me, **kwargs)
+        return rmag.loop_closure_test(Hu, Mrh, Me=Me, Ms=Ms, **kwargs)
+
+    def test_requires_Ms(self):
+        H, M = synthetic_loop(noise=2e-3)
+        Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
+        with pytest.raises(ValueError, match='Ms'):
+            rmag.loop_closure_test(Hu, Mrh, Me=Me)
+        # the SNR_HAR criterion does not need it
+        assert 'closure_state' in rmag.loop_closure_test(Hu, Mrh, Me=Me,
+                                                         criterion='SNR_HAR')
 
     def test_openness_matches_analytic_window_mean(self):
-        # the reported fraction is the window mean of the even Mrh over Mrs,
-        # which is known in closed form for the tanh model
+        # the reported fraction is the window mean of the even Mrh over the
+        # true Ms (1 + hard_Ms for the fixture), known in closed form; the
+        # Mr-relative version is checked against its own analytic value
         for target in (0.005, 0.03, 0.2):
-            hard_Ms = _hard_Ms_for_openness(target)
+            hard_Ms = _hard_Ms_for_openness_Ms(target)
             H, M = synthetic_loop(hard_Ms=hard_Ms)
-            results = self._closure(H, M)
-            assert results['HF_Mrh_fraction'] == pytest.approx(target,
-                                                               rel=0.05)
-            assert results['HF_Mrh_fraction_se'] < 0.1 * target
+            results = self._closure(H, M, Ms=1.0 + hard_Ms)
+            assert results['HF_Mrh_fraction'] == pytest.approx(target, rel=0.05)
+            Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
+            assert results['HF_Mrh_fraction_Mr'] == pytest.approx(
+                target * (1.0 + hard_Ms) / Mr, rel=0.05)
 
     def test_standard_error_matches_empirical_scatter(self):
         # on noisy loops the reported SE must track the actual scatter of
         # f_open across noise realizations (the noise-free test above has
         # SE = 0 exactly and cannot see a regression in the SE code)
-        hard_Ms = _hard_Ms_for_openness(0.03)
+        hard_Ms = _hard_Ms_for_openness_Ms(0.03)
         reported_se = {}
         for noise in (1e-3, 1e-2):
             rng = np.random.default_rng(int(noise * 1e6))
             estimates, ses = [], []
             for _ in range(30):
                 H, M = synthetic_loop(noise=noise, hard_Ms=hard_Ms, rng=rng)
-                r = self._closure(H, M)
+                r = self._closure(H, M, Ms=1.0 + hard_Ms)
                 estimates.append(r['HF_Mrh_fraction'])
                 ses.append(r['HF_Mrh_fraction_se'])
             empirical = np.std(estimates, ddof=1)
@@ -513,95 +540,94 @@ class TestClosureMagnitude:
         assert reported_se[1e-2] > 3 * reported_se[1e-3]
 
     def test_closed_loop_reports_zero_openness(self):
-        results = self._closure(*synthetic_loop(noise=2e-3))
+        results = self._closure(*synthetic_loop(noise=2e-3), Ms=1.0)
         assert results['closure_state'] == 'closed'
         assert results['loop_is_closed']
         assert abs(results['HF_Mrh_fraction']) < 3 * results['HF_Mrh_fraction_se'] + 1e-4
 
     def test_verdict_invariant_to_noise(self):
-        # a 0.5% opening stays closed and a 15% opening stays open across
+        # a 0.5% opening stays closed and a 10% opening stays open across
         # three decades of noise; SNR alone would flip both
         rng = np.random.default_rng(902)
-        small = _hard_Ms_for_openness(0.005)
-        large = _hard_Ms_for_openness(0.15)
+        small = _hard_Ms_for_openness_Ms(0.005)
+        large = _hard_Ms_for_openness_Ms(0.10)
         for noise in (1e-5, 1e-4, 1e-3, 1e-2):
             r_small = self._closure(*synthetic_loop(noise=noise, hard_Ms=small,
-                                                    rng=rng))
+                                                    rng=rng), Ms=1.0 + small)
             r_large = self._closure(*synthetic_loop(noise=noise, hard_Ms=large,
-                                                    rng=rng))
+                                                    rng=rng), Ms=1.0 + large)
             assert r_small['closure_state'] == 'closed', noise
             assert r_large['closure_state'] == 'open', noise
             assert not r_large['loop_is_closed']
 
     def test_openness_tolerance(self):
-        # the verdict is on the openness alone: a 3% opening is below the
-        # default 5% tolerance, a 15% opening is above it, and the
-        # tolerance is a parameter
-        small = self._closure(*synthetic_loop(noise=2e-3,
-                                              hard_Ms=_hard_Ms_for_openness(0.03)))
-        assert small['tolerance'] == 0.05
+        # a 1% opening is below the default 2% tolerance, a 5% opening is
+        # above it, and the tolerance is a parameter
+        h1 = _hard_Ms_for_openness_Ms(0.01)
+        small = self._closure(*synthetic_loop(noise=2e-3, hard_Ms=h1),
+                              Ms=1.0 + h1)
+        assert small['tolerance'] == 0.02
         assert small['closure_state'] == 'closed'
         assert (small['HF_cutoff'], small['max_field_cutoff']) == (0.8, 0.99)
-        large = self._closure(*synthetic_loop(noise=2e-3,
-                                              hard_Ms=_hard_Ms_for_openness(0.15)))
+        h5 = _hard_Ms_for_openness_Ms(0.05)
+        large = self._closure(*synthetic_loop(noise=2e-3, hard_Ms=h5),
+                              Ms=1.0 + h5)
         assert large['closure_state'] == 'open'
-        strict = self._closure(*synthetic_loop(noise=2e-3,
-                                               hard_Ms=_hard_Ms_for_openness(0.03)),
-                               openness_tolerance=0.02)
+        strict = self._closure(*synthetic_loop(noise=2e-3, hard_Ms=h1),
+                               Ms=1.0 + h1, openness_tolerance=0.005)
         assert strict['closure_state'] == 'open'
 
-    def test_Ms_bias_predicted_is_reported_not_decided_on(self):
-        # with Ms supplied the predicted bias f*Mr/Ms is returned; the same
-        # 3%-of-Mrs opening predicts ~3% bias when Mrs ~ Ms (SD-like tanh
-        # fixture) and ~0.1% when Mrs is 3% of Ms (MD-like), while the
-        # verdict is 'closed' for both because it depends on f alone
-        sd_hard = _hard_Ms_for_openness(0.03)
-        H, M = synthetic_loop(noise=2e-3, hard_Ms=sd_hard)
-        Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
-        sd = rmag.loop_closure_test(Hu, Mrh, Me=Me, Ms=1.0 + sd_hard)
-        assert sd['Ms_bias_predicted'] == pytest.approx(0.03 * Mr / (1.0 + sd_hard),
-                                                        rel=0.1)
-        assert sd['closure_state'] == 'closed'
-        without = rmag.loop_closure_test(Hu, Mrh, Me=Me)
-        assert np.isnan(without['Ms_bias_predicted'])
-        md_hard = _hard_Ms_for_openness(0.03, Bc=0.001, w=0.03)
+    def test_Ms_and_Mr_normalizations(self):
+        # the same absolute opening is a large fraction of Mr but a small
+        # fraction of Ms when Mr/Ms is small (MD-like fixture): the verdict
+        # follows the Ms-relative value
+        md_hard = _hard_Ms_for_openness(0.03, Bc=0.001, w=0.03)   # 3% of Mr
         H, M = synthetic_loop(noise=1e-3, hard_Ms=md_hard, Bc=0.001, w=0.03,
                               rng=np.random.default_rng(902))
         Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
-        assert Mr / (1.0 + md_hard) < 0.05          # MD-like Mrs/Ms
+        assert Mr / (1.0 + md_hard) < 0.05          # MD-like Mr/Ms
         md = rmag.loop_closure_test(Hu, Mrh, Me=Me, Ms=1.0 + md_hard)
-        assert md['HF_Mrh_fraction'] == pytest.approx(0.03, rel=0.25)
-        assert md['Ms_bias_predicted'] < 0.005
+        assert md['HF_Mrh_fraction_Mr'] == pytest.approx(0.03, rel=0.25)
+        assert md['HF_Mrh_fraction'] < 0.005
         assert md['closure_state'] == 'closed'
+        # SD-like fixture (Mr ~ Ms): the two fractions are close
+        sd_hard = _hard_Ms_for_openness(0.05)
+        H, M = synthetic_loop(noise=2e-3, hard_Ms=sd_hard)
+        Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
+        sd = rmag.loop_closure_test(Hu, Mrh, Me=Me, Ms=1.0 + sd_hard)
+        assert sd['HF_Mrh_fraction'] == pytest.approx(
+            sd['HF_Mrh_fraction_Mr'] * Mr / (1.0 + sd_hard), rel=1e-6)
+        assert sd['closure_state'] == 'open'
 
     def test_indeterminate_when_noise_swamps_tolerance(self):
         # a weak, noisy loop cannot be declared closed at a tolerance finer
         # than its own uncertainty
         H, M = synthetic_loop(noise=0.2, Bc=0.3, w=0.1)
         Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
-        results = rmag.loop_closure_test(Hu, Mrh, Me=Me, openness_tolerance=0.02)
+        results = rmag.loop_closure_test(Hu, Mrh, Me=Me, Ms=1.0)
         assert 2 * results['HF_Mrh_fraction_se'] > results['tolerance']
         assert results['closure_state'] == 'indeterminate'
         assert results['loop_is_closed']
 
-    def test_noise_level_Mr_is_not_normalized(self):
-        # a paramagnetic loop has an Mr of noise-level size and random sign;
+    def test_noise_level_Ms_is_not_normalized(self):
+        # a paramagnetic loop has a fitted Ms (and Mr) of noise-level size;
         # f_open is undefined for it rather than a huge meaningless number
         H, M = synthetic_loop(Ms=0.0, chi=0.2, noise=1e-4,
                               rng=np.random.default_rng(5))
         Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
-        results = rmag.loop_closure_test(Hu, Mrh, Me=Me)
+        results = rmag.loop_closure_test(Hu, Mrh, Me=Me, Ms=Mr)
         assert np.isnan(results['HF_Mrh_fraction'])
+        assert np.isnan(results['HF_Mrh_fraction_Mr'])
         assert results['tolerance'] is None
         assert results['closure_state'] in ('closed', 'indeterminate')
 
     def test_explicit_Mr_and_Brh_match_defaults(self):
         H, M = synthetic_loop(noise=2e-3, hard_Ms=0.1)
         Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
-        default = rmag.loop_closure_test(Hu, Mrh, Me=Me)
-        explicit = rmag.loop_closure_test(Hu, Mrh, Me=Me, Mr=Mr, Brh=Brh)
-        assert default['HF_Mrh_fraction'] == pytest.approx(
-            explicit['HF_Mrh_fraction'], rel=1e-6)
+        default = rmag.loop_closure_test(Hu, Mrh, Me=Me, Ms=1.1)
+        explicit = rmag.loop_closure_test(Hu, Mrh, Me=Me, Ms=1.1, Mr=Mr, Brh=Brh)
+        assert default['HF_Mrh_fraction_Mr'] == pytest.approx(
+            explicit['HF_Mrh_fraction_Mr'], rel=1e-6)
         assert default['Brh_fraction'] == pytest.approx(
             explicit['Brh_fraction'], rel=1e-6)
 
@@ -610,11 +636,11 @@ class TestClosureMagnitude:
         H, M = synthetic_loop(noise=2e-3)
         Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
         with pytest.raises(ValueError, match='HF_cutoff'):
-            rmag.loop_closure_test(Hu, Mrh, Me)
+            rmag.loop_closure_test(Hu, Mrh, Me, Ms=1.0)
         with pytest.raises(ValueError, match='HF_cutoff'):
-            rmag.loop_closure_test(Hu, Mrh, HF_cutoff=1.5)
+            rmag.loop_closure_test(Hu, Mrh, HF_cutoff=1.5, Ms=1.0)
         with pytest.raises(ValueError, match='criterion'):
-            rmag.loop_closure_test(Hu, Mrh, criterion='HystLab')
+            rmag.loop_closure_test(Hu, Mrh, Ms=1.0, criterion='HystLab')
 
 
 class TestDriftCorrection:
@@ -1041,7 +1067,7 @@ class TestOpenLoopBrh:
         # a clean magnetite-like loop with a sub-percent
         # high-field residual is closed under the magnitude criterion even
         # though the SNR/HAR rule flags it; the residual is still reported
-        hard_Ms = _hard_Ms_for_openness(0.005)
+        hard_Ms = _hard_Ms_for_openness_Ms(0.005)
         H, M = synthetic_loop(noise=1e-4, hard_Ms=hard_Ms)
         results = rmag.process_hyst_loop(H, M, show_results_table=False,
                                          show_plot=False)
@@ -1050,9 +1076,10 @@ class TestOpenLoopBrh:
         assert not results['loop_closure_test_results']['loop_is_closed_SNR_HAR']
         assert results['HF_Mrh_fraction'] == pytest.approx(0.005, rel=0.1)
         assert results['Ms'] == pytest.approx(1.0 + hard_Ms, rel=0.02)
+        assert results['low_quality'] is False
 
     def test_SNR_HAR_criterion_flags_but_still_fits(self, capsys):
-        hard_Ms = _hard_Ms_for_openness(0.005)
+        hard_Ms = _hard_Ms_for_openness_Ms(0.005)
         H, M = synthetic_loop(noise=1e-4, hard_Ms=hard_Ms)
         capsys.readouterr()
         results = rmag.process_hyst_loop(H, M, show_results_table=False,
@@ -1075,18 +1102,41 @@ class TestOpenLoopBrh:
         assert 'cannot be resolved' in out
 
     def test_openness_tolerance_pass_through(self):
-        hard_Ms = _hard_Ms_for_openness(0.03)
+        hard_Ms = _hard_Ms_for_openness_Ms(0.03)
         H, M = synthetic_loop(noise=2e-3, hard_Ms=hard_Ms)
         default = rmag.process_hyst_loop(H, M, show_results_table=False,
                                          show_plot=False)
-        strict = rmag.process_hyst_loop(H, M, show_results_table=False,
-                                        show_plot=False,
-                                        openness_tolerance=0.02)
-        assert default['closure_state'] == 'closed'
-        assert strict['closure_state'] == 'open'
+        lenient = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                         show_plot=False,
+                                         openness_tolerance=0.05)
+        assert default['closure_state'] == 'open'
+        assert lenient['closure_state'] == 'closed'
         # the fit is identical either way: the verdict does not gate it
-        assert strict['Ms'] == default['Ms']
-        assert np.isfinite(strict['Ms_bias_predicted'])
+        assert lenient['Ms'] == default['Ms']
+        assert np.isfinite(default['HF_Mrh_fraction_Mr'])
+
+    def test_low_quality_loop_is_flagged(self, capsys):
+        # a noisy loop with Q below the threshold gets a -W- line and
+        # low_quality=True; a clean loop does not
+        H, M = synthetic_loop(noise=0.05, rng=np.random.default_rng(4))
+        capsys.readouterr()
+        noisy = rmag.process_hyst_loop(H, M, specimen_name='sn',
+                                       show_results_table=False,
+                                       show_plot=False)
+        out = capsys.readouterr().out
+        assert noisy['Q'] < 2.0 or noisy['Qf'] < 2.0
+        assert noisy['low_quality'] is True
+        assert '-W- sn: low loop quality: Q =' in out
+        H, M = synthetic_loop(noise=1e-3)
+        capsys.readouterr()
+        clean = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                       show_plot=False)
+        assert clean['low_quality'] is False
+        assert 'low loop quality' not in capsys.readouterr().out
+        # the threshold is a parameter
+        strict = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                        show_plot=False, quality_threshold=99)
+        assert strict['low_quality'] is True
 
     def test_fit_open_loop_is_accepted_and_ignored(self):
         H, M = synthetic_loop(Ms=0.65, Bc=0.05, w=0.03, hard_Ms=1.0,
@@ -1201,8 +1251,8 @@ class TestClosureTestSignature:
         H, M = synthetic_loop(noise=2e-3, hard_Ms=0.1)
         gH, gM = rmag.grid_hyst_loop(H, M)
         Hu, Mr, Mrh, Mih, Me, Brh = rmag.calc_Mr_Mrh_Mih_Brh(gH, gM)
-        positional = rmag.loop_closure_test(Hu, Mrh, 0.7)
-        keyword = rmag.loop_closure_test(Hu, Mrh, HF_cutoff=0.7)
+        positional = rmag.loop_closure_test(Hu, Mrh, 0.7, Ms=1.1)
+        keyword = rmag.loop_closure_test(Hu, Mrh, HF_cutoff=0.7, Ms=1.1)
         assert positional == keyword
 
 
@@ -1474,7 +1524,7 @@ class TestSummaryTableUnits:
         assert pd.isna(out_df.closure_state[2])
         assert '-W- so: loop is open at high field' in out
         assert ('-I- 1 of 3 loops open at high field, 0 of unresolved '
-                'closure, 1 statistically linear') in out
+                'closure, 1 statistically linear, 0 of low quality') in out
 
     def test_unrecognized_magn_col_warns(self):
         H, M = synthetic_loop(noise=5e-4, chi=0.2)
