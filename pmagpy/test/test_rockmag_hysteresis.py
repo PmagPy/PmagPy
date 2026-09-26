@@ -316,8 +316,74 @@ class TestSaturationTest:
         gH, gM = rmag.grid_hyst_loop(H, M)
         results = rmag.hyst_loop_saturation_test(gH, gM)
         assert not results['loop_is_saturated']
-        assert results['FNL60'] > 2.5
-        assert results['saturation_cutoff'] == 0.92
+        assert results['FNL60'] > results['F_critical60']
+        assert results['p60'] < 0.05
+        assert results['saturation_cutoff'] is None
+        assert results['testable']
+
+    def test_thresholds_are_F_critical_values(self):
+        # the decision compares FNL with the F distribution at the window's
+        # degrees of freedom (Jackson and Solheid, 2010; HystLab), not a
+        # fixed constant: for a dense loop the 95% critical value is well
+        # below the former fixed threshold of 2.5
+        from scipy.stats import f as fdist
+        H, M = synthetic_loop(noise=5e-4, chi=0.2)
+        gH, gM = rmag.grid_hyst_loop(H, M)
+        for cutoff in (0.6, 0.7, 0.8):
+            st = rmag.loop_saturation_stats(gH, gM, HF_cutoff=cutoff)
+            n = st['n_pairs']
+            assert st['F_critical'] == pytest.approx(fdist.ppf(0.95, n - 2, n))
+            assert st['p_value'] == pytest.approx(fdist.sf(st['FNL'], n - 2, n))
+            assert st['F_critical'] < 2.0
+        strict = rmag.loop_saturation_stats(gH, gM, HF_cutoff=0.8, alpha=0.01)
+        assert strict['F_critical'] > st['F_critical']
+        # the whole-loop test likewise
+        lin = rmag.hyst_linearity_test(gH, gM)
+        n_half = len(gH) / 2
+        assert lin['F_critical'] == pytest.approx(fdist.ppf(0.95, n_half - 2, n_half))
+        assert lin['loop_is_linear'] == (lin['FNL'] < lin['F_critical'])
+
+    def test_widest_linear_window_is_used(self):
+        # Jackson and Solheid (2010, paragraph 40): the nonlinear fit is
+        # required only when every window rejects linearity; otherwise the
+        # linear fit is taken over the widest window that is linear
+        H, M = synthetic_loop(noise=5e-4, chi=0.2)
+        gH, gM = rmag.grid_hyst_loop(H, M)
+        results = rmag.hyst_loop_saturation_test(gH, gM)
+        linear = [c for c in (0.6, 0.7, 0.8)
+                  if results[f'FNL{int(c*100)}'] < results[f'F_critical{int(c*100)}']]
+        assert results['saturation_cutoff'] == min(linear)
+
+    def test_windows_with_few_measurements_are_untestable(self, capsys):
+        # an MPMS-style loop with 0.5 T steps above 1 T on a 2.5 T sweep:
+        # gridding at the median (low-field) step fabricates points in the
+        # high-field windows and the pure-error term collapses; with the
+        # measured fields supplied the windows are reported as untestable
+        Hmax = 2.5
+        up = np.concatenate([np.linspace(Hmax, 1.0, 4), np.linspace(0.9, -0.9, 91),
+                             np.linspace(-1.0, -Hmax, 4)])
+        H = np.concatenate([up, up[::-1]])
+        M = np.tanh(H / 0.05) + 0.2 * H
+        gH, gM = rmag.grid_hyst_loop(H, M)
+        blind = rmag.hyst_loop_saturation_test(gH, gM)
+        assert blind['FNL80'] > 100          # the degenerate value
+        with pytest.warns(RuntimeWarning, match='measured points'):
+            guarded = rmag.hyst_loop_saturation_test(gH, gM, measured_field=H)
+        assert np.isnan(guarded['FNL80']) and np.isnan(guarded['FNL60'])
+        assert guarded['n_measured80'] < 12
+        assert not guarded['testable']
+        assert guarded['loop_is_saturated'] is None
+        assert guarded['saturation_cutoff'] is None
+        # through the pipeline the loop takes the linear fit from 60% with
+        # a warning rather than a meaningless nonlinear fit
+        results = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                         show_plot=False)
+        out = capsys.readouterr().out
+        assert 'no high-field window holds enough measured points' in out
+        assert results['loop_is_saturated'] is None
+        assert results['Fnl_lin'] is None
+        assert results['chi_HF'] == pytest.approx(0.2 * 4 * np.pi / 1e7, rel=0.05)
+        assert results['Ms'] == pytest.approx(1.0, rel=0.02)
 
 
 def _closure_inputs(H, M):
@@ -578,6 +644,30 @@ class TestClosureMagnitude:
 
 
 class TestDriftCorrection:
+    def test_short_loops_use_shorter_smoothing_windows(self):
+        # the 11-point Savitzky-Golay and 7-point running-mean windows are
+        # shortened for loops with fewer points per branch; previously such
+        # loops raised from scipy
+        for n_half in (10, 12, 16):
+            H, M = synthetic_loop(n_half=n_half, noise=1e-3, chi=0.2)
+            gH, gM = rmag.grid_hyst_loop(H, M)
+            corrected = rmag.Me_drift_correction(gH, gM)
+            assert corrected.shape == gM.shape
+            assert np.all(np.isfinite(corrected))
+        # below that the gridding itself refuses the loop
+        H, M = synthetic_loop(n_half=4, noise=1e-3)
+        with pytest.raises(ValueError, match='at least 5 are needed'):
+            rmag.grid_hyst_loop(H, M)
+
+    def test_partial_loop_is_refused(self):
+        # a first-quadrant curve (0 -> Hmax -> 0) is not a loop; gridding
+        # used to truncate it to the tiny symmetric overlap and the
+        # pipeline reported it as 'statistically linear' with FNL = -inf
+        H = np.concatenate([np.linspace(0.005, 0.6, 30), np.linspace(0.6, 0.005, 30)])
+        M = np.tanh(H / 0.05)
+        with pytest.raises(ValueError, match='first-quadrant curve'):
+            rmag.grid_hyst_loop(H, M)
+
     def test_prorated_removes_closure_error(self):
         H, M = synthetic_loop(drift=0.02)
         gH, gM = rmag.grid_hyst_loop(H, M)
@@ -839,20 +929,44 @@ class TestNonlinearFit:
 
 class TestProcessHystLoop:
     def test_full_pipeline_saturated(self):
+        # the saturation test is at its nominal significance level, so a
+        # fixed noise realization is used: with an exact alpha a clean
+        # saturated loop is occasionally sent to the nonlinear fit (whose
+        # Ms then agrees with the linear one to well under 1%; see
+        # test_false_unsaturated_verdict_is_cheap)
         Ms, Bc, w, chi = 1.0, 0.05, 0.03, 0.2
         H, M = synthetic_loop(Ms=Ms, Bc=Bc, w=w, chi=chi, noise=5e-4,
-                              H_offset=0.002, M_offset=0.01)
+                              H_offset=0.002, M_offset=0.01,
+                              rng=np.random.default_rng(11))
         results = rmag.process_hyst_loop(H, M, 'synthetic',
                                          show_results_table=False,
                                          show_plot=False)
         assert not results['loop_is_linear']
         assert results['loop_is_closed']
         assert results['loop_is_saturated']
+        assert results['drift_correction']['pure_error_df_fraction'] < 1
         assert results['Ms'] == pytest.approx(Ms, rel=0.02)
         assert results['Mr'] == pytest.approx(Ms * np.tanh(Bc / w), rel=0.02)
         assert results['Bc'] == pytest.approx(Bc, abs=2e-3)
         assert results['chi_HF'] == pytest.approx(chi * 4 * np.pi / 1e7, rel=0.05)
         assert results['Q'] > 2
+
+    def test_false_unsaturated_verdict_is_cheap(self):
+        # on clean saturated loops the post-drift-correction test rejects
+        # saturation more often than alpha (the correction subtracts
+        # smoothed noise that reads as structure); the nonlinear fit then
+        # returns the linear answer, so the verdict costs nothing in Ms
+        errors = []
+        for seed in range(20):
+            H, M = synthetic_loop(Ms=1.0, Bc=0.05, w=0.03, chi=0.2, noise=5e-4,
+                                  H_offset=0.002, M_offset=0.01,
+                                  rng=np.random.default_rng(1000 + seed))
+            r = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                       show_plot=False)
+            errors.append(abs(r['Ms'] - 1.0))
+            if not r['loop_is_saturated']:
+                assert r['Fnl_lin'] < 3.5
+        assert max(errors) < 0.02
 
     def test_full_pipeline_unsaturated(self):
         H, M = synthetic_loop(noise=1e-4, chi=0.2, ats_alpha=0.1)
@@ -1048,7 +1162,11 @@ class TestOpenLoopBrh:
         # test with chi_HF from the whole-loop regression; the ferromagnetic
         # parameters are undefined
         chi = 0.2
-        H, M = synthetic_loop(Ms=0.0, chi=chi, noise=1e-4)
+        # fixed realization: the whole-loop test is at its nominal
+        # significance level, so 1 in 20 pure-noise loops is declared
+        # nonlinear
+        H, M = synthetic_loop(Ms=0.0, chi=chi, noise=1e-4,
+                              rng=np.random.default_rng(3))
         results = rmag.process_hyst_loop(H, M, show_results_table=False,
                                          show_plot=False)
         assert results['loop_is_linear']
