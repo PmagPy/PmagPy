@@ -696,6 +696,151 @@ class TestClosureMagnitude:
             rmag.loop_closure_test(Hu, Mrh, Ms=1.0, criterion='HystLab')
 
 
+class TestClosureNoisePropagation:
+    """The closure statistic's standard error on the drift-corrected loop,
+    and the M_max fallback when the fit gives no usable Ms."""
+
+    def test_forced_drift_path(self):
+        H, M = synthetic_loop(noise=1e-3, chi=0.2, rng=np.random.default_rng(2))
+        gH, gM = rmag.grid_hyst_loop(H, M)
+        auto, details = rmag.Me_drift_correction(gH, gM, return_details=True)
+        forced, fd = rmag.Me_drift_correction(gH, gM, return_details=True,
+                                              correction=details['correction'])
+        assert np.array_equal(auto, forced) and fd['correction'] == details['correction']
+        other = 'upper_branch' if details['correction'] == 'positive_field' else 'positive_field'
+        _, od = rmag.Me_drift_correction(gH, gM, return_details=True, correction=other)
+        assert od['correction'] == other
+        with pytest.raises(ValueError, match='correction must be'):
+            rmag.Me_drift_correction(gH, gM, correction='sideways')
+
+    def test_noise_estimate_and_reproducibility(self):
+        # sigma_M recovers the injected noise from the centered loop, drift
+        # or not, and the propagated SE is reproducible with a seed
+        for drift in (0.0, 0.05):
+            H, M = synthetic_loop(noise=6e-3, chi=0.2, drift=drift,
+                                  rng=np.random.default_rng(7))
+            gH, gM = rmag.grid_hyst_loop(H, M)
+            out = rmag.closure_mean_se_by_noise_propagation(gH, gM, correction='upper_branch',
+                                                            n_draws=50, rng=1)
+            assert out['sigma_M'] == pytest.approx(6e-3, rel=0.25)
+            again = rmag.closure_mean_se_by_noise_propagation(gH, gM, correction='upper_branch',
+                                                              n_draws=50, rng=1)
+            assert again['HF_Mrh_mean_se'] == out['HF_Mrh_mean_se']
+
+    def test_propagated_se_matches_scatter_across_realizations(self):
+        # on a weak loop in noise the drift correction's smoothing leaves
+        # the odd-part estimate of the closure SE somewhat too small (about
+        # 30% here; it was 4x before the Q < 2 vertical offset was
+        # re-estimated at zero field shift, see process_hyst_loop); the
+        # propagated SE tracks the actual scatter of the window mean across
+        # noise realizations
+        means, se_odd, se_prop = [], [], []
+        for seed in range(40):
+            H, M = synthetic_loop(Ms=0.01, Bc=0.05, w=0.03, chi=0.2, noise=6e-3,
+                                  rng=np.random.default_rng(500 + seed))
+            r = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                       show_plot=False, n_bootstrap=0,
+                                       fit_linear_loop=True)
+            c = r['loop_closure_test_results']
+            Hu, Mr, Mrh, Mih, Me, Brh = rmag.calc_Mr_Mrh_Mih_Brh(
+                r['centered_H'], r['drift_corrected_M'])
+            win = (np.abs(Hu) >= 0.8) & (np.abs(Hu) <= 0.99)
+            means.append(np.mean(Mrh[win]))
+            se_odd.append(c['HF_Mrh_mean_se_odd_part'])
+            se_prop.append(c['HF_Mrh_mean_se'])
+        scatter = np.std(means, ddof=1)
+        assert scatter / np.median(se_odd) > 1.1          # the odd part understates it
+        assert 0.6 < scatter / np.median(se_prop) < 1.6   # the propagation tracks it
+
+    def test_weak_loop_vertical_offset_is_estimated_at_zero_shift(self):
+        # for a Q < 2 loop the pipeline discards the symmetry search's field
+        # offset (not separable from the vertical one on a nearly linear
+        # loop, Jackson and Solheid 2010, paragraph 12); the vertical offset
+        # it applies must be the one at zero shift, not the companion of the
+        # discarded shift, whose error is about slope * shift
+        offsets = []
+        for seed in range(30):
+            H, M = synthetic_loop(Ms=0.01, Bc=0.05, w=0.03, chi=0.2, noise=6e-3,
+                                  rng=np.random.default_rng(900 + seed))
+            r = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                       show_plot=False, n_bootstrap=0,
+                                       fit_linear_loop=True)
+            assert r['Q'] < 2 and r['loop_centering_results']['opt_H_offset'] == 0
+            offsets.append(r['loop_centering_results']['opt_M_offset'])
+        assert np.std(offsets) < 1e-3       # was ~3e-3 with the joint estimate
+
+    def test_noise_loops_are_not_declared_open(self):
+        # with the propagated SE, weak loops whose Mrh is noise are
+        # 'indeterminate' or 'closed', not 'open', at close to the nominal rate
+        n_open = 0
+        for seed in range(40):
+            H, M = synthetic_loop(Ms=0.01, Bc=0.05, w=0.03, chi=0.2, noise=6e-3,
+                                  rng=np.random.default_rng(500 + seed))
+            r = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                       show_plot=False, n_bootstrap=0,
+                                       fit_linear_loop=True)
+            n_open += r['closure_state'] == 'open'
+        assert n_open <= 2
+
+    def test_open_loops_still_open(self):
+        # the corrected SE must not cost the verdict on a real opening
+        hard_Ms = _hard_Ms_for_openness_Ms(0.05)
+        for seed in range(5):
+            H, M = synthetic_loop(noise=2e-3, hard_Ms=hard_Ms,
+                                  rng=np.random.default_rng(seed))
+            r = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                       show_plot=False, n_bootstrap=0)
+            assert r['closure_state'] == 'open'
+            assert r['closure_normalization'] == 'Ms'
+
+    def test_Mmax_fallback_when_the_fit_collapses(self):
+        # a loop so far from saturation that the bounded least-squares fit
+        # puts Ms on its zero bound: the opening is sized against the peak
+        # moment and the verdict is 'open', with the Mr-relative value
+        # also reported and the -W- line naming the normalization
+        hard_Ms = _hard_Ms_for_openness_Ms(0.20)
+        H, M = synthetic_loop(hard_Ms=hard_Ms, noise=1e-3, rng=np.random.default_rng(3))
+        with pytest.warns(RuntimeWarning, match='Ms on its lower bound'):
+            r = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                       show_plot=False, n_bootstrap=0)
+        assert r['Ms'] == 0
+        assert np.isnan(r['HF_Mrh_fraction'])
+        assert r['closure_normalization'] == 'Mmax'
+        assert r['HF_Mrh_fraction_Mmax'] == pytest.approx(0.19, abs=0.02)
+        assert r['HF_Mrh_fraction_Mr'] == pytest.approx(0.196, abs=0.02)
+        assert r['closure_state'] == 'open'
+
+    def test_Mmax_fallback_is_conservative_on_a_matrix_dominated_loop(self, capsys):
+        # the same collapsed fit on a loop whose moment is mostly
+        # paramagnetic: relative to M_max the opening is below tolerance,
+        # and the verdict stays 'indeterminate' rather than guessing
+        hard_Ms = _hard_Ms_for_openness_Ms(0.20)
+        H, M = synthetic_loop(hard_Ms=hard_Ms, chi=30.0, noise=1e-3,
+                              rng=np.random.default_rng(3))
+        capsys.readouterr()
+        with pytest.warns(RuntimeWarning):
+            r = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                       show_plot=False, n_bootstrap=0)
+        out = capsys.readouterr().out
+        assert r['closure_normalization'] == 'Mmax'
+        assert r['HF_Mrh_fraction_Mmax'] < 0.02
+        assert r['closure_state'] == 'indeterminate'
+        assert 'sized against the largest moment' in out
+
+    def test_direct_call_without_M_max_keeps_the_old_behavior(self):
+        H, M = synthetic_loop(hard_Ms=_hard_Ms_for_openness_Ms(0.20))
+        Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
+        r = rmag.loop_closure_test(Hu, Mrh, Me=Me, Ms=0.0)
+        assert r['normalization'] is None and r['closure_state'] == 'indeterminate'
+        assert np.isnan(r['HF_Mrh_fraction_Mmax'])
+        r2 = rmag.loop_closure_test(Hu, Mrh, Me=Me, Ms=0.0, M_max=float(np.max(np.abs(M))))
+        assert r2['normalization'] == 'Mmax' and r2['closure_state'] == 'open'
+        # an explicit standard error is used as given
+        r3 = rmag.loop_closure_test(Hu, Mrh, Me=Me, Ms=1.0, HF_Mrh_mean_se=0.5)
+        assert r3['HF_Mrh_fraction_se'] == pytest.approx(0.5)
+        assert r3['closure_state'] == 'indeterminate'
+
+
 class TestDriftCorrection:
     def test_short_loops_use_shorter_smoothing_windows(self):
         # the 11-point Savitzky-Golay and 7-point running-mean windows are
