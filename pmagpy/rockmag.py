@@ -4991,9 +4991,12 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
     # calculate the coercivity Bc
     Bc = calc_Bc(centered_H, slope_corr_M)
 
-    # calculate the shape parameter of Fabian 2003
+    # calculate the shape parameter of Fabian 2003 (undefined when Ms or Bc
+    # could not be determined, e.g. Ms on its bound for a loop far from
+    # saturation)
     E_hyst = np.trapezoid(Mrh, H)
-    sigma = np.log(E_hyst / 2 / Bc / Ms)
+    sigma = (float(np.log(E_hyst / 2 / Bc / Ms))
+             if np.isfinite(Bc) and Bc > 0 and Ms > 0 and E_hyst > 0 else np.nan)
 
     p = None
     p_slope_corr = None
