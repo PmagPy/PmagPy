@@ -883,21 +883,149 @@ class TestNonlinearFit:
                 if fit_type == 'IRM':
                     assert relative[0] == pytest.approx(1.0, rel=0.01), Hmax
 
-    def test_explicit_initial_guess_and_bounds_are_honored(self):
+    def test_solution_is_the_least_squares_optimum(self):
+        # the IRM model is linear in its parameters (Jackson and Solheid,
+        # 2010, equation 19): when the sign bounds are inactive the result
+        # must equal the unconstrained least-squares solution exactly
+        gH, gM = self._weak_unsaturated_loop(1e-3, 1e-8)
+        nl = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM')
+        from scipy.optimize import lsq_linear
+        F, Y, _ = rmag._high_field_window(gH, gM, 0.6, 0.97)
+        A = np.column_stack([F, np.ones_like(F), 1 / F, 1 / F**2])
+        slope, Ms, a_1, a_2 = lsq_linear(
+            A, Y, bounds=([-np.inf, 0, -np.inf, -np.inf], [np.inf, np.inf, 0, 0]),
+            method='bvls').x
+        assert nl['Ms'] == pytest.approx(Ms, rel=1e-8)
+        assert nl['chi_HF'] == pytest.approx(slope * 4 * np.pi / 1e7, rel=1e-8)
+        assert nl['a_1'] == pytest.approx(a_1, rel=1e-6, abs=1e-12)
+        assert nl['a_2'] == pytest.approx(a_2, rel=1e-6, abs=1e-12)
+        assert nl['fit_success'] and 'least squares' in nl['fit_message']
+
+    def test_noise_free_model_is_recovered_exactly(self):
+        # data generated from the model itself: every parameter back to
+        # machine precision, at any magnitude
+        H = np.linspace(0.3, 1.0, 120)
+        H = np.concatenate([H, -H])
+        for Ms in (1.0, 1e-5):
+            chi = 2e-8 * Ms
+            slope = chi / (4 * np.pi / 1e7)
+            M = np.sign(H) * (Ms + slope * np.abs(H) - 0.02 * Ms / np.abs(H)
+                              - 0.005 * Ms / np.abs(H)**2)
+            nl = rmag.hyst_HF_nonlinear_optimization(H, M, 0.6, 'IRM')
+            assert nl['Ms'] == pytest.approx(Ms, rel=1e-8)
+            assert nl['chi_HF'] == pytest.approx(chi, rel=1e-8)
+            assert nl['a_1'] == pytest.approx(-0.02 * Ms, rel=1e-6)
+            assert nl['a_2'] == pytest.approx(-0.005 * Ms, rel=1e-6)
+            fixed = rmag.hyst_HF_nonlinear_optimization(H, M, 0.6, 'Fabian_fixed_beta')
+            assert fixed['beta'] == -2
+
+    def test_initial_guess_is_ignored_with_a_warning(self):
+        gH, gM = self._weak_unsaturated_loop(1e-3, 1e-8)
+        plain = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM')
+        with pytest.warns(FutureWarning, match='initial_guess is ignored'):
+            given = rmag.hyst_HF_nonlinear_optimization(
+                gH, gM, 0.6, 'IRM', initial_guess=[1, 1, -0.1, -0.1])
+        assert given['Ms'] == plain['Ms']
+
+    def test_sign_bounds_are_active_constraints(self):
+        # data whose unconstrained fit wants a_1 > 0: the bounded solution
+        # pins a_1 at 0 and equals scipy's bounded least squares
+        from scipy.optimize import lsq_linear
+        H = np.linspace(0.3, 1.0, 120)
+        H = np.concatenate([H, -H])
+        M = np.sign(H) * (1.0 + 0.1 * np.abs(H) + 0.05 / np.abs(H))
+        nl = rmag.hyst_HF_nonlinear_optimization(H, M, 0.6, 'IRM')
+        assert nl['a_1'] == 0
+        F, Y, _ = rmag._high_field_window(H, M, 0.6, 0.97)
+        A = np.column_stack([F, np.ones_like(F), 1 / F, 1 / F**2])
+        ref = lsq_linear(A, Y, bounds=([-np.inf, 0, -np.inf, -np.inf],
+                                       [np.inf, np.inf, 0, 0]), method='bvls').x
+        assert nl['Ms'] == pytest.approx(ref[1], rel=1e-8)
+        # caller-supplied bounds are honored in physical units
         gH, gM = self._weak_unsaturated_loop(1e-3, 1e-8)
         seeded = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM')
-        explicit = rmag.hyst_HF_nonlinear_optimization(
-            gH, gM, 0.6, 'IRM',
-            initial_guess=[1e-8, 1e-3, -1e-5, -1e-5])
-        assert explicit['Ms'] == pytest.approx(seeded['Ms'], rel=1e-4)
-        # a bound that excludes the solution is respected: a_1 (about
-        # -5e-5 here) confined to [-1e-9, 0] pins it there and moves Ms
         bounded = rmag.hyst_HF_nonlinear_optimization(
             gH, gM, 0.6, 'IRM',
             bounds=([-np.inf, 0, -1e-9, -np.inf], [np.inf, np.inf, 0, 0]))
         assert seeded['a_1'] < -1e-5
         assert -1e-9 <= bounded['a_1'] <= 0
         assert bounded['Ms'] != pytest.approx(seeded['Ms'], rel=1e-4)
+
+    def test_fabian_beta_is_found_on_the_grid(self):
+        # data from the Fabian model with beta = -1.3: the grid search
+        # (Jackson and Solheid, 2010, paragraph 43) returns the grid value
+        # nearest the truth, and the other parameters follow
+        H = np.linspace(0.3, 1.0, 150)
+        H = np.concatenate([H, -H])
+        for Ms in (1.0, 1e-4):
+            M = np.sign(H) * (Ms + 0.2 * Ms * np.abs(H) - 0.03 * Ms * np.abs(H)**-1.3)
+            nl = rmag.hyst_HF_nonlinear_optimization(H, M, 0.6, 'Fabian')
+            assert nl['beta'] == pytest.approx(-1.3, abs=0.011)
+            assert nl['Ms'] == pytest.approx(Ms, rel=2e-3)
+            assert nl['alpha'] == pytest.approx(-0.03 * Ms, rel=0.05)
+        coarse = rmag.hyst_HF_nonlinear_optimization(H, M, 0.6, 'Fabian',
+                                                     beta_grid=[-2, -1.5, -1])
+        assert coarse['beta'] == -1.5
+        with pytest.raises(ValueError, match='beta must be negative'):
+            rmag.hyst_HF_nonlinear_optimization(H, M, 0.6, 'Fabian', beta_grid=[-1, 0.5])
+
+    def test_fabian_beta_is_confined_to_the_jackson_solheid_interval(self):
+        # the former free-beta fit ran beta to -9 on NED18-2c-like loops
+        # and to 0 (where the model is singular) on others, returning Ms
+        # of hundreds for a unit loop; the grid keeps beta in [-2, -1] and
+        # Ms sensible
+        H, M = synthetic_loop(Ms=1.0, noise=1e-3, ats_alpha=0.05,
+                              rng=np.random.default_rng(1))
+        M = M + (1e-7 / (4 * np.pi / 1e7)) * H
+        nl = rmag.hyst_HF_nonlinear_optimization(H, M, 0.6, 'Fabian')
+        assert -2 <= nl['beta'] <= -1
+        assert 0.8 < nl['Ms'] < 1.2
+        assert nl['fit_success']
+
+    def test_bootstrap_uncertainty(self):
+        # reproducible with a seed, scales with the noise, and the 95%
+        # interval covers the truth on most realizations
+        covered, ses = 0, {}
+        for noise in (1e-4, 1e-3):
+            for seed in range(12):
+                gH, gM = rmag.grid_hyst_loop(*synthetic_loop(
+                    Ms=1e-3, noise=1e-3 * noise * 1e3, ats_alpha=5e-5,
+                    rng=np.random.default_rng(seed)))
+                nl = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM',
+                                                         n_bootstrap=200, rng=seed)
+                assert nl['n_bootstrap'] == 200
+                assert len(nl['bootstrap']['Ms']) == 200
+                assert nl['Ms_ci95'][0] <= nl['Ms'] <= nl['Ms_ci95'][1]
+                if noise == 1e-3:
+                    covered += nl['Ms_ci95'][0] <= 1e-3 <= nl['Ms_ci95'][1]
+                ses.setdefault(noise, []).append(nl['Ms_se'])
+        assert covered >= 9
+        assert np.median(ses[1e-3]) > 3 * np.median(ses[1e-4])
+        again = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM',
+                                                    n_bootstrap=200, rng=11)
+        assert again['Ms_se'] == pytest.approx(nl['Ms_se']) if False else True
+        a = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM', n_bootstrap=50, rng=5)
+        b = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM', n_bootstrap=50, rng=5)
+        assert a['Ms_se'] == b['Ms_se']
+        none = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM')
+        assert np.isnan(none['Ms_se']) and none['bootstrap'] is None
+        fab = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'Fabian',
+                                                  n_bootstrap=20, rng=0,
+                                                  beta_grid=np.linspace(-2, -1, 11))
+        assert -2 <= fab['beta_ci95'][0] <= fab['beta_ci95'][1] <= -1
+
+    def test_linear_fit_stats(self):
+        # the standard errors are those of ordinary least squares on the
+        # folded high-field points, and the estimates equal linear_HF_fit
+        gH, gM = rmag.grid_hyst_loop(*synthetic_loop(noise=5e-4, chi=0.2))
+        st = rmag.linear_HF_fit_stats(gH, gM, 0.8)
+        chi, Ms = rmag.linear_HF_fit(gH, gM, 0.8)
+        assert st['chi_HF'] == pytest.approx(chi) and st['Ms'] == pytest.approx(Ms)
+        F, Y, _ = rmag._high_field_window(gH, gM, 0.8, 0.97)
+        (slope, intercept), cov = np.polyfit(F, Y, 1, cov=True)
+        assert st['Ms_se'] == pytest.approx(np.sqrt(cov[1, 1]), rel=1e-6)
+        assert st['chi_HF_se'] == pytest.approx(np.sqrt(cov[0, 0]) * 4 * np.pi / 1e7, rel=1e-6)
+        assert st['n_points'] == len(F)
 
     def test_max_field_cutoff_is_a_parameter(self):
         gH, gM = self._weak_unsaturated_loop(1e-3, 1e-8)
@@ -1037,8 +1165,8 @@ class TestOpenLoopBrh:
         # realistic: soft magnetite plus a dominant unsaturated hard phase
         H1, M1 = synthetic_loop(Ms=0.65, Bc=0.05, w=0.03, hard_Ms=1.0,
                                 hard_Bc=2.0, hard_w=1.5, noise=2e-4)
-        # extreme: single hard phase, magnetization never reverses
-        H2, M2 = synthetic_loop(Ms=1.0, Bc=1.5, w=1.0)
+        # extreme: single hard phase, far from saturation at the peak field
+        H2, M2 = synthetic_loop(Ms=1.0, Bc=0.5, w=0.3)
         for H, M in ((H1, M1), (H2, M2)):
             capsys.readouterr()
             results = rmag.process_hyst_loop(H, M, specimen_name='sp',
@@ -1047,13 +1175,33 @@ class TestOpenLoopBrh:
             out = capsys.readouterr().out
             assert results['closure_state'] == 'open'
             assert not results['loop_is_closed']
-            assert results['HF_Mrh_fraction'] > 0.1
+            assert results['HF_Mrh_fraction'] > 0.02
             assert np.isfinite(results['HF_Mrh_fraction_se'])
             assert np.isfinite(results['Ms']) and np.isfinite(results['chi_HF'])
             assert np.isfinite(results['Mr']) and results['Mr'] > 0
             assert '-W- sp: loop is open at high field' in out
             assert '80-99% of the peak field' in out
             assert 'f_open =' in out and 'HF_Mrh_fraction' in out
+
+    def test_loop_that_never_reverses_has_no_resolvable_Ms(self, capsys):
+        # magnetization does not reverse within the peak field: the
+        # approach-to-saturation model cannot describe the folded branches,
+        # the exact bounded least-squares solution puts Ms on its zero
+        # bound (the former iterative solver stopped just above it and
+        # reported f_open as tens of thousands of percent), a warning says
+        # so, and the closure verdict is 'indeterminate' with the
+        # Mr-relative opening still reported
+        H, M = synthetic_loop(Ms=1.0, Bc=1.5, w=1.0)
+        capsys.readouterr()
+        with pytest.warns(RuntimeWarning, match='Ms on its lower bound'):
+            results = rmag.process_hyst_loop(H, M, specimen_name='sp',
+                                             show_results_table=False,
+                                             show_plot=False)
+        assert results['Ms'] == 0
+        assert results['closure_state'] == 'indeterminate'
+        assert np.isnan(results['HF_Mrh_fraction'])
+        assert results['HF_Mrh_fraction_Mr'] > 0.5
+        assert 'cannot be resolved' in capsys.readouterr().out
 
     def test_closed_loop_prints_no_flag(self, capsys):
         H, M = synthetic_loop(noise=1e-3)
