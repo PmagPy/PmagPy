@@ -4134,29 +4134,6 @@ def IRM_nonlinear_fit(H, chi_HF, Ms, a_1, a_2):
     chi_HF = chi_HF/(4*np.pi/1e7)
     return chi_HF * H + Ms + a_1 * H**(-1) + a_2 * H**(-2)
 
-def _IRM_nonlinear_fit_cost_function(params, H, M_obs):
-    '''
-    Cost function for the IRM non-linear least squares fit optimization
-
-    Parameters
-    ----------
-    params : numpy array
-        array of parameters to optimize
-    H : numpy array
-        field values
-    M_obs : numpy array
-        observed magnetization values
-
-    Returns
-    -------
-    residual : numpy array
-        residual between the observed and predicted magnetization values
-    '''
-
-    chi_HF, Ms, a_1, a_2 = params
-    prediction = IRM_nonlinear_fit(H, chi_HF, Ms, a_1, a_2)
-    return M_obs - prediction
-
 def Fabian_nonlinear_fit(H, chi_HF, Ms, alpha, beta):
     '''
     function for calculating the Fabian non-linear fit
@@ -4183,52 +4160,11 @@ def Fabian_nonlinear_fit(H, chi_HF, Ms, alpha, beta):
     chi_HF = chi_HF/(4*np.pi/1e7) # convert to Tesla
     return chi_HF * H + Ms + alpha * H**beta
 
-def _Fabian_nonlinear_fit_cost_function(params, H, M_obs):
-    '''
-    cost function for the Fabian non-linear least squares fit optimization
+# the fewest points a high-field window may hold for a fit or a test: three
+# per segment (four segments), the minimum HystLab accepts; the saturation
+# test applies the same number to the measured points of a window
+_MIN_HF_FIT_POINTS = 12
 
-    Parameters
-    ----------
-    params : numpy array
-        array of parameters to optimize
-    H : numpy array
-        field values
-    M_obs : numpy array
-        observed magnetization values
-
-    Returns
-    -------
-    residual : numpy array
-        residual between the observed and predicted magnetization values
-    '''
-
-    chi_HF, Ms, alpha, beta = params
-    prediction = Fabian_nonlinear_fit(H, chi_HF, Ms, alpha, beta)
-    return M_obs - prediction
-
-def _Fabian_nonlinear_fit_fix_beta_cost_function(params, H, M_obs):
-    '''
-    cost function for the Fabian non-linear least squares fit optimization
-        with beta fixed at -2
-
-    Parameters
-    ----------
-    params : numpy array
-        array of parameters to optimize
-    H : numpy array
-        field values
-    M_obs : numpy array
-        observed magnetization values
-
-    Returns
-    -------
-    residual : numpy array
-        residual between the observed and predicted magnetization values
-    '''
-    beta = -2 
-    chi_HF, Ms, alpha = params
-    prediction = Fabian_nonlinear_fit(H, chi_HF, Ms, alpha, beta)
-    return M_obs - prediction
 
 def _high_field_window(H, M, HF_cutoff, max_field_cutoff):
     """The four high-field segments of a loop folded into the first quadrant:
@@ -4246,9 +4182,17 @@ def linear_HF_fit_stats(field, magnetization, HF_cutoff=0.8, max_field_cutoff=0.
 
     The same fit as `linear_HF_fit` (a straight line through the four
     high-field segments folded into the first quadrant), with the ordinary
-    least-squares standard errors of the slope and intercept, which Jackson
-    and Solheid (2010, paragraph 59) note are the appropriate uncertainty
-    for a loop that has saturated.
+    least-squares standard errors of the slope and intercept. Jackson and
+    Solheid (2010, paragraph 59) note that the Ms and chi_HF standard errors
+    "may be quantified through standard linear regression techniques, but
+    in many cases the uncertainty due to incomplete saturation is much
+    larger"; these are the regression standard errors, appropriate only
+    when the window is statistically linear. They treat the points as
+    independent, which the gridded, drift-corrected loop the pipeline fits
+    is not (gridding interpolates between measurements and the drift
+    correction subtracts smoothed noise), so they understate the scatter
+    of Ms between repeat measurements: by about 1.5x on a loop measured on
+    its own grid, more when the measured fields fall between grid points.
 
     Parameters
     ----------
@@ -4306,11 +4250,13 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=None
                                    n_bootstrap=0, rng=None):
     '''
     Fit an approach-to-saturation model to the high-field part of a loop
-    (Jackson and Solheid, 2010, section 7; Fabian, 2006).
+    (Jackson and Solheid, 2010, section 7, doi:10.1029/2009GC002932; Fabian,
+    2006, Physics of the Earth and Planetary Interiors 154, 299-307,
+    doi:10.1016/j.pepi.2005.06.016).
 
     The models are linear in their parameters apart from the Fabian
     exponent beta, so they are solved by least squares (Jackson and
-    Solheid, equation 19) rather than by an iterative optimizer: the IRM
+    Solheid, paragraphs 41-42) rather than by an iterative optimizer: the IRM
     model M = chi_HF*H + Ms + a_1/H + a_2/H^2 and the fixed-beta Fabian
     model M = chi_HF*H + Ms + alpha*H^-2 in one bounded least-squares
     solve each, and the free-beta Fabian model M = chi_HF*H + Ms +
@@ -4330,7 +4276,13 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=None
     They recommend this because the fitting problem is ill conditioned --
     the basis functions are strongly correlated over a typical window --
     so the parameters are far more uncertain than their least-squares
-    standard errors suggest.
+    standard errors suggest. As in Jackson and Solheid and HystLab, the
+    resampling treats the high-field points as independent; on a gridded,
+    drift-corrected loop neighboring residuals are correlated (gridding
+    interpolates, the drift correction subtracts smoothed noise), so the
+    measurement-noise part of the bootstrap uncertainty is somewhat
+    understated. The ill-conditioning part, which dominates on
+    unsaturated loops, is not affected.
 
     Parameters
     ----------
@@ -4364,7 +4316,10 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=None
         uses 100 values on the same interval).
     n_bootstrap : int, optional
         Number of bootstrap refits for the uncertainty of Ms and chi_HF
-        (default 0: none; Jackson and Solheid use 1000).
+        (default 0: none; Jackson and Solheid use 1000). Each refit is one
+        linear solve for the IRM and fixed-beta models (about 0.1 s per
+        1000 refits) but a full beta search for the free-beta Fabian
+        model (about 3 s per 1000 refits with the default 101-value grid).
     rng : numpy.random.Generator or int, optional
         Random generator or seed for the bootstrap.
 
@@ -4409,10 +4364,11 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=None
     HF_field, HF_magnetization, max_H = _high_field_window(H, M, HF_cutoff, max_field_cutoff)
     n_params = 3 if fit_type == 'Fabian_fixed_beta' else 4
     n_points = len(HF_magnetization)
-    if n_points < 4 * n_params:
+    if n_points < _MIN_HF_FIT_POINTS:
         raise ValueError(f'the high-field window holds {n_points} points; at '
-                         f'least {4*n_params} (four per segment) are needed for '
-                         f'the {fit_type} fit')
+                         f'least {_MIN_HF_FIT_POINTS} (three per segment, the '
+                         f'minimum HystLab accepts and the same as the '
+                         f'saturation test) are needed for the {fit_type} fit')
 
     # normalize field and magnetization so the design matrix is well scaled
     # whatever the units; the solution is exact either way, this only
@@ -4671,7 +4627,7 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
                       fit_open_loop=False, fit_linear_loop=False,
                       magn_unit=_DEFAULT_MAGN_UNIT, openness_tolerance=0.02,
                       closure_criterion='magnitude', quality_threshold=2.0,
-                      n_bootstrap=1000):
+                      n_bootstrap=1000, rng=0):
     """
     Process a magnetic hysteresis loop using the IRM decision tree workflow.
 
@@ -4774,6 +4730,11 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
         approach-to-saturation fit is applied (default 1000, as in Jackson
         and Solheid, 2010; 0 to skip). The linear fit's uncertainties are
         its ordinary least-squares standard errors.
+    rng : numpy.random.Generator or int, optional
+        Random generator or seed for the bootstrap (default 0, so that the
+        reported Ms_se and chi_HF_se -- which are written to the MagIC
+        specimens table -- are reproducible from run to run; pass a
+        Generator to draw differently).
     fit_linear_loop : bool, optional
         If True, process a statistically linear loop in full rather than
         terminating with chi_HF only (default False). Useful when a weak
@@ -4835,7 +4796,9 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
             - 'Ms_ci95', 'chi_HF_ci95': (2.5th, 97.5th) bootstrap
               percentiles (NaN for the linear fit or n_bootstrap=0)
             - 'hf_fit': 'linear' or the approach-to-saturation model used
-            - 'hf_fit_results': the full result of that fit
+            - 'hf_fit_results': the result of that fit, without the
+              bootstrap samples (call hyst_HF_nonlinear_optimization
+              directly for those)
             - 'Bc': coercive field, in tesla
             - 'M_sn_f', 'Qf': quality metrics for ferromagnetic component
             - 'Fnl_lin': F statistic for improvement of the nonlinear over the linear
@@ -4942,7 +4905,21 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
 
     # high-field fit for chi_HF and Ms (before the closure test, which
     # expresses the opening as a fraction of the fitted Ms)
-    if loop_saturation_stats['loop_is_saturated'] or loop_saturation_stats['loop_is_saturated'] is None:
+    take_linear_fit = (loop_saturation_stats['loop_is_saturated']
+                       or loop_saturation_stats['loop_is_saturated'] is None)
+    n_fit_window = len(_high_field_window(centered_H, drift_corr_M, 0.6, 0.97)[0])
+    if not take_linear_fit and n_fit_window < _MIN_HF_FIT_POINTS:
+        # the saturation test counts measured points and the fit uses grid
+        # points, which can fall short of its minimum on a coarsely stepped
+        # loop (or NL_fit was forced on one): the four-parameter fit is not
+        # defensible, so take the linear fit and say so (the saturation
+        # verdict itself stands)
+        print(f'-W- the high-field window from 60% of the peak field holds '
+              f'only {n_fit_window} grid points (fewer than '
+              f'{_MIN_HF_FIT_POINTS}), too few for the approach-to-saturation '
+              'fit; taking the linear high-field fit from 60% instead')
+        take_linear_fit = True
+    if take_linear_fit:
         # linear high field correction over the widest linear window, with
         # the ordinary least-squares standard errors of its parameters
         linear_window = loop_saturation_stats['saturation_cutoff'] or 0.6
@@ -4956,10 +4933,13 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
         # approach-to-saturation fit, with the bootstrap of Jackson and
         # Solheid (2010) for the uncertainty of Ms and chi_HF
         hf_fit_results = hyst_HF_nonlinear_optimization(centered_H, drift_corr_M, 0.6, 'IRM',
-                                                        n_bootstrap=n_bootstrap)
+                                                        n_bootstrap=n_bootstrap, rng=rng)
         chi_HF, Ms, Fnl_lin = hf_fit_results['chi_HF'], hf_fit_results['Ms'], hf_fit_results['Fnl_lin']
         Ms_se, chi_HF_se = hf_fit_results['Ms_se'], hf_fit_results['chi_HF_se']
         Ms_ci95, chi_HF_ci95 = hf_fit_results['Ms_ci95'], hf_fit_results['chi_HF_ci95']
+        # the bootstrap samples (2 x n_bootstrap floats) are not carried
+        # into every pipeline result; the summary statistics are
+        hf_fit_results = {**hf_fit_results, 'bootstrap': None}
         hf_fit = 'IRM'
 
     # test loop closure at high field and flag the result; processing
@@ -5084,6 +5064,7 @@ def process_hyst_loops(
     closure_criterion='magnitude',
     quality_threshold=2.0,
     n_bootstrap=1000,
+    rng=0,
 ):
     """
     Process multiple hysteresis loops in batch.
@@ -5126,6 +5107,10 @@ def process_hyst_loops(
         Passed through to process_hyst_loop: bootstrap refits for the
         uncertainty of Ms and chi_HF from the approach-to-saturation fit
         (default 1000; 0 to skip, which is faster for large batches).
+    rng : numpy.random.Generator or int, optional
+        Passed through to process_hyst_loop: generator or seed for the
+        bootstrap (default 0, reproducible; a Generator passed here is
+        shared by all loops of the batch).
     magn_unit : str, optional
         Unit of the values in `magn_col`, used to label the plots and the
         summary table headers and recorded in the results so that
@@ -5178,6 +5163,7 @@ def process_hyst_loops(
             closure_criterion=closure_criterion,
             quality_threshold=quality_threshold,
             n_bootstrap=n_bootstrap,
+            rng=rng,
         )
         res['specimen'] = spec
         res['experiment'] = exp
@@ -5228,9 +5214,10 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
     exclude_open : bool, optional
         If True, Ms, Bc and chi_HF of loops whose 'closure_state' is 'open'
         are written as NaN in the MagIC columns (their high-field fit is
-        biased by the unsaturated fraction); Mr is kept. The closure
-        statistics go to the description JSON either way. Default False:
-        every value is written.
+        biased by the unsaturated fraction), and Ms_se and chi_HF_se as NaN
+        in the description JSON; Mr is kept. The closure statistics go to
+        the description JSON either way. Default False: every value is
+        written.
 
     Returns
     -------
@@ -5341,7 +5328,7 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
 
         # write MagIC columns (Ms and Mr go to the columns for this row's
         # magnetization unit); optionally withhold the slope-dependent
-        # parameters of open loops
+        # parameters of open loops, and their standard errors below
         withhold = (exclude_open and row.get('closure_state') == 'open')
         for result_key, col in zip(result_keys_MagIC,
                                    magic_columns(row['magn_unit'])):
@@ -5356,6 +5343,10 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
         # also reads legacy Python-dict cells written by older versions.
         additional_stats_dict = {key: row[key] for key in additional_keys
                                  if key in row.index}
+        if withhold:
+            for key in ('Ms_se', 'chi_HF_se'):
+                if key in additional_stats_dict:
+                    additional_stats_dict[key] = np.nan
         desc_col = specimens_df.columns.get_loc('description')
         text, description_dict = parse_specimen_description(
             specimens_df.iloc[ipos, desc_col])
