@@ -2264,17 +2264,15 @@ def collapse_hyst_field_plateaus(field, magnetization):
     if field.size == 0:
         return field, magnetization
 
-    collapsed_field = []
-    collapsed_magnetization = []
-    start = 0
+    # each run of consecutive equal field values becomes one point at that
+    # field carrying the mean magnetization of the run (vectorized: a
+    # Python loop here dominated the cost of gridding long loops)
+    starts = np.concatenate([[0], np.flatnonzero(np.diff(field) != 0) + 1])
+    run_lengths = np.diff(np.append(starts, field.size))
+    collapsed_field = field[starts]
+    collapsed_magnetization = np.add.reduceat(magnetization, starts) / run_lengths
 
-    for index in range(1, len(field) + 1):
-        if index == len(field) or field[index] != field[start]:
-            collapsed_field.append(field[start])
-            collapsed_magnetization.append(np.mean(magnetization[start:index]))
-            start = index
-
-    return np.asarray(collapsed_field, dtype=float), np.asarray(collapsed_magnetization, dtype=float)
+    return collapsed_field, collapsed_magnetization
 
 def find_hyst_turning_point(field):
     """Find the single loop reversal, tolerating repeated plateaus and minor field glitches.
@@ -3626,35 +3624,87 @@ def hyst_loop_saturation_test(grid_field, grid_magnetization, max_field_cutoff=0
     return _to_native_python(results)
 
 
-def closure_mean_se_by_noise_propagation(centered_H, centered_M, descending_first=True,
+def _noise_sd_from_pseudo_residuals(field, magnetization, HF_cutoff=0.5,
+                                    min_residuals=8):
+    """Standard deviation of the measurement noise of a loop, from the
+    pseudo-residuals of Gasser, Sroka and Jennen-Steinmetz (1986, Biometrika
+    73, 625-633): on each monotonic run of a branch, each point is compared
+    with the straight line through its two neighbors, which cancels a
+    locally linear signal at any field spacing and leaves a residual of
+    variance sigma^2 (a^2 + b^2 + 1), a and b being the interpolation
+    weights. Only the high-field part of each branch (|H| >= HF_cutoff of
+    the peak field, where the loop is nearly straight) is used unless it
+    yields fewer than `min_residuals` residuals, in which case the whole
+    branches are."""
+    field = np.asarray(field, dtype=float)
+    magnetization = np.asarray(magnetization, dtype=float)
+    max_H = np.max(np.abs(field))
+
+    def _collect(cutoff):
+        num, count = 0.0, 0
+        for h, m in split_hyst_loop(field, magnetization):
+            h = np.asarray(h, dtype=float)
+            m = np.asarray(m, dtype=float)
+            for sign in (1.0, -1.0):
+                keep = (np.abs(h) >= cutoff * max_H) & (np.sign(h) == sign)
+                hh, mm = h[keep], m[keep]
+                if hh.size < 3:
+                    continue
+                span = hh[2:] - hh[:-2]
+                ok = span != 0
+                a = np.where(ok, (hh[2:] - hh[1:-1]) / np.where(ok, span, 1.0), 0.5)
+                b = np.where(ok, (hh[1:-1] - hh[:-2]) / np.where(ok, span, 1.0), 0.5)
+                pseudo = a * mm[:-2] + b * mm[2:] - mm[1:-1]
+                num += float(np.sum(pseudo ** 2 / (a ** 2 + b ** 2 + 1.0)))
+                count += pseudo.size
+        return num, count
+
+    num, count = _collect(HF_cutoff)
+    if count < min_residuals:
+        num, count = _collect(0.0)
+    if count == 0:
+        return np.nan
+    return float(np.sqrt(num / count))
+
+
+def closure_mean_se_by_noise_propagation(field, magnetization, descending_first=True,
                                          correction=None, HF_cutoff=0.8,
                                          max_field_cutoff=0.99, n_draws=200, rng=0):
     """
     Standard error of the closure statistic's window mean, by propagating
-    the loop's noise through its drift correction.
+    the loop's measurement noise through the gridding and drift correction
+    the loop received.
 
     `loop_closure_test` estimates the noise of the even high-field Mrh from
     its odd part, which is exact for the centered loop but not for the
     drift-corrected loop the pipeline tests: the correction subtracts a
     smoothed version of the branch mismatch, and that smoothed noise adds
     a slowly varying component to the even part of Mrh that the odd part
-    does not see. On weak loops the window mean then scatters about four
-    times more between noise realizations than the odd-part estimate
-    says, and pure-noise loops are declared open at several times the
-    nominal rate. This function measures the true scatter: the per-point
-    noise is estimated from the centered loop's error curve (the standard
-    deviation of its first differences, which is insensitive to drift),
-    white noise of that size is generated on the loop's field grid and
-    passed through the same drift correction (same branch, same windows)
-    `n_draws` times, and the standard deviation of the resulting window
-    means of the even Mrh is returned.
+    does not see. On weak loops the window mean then scatters more between
+    noise realizations than the odd-part estimate says, and pure-noise
+    loops are declared open at several times the nominal rate. This
+    function measures the true scatter: the per-point noise is estimated
+    on the measured branches (`_noise_sd_from_pseudo_residuals`, which is
+    insensitive to drift and to the field spacing), white noise of that
+    size is generated at the measured fields, gridded with
+    `grid_hyst_loop` exactly as the loop was and passed through the same
+    drift correction (same branch, same windows) `n_draws` times, and the
+    standard deviation of the resulting window means of the even Mrh is
+    returned. Gridding is a linear interpolation and the drift correction
+    is linear in M, so the propagation is exact for those steps; simulating
+    at the measured fields rather than on the grid matters because
+    interpolation onto the grid both reduces the noise and correlates
+    neighboring points, more so when the measurements fall between grid
+    points or are sparser than the grid (coarsely stepped loops).
 
     Parameters
     ----------
-    centered_H, centered_M : array_like
-        the centered loop before drift correction, in canonical order
+    field, magnetization : array_like
+        the measured loop, as passed to `process_hyst_loop` (raw fields,
+        any sweep order; the offsets applied in centering do not affect
+        the noise and are not needed)
     descending_first : bool, optional
-        sweep order of the original measurement (as for `Me_drift_correction`)
+        sweep order of the measurement (as for `Me_drift_correction`)
     correction : {'positive_field', 'upper_branch'}, optional
         the correction the loop received (from `Me_drift_correction(...,
         return_details=True)`); None lets each draw choose its own, which
@@ -3662,9 +3712,12 @@ def closure_mean_se_by_noise_propagation(centered_H, centered_M, descending_firs
     HF_cutoff, max_field_cutoff : float, optional
         the closure window (defaults 0.8 and 0.99)
     n_draws : int, optional
-        noise realizations (default 200)
+        noise realizations (default 200, which gives the standard error a
+        Monte Carlo error of about 5%)
     rng : numpy.random.Generator or int, optional
-        generator or seed
+        generator or seed (default 0: reproducible, and loops of the same
+        length then share the same draws, so their standard errors carry
+        the same Monte Carlo error rather than independent ones)
 
     Returns
     -------
@@ -3672,25 +3725,30 @@ def closure_mean_se_by_noise_propagation(centered_H, centered_M, descending_firs
         'HF_Mrh_mean_se' (the standard error, in the units of M),
         'sigma_M' (the per-point noise estimate) and 'n_draws'
     """
-    centered_H = np.asarray(centered_H, dtype=float)
-    centered_M = np.asarray(centered_M, dtype=float)
-    upper, lower = split_hyst_loop(centered_H, centered_M)
-    err = np.asarray(upper[1]) + np.asarray(lower[1])[::-1]
-    # white noise of variance s^2 on each branch gives err a variance of
-    # 2 s^2 and its first differences 4 s^2; drift is smooth and drops out
-    sigma_M = float(np.std(np.diff(err)) / 2)
+    field = np.asarray(field, dtype=float)
+    magnetization = np.asarray(magnetization, dtype=float)
+    sigma_M = _noise_sd_from_pseudo_residuals(field, magnetization)
+    if not np.isfinite(sigma_M) or sigma_M == 0:
+        return {'HF_Mrh_mean_se': np.nan, 'sigma_M': sigma_M, 'n_draws': int(n_draws)}
     generator = rng if isinstance(rng, np.random.Generator) else np.random.default_rng(rng)
-    max_H = np.max(np.abs(centered_H))
     means = np.empty(n_draws)
-    for i in range(n_draws):
-        noise = sigma_M * generator.standard_normal(centered_M.size)
-        corrected = Me_drift_correction(centered_H, noise, descending_first=descending_first,
-                                        correction=correction)
-        H_u, _, Mrh, _, _, _ = calc_Mr_Mrh_Mih_Brh(centered_H, corrected)
-        pos = (H_u >= HF_cutoff*max_H) & (H_u <= max_field_cutoff*max_H)
-        neg = (H_u <= -HF_cutoff*max_H) & (H_u >= -max_field_cutoff*max_H)
-        even = (Mrh[pos] + Mrh[neg][::-1]) / 2
-        means[i] = np.mean(even)
+    with warnings.catch_warnings():
+        # a pure-noise loop has no Bc or Brh; those warnings are not about
+        # the measured loop
+        warnings.simplefilter('ignore', RuntimeWarning)
+        for i in range(n_draws):
+            noise = sigma_M * generator.standard_normal(field.size)
+            grid_H, grid_noise = grid_hyst_loop(field, noise)
+            corrected = Me_drift_correction(grid_H, grid_noise,
+                                            descending_first=descending_first,
+                                            correction=correction)
+            H_u, _, Mrh, _, _, _ = calc_Mr_Mrh_Mih_Brh(grid_H, corrected)
+            if i == 0:
+                max_H = np.max(np.abs(grid_H))
+                pos = (H_u >= HF_cutoff*max_H) & (H_u <= max_field_cutoff*max_H)
+                neg = (H_u <= -HF_cutoff*max_H) & (H_u >= -max_field_cutoff*max_H)
+            even = (Mrh[pos] + Mrh[neg][::-1]) / 2
+            means[i] = np.mean(even)
     return {'HF_Mrh_mean_se': float(np.std(means, ddof=1)), 'sigma_M': sigma_M,
             'n_draws': int(n_draws)}
 
@@ -3755,14 +3813,20 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
         saturation remanence, the normalization of HF_Mrh_fraction_Mr; by
         default interpolated from Mrh at zero field
     M_max : float, optional, keyword-only
-        the largest moment the loop reaches (at the peak field). When Ms
-        cannot be used -- the approach-to-saturation fit collapsed onto
-        its bound because the loop is far from saturation, or Ms is at
-        the noise level -- the opening is expressed relative to M_max
-        instead (``HF_Mrh_fraction_Mmax``). M_max includes the paramagnetic
-        moment, so this fraction can only understate the opening: it is used
-        to confirm that a loop is open, never to declare it closed (the
-        verdict is otherwise 'indeterminate'). It is only the fallback
+        the largest |M| the loop reaches (at the peak field when chi_HF >=
+        0). When Ms cannot be used -- the approach-to-saturation fit
+        collapsed onto its bound because the loop is far from saturation,
+        or Ms is at the noise level -- the opening is expressed relative
+        to M_max instead (``HF_Mrh_fraction_Mmax``). For a paramagnetic or
+        saturated matrix (chi_HF >= 0, the usual case) M_max includes the
+        matrix moment and this fraction can only understate the opening,
+        so it is used to confirm that a loop is open, never to declare it
+        closed on the strength of a small value (the verdict is otherwise
+        'indeterminate'; with a diamagnetic matrix M_max can fall below
+        the ferromagnetic moment and the understatement is not
+        guaranteed). Whether any high-field Mrh is detectable at all is
+        decided first, as when no normalization is available. M_max is
+        only the fallback: Ms is the normalization whenever it is usable.
     Brh : float, optional, keyword-only
         median remanent coercivity in the units of H; by default the field
         at which Mrh falls to Mr/2
@@ -3800,9 +3864,10 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
           was taken against
         - 'HF_cutoff', 'max_field_cutoff': the window used
         - 'tolerance': the openness tolerance applied (None under the
-          SNR_HAR criterion, or when Ms is not usable, in which case the
-          loop is 'closed' if no high-field Mrh is detectable and
-          'indeterminate' otherwise)
+          SNR_HAR criterion, or when neither Ms nor M_max is usable, in
+          which case the loop is 'closed' if no high-field Mrh is
+          detectable and 'indeterminate' otherwise; with the M_max
+          fallback the tolerance applies to HF_Mrh_fraction_Mmax)
         - 'Brh_fraction': Brh divided by the peak field
         - 'SNR', 'HAR': the HystLab statistics in dB
         - 'HF_Mrh_fraction_rms': the clipped RMS of the even high-field Mrh
@@ -3930,15 +3995,20 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
         closure_state = _state(HF_Mrh_fraction, HF_Mrh_fraction_se, tolerance)
     elif Mmax_usable:
         # the fit gave no usable Ms (it collapsed onto its bound for a loop
-        # far from saturation, or Ms is at the noise level): size the
-        # opening against the largest moment the loop reaches instead.
-        # M_max includes the paramagnetic moment, so this fraction can only
+        # far from saturation, or Ms is at the noise level). Detecting a
+        # high-field Mrh needs no normalization: if none stands above the
+        # noise the loop is closed, as in the branch below. Otherwise the
+        # opening is sized against the largest moment the loop reaches.
+        # M_max includes the matrix moment, so this fraction can only
         # understate the opening: it may confirm that the loop is open, but
         # a small value does not show it is closed
         tolerance = openness_tolerance
         normalization = 'Mmax'
-        closure_state = ('open' if _state(HF_Mrh_fraction_Mmax, HF_Mrh_fraction_Mmax_se,
-                                          tolerance) == 'open' else 'indeterminate')
+        if abs(HF_Mrh_mean) <= n_sigma*HF_Mrh_mean_se:
+            closure_state = 'closed'
+        else:
+            closure_state = ('open' if _state(HF_Mrh_fraction_Mmax, HF_Mrh_fraction_Mmax_se,
+                                              tolerance) == 'open' else 'indeterminate')
     else:
         # no moment to normalize by (e.g. a paramagnetic loop): the loop is
         # closed if no high-field Mrh is detectable, and otherwise the
@@ -4861,10 +4931,11 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
         and Solheid, 2010; 0 to skip). The linear fit's uncertainties are
         its ordinary least-squares standard errors.
     rng : numpy.random.Generator or int, optional
-        Random generator or seed for the bootstrap (default 0, so that the
-        reported Ms_se and chi_HF_se -- which are written to the MagIC
-        specimens table -- are reproducible from run to run; pass a
-        Generator to draw differently).
+        Random generator or seed for the bootstrap and for the noise
+        propagation behind the closure statistic's standard error (default
+        0, so that the reported Ms_se, chi_HF_se and HF_Mrh_fraction_se --
+        which are written to the MagIC specimens table -- are reproducible
+        from run to run; pass a Generator to draw differently).
     fit_linear_loop : bool, optional
         If True, process a statistically linear loop in full rather than
         terminating with chi_HF only (default False). Useful when a weak
@@ -5011,8 +5082,13 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
         # noise level on weak loops), which the drift correction would
         # pass straight into Mrh and the closure statistic
         loop_centering_results['opt_H_offset'] = 0
-        loop_centering_results['opt_M_offset'] = float(
-            _loop_H_off(grid_fields, grid_magnetizations, 0.0)['M_shift'])
+        if centering_protocol == 'iterative':
+            # the same estimator the iterative protocol uses, at zero shift
+            loop_centering_results['opt_M_offset'] = _branch_symmetry_mismatch(
+                grid_fields, grid_magnetizations, H_shift=0.0)['M_shift']
+        else:
+            loop_centering_results['opt_M_offset'] = float(
+                _loop_H_off(grid_fields, grid_magnetizations, 0.0)['M_shift'])
         loop_centering_results['centered_H'] = grid_fields
         loop_centering_results['centered_M'] = grid_magnetizations - loop_centering_results['opt_M_offset']
 
@@ -5085,13 +5161,15 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
     # test loop closure at high field and flag the result; processing
     # continues regardless
     # the standard error of the closure statistic comes from propagating
-    # the loop's noise through the drift correction it received (the
-    # odd-part estimate inside loop_closure_test misses the smoothed noise
-    # the correction adds to the even part of Mrh); the peak moment is the
-    # fallback normalization when the fit gives no usable Ms
+    # the loop's measurement noise, generated at the measured fields, through
+    # the gridding and the drift correction the loop received (the odd-part
+    # estimate inside loop_closure_test misses the smoothed noise the
+    # correction adds to the even part of Mrh, and gridding correlates the
+    # points); it shares the pipeline's seed with the bootstrap. The peak
+    # moment is the fallback normalization when the fit gives no usable Ms
     closure_se = closure_mean_se_by_noise_propagation(
-        centered_H, centered_M, descending_first=descending_first,
-        correction=drift_correction_details['correction'])
+        field, magnetization, descending_first=descending_first,
+        correction=drift_correction_details['correction'], rng=rng)
     loop_closure_test_results = loop_closure_test(
         H, Mrh, Me=Me, Mr=Mr, Brh=Brh, Ms=Ms,
         M_max=float(np.max(np.abs(drift_corr_M))), criterion=closure_criterion,

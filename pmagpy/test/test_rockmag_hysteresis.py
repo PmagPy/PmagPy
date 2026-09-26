@@ -696,6 +696,25 @@ class TestClosureMagnitude:
             rmag.loop_closure_test(Hu, Mrh, Ms=1.0, criterion='HystLab')
 
 
+def _jittered_loop(jitter, rng, noise=0.0, n_half=200, **kw):
+    """synthetic_loop measured at fields displaced by up to `jitter` field
+    steps (uniformly), the noise-free loop being re-evaluated at those
+    fields branch by branch before noise is added; jitter=0 gives the
+    loop on its own grid."""
+    H, M = synthetic_loop(n_half=n_half, noise=0.0, **kw)
+    if jitter:
+        step = np.median(np.abs(np.diff(H[:n_half])))
+        H_j = H + rng.uniform(-jitter, jitter, H.size) * step
+        upper, lower = slice(0, n_half), slice(n_half, 2 * n_half)
+        M_j = np.empty_like(M)
+        M_j[upper] = np.interp(H_j[upper], H[upper][::-1], M[upper][::-1])
+        M_j[lower] = np.interp(H_j[lower], H[lower], M[lower])
+        H, M = H_j, M_j
+    if noise:
+        M = M + noise * rng.standard_normal(M.size)
+    return H, M
+
+
 class TestClosureNoisePropagation:
     """The closure statistic's standard error on the drift-corrected loop,
     and the M_max fallback when the fit gives no usable Ms."""
@@ -714,30 +733,43 @@ class TestClosureNoisePropagation:
             rmag.Me_drift_correction(gH, gM, correction='sideways')
 
     def test_noise_estimate_and_reproducibility(self):
-        # sigma_M recovers the injected noise from the centered loop, drift
-        # or not, and the propagated SE is reproducible with a seed
-        for drift in (0.0, 0.05):
-            H, M = synthetic_loop(noise=6e-3, chi=0.2, drift=drift,
-                                  rng=np.random.default_rng(7))
-            gH, gM = rmag.grid_hyst_loop(H, M)
-            out = rmag.closure_mean_se_by_noise_propagation(gH, gM, correction='upper_branch',
+        # sigma_M recovers the injected noise from the measured loop, drift
+        # or not, on-grid or with the fields jittered between grid points
+        # (the pseudo-residual estimator cancels a locally linear signal at
+        # any spacing), and the propagated SE is reproducible with a seed
+        for drift, jitter in ((0.0, 0.0), (0.05, 0.0), (0.0, 0.4)):
+            H, M = _jittered_loop(jitter, np.random.default_rng(7), noise=6e-3,
+                                  chi=0.2, drift=drift)
+            out = rmag.closure_mean_se_by_noise_propagation(H, M, correction='upper_branch',
                                                             n_draws=50, rng=1)
-            assert out['sigma_M'] == pytest.approx(6e-3, rel=0.25)
-            again = rmag.closure_mean_se_by_noise_propagation(gH, gM, correction='upper_branch',
+            assert out['sigma_M'] == pytest.approx(6e-3, rel=0.15), (drift, jitter)
+            again = rmag.closure_mean_se_by_noise_propagation(H, M, correction='upper_branch',
                                                               n_draws=50, rng=1)
             assert again['HF_Mrh_mean_se'] == out['HF_Mrh_mean_se']
+        # the direct estimator is exact for a noise-free straight line at
+        # irregular spacing and returns the noise sd of a noisy one
+        h = np.sort(np.random.default_rng(1).uniform(-1, 1, 300))
+        H = np.concatenate([h[::-1], h])
+        M = 0.3 * H
+        assert rmag._noise_sd_from_pseudo_residuals(H, M) == pytest.approx(0.0, abs=1e-12)
+        M = M + 2e-3 * np.random.default_rng(2).standard_normal(M.size)
+        assert rmag._noise_sd_from_pseudo_residuals(H, M) == pytest.approx(2e-3, rel=0.15)
 
-    def test_propagated_se_matches_scatter_across_realizations(self):
+    @pytest.mark.parametrize('jitter', [0.0, 0.4])
+    def test_propagated_se_matches_scatter_across_realizations(self, jitter):
         # on a weak loop in noise the drift correction's smoothing leaves
-        # the odd-part estimate of the closure SE somewhat too small (about
-        # 30% here; it was 4x before the Q < 2 vertical offset was
-        # re-estimated at zero field shift, see process_hyst_loop); the
-        # propagated SE tracks the actual scatter of the window mean across
-        # noise realizations
+        # the odd-part estimate of the closure SE too small (about 30% on
+        # the grid; it was 4x before the Q < 2 vertical offset was
+        # re-estimated at zero field shift, see process_hyst_loop), and
+        # gridding measurements that fall between grid points (jitter of
+        # up to 0.4 of a step here) both damps and correlates the noise on
+        # the grid; the SE propagated from the measured fields tracks the
+        # actual scatter of the window mean across noise realizations in
+        # both cases
         means, se_odd, se_prop = [], [], []
         for seed in range(40):
-            H, M = synthetic_loop(Ms=0.01, Bc=0.05, w=0.03, chi=0.2, noise=6e-3,
-                                  rng=np.random.default_rng(500 + seed))
+            H, M = _jittered_loop(jitter, np.random.default_rng(500 + seed),
+                                  Ms=0.01, Bc=0.05, w=0.03, chi=0.2, noise=6e-3)
             r = rmag.process_hyst_loop(H, M, show_results_table=False,
                                        show_plot=False, n_bootstrap=0,
                                        fit_linear_loop=True)
@@ -750,7 +782,7 @@ class TestClosureNoisePropagation:
             se_prop.append(c['HF_Mrh_mean_se'])
         scatter = np.std(means, ddof=1)
         assert scatter / np.median(se_odd) > 1.1          # the odd part understates it
-        assert 0.6 < scatter / np.median(se_prop) < 1.6   # the propagation tracks it
+        assert 0.7 < scatter / np.median(se_prop) < 1.4   # the propagation tracks it
 
     def test_weak_loop_vertical_offset_is_estimated_at_zero_shift(self):
         # for a Q < 2 loop the pipeline discards the symmetry search's field
@@ -768,19 +800,65 @@ class TestClosureNoisePropagation:
             assert r['Q'] < 2 and r['loop_centering_results']['opt_H_offset'] == 0
             offsets.append(r['loop_centering_results']['opt_M_offset'])
         assert np.std(offsets) < 1e-3       # was ~3e-3 with the joint estimate
+        # the iterative protocol re-estimates with its own (low-field
+        # weighted) estimator at zero shift, not the legacy one
+        H, M = synthetic_loop(Ms=0.01, Bc=0.05, w=0.03, chi=0.2, noise=6e-3,
+                              M_offset=0.05, rng=np.random.default_rng(901))
+        r = rmag.process_hyst_loop(H, M, show_results_table=False, show_plot=False,
+                                   n_bootstrap=0, fit_linear_loop=True,
+                                   centering_protocol='iterative')
+        assert r['Q'] < 2 and r['loop_centering_results']['opt_H_offset'] == 0
+        gH, gM = r['gridded_H'], r['gridded_M']
+        expected = rmag._branch_symmetry_mismatch(gH, gM, H_shift=0.0)['M_shift']
+        assert r['loop_centering_results']['opt_M_offset'] == pytest.approx(expected)
+        assert expected == pytest.approx(0.05, abs=2e-3)
 
     def test_noise_loops_are_not_declared_open(self):
         # with the propagated SE, weak loops whose Mrh is noise are
-        # 'indeterminate' or 'closed', not 'open', at close to the nominal rate
-        n_open = 0
+        # 'indeterminate' or 'closed', not 'open', at close to the nominal
+        # rate -- on the loops normalized by Ms, and on those whose Ms is
+        # at the noise level and take the M_max route, counted separately
+        n_open = {'Ms': 0, 'Mmax': 0}
+        n_route = {'Ms': 0, 'Mmax': 0}
         for seed in range(40):
             H, M = synthetic_loop(Ms=0.01, Bc=0.05, w=0.03, chi=0.2, noise=6e-3,
                                   rng=np.random.default_rng(500 + seed))
             r = rmag.process_hyst_loop(H, M, show_results_table=False,
                                        show_plot=False, n_bootstrap=0,
                                        fit_linear_loop=True)
-            n_open += r['closure_state'] == 'open'
-        assert n_open <= 2
+            route = r['closure_normalization']
+            n_route[route] += 1
+            n_open[route] += r['closure_state'] == 'open'
+        assert n_route['Ms'] >= 25
+        assert n_open['Ms'] <= 2 and n_open['Mmax'] == 0
+
+    def test_Mmax_route_still_closes_when_no_Mrh_is_detectable(self):
+        # a loop whose fitted Ms is at the noise level and whose high-field
+        # Mrh does not stand above it is 'closed' -- detecting Mrh needs no
+        # normalization -- exactly as it was before M_max was passed (the
+        # fallback may still not declare a *sized* opening closed)
+        for seed in (2, 3, 4, 13, 14):
+            H, M = synthetic_loop(Ms=0.002, Bc=0.05, w=0.03, chi=1.0, noise=2e-3,
+                                  rng=np.random.default_rng(seed))
+            r = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                       show_plot=False, fit_linear_loop=True,
+                                       n_bootstrap=0)
+            c = r['loop_closure_test_results']
+            assert c['normalization'] == 'Mmax'
+            Hu, Mr, Mrh, Mih, Me, Brh = rmag.calc_Mr_Mrh_Mih_Brh(
+                r['centered_H'], r['drift_corrected_M'])
+            alt = rmag.loop_closure_test(Hu, Mrh, Me=Me, Mr=Mr, Brh=Brh, Ms=r['Ms'],
+                                         HF_Mrh_mean_se=c['HF_Mrh_mean_se'])
+            assert alt['normalization'] is None
+            assert c['closure_state'] == alt['closure_state'] == 'closed'
+        # and a sized opening on that route is confirmed only as 'open'
+        Hu, Mr, Mrh, Me, Brh = _closure_inputs(*synthetic_loop(hard_Ms=_hard_Ms_for_openness_Ms(0.20)))
+        r = rmag.loop_closure_test(Hu, Mrh, Me=Me, Ms=0.0, M_max=1.0,
+                                   HF_Mrh_mean_se=1e-4)
+        assert r['closure_state'] == 'open'
+        r = rmag.loop_closure_test(Hu, Mrh, Me=Me, Ms=0.0, M_max=100.0,
+                                   HF_Mrh_mean_se=1e-4)
+        assert r['closure_state'] == 'indeterminate'
 
     def test_open_loops_still_open(self):
         # the corrected SE must not cost the verdict on a real opening
@@ -826,6 +904,18 @@ class TestClosureNoisePropagation:
         assert r['HF_Mrh_fraction_Mmax'] < 0.02
         assert r['closure_state'] == 'indeterminate'
         assert 'sized against the largest moment' in out
+
+    def test_closure_se_follows_the_pipeline_seed(self):
+        H, M = synthetic_loop(Ms=0.01, Bc=0.05, w=0.03, chi=0.2, noise=6e-3,
+                              rng=np.random.default_rng(3))
+        kw = dict(show_results_table=False, show_plot=False, n_bootstrap=0,
+                  fit_linear_loop=True)
+        a = rmag.process_hyst_loop(H, M, **kw)
+        b = rmag.process_hyst_loop(H, M, **kw)
+        c = rmag.process_hyst_loop(H, M, rng=5, **kw)
+        assert a['HF_Mrh_fraction_se'] == b['HF_Mrh_fraction_se']
+        assert c['HF_Mrh_fraction_se'] != a['HF_Mrh_fraction_se']
+        assert c['HF_Mrh_fraction_se'] == pytest.approx(a['HF_Mrh_fraction_se'], rel=0.2)
 
     def test_direct_call_without_M_max_keeps_the_old_behavior(self):
         H, M = synthetic_loop(hard_Ms=_hard_Ms_for_openness_Ms(0.20))
@@ -1467,12 +1557,17 @@ class TestOpenLoopBrh:
                                              show_plot=False)
         out = capsys.readouterr().out
         assert results['Ms'] == 0 and not results['loop_is_saturated']
-        assert results['closure_state'] == 'indeterminate'
+        # the opening cannot be sized against Ms; the M_max fallback confirms
+        # that the loop is open
         assert np.isnan(results['HF_Mrh_fraction'])
+        assert results['closure_normalization'] == 'Mmax'
+        assert results['closure_state'] == 'open'
+        assert results['HF_Mrh_fraction_Mmax'] > 0.1
         assert results['HF_Mrh_fraction_Mr'] > 0.1
         assert np.isfinite(results['Mr']) and results['Mr'] > 0.5
         assert np.isfinite(results['Brh']) and np.isnan(results['sigma'])
-        assert '-W- sp: loop closure at high field cannot be resolved' in out
+        assert '-W- sp: loop is open at high field' in out
+        assert 'of M_max' in out
 
     def test_closed_loop_prints_no_flag(self, capsys):
         H, M = synthetic_loop(noise=1e-3)
