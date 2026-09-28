@@ -5049,7 +5049,6 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
         which are written to the MagIC specimens table -- are reproducible
         from run to run; pass a Generator to draw differently).
 
-
     Notes
     -----
     Every parameter after `centering_protocol` is keyword-only, so that the
@@ -5712,7 +5711,6 @@ def _deprecated_hyst_alias(old_name, new_name, func=None):
         return target(*args, **kwargs)
     alias.__name__ = old_name
     alias.__doc__ = f'Deprecated alias of `{new_name}` (renamed in PmagPy 5).'
-    alias.__wrapped_name__ = new_name
     return alias
 
 
