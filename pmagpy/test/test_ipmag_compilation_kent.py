@@ -9,6 +9,10 @@ pmagplotlib.plot_ell that it relies on.
 Regression tests for PmagPy/PmagPy#903: the resampling loop iterated over
 the length of the f compilation rather than over n, and the Kent ellipse
 of a southern-hemisphere mean pole was drawn at its antipode.
+
+Also covers ipmag.find_ei_kent, including the regression test for
+PmagPy/PmagPy#941: random_seed was not passed to the Fisher resampling of
+the unflattened mean poles, so the Kent statistics were not reproducible.
 """
 import matplotlib.pyplot as plt
 import numpy as np
@@ -89,6 +93,36 @@ class TestFindCompilationKentResampling:
         kent = ipmag.find_compilation_kent(
             **SOUTHERN_POLE, n=30, n_fish=10, random_seed=1)
         assert kent['inc'] < 0
+
+
+# ---------------------------------------------------------------------------
+# find_ei_kent: reproducibility
+# ---------------------------------------------------------------------------
+
+class TestFindEIKentReproducibility:
+
+    @staticmethod
+    def _flattened_directions():
+        # TK03 directions at 30 degrees latitude flattened with f = 0.6
+        tk03_dirs = np.array(ipmag.tk03(n=100, lat=30, random_seed=5))
+        flat_incs = ipmag.squish(tk03_dirs[:, 1], 0.6)
+        return np.column_stack((tk03_dirs[:, 0], flat_incs)).tolist()
+
+    def test_same_seed_gives_identical_kent_stats(self):
+        # the E/I bootstrap was seeded but the Fisher resampling of the
+        # unflattened mean poles was not, so the Kent statistics differed
+        # between runs with the same random_seed
+        pytest.importorskip("cartopy")
+        data = self._flattened_directions()
+        kwargs = dict(site_latitude=30, site_longitude=0, nb=20, vgp_nb=10,
+                      num_resample_to_plot=0, random_seed=23)
+        kent_a, I_a, E_a, F_a = ipmag.find_ei_kent(data, return_values=True,
+                                                   **kwargs)
+        plt.close('all')
+        kent_b, I_b, E_b, F_b = ipmag.find_ei_kent(data, return_values=True,
+                                                   **kwargs)
+        assert I_a == I_b
+        assert kent_a == kent_b
 
 
 # ---------------------------------------------------------------------------

@@ -9859,7 +9859,8 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
         unsquish_lons, unsquish_lats = unsquish_VGPs[0], unsquish_VGPs[1]
         unsquish_VGPs_mean = fisher_mean(unsquish_lons, unsquish_lats)
         resampled_lons, resampled_lats = fisher_mean_resample(alpha95=unsquish_VGPs_mean['alpha95'], n=vgp_nb, 
-                                                       dec=unsquish_VGPs_mean['dec'], inc=unsquish_VGPs_mean['inc'], di_block=0)
+                                                       dec=unsquish_VGPs_mean['dec'], inc=unsquish_VGPs_mean['inc'], di_block=0,
+                                                       random_seed=rng)
         mean_lons.extend(resampled_lons)
         mean_lats.extend(resampled_lats)
         
