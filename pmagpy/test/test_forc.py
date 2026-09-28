@@ -11,6 +11,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 from scipy.stats import norm
+from scipy.integrate import trapezoid
 
 from pmagpy import forc
 
@@ -684,7 +685,7 @@ def ridge_and_background_grid(dH=0.001, Ms=1.0e-5, noise=0.0, seed=0):
 
     p = component(0.025, 0.012, 0.0010, 1.0) + component(0.020, 0.025, 0.025, 1.2)
     p[A < Bt] = 0.0
-    p /= np.trapezoid(np.trapezoid(p, axis, axis=1), axis)
+    p /= trapezoid(trapezoid(p, axis, axis=1), axis)
     C = np.cumsum(np.cumsum(p, axis=0), axis=1) * fine * fine
 
     Ha = np.arange(-0.10, 0.05 + dH / 2, dH)
