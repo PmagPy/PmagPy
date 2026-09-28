@@ -3774,7 +3774,8 @@ def hyst_closure_se(field, magnetization, descending_first=True,
 
 def hyst_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
                       Ms=None, Mr=None, Brh=None, M_max=None, criterion='magnitude',
-                      openness_tolerance=0.02, n_sigma=2.0, HF_Mrh_mean_se=None):
+                      openness_tolerance=0.02, n_sigma=2.0, HF_Mrh_mean_se=None,
+                      Ms_se=None):
     '''
     Test whether a hysteresis loop is closed at high field.
 
@@ -3801,8 +3802,18 @@ def hyst_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
     With criterion='magnitude' (default), the loop is 'open' when
     f_open - n_sigma*SE reaches openness_tolerance, 'closed' when
     f_open + n_sigma*SE is below it and the interval half-width is smaller
-    than the tolerance, and 'indeterminate' otherwise. This criterion
-    requires Ms. With criterion='SNR_HAR', the HystLab rule (Paterson et
+    than the tolerance, and 'indeterminate' otherwise. The two verdicts
+    use different standard errors, because they are different claims.
+    'open' says the unswitched moment exceeds the tolerance times the
+    fitted Ms, and uses the standard error of the window mean alone
+    (``HF_Mrh_fraction_se``): the opening is measured directly, whereas
+    Ms from an unsaturated loop is ill conditioned *because* of the
+    opening, and letting that uncertainty veto the verdict would make a
+    loop harder to call open the more open it is. 'closed' says the
+    opening is below the tolerance as a fraction of Ms, a claim that an
+    overestimated Ms would falsify, so it uses the standard error of the
+    ratio including the uncertainty of Ms when `Ms_se` is given
+    (``HF_Mrh_fraction_se_total``). This criterion requires Ms. With criterion='SNR_HAR', the HystLab rule (Paterson et
     al., 2018) is used: 'open' when the signal-to-noise ratio of the
     high-field Mrh is at least 8 dB and the ratio of high-field to total
     Mrh area is at least -48 dB. SNR and HAR are returned under both
@@ -3858,6 +3869,11 @@ def hyst_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
         standard error of the window mean of the even Mrh, in the units of
         Mrh, replacing the estimate from the odd part (use
         `hyst_closure_se` for a drift-corrected loop)
+    Ms_se : float, optional, keyword-only
+        standard error of Ms (the regression or bootstrap error of the
+        high-field fit), folded into ``HF_Mrh_fraction_se_total`` and so
+        into the 'closed' verdict; None or NaN leaves the total equal to
+        the conditional standard error
     n_sigma : float, keyword-only
         number of standard errors used throughout the test (default 2):
         the half-width of the confidence interval on f_open, the margin by
@@ -3874,7 +3890,13 @@ def hyst_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
         - 'HF_Mrh_fraction': f_open, the mean even high-field Mrh over Ms
           (signed; NaN when Ms was not supplied or does not stand above
           the noise)
-        - 'HF_Mrh_fraction_se': its standard error
+        - 'HF_Mrh_fraction_se': its standard error conditional on Ms (the
+          noise of the window mean divided by Ms), the one the 'open'
+          verdict and the -W- line use
+        - 'HF_Mrh_fraction_se_total': the standard error of the ratio
+          including the uncertainty of Ms, sqrt(se^2 + (f_open*Ms_se/Ms)^2),
+          the one the 'closed' verdict uses (equal to the conditional
+          value when Ms_se is not given)
         - 'HF_Mrh_fraction_Mr', 'HF_Mrh_fraction_Mr_se': the same over Mr
           (NaN when Mr does not stand above the noise)
         - 'HF_Mrh_fraction_Mmax', 'HF_Mrh_fraction_Mmax_se': the same over
@@ -3988,6 +4010,12 @@ def hyst_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
     Ms_usable = _usable(Ms)
     HF_Mrh_fraction = HF_Mrh_mean/Ms if Ms_usable else np.nan
     HF_Mrh_fraction_se = HF_Mrh_mean_se/Ms if Ms_usable else np.nan
+    # the standard error of the ratio, including that of Ms when known
+    if Ms_usable and Ms_se is not None and np.isfinite(Ms_se):
+        HF_Mrh_fraction_se_total = float(np.sqrt(HF_Mrh_fraction_se**2
+                                                 + (HF_Mrh_fraction*Ms_se/Ms)**2))
+    else:
+        HF_Mrh_fraction_se_total = HF_Mrh_fraction_se
     HF_Mrh_fraction_Mr = HF_Mrh_mean/Mr if Mr_usable else np.nan
     HF_Mrh_fraction_Mr_se = HF_Mrh_mean_se/Mr if Mr_usable else np.nan
     Mmax_usable = _usable(M_max)
@@ -3996,11 +4024,13 @@ def hyst_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
     HF_Mrh_fraction_rms = float(HF_Mrh_signal_RMS/Mr) if Mr_usable else np.nan
     Brh_over_max_H = float(Brh/max_H)
 
-    def _state(value, se, tol):
-        half_width = n_sigma*se
-        if value - half_width >= tol:
+    def _state(value, se_open, tol, se_closed=None):
+        # 'open' is decided with the standard error of the window mean,
+        # 'closed' with that of the ratio (see the docstring)
+        se_closed = se_open if se_closed is None else se_closed
+        if value - n_sigma*se_open >= tol:
             return 'open'
-        if value + half_width < tol and half_width < tol:
+        if value + n_sigma*se_closed < tol and n_sigma*se_closed < tol:
             return 'closed'
         return 'indeterminate'
 
@@ -4011,7 +4041,8 @@ def hyst_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
     elif Ms_usable:
         tolerance = openness_tolerance
         normalization = 'Ms'
-        closure_state = _state(HF_Mrh_fraction, HF_Mrh_fraction_se, tolerance)
+        closure_state = _state(HF_Mrh_fraction, HF_Mrh_fraction_se, tolerance,
+                               HF_Mrh_fraction_se_total)
     elif Mmax_usable:
         # the fit gave no usable Ms (it collapsed onto its bound for a loop
         # far from saturation, or Ms is at the noise level). Detecting a
@@ -4040,6 +4071,7 @@ def hyst_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
                'HAR': float(HAR),
                'HF_Mrh_fraction': HF_Mrh_fraction,
                'HF_Mrh_fraction_se': HF_Mrh_fraction_se,
+               'HF_Mrh_fraction_se_total': HF_Mrh_fraction_se_total,
                'HF_Mrh_fraction_Mr': HF_Mrh_fraction_Mr,
                'HF_Mrh_fraction_Mr_se': HF_Mrh_fraction_Mr_se,
                'HF_Mrh_fraction_Mmax': HF_Mrh_fraction_Mmax,
@@ -4840,7 +4872,8 @@ _HYST_UNDEFINED_RESULTS = {
     'drift_corrected_M': None, 'drift_correction': None, 'slope_corrected_M': None,
     'loop_closure_test_results': None, 'loop_is_closed': None,
     'closure_state': None, 'HF_Mrh_fraction': np.nan,
-    'HF_Mrh_fraction_se': np.nan, 'HF_Mrh_fraction_Mr': np.nan,
+    'HF_Mrh_fraction_se': np.nan, 'HF_Mrh_fraction_se_total': np.nan,
+    'HF_Mrh_fraction_Mr': np.nan,
     'HF_Mrh_fraction_Mmax': np.nan, 'closure_normalization': None,
     'low_quality': None,
     'loop_saturation_stats': None, 'loop_is_saturated': None,
@@ -4886,6 +4919,10 @@ def _print_closure_flag(specimen_name, closure):
             stat += f'; {100*f_Mr:.1f}% of Mr)'
         else:
             stat += ')'
+        se_total = closure.get('HF_Mrh_fraction_se_total', se)
+        if np.isfinite(se_total) and se_total > 1.5*se:
+            stat += (f'; +/- {100*se_total:.2g}% including the uncertainty '
+                     'of Ms, which the closed verdict requires')
     elif closure.get('normalization') == 'Mmax':
         f_max, se_max = closure['HF_Mrh_fraction_Mmax'], closure['HF_Mrh_fraction_Mmax_se']
         stat = (f'the approach-to-saturation fit gave no usable Ms, so the '
@@ -5079,7 +5116,9 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
             - 'closure_state': 'closed', 'open' or 'indeterminate'
             - 'HF_Mrh_fraction', 'HF_Mrh_fraction_se': the openness
               statistic f_open (high-field Mrh as a fraction of the fitted
-              Ms) and its standard error
+              Ms) and its standard error conditional on Ms
+            - 'HF_Mrh_fraction_se_total': the same including the
+              uncertainty of Ms (Ms_se), which the 'closed' verdict uses
             - 'HF_Mrh_fraction_Mr': the same opening as a fraction of Mr
             - 'low_quality': whether Q or Qf is below `quality_threshold`
             - 'loop_saturation_stats': saturation test results
@@ -5277,9 +5316,10 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
         H, Mrh, Me=Me, Mr=Mr, Brh=Brh, Ms=Ms,
         M_max=float(np.max(np.abs(drift_corr_M))), criterion=closure_criterion,
         openness_tolerance=openness_tolerance,
-        HF_Mrh_mean_se=closure_se['HF_Mrh_mean_se'])
+        HF_Mrh_mean_se=closure_se['HF_Mrh_mean_se'], Ms_se=Ms_se)
     HF_Mrh_fraction = loop_closure_test_results['HF_Mrh_fraction']
     HF_Mrh_fraction_se = loop_closure_test_results['HF_Mrh_fraction_se']
+    HF_Mrh_fraction_se_total = loop_closure_test_results['HF_Mrh_fraction_se_total']
     HF_Mrh_fraction_Mr = loop_closure_test_results['HF_Mrh_fraction_Mr']
     HF_Mrh_fraction_Mmax = loop_closure_test_results['HF_Mrh_fraction_Mmax']
     closure_normalization = loop_closure_test_results['normalization']
@@ -5352,6 +5392,7 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
                 'closure_state': closure_state,
                 'HF_Mrh_fraction': HF_Mrh_fraction,
                 'HF_Mrh_fraction_se': HF_Mrh_fraction_se,
+                'HF_Mrh_fraction_se_total': HF_Mrh_fraction_se_total,
                 'HF_Mrh_fraction_Mr': HF_Mrh_fraction_Mr,
                 'HF_Mrh_fraction_Mmax': HF_Mrh_fraction_Mmax,
                 'closure_normalization': closure_normalization,
@@ -5606,7 +5647,8 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
     additional_keys = ['Q', 'Qf', 'sigma',
                 'Brh', 'FNL', 'FNL60', 'FNL70', 'FNL80',
                 'Fnl_lin', 'loop_is_linear', 'loop_is_closed', 'closure_state',
-                'HF_Mrh_fraction', 'HF_Mrh_fraction_se', 'HF_Mrh_fraction_Mr',
+                'HF_Mrh_fraction', 'HF_Mrh_fraction_se', 'HF_Mrh_fraction_se_total',
+                'HF_Mrh_fraction_Mr',
                 'HF_Mrh_fraction_Mmax', 'closure_normalization',
                 'low_quality', 'loop_is_saturated',
                 'Ms_se', 'chi_HF_se', 'hf_fit',

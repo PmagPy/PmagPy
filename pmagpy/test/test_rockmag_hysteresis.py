@@ -1629,10 +1629,13 @@ class TestOpenLoopBrh:
     def test_openness_tolerance_pass_through(self):
         hard_Ms = _hard_Ms_for_openness_Ms(0.03)
         H, M = synthetic_loop(noise=2e-3, hard_Ms=hard_Ms)
+        # n_bootstrap=0 keeps the uncertainty of Ms out of the closed
+        # verdict, so the tolerance alone decides (see
+        # TestClosureMsUncertainty for the effect of Ms_se)
         default = rmag.process_hyst_loop(H, M, show_results_table=False,
-                                         show_plot=False)
+                                         show_plot=False, n_bootstrap=0)
         lenient = rmag.process_hyst_loop(H, M, show_results_table=False,
-                                         show_plot=False,
+                                         show_plot=False, n_bootstrap=0,
                                          openness_tolerance=0.05)
         assert default['closure_state'] == 'open'
         assert lenient['closure_state'] == 'closed'
@@ -2316,3 +2319,83 @@ class TestV5API:
             forced = rmag.process_hyst_loops(experiments, measurements, show_results_table=False,
                                              show_plots=False, n_bootstrap=0, NL_fit=True)
         assert plain.iloc[0]['hf_fit'] == 'linear' and forced.iloc[0]['hf_fit'] == 'inverse_field'
+
+
+class TestClosureMsUncertainty:
+    """The uncertainty of the fitted Ms enters the 'closed' verdict but not
+    the 'open' verdict (decision of 2026-09-28)."""
+
+    def test_two_standard_errors_two_verdicts(self):
+        H, M = synthetic_loop(hard_Ms=_hard_Ms_for_openness_Ms(0.05), noise=1e-3)
+        Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
+        Ms = _exhibited_Ms(_hard_Ms_for_openness_Ms(0.05))
+        plain = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms)
+        assert plain['HF_Mrh_fraction_se_total'] == plain['HF_Mrh_fraction_se']
+        # a 50% uncertain Ms (an unsaturated loop's bootstrap) does not
+        # touch the open verdict, which rests on the window mean alone
+        uncertain = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms, Ms_se=0.5*Ms)
+        assert uncertain['closure_state'] == plain['closure_state'] == 'open'
+        assert uncertain['HF_Mrh_fraction_se'] == plain['HF_Mrh_fraction_se']
+        f = uncertain['HF_Mrh_fraction']
+        assert uncertain['HF_Mrh_fraction_se_total'] == pytest.approx(
+            np.sqrt(plain['HF_Mrh_fraction_se']**2 + (0.5*f)**2))
+        # a small opening is 'closed' only when the ratio, Ms uncertainty
+        # included, stays below the tolerance
+        H, M = synthetic_loop(hard_Ms=_hard_Ms_for_openness_Ms(0.012), noise=1e-3)
+        Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
+        Ms = _exhibited_Ms(_hard_Ms_for_openness_Ms(0.012))
+        assert rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms)['closure_state'] == 'closed'
+        assert rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms, Ms_se=0.02*Ms)['closure_state'] == 'closed'
+        assert rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms, Ms_se=0.5*Ms)['closure_state'] == 'indeterminate'
+        # NaN Ms_se (no bootstrap) leaves the conditional value
+        r = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms, Ms_se=np.nan)
+        assert r['HF_Mrh_fraction_se_total'] == r['HF_Mrh_fraction_se']
+
+    def test_lenient_tolerance_needs_a_well_determined_Ms_to_close(self):
+        # a 3%-open loop under a 5% tolerance: closed when Ms is taken as
+        # exact, but its Ms comes from an unsaturated fit whose bootstrap
+        # uncertainty is large, and with that included the ratio is not
+        # shown to be below 5% -- 'indeterminate', not 'closed'
+        hard_Ms = _hard_Ms_for_openness_Ms(0.03)
+        H, M = synthetic_loop(noise=2e-3, hard_Ms=hard_Ms)
+        kw = dict(show_results_table=False, show_plot=False, openness_tolerance=0.05)
+        exact = rmag.process_hyst_loop(H, M, n_bootstrap=0, **kw)
+        boot = rmag.process_hyst_loop(H, M, n_bootstrap=300, **kw)
+        assert exact['closure_state'] == 'closed'
+        assert boot['closure_state'] == 'indeterminate'
+        assert boot['Ms_se']/boot['Ms'] > 0.05
+        assert boot['HF_Mrh_fraction_se_total'] > 1.5*boot['HF_Mrh_fraction_se']
+        assert boot['HF_Mrh_fraction'] == exact['HF_Mrh_fraction']
+
+    def test_pipeline_passes_the_fit_uncertainty(self, capsys):
+        # bootstrap on: the total SE exceeds the conditional one on an open
+        # loop whose Ms is ill conditioned, the verdict stays open, and the
+        # -W- line reports both
+        hard_Ms = _hard_Ms_for_openness_Ms(0.05)
+        H, M = synthetic_loop(noise=2e-3, hard_Ms=hard_Ms, rng=np.random.default_rng(1))
+        capsys.readouterr()
+        r = rmag.process_hyst_loop(H, M, specimen_name='sp', show_results_table=False,
+                                   show_plot=False, n_bootstrap=200)
+        out = capsys.readouterr().out
+        assert r['closure_state'] == 'open' and r['hf_fit'] == 'inverse_field'
+        assert r['HF_Mrh_fraction_se_total'] > r['HF_Mrh_fraction_se']
+        assert r['HF_Mrh_fraction_se_total'] == pytest.approx(np.sqrt(
+            r['HF_Mrh_fraction_se']**2 + (r['HF_Mrh_fraction']*r['Ms_se']/r['Ms'])**2))
+        if r['HF_Mrh_fraction_se_total'] > 1.5*r['HF_Mrh_fraction_se']:
+            assert 'including the uncertainty of Ms' in out
+        # bootstrap off: the total falls back to the conditional value
+        r0 = rmag.process_hyst_loop(H, M, show_results_table=False, show_plot=False, n_bootstrap=0)
+        assert np.isnan(r0['Ms_se'])
+        assert r0['HF_Mrh_fraction_se_total'] == r0['HF_Mrh_fraction_se']
+        # and the key reaches the specimens table JSON
+        hyst = pd.DataFrame([{**{k: r[k] for k in ('Ms', 'Mr', 'Bc', 'chi_HF', 'Q', 'Qf', 'sigma', 'Brh',
+                                                  'FNL', 'FNL60', 'FNL70', 'FNL80', 'Fnl_lin',
+                                                  'loop_is_linear', 'loop_is_closed', 'closure_state',
+                                                  'HF_Mrh_fraction', 'HF_Mrh_fraction_se',
+                                                  'HF_Mrh_fraction_se_total', 'loop_is_saturated',
+                                                  'magn_unit')},
+                              'specimen': 'sp', 'experiment': 'sp-HYS', 'processed_by': 'test'}])
+        table = rmag.add_hyst_stats_to_specimens_table(pd.DataFrame({'specimen': ['sp']}), hyst)
+        row = table[table.experiments == 'sp-HYS'].iloc[0]
+        _, data = rmag.parse_specimen_description(row['description'])
+        assert data['HF_Mrh_fraction_se_total'] == pytest.approx(r['HF_Mrh_fraction_se_total'])
