@@ -2379,6 +2379,34 @@ class TestClosureMsUncertainty:
         assert neg['HF_Mrh_fraction_upper'] == pytest.approx(neg['HF_Mrh_fraction'] + 2*neg['HF_Mrh_fraction_se'])
         assert neg['closure_state'] == 'closed'
 
+    def test_bound_is_continuous_at_zero_opening(self):
+        # Ms enters the bound when the opening taken high is positive, not
+        # when the point estimate is: two loops whose openings straddle zero
+        # by less than their noise get the same treatment and nearly the
+        # same bound, and a confidently negative opening stays closed
+        H, M = synthetic_loop(noise=1e-3, rng=np.random.default_rng(21))
+        Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
+        Ms, se_mean = 1.0, 0.002
+        # center the window mean on zero, then straddle it
+        base = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms)['HF_Mrh_fraction']*Ms
+        results = {}
+        for sign in (+1, -1):
+            r = rmag.hyst_closure_test(Hu, Mrh - base + sign*0.0001, Me=Me, Ms=Ms,
+                                       Ms_se=0.3*Ms, HF_Mrh_mean_se=se_mean)
+            results[sign] = r
+        f_plus, f_minus = results[+1]['HF_Mrh_fraction'], results[-1]['HF_Mrh_fraction']
+        assert f_plus > 0 > f_minus
+        up_plus, up_minus = results[+1]['HF_Mrh_fraction_upper'], results[-1]['HF_Mrh_fraction_upper']
+        # both upper ends are positive and both include the Ms term
+        assert up_plus == pytest.approx((f_plus + 2*se_mean/Ms)/(1 - 0.6), rel=1e-6)
+        assert up_minus == pytest.approx((f_minus + 2*se_mean/Ms)/(1 - 0.6), rel=1e-6)
+        assert abs(up_plus - up_minus) < 3*abs(f_plus - f_minus)/(1 - 0.6) + 1e-12
+        assert results[+1]['closure_state'] == results[-1]['closure_state']
+        # confidently negative: the upper end is negative, no Ms term, closed
+        r = rmag.hyst_closure_test(Hu, Mrh - 0.02, Me=Me, Ms=Ms, Ms_se=0.5*Ms,
+                                   HF_Mrh_mean_se=se_mean)
+        assert r['HF_Mrh_fraction_upper'] < 0 and r['closure_state'] == 'closed'
+
     def test_flag_names_the_Ms_term_when_it_decides(self, capsys):
         # an indeterminate loop whose conditional interval alone would have
         # closed it: the -W- line must say the Ms term is what keeps it

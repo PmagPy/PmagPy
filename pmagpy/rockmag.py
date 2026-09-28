@@ -3816,14 +3816,18 @@ def hyst_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
     n_sigma standard errors low, (mean + n_sigma*SE)/(Ms - n_sigma*Ms_se)
     (``HF_Mrh_fraction_upper``): the loop is closed when that bound is
     below the tolerance, and cannot be closed when Ms - n_sigma*Ms_se is
-    not positive. The first-order standard error of the ratio
+    not positive. Taking both ends at once makes this a conservative
+    bound, wider than the exact n_sigma interval for a ratio of
+    independent normal quantities (Fieller's), which becomes unbounded
+    under the same condition; the box bound is used because it can be
+    stated in one sentence, and on the MagIC corpus the two differ on one
+    loop. The first-order standard error of the ratio
     (``HF_Mrh_fraction_se_total``) is reported beside it but understates
     at large Ms_se/Ms, which is why the verdict uses the bound. This
     criterion requires Ms. With criterion='SNR_HAR', the HystLab rule
     (Paterson et al., 2018) is used: 'open' when the signal-to-noise
-    ratio of the
-    high-field Mrh is at least 8 dB and the ratio of high-field to total
-    Mrh area is at least -48 dB. SNR and HAR are returned under both
+    ratio of the high-field Mrh is at least 8 dB and the ratio of
+    high-field to total Mrh area is at least -48 dB. SNR and HAR are returned under both
     criteria; the SNR rule depends on the measurement noise rather than on
     the size of the opening, which is why 'magnitude' is the default
     (PmagPy issue #902).
@@ -3910,10 +3914,11 @@ def hyst_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
           for independent branch noise: Mrh is a branch difference, the
           fit uses both branches); it understates the error when Ms_se/Ms
           is large, so the verdict uses the bound below instead
-        - 'HF_Mrh_fraction_upper': the bound the 'closed' verdict uses,
-          (mean + n_sigma*SE)/(Ms - n_sigma*Ms_se) for a positive opening
-          (mean + n_sigma*SE over Ms for a negative one or without Ms_se);
-          inf when Ms - n_sigma*Ms_se is not positive
+        - 'HF_Mrh_fraction_upper': the conservative bound the 'closed'
+          verdict uses, (mean + n_sigma*SE)/(Ms - n_sigma*Ms_se) when the
+          opening taken n_sigma high is positive (over Ms itself when it
+          is not, or without Ms_se); inf when Ms - n_sigma*Ms_se is not
+          positive
         - 'HF_Mrh_fraction_Mr', 'HF_Mrh_fraction_Mr_se': the same over Mr
           (NaN when Mr does not stand above the noise)
         - 'HF_Mrh_fraction_Mmax', 'HF_Mrh_fraction_Mmax_se': the same over
@@ -4038,14 +4043,18 @@ def hyst_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
         HF_Mrh_fraction_se_total = float(np.sqrt(HF_Mrh_fraction_se**2
                                                  + (max(HF_Mrh_fraction, 0.0)*Ms_se/Ms)**2))
         # the bound behind the 'closed' verdict: the opening taken n_sigma
-        # high over Ms taken n_sigma low (exact, unlike the first-order
-        # total above, which understates when Ms_se/Ms is large)
+        # high over Ms taken n_sigma low -- conservative (both ends at
+        # once; Fieller's interval is the exact one) but, unlike the
+        # first-order total above, never too small when Ms_se/Ms is large.
+        # An overestimated Ms can only matter when the opening taken high
+        # is positive, so the sign of that upper end, not of the point
+        # estimate, decides whether Ms enters (continuous at f_open = 0)
         Ms_low = Ms - n_sigma*Ms_se
-        if HF_Mrh_fraction > 0:
-            HF_Mrh_fraction_upper = ((HF_Mrh_mean + n_sigma*HF_Mrh_mean_se)/Ms_low
-                                     if Ms_low > 0 else np.inf)
+        numerator_upper = HF_Mrh_mean + n_sigma*HF_Mrh_mean_se
+        if numerator_upper > 0:
+            HF_Mrh_fraction_upper = numerator_upper/Ms_low if Ms_low > 0 else np.inf
         else:
-            HF_Mrh_fraction_upper = HF_Mrh_fraction + n_sigma*HF_Mrh_fraction_se
+            HF_Mrh_fraction_upper = numerator_upper/Ms
     else:
         HF_Mrh_fraction_se_total = HF_Mrh_fraction_se
         HF_Mrh_fraction_upper = (HF_Mrh_fraction + n_sigma*HF_Mrh_fraction_se
