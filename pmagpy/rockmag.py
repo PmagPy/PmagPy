@@ -10,6 +10,7 @@ from scipy.signal import savgol_filter, savgol_coeffs, find_peaks
 from scipy.special import erf, owens_t
 from scipy.interpolate import UnivariateSpline
 from scipy.stats import f as f_distribution
+from scipy.integrate import trapezoid
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
@@ -872,7 +873,7 @@ def calc_verwey_estimate(temps, mags,
     
     verwey_estimate = calc_zero_crossing(temps_dM_dT_background, mgt_dM_dT)[-1]
     
-    remanence_loss = np.trapezoid(mgt_dM_dT, temps_dM_dT_background)
+    remanence_loss = trapezoid(mgt_dM_dT, temps_dM_dT_background)
 
     return dM_dT_df, verwey_estimate, remanence_loss, r_squared, temps_background, temps_dM_dT_background, mgt_dM_dT, dM_dT_polyfit, background_curve_adjusted, mgt_curve
 
@@ -3996,8 +3997,8 @@ def hyst_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
     HF_Mrh_noise_RMS = np.sqrt(np.mean(hf_noise**2))
     SNR = 20*np.log10(HF_Mrh_signal_RMS/HF_Mrh_noise_RMS)
 
-    total_Mrh_area = np.trapezoid(average_Mrh, pos_H)
-    HF_Mrh_area = np.trapezoid(average_HF_Mrh, pos_HF)
+    total_Mrh_area = trapezoid(average_Mrh, pos_H)
+    HF_Mrh_area = trapezoid(average_HF_Mrh, pos_HF)
 
     HAR = 20*np.log10(HF_Mrh_area/total_Mrh_area)
     loop_is_closed_SNR_HAR = bool((SNR < 8) or (HAR < -48))
@@ -5137,7 +5138,6 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
         which are written to the MagIC specimens table -- are reproducible
         from run to run; pass a Generator to draw differently).
 
-
     Notes
     -----
     Every parameter after `centering_protocol` is keyword-only, so that the
@@ -5402,7 +5402,7 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
     # calculate the shape parameter of Fabian 2003 (undefined when Ms or Bc
     # could not be determined, e.g. Ms on its bound for a loop far from
     # saturation)
-    E_hyst = np.trapezoid(Mrh, H)
+    E_hyst = trapezoid(Mrh, H)
     sigma = (float(np.log(E_hyst / 2 / Bc / Ms))
              if np.isfinite(Bc) and Bc > 0 and Ms > 0 and E_hyst > 0 else np.nan)
 
@@ -5815,7 +5815,6 @@ def _deprecated_hyst_alias(old_name, new_name, func=None):
         return target(*args, **kwargs)
     alias.__name__ = old_name
     alias.__doc__ = f'Deprecated alias of `{new_name}` (renamed in PmagPy 5).'
-    alias.__wrapped_name__ = new_name
     return alias
 
 
@@ -8803,14 +8802,6 @@ DEFAULT_UNMIX_METHOD = 'spectrum'
 DEFAULT_UNMIX_VARY_SKEW = True
 
 
-def _trapz(y, x):
-    """Trapezoidal integration compatible with numpy 1.x and 2.x."""
-    trapezoid = getattr(np, 'trapezoid', None)
-    if trapezoid is None:
-        trapezoid = np.trapz
-    return trapezoid(y, x)
-
-
 def skewnormal_pdf(x, location, dp, skew=0.0):
     """
     Skew-normal probability density function (unit area).
@@ -10381,7 +10372,7 @@ def unmixing_multistart(x, magnetization, method=DEFAULT_UNMIX_METHOD,
     x = np.asarray(x, dtype=float)
     M = np.asarray(magnetization, dtype=float)
     x_mid, spectrum = coercivity_spectrum_from_curve(x, M, curve_type)
-    total_area = np.abs(_trapz(spectrum, x_mid))
+    total_area = np.abs(trapezoid(spectrum, x_mid))
     K = n_components
 
     starting_tables = [None]  # None -> automatic estimation inside the method
@@ -12150,7 +12141,7 @@ def coercivity_unmixing_interactive(x, magnetization, n_components=2,
     x = np.asarray(x, dtype=float)
     M = np.asarray(magnetization, dtype=float)
     x_mid, spectrum = coercivity_spectrum_from_curve(x, M, curve_type)
-    total_area = _trapz(spectrum, x_mid)
+    total_area = trapezoid(spectrum, x_mid)
     x_grid = np.linspace(x.min(), x.max(), 300)
 
     auto = estimate_coercivity_components(x_mid, spectrum, n_components)
