@@ -3056,6 +3056,12 @@ def hyst_quality_factor(H, M, kind='Q'):
     Q = np.log10(M_sn)
     return M_sn, Q
 
+_ITERATIVE_CENTERING_DEFAULTS = {'hf_cutoff': 0.8, 'low_field_fraction': 0.35,
+                                 'shift_bound_fraction': 0.1, 'weight_power': 4,
+                                 'max_iterations': 5, 'field_tolerance': 1e-5,
+                                 'moment_tolerance': 1e-8}
+
+
 def hyst_loop_centering(grid_field, grid_magnetization, protocol='legacy', hf_cutoff=0.8,
                         low_field_fraction=0.35, shift_bound_fraction=0.1,
                         weight_power=4, max_iterations=5,
@@ -3132,6 +3138,15 @@ def hyst_loop_centering(grid_field, grid_magnetization, protocol='legacy', hf_cu
     """
     if protocol not in ('legacy', 'iterative'):
         raise ValueError("protocol must be 'legacy' or 'iterative'")
+    if protocol == 'legacy':
+        given = {name: value for name, value in
+                 (('hf_cutoff', hf_cutoff), ('low_field_fraction', low_field_fraction),
+                  ('shift_bound_fraction', shift_bound_fraction), ('weight_power', weight_power),
+                  ('max_iterations', max_iterations), ('field_tolerance', field_tolerance),
+                  ('moment_tolerance', moment_tolerance))
+                 if value != _ITERATIVE_CENTERING_DEFAULTS[name]}
+        if given:
+            raise ValueError(f"{sorted(given)} apply to protocol='iterative' only")
     grid_field = np.asarray(grid_field, dtype=float)
     grid_magnetization = np.asarray(grid_magnetization, dtype=float)
 
@@ -3160,8 +3175,9 @@ def hyst_loop_centering(grid_field, grid_magnetization, protocol='legacy', hf_cu
         try:
             provisional_slope = hyst_linear_hf_fit(centered_H, centered_M, HF_cutoff=hf_cutoff)['chi_HF']
         except ValueError as error:
-            # too few points in the window: continue with no slope removed
-            # rather than stop, and say so
+            # the window holds too few points, or points at a single field
+            # value: continue with no slope removed rather than stop, and
+            # say so (earlier versions silently used a rank-deficient slope)
             print(f'-W- iterative centering, iteration {iteration + 1}: the '
                   f'provisional high-field slope could not be fit ({error}); '
                   'proceeding with zero slope')
@@ -4287,7 +4303,8 @@ def symmetric_averaging_drift_correction(field, magnetization):
 
 def _inverse_field_model(H, chi_HF, Ms, a_1, a_2):
     """
-    Calculate the non-linear fit for Isothermal Remanent Magnetization (IRM) as a function of applied field.
+    Evaluate the inverse-field approach-to-saturation model of the Institute
+    for Rock Magnetism's processing software as a function of applied field.
 
     This function models the IRM signal as a sum of high-field linear susceptibility, 
     saturation magnetization, and non-linear correction terms with inverse field dependence.
@@ -4380,7 +4397,14 @@ def hyst_approach_to_saturation_model(H, params, model=None):
     if model is None:
         model = params.get('model')
     if model is None:
-        model = 'inverse_field' if 'a_1' in params else 'Fabian'
+        if 'a_1' in params and 'a_2' in params:
+            model = 'inverse_field'
+        elif 'alpha' in params:
+            model = 'Fabian'
+        else:
+            raise ValueError('params holds no approach-to-saturation model: neither a_1/a_2 '
+                             'nor alpha are present (a loop fitted linearly has no such '
+                             'model to evaluate)')
     if model == 'IRM':
         model = 'inverse_field'
     if model == 'inverse_field':
@@ -4449,6 +4473,12 @@ def hyst_linear_hf_fit(field, magnetization, HF_cutoff=0.8, max_field_cutoff=HYS
     n = len(HF_field)
     if n < 3:
         raise ValueError('at least 3 high-field points are needed for the linear fit')
+    if np.unique(HF_field).size < 2:
+        # every point at one field (a coarse loop whose window catches a
+        # single grid step): no slope is defined, and the rank-deficient
+        # polyfit of earlier versions returned an artifact
+        raise ValueError('the high-field window holds points at a single field value, '
+                         'so no slope can be fit; widen HF_cutoff or measure more finely')
     (slope, intercept), cov = np.polyfit(HF_field, HF_magnetization, 1, cov='unscaled')
     residuals = HF_magnetization - (slope*HF_field + intercept)
     residual_var = float(np.sum(residuals**2) / (n - 2))
@@ -4481,7 +4511,7 @@ def _bounded_lstsq(A, y, lower, upper):
 
 
 def hyst_approach_to_saturation_fit(H, M, HF_cutoff=0.6, model='inverse_field', initial_guess=None,
-                                   bounds=None, max_field_cutoff=0.97, beta_grid=None,
+                                   bounds=None, max_field_cutoff=HYST_TIP_CUTOFF, beta_grid=None,
                                    n_bootstrap=0, rng=None):
     '''
     Fit an approach-to-saturation model to the high-field part of a loop
@@ -4565,7 +4595,7 @@ def hyst_approach_to_saturation_fit(H, M, HF_cutoff=0.6, model='inverse_field', 
     -------
     dict
         Fit results with keys:
-        - 'chi_HF', 'Ms', 'a_1', 'a_2' (for IRM) or
+        - 'chi_HF', 'Ms', 'a_1', 'a_2' (inverse-field model) or
           'chi_HF', 'Ms', 'alpha', 'beta' (for Fabian variants); chi_HF is
           in SI units (the fitted slope in field units of tesla multiplied
           by mu_0), as returned by `hyst_linear_hf_fit`
@@ -4825,6 +4855,20 @@ _HYST_UNDEFINED_RESULTS = {
 }
 
 
+def _reject_removed_hyst_kwargs(function_name, kwargs):
+    """Warn for `fit_open_loop`, accepted and ignored since open loops began
+    to be processed in full and removed from the signatures in PmagPy 5, and
+    raise for any other unknown keyword."""
+    if not kwargs:
+        return
+    unknown = set(kwargs) - {'fit_open_loop'}
+    if unknown:
+        raise TypeError(f'{function_name}() got unexpected keyword arguments {sorted(unknown)}')
+    warnings.warn('fit_open_loop is deprecated and ignored (open loops are processed in '
+                  'full and flagged); it will be removed in PmagPy 6',
+                  DeprecationWarning, stacklevel=3)
+
+
 def _print_closure_flag(specimen_name, closure):
     """Print the -W- line for a loop that is open, or of unresolved closure,
     at high field."""
@@ -4877,7 +4921,7 @@ def _print_quality_flag(specimen_name, Q, Qf, threshold):
 
 
 def process_hyst_loop(field, magnetization, specimen_name='', show_results_table=True, show_plot=True,
-                      NL_fit=False, centering_protocol='legacy',
+                      NL_fit=False, centering_protocol='legacy', *,
                       fit_linear_loop=False,
                       magn_unit=_DEFAULT_MAGN_UNIT, openness_tolerance=0.02,
                       closure_criterion='magnitude', quality_threshold=2.0,
@@ -4981,11 +5025,37 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
         magn_mass convention; 'A/m' (volume-normalized) and 'Am²' (moment)
         are the other MagIC conventions. Spelling variants such as 'Am^2/kg'
         are accepted. The values themselves are not converted.
+    openness_tolerance : float, optional
+        f_open (high-field Mrh as a fraction of the fitted Ms) at and above
+        which the loop is classified as open and flagged (default 0.02; see
+        `hyst_closure_test`).
+    closure_criterion : {'magnitude', 'SNR_HAR'}, optional
+        Decision rule for the closure test (default 'magnitude'; 'SNR_HAR'
+        is the HystLab rule, see `hyst_closure_test`).
+    quality_threshold : float, optional
+        Quality factor (Q or Qf) below which the loop is flagged as low
+        quality (default 2.0, which coincides with the fixed level below
+        which the horizontal offset correction is skipped; this parameter
+        does not change that).
+    n_bootstrap : int, optional
+        Bootstrap refits used for the uncertainty of Ms and chi_HF when the
+        approach-to-saturation fit is applied (default 1000, as in Jackson
+        and Solheid, 2010; 0 to skip). The linear fit's uncertainties are
+        its ordinary least-squares standard errors.
+    rng : numpy.random.Generator or int, optional
+        Random generator or seed for the bootstrap and for the noise
+        propagation behind the closure statistic's standard error (default
+        0, so that the reported Ms_se, chi_HF_se and HF_Mrh_fraction_se --
+        which are written to the MagIC specimens table -- are reproducible
+        from run to run; pass a Generator to draw differently).
+
 
     Notes
     -----
-    `fit_open_loop`, accepted and ignored since open loops began to be
-    processed in full, is no longer a parameter; passing it issues a
+    Every parameter after `centering_protocol` is keyword-only, so that the
+    signature can change without silently re-assigning positional
+    arguments. `fit_open_loop`, accepted and ignored since open loops began
+    to be processed in full, is no longer a parameter; passing it issues a
     DeprecationWarning and it will be an error in PmagPy 6.
 
     Returns
@@ -5040,6 +5110,7 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
               high-field fit (None if the loop is saturated and no nonlinear fit is made)
             - 'plot': Bokeh figure with overlaid processing steps
     """
+    _reject_removed_hyst_kwargs('process_hyst_loop', deprecated_kwargs)
     # clean the inputs (accepts lists/Series/text columns, drops non-finite
     # pairs, warns on apparent non-tesla field units)
     field, magnetization = sanitize_hyst_inputs(field, magnetization)
@@ -5047,13 +5118,6 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
     # record the original sweep order before gridding canonicalizes it: the
     # drift correction is time-order sensitive and needs to know whether the
     # loop was measured from positive or negative saturation
-    if deprecated_kwargs:
-        unknown = set(deprecated_kwargs) - {'fit_open_loop'}
-        if unknown:
-            raise TypeError(f'process_hyst_loop() got unexpected keyword arguments {sorted(unknown)}')
-        warnings.warn('fit_open_loop is deprecated and ignored (open loops are processed '
-                      'in full and flagged); it will be removed in PmagPy 6',
-                      DeprecationWarning, stacklevel=2)
     descending_first = measured_descending_first(field)
 
     # first grid the data into symmetric field values
@@ -5328,6 +5392,7 @@ def process_hyst_loops(
     show_results_table=True,
     show_plots=True,
     centering_protocol='legacy',
+    *,
     NL_fit=False,
     fit_linear_loop=False,
     magn_unit=None,
@@ -5336,6 +5401,7 @@ def process_hyst_loops(
     quality_threshold=2.0,
     n_bootstrap=1000,
     rng=0,
+    **deprecated_kwargs,
 ):
     """
     Process multiple hysteresis loops in batch.
@@ -5361,7 +5427,9 @@ def process_hyst_loops(
         Defaults to 'legacy' for backward compatibility.
     NL_fit : bool, optional
         Passed through to process_hyst_loop: force the approach-to-saturation
-        fit whatever the saturation test says (default False).
+        fit whatever the saturation test says (default False). This and
+        every later parameter are keyword-only; `fit_open_loop` is accepted
+        with a DeprecationWarning and ignored (see process_hyst_loop).
     fit_linear_loop : bool, optional
         Passed through to process_hyst_loop: if True, statistically linear
         loops are processed in full rather than terminating with chi_HF
@@ -5402,6 +5470,7 @@ def process_hyst_loops(
         fields (Bc, Brh) are in tesla, and chi_HF is in the susceptibility
         unit implied by 'magn_unit' (m³/kg for mass-normalized Am²/kg).
     """
+    _reject_removed_hyst_kwargs('process_hyst_loops', deprecated_kwargs)
     if magn_unit is None:
         if magn_col not in _MAGN_COL_UNITS:
             warnings.warn(
@@ -5643,6 +5712,7 @@ def _deprecated_hyst_alias(old_name, new_name, func=None):
         return target(*args, **kwargs)
     alias.__name__ = old_name
     alias.__doc__ = f'Deprecated alias of `{new_name}` (renamed in PmagPy 5).'
+    alias.__wrapped_name__ = new_name
     return alias
 
 
@@ -5655,10 +5725,12 @@ hyst_loop_saturation_test = _deprecated_hyst_alias('hyst_loop_saturation_test', 
 loop_closure_test = _deprecated_hyst_alias('loop_closure_test', 'hyst_closure_test')
 closure_mean_se_by_noise_propagation = _deprecated_hyst_alias(
     'closure_mean_se_by_noise_propagation', 'hyst_closure_se')
-IRM_nonlinear_fit = _deprecated_hyst_alias('IRM_nonlinear_fit', 'hyst_approach_to_saturation_model',
-                                           func=_inverse_field_model)
-Fabian_nonlinear_fit = _deprecated_hyst_alias('Fabian_nonlinear_fit', 'hyst_approach_to_saturation_model',
-                                              func=_fabian_model)
+IRM_nonlinear_fit = _deprecated_hyst_alias(
+    'IRM_nonlinear_fit', "hyst_approach_to_saturation_model(H, {'chi_HF': ..., 'Ms': ..., "
+    "'a_1': ..., 'a_2': ...})", func=_inverse_field_model)
+Fabian_nonlinear_fit = _deprecated_hyst_alias(
+    'Fabian_nonlinear_fit', "hyst_approach_to_saturation_model(H, {'chi_HF': ..., 'Ms': ..., "
+    "'alpha': ..., 'beta': ...})", func=_fabian_model)
 linear_HF_fit_stats = _deprecated_hyst_alias('linear_HF_fit_stats', 'hyst_linear_hf_fit')
 
 
@@ -5681,23 +5753,43 @@ def linear_HF_fit(field, magnetization, HF_cutoff=0.8):
     return fit['chi_HF'], fit['Ms']
 
 
-def hyst_loop_centering_iterative(grid_field, grid_magnetization, **kwargs):
+def hyst_loop_centering_iterative(grid_field, grid_magnetization, hf_cutoff=0.8,
+                                  low_field_fraction=0.35, shift_bound_fraction=0.1,
+                                  weight_power=4, max_iterations=5,
+                                  field_tolerance=1e-5, moment_tolerance=1e-8):
     """Deprecated alias of `hyst_loop_centering(..., protocol='iterative')`
-    (merged in PmagPy 5). The former 'method' key of its result is now
-    'protocol'."""
+    (merged in PmagPy 5), with the old positional signature; its result
+    carries the old 'method' key beside the new 'protocol'."""
     warnings.warn("hyst_loop_centering_iterative was merged into hyst_loop_centering(protocol="
-                  "'iterative') in PmagPy 5 and will be removed in PmagPy 6",
-                  DeprecationWarning, stacklevel=2)
-    return hyst_loop_centering(grid_field, grid_magnetization, protocol='iterative', **kwargs)
+                  "'iterative') in PmagPy 5 (the result's 'method' key is now 'protocol') and "
+                  "will be removed in PmagPy 6", DeprecationWarning, stacklevel=2)
+    results = hyst_loop_centering(grid_field, grid_magnetization, protocol='iterative',
+                                  hf_cutoff=hf_cutoff, low_field_fraction=low_field_fraction,
+                                  shift_bound_fraction=shift_bound_fraction,
+                                  weight_power=weight_power, max_iterations=max_iterations,
+                                  field_tolerance=field_tolerance,
+                                  moment_tolerance=moment_tolerance)
+    results['method'] = 'iterative_low_field_weighted'
+    return results
 
 
-def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, **kwargs):
+def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=None,
+                                   bounds=None, max_field_cutoff=HYST_TIP_CUTOFF, beta_grid=None,
+                                   n_bootstrap=0, rng=None):
     """Deprecated alias of `hyst_approach_to_saturation_fit` (renamed in
-    PmagPy 5; `fit_type` is now `model`, and 'IRM' is 'inverse_field')."""
+    PmagPy 5; `fit_type` is now `model`, and 'IRM' is 'inverse_field'), with
+    the old positional signature."""
     warnings.warn('hyst_HF_nonlinear_optimization was renamed hyst_approach_to_saturation_fit '
                   "in PmagPy 5 (fit_type= is now model=, 'IRM' is 'inverse_field') and will "
                   'be removed in PmagPy 6', DeprecationWarning, stacklevel=2)
-    return hyst_approach_to_saturation_fit(H, M, HF_cutoff, fit_type, **kwargs)
+    if initial_guess is not None:
+        # the target's own warning would point at this line; issue it here
+        # so that it points at the caller
+        warnings.warn('initial_guess is ignored: the approach-to-saturation models are solved '
+                      'by least squares and need no starting point', FutureWarning, stacklevel=2)
+    return hyst_approach_to_saturation_fit(H, M, HF_cutoff, fit_type, bounds=bounds,
+                                           max_field_cutoff=max_field_cutoff, beta_grid=beta_grid,
+                                           n_bootstrap=n_bootstrap, rng=rng)
 
 
 # X-T functions

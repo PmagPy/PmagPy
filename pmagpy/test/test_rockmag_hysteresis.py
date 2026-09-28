@@ -1412,12 +1412,12 @@ class TestProcessHystLoop:
     def test_pipeline_ascending_first_matches_descending(self):
         # the same loop physics with the same drift law, measured in the two
         # sweep orders, must process to the same Mr and Bc now that the drift
-        # correction runs in true measurement-time order. fit_open_loop=True
-        # bypasses the open-loop decision-tree exit: the closure test cannot
-        # distinguish residual drift signal in Mrh from a genuinely open
-        # loop (positive drift on an ascending-first sweep leaves a positive
-        # high-field Mrh residual), and this test targets the sweep-order
-        # equivalence of the recovered parameters
+        # correction runs in true measurement-time order. Open loops are
+        # processed in full, so the closure verdict does not gate this: the
+        # closure test cannot distinguish residual drift signal in Mrh from
+        # a genuinely open loop (positive drift on an ascending-first sweep
+        # leaves a positive high-field Mrh residual), and this test targets
+        # the sweep-order equivalence of the recovered parameters
         H_d, M_d = synthetic_loop(drift=0.05)
         H_a, M_a = synthetic_loop_ascending_first(drift=0.05)
         res_d = rmag.process_hyst_loop(H_d, M_d,
@@ -1676,6 +1676,23 @@ class TestOpenLoopBrh:
         assert a['Ms'] == b['Ms'] and a['closure_state'] == b['closure_state'] == 'open'
         with pytest.raises(TypeError, match='unexpected keyword'):
             rmag.process_hyst_loop(H, M, fit_closed_loop=True, **kw)
+        # the batch function takes the same path
+        measurements = pd.DataFrame({'experiment': 'sp-HYS', 'specimen': 'sp',
+                                     'meas_field_dc': H, 'magn_mass': M})
+        experiments = pd.DataFrame({'experiment': ['sp-HYS'], 'specimen': ['sp']})
+        with pytest.warns(DeprecationWarning, match='fit_open_loop is deprecated'):
+            rmag.process_hyst_loops(experiments, measurements, show_results_table=False,
+                                    show_plots=False, n_bootstrap=0, fit_open_loop=False)
+        with pytest.raises(TypeError, match='unexpected keyword'):
+            rmag.process_hyst_loops(experiments, measurements, show_results_table=False,
+                                    show_plots=False, n_bootstrap=0, fit_closed_loop=True)
+        # everything after centering_protocol is keyword-only, so the slot
+        # fit_open_loop used to hold cannot silently become another parameter
+        with pytest.raises(TypeError):
+            rmag.process_hyst_loop(H, M, 'sp', False, False, False, 'legacy', False)
+        with pytest.raises(TypeError):
+            rmag.process_hyst_loops(experiments, measurements, 'meas_field_dc', 'magn_mass',
+                                    False, False, 'legacy', True)
 
     def test_NL_fit_on_open_loop(self):
         # an explicit NL_fit=True forces the approach-to-saturation fit
@@ -2229,11 +2246,63 @@ class TestV5API:
         assert r['provisional_slope'] == 0.0
 
     def test_tip_cutoff_is_one_constant(self):
-        import inspect
+        import inspect, re
         assert rmag.HYST_TIP_CUTOFF == 0.97
         for f in (rmag.hyst_linear_hf_fit, rmag.hyst_hf_linearity_stats,
                   rmag.hyst_saturation_test, rmag.hyst_approach_to_saturation_fit):
             assert inspect.signature(f).parameters['max_field_cutoff'].default == rmag.HYST_TIP_CUTOFF
+            # by name, not by value: a literal 0.97 would pass the check above
+            header = inspect.getsource(f).split('):')[0]
+            assert re.search(r'max_field_cutoff=HYST_TIP_CUTOFF', header), f.__name__
+
+    def test_single_field_window_is_reported_not_fit(self, capsys):
+        # a window whose points all sit at one grid field: the linear fit
+        # says so (earlier versions returned a rank-deficient artifact with
+        # only a RankWarning), the iterative centering reports it and goes
+        # on with zero slope, and the old alias raises the same error
+        H, M = synthetic_loop(n_half=20, noise=1e-4, chi=0.2)
+        gH, gM = rmag.grid_hyst_loop(H, M)
+        F, _, _ = rmag._high_field_window(gH, gM, 0.8, rmag.HYST_TIP_CUTOFF)
+        assert np.unique(F).size == 1
+        with pytest.raises(ValueError, match='single field value'):
+            rmag.hyst_linear_hf_fit(gH, gM, 0.8)
+        with pytest.warns(DeprecationWarning):
+            with pytest.raises(ValueError, match='single field value'):
+                rmag.linear_HF_fit(gH, gM, 0.8)
+        capsys.readouterr()
+        r = rmag.hyst_loop_centering(gH, gM, protocol='iterative')
+        out = capsys.readouterr().out
+        assert 'single field value' in out and r['provisional_slope'] == 0.0
+
+    def test_legacy_protocol_rejects_iterative_parameters(self):
+        gH, gM = self._loop()
+        with pytest.raises(ValueError, match="apply to protocol='iterative' only"):
+            rmag.hyst_loop_centering(gH, gM, hf_cutoff=0.7)
+        assert rmag.hyst_loop_centering(gH, gM, protocol='iterative', hf_cutoff=0.7)['protocol'] == 'iterative'
+
+    def test_evaluator_needs_model_parameters(self):
+        gH, gM = self._loop()
+        linear = {'chi_HF': 1e-7, 'Ms': 1.0, 'Ms_se': 0.01}      # a linear-path result
+        with pytest.raises(ValueError, match='no approach-to-saturation model'):
+            rmag.hyst_approach_to_saturation_model(gH, linear)
+
+    def test_aliases_keep_their_old_positional_signatures(self):
+        gH, gM = self._loop()
+        with pytest.warns(DeprecationWarning, match='PmagPy 5'):
+            old = rmag.hyst_loop_centering_iterative(gH, gM, 0.7)
+        new = rmag.hyst_loop_centering(gH, gM, protocol='iterative', hf_cutoff=0.7)
+        assert old['Q'] == new['Q'] and old['method'] == 'iterative_low_field_weighted'
+        with pytest.warns(DeprecationWarning, match='PmagPy 5'):
+            old = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM', None, None, 0.97, None, 20, 0)
+        new = rmag.hyst_approach_to_saturation_fit(gH, gM, 0.6, 'inverse_field', n_bootstrap=20, rng=0)
+        assert old['Ms'] == new['Ms'] and old['Ms_se'] == new['Ms_se']
+        # the initial_guess warning is attributed to the caller, not to the alias
+        with pytest.warns(FutureWarning, match='initial_guess is ignored') as record:
+            with pytest.warns(DeprecationWarning):
+                rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM', [1, 1, -0.1, -0.1])
+        assert any(w.filename == __file__ for w in record if issubclass(w.category, FutureWarning))
+        with pytest.warns(DeprecationWarning, match="hyst_approach_to_saturation_model\\(H, \\{'chi_HF'"):
+            rmag.IRM_nonlinear_fit(gH, 1e-7, 1.0, -0.01, -0.001)
 
     def test_batch_passes_NL_fit(self):
         H, M = synthetic_loop(noise=1e-3, rng=np.random.default_rng(2))
