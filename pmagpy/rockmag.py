@@ -3813,8 +3813,8 @@ def hyst_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
     opening is below the tolerance as a fraction of Ms, a claim that an
     overestimated Ms would falsify, so it uses the standard error of the
     ratio including the uncertainty of Ms when `Ms_se` is given
-    (``HF_Mrh_fraction_se_total``). This criterion requires Ms. With criterion='SNR_HAR', the HystLab rule (Paterson et
-    al., 2018) is used: 'open' when the signal-to-noise ratio of the
+    (``HF_Mrh_fraction_se_total``). This criterion requires Ms. With
+    criterion='SNR_HAR', the HystLab rule (Paterson et al., 2018) is used: 'open' when the signal-to-noise ratio of the
     high-field Mrh is at least 8 dB and the ratio of high-field to total
     Mrh area is at least -48 dB. SNR and HAR are returned under both
     criteria; the SNR rule depends on the measurement noise rather than on
@@ -3894,9 +3894,15 @@ def hyst_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
           noise of the window mean divided by Ms), the one the 'open'
           verdict and the -W- line use
         - 'HF_Mrh_fraction_se_total': the standard error of the ratio
-          including the uncertainty of Ms, sqrt(se^2 + (f_open*Ms_se/Ms)^2),
-          the one the 'closed' verdict uses (equal to the conditional
-          value when Ms_se is not given)
+          including the uncertainty of Ms, sqrt(se^2 + (f_open*Ms_se/Ms)^2)
+          for a positive f_open (a negative opening cannot be pushed over
+          the tolerance by an error in Ms, so it carries no Ms term), the
+          one the 'closed' verdict uses; equal to the conditional value
+          when Ms_se is not given. This is the first-order (delta-method)
+          error of the ratio and assumes the errors of the window mean and
+          of Ms are independent, which holds for independent branch noise
+          (Mrh is a branch difference, the fit uses both branches); the
+          first-order term understates the error when Ms_se/Ms is large
         - 'HF_Mrh_fraction_Mr', 'HF_Mrh_fraction_Mr_se': the same over Mr
           (NaN when Mr does not stand above the noise)
         - 'HF_Mrh_fraction_Mmax', 'HF_Mrh_fraction_Mmax_se': the same over
@@ -4011,9 +4017,15 @@ def hyst_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
     HF_Mrh_fraction = HF_Mrh_mean/Ms if Ms_usable else np.nan
     HF_Mrh_fraction_se = HF_Mrh_mean_se/Ms if Ms_usable else np.nan
     # the standard error of the ratio, including that of Ms when known
-    if Ms_usable and Ms_se is not None and np.isfinite(Ms_se):
+    # (None or NaN: unknown, the conditional value stands; an infinite Ms_se
+    # makes the total infinite, as it should). Only a positive opening can
+    # be pushed over the tolerance by an overestimated Ms, so the Ms term
+    # applies to max(f_open, 0)
+    if Ms_se is not None and not np.isnan(Ms_se) and Ms_se < 0:
+        raise ValueError('Ms_se must be non-negative')
+    if Ms_usable and Ms_se is not None and not np.isnan(Ms_se):
         HF_Mrh_fraction_se_total = float(np.sqrt(HF_Mrh_fraction_se**2
-                                                 + (HF_Mrh_fraction*Ms_se/Ms)**2))
+                                                 + (max(HF_Mrh_fraction, 0.0)*Ms_se/Ms)**2))
     else:
         HF_Mrh_fraction_se_total = HF_Mrh_fraction_se
     HF_Mrh_fraction_Mr = HF_Mrh_mean/Mr if Mr_usable else np.nan
@@ -4920,7 +4932,10 @@ def _print_closure_flag(specimen_name, closure):
         else:
             stat += ')'
         se_total = closure.get('HF_Mrh_fraction_se_total', se)
-        if np.isfinite(se_total) and se_total > 1.5*se:
+        # the Ms term is worth stating when it is large, or when it is what
+        # keeps an otherwise-closed loop indeterminate (f + n*se below the
+        # tolerance, f + n*se_total not)
+        if se_total > se and (se_total > 1.5*se or closure['closure_state'] == 'indeterminate'):
             stat += (f'; +/- {100*se_total:.2g}% including the uncertainty '
                      'of Ms, which the closed verdict requires')
     elif closure.get('normalization') == 'Mmax':
@@ -5486,7 +5501,10 @@ def process_hyst_loops(
     n_bootstrap : int, optional
         Passed through to process_hyst_loop: bootstrap refits for the
         uncertainty of Ms and chi_HF from the approach-to-saturation fit
-        (default 1000; 0 to skip, which is faster for large batches).
+        (default 1000; 0 to skip, which is faster for large batches but
+        also leaves Ms_se undefined on that path, so that the closure
+        test's 'closed' verdict no longer includes the uncertainty of Ms
+        and loops close more readily -- see hyst_closure_test).
     rng : numpy.random.Generator or int, optional
         Passed through to process_hyst_loop: generator or seed for the
         bootstrap (default 0, reproducible; a Generator passed here is
@@ -5595,8 +5613,9 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
     exclude_open : bool, optional
         If True, Ms, Bc and chi_HF of loops whose 'closure_state' is 'open'
         are written as NaN in the MagIC columns (their high-field fit is
-        biased by the unsaturated fraction), and Ms_se and chi_HF_se as NaN
-        in the description JSON; Mr is kept. The closure statistics go to
+        biased by the unsaturated fraction), and Ms_se, chi_HF_se and the
+        Ms-dependent HF_Mrh_fraction_se_total as NaN in the description
+        JSON; Mr is kept. The closure statistics go to
         the description JSON either way. Default False: every value is
         written.
 
@@ -5727,7 +5746,7 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
         additional_stats_dict = {key: row[key] for key in additional_keys
                                  if key in row.index}
         if withhold:
-            for key in ('Ms_se', 'chi_HF_se'):
+            for key in ('Ms_se', 'chi_HF_se', 'HF_Mrh_fraction_se_total'):
                 if key in additional_stats_dict:
                     additional_stats_dict[key] = np.nan
         desc_col = specimens_df.columns.get_loc('description')
