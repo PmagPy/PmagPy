@@ -3820,17 +3820,16 @@ def hyst_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99,
     bound, wider than the exact n_sigma interval for a ratio of
     independent normal quantities (Fieller's), which becomes unbounded
     under the same condition; the box bound is used because it can be
-    stated in one sentence, and on the MagIC corpus the two differ on one
-    loop. The first-order standard error of the ratio
+    stated in one sentence. The first-order standard error of the ratio
     (``HF_Mrh_fraction_se_total``) is reported beside it but understates
     at large Ms_se/Ms, which is why the verdict uses the bound. This
     criterion requires Ms. With criterion='SNR_HAR', the HystLab rule
     (Paterson et al., 2018) is used: 'open' when the signal-to-noise
     ratio of the high-field Mrh is at least 8 dB and the ratio of
-    high-field to total Mrh area is at least -48 dB. SNR and HAR are returned under both
-    criteria; the SNR rule depends on the measurement noise rather than on
-    the size of the opening, which is why 'magnitude' is the default
-    (PmagPy issue #902).
+    high-field to total Mrh area is at least -48 dB. SNR and HAR are
+    returned under both criteria; the SNR rule depends on the measurement
+    noise rather than on the size of the opening, which is why 'magnitude'
+    is the default (PmagPy issue #902).
 
     Parameters
     ----------
