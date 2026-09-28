@@ -2345,9 +2345,23 @@ class TestClosureMsUncertainty:
         H, M = synthetic_loop(hard_Ms=_hard_Ms_for_openness_Ms(0.012), noise=1e-3)
         Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
         Ms = _exhibited_Ms(_hard_Ms_for_openness_Ms(0.012))
-        assert rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms)['closure_state'] == 'closed'
+        exact = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms)
+        assert exact['closure_state'] == 'closed'
+        assert exact['HF_Mrh_fraction_upper'] == pytest.approx(
+            exact['HF_Mrh_fraction'] + 2*exact['HF_Mrh_fraction_se'])
         assert rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms, Ms_se=0.02*Ms)['closure_state'] == 'closed'
-        assert rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms, Ms_se=0.5*Ms)['closure_state'] == 'indeterminate'
+        # the verdict uses the bound (opening taken high over Ms taken low),
+        # not the first-order total: at Ms_se = 0.3 Ms the first-order
+        # interval would still close this 1.2% loop (f(1 + 2r) ~ 1.9%) while
+        # the bound f/(1 - 2r) ~ 2.9% does not; at 0.5 Ms the bound is
+        # infinite
+        r03 = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms, Ms_se=0.3*Ms)
+        f, se = r03['HF_Mrh_fraction'], r03['HF_Mrh_fraction_se']
+        assert f + 2*r03['HF_Mrh_fraction_se_total'] < 0.02
+        assert r03['HF_Mrh_fraction_upper'] == pytest.approx((f + 2*se)/(1 - 0.6))
+        assert r03['HF_Mrh_fraction_upper'] > 0.02 and r03['closure_state'] == 'indeterminate'
+        r05 = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms, Ms_se=0.5*Ms)
+        assert np.isinf(r05['HF_Mrh_fraction_upper']) and r05['closure_state'] == 'indeterminate'
         # NaN Ms_se (no bootstrap) leaves the conditional value; an
         # infinite one makes the total infinite (indeterminate), a negative
         # one is rejected
@@ -2362,6 +2376,7 @@ class TestClosureMsUncertainty:
         neg = rmag.hyst_closure_test(Hu, -Mrh, Me=Me, Ms=Ms, Ms_se=0.5*Ms)
         assert neg['HF_Mrh_fraction'] < 0
         assert neg['HF_Mrh_fraction_se_total'] == neg['HF_Mrh_fraction_se']
+        assert neg['HF_Mrh_fraction_upper'] == pytest.approx(neg['HF_Mrh_fraction'] + 2*neg['HF_Mrh_fraction_se'])
         assert neg['closure_state'] == 'closed'
 
     def test_flag_names_the_Ms_term_when_it_decides(self, capsys):
@@ -2369,13 +2384,18 @@ class TestClosureMsUncertainty:
         # closed it: the -W- line must say the Ms term is what keeps it
         # open, even at a modest ratio of the two standard errors
         closure = {'HF_Mrh_fraction': 0.012, 'HF_Mrh_fraction_se': 0.0035,
-                   'HF_Mrh_fraction_se_total': 0.0045, 'HF_Mrh_fraction_Mr': 0.03,
+                   'HF_Mrh_fraction_se_total': 0.0045, 'HF_Mrh_fraction_upper': np.inf,
+                   'HF_Mrh_fraction_Mr': 0.03,
                    'HF_cutoff': 0.8, 'max_field_cutoff': 0.99, 'criterion': 'magnitude',
                    'closure_state': 'indeterminate', 'normalization': 'Ms',
                    'SNR': 10.0, 'HAR': -30.0}
         capsys.readouterr()
         rmag._print_closure_flag('sp', closure)
-        assert 'including the uncertainty of Ms' in capsys.readouterr().out
+        out = capsys.readouterr().out
+        assert 'including the uncertainty of Ms' in out and 'unbounded' in out
+        closure['HF_Mrh_fraction_upper'] = 0.025
+        rmag._print_closure_flag('sp', closure)
+        assert 'up to 2.5%' in capsys.readouterr().out
         # and stays quiet when the two agree
         closure.update({'HF_Mrh_fraction_se_total': 0.0035})
         rmag._print_closure_flag('sp', closure)
@@ -2422,10 +2442,12 @@ class TestClosureMsUncertainty:
                                                   'FNL', 'FNL60', 'FNL70', 'FNL80', 'Fnl_lin',
                                                   'loop_is_linear', 'loop_is_closed', 'closure_state',
                                                   'HF_Mrh_fraction', 'HF_Mrh_fraction_se',
-                                                  'HF_Mrh_fraction_se_total', 'loop_is_saturated',
+                                                  'HF_Mrh_fraction_se_total', 'HF_Mrh_fraction_upper',
+                                                  'loop_is_saturated',
                                                   'magn_unit')},
                               'specimen': 'sp', 'experiment': 'sp-HYS', 'processed_by': 'test'}])
         table = rmag.add_hyst_stats_to_specimens_table(pd.DataFrame({'specimen': ['sp']}), hyst)
         row = table[table.experiments == 'sp-HYS'].iloc[0]
         _, data = rmag.parse_specimen_description(row['description'])
         assert data['HF_Mrh_fraction_se_total'] == pytest.approx(r['HF_Mrh_fraction_se_total'])
+        assert data['HF_Mrh_fraction_upper'] == pytest.approx(r['HF_Mrh_fraction_upper'])
