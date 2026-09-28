@@ -48,6 +48,7 @@ from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from scipy.interpolate import RegularGridInterpolator
+from scipy.integrate import trapezoid
 
 # ============================================================
 # Regex helpers
@@ -5484,7 +5485,7 @@ def coercivity_distribution(
         f = gaussian_smooth_1d_nan(f, sigma_bins=smooth_sigma_bins)
 
     finite = np.isfinite(f)
-    integral = float(np.trapezoid(f[finite], centres[finite])) if finite.sum() > 1 else np.nan
+    integral = float(trapezoid(f[finite], centres[finite])) if finite.sum() > 1 else np.nan
 
     return {
         "Bc": centres,
