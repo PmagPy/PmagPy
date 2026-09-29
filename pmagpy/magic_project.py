@@ -315,7 +315,7 @@ def metadata_by_key(existing: pd.DataFrame, key: str, cols) -> pd.DataFrame:
     """One row of metadata per name: each column's first value, but each :data:`COLUMN_GROUPS` from one row."""
     cols = [c for c in cols if c in existing.columns and c != key]
     source = _blank_to_nan(existing[[key] + cols], cols)
-    source[key] = source[key].astype(str)
+    source[key] = source[key].fillna("").astype(str)
     grouped = {c for g in COLUMN_GROUPS for c in g}
     single = [c for c in cols if c not in grouped]
     out = source.groupby(key, sort=False)[single].first() if single else \
@@ -403,11 +403,11 @@ def carry_annotations(new: pd.DataFrame, existing: Optional[pd.DataFrame], key: 
     cols = [c for c in columns if c in existing.columns]
     if not cols:
         return new
-    match = [c for c in ("dir_comp", "dir_comp_name", "dir_tilt_correction") if c in existing.columns
-             and c in new.columns]
+    match = [c for c in ("dir_comp", "dir_comp_name", "pole_comp_name", "dir_tilt_correction")
+             if c in existing.columns and c in new.columns]
 
     def ids(frame):
-        parts = [frame[key].astype(str)]
+        parts = [frame[key].fillna("").astype(str)]
         for c in match:
             values = frame[c]
             if c == "dir_tilt_correction":
@@ -417,7 +417,10 @@ def carry_annotations(new: pd.DataFrame, existing: Optional[pd.DataFrame], key: 
 
     source = _blank_to_nan(existing[cols], cols)
     source.index = ids(existing).values
-    source = source[~source.index.duplicated()]
+    # several existing rows with the same name, component and system (a table
+    # without a component column): which one a new row replaces is not known,
+    # so none of them lends it anything
+    source = source[~source.index.duplicated(keep=False)]
     new = new.copy()
     new_ids = ids(new)
     for c in cols:
@@ -437,7 +440,9 @@ def directional_rows(existing: pd.DataFrame) -> pd.Series:
         mask |= pd.to_numeric(existing["dir_dec"], errors="coerce").notna()
     if "method_codes" in existing.columns:
         codes = existing["method_codes"].fillna("").astype(str)
-        mask |= codes.str.contains("LP-DIR|DE-BF|DE-FM|DE-DI|DE-VGP", regex=True)
+        # an interpretation code; an LP-DIR-* protocol code alone describes the
+        # experiment, as on the minimal row of a specimen without a fit
+        mask |= codes.str.contains("DE-BF|DE-FM|DE-DI|DE-VGP", regex=True)
     return mask
 
 
@@ -550,7 +555,12 @@ def validate_directory(dir_path: str,
     import warnings as _warnings
     from pmagpy import validate_upload3
     present = [t for t in tables if os.path.exists(os.path.join(dir_path, t + ".txt"))]
-    con = cb.Contribution(dir_path, read_tables=present, dmodel=data_model(True))
+    # read as the applications read (cb.Contribution would rewrite an unnamed measurements.txt)
+    try:
+        con = read_contribution(dir_path, tables=present)
+    except MagicReadError as exc:
+        return {"measurements": {"bad_rows": [], "bad_cols": [], "missing_cols": [], "missing_groups": [],
+                                 "failing_items": [{"row": "", "column": "", "problem": str(exc)}]}}
     report = {}
     # the validator drops a <table>_errors.txt beside whatever it is given; the
     # failures come back from here as cells, so it is not allowed to litter the
@@ -1043,9 +1053,11 @@ class StagedExport:
         stage.written                                # the final paths
     """
 
-    def __init__(self, output_dir: str, backup: Optional[str] = None, originals: bool = False):
+    def __init__(self, output_dir: str, backup: Optional[str] = None, originals=False):
         self.output_dir = os.path.abspath(output_dir)
         self.backup = backup
+        # True, or the names of the files the study had when it was opened: a file an
+        # application created itself is not an original, however often it is replaced
         self.originals = originals
         self.dir = ""
         self.written: list[str] = []
@@ -1075,7 +1087,9 @@ class StagedExport:
                 target = os.path.join(self.output_dir, name)
                 if not os.path.isfile(target):
                     continue
-                if self.originals and not os.path.exists(os.path.join(self.backup, name)):
+                is_original = name in self.originals if isinstance(self.originals, (set, frozenset, list, tuple)) \
+                    else bool(self.originals)
+                if is_original and not os.path.exists(os.path.join(self.backup, name)):
                     os.makedirs(self.backup, exist_ok=True)
                     shutil.copy2(target, os.path.join(self.backup, name))
                     self.backed_up.append(os.path.join(self.backup, name))

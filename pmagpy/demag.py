@@ -1272,12 +1272,17 @@ class DemagData:
             rows = rows[pd.to_numeric(rows["dir_dec"], errors="coerce").notna()]
         tilt = pd.to_numeric(rows["dir_tilt_correction"], errors="coerce") if "dir_tilt_correction" in rows.columns \
             else pd.Series(np.nan, index=rows.index)
+        # named components first, so that an unnamed row repeating one of them is recognised as it
+        unnamed = rows["dir_comp"].isna() | (rows["dir_comp"].astype(str).str.strip() == "") \
+            if "dir_comp" in rows.columns else pd.Series(True, index=rows.index)
         if coord is not None:
-            rows = rows[(tilt == coord) | tilt.isna()]
+            keep = (tilt == coord) | tilt.isna()
+            rows = rows[keep].assign(_unnamed=unnamed[keep]).sort_values("_unnamed", kind="stable")
         else:
             rank = tilt.map({COORD_SPECIMEN: 0, COORD_GEOGRAPHIC: 1, COORD_TILT: 2}).fillna(3)
-            rows = rows.assign(_rank=rank).sort_values("_rank", kind="stable")
+            rows = rows.assign(_rank=rank, _unnamed=unnamed).sort_values(["_unnamed", "_rank"], kind="stable")
         seen = set()
+        bounds_seen = {(c.specimen, c.imin, c.imax, c.fit_type) for c in self.components}
         parsed: list[Component] = []
         taken_names: dict = {}
         for _, row in rows.iterrows():
@@ -1298,6 +1303,12 @@ class DemagData:
             if key in seen:            # the same component in another coordinate system
                 continue
             seen.add(key)
+            bounds = (spec, imin, imax, fit_types[0])
+            if _is_null(name) and bounds in bounds_seen:
+                # an unnamed row with the steps and fit of a component already taken (a row an
+                # export kept in a system it did not recompute): the same fit, not another one
+                continue
+            bounds_seen.add(bounds)
             taken = taken_names.setdefault(spec, {c.name for c in self.components_for(spec)})
             if _is_null(name):
                 # unnamed component: pick the first free letter for this specimen
@@ -1647,6 +1658,10 @@ class DemagData:
             parent_of[getattr(spec, lower)] = getattr(spec, level)
         lower_means = lower_means.copy()
         lower_means["group"] = lower_means[lower].map(parent_of)
+        # a lower mean without a parent (a site with no location) is averaged into nothing
+        lower_means = lower_means[lower_means["group"].fillna("").astype(str).str.strip() != ""]
+        if len(lower_means) == 0:
+            return lower_means
         out = []
         n_col = {"site": "dir_n_samples", "location": "dir_n_sites"}[level]
         axes = {name: polarity_axis(g[["dir_dec", "dir_inc"]].values)

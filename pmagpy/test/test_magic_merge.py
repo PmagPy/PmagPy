@@ -167,3 +167,35 @@ class TestDirectionsExport:
         assert dc._is_lone_plane({"dir_n_specimens_lines": 0, "dir_n_specimens_planes": 1})
         assert not dc._is_lone_plane({"dir_n_specimens_lines": 0, "dir_n_specimens_planes": 2})
         assert not dc._is_lone_plane({"dir_n_specimens_lines": 1, "dir_n_specimens_planes": 1})
+
+
+class TestRegressionsFromTheSecondSweep:
+    def test_a_protocol_code_alone_is_not_a_directional_result(self):
+        rows = pd.DataFrame({"specimen": ["a", "b"], "method_codes": ["LP-DIR-AF", "LP-DIR-AF:DE-BFL"],
+                             "dir_dec": [np.nan, 10.0]})
+        assert list(mp.directional_rows(rows)) == [False, True]
+
+    def test_an_ambiguous_replaced_row_lends_nothing(self):
+        existing = pd.DataFrame({"location": ["L", "L"], "dir_tilt_correction": [0, 0],
+                                 "dir_polarity": ["n", "r"]})
+        new = pd.DataFrame({"location": ["L"], "dir_tilt_correction": [0]})
+        out = mp.carry_annotations(new, existing, "location")
+        assert "dir_polarity" not in out.columns or out["dir_polarity"].isna().all()
+
+    def test_blank_names_do_not_break_the_merge(self):
+        existing = pd.DataFrame({"location": ["L", np.nan], "dir_tilt_correction": [0, 0], "description": ["x", "y"]})
+        new = pd.DataFrame({"location": ["L"], "dir_tilt_correction": [0]})
+        assert mp.carry_annotations(new, existing, "location")["description"].iloc[0] == "x"
+
+    def test_originals_are_only_the_files_the_study_had(self, tmp_path):
+        out = str(tmp_path)
+        with open(os.path.join(out, "sites.txt"), "w") as fh:
+            fh.write("v0")
+        with open(os.path.join(out, "made_by_the_app.redo"), "w") as fh:
+            fh.write("r0")
+        with mp.StagedExport(out, backup=os.path.join(out, "backup"), originals={"sites.txt"}) as stage:
+            for name in ("sites.txt", "made_by_the_app.redo"):
+                mp.atomic_write_text(os.path.join(stage.dir, name), "v1")
+        assert os.path.exists(os.path.join(out, "backup", "sites.txt"))
+        assert not os.path.exists(os.path.join(out, "backup", "made_by_the_app.redo"))
+        assert os.path.exists(os.path.join(out, "backup", "previous", "made_by_the_app.redo"))

@@ -275,7 +275,7 @@ back exactly; flags recorded where they differ from `measurements.txt`) and
 restores them on the next load. On opening a directory the fits come from,
 in order: that autosave (one that cannot be read is renamed
 `*.unreadable-<time>` and set aside; one that holds no fits is passed over);
-then the newer of `specimens.txt` and the legacy `demag_gui.redo`. The
+then `specimens.txt`, and only when it holds no interpretations the legacy `demag_gui.redo` (as the legacy Demag GUI reads `specimens.txt`, not its `.redo`, on opening a study). The
 status line says which was used and names the other sources present. The
 legacy `.redo` format (specimen, fit type, bounds in K or T, name, colour,
 flag) is still written on export (`pmagpy_directions.redo`) and read by

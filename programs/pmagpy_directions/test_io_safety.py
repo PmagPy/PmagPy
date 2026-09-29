@@ -263,3 +263,48 @@ class TestSwitchWithTheExportPaneBuilt:
         view = ExportView(s)
         assert s.load(b) and s.directory == b
         assert "nothing to report" in view.messages.object or view.messages.object
+
+
+class TestRepeatedExports:
+    def test_minimal_specimen_rows_stay_complete(self, tmp_path):
+        src = copy_study(tmp_path / "s")
+        os.remove(os.path.join(src, "specimens.txt"))            # a study of measurements only
+        tables = []
+        for _ in range(2):
+            s = Session(src)
+            s.data.clear_components()                            # specimens without a fit: minimal rows only
+            s.export_tables()
+            spec = pd.read_csv(os.path.join(src, "specimens.txt"), sep="\t", skiprows=1, dtype=str)
+            tables.append(spec.drop(columns=["timestamp"], errors="ignore").dropna(axis=1, how="all"))
+        first, second = tables
+        assert len(first) and first["method_codes"].notna().all() and first["citations"].notna().all()
+        pd.testing.assert_frame_equal(first.reset_index(drop=True), second.reset_index(drop=True))
+
+    def test_fits_do_not_multiply_across_export_and_reopen(self, tmp_path):
+        src = copy_study(tmp_path / "s")
+        n = len(Session(src).data.components)
+        for _ in range(3):
+            s = Session(src)
+            os.remove(s.autosave_path) if os.path.exists(s.autosave_path) else None
+            s.export_tables(coords=(dc.COORD_SPECIMEN,))           # other systems' rows are kept
+            os.remove(s.autosave_path) if os.path.exists(s.autosave_path) else None
+        assert len(Session(src).data.components) == n
+
+    def test_validating_writes_nothing(self, tmp_path):
+        src = copy_study(tmp_path / "s")
+        meas = os.path.join(src, "measurements.txt")
+        df = pd.read_csv(meas, sep="\t", skiprows=1, dtype=str).drop(columns=["measurement"], errors="ignore")
+        with open(meas, "w") as fh:
+            fh.write("tab\tmeasurements\n")
+            df.to_csv(fh, sep="\t", index=False)
+        before = digest(src)
+        Session(src).validate_output()
+        assert digest(src) == before
+
+    def test_a_legacy_redo_is_named_when_the_stored_fits_come_first(self, tmp_path):
+        src = copy_study(tmp_path / "s")
+        s = Session(src)
+        s.data.write_redo(os.path.join(src, "demag_gui.redo"))
+        os.remove(s.autosave_path) if os.path.exists(s.autosave_path) else None
+        s2 = Session(src)
+        assert "imported" in s2.status and "demag_gui.redo" in s2.status and "was not read" in s2.status

@@ -155,6 +155,10 @@ class Session(param.Parameterized):
             return False
         self.output_dir = output_dir
         self.data = data
+        try:                                            # what an in-place export may keep as "originals"
+            self._source_files = set(os.listdir(directory))
+        except OSError:
+            self._source_files = set()
         self.bicep_results = {}
         remember_recent(directory)
         self.param.specimen.objects = names
@@ -199,23 +203,11 @@ class Session(param.Parameterized):
                 moved = datasets.set_aside(autosave)
                 notes.append(f"the autosave could not be read ({exc}) and was set aside as "
                              f"{os.path.basename(moved)}")
-        spec_file = os.path.join(data.directory, "specimens.txt")
-        if legacy and os.path.exists(spec_file) and \
-                os.path.getmtime(os.path.join(data.directory, legacy[0])) > os.path.getmtime(spec_file):
-            # the legacy GUI saved its .redo more often than it exported: the newer of the two is the later work
-            try:
-                n, problems = data.read_redo(os.path.join(data.directory, legacy[0]))
-            except (OSError, ValueError) as exc:
-                n = 0
-                notes.append(f"{legacy[0]} could not be read ({exc})")
-            if n:
-                return "; ".join([f"loaded {n} interpretations from {legacy[0]}, which is newer than "
-                                  "specimens.txt (Export → Import from specimens.txt reads those)"] + notes)
-            legacy = legacy[1:]
         n, problems = data.import_from_specimens_table()
         if n:
             if legacy:
-                notes.append(f"{legacy[0]} was not read (Export → Load .redo reads it)")
+                notes.append(f"{legacy[0]} was not used: the stored interpretations come first, as the legacy "
+                             "Thellier GUI reads them over its .redo (Export → Load .redo reads it)")
             return "; ".join([f"imported {n} interpretations from specimens.txt"] + notes)
         for name in legacy:
             try:
@@ -449,7 +441,7 @@ class Session(param.Parameterized):
         in_place = os.path.realpath(self.output_dir) == os.path.realpath(self.directory)
         stage = mp.StagedExport(self.output_dir, backup=os.path.join(self.output_dir,
                                                                      self.data.project.backup_dir_name()),
-                                originals=in_place)
+                                originals=self._originals() if in_place else False)
         with stage:
             self.data.write_specimens(stage.dir, analysts=analysts, only_accepted=only_accepted)
             for level in levels:
@@ -467,6 +459,11 @@ class Session(param.Parameterized):
     def writes_in_place(self) -> bool:
         """True when an export replaces the study's own tables (the output directory is the data directory)."""
         return bool(self.directory) and os.path.realpath(self.output_dir) == os.path.realpath(self.directory)
+
+    def _originals(self) -> set:
+        """The study's own tables as it was opened (not this application's .redo or session files)."""
+        return {n for n in getattr(self, "_source_files", set())
+                if n.endswith(".txt") and not n.startswith(pint.APP_ID)}
 
     def validate_output(self) -> dict:
         return self.data.validate_output(self.output_dir)

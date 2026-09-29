@@ -102,6 +102,21 @@ def _code_stamp() -> float:
     return max(stamps) if stamps else 0.0
 
 
+def _listing(directory: str) -> set:
+    try:
+        return set(os.listdir(directory))
+    except OSError:
+        return set()
+
+
+def _count_lines(path: str) -> int:
+    try:
+        with open(path, "rb") as fh:
+            return sum(1 for line in fh if b"\t" in line)          # a fit line; a bare current_ line has no tab
+    except OSError:
+        return 0
+
+
 class Session(param.Parameterized):
     """State shared by the views. Views watch the parameters below."""
 
@@ -165,6 +180,7 @@ class Session(param.Parameterized):
             return False
         self.output_dir = output_dir
         self.data = data
+        self._source_files = _listing(directory)        # what an in-place export may keep as "originals"
         data.set_criteria(data._table("criteria") if self.apply_criteria else None)   # a cached dataset may differ
         self.colors = ComponentColors()
         remember_recent(directory)
@@ -193,7 +209,9 @@ class Session(param.Parameterized):
 
         In order: the autosave (the work in progress of this application), the
         interpretations stored in specimens.txt, the legacy Demag GUI's
-        demag_gui.redo. An autosave that cannot be read is set aside (renamed,
+        demag_gui.redo -- which, like that GUI on opening a study, is read only
+        when specimens.txt holds no interpretations (it is named in the message
+        otherwise). An autosave that cannot be read is set aside (renamed,
         not deleted) and one that holds nothing is passed over; the message
         says where the fits came from and which other source exists.
         """
@@ -224,28 +242,14 @@ class Session(param.Parameterized):
                 notes.append(f"specimens.txt holds {stored} interpretations{' and is newer' if newer else ''} "
                              "(Export → Import from specimens.txt replaces the restored fits with them)")
             return current, "; ".join([message] + notes)
-        if stored and os.path.exists(legacy) and os.path.exists(spec_file) and \
-                os.path.getmtime(legacy) > os.path.getmtime(spec_file):
-            # the legacy GUI saved its .redo more often than it exported: the newer of the two is the later work
-            try:
-                n, current = data.read_redo(legacy)
-            except (OSError, ValueError) as exc:
-                n, current = 0, None
-                notes.append(f"demag_gui.redo could not be read ({exc})")
-            if n:
-                return current, "; ".join([f"loaded {n} fits from demag_gui.redo, which is newer than specimens.txt "
-                                           f"(its {stored} interpretations: Export → Import from specimens.txt)"]
-                                          + notes)
-            if not notes:
-                notes.append("demag_gui.redo held no fits and was passed over")
-            legacy = ""
         if stored:
             n = data.load_components_from_specimens_table()
             message = f"imported {n} fits from specimens.txt"
-            if legacy and os.path.exists(legacy):
-                notes.append("demag_gui.redo was not read (Export → Load .redo reads it)")
+            if os.path.exists(legacy):
+                notes.append(f"demag_gui.redo ({_count_lines(legacy)} fits) was not read, as the legacy Demag GUI "
+                             "does not read it on opening (Export → Load .redo reads it)")
             return None, "; ".join([message] + notes)
-        if legacy and os.path.exists(legacy):
+        if os.path.exists(legacy):
             try:
                 n, current = data.read_redo(legacy)
                 return current, "; ".join([f"loaded {n} fits from demag_gui.redo"] + notes)
@@ -529,7 +533,8 @@ class Session(param.Parameterized):
         # same directory) may have exported into them since this study was opened
         mp.refresh_tables(self.data.contribution, target,
                           ("specimens", "samples", "sites", "locations"), self.data.warnings)
-        stage = mp.StagedExport(target, backup=os.path.join(target, self.BACKUP_DIR), originals=in_place)
+        stage = mp.StagedExport(target, backup=os.path.join(target, self.BACKUP_DIR),
+                                originals=self._originals() if in_place else False)
         with stage:
             self.data.write_specimens(stage.dir, coords=coords, analysts=analysts)
             if write_measurements:
@@ -543,6 +548,11 @@ class Session(param.Parameterized):
         written += mp.copy_companion_tables(self.directory, target, skip=written)
         self.last_backup = stage.backed_up
         return written
+
+    def _originals(self) -> set:
+        """The study's own tables as it was opened (not this application's .redo or session files)."""
+        return {n for n in getattr(self, "_source_files", set())
+                if n.endswith(".txt") and not n.startswith(dc.APP_ID)}
 
     def writes_in_place(self, output_dir: Optional[str] = None) -> bool:
         """True when an export to ``output_dir`` (default: the session's) replaces the study's own tables."""

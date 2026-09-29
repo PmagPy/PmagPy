@@ -238,7 +238,7 @@ Everything goes to the output directory, which is the data directory unless
 
 On opening a directory it restores, in this order: the autosave if there is
 one (an unreadable one is renamed `*.unreadable-<time>` and set aside, an
-empty one passed over), then the newer of `specimens.txt` and a legacy
+empty one passed over), then `specimens.txt`, and only when it holds none a legacy
 `thellier_GUI.redo`. It says which it used and names the other. Opening a
 study never writes to it, and a directory that fails to open leaves the open
 study as it was. An export is all or nothing (written to a staging folder,
