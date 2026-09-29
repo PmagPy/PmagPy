@@ -183,3 +183,72 @@ class TestOutputFolders:
         oa, ob = datasets.default_output_dir(a, base), datasets.default_output_dir(b, base)
         assert oa != ob and os.path.basename(oa).startswith("MagIC-")
         assert datasets.default_output_dir(a, base) == oa           # and the same one every time
+
+
+class TestExportPane:
+    def test_an_in_place_export_asks_first(self, tmp_path):
+        from pmagpy_directions.views import ExportView
+        src = copy_study(tmp_path / "s")
+        before = digest(src)
+        view = ExportView(Session(src))
+        view._write()
+        assert "writes into the data directory itself" in view.status.object
+        assert digest(src) == before                                   # nothing written yet
+        view._write()
+        assert "Wrote:" in view.status.object
+        assert os.path.exists(os.path.join(src, Session.BACKUP_DIR, "specimens.txt"))
+
+    def test_the_output_field_does_not_move_the_autosave(self, tmp_path):
+        from pmagpy_directions.views import ExportView
+        src = copy_study(tmp_path / "s")
+        s = Session(src)
+        view = ExportView(s)
+        view.output_dir.value = str(tmp_path / "elsewhere")
+        view._write()
+        assert os.path.exists(tmp_path / "elsewhere" / "specimens.txt")
+        assert s.output_dir == src and s.autosave_path.startswith(src)
+
+    def test_a_redo_of_another_study_is_refused_with_a_message(self, tmp_path):
+        from pmagpy_directions.views import ExportView
+        src = copy_study(tmp_path / "s")
+        s = Session(src)
+        n = len(s.data.components)
+        other = tmp_path / "other.redo"
+        other.write_text("not_here\tDE-BFL\t0\t0.02\tA\t\tg\n")
+        view = ExportView(s)
+        view.redo_path.value = str(other)
+        view._load_redo()
+        assert "Not loaded" in view.status.object and len(s.data.components) == n
+
+    def test_messages_from_reading_are_shown(self, tmp_path):
+        from pmagpy_directions.views import ExportView
+        src = copy_study(tmp_path / "s")
+        with open(os.path.join(src, "locations.txt"), "w") as fh:
+            fh.write("tab\tsites\nsite\nx\n")                         # the wrong kind of table
+        s = Session(src)
+        assert "Export → Messages" in s.status
+        view = ExportView(s)
+        assert "locations.txt was not read" in view.messages.object
+
+
+class TestCriteria:
+    def test_a_criterion_that_cannot_be_evaluated_is_set_aside(self, tmp_path):
+        src = copy_study(tmp_path / "s")
+        s = Session(src)
+        criteria = pd.DataFrame({"criterion": ["DE-SPEC", "DE-SPEC"],
+                                 "table_column": ["specimens.dir_mad_free", "specimens.dir_n_measurements"],
+                                 "criterion_operation": ["=<", ">="], "criterion_value": ["5°", "four"]})
+        assert s.data.set_criteria(criteria) == 1
+        assert any("cannot be evaluated" in w for w in s.data.warnings)
+        assert len(s.data.failing_components()) < len(s.data.components)
+
+
+class TestFailurePage:
+    def test_a_directory_that_cannot_be_opened_offers_the_chooser(self, tmp_path):
+        from pmagpy_directions.app import create_app
+        bad = tmp_path / "bad"
+        bad.mkdir()
+        (bad / "measurements.txt").write_text("nothing here\n")
+        page = create_app(str(bad))
+        text = str(page[0].object)
+        assert "Could not open" in text and "not a MagIC table" in text

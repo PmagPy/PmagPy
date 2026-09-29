@@ -5,6 +5,7 @@ and mutates the shared ``Session``, and redraws when the session changes.
 from __future__ import annotations
 
 import io
+import html
 import os
 
 import numpy as np
@@ -1184,14 +1185,19 @@ class ExportView:
               'results, entities without demag data — and all descriptive metadata (coordinates, ages, '
               'lithologies …) are kept. Means, VGPs and poles are written for every coordinate system ticked '
               'below, in the polarity chosen on the Poles tab (one polarity axis for the whole study). Only MagIC 3 '
-              'columns are written, and the result is checked with the MagIC validator. When the output directory '
-              'is the data directory itself, the original tables are copied once to '
+              'columns are written, and the result is checked with the MagIC validator. Rows in a coordinate system '
+              'this export does not recompute are kept. The tables are written all or nothing, as UTF-8; each '
+              'table replaced is kept in <code>backup_before_pmagpy_directions/previous/</code>, and when the '
+              'output directory is the data directory itself the original tables are also kept, once, in '
               '<code>backup_before_pmagpy_directions/</code>.')
 
     def __init__(self, session: Session):
         self.s = session
-        self.output_dir = pn.widgets.TextInput.from_param(session.param.output_dir, name="Output directory",
-                                                          sizing_mode="stretch_width")
+        # where tables and figures go; the autosave stays with the dataset whatever is typed here
+        self.output_dir = pn.widgets.TextInput(name="Output directory for tables and figures",
+                                               value=session.output_dir, sizing_mode="stretch_width")
+        session.param.watch(lambda e: setattr(self.output_dir, "value", e.new), "output_dir")
+        self._confirm_in_place = False
         self.analysts = pn.widgets.TextInput(name="Analyst(s)", value=env("ANALYST", ""), width=240,
                                              placeholder="written to the analysts column", stylesheets=[INPUT_CSS])
         self.coords = pn.widgets.CheckBoxGroup(options=COORD_OPTIONS, value=list(COORD_OPTIONS.values()), inline=True,
@@ -1245,8 +1251,12 @@ class ExportView:
         self.preview_btn.on_click(lambda e: self._preview())
         self.status = pn.pane.Markdown("", sizing_mode="stretch_width")        # export messages only
         self.report = pn.pane.HTML("", sizing_mode="stretch_width")            # validator report
+        self.messages = pn.pane.HTML("", sizing_mode="stretch_width")          # what reading and writing reported
+        session.param.watch(lambda e: self._show_messages(), ["version", "directory"])
+        self._show_messages()
         session.param.watch(lambda e: setattr(self.redo_path, "value", os.path.join(e.new, REDO_NAME)),
                             "output_dir")
+        self.output_dir.param.watch(lambda e: self._reset_confirmation(), "value")
         self.redo_path.value = os.path.join(session.output_dir, REDO_NAME)
         # means, poles and figures default to the dataset's best coordinate system
         session.param.watch(lambda e: self._follow_default_coord(), "directory")
@@ -1278,29 +1288,66 @@ class ExportView:
         self.fig_coord.value = self.s.data.default_coord()
 
     # --- MagIC tables ---------------------------------------------------------
-    def _write(self, event=None):
+    def _target(self) -> str:
+        return os.path.abspath(os.path.expanduser(self.output_dir.value.strip() or self.s.output_dir))
+
+    def _reset_confirmation(self):
+        self._confirm_in_place = False
+        self.write_btn.name, self.write_btn.button_type = "Write MagIC tables", "primary"
+
+    def _write(self, event=None, confirmed: bool = False):
+        target = self._target()
+        if self.s.writes_in_place(target) and not (confirmed or self._confirm_in_place):
+            # the study's own tables are about to be replaced: say so once, and ask
+            present = [n for n in ("specimens.txt", "samples.txt", "sites.txt", "locations.txt", "measurements.txt")
+                       if os.path.exists(os.path.join(target, n))]
+            self._confirm_in_place = True
+            self.write_btn.name, self.write_btn.button_type = "Confirm: replace the tables", "danger"
+            self.status.object = (f"**This writes into the data directory itself** and replaces "
+                                  f"{', '.join(f'`{n}`' for n in present) or 'its tables'}. Each is kept in "
+                                  f"`{self.s.BACKUP_DIR}/previous/` (and the originals, once, in "
+                                  f"`{self.s.BACKUP_DIR}/`). Click again to write, or type another output "
+                                  "directory above.")
+            return
+        self._reset_confirmation()
+        n_before = len(self.s.data.warnings)
         try:
             written = self.s.export_tables(coords=tuple(self.coords.value), levels=tuple(self.levels.value),
                                            mean_coords=tuple(self.mean_coords.value) or None,
                                            site_over=self.site_over.value,
                                            write_measurements=self.write_meas.value,
-                                           analysts=self.analysts.value.strip() or None)
+                                           analysts=self.analysts.value.strip() or None, output_dir=target)
         except Exception as exc:
-            self.status.object = f"**Export failed:** {exc}"
+            self.status.object = (f"**Export failed:** {exc}\n\nNothing in `{target}` was changed "
+                                  "(the tables are written all or nothing).")
             return
         lines = [f"- `{p}`" for p in written]
-        backup = os.path.join(self.s.output_dir, self.s.BACKUP_DIR)
-        if os.path.isdir(backup):
-            lines.append(f"- originals kept in `{backup}`")
-        dropped = [w for w in self.s.data.warnings if "dropped non-MagIC" in w]
-        if dropped:
-            lines.append("- " + "; ".join(sorted(set(dropped))))
+        backup = os.path.join(target, self.s.BACKUP_DIR)
+        if os.path.isdir(os.path.join(backup, "previous")):
+            lines.append(f"- the tables this replaced are kept in `{os.path.join(backup, 'previous')}`")
+        if self.s.last_backup:
+            lines.append(f"- the originals are kept in `{backup}`")
+        news = self.s.data.warnings[n_before:]
+        for text in dict.fromkeys(news):
+            lines.append(f"- {text}")
         self.status.object = "Wrote:\n" + "\n".join(lines)
+        self._show_messages()
         self._validate()
+
+    def _show_messages(self):
+        """What reading the data (and the last export) reported: skipped steps, unread tables, kept rows ..."""
+        warnings = list(dict.fromkeys(self.s.data.warnings)) if self.s.data is not None else []
+        if not warnings:
+            self.messages.object = f'<div style="{MUTED_STYLE}">nothing to report</div>'
+            return
+        shown = warnings[:200]
+        more = f'<div style="{MUTED_STYLE}">… and {len(warnings) - 200} more</div>' if len(warnings) > 200 else ""
+        self.messages.object = ("".join(f'<div style="{MUTED_STYLE}">{html.escape(w)}</div>' for w in shown)
+                                + more)
 
     def _validate(self):
         try:
-            report = self.s.validate_output()
+            report = dc.validate_directory(self._target())
         except Exception as exc:
             self.report.object = f'<div style="color:#c0392b">Validation failed to run: {exc}</div>'
             return
@@ -1330,18 +1377,29 @@ class ExportView:
     # --- .redo ----------------------------------------------------------------
     def _save_redo(self, event=None):
         path = self.redo_path.value or os.path.join(self.s.output_dir, REDO_NAME)
-        self.status.object = f"Saved `{self.s.save_redo(path)}`"
+        try:
+            self.status.object = f"Saved `{self.s.save_redo(path)}`"
+        except OSError as exc:
+            self.status.object = f"**Could not save** `{path}`: {exc}"
 
     def _load_redo(self, event=None):
-        path = self.redo_path.value
-        if not os.path.exists(path):
+        path = self.redo_path.value.strip()
+        if not os.path.isfile(path):
             self.status.object = f"**No such file:** `{path}`"
             return
-        n = self.s.load_redo(path)
+        try:
+            n = self.s.load_redo(path)
+        except (OSError, ValueError) as exc:
+            self.status.object = f"**Not loaded:** {exc}. The current fits are unchanged."
+            return
         self.status.object = f"Loaded {n} fits from `{path}` (replacing the previous interpretations)"
 
     def _import(self, event=None):
-        n = self.s.import_from_specimens_table()
+        try:
+            n = self.s.import_from_specimens_table()
+        except Exception as exc:
+            self.status.object = f"**Not imported:** {exc}"
+            return
         self.status.object = f"Imported {n} fits from the specimens table of the data directory"
 
     # --- figures --------------------------------------------------------------
@@ -1357,7 +1415,7 @@ class ExportView:
         self.preview.object = self._specimen_figure(self.s.specimen)
 
     def _figures_dir(self):
-        return os.path.join(self.s.output_dir, "figures")
+        return os.path.join(self._target(), "figures")
 
     def _save_current_figure(self, event=None):
         fig = self._specimen_figure(self.s.specimen)
@@ -1417,10 +1475,15 @@ class ExportView:
             pn.Row(self.write_btn, self.validate_btn),
             self.status, self.report,
             section("Fits (.redo)"),
-            pn.pane.HTML(f'<div style="{MUTED_STYLE}">Fits are auto-saved to <code>{AUTOSAVE_NAME}</code> in the '
-                         'output directory after every change and restored on the next load; the legacy Demag GUI '
-                         'reads the same format.</div>'),
+            pn.pane.HTML(f'<div style="{MUTED_STYLE}">Fits and step flags are auto-saved to '
+                         f'<code>{AUTOSAVE_NAME}</code> beside the dataset after every change and restored on the next '
+                         'load. <i>Save .redo</i> writes the legacy Demag GUI format; <i>Load .redo</i> replaces the '
+                         'fits only when the file holds fits of this study.</div>'),
             self.redo_path, pn.Row(self.save_redo_btn, self.load_redo_btn, self.import_btn),
+            section("Messages"),
+            pn.pane.HTML(f'<div style="{MUTED_STYLE}">What reading the data and the last export reported: steps '
+                         'skipped, tables not read, orientations chosen, rows kept.</div>'),
+            self.messages,
         )
         figures = pn.Column(
             section("Publication figures"),

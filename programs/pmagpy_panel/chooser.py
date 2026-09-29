@@ -26,6 +26,7 @@ rather than on a worker thread, so the server keeps serving while it is open.
 """
 from __future__ import annotations
 
+import html
 import os
 import sys
 from typing import Callable, Optional
@@ -193,12 +194,17 @@ class DirectoryChooser:
     def _finish_load(self, target: str) -> bool:
         try:
             ok = self.s.load(target)
+        except Exception as exc:
+            # a session whose load raises instead of answering False must not leave the
+            # dialog saying "Loading ..." for ever with the reason only on the server console
+            ok = False
+            self.s.status = f"Could not open {target}: {html.escape(str(exc) or type(exc).__name__)}"
         finally:
             self.load_btn.disabled = False
             if self.busy is not None:
                 self.busy.loading = False
         if not ok:
-            self.message.object = f'<div style="color:{FAIL_COLOR}">{self.s.status}</div>'
+            self.message.object = f'<div style="color:{FAIL_COLOR}">{html.escape(self.s.status)}</div>'
             return False
         self.message.object = f'<div style="color:{OK_COLOR}">{self.s.status}</div>'
         if self.update_url:
@@ -210,6 +216,17 @@ class DirectoryChooser:
         return True
 
     _load = load          # the name the intensity branch's callers use
+
+    def failure_page(self, directory: str, reason: str) -> pn.Column:
+        """The page for a directory that could not be opened: why, and the dialog to choose another.
+
+        A successful load from here puts the new ``?dir=`` on the URL, so the
+        browser opens the application on that dataset.
+        """
+        self.update_url = True
+        heading = (f'<h2 style="margin:0 0 6px 0">Could not open <code>{html.escape(directory)}</code></h2>'
+                   f'<div style="color:{FAIL_COLOR};margin-bottom:12px">{html.escape(reason)}</div>')
+        return pn.Column(pn.pane.HTML(heading, sizing_mode="stretch_width"), self.modal(), margin=(20, 30))
 
     # ----- layout -----------------------------------------------------------
     def sidebar(self) -> pn.Column:

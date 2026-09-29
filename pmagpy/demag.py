@@ -1384,11 +1384,26 @@ class DemagData:
         if criteria is None or len(criteria) == 0:
             self.criteria = None
             return 0
-        criteria = criteria.fillna("").astype(str)
+        criteria = criteria.fillna("").astype(str).copy()
         names = set(self.CRITERION_NAMES.values())
-        used = [i for i, row in criteria.iterrows()
-                if row.get("criterion", "").strip() in names
-                and mm.split_table_column(row.get("table_column", ""))[0] in ("specimens", "samples", "sites")]
+        used = []
+        for i, row in criteria.iterrows():
+            if row.get("criterion", "").strip() not in names or \
+                    mm.split_table_column(row.get("table_column", ""))[0] not in ("specimens", "samples", "sites"):
+                continue
+            # the variants people write by hand: =< and =>, a degree sign on the value
+            op = {"=<": "<=", "=>": ">=", "≤": "<=", "≥": ">="}.get(row["criterion_operation"].strip(),
+                                                                  row["criterion_operation"].strip())
+            value = row["criterion_value"].strip().rstrip("°").strip()
+            criteria.loc[i, ["criterion_operation", "criterion_value"]] = [op, value]
+            _, _, problem = mm.criterion_mask(pd.Series([""]), op, value)
+            if problem or not op:
+                # a criterion that cannot be evaluated would reject every row: it is set aside, and said so
+                self._warn_once(f"criteria.txt: {row['criterion']} {row['table_column']} {row['criterion_operation']} "
+                                f"{row['criterion_value']!r} cannot be evaluated ({problem or 'no operation'}) "
+                                "and is not applied")
+                continue
+            used.append(i)
         self.criteria = criteria.loc[used].reset_index(drop=True) if used else None
         return len(used)
 
@@ -1750,8 +1765,10 @@ class DemagData:
         rows = []
         n_comps = {s: len(self.components_for(s)) for s in self.specimens}
         # a plane only gains a direction once its site's lines pin it down (MM88),
-        # and that direction differs per coordinate system, as the mean does
-        bfv = {coord: self.best_fit_vectors(coord) for coord in coords}
+        # and that direction differs per coordinate system, as the mean does. Not in
+        # specimen coordinates: the specimens of a site share no frame there, so
+        # combining their directions means nothing
+        bfv = {coord: self.best_fit_vectors(coord) for coord in coords if coord != COORD_SPECIMEN}
         failing = self.failing_components()
         for comp in self.components:
             spec = self.specimens[comp.specimen]
@@ -1763,7 +1780,7 @@ class DemagData:
                 rec.update({"sample": spec.sample, "dir_n_comps": n_comps[comp.specimen]})
                 if (comp.specimen, comp.name) in failing:
                     rec["result_quality"] = "b"
-                vector = bfv[coord].get((comp.specimen, comp.name)) if result.direction_type == "p" else None
+                vector = bfv.get(coord, {}).get((comp.specimen, comp.name)) if result.direction_type == "p" else None
                 if vector is not None:
                     rec["dir_bfv_dec"], rec["dir_bfv_inc"] = round(vector[0], 1), round(vector[1], 1)
                 rows.append(rec)

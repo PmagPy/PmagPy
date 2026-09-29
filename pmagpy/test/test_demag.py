@@ -569,11 +569,11 @@ class TestBestFitVectors:
         mcmurdo.load_components_from_specimens_table()
         table = mcmurdo.specimens_table(coords=(COORD_SPECIMEN, COORD_GEOGRAPHIC))
         planes = table["method_codes"].str.contains("DE-BFP", na=False)
-        assert table.loc[planes, "dir_bfv_dec"].notna().all()
+        geographic = table["dir_tilt_correction"] == COORD_GEOGRAPHIC
+        assert table.loc[planes & geographic, "dir_bfv_dec"].notna().all()
         assert not table.loc[~planes, "dir_bfv_dec"].notna().any()   # never on a line fit
-        # the direction is resolved in each system separately, so the rows differ
-        both = table[planes].groupby("specimen")["dir_bfv_dec"].nunique()
-        assert (both > 1).any()
+        # nor in specimen coordinates, where the specimens of a site share no frame
+        assert not table.loc[planes & ~geographic, "dir_bfv_dec"].notna().any()
 
 
 class TestPolarityAndBinghamMeans:

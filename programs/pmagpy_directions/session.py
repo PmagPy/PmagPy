@@ -175,7 +175,7 @@ class Session(param.Parameterized):
         self.param.specimen.objects = names
         n_warnings = len(data.warnings)
         if n_warnings:
-            message += f"; {n_warnings} warning{'s' if n_warnings > 1 else ''} while reading (see Export → Log)"
+            message += f"; {n_warnings} message{'s' if n_warnings > 1 else ''} from reading (Export → Messages)"
         # one batched update: the views' watchers must see the new dataset, the new
         # specimen and the cleared selection together (a redraw in between would look
         # the old specimen name up in the new dataset)
@@ -497,8 +497,12 @@ class Session(param.Parameterized):
                       levels=("sample", "site", "location"), mean_coord: Optional[int] = None,
                       site_over: str = "specimens", write_measurements: bool = True,
                       analysts: Optional[str] = None, common_polarity: Optional[bool] = None,
-                      flip: Optional[bool] = None, mean_coords=None) -> list[str]:
+                      flip: Optional[bool] = None, mean_coords=None, output_dir: Optional[str] = None) -> list[str]:
         """Write MagIC tables (and a .redo) to ``output_dir``; returns the paths written.
+
+        ``output_dir`` defaults to the session's; another one receives the
+        tables without moving the session's autosave, which stays with the
+        dataset.
 
         Means and poles are written for every coordinate system in
         ``mean_coords`` (default: each of ``coords`` the dataset supports —
@@ -519,13 +523,13 @@ class Session(param.Parameterized):
             mean_coords = (mean_coord,) if mean_coord is not None else self.default_mean_coords()
         common_polarity = self.unify_polarity if common_polarity is None else common_polarity
         flip = self.flip_polarity if flip is None else flip
-        in_place = os.path.realpath(self.output_dir) == os.path.realpath(self.directory)
+        target = os.path.abspath(os.path.expanduser(output_dir)) if output_dir else self.output_dir
+        in_place = self.writes_in_place(target)
         # merge into the tables as they are now: another application (PmagPy Intensity on the
         # same directory) may have exported into them since this study was opened
-        mp.refresh_tables(self.data.contribution, self.output_dir,
+        mp.refresh_tables(self.data.contribution, target,
                           ("specimens", "samples", "sites", "locations"), self.data.warnings)
-        stage = mp.StagedExport(self.output_dir, backup=os.path.join(self.output_dir, self.BACKUP_DIR),
-                                originals=in_place)
+        stage = mp.StagedExport(target, backup=os.path.join(target, self.BACKUP_DIR), originals=in_place)
         with stage:
             self.data.write_specimens(stage.dir, coords=coords, analysts=analysts)
             if write_measurements:
@@ -536,9 +540,14 @@ class Session(param.Parameterized):
                                       common_polarity=common_polarity, flip=flip)
             self.data.write_redo(os.path.join(stage.dir, REDO_NAME), current_specimen=self.specimen)
         written = list(stage.written)
-        written += mp.copy_companion_tables(self.directory, self.output_dir, skip=written)
+        written += mp.copy_companion_tables(self.directory, target, skip=written)
         self.last_backup = stage.backed_up
         return written
+
+    def writes_in_place(self, output_dir: Optional[str] = None) -> bool:
+        """True when an export to ``output_dir`` (default: the session's) replaces the study's own tables."""
+        target = output_dir or self.output_dir
+        return bool(self.directory) and os.path.realpath(target) == os.path.realpath(self.directory)
 
     def default_mean_coords(self) -> tuple:
         """Coordinate systems for means, VGPs and poles: geographic and tilt-corrected where the
