@@ -127,10 +127,15 @@ def start_server(edition: Edition, port: int, report=lambda text: None):
 def _folder_dialog_for(window):
     """pywebview's folder dialog as the runtime's ``(start, prompt) -> path`` callable."""
     import webview
+    # pywebview 5 named the dialog types FileDialog.FOLDER; the module-level FOLDER_DIALOG
+    # still answers in 6 but logs a deprecation warning on every use and is to be removed
+    folder = getattr(getattr(webview, "FileDialog", None), "FOLDER", None)
+    if folder is None:
+        folder = webview.FOLDER_DIALOG
 
     def choose(start: Optional[str], prompt: str) -> Optional[str]:
         start = start if start and os.path.isdir(start) else os.path.expanduser("~")
-        chosen = window.create_file_dialog(webview.FOLDER_DIALOG, directory=start)
+        chosen = window.create_file_dialog(folder, directory=start)
         if not chosen:
             return None
         first = chosen[0] if isinstance(chosen, (list, tuple)) else chosen

@@ -180,6 +180,44 @@ class TestDesktop:
             runtime.set_folder_dialog(None)
         assert runtime.folder_dialog() is None
 
+    def test_the_windows_folder_dialog_asks_for_a_folder_and_answers_with_it(self, monkeypatch, tmp_path):
+        """_folder_dialog_for: pywebview's dialog, in folder mode, as runtime's (start, prompt) -> path."""
+        import sys
+        import types
+        calls = []
+
+        class FakeWindow:
+            answer = (str(tmp_path / "chosen"),)
+
+            def create_file_dialog(self, dialog_type, directory=""):
+                calls.append((dialog_type, directory))
+                return self.answer
+
+        class FileDialog:
+            OPEN, FOLDER, SAVE = 10, 20, 30
+
+        fake = types.ModuleType("webview")
+        fake.FileDialog = FileDialog                     # no FOLDER_DIALOG: the deprecated name is not used
+        monkeypatch.setitem(sys.modules, "webview", fake)
+        window = FakeWindow()
+        choose = desktop._folder_dialog_for(window)
+        assert choose(str(tmp_path), "Choose a directory") == str(tmp_path / "chosen")
+        assert calls[-1] == (20, str(tmp_path))
+        monkeypatch.setattr(desktop.os.path, "expanduser", lambda p: str(tmp_path) if p == "~" else p)
+        choose("/no/such/folder", "Choose")
+        assert calls[-1][1] == str(tmp_path)                                # a missing start opens at home
+        window.answer = None
+        assert choose(str(tmp_path), "Choose") is None                      # cancelled
+        window.answer = str(tmp_path / "one")                                # a bare string, as some backends return
+        assert choose(str(tmp_path), "Choose") == str(tmp_path / "one")
+        # an older pywebview, with only the module-level constant
+        old = types.ModuleType("webview")
+        old.FOLDER_DIALOG = 20
+        monkeypatch.setitem(sys.modules, "webview", old)
+        window.answer = [str(tmp_path / "two")]
+        assert desktop._folder_dialog_for(window)(str(tmp_path), "Choose") == str(tmp_path / "two")
+        assert calls[-1][0] == 20
+
     def test_headless_main_serves_and_stops(self, monkeypatch, tmp_path):
         """--no-window: the mode the packaged build is checked in."""
         monkeypatch.setattr(datasets, "SHARED_RECENT_FILE", str(tmp_path / "recent.json"))
