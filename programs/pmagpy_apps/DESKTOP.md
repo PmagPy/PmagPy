@@ -55,8 +55,15 @@ pmagpy_apps.spec                             the PyInstaller specification (repo
 setup_scripts/build_pmagpy_apps.sh           build, ad-hoc sign, optionally zip
 ```
 
-In a conda environment with `pmagpy[apps]` plus `pyinstaller` and `pywebview`
-(the `demag-playground` environment has both):
+In a conda environment with `pmagpy[apps]` plus `pyinstaller` (conda-forge) and
+`pywebview` (pip: conda-forge builds pywebview for Windows and Linux only; on a Mac
+pip brings the pyobjc frameworks it needs). The build script uses the environment
+named by `PMAGPY_BUILD_ENV` (default `pmagpy-directions`) and puts this tree first
+on the path, so neither an editable install of another checkout nor an active
+virtualenv decides what is built. Build from a clean tree -- a `git archive` export
+or a checkout without stray files: the McMurdo example is bundled from
+`data_files/3_0/McMurdo` as it is on disk (the trim leaves out any autosave, backup
+or working-copy marker a session left there, see `bundle.py`).
 
 ```bash
 setup_scripts/build_pmagpy_apps.sh --zip                     # → dist/PmagPy Apps.app and a zip beside it
@@ -96,7 +103,7 @@ PMAGPY_DIRECTIONS_CHOOSER_STUB=$PWD/data_files/3_0/McMurdo \
 PMAGPY_APPS_OUTPUT=/tmp/out \
   "dist/PmagPy Apps.app/Contents/MacOS/PmagPy Apps" --no-window --port 5166 &
 python programs/pmagpy_apps/bundle_audit.py http://localhost:5166 \
-  "$PWD/dist/PmagPy Apps.app/Contents/Frameworks/data_files/3_0/McMurdo"   # no bundled 404s
+  "$PWD/dist/PmagPy Apps.app/Contents/Resources/data_files/3_0/McMurdo"    # no bundled 404s
 python programs/pmagpy_apps/bundle_audit.py --libs "dist/PmagPy Apps.app"  # no dropped library is linked
 (cd programs/pmagpy_directions && python ui_test.py http://localhost:5166/pmagpy_directions /tmp/shots/dir)
 (cd programs/pmagpy_intensity && python ui_test.py "http://localhost:5166/pmagpy_intensity?dir=/path/to/a/study" /tmp/shots/int)
@@ -106,7 +113,10 @@ python programs/pmagpy_apps/bundle_audit.py --libs "dist/PmagPy Apps.app"  # no 
 
 An untrimmed build was 372 MB on disk and 145 MB zipped; about half of it was
 material the applications never touch. Trimmed, PmagPy Apps.app is 213 MB on
-disk and 92 MB zipped (2026-09-18). `pmagpy_apps.spec` therefore trims the
+disk and 92 MB zipped (2026-09-18); 212 MiB on disk (215 MB of files) and 90 MB
+zipped on 2026-09-29, with Panel 1.9.4, Bokeh 3.9.2, Python 3.12.14, PyInstaller
+6.22.3 and pywebview 6.2.1 (`du -h` of the zip reads 97M: it counts allocation
+blocks). PmagPy Directions.app is 1 MB smaller. `pmagpy_apps.spec` therefore trims the
 bundle by the rules in [`bundle.py`](bundle.py), whose docstring is the full
 account. In short: Panel's bundled JavaScript is cut to the components the
 family renders (the Fast template, Tabulator, the ES-module shim), the
@@ -116,7 +126,8 @@ libraries), and plotly, Tcl/Tk and pyzmq are excluded. Pillow's text-shaping
 chain, WebP and the X11 client libraries stay: matplotlib, libtiff and Pillow
 link them in conda-forge's builds, and the first trimmed build failed to import
 without them. Every file removed is listed in `build/pmagpy_apps/trim_report.txt`
-after a build, and the spec prints the same report; the build script then
+after a build (the build script keeps a copy per edition, `build/trim_report-<edition>.txt`,
+since both editions share that work folder), and the spec prints the same report; the build script then
 removes the dangling symlinks PyInstaller leaves for the dropped libraries'
 versioned aliases.
 
@@ -135,7 +146,9 @@ the drop list, which is how the three chains above were found.
 
 The Fast theme asks Google Fonts for Open Sans; offline that request fails
 quietly and the system font is used. Nothing else in the page reaches the
-network.
+network, except a conversion: the converters ask earthref.org for the current
+data model and method codes, and use the bundled copies when it cannot be
+reached (checked with the network blocked: a TDT conversion took under a second).
 
 ## Signing, and what an unsigned build means
 
@@ -152,9 +165,12 @@ they are signed.
 ## Where the time goes at start-up
 
 The splash is up within about a second of the double-click (Python's boot plus
-pywebview). Behind it, importing Panel, Bokeh, pandas and pmagpy takes two to
-three seconds and the server is ready a moment after that; the start page has
-no dataset to read, so it appears as soon as the server answers. Opening
+pywebview): 0.6-0.7 s on an M1 Max, 2.2 s the first time a new build is
+opened. Behind it, importing Panel, Bokeh, pandas and pmagpy takes two to
+three seconds and the server is ready a moment after that (`--no-window`
+prints "ready" 1.9-2.5 s after launch); the start page has
+no dataset to read, so it appears as soon as the server answers (2.6-3.1 s
+after the double-click, 4.8 s for the first launch of a new build). Opening
 McMurdo (1,034 specimens) in PmagPy Directions is then about a second for the
 data and another for the page; its 396 Thellier specimens take PmagPy Intensity
 a few seconds more, behind the header and a spinner. Both loaders read the
