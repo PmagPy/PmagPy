@@ -1058,25 +1058,37 @@ def ptrm_check_statistics(exp: Experiment, start: int, end: int) -> Dict[str, St
 def _delta_pal(exp: Experiment, start: int, end: int, fit: dict) -> Stat:
     """delta_pal (Leonhardt et al., 2004a): slope change after correcting for alteration.
 
-    The vector difference between each pTRM check and the original pTRM is
-    accumulated along the experiment, added to the pTRM vectors, and the
-    Arai slope recomputed. Needs the pTRM *vectors*; with scalar checks only,
-    it cannot be computed.
+    Each pTRM is corrected for the alteration the pTRM checks at lower
+    temperatures reveal (Valet et al., 1996): the vector differences
+    ``TRM_l - pTRM check_l`` of those checks are accumulated and added to it,
 
-    Note on the sign: SPD v1.2.0 prints the vector difference as
-    ``TRM_l - pTRM check_l``, the opposite way round from the scalar
-    ``dpTRM = check - x`` used everywhere else in the document. The SPD
-    reference implementation and the published calibration table both use
-    ``check - TRM``, which is what is implemented here -- it reproduces the
-    20 calibration values exactly, the printed form does not. See
-    ``docs/paleointensity_literature_audit.md``. ThellierTool and the Valet
-    et al. (1996) correction subtract the cumulative difference instead;
-    which convention to adopt is an open question (PmagPy/PmagPy#246).
+        TRM*_i = TRM_i + C_(i-1),  C_i = sum_(l <= i) (TRM_l - check_l),
+
+    and the Arai slope recomputed with the corrected pTRMs; delta_pal =
+    |(b - b*)/b| x 100. Needs the pTRM *vectors*; with scalar checks only, it
+    cannot be computed.
+
+    The sign is that of the SPD v1.2.0 text (section 5.3, and the SPD website),
+    of paleointensity.org and of ThellierTool: a check that has gained on its
+    pTRM (alteration increasing the pTRM capacity) *reduces* the later pTRMs.
+    The SPD example code (``SPD.m``) and the published calibration table, which
+    the legacy SPD module of Thellier GUI followed, add the difference the other
+    way round -- the source of the difference from ThellierTool reported in
+    PmagPy/PmagPy#246.
+
+    The correction of step i uses the checks at *lower* temperatures only
+    (``C_(i-1)``), as ThellierTool and ``SPD.m`` do: the check at T_i is
+    measured after a higher heating, so the alteration it shows happened after
+    TRM_i was acquired. (The SPD text and paleointensity.org write ``C_i``,
+    which includes it; that is asked in #246.) Where a step has several checks
+    the first is used, as ThellierTool and the legacy module do. With these
+    choices ThellierTool's delta_pal is reproduced for the SPD calibration
+    specimens.
 
     The first Arai point is left as it is, ``TRM*_1 = TRM_1`` (SPD v1.2.0,
     section 5.3): no check precedes it. That matters only when the first
     point carries a pTRM -- a study without an NRM step, or with the NRM
-    flagged bad -- and setting it to zero there moved the corrected slope.
+    flagged bad.
     """
     if exp.trm_vectors is None:
         return na("delta_pal", "the pTRM vectors were not recorded")
@@ -1085,9 +1097,11 @@ def _delta_pal(exp: Experiment, start: int, end: int, fit: dict) -> Stat:
         return na("delta_pal", "the pTRM check vectors were not recorded")
     trm = np.asarray(exp.trm_vectors, dtype=float)
     to_sum = np.zeros_like(trm)
+    corrected = set()
     for c in checks:
-        if 0 <= c.i < len(trm):
-            to_sum[c.i] = np.asarray(c.vector, dtype=float) - trm[c.i]
+        if 0 <= c.i < len(trm) and c.i not in corrected:      # the first check of a step
+            to_sum[c.i] = trm[c.i] - np.asarray(c.vector, dtype=float)
+            corrected.add(c.i)
     cumulative = np.cumsum(to_sum, axis=0)
     corr = np.zeros(len(trm))
     corr[0] = float(np.linalg.norm(trm[0]))
@@ -1866,7 +1880,8 @@ CATALOG: Dict[str, StatSpec] = dict([
           SPD14, SPD14_DOI, "", "low", 1),
     _spec("delta_pal", "dpal", "pTRM check",
           "Change in slope after correcting the pTRMs for cumulative alteration.",
-          "dpal = 100 (b - b*) / b", "%", "Leonhardt et al. (2004a); Valet et al. (1996)",
+          "dpal = 100 |b - b*| / |b|, b* from TRM*_i = TRM_i + sum_(l<i) (TRM_l - check_l)", "%",
+          "Leonhardt et al. (2004a); Valet et al. (1996)",
           "10.1029/2004GC000807", "int_dpal", "low", 1),
     # --- tail checks -------------------------------------------------------
     _spec("n_tail", "n tail", "pTRM tail check", "Number of pTRM tail checks used.", "", "",

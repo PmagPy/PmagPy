@@ -259,11 +259,27 @@ calibration test. Both are recorded so a reader can decide which they want.
 ### 6.1 `δpal`: the sign of the vector difference
 
 §5.3 prints `δpTRM_l,j = TRM_l − pTRM check_l,j` for the *vector* difference,
-the opposite way round from the *scalar* `δpTRM = check − x` used throughout the
-rest of the document. The printed form gives 25.4 for specimen 187A against a
-published 41.4; `check − TRM` gives 41.37. The reference MATLAB and the
-published table use `check − TRM`. **Implemented:** `check − TRM`. Documented in
-the function's docstring.
+and corrects the pTRMs by adding its cumulative sum: a check that has gained on
+its pTRM (alteration raising the pTRM capacity) reduces the later pTRMs, which
+is the correction of Valet et al. (1996). paleointensity.org (Béguin et al.,
+2020, doi:10.1029/2019GC008791; `sc_checks.py`) and ThellierTool
+(`CheckCorrection`) correct the same way. The SPD example MATLAB code (`SPD.m`
+in the SPD website's `DL/SPD_Example_Code.zip`) and the published calibration
+table use `check − TRM` instead, adding the gain to the later pTRMs; PmagPy's
+legacy SPD module, which Thellier GUI used, ports that code. The printed form
+gives 25.4 for specimen 187A (ThellierTool: 25.40), the example code 41.4.
+
+**Implemented (since the issue #246 review):** `TRM − check`, as the text,
+paleointensity.org and ThellierTool. The correction of step *i* uses the checks
+at lower temperatures, `C_(i−1)`, as ThellierTool and `SPD.m` do (the check at
+T_i is measured after a higher heating); the text and paleointensity.org write
+`C_i`. With the first check of a step used, ThellierTool's δpal is reproduced
+for 18 of the 19 calibration specimens with checks (AL2770-3b, where
+ThellierTool also reverses the correction when the pTRM turns by more than 90°,
+is the exception). The calibration test takes δpal from ThellierTool, not from
+the published table; a synthetic test checks that the correction restores the
+unaltered slope. The sign and the index are put to the SPD maintainers in
+PmagPy/PmagPy#246.
 
 ### 6.2 `S`: data variance or measurement variance
 

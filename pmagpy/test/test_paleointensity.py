@@ -464,7 +464,7 @@ SPD_COLUMNS = {
     "dCK": "dCK", "DRAT": "DRAT", "maxDEV": "maxDEV", "CDRAT": "CDRAT",
     "CDRAT_prime": "CDRAT'", "DRATS": "DRATS", "DRATS_prime": "DRATS'",
     "mean_DRAT": "Mean DRAT", "mean_DRAT_prime": "Mean DRAT'", "mean_DEV": "Mean DEV",
-    "mean_DEV_prime": "Mean DEV'", "delta_pal": "dpal", "n_tail": "nTail",
+    "mean_DEV_prime": "Mean DEV'", "n_tail": "nTail",
     "DRAT_tail": "DRATTail", "dTR": "dTR", "MD_VDS": "MDVDS", "n_add": "nAdd", "dAC": "dAC",
 }
 
@@ -492,6 +492,32 @@ class TestSpdCalibration:
             if abs(got - float(want)) > tolerance:
                 bad.append((name, float(want), round(got, 4)))
         assert not bad, f"{key}: {bad}"
+
+    #: delta_pal of the calibration specimens as ThellierTool computes it (a line-by-line port of
+    #: CheckCorrection, github.com/leonro/ThellierTool at bb8470f): the published table's values come
+    #: from the SPD example code, which adds the check difference the other way round (see
+    #: pint_stats._delta_pal and PmagPy/PmagPy#246). AL2770-3b is left out: ThellierTool also
+    #: reverses the correction where the pTRM turns by more than 90 degrees, which SPD does not
+    THELLIERTOOL_DELTA_PAL = {
+        "187A": 25.40, "283A": 32.64, "A-3-3": 9.55, "BR06-4F": 1.38, "C-4-4L": 1.74,
+        "HEL2-2d": 4.17, "KF-3-1": 10.38, "LV6C3A": 5.10, "m428b1": 0.97, "MSH6E13": 16.33,
+        "P1MY": 1.51, "RD2358-4f": 8.26, "RS25b": 2.79, "RS26a": 3.80, "RS26e": 3.69,
+        "TS01-20A-2": 3.83, "VM1F": 11.61, "W3": 6.35}
+
+    def test_delta_pal_is_thelliertools(self, spd_results):
+        bad = []
+        for name, want in self.THELLIERTOOL_DELTA_PAL.items():
+            data, specimen, _ = spd_results[name]
+            got = float(data.statistics(specimen)["delta_pal"])
+            if abs(got - want) > max(0.02 * want, 0.06):
+                bad.append((name, want, round(got, 3)))
+        assert not bad, bad
+
+    def test_delta_pal_is_not_the_published_tables(self, spd_results):
+        # the published value of 283A (82.7) is the other sign convention's
+        data, specimen, reference = spd_results["283A"]
+        assert float(reference["dpal"]) == pytest.approx(82.7, abs=0.05)
+        assert float(data.statistics(specimen)["delta_pal"]) == pytest.approx(32.64, abs=0.1)
 
     def test_the_intensity_matches_where_no_correction_is_needed(self, spd_results):
         corrected = {"m428b1", "RS25b", "RS26a", "RS26e"}

@@ -166,10 +166,10 @@ class TestDeltaPalFirstPoint:
         exp = ps.Experiment(x=x, y=y, temps=np.arange(5) * 50.0 + 473.0, nrm_vectors=nrm,
                             trm_vectors=trm, ptrm_checks=[check])
         got = float(ps.ptrm_check_statistics(exp, 0, 4)["delta_pal"])
-        # by hand: TRM*_1 = TRM_1; the check difference accumulated from step 2 on
-        # is added to the pTRMs after it (the reference implementation's C_{i-1})
+        # by hand: TRM*_1 = TRM_1; the difference TRM - check accumulated from step 2 on
+        # corrects the pTRMs after it (C_{i-1}, as ThellierTool)
         to_sum = np.zeros_like(trm)
-        to_sum[1] = check.vector - trm[1]
+        to_sum[1] = trm[1] - check.vector
         cumulative = np.cumsum(to_sum, axis=0)
         corr = np.array([np.linalg.norm(trm[0])] +
                         [np.linalg.norm(trm[j] + cumulative[j - 1]) for j in range(1, 5)])
@@ -547,3 +547,26 @@ class TestSiteMeans:
 def test_a_microwave_study_is_refused_with_the_reason():
     with pytest.raises(ValueError, match="microwave"):
         pi.PintData.from_directory(MICROWAVE)
+
+
+class TestDeltaPalRemovesTheAlteration:
+    def test_the_corrected_ptrms_are_the_unaltered_ones(self):
+        # an ideal Arai line; after step 2 the specimen alters and every later pTRM gains the
+        # same vector gain, which the pTRM check at step 2 (measured after the step-3 heating)
+        # reads: TRM_2 + gain. Correcting the later pTRMs by TRM - check restores the ideal
+        # line, so b* is the unaltered slope -- the Valet et al. (1996) correction; the
+        # opposite sign would double the alteration instead
+        n = 6
+        ideal = np.linspace(0.0, 1.0, n)
+        y = 1.0 - ideal
+        gain = np.array([0.0, 0.0, 0.08])
+        trm = np.column_stack([np.zeros(n), np.zeros(n), ideal])
+        trm[3:] += gain
+        check = ps.PtrmCheck(i=2, j=3, x=float(np.linalg.norm(trm[2] + gain)), vector=trm[2] + gain)
+        exp = ps.Experiment(x=np.linalg.norm(trm, axis=1), y=y, temps=np.arange(n) * 50.0 + 373.0,
+                            nrm_vectors=np.column_stack([y, np.zeros(n), np.zeros(n)]),
+                            trm_vectors=trm, ptrm_checks=[check])
+        b = ps.york_regression(exp.x, y)["b"]
+        b_ideal = ps.york_regression(ideal, y)["b"]
+        got = float(ps.ptrm_check_statistics(exp, 0, n - 1)["delta_pal"])
+        assert got == pytest.approx(abs(100 * (b - b_ideal) / b), rel=1e-9)
