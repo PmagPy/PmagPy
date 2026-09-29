@@ -9725,7 +9725,7 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
                 return_new_dirs=False, return_values=False, figprefix='EI',
                 num_resample_to_plot=1000, EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05,
                  vgp_nb=100, cmap='viridis_r', central_longitude=0, central_latitude=0,
-                 random_seed=None):
+                 random_seed=None, return_poles=False):
     """
     Applies series of assumed flattening factor and "unsquishes" inclinations assuming tangent function.
     Finds flattening factor that gives elongation/inclination pair consistent with TK03
@@ -9761,6 +9761,11 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
         EI_color: the color of the EI curve associated with the most frequent f value (rounded to 2 decimal points, default is red)
         resample_EI_color: the color of the EI curves for all f values except for the most frequent f (default is grey)
         resample_EI_alpha: the transparency of the EI curves for all f values except for the most frequent f (default is grey)
+        random_seed : None, int, or numpy.random.Generator, optional
+            Seed for reproducible resampling (default None).
+        return_poles : if True, also return the nb*vgp_nb resampled mean pole longitudes and latitudes
+            from which the Kent distribution is calculated, appended after the other returned values
+            (default is False)
 
     Returns:
         four plots :  
@@ -9928,15 +9933,19 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
 
     if return_new_dirs and return_values :
         unsquished_incs = unsquish(incs, flat_f)
-        return make_di_block(decs, unsquished_incs), kent_stats, I, E, F
-    
+        results = [make_di_block(decs, unsquished_incs), kent_stats, I, E, F]
     elif return_new_dirs:
         unsquished_incs = unsquish(incs, flat_f)
-        return make_di_block(decs, unsquished_incs)
+        results = [make_di_block(decs, unsquished_incs)]
     elif return_values:
-        return kent_stats, I, E, F
+        results = [kent_stats, I, E, F]
     else:
-        return kent_stats
+        results = [kent_stats]
+    if return_poles:
+        results.extend([mean_lons, mean_lats])
+    if len(results) == 1:
+        return results[0]
+    return tuple(results)
 
 
 # Measured flattening factors compiled by Pierce et al. (2022, Table S1,
