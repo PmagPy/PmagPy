@@ -11,6 +11,7 @@ parameters (Ms, Mr, Bc, chi_HF) provide analytical expectations.
 import numpy as np
 import pandas as pd
 import pytest
+import warnings
 
 from pmagpy import rockmag as rmag
 
@@ -18,21 +19,75 @@ from pmagpy import rockmag as rmag
 RNG = np.random.default_rng(2026)
 
 
+def _hard_switching_fields(hard_Bc, hard_w, n_hysterons=4000):
+    """Switching fields and weights of the hard-phase hysteron ensemble:
+    normally distributed about hard_Bc with spread hard_w, truncated at
+    zero, on a fine grid so the summed loop is smooth."""
+    b = np.linspace(max(hard_Bc - 4 * hard_w, 1e-6), hard_Bc + 4 * hard_w,
+                    n_hysterons)
+    weights = np.exp(-0.5 * ((b - hard_Bc) / hard_w) ** 2)
+    return b, weights / weights.sum()
+
+
+def _hard_phase(H_sweep, hard_Ms, hard_Bc, hard_w):
+    """Irreversible moment of a hard phase along a measured field sweep.
+
+    The phase is an ensemble of square hysterons (Preisach-style) whose
+    switching fields b are distributed by `_hard_switching_fields`; each
+    is +1 once the field has reached +b and -1 once it has reached -b,
+    and its state is tracked point by point along the sweep, so the
+    ascending branch continues from where the descending branch ended
+    and the loop closes at the tips. Grains whose switching field exceeds
+    the peak field never switch: their net moment is zero (half up, half
+    down in the ensemble) and they contribute nothing to Mrh, which is
+    what an unsaturated hard phase looks like on a real minor loop --
+    branches separated at high field, converging only at the turning
+    points. The sweep is assumed to start at +Hmax, so hysterons with
+    b <= Hmax start in the +1 state.
+    """
+    H_sweep = np.asarray(H_sweep, dtype=float)
+    b, weights = _hard_switching_fields(hard_Bc, hard_w)
+    Hmax = np.max(np.abs(H_sweep))
+    state = np.where(b <= Hmax, 1.0, 0.0)
+    M = np.empty(H_sweep.size)
+    for i, h in enumerate(H_sweep):
+        state = np.where(h >= b, 1.0, np.where(h <= -b, -1.0, state))
+        M[i] = hard_Ms * np.sum(weights * state)
+    return M
+
+
+def _hard_phase_stats(hard_Bc=0.9, hard_w=0.2, Hmax=1.0, HF_cutoff=0.8,
+                      max_field_cutoff=0.99):
+    """Closed-form properties of the hard phase per unit hard_Ms: 'P', the
+    weight of switching fields at or below Hmax (its remanence and the
+    moment it exhibits at the peak field), and 'S_bar', the window mean of
+    Mrh, i.e. of the weight of switching fields between H and Hmax."""
+    b, weights = _hard_switching_fields(hard_Bc, hard_w)
+    H = np.linspace(HF_cutoff * Hmax, max_field_cutoff * Hmax, 2000)
+    P = float(np.sum(weights[b <= Hmax]))
+    S_bar = float(np.mean([np.sum(weights[(b > h) & (b <= Hmax)]) for h in H]))
+    return {'P': P, 'S_bar': S_bar}
+
+
 def synthetic_loop(n_half=200, Hmax=1.0, Ms=1.0, Bc=0.05, w=0.03, chi=0.0,
                    noise=0.0, H_offset=0.0, M_offset=0.0, drift=0.0,
-                   hard_Ms=0.0, hard_Bc=0.7, hard_w=0.5,
+                   hard_Ms=0.0, hard_Bc=0.9, hard_w=0.2,
                    ats_alpha=0.0, rng=RNG):
     """Two-branch synthetic loop measured +Hmax -> -Hmax -> +Hmax.
 
-    The ferromagnetic component is Ms*tanh((H +/- Bc)/w), so the remanence is
-    Mr = Ms*tanh(Bc/w) and the branch zero crossings are at -/+Bc when no
-    other contributions are added. Optional contributions:
+    The soft ferromagnetic component is Ms*tanh((H +/- Bc)/w), so the
+    remanence is Mr = Ms*tanh(Bc/w) and the branch zero crossings are at
+    -/+Bc when no other contributions are added (the branches must have
+    converged before the tips, Hmax - Bc >> w, for the loop to be a
+    possible measurement). Optional contributions:
       chi       linear (paramagnetic) slope in raw slope units (M per T)
       noise     gaussian measurement noise
       H_offset  horizontal loop shift (e.g. sensor offset)
       M_offset  vertical loop shift
       drift     linear-in-time drift amplitude accumulated over the loop
-      hard_Ms   wide-coercivity component that stays open at Hmax
+      hard_Ms   hard phase (`_hard_phase`): hysterons with switching fields
+                about hard_Bc +/- hard_w; those above Hmax never switch, so
+                the loop is open at high field yet closed at the tips
       ats_alpha approach-to-saturation curvature -alpha/H applied smoothly
                 above 0.3*Hmax (unsaturated ferromagnetic moment)
     """
@@ -41,8 +96,6 @@ def synthetic_loop(n_half=200, Hmax=1.0, Ms=1.0, Bc=0.05, w=0.03, chi=0.0,
 
     def branch(H, sign):
         M = Ms * np.tanh((H + sign * Bc) / w)
-        if hard_Ms != 0.0:
-            M = M + hard_Ms * np.tanh((H + sign * hard_Bc) / hard_w)
         if ats_alpha != 0.0:
             # curvature only where the tanh is saturated, tapering smoothly
             # to zero below 0.3*Hmax so low fields are not distorted
@@ -52,6 +105,8 @@ def synthetic_loop(n_half=200, Hmax=1.0, Ms=1.0, Bc=0.05, w=0.03, chi=0.0,
 
     H = np.concatenate([H_upper, H_lower]) + H_offset
     M = np.concatenate([branch(H_upper, +1), branch(H_lower, -1)]) + M_offset
+    if hard_Ms != 0.0:
+        M = M + _hard_phase(np.concatenate([H_upper, H_lower]), hard_Ms, hard_Bc, hard_w)
     M = M + drift * np.linspace(0, 1, M.size)
     if noise:
         M = M + noise * rng.standard_normal(M.size)
@@ -130,9 +185,9 @@ class TestTurningPointAndPlateaus:
         gH, gM = rmag.grid_hyst_loop(H_rep, M_rep)
         upper, lower = rmag.split_hyst_loop(gH, gM)
         assert np.allclose(upper[0], lower[0])
-        Hu, Mr, Mrh, Mih, Me, Brh = rmag.calc_Mr_Mrh_Mih_Brh(gH, gM)
+        Hu, Mr, Mrh, Mih, Me, Brh = rmag.hyst_loop_components(gH, gM)
         assert Mr == pytest.approx(Ms * np.tanh(Bc / w), rel=0.01)
-        assert rmag.calc_Bc(gH, gM) == pytest.approx(Bc, abs=1e-3)
+        assert rmag.hyst_coercivity(gH, gM) == pytest.approx(Bc, abs=1e-3)
 
 
 class TestInputHandling:
@@ -239,7 +294,7 @@ class TestQualityFactor:
         # the equation printed in that paper omits the square root
         H, M = synthetic_loop(noise=1e-3)
         gH, gM = rmag.grid_hyst_loop(H, M)
-        _, Q = rmag.calc_Q(gH, gM)
+        _, Q = rmag.hyst_quality_factor(gH, gM)
         r2 = rmag._loop_H_off(gH, gM, 0.0)['r2']
         Q_expected = np.log10(1.0 / np.sqrt(1.0 - r2))
         assert Q == pytest.approx(Q_expected, abs=0.05)
@@ -249,7 +304,7 @@ class TestQualityFactor:
         for noise in [1e-4, 1e-3, 1e-2]:
             H, M = synthetic_loop(noise=noise)
             gH, gM = rmag.grid_hyst_loop(H, M)
-            Qs.append(rmag.calc_Q(gH, gM)[1])
+            Qs.append(rmag.hyst_quality_factor(gH, gM)[1])
         assert Qs[0] > Qs[1] > Qs[2]
         # tenfold noise increase lowers the amplitude-ratio Q by ~1
         assert Qs[0] - Qs[1] == pytest.approx(1.0, abs=0.15)
@@ -279,7 +334,7 @@ class TestCentering:
         H, M = synthetic_loop(noise=5e-4, H_offset=0.004, M_offset=0.02)
         gH, gM = rmag.grid_hyst_loop(H, M)
         results = rmag.hyst_loop_centering(gH, gM)
-        Bc = rmag.calc_Bc(results['centered_H'], results['centered_M'])
+        Bc = rmag.hyst_coercivity(results['centered_H'], results['centered_M'])
         assert Bc == pytest.approx(0.05, abs=1e-3)
 
 
@@ -305,7 +360,7 @@ class TestSaturationTest:
         # near 1 (pure noise) in all high-field windows
         H, M = synthetic_loop(noise=5e-4, chi=0.2)
         gH, gM = rmag.grid_hyst_loop(H, M)
-        results = rmag.hyst_loop_saturation_test(gH, gM)
+        results = rmag.hyst_saturation_test(gH, gM)
         assert results['loop_is_saturated']
         for key in ['FNL60', 'FNL70', 'FNL80']:
             assert results[key] < 2.5
@@ -314,23 +369,131 @@ class TestSaturationTest:
     def test_unsaturated_loop(self):
         H, M = synthetic_loop(noise=1e-4, chi=0.2, ats_alpha=0.1)
         gH, gM = rmag.grid_hyst_loop(H, M)
-        results = rmag.hyst_loop_saturation_test(gH, gM)
+        results = rmag.hyst_saturation_test(gH, gM)
         assert not results['loop_is_saturated']
-        assert results['FNL60'] > 2.5
-        assert results['saturation_cutoff'] == 0.92
+        assert results['FNL60'] > results['F_critical60']
+        assert results['p60'] < 0.05
+        assert results['saturation_cutoff'] is None
+        assert results['testable']
+
+    def test_thresholds_are_F_critical_values(self):
+        # the decision compares FNL with the F distribution at the window's
+        # degrees of freedom (Jackson and Solheid, 2010; HystLab), not a
+        # fixed constant: for a dense loop the 95% critical value is well
+        # below the former fixed threshold of 2.5
+        from scipy.stats import f as fdist
+        H, M = synthetic_loop(noise=5e-4, chi=0.2)
+        gH, gM = rmag.grid_hyst_loop(H, M)
+        for cutoff in (0.6, 0.7, 0.8):
+            st = rmag.hyst_hf_linearity_stats(gH, gM, HF_cutoff=cutoff)
+            n = st['n_pairs']
+            assert st['F_critical'] == pytest.approx(fdist.ppf(0.95, n - 2, n))
+            assert st['p_value'] == pytest.approx(fdist.sf(st['FNL'], n - 2, n))
+            assert st['F_critical'] < 2.0
+        strict = rmag.hyst_hf_linearity_stats(gH, gM, HF_cutoff=0.8, alpha=0.01)
+        assert strict['F_critical'] > st['F_critical']
+        # the whole-loop test likewise
+        lin = rmag.hyst_linearity_test(gH, gM)
+        n_half = len(gH) / 2
+        assert lin['F_critical'] == pytest.approx(fdist.ppf(0.95, n_half - 2, n_half))
+        assert lin['loop_is_linear'] == (lin['FNL'] < lin['F_critical'])
+
+    def test_widest_linear_window_is_used(self):
+        # Jackson and Solheid (2010, paragraph 40): the nonlinear fit is
+        # required only when every window rejects linearity; otherwise the
+        # linear fit is taken over the widest window that is linear
+        H, M = synthetic_loop(noise=5e-4, chi=0.2)
+        gH, gM = rmag.grid_hyst_loop(H, M)
+        results = rmag.hyst_saturation_test(gH, gM)
+        linear = [c for c in (0.6, 0.7, 0.8)
+                  if results[f'FNL{int(c*100)}'] < results[f'F_critical{int(c*100)}']]
+        assert results['saturation_cutoff'] == min(linear)
+
+    def test_windows_with_few_measurements_are_untestable(self, capsys):
+        # an MPMS-style loop with 0.5 T steps above 1 T on a 2.5 T sweep:
+        # gridding at the median (low-field) step fabricates points in the
+        # high-field windows and the pure-error term collapses; with the
+        # measured fields supplied the windows are reported as untestable
+        Hmax = 2.5
+        up = np.concatenate([np.linspace(Hmax, 1.0, 4), np.linspace(0.9, -0.9, 91),
+                             np.linspace(-1.0, -Hmax, 4)])
+        H = np.concatenate([up, up[::-1]])
+        M = np.tanh(H / 0.05) + 0.2 * H
+        gH, gM = rmag.grid_hyst_loop(H, M)
+        blind = rmag.hyst_saturation_test(gH, gM)
+        assert blind['FNL80'] > 100          # the degenerate value
+        with pytest.warns(RuntimeWarning, match='measured points'):
+            guarded = rmag.hyst_saturation_test(gH, gM, measured_field=H)
+        assert np.isnan(guarded['FNL80']) and np.isnan(guarded['FNL60'])
+        assert guarded['n_measured80'] < 12
+        assert not guarded['testable']
+        assert guarded['loop_is_saturated'] is None
+        assert guarded['saturation_cutoff'] is None
+        # through the pipeline the loop takes the linear fit from 60% with
+        # a warning rather than a meaningless nonlinear fit
+        results = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                         show_plot=False)
+        out = capsys.readouterr().out
+        assert 'no high-field window holds enough measured points' in out
+        assert results['loop_is_saturated'] is None
+        assert results['Fnl_lin'] is None
+        assert results['chi_HF'] == pytest.approx(0.2 * 4 * np.pi / 1e7, rel=0.05)
+        assert results['Ms'] == pytest.approx(1.0, rel=0.02)
+
+
+def _closure_inputs(H, M):
+    gH, gM = rmag.grid_hyst_loop(H, M)
+    Hu, Mr, Mrh, Mih, Me, Brh = rmag.hyst_loop_components(gH, gM)
+    return Hu, Mr, Mrh, Me, Brh
+
+
+def _hard_Ms_for_openness(fraction, hard_Bc=0.9, hard_w=0.2, Hmax=1.0,
+                          HF_cutoff=0.8, max_field_cutoff=0.99,
+                          Ms=1.0, Bc=0.05, w=0.03):
+    """hard_Ms giving a noise-free high-field openness `fraction` of Mr.
+
+    For the synthetic_loop model the soft component contributes nothing to
+    Mrh above 0.8*Hmax, the hard phase contributes hard_Ms*S_bar to the
+    window mean of Mrh and hard_Ms*P to Mr (see `_hard_phase_stats`), so
+    fraction = hard_Ms*S_bar / (soft_Mr + hard_Ms*P).
+    """
+    stats = _hard_phase_stats(hard_Bc, hard_w, Hmax, HF_cutoff, max_field_cutoff)
+    soft_Mr = Ms * np.tanh(Bc / w)
+    return fraction * soft_Mr / (stats['S_bar'] - fraction * stats['P'])
+
+
+def _exhibited_Ms(hard_Ms, Ms=1.0, hard_Bc=0.9, hard_w=0.2, Hmax=1.0):
+    """The ferromagnetic moment the synthetic loop exhibits at its peak
+    field: the soft Ms plus the hard-phase grains that switch within the
+    sweep (those above Hmax never do and net to zero)."""
+    return Ms + hard_Ms * _hard_phase_stats(hard_Bc, hard_w, Hmax)['P']
+
+
+def _hard_Ms_for_openness_Ms(fraction, **kw):
+    """hard_Ms giving a noise-free openness `fraction` of the exhibited Ms
+    (`_exhibited_Ms`) for the synthetic_loop model:
+    fraction = hard_Ms*S_bar / (1 + hard_Ms*P).
+    """
+    stats = _hard_phase_stats(kw.get('hard_Bc', 0.9), kw.get('hard_w', 0.2),
+                              kw.get('Hmax', 1.0))
+    return fraction / (stats['S_bar'] - fraction * stats['P'])
 
 
 class TestClosureTest:
+    """The SNR/HAR closure statistics of Paterson et al. (2018),
+    selected with criterion='SNR_HAR'."""
+
     @staticmethod
     def _closure(H, M, use_Me=True):
-        gH, gM = rmag.grid_hyst_loop(H, M)
-        Hu, Mr, Mrh, Mih, Me, Brh = rmag.calc_Mr_Mrh_Mih_Brh(gH, gM)
-        return rmag.loop_closure_test(Hu, Mrh, Me=Me if use_Me else None)
+        Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
+        return rmag.hyst_closure_test(Hu, Mrh, Me=Me if use_Me else None,
+                                      criterion='SNR_HAR')
 
     def test_closed_loop(self):
         H, M = synthetic_loop(noise=2e-3)
         results = self._closure(H, M)
         assert results['loop_is_closed']
+        assert results['closure_state'] == 'closed'
 
     def test_open_loop(self):
         # wide-coercivity (hematite-like) component keeps the loop open
@@ -339,6 +502,7 @@ class TestClosureTest:
         assert not results['loop_is_closed']
         assert results['SNR'] > 8
         assert results['HAR'] > -48
+        assert results['tolerance'] is None
 
     def test_fallback_without_Me(self):
         # without the err curve the odd part of Mrh serves as the noise;
@@ -348,8 +512,25 @@ class TestClosureTest:
         H, M = synthetic_loop(noise=2e-3, hard_Ms=0.1)
         assert not self._closure(H, M, use_Me=False)['loop_is_closed']
 
+    def test_SNR_HAR_verdict_reported_under_magnitude_criterion(self):
+        H, M = synthetic_loop(noise=2e-3, hard_Ms=0.1)
+        Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
+        legacy = rmag.hyst_closure_test(Hu, Mrh, Me=Me, criterion='SNR_HAR')
+        new = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=1.1)
+        assert new['loop_is_closed_SNR_HAR'] == legacy['loop_is_closed']
+        assert new['SNR'] == legacy['SNR'] and new['HAR'] == legacy['HAR']
+
+    def test_scales_with_noise_not_openness(self):
+        # the SNR rule depends on the noise: a fixed 0.5% opening is "open" on clean
+        # data and "closed" on noisy data under the SNR rule
+        hard_Ms = _hard_Ms_for_openness(0.005)
+        clean = self._closure(*synthetic_loop(noise=1e-4, hard_Ms=hard_Ms))
+        noisy = self._closure(*synthetic_loop(noise=2e-2, hard_Ms=hard_Ms))
+        assert not clean['loop_is_closed']
+        assert noisy['loop_is_closed']
+
     def test_noise_convention_vs_odd_part(self):
-        # the err(H)-based noise (HystLab convention) sits ~3 dB below the
+        # the err(H)-based noise (Paterson et al., 2018) sits ~3 dB below the
         # odd-part fallback for white noise, so Me-based SNR is lower
         H, M = synthetic_loop(noise=2e-3, hard_Ms=0.1)
         snr_me = self._closure(H, M, use_Me=True)['SNR']
@@ -357,7 +538,425 @@ class TestClosureTest:
         assert snr_me == pytest.approx(snr_odd - 3.0, abs=2.0)
 
 
+class TestClosureMagnitude:
+    """The default closure criterion: the openness statistic f_open
+    (HF_Mrh_fraction, the high-field Mrh as a fraction of the fitted Ms)
+    against a tolerance."""
+
+    @staticmethod
+    def _closure(H, M, Ms, **kwargs):
+        Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
+        return rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms, **kwargs)
+
+    def test_requires_Ms(self):
+        H, M = synthetic_loop(noise=2e-3)
+        Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
+        with pytest.raises(ValueError, match='Ms'):
+            rmag.hyst_closure_test(Hu, Mrh, Me=Me)
+        # the SNR_HAR criterion does not need it
+        assert 'closure_state' in rmag.hyst_closure_test(Hu, Mrh, Me=Me,
+                                                         criterion='SNR_HAR')
+
+    def test_openness_matches_analytic_window_mean(self):
+        # the reported fraction is the window mean of the even Mrh over the
+        # true Ms (1 + hard_Ms for the fixture), known in closed form; the
+        # Mr-relative version is checked against its own analytic value
+        for target in (0.005, 0.03, 0.2):
+            hard_Ms = _hard_Ms_for_openness_Ms(target)
+            H, M = synthetic_loop(hard_Ms=hard_Ms)
+            results = self._closure(H, M, Ms=_exhibited_Ms(hard_Ms))
+            assert results['HF_Mrh_fraction'] == pytest.approx(target, rel=0.05)
+            Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
+            assert results['HF_Mrh_fraction_Mr'] == pytest.approx(
+                target * _exhibited_Ms(hard_Ms) / Mr, rel=0.05)
+
+    def test_standard_error_matches_empirical_scatter(self):
+        # on noisy loops the reported SE must track the actual scatter of
+        # f_open across noise realizations (the noise-free test above has
+        # SE = 0 exactly and cannot see a regression in the SE code)
+        hard_Ms = _hard_Ms_for_openness_Ms(0.03)
+        reported_se = {}
+        for noise in (1e-3, 1e-2):
+            rng = np.random.default_rng(int(noise * 1e6))
+            estimates, ses = [], []
+            for _ in range(30):
+                H, M = synthetic_loop(noise=noise, hard_Ms=hard_Ms, rng=rng)
+                r = self._closure(H, M, Ms=_exhibited_Ms(hard_Ms))
+                estimates.append(r['HF_Mrh_fraction'])
+                ses.append(r['HF_Mrh_fraction_se'])
+            empirical = np.std(estimates, ddof=1)
+            reported_se[noise] = np.median(ses)
+            assert reported_se[noise] > 0
+            # calibrated to within a factor of ~2
+            assert 0.4 < reported_se[noise] / empirical < 2.5, \
+                (noise, reported_se[noise], empirical)
+        # and the SE scales with the noise level
+        assert reported_se[1e-2] > 3 * reported_se[1e-3]
+
+    def test_closed_loop_reports_zero_openness(self):
+        results = self._closure(*synthetic_loop(noise=2e-3), Ms=1.0)
+        assert results['closure_state'] == 'closed'
+        assert results['loop_is_closed']
+        assert abs(results['HF_Mrh_fraction']) < 3 * results['HF_Mrh_fraction_se'] + 1e-4
+
+    def test_verdict_invariant_to_noise(self):
+        # a 0.5% opening stays closed and a 10% opening stays open across
+        # three decades of noise; SNR alone would flip both
+        rng = np.random.default_rng(902)
+        small = _hard_Ms_for_openness_Ms(0.005)
+        large = _hard_Ms_for_openness_Ms(0.10)
+        for noise in (1e-5, 1e-4, 1e-3, 1e-2):
+            r_small = self._closure(*synthetic_loop(noise=noise, hard_Ms=small,
+                                                    rng=rng), Ms=_exhibited_Ms(small))
+            r_large = self._closure(*synthetic_loop(noise=noise, hard_Ms=large,
+                                                    rng=rng), Ms=_exhibited_Ms(large))
+            assert r_small['closure_state'] == 'closed', noise
+            assert r_large['closure_state'] == 'open', noise
+            assert not r_large['loop_is_closed']
+
+    def test_openness_tolerance(self):
+        # a 1% opening is below the default 2% tolerance, a 5% opening is
+        # above it, and the tolerance is a parameter
+        h1 = _hard_Ms_for_openness_Ms(0.01)
+        small = self._closure(*synthetic_loop(noise=2e-3, hard_Ms=h1),
+                              Ms=_exhibited_Ms(h1))
+        assert small['tolerance'] == 0.02
+        assert small['closure_state'] == 'closed'
+        assert (small['HF_cutoff'], small['max_field_cutoff']) == (0.8, 0.99)
+        h5 = _hard_Ms_for_openness_Ms(0.05)
+        large = self._closure(*synthetic_loop(noise=2e-3, hard_Ms=h5),
+                              Ms=_exhibited_Ms(h5))
+        assert large['closure_state'] == 'open'
+        strict = self._closure(*synthetic_loop(noise=2e-3, hard_Ms=h1),
+                               Ms=_exhibited_Ms(h1), openness_tolerance=0.005)
+        assert strict['closure_state'] == 'open'
+
+    def test_Ms_and_Mr_normalizations(self):
+        # the same absolute opening is a large fraction of Mr but a small
+        # fraction of Ms when Mr/Ms is small (MD-like fixture): the verdict
+        # follows the Ms-relative value
+        md_hard = _hard_Ms_for_openness(0.03, Bc=0.001, w=0.03)   # 3% of Mr
+        H, M = synthetic_loop(noise=1e-3, hard_Ms=md_hard, Bc=0.001, w=0.03,
+                              rng=np.random.default_rng(902))
+        Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
+        assert Mr / _exhibited_Ms(md_hard) < 0.05          # MD-like Mr/Ms
+        md = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=_exhibited_Ms(md_hard))
+        assert md['HF_Mrh_fraction_Mr'] == pytest.approx(0.03, rel=0.25)
+        assert md['HF_Mrh_fraction'] < 0.005
+        assert md['closure_state'] == 'closed'
+        # SD-like fixture (Mr ~ Ms): the two fractions are close
+        sd_hard = _hard_Ms_for_openness(0.05)
+        H, M = synthetic_loop(noise=2e-3, hard_Ms=sd_hard)
+        Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
+        sd = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=_exhibited_Ms(sd_hard))
+        assert sd['HF_Mrh_fraction'] == pytest.approx(
+            sd['HF_Mrh_fraction_Mr'] * Mr / _exhibited_Ms(sd_hard), rel=1e-6)
+        assert sd['closure_state'] == 'open'
+
+    def test_indeterminate_when_noise_swamps_tolerance(self):
+        # a weak, noisy loop cannot be declared closed at a tolerance finer
+        # than its own uncertainty
+        H, M = synthetic_loop(noise=0.2, Bc=0.3, w=0.1)
+        Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
+        results = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=1.0)
+        assert 2 * results['HF_Mrh_fraction_se'] > results['tolerance']
+        assert results['closure_state'] == 'indeterminate'
+        assert results['loop_is_closed']
+
+    def test_noise_level_Ms_is_not_normalized(self):
+        # a paramagnetic loop has a fitted Ms (and Mr) of noise-level size;
+        # f_open is undefined for it rather than a huge meaningless number
+        H, M = synthetic_loop(Ms=0.0, chi=0.2, noise=1e-4,
+                              rng=np.random.default_rng(5))
+        Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
+        results = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Mr)
+        assert np.isnan(results['HF_Mrh_fraction'])
+        assert np.isnan(results['HF_Mrh_fraction_Mr'])
+        assert results['tolerance'] is None
+        assert results['closure_state'] in ('closed', 'indeterminate')
+
+    def test_explicit_Mr_and_Brh_match_defaults(self):
+        H, M = synthetic_loop(noise=2e-3, hard_Ms=0.1)
+        Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
+        default = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=1.1)
+        explicit = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=1.1, Mr=Mr, Brh=Brh)
+        assert default['HF_Mrh_fraction_Mr'] == pytest.approx(
+            explicit['HF_Mrh_fraction_Mr'], rel=1e-6)
+        assert default['Brh_fraction'] == pytest.approx(
+            explicit['Brh_fraction'], rel=1e-6)
+
+    def test_rejects_positional_Me(self):
+        # loop_closure_test(H, Mrh, Me) used to bind Me to HF_cutoff silently
+        H, M = synthetic_loop(noise=2e-3)
+        Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
+        with pytest.raises(ValueError, match='HF_cutoff'):
+            rmag.hyst_closure_test(Hu, Mrh, Me, Ms=1.0)
+        with pytest.raises(ValueError, match='HF_cutoff'):
+            rmag.hyst_closure_test(Hu, Mrh, HF_cutoff=1.5, Ms=1.0)
+        with pytest.raises(ValueError, match='criterion'):
+            rmag.hyst_closure_test(Hu, Mrh, Ms=1.0, criterion='HystLab')
+
+
+def _jittered_loop(jitter, rng, noise=0.0, n_half=200, **kw):
+    """synthetic_loop measured at fields displaced by up to `jitter` field
+    steps (uniformly), the noise-free loop being re-evaluated at those
+    fields branch by branch before noise is added; jitter=0 gives the
+    loop on its own grid."""
+    H, M = synthetic_loop(n_half=n_half, noise=0.0, **kw)
+    if jitter:
+        step = np.median(np.abs(np.diff(H[:n_half])))
+        H_j = H + rng.uniform(-jitter, jitter, H.size) * step
+        upper, lower = slice(0, n_half), slice(n_half, 2 * n_half)
+        M_j = np.empty_like(M)
+        M_j[upper] = np.interp(H_j[upper], H[upper][::-1], M[upper][::-1])
+        M_j[lower] = np.interp(H_j[lower], H[lower], M[lower])
+        H, M = H_j, M_j
+    if noise:
+        M = M + noise * rng.standard_normal(M.size)
+    return H, M
+
+
+class TestClosureNoisePropagation:
+    """The closure statistic's standard error on the drift-corrected loop,
+    and the M_max fallback when the fit gives no usable Ms."""
+
+    def test_forced_drift_path(self):
+        H, M = synthetic_loop(noise=1e-3, chi=0.2, rng=np.random.default_rng(2))
+        gH, gM = rmag.grid_hyst_loop(H, M)
+        auto, details = rmag.hyst_drift_correction(gH, gM, return_details=True)
+        forced, fd = rmag.hyst_drift_correction(gH, gM, return_details=True,
+                                              correction=details['correction'])
+        assert np.array_equal(auto, forced) and fd['correction'] == details['correction']
+        other = 'upper_branch' if details['correction'] == 'positive_field' else 'positive_field'
+        _, od = rmag.hyst_drift_correction(gH, gM, return_details=True, correction=other)
+        assert od['correction'] == other
+        with pytest.raises(ValueError, match='correction must be'):
+            rmag.hyst_drift_correction(gH, gM, correction='sideways')
+
+    def test_noise_estimate_and_reproducibility(self):
+        # sigma_M recovers the injected noise from the measured loop, drift
+        # or not, on-grid or with the fields jittered between grid points
+        # (the pseudo-residual estimator cancels a locally linear signal at
+        # any spacing), and the propagated SE is reproducible with a seed
+        for drift, jitter in ((0.0, 0.0), (0.05, 0.0), (0.0, 0.4)):
+            H, M = _jittered_loop(jitter, np.random.default_rng(7), noise=6e-3,
+                                  chi=0.2, drift=drift)
+            out = rmag.hyst_closure_se(H, M, correction='upper_branch',
+                                                            n_draws=50, rng=1)
+            assert out['sigma_M'] == pytest.approx(6e-3, rel=0.15), (drift, jitter)
+            again = rmag.hyst_closure_se(H, M, correction='upper_branch',
+                                                              n_draws=50, rng=1)
+            assert again['HF_Mrh_mean_se'] == out['HF_Mrh_mean_se']
+        # the direct estimator is exact for a noise-free straight line at
+        # irregular spacing and returns the noise sd of a noisy one
+        h = np.sort(np.random.default_rng(1).uniform(-1, 1, 300))
+        H = np.concatenate([h[::-1], h])
+        M = 0.3 * H
+        assert rmag._noise_sd_from_pseudo_residuals(H, M) == pytest.approx(0.0, abs=1e-12)
+        M = M + 2e-3 * np.random.default_rng(2).standard_normal(M.size)
+        assert rmag._noise_sd_from_pseudo_residuals(H, M) == pytest.approx(2e-3, rel=0.15)
+
+    @pytest.mark.parametrize('jitter', [0.0, 0.4])
+    def test_propagated_se_matches_scatter_across_realizations(self, jitter):
+        # on a weak loop in noise the drift correction's smoothing leaves
+        # the odd-part estimate of the closure SE too small (about 30% on
+        # the grid; it was 4x before the Q < 2 vertical offset was
+        # re-estimated at zero field shift, see process_hyst_loop), and
+        # gridding measurements that fall between grid points (jitter of
+        # up to 0.4 of a step here) both damps and correlates the noise on
+        # the grid; the SE propagated from the measured fields tracks the
+        # actual scatter of the window mean across noise realizations in
+        # both cases
+        means, se_odd, se_prop = [], [], []
+        for seed in range(40):
+            H, M = _jittered_loop(jitter, np.random.default_rng(500 + seed),
+                                  Ms=0.01, Bc=0.05, w=0.03, chi=0.2, noise=6e-3)
+            r = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                       show_plot=False, n_bootstrap=0,
+                                       fit_linear_loop=True)
+            c = r['loop_closure_test_results']
+            Hu, Mr, Mrh, Mih, Me, Brh = rmag.hyst_loop_components(
+                r['centered_H'], r['drift_corrected_M'])
+            win = (np.abs(Hu) >= 0.8) & (np.abs(Hu) <= 0.99)
+            means.append(np.mean(Mrh[win]))
+            se_odd.append(c['HF_Mrh_mean_se_odd_part'])
+            se_prop.append(c['HF_Mrh_mean_se'])
+        scatter = np.std(means, ddof=1)
+        assert scatter / np.median(se_odd) > 1.1          # the odd part understates it
+        assert 0.7 < scatter / np.median(se_prop) < 1.4   # the propagation tracks it
+
+    def test_weak_loop_vertical_offset_is_estimated_at_zero_shift(self):
+        # for a Q < 2 loop the pipeline discards the symmetry search's field
+        # offset (not separable from the vertical one on a nearly linear
+        # loop, Jackson and Solheid 2010, paragraph 12); the vertical offset
+        # it applies must be the one at zero shift, not the companion of the
+        # discarded shift, whose error is about slope * shift
+        offsets = []
+        for seed in range(30):
+            H, M = synthetic_loop(Ms=0.01, Bc=0.05, w=0.03, chi=0.2, noise=6e-3,
+                                  rng=np.random.default_rng(900 + seed))
+            r = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                       show_plot=False, n_bootstrap=0,
+                                       fit_linear_loop=True)
+            assert r['Q'] < 2 and r['loop_centering_results']['opt_H_offset'] == 0
+            offsets.append(r['loop_centering_results']['opt_M_offset'])
+        assert np.std(offsets) < 1e-3       # was ~3e-3 with the joint estimate
+        # the iterative protocol re-estimates with its own (low-field
+        # weighted) estimator at zero shift, not the legacy one
+        H, M = synthetic_loop(Ms=0.01, Bc=0.05, w=0.03, chi=0.2, noise=6e-3,
+                              M_offset=0.05, rng=np.random.default_rng(901))
+        r = rmag.process_hyst_loop(H, M, show_results_table=False, show_plot=False,
+                                   n_bootstrap=0, fit_linear_loop=True,
+                                   centering_protocol='iterative')
+        assert r['Q'] < 2 and r['loop_centering_results']['opt_H_offset'] == 0
+        gH, gM = r['gridded_H'], r['gridded_M']
+        expected = rmag._branch_symmetry_mismatch(gH, gM, H_shift=0.0)['M_shift']
+        assert r['loop_centering_results']['opt_M_offset'] == pytest.approx(expected)
+        assert expected == pytest.approx(0.05, abs=2e-3)
+
+    def test_noise_loops_are_not_declared_open(self):
+        # with the propagated SE, weak loops whose Mrh is noise are
+        # 'indeterminate' or 'closed', not 'open', at close to the nominal
+        # rate -- on the loops normalized by Ms, and on those whose Ms is
+        # at the noise level and take the M_max route, counted separately
+        n_open = {'Ms': 0, 'Mmax': 0}
+        n_route = {'Ms': 0, 'Mmax': 0}
+        for seed in range(40):
+            H, M = synthetic_loop(Ms=0.01, Bc=0.05, w=0.03, chi=0.2, noise=6e-3,
+                                  rng=np.random.default_rng(500 + seed))
+            r = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                       show_plot=False, n_bootstrap=0,
+                                       fit_linear_loop=True)
+            route = r['closure_normalization']
+            n_route[route] += 1
+            n_open[route] += r['closure_state'] == 'open'
+        assert n_route['Ms'] >= 25
+        assert n_open['Ms'] <= 2 and n_open['Mmax'] == 0
+
+    def test_Mmax_route_still_closes_when_no_Mrh_is_detectable(self):
+        # a loop whose fitted Ms is at the noise level and whose high-field
+        # Mrh does not stand above it is 'closed' -- detecting Mrh needs no
+        # normalization -- exactly as it was before M_max was passed (the
+        # fallback may still not declare a *sized* opening closed)
+        for seed in (2, 3, 4, 13, 14):
+            H, M = synthetic_loop(Ms=0.002, Bc=0.05, w=0.03, chi=1.0, noise=2e-3,
+                                  rng=np.random.default_rng(seed))
+            r = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                       show_plot=False, fit_linear_loop=True,
+                                       n_bootstrap=0)
+            c = r['loop_closure_test_results']
+            assert c['normalization'] == 'Mmax'
+            Hu, Mr, Mrh, Mih, Me, Brh = rmag.hyst_loop_components(
+                r['centered_H'], r['drift_corrected_M'])
+            alt = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Mr=Mr, Brh=Brh, Ms=r['Ms'],
+                                         HF_Mrh_mean_se=c['HF_Mrh_mean_se'])
+            assert alt['normalization'] is None
+            assert c['closure_state'] == alt['closure_state'] == 'closed'
+        # and a sized opening on that route is confirmed only as 'open'
+        Hu, Mr, Mrh, Me, Brh = _closure_inputs(*synthetic_loop(hard_Ms=_hard_Ms_for_openness_Ms(0.20)))
+        r = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=0.0, M_max=1.0,
+                                   HF_Mrh_mean_se=1e-4)
+        assert r['closure_state'] == 'open'
+        r = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=0.0, M_max=100.0,
+                                   HF_Mrh_mean_se=1e-4)
+        assert r['closure_state'] == 'indeterminate'
+
+    def test_open_loops_still_open(self):
+        # the corrected SE must not cost the verdict on a real opening
+        hard_Ms = _hard_Ms_for_openness_Ms(0.05)
+        for seed in range(5):
+            H, M = synthetic_loop(noise=2e-3, hard_Ms=hard_Ms,
+                                  rng=np.random.default_rng(seed))
+            r = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                       show_plot=False, n_bootstrap=0)
+            assert r['closure_state'] == 'open'
+            assert r['closure_normalization'] == 'Ms'
+
+    def test_Mmax_fallback_when_the_fit_collapses(self):
+        # a loop so far from saturation that the bounded least-squares fit
+        # puts Ms on its zero bound: the opening is sized against the peak
+        # moment and the verdict is 'open', with the Mr-relative value
+        # also reported and the -W- line naming the normalization
+        hard_Ms = _hard_Ms_for_openness_Ms(0.20)
+        H, M = synthetic_loop(hard_Ms=hard_Ms, noise=1e-3, rng=np.random.default_rng(3))
+        with pytest.warns(RuntimeWarning, match='Ms on its lower bound'):
+            r = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                       show_plot=False, n_bootstrap=0)
+        assert r['Ms'] == 0
+        assert np.isnan(r['HF_Mrh_fraction'])
+        assert r['closure_normalization'] == 'Mmax'
+        assert r['HF_Mrh_fraction_Mmax'] == pytest.approx(0.19, abs=0.02)
+        assert r['HF_Mrh_fraction_Mr'] == pytest.approx(0.196, abs=0.02)
+        assert r['closure_state'] == 'open'
+
+    def test_Mmax_fallback_is_conservative_on_a_matrix_dominated_loop(self, capsys):
+        # the same collapsed fit on a loop whose moment is mostly
+        # paramagnetic: relative to M_max the opening is below tolerance,
+        # and the verdict stays 'indeterminate' rather than guessing
+        hard_Ms = _hard_Ms_for_openness_Ms(0.20)
+        H, M = synthetic_loop(hard_Ms=hard_Ms, chi=30.0, noise=1e-3,
+                              rng=np.random.default_rng(3))
+        capsys.readouterr()
+        with pytest.warns(RuntimeWarning):
+            r = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                       show_plot=False, n_bootstrap=0)
+        out = capsys.readouterr().out
+        assert r['closure_normalization'] == 'Mmax'
+        assert r['HF_Mrh_fraction_Mmax'] < 0.02
+        assert r['closure_state'] == 'indeterminate'
+        assert 'sized against the largest moment' in out
+
+    def test_closure_se_follows_the_pipeline_seed(self):
+        H, M = synthetic_loop(Ms=0.01, Bc=0.05, w=0.03, chi=0.2, noise=6e-3,
+                              rng=np.random.default_rng(3))
+        kw = dict(show_results_table=False, show_plot=False, n_bootstrap=0,
+                  fit_linear_loop=True)
+        a = rmag.process_hyst_loop(H, M, **kw)
+        b = rmag.process_hyst_loop(H, M, **kw)
+        c = rmag.process_hyst_loop(H, M, rng=5, **kw)
+        assert a['HF_Mrh_fraction_se'] == b['HF_Mrh_fraction_se']
+        assert c['HF_Mrh_fraction_se'] != a['HF_Mrh_fraction_se']
+        assert c['HF_Mrh_fraction_se'] == pytest.approx(a['HF_Mrh_fraction_se'], rel=0.2)
+
+    def test_direct_call_without_M_max_keeps_the_old_behavior(self):
+        H, M = synthetic_loop(hard_Ms=_hard_Ms_for_openness_Ms(0.20))
+        Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
+        r = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=0.0)
+        assert r['normalization'] is None and r['closure_state'] == 'indeterminate'
+        assert np.isnan(r['HF_Mrh_fraction_Mmax'])
+        r2 = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=0.0, M_max=float(np.max(np.abs(M))))
+        assert r2['normalization'] == 'Mmax' and r2['closure_state'] == 'open'
+        # an explicit standard error is used as given
+        r3 = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=1.0, HF_Mrh_mean_se=0.5)
+        assert r3['HF_Mrh_fraction_se'] == pytest.approx(0.5)
+        assert r3['closure_state'] == 'indeterminate'
+
+
 class TestDriftCorrection:
+    def test_short_loops_use_shorter_smoothing_windows(self):
+        # the 11-point Savitzky-Golay and 7-point running-mean windows are
+        # shortened for loops with fewer points per branch; previously such
+        # loops raised from scipy
+        for n_half in (10, 12, 16):
+            H, M = synthetic_loop(n_half=n_half, noise=1e-3, chi=0.2)
+            gH, gM = rmag.grid_hyst_loop(H, M)
+            corrected = rmag.hyst_drift_correction(gH, gM)
+            assert corrected.shape == gM.shape
+            assert np.all(np.isfinite(corrected))
+        # below that the gridding itself refuses the loop
+        H, M = synthetic_loop(n_half=4, noise=1e-3)
+        with pytest.raises(ValueError, match='at least 5 are needed'):
+            rmag.grid_hyst_loop(H, M)
+
+    def test_partial_loop_is_refused(self):
+        # a first-quadrant curve (0 -> Hmax -> 0) is not a loop; gridding
+        # used to truncate it to the tiny symmetric overlap and the
+        # pipeline reported it as 'statistically linear' with FNL = -inf
+        H = np.concatenate([np.linspace(0.005, 0.6, 30), np.linspace(0.6, 0.005, 30)])
+        M = np.tanh(H / 0.05)
+        with pytest.raises(ValueError, match='first-quadrant curve'):
+            rmag.grid_hyst_loop(H, M)
+
     def test_prorated_removes_closure_error(self):
         H, M = synthetic_loop(drift=0.02)
         gH, gM = rmag.grid_hyst_loop(H, M)
@@ -431,11 +1030,11 @@ class TestDriftCorrection:
             return float(np.sqrt(np.mean(np.square(x))))
 
         rms_uncorrected = rms(gM_a - gM_ref)
-        corr_desc = rmag.Me_drift_correction(gH_d, gM_d,
+        corr_desc = rmag.hyst_drift_correction(gH_d, gM_d,
                                              descending_first=True)
-        corr_asc = rmag.Me_drift_correction(gH_a, gM_a,
+        corr_asc = rmag.hyst_drift_correction(gH_a, gM_a,
                                             descending_first=False)
-        wrong_asc = rmag.Me_drift_correction(gH_a, gM_a,
+        wrong_asc = rmag.hyst_drift_correction(gH_a, gM_a,
                                              descending_first=True)
 
         # both sweep orders receive the same (correct) treatment
@@ -452,15 +1051,16 @@ class TestParameterRecovery:
         Ms, Bc, w = 1.0, 0.05, 0.03
         H, M = synthetic_loop(Ms=Ms, Bc=Bc, w=w, noise=2e-4)
         gH, gM = rmag.grid_hyst_loop(H, M)
-        Hu, Mr, Mrh, Mih, Me, Brh = rmag.calc_Mr_Mrh_Mih_Brh(gH, gM)
+        Hu, Mr, Mrh, Mih, Me, Brh = rmag.hyst_loop_components(gH, gM)
         assert Mr == pytest.approx(Ms * np.tanh(Bc / w), rel=0.01)
-        assert rmag.calc_Bc(gH, gM) == pytest.approx(Bc, abs=1e-3)
+        assert rmag.hyst_coercivity(gH, gM) == pytest.approx(Bc, abs=1e-3)
 
     def test_linear_HF_fit_recovers_chi_and_Ms(self):
         chi = 0.2  # raw slope units (moment per Tesla)
         H, M = synthetic_loop(chi=chi, noise=2e-4)
         gH, gM = rmag.grid_hyst_loop(H, M)
-        chi_HF, Ms = rmag.linear_HF_fit(gH, gM, HF_cutoff=0.8)
+        fit = rmag.hyst_linear_hf_fit(gH, gM, HF_cutoff=0.8)
+        chi_HF, Ms = fit['chi_HF'], fit['Ms']
         # chi_HF is reported in SI units: raw slope times mu_0
         assert chi_HF == pytest.approx(chi * 4 * np.pi / 1e7, rel=0.01)
         assert Ms == pytest.approx(1.0, rel=0.01)
@@ -469,7 +1069,7 @@ class TestParameterRecovery:
         chi = 0.2
         H, M = synthetic_loop(chi=chi, noise=0.0)
         gH, gM = rmag.grid_hyst_loop(H, M)
-        chi_HF, _ = rmag.linear_HF_fit(gH, gM, HF_cutoff=0.8)
+        chi_HF = rmag.hyst_linear_hf_fit(gH, gM, HF_cutoff=0.8)['chi_HF']
         ferro = rmag.hyst_slope_correction(gH, gM, chi_HF)
         expected_upper, _ = rmag.split_hyst_loop(gH, ferro)
         assert np.allclose(
@@ -485,8 +1085,8 @@ class TestNonlinearFit:
         # while approach-to-saturation fitting recovers it
         H, M = synthetic_loop(noise=1e-4, chi=0.2, ats_alpha=0.1)
         gH, gM = rmag.grid_hyst_loop(H, M)
-        nl = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM')
-        _, Ms_linear = rmag.linear_HF_fit(gH, gM, HF_cutoff=0.8)
+        nl = rmag.hyst_approach_to_saturation_fit(gH, gM, 0.6, 'inverse_field')
+        Ms_linear = rmag.hyst_linear_hf_fit(gH, gM, HF_cutoff=0.8)['Ms']
         assert abs(nl['Ms'] - 1.0) < abs(Ms_linear - 1.0)
         assert nl['Ms'] == pytest.approx(1.0, rel=0.02)
 
@@ -494,7 +1094,7 @@ class TestNonlinearFit:
         # significant nonlinearity: Fnl_lin far above the ~3-3.5 critical value
         H, M = synthetic_loop(noise=1e-4, chi=0.2, ats_alpha=0.1)
         gH, gM = rmag.grid_hyst_loop(H, M)
-        nl = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM')
+        nl = rmag.hyst_approach_to_saturation_fit(gH, gM, 0.6, 'inverse_field')
         assert nl['Fnl_lin'] > 3.5
         # verify against a direct computation of eq. 21
         HF = np.where((np.abs(gH) >= 0.6 * np.max(np.abs(gH))) &
@@ -503,8 +1103,7 @@ class TestNonlinearFit:
         HF_mag = np.where(gH[HF] >= 0, gM[HF], -gM[HF])
         slope, intercept = np.polyfit(HF_field, HF_mag, 1)
         SSD_lin = np.sum((HF_mag - (slope * HF_field + intercept)) ** 2)
-        pred = rmag.IRM_nonlinear_fit(HF_field, nl['chi_HF'], nl['Ms'],
-                                      nl['a_1'], nl['a_2'])
+        pred = rmag.hyst_approach_to_saturation_model(HF_field, nl)
         SSD_nl = np.sum((HF_mag - pred) ** 2)
         n = len(HF_mag)
         expected = ((SSD_lin - SSD_nl) / 2) / (SSD_nl / (n - 4))
@@ -514,26 +1113,292 @@ class TestNonlinearFit:
         # saturated loop: nonlinear terms should not significantly improve fit
         H, M = synthetic_loop(noise=5e-4, chi=0.2)
         gH, gM = rmag.grid_hyst_loop(H, M)
-        nl = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM')
+        nl = rmag.hyst_approach_to_saturation_fit(gH, gM, 0.6, 'inverse_field')
         assert nl['Fnl_lin'] < 3.5
+
+    @staticmethod
+    def _weak_unsaturated_loop(Ms, chi_HF, Hmax=1.0):
+        """An unsaturated loop of the given magnitude on a linear
+        background with chi_HF in SI (m³/kg for Am²/kg data)."""
+        H, M = synthetic_loop(Ms=Ms, Hmax=Hmax, noise=Ms * 1e-3,
+                              ats_alpha=0.05 * Ms,
+                              rng=np.random.default_rng(1))
+        return rmag.grid_hyst_loop(H, M + chi_HF / (4 * np.pi / 1e7) * H)
+
+    def test_fit_is_independent_of_magnitude(self):
+        # the former fixed initial guess [1, 1, -0.1, -0.1] left Ms tens of
+        # percent to orders of magnitude in error for specimens below
+        # ~1e-3 Am²/kg; the fit is now done in normalized units and must
+        # give the same relative answer at any magnitude
+        reference = None
+        for Ms_true, chi_true in ((1.0, 1e-7), (1e-3, 1e-8), (1e-5, 1e-9)):
+            gH, gM = self._weak_unsaturated_loop(Ms_true, chi_true)
+            nl = rmag.hyst_approach_to_saturation_fit(gH, gM, 0.6, 'inverse_field')
+            assert nl['fit_success']
+            assert nl['Ms'] == pytest.approx(Ms_true, rel=0.01)
+            assert nl['chi_HF'] == pytest.approx(chi_true, rel=0.05)
+            relative = (nl['Ms'] / Ms_true, nl['a_1'] / Ms_true,
+                        nl['Fnl_lin'])
+            if reference is None:
+                reference = relative
+            else:
+                assert relative == pytest.approx(reference, rel=1e-3)
+
+    def test_fit_recovers_diamagnetic_slope(self):
+        # a diamagnetic matrix has a negative chi_HF, which the former lower
+        # bound of zero on chi_HF could not represent
+        gH, gM = self._weak_unsaturated_loop(1e-3, -3e-9)
+        nl = rmag.hyst_approach_to_saturation_fit(gH, gM, 0.6, 'inverse_field')
+        assert nl['chi_HF'] == pytest.approx(-3e-9, rel=0.05)
+        assert nl['Ms'] == pytest.approx(1e-3, rel=0.01)
+
+    def test_fit_is_independent_of_magnitude_at_any_peak_field(self):
+        # the normalization uses the peak field as well as the moment scale;
+        # both models must give the same relative Ms at 1 and 1e-3 Am²/kg
+        # whatever the peak field (the fixed-beta model is a model mismatch
+        # for this 1/H fixture, so only its invariance is tested)
+        for Hmax in (0.5, 1.8):
+            for model in ('inverse_field', 'Fabian_fixed_beta'):
+                relative = []
+                for Ms_true in (1.0, 1e-3):
+                    gH, gM = self._weak_unsaturated_loop(Ms_true, 1e-8 * Ms_true,
+                                                         Hmax=Hmax)
+                    nl = rmag.hyst_approach_to_saturation_fit(gH, gM, 0.6,
+                                                             model)
+                    assert nl['fit_success'], (Hmax, model, Ms_true)
+                    relative.append(nl['Ms'] / Ms_true)
+                assert relative[0] == pytest.approx(relative[1], rel=1e-3), (
+                    Hmax, model)
+                if model == 'inverse_field':
+                    assert relative[0] == pytest.approx(1.0, rel=0.01), Hmax
+
+    def test_solution_is_the_least_squares_optimum(self):
+        # the IRM model is linear in its parameters (Jackson and Solheid,
+        # 2010, equation 19): when the sign bounds are inactive the result
+        # must equal the unconstrained least-squares solution exactly
+        gH, gM = self._weak_unsaturated_loop(1e-3, 1e-8)
+        nl = rmag.hyst_approach_to_saturation_fit(gH, gM, 0.6, 'inverse_field')
+        from scipy.optimize import lsq_linear
+        F, Y, _ = rmag._high_field_window(gH, gM, 0.6, 0.97)
+        A = np.column_stack([F, np.ones_like(F), 1 / F, 1 / F**2])
+        slope, Ms, a_1, a_2 = lsq_linear(
+            A, Y, bounds=([-np.inf, 0, -np.inf, -np.inf], [np.inf, np.inf, 0, 0]),
+            method='bvls').x
+        assert nl['Ms'] == pytest.approx(Ms, rel=1e-8)
+        assert nl['chi_HF'] == pytest.approx(slope * 4 * np.pi / 1e7, rel=1e-8)
+        assert nl['a_1'] == pytest.approx(a_1, rel=1e-6, abs=1e-12)
+        assert nl['a_2'] == pytest.approx(a_2, rel=1e-6, abs=1e-12)
+        assert nl['fit_success'] and 'least squares' in nl['fit_message']
+
+    def test_noise_free_model_is_recovered_exactly(self):
+        # data generated from the model itself: every parameter back to
+        # machine precision, at any magnitude
+        H = np.linspace(0.3, 1.0, 120)
+        H = np.concatenate([H, -H])
+        for Ms in (1.0, 1e-5):
+            chi = 2e-8 * Ms
+            slope = chi / (4 * np.pi / 1e7)
+            M = np.sign(H) * (Ms + slope * np.abs(H) - 0.02 * Ms / np.abs(H)
+                              - 0.005 * Ms / np.abs(H)**2)
+            nl = rmag.hyst_approach_to_saturation_fit(H, M, 0.6, 'inverse_field')
+            assert nl['Ms'] == pytest.approx(Ms, rel=1e-8)
+            assert nl['chi_HF'] == pytest.approx(chi, rel=1e-8)
+            assert nl['a_1'] == pytest.approx(-0.02 * Ms, rel=1e-6)
+            assert nl['a_2'] == pytest.approx(-0.005 * Ms, rel=1e-6)
+            fixed = rmag.hyst_approach_to_saturation_fit(H, M, 0.6, 'Fabian_fixed_beta')
+            assert fixed['beta'] == -2
+
+    def test_initial_guess_is_ignored_with_a_warning(self):
+        gH, gM = self._weak_unsaturated_loop(1e-3, 1e-8)
+        plain = rmag.hyst_approach_to_saturation_fit(gH, gM, 0.6, 'inverse_field')
+        with pytest.warns(FutureWarning, match='initial_guess is ignored'):
+            given = rmag.hyst_approach_to_saturation_fit(
+                gH, gM, 0.6, 'IRM', initial_guess=[1, 1, -0.1, -0.1])
+        assert given['Ms'] == plain['Ms']
+
+    def test_sign_bounds_are_active_constraints(self):
+        # data whose unconstrained fit wants a_1 > 0: the bounded solution
+        # pins a_1 at 0 and equals scipy's bounded least squares
+        from scipy.optimize import lsq_linear
+        H = np.linspace(0.3, 1.0, 120)
+        H = np.concatenate([H, -H])
+        M = np.sign(H) * (1.0 + 0.1 * np.abs(H) + 0.05 / np.abs(H))
+        nl = rmag.hyst_approach_to_saturation_fit(H, M, 0.6, 'inverse_field')
+        assert nl['a_1'] == 0
+        F, Y, _ = rmag._high_field_window(H, M, 0.6, 0.97)
+        A = np.column_stack([F, np.ones_like(F), 1 / F, 1 / F**2])
+        ref = lsq_linear(A, Y, bounds=([-np.inf, 0, -np.inf, -np.inf],
+                                       [np.inf, np.inf, 0, 0]), method='bvls').x
+        assert nl['Ms'] == pytest.approx(ref[1], rel=1e-8)
+        # caller-supplied bounds are honored in physical units
+        gH, gM = self._weak_unsaturated_loop(1e-3, 1e-8)
+        seeded = rmag.hyst_approach_to_saturation_fit(gH, gM, 0.6, 'inverse_field')
+        bounded = rmag.hyst_approach_to_saturation_fit(
+            gH, gM, 0.6, 'IRM',
+            bounds=([-np.inf, 0, -1e-9, -np.inf], [np.inf, np.inf, 0, 0]))
+        assert seeded['a_1'] < -1e-5
+        assert -1e-9 <= bounded['a_1'] <= 0
+        assert bounded['Ms'] != pytest.approx(seeded['Ms'], rel=1e-4)
+
+    def test_fabian_beta_is_found_on_the_grid(self):
+        # data from the Fabian model with beta = -1.3: the grid search
+        # (Jackson and Solheid, 2010, paragraph 43) returns the grid value
+        # nearest the truth, and the other parameters follow
+        H = np.linspace(0.3, 1.0, 150)
+        H = np.concatenate([H, -H])
+        for Ms in (1.0, 1e-4):
+            M = np.sign(H) * (Ms + 0.2 * Ms * np.abs(H) - 0.03 * Ms * np.abs(H)**-1.3)
+            nl = rmag.hyst_approach_to_saturation_fit(H, M, 0.6, 'Fabian')
+            assert nl['beta'] == pytest.approx(-1.3, abs=0.011)
+            assert nl['Ms'] == pytest.approx(Ms, rel=2e-3)
+            assert nl['alpha'] == pytest.approx(-0.03 * Ms, rel=0.05)
+        coarse = rmag.hyst_approach_to_saturation_fit(H, M, 0.6, 'Fabian',
+                                                     beta_grid=[-2, -1.5, -1])
+        assert coarse['beta'] == -1.5
+        with pytest.raises(ValueError, match='beta must be negative'):
+            rmag.hyst_approach_to_saturation_fit(H, M, 0.6, 'Fabian', beta_grid=[-1, 0.5])
+
+    def test_fabian_beta_is_confined_to_the_jackson_solheid_interval(self):
+        # the former free-beta fit ran beta to -9 on NED18-2c-like loops
+        # and to 0 (where the model is singular) on others, returning Ms
+        # of hundreds for a unit loop; the grid keeps beta in [-2, -1] and
+        # Ms sensible
+        H, M = synthetic_loop(Ms=1.0, noise=1e-3, ats_alpha=0.05,
+                              rng=np.random.default_rng(1))
+        M = M + (1e-7 / (4 * np.pi / 1e7)) * H
+        nl = rmag.hyst_approach_to_saturation_fit(H, M, 0.6, 'Fabian')
+        assert -2 <= nl['beta'] <= -1
+        assert 0.8 < nl['Ms'] < 1.2
+        assert nl['fit_success']
+
+    def test_bootstrap_uncertainty(self):
+        # reproducible with a seed, scales with the noise, and the 95%
+        # interval covers the truth at close to its nominal rate (35 of 40
+        # realizations is 87.5%; at a true 95% coverage the chance of
+        # fewer is about 0.6%)
+        covered, ses = 0, {}
+        for noise in (1e-4, 1e-3):
+            for seed in range(40 if noise == 1e-3 else 12):
+                gH, gM = rmag.grid_hyst_loop(*synthetic_loop(
+                    Ms=1e-3, noise=noise, ats_alpha=5e-5,
+                    rng=np.random.default_rng(seed)))
+                nl = rmag.hyst_approach_to_saturation_fit(gH, gM, 0.6, 'inverse_field',
+                                                         n_bootstrap=200, rng=seed)
+                assert nl['n_bootstrap'] == 200
+                assert len(nl['bootstrap']['Ms']) == 200
+                assert nl['Ms_ci95'][0] <= nl['Ms'] <= nl['Ms_ci95'][1]
+                if noise == 1e-3:
+                    covered += nl['Ms_ci95'][0] <= 1e-3 <= nl['Ms_ci95'][1]
+                ses.setdefault(noise, []).append(nl['Ms_se'])
+        assert covered >= 35
+        assert np.median(ses[1e-3]) > 3 * np.median(ses[1e-4])
+        a = rmag.hyst_approach_to_saturation_fit(gH, gM, 0.6, 'inverse_field', n_bootstrap=50, rng=5)
+        b = rmag.hyst_approach_to_saturation_fit(gH, gM, 0.6, 'inverse_field', n_bootstrap=50, rng=5)
+        assert a['Ms_se'] == b['Ms_se']
+        none = rmag.hyst_approach_to_saturation_fit(gH, gM, 0.6, 'inverse_field')
+        assert np.isnan(none['Ms_se']) and none['bootstrap'] is None
+        fab = rmag.hyst_approach_to_saturation_fit(gH, gM, 0.6, 'Fabian',
+                                                  n_bootstrap=20, rng=0,
+                                                  beta_grid=np.linspace(-2, -1, 11))
+        assert -2 <= fab['beta_ci95'][0] <= fab['beta_ci95'][1] <= -1
+
+    def test_linear_fit_stats(self):
+        # the standard errors are those of ordinary least squares on the
+        # folded high-field points, and the estimates equal a plain polyfit
+        gH, gM = rmag.grid_hyst_loop(*synthetic_loop(noise=5e-4, chi=0.2))
+        st = rmag.hyst_linear_hf_fit(gH, gM, 0.8)
+        F0, Y0, _ = rmag._high_field_window(gH, gM, 0.8, rmag.HYST_TIP_CUTOFF)
+        slope0, Ms0 = np.polyfit(F0, Y0, 1)
+        assert st['chi_HF'] == pytest.approx(slope0 * 4 * np.pi / 1e7) and st['Ms'] == pytest.approx(Ms0)
+        F, Y, _ = rmag._high_field_window(gH, gM, 0.8, 0.97)
+        (slope, intercept), cov = np.polyfit(F, Y, 1, cov=True)
+        assert st['Ms_se'] == pytest.approx(np.sqrt(cov[1, 1]), rel=1e-6)
+        assert st['chi_HF_se'] == pytest.approx(np.sqrt(cov[0, 0]) * 4 * np.pi / 1e7, rel=1e-6)
+        assert st['n_points'] == len(F)
+
+    def test_too_few_window_points_raise_at_the_hystlab_minimum(self):
+        # the fit needs three points per segment (12), the same number the
+        # saturation test requires of a window's measured points, for every
+        # model; the error names the number
+        H = np.linspace(0.3, 1.0, 60)
+        H = np.concatenate([H, -H])
+        M = np.sign(H) * (1.0 + 0.1 * np.abs(H) - 0.02 / np.abs(H))
+        for model in ('inverse_field', 'Fabian', 'Fabian_fixed_beta'):
+            ok = rmag.hyst_approach_to_saturation_fit(H, M, 0.6, model)
+            assert ok['n_points'] >= 12
+            H_few = np.concatenate([np.linspace(0.3, 1.0, 10), -np.linspace(0.3, 1.0, 10)])   # 10 in the window
+            M_few = np.sign(H_few) * (1.0 + 0.1 * np.abs(H_few) - 0.02 / np.abs(H_few))
+            with pytest.raises(ValueError, match='at least 12 .three per segment'):
+                rmag.hyst_approach_to_saturation_fit(H_few, M_few, 0.6, model)
+
+    def test_max_field_cutoff_is_a_parameter(self):
+        gH, gM = self._weak_unsaturated_loop(1e-3, 1e-8)
+        default = rmag.hyst_approach_to_saturation_fit(gH, gM, 0.6, 'inverse_field')
+        same = rmag.hyst_approach_to_saturation_fit(gH, gM, 0.6, 'inverse_field',
+                                                   max_field_cutoff=0.97)
+        narrower = rmag.hyst_approach_to_saturation_fit(gH, gM, 0.6, 'inverse_field',
+                                                       max_field_cutoff=0.9)
+        assert same == default
+        assert narrower['Fnl_lin'] != default['Fnl_lin']
+
+    def test_unknown_fit_type_raises(self):
+        gH, gM = self._weak_unsaturated_loop(1e-3, 1e-8)
+        with pytest.raises(ValueError, match='model must be'):
+            rmag.hyst_approach_to_saturation_fit(gH, gM, 0.6, 'spline')
+
+    def test_pipeline_weak_unsaturated_loop(self):
+        # through process_hyst_loop, which forces the nonlinear fit for an
+        # unsaturated loop, a 1e-4 Am²/kg specimen gets the same relative
+        # Ms as a 1 Am²/kg one
+        for Ms_true in (1.0, 1e-4):
+            H, M = synthetic_loop(Ms=Ms_true, noise=Ms_true * 1e-3,
+                                  ats_alpha=0.05 * Ms_true,
+                                  rng=np.random.default_rng(1))
+            results = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                             show_plot=False, NL_fit=True)
+            assert results['Ms'] == pytest.approx(Ms_true, rel=0.01)
 
 
 class TestProcessHystLoop:
     def test_full_pipeline_saturated(self):
+        # the saturation test is at its nominal significance level, so a
+        # fixed noise realization is used: with an exact alpha a clean
+        # saturated loop is occasionally sent to the nonlinear fit (whose
+        # Ms then agrees with the linear one to well under 1%; see
+        # test_false_unsaturated_verdict_is_cheap)
         Ms, Bc, w, chi = 1.0, 0.05, 0.03, 0.2
         H, M = synthetic_loop(Ms=Ms, Bc=Bc, w=w, chi=chi, noise=5e-4,
-                              H_offset=0.002, M_offset=0.01)
+                              H_offset=0.002, M_offset=0.01,
+                              rng=np.random.default_rng(11))
         results = rmag.process_hyst_loop(H, M, 'synthetic',
                                          show_results_table=False,
                                          show_plot=False)
         assert not results['loop_is_linear']
         assert results['loop_is_closed']
         assert results['loop_is_saturated']
+        assert results['drift_correction']['pure_error_df_fraction'] < 1
         assert results['Ms'] == pytest.approx(Ms, rel=0.02)
         assert results['Mr'] == pytest.approx(Ms * np.tanh(Bc / w), rel=0.02)
         assert results['Bc'] == pytest.approx(Bc, abs=2e-3)
         assert results['chi_HF'] == pytest.approx(chi * 4 * np.pi / 1e7, rel=0.05)
         assert results['Q'] > 2
+
+    def test_false_unsaturated_verdict_is_cheap(self):
+        # on clean saturated loops the post-drift-correction test rejects
+        # saturation more often than alpha (the correction subtracts
+        # smoothed noise that reads as structure); the nonlinear fit then
+        # returns the linear answer, so the verdict costs nothing in Ms
+        errors = []
+        for seed in range(20):
+            H, M = synthetic_loop(Ms=1.0, Bc=0.05, w=0.03, chi=0.2, noise=5e-4,
+                                  H_offset=0.002, M_offset=0.01,
+                                  rng=np.random.default_rng(1000 + seed))
+            r = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                       show_plot=False)
+            errors.append(abs(r['Ms'] - 1.0))
+            if not r['loop_is_saturated']:
+                assert r['Fnl_lin'] < 3.5
+        assert max(errors) < 0.02
 
     def test_full_pipeline_unsaturated(self):
         H, M = synthetic_loop(noise=1e-4, chi=0.2, ats_alpha=0.1)
@@ -547,18 +1412,18 @@ class TestProcessHystLoop:
     def test_pipeline_ascending_first_matches_descending(self):
         # the same loop physics with the same drift law, measured in the two
         # sweep orders, must process to the same Mr and Bc now that the drift
-        # correction runs in true measurement-time order. fit_open_loop=True
-        # bypasses the open-loop decision-tree exit: the closure test cannot
-        # distinguish residual drift signal in Mrh from a genuinely open
-        # loop (positive drift on an ascending-first sweep leaves a positive
-        # high-field Mrh residual), and this test targets the sweep-order
-        # equivalence of the recovered parameters
+        # correction runs in true measurement-time order. Open loops are
+        # processed in full, so the closure verdict does not gate this: the
+        # closure test cannot distinguish residual drift signal in Mrh from
+        # a genuinely open loop (positive drift on an ascending-first sweep
+        # leaves a positive high-field Mrh residual), and this test targets
+        # the sweep-order equivalence of the recovered parameters
         H_d, M_d = synthetic_loop(drift=0.05)
         H_a, M_a = synthetic_loop_ascending_first(drift=0.05)
-        res_d = rmag.process_hyst_loop(H_d, M_d, fit_open_loop=True,
+        res_d = rmag.process_hyst_loop(H_d, M_d,
                                        show_results_table=False,
                                        show_plot=False)
-        res_a = rmag.process_hyst_loop(H_a, M_a, fit_open_loop=True,
+        res_a = rmag.process_hyst_loop(H_a, M_a,
                                        show_results_table=False,
                                        show_plot=False)
         assert res_d['measured_descending_first']
@@ -567,88 +1432,279 @@ class TestProcessHystLoop:
         assert res_a['Bc'] == pytest.approx(res_d['Bc'], rel=0.05)
 
 
+    def test_few_high_field_points_fall_back_to_the_linear_fit(self, capsys):
+        import warnings as _warnings
+        # a coarsely stepped loop whose 60-97% window holds 12 grid points
+        # (three per segment, the HystLab minimum and the saturation test's
+        # own) is fitted rather than aborting the batch with a ValueError,
+        # as it did when the fit demanded 16
+        for n_half in (18, 19, 20):
+            H, M = synthetic_loop(n_half=n_half, Ms=1.0, noise=1e-4, ats_alpha=0.1,
+                                  rng=np.random.default_rng(1))
+            with _warnings.catch_warnings():
+                _warnings.simplefilter('ignore', RuntimeWarning)
+                r = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                           show_plot=False, n_bootstrap=0)
+            assert r['hf_fit'] == 'inverse_field' and r['hf_fit_results']['n_points'] == 12
+            assert np.isfinite(r['Ms'])
+        # below that, the approach-to-saturation fit is not defensible: the
+        # pipeline takes the linear fit from 60% with a -W- line instead of
+        # raising (here NL_fit forces the nonlinear path on a 14-point sweep)
+        H, M = synthetic_loop(n_half=14, Ms=1.0, noise=1e-4, rng=np.random.default_rng(1))
+        capsys.readouterr()
+        with _warnings.catch_warnings():
+            _warnings.simplefilter('ignore', RuntimeWarning)
+            r = rmag.process_hyst_loop(H, M, NL_fit=True, show_results_table=False,
+                                       show_plot=False, n_bootstrap=0)
+        out = capsys.readouterr().out
+        assert r['hf_fit'] == 'linear' and r['loop_is_saturated'] is False
+        assert np.isfinite(r['Ms']) and np.isfinite(r['Ms_se'])
+        assert 'too few for the approach-to-saturation fit' in out
+
+    def test_bootstrap_is_reproducible_by_default_and_seedable(self):
+        import warnings as _warnings
+        # Ms_se is written to the MagIC specimens table, so two runs on the
+        # same loop must agree; a different seed (or a Generator) draws anew
+        H, M = synthetic_loop(noise=1e-3, ats_alpha=0.05, rng=np.random.default_rng(4))
+        kw = dict(show_results_table=False, show_plot=False, n_bootstrap=100,
+                  NL_fit=True)
+        with _warnings.catch_warnings():
+            _warnings.simplefilter('ignore', RuntimeWarning)
+            a = rmag.process_hyst_loop(H, M, **kw)
+            b = rmag.process_hyst_loop(H, M, **kw)
+            c = rmag.process_hyst_loop(H, M, rng=7, **kw)
+            d = rmag.process_hyst_loop(H, M, rng=np.random.default_rng(7), **kw)
+        assert a['hf_fit'] == 'inverse_field'
+        assert a['Ms_se'] == b['Ms_se'] and a['chi_HF_se'] == b['chi_HF_se']
+        assert c['Ms_se'] == d['Ms_se'] and c['Ms_se'] != a['Ms_se']
+        assert a['Ms_se'] == pytest.approx(c['Ms_se'], rel=0.3)
+        # the samples themselves stay out of the pipeline result
+        assert a['hf_fit_results']['bootstrap'] is None
+        assert a['hf_fit_results']['n_bootstrap'] == 100
+        assert len(a['Ms_ci95']) == 2 and a['Ms_ci95'][0] < a['Ms'] < a['Ms_ci95'][1]
+
 class TestOpenLoopBrh:
     def test_Brh_nan_when_Mrh_stays_high(self):
-        # hematite-like loop measured far short of saturation: Mrh never
-        # falls to Mr/2 in the measured range, so Brh is NaN with a warning
-        # rather than a TypeError (None arithmetic)
-        H, M = synthetic_loop(Ms=1.0, Bc=1.5, w=1.0)
-        gH, gM = rmag.grid_hyst_loop(H, M)
+        # a measured loop closes at its tips, so Mrh reaches zero there and
+        # Brh always exists; an Mrh curve that never falls to Mr/2 can only
+        # come from distorted data (e.g. uncorrected drift), and for that
+        # case the helper returns NaN with a warning rather than failing
+        H = np.linspace(-1, 1, 201)
+        Mrh = 1.0 - 0.3 * np.abs(H)
         with pytest.warns(RuntimeWarning, match='Brh'):
-            Hu, Mr, Mrh, Mih, Me, Brh = rmag.calc_Mr_Mrh_Mih_Brh(gH, gM)
+            Brh = rmag._median_remanent_field(H, Mrh, Mr=1.0)
         assert np.isnan(Brh)
-        assert np.isfinite(Mr) and Mr > 0
-        assert np.all(np.isfinite(Mrh))
+        # a physical open loop: Mrh is still large at 80% of the peak field
+        # yet falls to zero at the tips, and Brh is defined
+        H, M = synthetic_loop(Ms=0.65, Bc=0.05, w=0.03, hard_Ms=1.0,
+                              hard_Bc=1.2, hard_w=0.3)
+        gH, gM = rmag.grid_hyst_loop(H, M)
+        Hu, Mr, Mrh, Mih, Me, Brh = rmag.hyst_loop_components(gH, gM)
+        assert np.isfinite(Brh) and 0 < Brh < 1
+        assert Mrh[np.argmin(np.abs(Hu - 0.8))] > 0.05 * Mr
+        assert abs(Mrh[0]) < 1e-9 and abs(Mrh[-1]) < 1e-9
 
     def test_closed_loop_Brh_unchanged(self):
         # well-behaved loop: Brh is still computed from both crossings
         H, M = synthetic_loop()
         gH, gM = rmag.grid_hyst_loop(H, M)
-        *_, Brh = rmag.calc_Mr_Mrh_Mih_Brh(gH, gM)
+        *_, Brh = rmag.hyst_loop_components(gH, gM)
         assert np.isfinite(Brh) and Brh > 0
 
     def test_Bc_nan_when_no_zero_crossing(self):
-        # loop measured far below the coercivity of its hard component:
-        # neither branch crosses zero, so Bc is NaN with a warning
-        H, M = synthetic_loop(Ms=1.0, Bc=1.5, w=1.0)
+        # a loop shifted vertically by more than its moment (an uncorrected
+        # sensor offset, or a hard field-cooled remanence in Jackson and
+        # Solheid's exception to loop symmetry): neither branch crosses
+        # zero before centering, so Bc on the raw loop is NaN with a warning
+        H, M = synthetic_loop(M_offset=2.0)
         gH, gM = rmag.grid_hyst_loop(H, M)
         with pytest.warns(RuntimeWarning, match='Bc'):
-            Bc = rmag.calc_Bc(gH, gM)
+            Bc = rmag.hyst_coercivity(gH, gM)
         assert np.isnan(Bc)
 
-    def test_pipeline_survives_open_loops(self):
-        # process_hyst_loop must complete on exactly the open-loop specimens
-        # the closure test is designed to flag: the decision-tree exit
-        # reports the slope-independent parameters and quality statistics
-        # with the inseparable quantities as NaN, rather than crashing or
-        # reporting a meaningless Ms
-        import warnings as _warnings
+    def test_open_loops_are_flagged_not_exited(self, capsys):
+        # open loops are processed in full: every parameter is returned,
+        # the closure statistics accompany them, and a -W- line names the
+        # statistic with its window (the practice of Jackson & Solheid,
+        # 2010, and the IRM software: report, do not filter)
         # realistic: soft magnetite plus a dominant unsaturated hard phase
         H1, M1 = synthetic_loop(Ms=0.65, Bc=0.05, w=0.03, hard_Ms=1.0,
-                                hard_Bc=2.0, hard_w=1.5, noise=2e-4)
-        # extreme: single hard phase, magnetization never reverses
-        H2, M2 = synthetic_loop(Ms=1.0, Bc=1.5, w=1.0)
-        for H, M in ((H1, M1), (H2, M2)):
-            with _warnings.catch_warnings():
-                _warnings.simplefilter('ignore')
-                results = rmag.process_hyst_loop(H, M,
-                                                 show_results_table=False,
-                                                 show_plot=False)
-            assert not results['loop_is_closed']
-            assert np.isnan(results['Brh'])
-            # Ms and chi_HF cannot be separated for an open loop
-            assert np.isnan(results['Ms'])
-            assert np.isnan(results['chi_HF'])
-            assert np.isnan(results['Bc'])
-            # slope-independent parameters and quality stats are reported
-            assert np.isfinite(results['Mr']) and results['Mr'] > 0
-            assert np.isfinite(results['Q'])
-
-    def test_fit_open_loop_overrides_exit(self):
-        # explicit fit_open_loop=True proceeds with the high-field fitting
-        # on an open loop, restoring an Ms estimate for users who ask for it
-        import warnings as _warnings
-        H, M = synthetic_loop(Ms=0.65, Bc=0.05, w=0.03, hard_Ms=1.0,
-                              hard_Bc=2.0, hard_w=1.5, noise=2e-4)
-        with _warnings.catch_warnings():
-            _warnings.simplefilter('ignore')
-            results = rmag.process_hyst_loop(H, M, fit_open_loop=True,
-                                             show_results_table=False,
-                                             show_plot=False)
+                                hard_Bc=1.2, hard_w=0.3, noise=2e-4)
+        capsys.readouterr()
+        results = rmag.process_hyst_loop(H1, M1, specimen_name='sp',
+                                         show_results_table=False,
+                                         show_plot=False)
+        out = capsys.readouterr().out
+        assert results['closure_state'] == 'open'
         assert not results['loop_is_closed']
-        assert np.isfinite(results['Ms'])
-
-    def test_NL_fit_implies_fit_open_loop(self):
-        # an explicit NL_fit=True is a fit request and must not be silently
-        # ignored by the open-loop exit
-        import warnings as _warnings
-        H, M = synthetic_loop(Ms=0.65, Bc=0.05, w=0.03, hard_Ms=1.0,
-                              hard_Bc=2.0, hard_w=1.5, noise=2e-4)
-        with _warnings.catch_warnings():
-            _warnings.simplefilter('ignore')
-            results = rmag.process_hyst_loop(H, M, NL_fit=True,
+        assert results['HF_Mrh_fraction'] > 0.02
+        assert np.isfinite(results['HF_Mrh_fraction_se'])
+        assert np.isfinite(results['Ms']) and np.isfinite(results['chi_HF'])
+        assert np.isfinite(results['Mr']) and results['Mr'] > 0
+        assert '-W- sp: loop is open at high field' in out
+        assert '80-99% of the peak field' in out
+        assert 'f_open =' in out and 'HF_Mrh_fraction' in out
+        # extreme: a hard phase still switching through the fit window, so
+        # the folded branches diverge and no approach-to-saturation model
+        # fits: Ms lands on its bound with a warning and the opening cannot
+        # be sized against it, but the loop is still processed in full
+        # (Mr, Brh, the closure statistics) rather than exited
+        H2, M2 = synthetic_loop(Ms=0.2, Bc=0.05, w=0.03, hard_Ms=1.0,
+                                hard_Bc=1.0, hard_w=0.25)
+        assert M2[0] == pytest.approx(M2[-1])          # the tips meet
+        capsys.readouterr()
+        with pytest.warns(RuntimeWarning, match='Ms on its lower bound'):
+            results = rmag.process_hyst_loop(H2, M2, specimen_name='sp',
                                              show_results_table=False,
                                              show_plot=False)
+        out = capsys.readouterr().out
+        assert results['Ms'] == 0 and not results['loop_is_saturated']
+        # the opening cannot be sized against Ms; the M_max fallback confirms
+        # that the loop is open
+        assert np.isnan(results['HF_Mrh_fraction'])
+        assert results['closure_normalization'] == 'Mmax'
+        assert results['closure_state'] == 'open'
+        assert results['HF_Mrh_fraction_Mmax'] > 0.1
+        assert results['HF_Mrh_fraction_Mr'] > 0.1
+        assert np.isfinite(results['Mr']) and results['Mr'] > 0.5
+        assert np.isfinite(results['Brh']) and np.isnan(results['sigma'])
+        assert '-W- sp: loop is open at high field' in out
+        assert 'of M_max' in out
+
+    def test_closed_loop_prints_no_flag(self, capsys):
+        H, M = synthetic_loop(noise=1e-3)
+        capsys.readouterr()
+        results = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                         show_plot=False)
+        assert results['closure_state'] == 'closed'
+        assert '-W-' not in capsys.readouterr().out
+
+    def test_small_residual_is_closed_and_fitted(self):
+        # a clean magnetite-like loop with a sub-percent
+        # high-field residual is closed under the magnitude criterion even
+        # though the SNR/HAR rule flags it; the residual is still reported
+        hard_Ms = _hard_Ms_for_openness_Ms(0.005)
+        H, M = synthetic_loop(noise=1e-4, hard_Ms=hard_Ms)
+        results = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                         show_plot=False)
+        assert results['closure_state'] == 'closed'
+        assert results['loop_is_closed']
+        assert not results['loop_closure_test_results']['loop_is_closed_SNR_HAR']
+        assert results['HF_Mrh_fraction'] == pytest.approx(0.005, rel=0.1)
+        # a hard phase whose switching fields extend into the fit window
+        # makes Mih rise across the window, and any high-field model reads
+        # part of that rise as slope: Ms comes out a few percent low even
+        # though the unswitched remainder (f_open) is 0.5%; the saturation
+        # test flags the loop (every window rejects linearity) while
+        # Fnl_lin ~ 0 says the approach-to-saturation form does not fit a
+        # linear rise either, which is the signature of this case
+        assert results['Ms'] == pytest.approx(_exhibited_Ms(hard_Ms), rel=0.05)
+        assert results['Ms'] < _exhibited_Ms(hard_Ms)
+        assert not results['loop_is_saturated'] and results['Fnl_lin'] < 3.5
+        assert results['low_quality'] is False
+
+    def test_SNR_HAR_criterion_flags_but_still_fits(self, capsys):
+        hard_Ms = _hard_Ms_for_openness_Ms(0.005)
+        H, M = synthetic_loop(noise=1e-4, hard_Ms=hard_Ms)
+        capsys.readouterr()
+        results = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                         show_plot=False,
+                                         closure_criterion='SNR_HAR')
+        out = capsys.readouterr().out
+        assert results['closure_state'] == 'open'
+        assert np.isfinite(results['Ms'])
+        assert 'SNR =' in out and 'HAR =' in out
+
+    def test_indeterminate_loop_is_flagged_and_fitted(self, capsys):
+        H, M = synthetic_loop(noise=0.2, Bc=0.3, w=0.1)
+        capsys.readouterr()
+        results = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                         show_plot=False,
+                                         openness_tolerance=0.02)
+        out = capsys.readouterr().out
+        assert results['closure_state'] == 'indeterminate'
+        assert np.isfinite(results['Ms'])
+        assert 'cannot be resolved' in out
+
+    def test_openness_tolerance_pass_through(self):
+        hard_Ms = _hard_Ms_for_openness_Ms(0.03)
+        H, M = synthetic_loop(noise=2e-3, hard_Ms=hard_Ms)
+        # this loop takes the approach-to-saturation path, where
+        # n_bootstrap=0 leaves Ms_se undefined and so keeps the (large)
+        # bootstrap uncertainty of Ms out of the closed verdict; the
+        # tolerance alone decides (see TestClosureMsUncertainty)
+        default = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                         show_plot=False, n_bootstrap=0)
+        lenient = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                         show_plot=False, n_bootstrap=0,
+                                         openness_tolerance=0.05)
+        assert default['closure_state'] == 'open'
+        assert lenient['closure_state'] == 'closed'
+        # the fit is identical either way: the verdict does not gate it
+        assert lenient['Ms'] == default['Ms']
+        assert np.isfinite(default['HF_Mrh_fraction_Mr'])
+
+    def test_low_quality_loop_is_flagged(self, capsys):
+        # a noisy loop with Q below the threshold gets a -W- line and
+        # low_quality=True; a clean loop does not
+        H, M = synthetic_loop(noise=0.05, rng=np.random.default_rng(4))
+        capsys.readouterr()
+        noisy = rmag.process_hyst_loop(H, M, specimen_name='sn',
+                                       show_results_table=False,
+                                       show_plot=False)
+        out = capsys.readouterr().out
+        assert noisy['Q'] < 2.0 or noisy['Qf'] < 2.0
+        assert noisy['low_quality'] is True
+        assert '-W- sn: low loop quality: Q =' in out
+        H, M = synthetic_loop(noise=1e-3)
+        capsys.readouterr()
+        clean = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                       show_plot=False)
+        assert clean['low_quality'] is False
+        assert 'low loop quality' not in capsys.readouterr().out
+        # the threshold is a parameter
+        strict = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                        show_plot=False, quality_threshold=99)
+        assert strict['low_quality'] is True
+
+    def test_fit_open_loop_is_deprecated_and_ignored(self):
+        # accepted-and-ignored since open loops began to be processed in
+        # full; now a DeprecationWarning, and any other unknown keyword is
+        # the TypeError it always should have been
+        H, M = synthetic_loop(Ms=0.65, Bc=0.05, w=0.03, hard_Ms=1.0,
+                              hard_Bc=1.2, hard_w=0.3, noise=2e-4)
+        kw = dict(show_results_table=False, show_plot=False, n_bootstrap=0)
+        a = rmag.process_hyst_loop(H, M, **kw)
+        with pytest.warns(DeprecationWarning, match='fit_open_loop is deprecated'):
+            b = rmag.process_hyst_loop(H, M, fit_open_loop=True, **kw)
+        assert a['Ms'] == b['Ms'] and a['closure_state'] == b['closure_state'] == 'open'
+        with pytest.raises(TypeError, match='unexpected keyword'):
+            rmag.process_hyst_loop(H, M, fit_closed_loop=True, **kw)
+        # the batch function takes the same path
+        measurements = pd.DataFrame({'experiment': 'sp-HYS', 'specimen': 'sp',
+                                     'meas_field_dc': H, 'magn_mass': M})
+        experiments = pd.DataFrame({'experiment': ['sp-HYS'], 'specimen': ['sp']})
+        with pytest.warns(DeprecationWarning, match='fit_open_loop is deprecated'):
+            rmag.process_hyst_loops(experiments, measurements, show_results_table=False,
+                                    show_plots=False, n_bootstrap=0, fit_open_loop=False)
+        with pytest.raises(TypeError, match='unexpected keyword'):
+            rmag.process_hyst_loops(experiments, measurements, show_results_table=False,
+                                    show_plots=False, n_bootstrap=0, fit_closed_loop=True)
+        # everything after centering_protocol is keyword-only, so the slot
+        # fit_open_loop used to hold cannot silently become another parameter
+        with pytest.raises(TypeError):
+            rmag.process_hyst_loop(H, M, 'sp', False, False, False, 'legacy', False)
+        with pytest.raises(TypeError):
+            rmag.process_hyst_loops(experiments, measurements, 'meas_field_dc', 'magn_mass',
+                                    False, False, 'legacy', True)
+
+    def test_NL_fit_on_open_loop(self):
+        # an explicit NL_fit=True forces the approach-to-saturation fit
+        H, M = synthetic_loop(Ms=0.65, Bc=0.05, w=0.03, hard_Ms=1.0,
+                              hard_Bc=1.2, hard_w=0.3, noise=2e-4)
+        results = rmag.process_hyst_loop(H, M, NL_fit=True,
+                                         show_results_table=False,
+                                         show_plot=False)
         assert np.isfinite(results['Ms'])
         assert results['Fnl_lin'] is not None
 
@@ -657,7 +1713,11 @@ class TestOpenLoopBrh:
         # test with chi_HF from the whole-loop regression; the ferromagnetic
         # parameters are undefined
         chi = 0.2
-        H, M = synthetic_loop(Ms=0.0, chi=chi, noise=1e-4)
+        # fixed realization: the whole-loop test is at its nominal
+        # significance level, so 1 in 20 pure-noise loops is declared
+        # nonlinear
+        H, M = synthetic_loop(Ms=0.0, chi=chi, noise=1e-4,
+                              rng=np.random.default_rng(3))
         results = rmag.process_hyst_loop(H, M, show_results_table=False,
                                          show_plot=False)
         assert results['loop_is_linear']
@@ -685,16 +1745,16 @@ class TestOpenLoopBrh:
         assert results['chi_HF'] == pytest.approx(chi * 4 * np.pi / 1e7,
                                                   rel=0.02)
 
-    def test_exit_results_keep_full_key_schema(self):
-        # all three outcomes share one result key set, so batch tables from
-        # process_hyst_loops keep a stable schema (contract for
-        # add_hyst_stats_to_specimens_table)
+    def test_results_keep_full_key_schema(self):
+        # the linear-loop exit and the two closure outcomes share one result
+        # key set, so batch tables from process_hyst_loops keep a stable
+        # schema (contract for add_hyst_stats_to_specimens_table)
         import warnings as _warnings
         H_full, M_full = synthetic_loop(noise=5e-4, chi=0.2)
         H_lin, M_lin = synthetic_loop(Ms=0.0, chi=0.2, noise=1e-4)
         H_open, M_open = synthetic_loop(Ms=0.65, Bc=0.05, w=0.03,
-                                        hard_Ms=1.0, hard_Bc=2.0,
-                                        hard_w=1.5, noise=2e-4)
+                                        hard_Ms=1.0, hard_Bc=1.2,
+                                        hard_w=0.3, noise=2e-4)
         with _warnings.catch_warnings():
             _warnings.simplefilter('ignore')
             results = [rmag.process_hyst_loop(H, M, show_results_table=False,
@@ -708,6 +1768,7 @@ class TestOpenLoopBrh:
         assert np.isfinite(res_full['Ms'])
         assert res_lin['loop_is_linear']
         assert res_open['loop_is_closed'] is False
+        assert np.isfinite(res_open['Ms'])
         assert set(res_full) == set(res_lin) == set(res_open)
 
 
@@ -719,7 +1780,7 @@ class TestSparseLoopSaturation:
         H, M = synthetic_loop(n_half=12)
         gH, gM = rmag.grid_hyst_loop(H, M)
         with pytest.warns(RuntimeWarning, match='saturation test window'):
-            results = rmag.hyst_loop_saturation_test(gH, gM)
+            results = rmag.hyst_saturation_test(gH, gM)
         assert 'saturation_cutoff' in results
         # at least one window was skipped -> its FNL is NaN
         fnls = [results['FNL60'], results['FNL70'], results['FNL80']]
@@ -731,7 +1792,7 @@ class TestSparseLoopSaturation:
         H, M = synthetic_loop(n_half=12)
         gH, gM = rmag.grid_hyst_loop(H, M)
         with pytest.raises(ValueError, match='high-field'):
-            rmag.loop_saturation_stats(gH, gM, HF_cutoff=0.8)
+            rmag.hyst_hf_linearity_stats(gH, gM, HF_cutoff=0.8)
 
 
 class TestClosureTestSignature:
@@ -740,9 +1801,9 @@ class TestClosureTestSignature:
         # third positional argument must still bind to HF_cutoff
         H, M = synthetic_loop(noise=2e-3, hard_Ms=0.1)
         gH, gM = rmag.grid_hyst_loop(H, M)
-        Hu, Mr, Mrh, Mih, Me, Brh = rmag.calc_Mr_Mrh_Mih_Brh(gH, gM)
-        positional = rmag.loop_closure_test(Hu, Mrh, 0.7)
-        keyword = rmag.loop_closure_test(Hu, Mrh, HF_cutoff=0.7)
+        Hu, Mr, Mrh, Mih, Me, Brh = rmag.hyst_loop_components(gH, gM)
+        positional = rmag.hyst_closure_test(Hu, Mrh, 0.7, Ms=1.1)
+        keyword = rmag.hyst_closure_test(Hu, Mrh, HF_cutoff=0.7, Ms=1.1)
         assert positional == keyword
 
 
@@ -755,9 +1816,43 @@ class TestHystStatsDescriptionJSON:
             'Q': 5.0, 'Qf': 6.0, 'sigma': 0.5, 'Brh': 0.08,
             'FNL': 1.0, 'FNL60': 1.1, 'FNL70': 1.2, 'FNL80': 1.3,
             'Fnl_lin': None, 'loop_is_linear': False,
-            'loop_is_closed': True, 'loop_is_saturated': True,
+            'loop_is_closed': True, 'closure_state': 'closed',
+            'HF_Mrh_fraction': 0.004, 'HF_Mrh_fraction_se': 0.001,
+            'loop_is_saturated': True,
+            'Ms_se': 0.01, 'chi_HF_se': 1e-9, 'hf_fit': 'linear',
             'processed_by': 'test',
         }])
+
+    def test_exclude_open_withholds_slope_dependent_parameters(self):
+        # exclude_open=True writes NaN for Ms, Bc and chi_HF of open loops
+        # in the MagIC columns; Mr and the closure statistics are kept
+        hyst = pd.concat([self._hyst_results(), self._hyst_results()],
+                         ignore_index=True)
+        hyst.loc[1, ['specimen', 'experiment']] = ['spec2', 'spec2-HYS1']
+        hyst.loc[1, ['loop_is_closed', 'closure_state', 'HF_Mrh_fraction']] = \
+            [False, 'open', 0.25]
+        specimens = pd.DataFrame({'specimen': ['spec1', 'spec2']})
+        kept = rmag.add_hyst_stats_to_specimens_table(specimens, hyst)
+        withheld = rmag.add_hyst_stats_to_specimens_table(specimens, hyst,
+                                                          exclude_open=True)
+        def row_for(df, experiment):
+            return df[df.experiments == experiment].iloc[0]
+        for df in (kept, withheld):
+            assert row_for(df, 'spec1-HYS1')['hyst_ms_mass'] == 1.0
+            assert row_for(df, 'spec2-HYS1')['hyst_mr_mass'] == 0.4
+        assert row_for(kept, 'spec2-HYS1')['hyst_ms_mass'] == 1.0
+        row = row_for(withheld, 'spec2-HYS1')
+        assert np.isnan(row['hyst_ms_mass']) and np.isnan(row['hyst_bc'])
+        assert np.isnan(row['hyst_xhf'])
+        _, data = rmag.parse_specimen_description(row['description'])
+        assert data['closure_state'] == 'open'
+        assert data['HF_Mrh_fraction'] == pytest.approx(0.25)
+        # the standard errors of the withheld parameters go with them
+        assert data['Ms_se'] is None or np.isnan(data['Ms_se'])
+        assert data['chi_HF_se'] is None or np.isnan(data['chi_HF_se'])
+        _, kept_data = rmag.parse_specimen_description(
+            row_for(kept, 'spec2-HYS1')['description'])
+        assert kept_data['Ms_se'] == pytest.approx(0.01)
 
     def test_round_trip_with_unmixing_payload(self):
         # a cell already holding the unmixing writer's 'text | JSON' payload
@@ -777,6 +1872,8 @@ class TestHystStatsDescriptionJSON:
         assert data['coercivity_unmixing'] == {'B1': 30.0}
         assert data['Q'] == pytest.approx(5.0)
         assert data['loop_is_closed'] is True
+        assert data['closure_state'] == 'closed'
+        assert data['HF_Mrh_fraction'] == pytest.approx(0.004)
 
     def test_legacy_dict_cell_migrated(self):
         # legacy str(dict) cells written by older versions are parsed and
@@ -955,13 +2052,38 @@ class TestSummaryTableUnits:
                                         show_plot=False, magn_unit='Am^2/kg')
         assert linear['loop_is_linear']
         assert linear['magn_unit'] == 'Am²/kg'
-        H, M = synthetic_loop(noise=2e-3, hard_Ms=0.3, hard_Bc=1.5)
+        H, M = synthetic_loop(Ms=0.65, Bc=0.05, w=0.03, hard_Ms=1.0,
+                              hard_Bc=1.2, hard_w=0.3, noise=2e-4)
         with _warnings.catch_warnings():
             _warnings.simplefilter('ignore', RuntimeWarning)
             opened = rmag.process_hyst_loop(H, M, show_results_table=False,
                                             show_plot=False)
         assert opened['loop_is_closed'] is False
         assert opened['magn_unit'] == 'Am²/kg'
+
+    def test_batch_prints_closure_summary(self, capsys):
+        H_c, M_c = synthetic_loop(noise=1e-3)
+        H_o, M_o = synthetic_loop(Ms=0.65, Bc=0.05, w=0.03, hard_Ms=1.0,
+                                  hard_Bc=1.2, hard_w=0.3, noise=2e-4)
+        H_l, M_l = synthetic_loop(Ms=0.0, chi=0.2, noise=1e-4,
+                                  rng=np.random.default_rng(3))
+        measurements = pd.concat([
+            pd.DataFrame({'experiment': name, 'meas_field_dc': H,
+                          'magn_mass': M})
+            for name, (H, M) in (('c', (H_c, M_c)), ('o', (H_o, M_o)),
+                                 ('l', (H_l, M_l)))], ignore_index=True)
+        experiments = pd.DataFrame({'experiment': ['c', 'o', 'l'],
+                                    'specimen': ['sc', 'so', 'sl']})
+        capsys.readouterr()
+        out_df = rmag.process_hyst_loops(experiments, measurements,
+                                         show_results_table=False,
+                                         show_plots=False)
+        out = capsys.readouterr().out
+        assert list(out_df.closure_state[:2]) == ['closed', 'open']
+        assert pd.isna(out_df.closure_state[2])
+        assert '-W- so: loop is open at high field' in out
+        assert ('-I- 1 of 3 loops open at high field, 0 of unresolved '
+                'closure, 1 statistically linear, 0 of low quality') in out
 
     def test_unrecognized_magn_col_warns(self):
         H, M = synthetic_loop(noise=5e-4, chi=0.2)
@@ -1034,3 +2156,326 @@ class TestSummaryTableUnits:
             rmag.add_hyst_stats_to_specimens_table(
                 pd.DataFrame([{'specimen': 'spec1',
                                'experiments': 'exp1'}]), out)
+
+
+class TestV5API:
+    """The PmagPy 5 names, the deprecated aliases of the old ones, and the
+    parameters settled for the API freeze."""
+
+    @staticmethod
+    def _loop():
+        H, M = synthetic_loop(noise=1e-3, chi=0.2, ats_alpha=0.05, rng=np.random.default_rng(11))
+        return rmag.grid_hyst_loop(H, M)
+
+    def test_aliases_warn_and_agree(self):
+        gH, gM = self._loop()
+        Hu, Mr, Mrh, Mih, Me, Brh = rmag.hyst_loop_components(gH, gM)
+        pairs = [
+            (lambda: rmag.ANOVA(gH, gM)['SSD'], lambda: rmag.hyst_linear_fit_anova(gH, gM)['SSD']),
+            (lambda: rmag.calc_Q(gH, gM, type='Qf'), lambda: rmag.hyst_quality_factor(gH, gM, kind='Qf')),
+            (lambda: rmag.calc_Bc(gH, gM), lambda: rmag.hyst_coercivity(gH, gM)),
+            (lambda: rmag.calc_Mr_Mrh_Mih_Brh(gH, gM)[1], lambda: rmag.hyst_loop_components(gH, gM)[1]),
+            (lambda: rmag.Me_drift_correction(gH, gM), lambda: rmag.hyst_drift_correction(gH, gM)),
+            (lambda: rmag.loop_saturation_stats(gH, gM)['FNL'], lambda: rmag.hyst_hf_linearity_stats(gH, gM)['FNL']),
+            (lambda: rmag.hyst_loop_saturation_test(gH, gM)['FNL60'], lambda: rmag.hyst_saturation_test(gH, gM)['FNL60']),
+            (lambda: rmag.loop_closure_test(Hu, Mrh, Me=Me, Ms=1.0)['HF_Mrh_fraction'],
+             lambda: rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=1.0)['HF_Mrh_fraction']),
+            (lambda: rmag.closure_mean_se_by_noise_propagation(gH, gM, n_draws=20)['sigma_M'],
+             lambda: rmag.hyst_closure_se(gH, gM, n_draws=20)['sigma_M']),
+            (lambda: rmag.linear_HF_fit(gH, gM, 0.8)[1], lambda: rmag.hyst_linear_hf_fit(gH, gM, 0.8)['Ms']),
+            (lambda: rmag.linear_HF_fit_stats(gH, gM, 0.8)['Ms_se'], lambda: rmag.hyst_linear_hf_fit(gH, gM, 0.8)['Ms_se']),
+            (lambda: rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM')['Ms'],
+             lambda: rmag.hyst_approach_to_saturation_fit(gH, gM, 0.6, 'inverse_field')['Ms']),
+            (lambda: rmag.IRM_nonlinear_fit(gH, 1e-7, 1.0, -0.01, -0.001),
+             lambda: rmag.hyst_approach_to_saturation_model(gH, {'chi_HF': 1e-7, 'Ms': 1.0, 'a_1': -0.01, 'a_2': -0.001})),
+            (lambda: rmag.Fabian_nonlinear_fit(gH, 1e-7, 1.0, -0.01, -1.5),
+             lambda: rmag.hyst_approach_to_saturation_model(gH, {'chi_HF': 1e-7, 'Ms': 1.0, 'alpha': -0.01, 'beta': -1.5})),
+            (lambda: rmag.hyst_loop_centering_iterative(gH, gM)['Q'],
+             lambda: rmag.hyst_loop_centering(gH, gM, protocol='iterative')['Q']),
+        ]
+        for old, new in pairs:
+            with pytest.warns(DeprecationWarning, match='PmagPy 5'):
+                a = old()
+            b = new()
+            np.testing.assert_allclose(np.asarray(a, dtype=float), np.asarray(b, dtype=float))
+        # the new names do not warn
+        with warnings.catch_warnings():
+            warnings.simplefilter('error', DeprecationWarning)
+            rmag.hyst_quality_factor(gH, gM)
+            rmag.hyst_linear_hf_fit(gH, gM)
+
+    def test_approach_to_saturation_fit_defaults_and_model_names(self):
+        gH, gM = self._loop()
+        default = rmag.hyst_approach_to_saturation_fit(gH, gM)
+        explicit = rmag.hyst_approach_to_saturation_fit(gH, gM, 0.6, 'inverse_field')
+        assert default['model'] == 'inverse_field' and default['Ms'] == explicit['Ms']
+        legacy = rmag.hyst_approach_to_saturation_fit(gH, gM, model='IRM')
+        assert legacy['model'] == 'inverse_field' and legacy['Ms'] == default['Ms']
+        F, Y, _ = rmag._high_field_window(gH, gM, 0.6, rmag.HYST_TIP_CUTOFF)
+        for model in ('inverse_field', 'Fabian', 'Fabian_fixed_beta'):
+            fit = rmag.hyst_approach_to_saturation_fit(gH, gM, model=model)
+            assert fit['model'] == model
+            # the result evaluates the model it came from
+            curve = rmag.hyst_approach_to_saturation_model(F, fit)
+            assert curve.shape == F.shape and np.all(np.isfinite(curve))
+            assert np.sqrt(np.mean((Y - curve)**2)) < 0.01 * np.max(np.abs(Y))
+        with pytest.raises(ValueError, match='model must be'):
+            rmag.hyst_approach_to_saturation_model(gH, {'chi_HF': 0, 'Ms': 1}, model='exponential')
+
+    def test_centering_protocols_share_a_schema(self):
+        H, M = synthetic_loop(noise=1e-3, H_offset=0.01, M_offset=0.02, rng=np.random.default_rng(5))
+        gH, gM = rmag.grid_hyst_loop(H, M)
+        common = {'centered_H', 'centered_M', 'opt_H_offset', 'opt_M_offset', 'M_sn', 'Q', 'protocol'}
+        legacy = rmag.hyst_loop_centering(gH, gM)
+        iterative = rmag.hyst_loop_centering(gH, gM, protocol='iterative')
+        assert common <= set(legacy) and common <= set(iterative)
+        assert legacy['protocol'] == 'legacy' and 'R_squared' in legacy
+        assert iterative['protocol'] == 'iterative'
+        assert {'provisional_slope', 'symmetry_score', 'iterations'} <= set(iterative)
+        assert 'method' not in iterative
+        for r in (legacy, iterative):
+            assert r['opt_H_offset'] == pytest.approx(0.01, abs=2e-3)
+            assert r['opt_M_offset'] == pytest.approx(0.02, abs=2e-3)
+        with pytest.raises(ValueError, match="protocol must be"):
+            rmag.hyst_loop_centering(gH, gM, protocol='brent')
+
+    def test_iterative_centering_warns_instead_of_swallowing(self, capsys):
+        # a provisional-slope window with fewer than 3 points: the failure
+        # is reported with a -W- line, not silenced
+        H, M = synthetic_loop(n_half=12, noise=1e-4, chi=0.2)
+        gH, gM = rmag.grid_hyst_loop(H, M)
+        capsys.readouterr()
+        r = rmag.hyst_loop_centering(gH, gM, protocol='iterative', hf_cutoff=0.95)
+        assert 'provisional high-field slope could not be fit' in capsys.readouterr().out
+        assert r['provisional_slope'] == 0.0
+
+    def test_tip_cutoff_is_one_constant(self):
+        import inspect, re
+        assert rmag.HYST_TIP_CUTOFF == 0.97
+        for f in (rmag.hyst_linear_hf_fit, rmag.hyst_hf_linearity_stats,
+                  rmag.hyst_saturation_test, rmag.hyst_approach_to_saturation_fit):
+            assert inspect.signature(f).parameters['max_field_cutoff'].default == rmag.HYST_TIP_CUTOFF
+            # by name, not by value: a literal 0.97 would pass the check above
+            header = inspect.getsource(f).split('):')[0]
+            assert re.search(r'max_field_cutoff=HYST_TIP_CUTOFF', header), f.__name__
+
+    def test_single_field_window_is_reported_not_fit(self, capsys):
+        # a window whose points all sit at one grid field: the linear fit
+        # says so (earlier versions returned a rank-deficient artifact with
+        # only a RankWarning), the iterative centering reports it and goes
+        # on with zero slope, and the old alias raises the same error
+        H, M = synthetic_loop(n_half=20, noise=1e-4, chi=0.2)
+        gH, gM = rmag.grid_hyst_loop(H, M)
+        F, _, _ = rmag._high_field_window(gH, gM, 0.8, rmag.HYST_TIP_CUTOFF)
+        assert np.unique(F).size == 1
+        with pytest.raises(ValueError, match='single field value'):
+            rmag.hyst_linear_hf_fit(gH, gM, 0.8)
+        with pytest.warns(DeprecationWarning):
+            with pytest.raises(ValueError, match='single field value'):
+                rmag.linear_HF_fit(gH, gM, 0.8)
+        capsys.readouterr()
+        r = rmag.hyst_loop_centering(gH, gM, protocol='iterative')
+        out = capsys.readouterr().out
+        assert 'single field value' in out and r['provisional_slope'] == 0.0
+
+    def test_legacy_protocol_rejects_iterative_parameters(self):
+        gH, gM = self._loop()
+        with pytest.raises(ValueError, match="apply to protocol='iterative' only"):
+            rmag.hyst_loop_centering(gH, gM, hf_cutoff=0.7)
+        assert rmag.hyst_loop_centering(gH, gM, protocol='iterative', hf_cutoff=0.7)['protocol'] == 'iterative'
+
+    def test_evaluator_needs_model_parameters(self):
+        gH, gM = self._loop()
+        linear = {'chi_HF': 1e-7, 'Ms': 1.0, 'Ms_se': 0.01}      # a linear-path result
+        with pytest.raises(ValueError, match='no approach-to-saturation model'):
+            rmag.hyst_approach_to_saturation_model(gH, linear)
+
+    def test_aliases_keep_their_old_positional_signatures(self):
+        gH, gM = self._loop()
+        with pytest.warns(DeprecationWarning, match='PmagPy 5'):
+            old = rmag.hyst_loop_centering_iterative(gH, gM, 0.7)
+        new = rmag.hyst_loop_centering(gH, gM, protocol='iterative', hf_cutoff=0.7)
+        assert old['Q'] == new['Q'] and old['method'] == 'iterative_low_field_weighted'
+        with pytest.warns(DeprecationWarning, match='PmagPy 5'):
+            old = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM', None, None, 0.97, None, 20, 0)
+        new = rmag.hyst_approach_to_saturation_fit(gH, gM, 0.6, 'inverse_field', n_bootstrap=20, rng=0)
+        assert old['Ms'] == new['Ms'] and old['Ms_se'] == new['Ms_se']
+        # the initial_guess warning is attributed to the caller, not to the alias
+        with pytest.warns(FutureWarning, match='initial_guess is ignored') as record:
+            with pytest.warns(DeprecationWarning):
+                rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM', [1, 1, -0.1, -0.1])
+        assert any(w.filename == __file__ for w in record if issubclass(w.category, FutureWarning))
+        with pytest.warns(DeprecationWarning, match="hyst_approach_to_saturation_model\\(H, \\{'chi_HF'"):
+            rmag.IRM_nonlinear_fit(gH, 1e-7, 1.0, -0.01, -0.001)
+
+    def test_batch_passes_NL_fit(self):
+        H, M = synthetic_loop(noise=1e-3, rng=np.random.default_rng(2))
+        measurements = pd.DataFrame({'experiment': 'sp-HYS', 'specimen': 'sp',
+                                     'meas_field_dc': H, 'magn_mass': M})
+        experiments = pd.DataFrame({'experiment': ['sp-HYS'], 'specimen': ['sp']})
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', RuntimeWarning)
+            plain = rmag.process_hyst_loops(experiments, measurements, show_results_table=False,
+                                            show_plots=False, n_bootstrap=0)
+            forced = rmag.process_hyst_loops(experiments, measurements, show_results_table=False,
+                                             show_plots=False, n_bootstrap=0, NL_fit=True)
+        assert plain.iloc[0]['hf_fit'] == 'linear' and forced.iloc[0]['hf_fit'] == 'inverse_field'
+
+
+class TestClosureMsUncertainty:
+    """The uncertainty of the fitted Ms enters the 'closed' verdict but not
+    the 'open' verdict (decision of 2026-09-28)."""
+
+    def test_two_standard_errors_two_verdicts(self):
+        H, M = synthetic_loop(hard_Ms=_hard_Ms_for_openness_Ms(0.05), noise=1e-3)
+        Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
+        Ms = _exhibited_Ms(_hard_Ms_for_openness_Ms(0.05))
+        plain = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms)
+        assert plain['HF_Mrh_fraction_se_total'] == plain['HF_Mrh_fraction_se']
+        # a 50% uncertain Ms (an unsaturated loop's bootstrap) does not
+        # touch the open verdict, which rests on the window mean alone
+        uncertain = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms, Ms_se=0.5*Ms)
+        assert uncertain['closure_state'] == plain['closure_state'] == 'open'
+        assert uncertain['HF_Mrh_fraction_se'] == plain['HF_Mrh_fraction_se']
+        f = uncertain['HF_Mrh_fraction']
+        assert uncertain['HF_Mrh_fraction_se_total'] == pytest.approx(
+            np.sqrt(plain['HF_Mrh_fraction_se']**2 + (0.5*f)**2))
+        # a small opening is 'closed' only when the ratio, Ms uncertainty
+        # included, stays below the tolerance
+        H, M = synthetic_loop(hard_Ms=_hard_Ms_for_openness_Ms(0.012), noise=1e-3)
+        Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
+        Ms = _exhibited_Ms(_hard_Ms_for_openness_Ms(0.012))
+        exact = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms)
+        assert exact['closure_state'] == 'closed'
+        assert exact['HF_Mrh_fraction_upper'] == pytest.approx(
+            exact['HF_Mrh_fraction'] + 2*exact['HF_Mrh_fraction_se'])
+        assert rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms, Ms_se=0.02*Ms)['closure_state'] == 'closed'
+        # the verdict uses the bound (opening taken high over Ms taken low),
+        # not the first-order total: at Ms_se = 0.3 Ms the first-order
+        # interval would still close this 1.2% loop (f(1 + 2r) ~ 1.9%) while
+        # the bound f/(1 - 2r) ~ 2.9% does not; at 0.5 Ms the bound is
+        # infinite
+        r03 = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms, Ms_se=0.3*Ms)
+        f, se = r03['HF_Mrh_fraction'], r03['HF_Mrh_fraction_se']
+        assert f + 2*r03['HF_Mrh_fraction_se_total'] < 0.02
+        assert r03['HF_Mrh_fraction_upper'] == pytest.approx((f + 2*se)/(1 - 0.6))
+        assert r03['HF_Mrh_fraction_upper'] > 0.02 and r03['closure_state'] == 'indeterminate'
+        r05 = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms, Ms_se=0.5*Ms)
+        assert np.isinf(r05['HF_Mrh_fraction_upper']) and r05['closure_state'] == 'indeterminate'
+        # NaN Ms_se (no bootstrap) leaves the conditional value; an
+        # infinite one makes the total infinite (indeterminate), a negative
+        # one is rejected
+        r = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms, Ms_se=np.nan)
+        assert r['HF_Mrh_fraction_se_total'] == r['HF_Mrh_fraction_se']
+        r = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms, Ms_se=np.inf)
+        assert np.isinf(r['HF_Mrh_fraction_se_total']) and r['closure_state'] == 'indeterminate'
+        with pytest.raises(ValueError, match='non-negative'):
+            rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms, Ms_se=-1.0)
+        # a negative opening (crossing branches) carries no Ms term: no
+        # error in Ms can push it over the tolerance
+        neg = rmag.hyst_closure_test(Hu, -Mrh, Me=Me, Ms=Ms, Ms_se=0.5*Ms)
+        assert neg['HF_Mrh_fraction'] < 0
+        assert neg['HF_Mrh_fraction_se_total'] == neg['HF_Mrh_fraction_se']
+        assert neg['HF_Mrh_fraction_upper'] == pytest.approx(neg['HF_Mrh_fraction'] + 2*neg['HF_Mrh_fraction_se'])
+        assert neg['closure_state'] == 'closed'
+
+    def test_bound_is_continuous_at_zero_opening(self):
+        # Ms enters the bound when the opening taken high is positive, not
+        # when the point estimate is: two loops whose openings straddle zero
+        # by less than their noise get the same treatment and nearly the
+        # same bound, and a confidently negative opening stays closed
+        H, M = synthetic_loop(noise=1e-3, rng=np.random.default_rng(21))
+        Hu, Mr, Mrh, Me, Brh = _closure_inputs(H, M)
+        Ms, se_mean = 1.0, 0.002
+        # center the window mean on zero, then straddle it
+        base = rmag.hyst_closure_test(Hu, Mrh, Me=Me, Ms=Ms)['HF_Mrh_fraction']*Ms
+        results = {}
+        for sign in (+1, -1):
+            r = rmag.hyst_closure_test(Hu, Mrh - base + sign*0.0001, Me=Me, Ms=Ms,
+                                       Ms_se=0.3*Ms, HF_Mrh_mean_se=se_mean)
+            results[sign] = r
+        f_plus, f_minus = results[+1]['HF_Mrh_fraction'], results[-1]['HF_Mrh_fraction']
+        assert f_plus > 0 > f_minus
+        up_plus, up_minus = results[+1]['HF_Mrh_fraction_upper'], results[-1]['HF_Mrh_fraction_upper']
+        # both upper ends are positive and both include the Ms term
+        assert up_plus == pytest.approx((f_plus + 2*se_mean/Ms)/(1 - 0.6), rel=1e-6)
+        assert up_minus == pytest.approx((f_minus + 2*se_mean/Ms)/(1 - 0.6), rel=1e-6)
+        assert abs(up_plus - up_minus) < 3*abs(f_plus - f_minus)/(1 - 0.6) + 1e-12
+        assert results[+1]['closure_state'] == results[-1]['closure_state']
+        # confidently negative: the upper end is negative, no Ms term, closed
+        r = rmag.hyst_closure_test(Hu, Mrh - 0.02, Me=Me, Ms=Ms, Ms_se=0.5*Ms,
+                                   HF_Mrh_mean_se=se_mean)
+        assert r['HF_Mrh_fraction_upper'] < 0 and r['closure_state'] == 'closed'
+
+    def test_flag_names_the_Ms_term_when_it_decides(self, capsys):
+        # an indeterminate loop whose conditional interval alone would have
+        # closed it: the -W- line must say the Ms term is what keeps it
+        # open, even at a modest ratio of the two standard errors
+        closure = {'HF_Mrh_fraction': 0.012, 'HF_Mrh_fraction_se': 0.0035,
+                   'HF_Mrh_fraction_se_total': 0.0045, 'HF_Mrh_fraction_upper': np.inf,
+                   'HF_Mrh_fraction_Mr': 0.03,
+                   'HF_cutoff': 0.8, 'max_field_cutoff': 0.99, 'criterion': 'magnitude',
+                   'closure_state': 'indeterminate', 'normalization': 'Ms',
+                   'SNR': 10.0, 'HAR': -30.0}
+        capsys.readouterr()
+        rmag._print_closure_flag('sp', closure)
+        out = capsys.readouterr().out
+        assert 'including the uncertainty of Ms' in out and 'unbounded' in out
+        closure['HF_Mrh_fraction_upper'] = 0.025
+        rmag._print_closure_flag('sp', closure)
+        assert 'up to 2.5%' in capsys.readouterr().out
+        # and stays quiet when the two agree
+        closure.update({'HF_Mrh_fraction_se_total': 0.0035})
+        rmag._print_closure_flag('sp', closure)
+        assert 'including the uncertainty of Ms' not in capsys.readouterr().out
+
+    def test_lenient_tolerance_needs_a_well_determined_Ms_to_close(self):
+        # a 3%-open loop under a 5% tolerance: closed when Ms is taken as
+        # exact, but its Ms comes from an unsaturated fit whose bootstrap
+        # uncertainty is large, and with that included the ratio is not
+        # shown to be below 5% -- 'indeterminate', not 'closed'
+        hard_Ms = _hard_Ms_for_openness_Ms(0.03)
+        H, M = synthetic_loop(noise=2e-3, hard_Ms=hard_Ms)
+        kw = dict(show_results_table=False, show_plot=False, openness_tolerance=0.05)
+        exact = rmag.process_hyst_loop(H, M, n_bootstrap=0, **kw)
+        boot = rmag.process_hyst_loop(H, M, n_bootstrap=300, **kw)
+        assert exact['closure_state'] == 'closed'
+        assert boot['closure_state'] == 'indeterminate'
+        assert boot['Ms_se']/boot['Ms'] > 0.05
+        assert boot['HF_Mrh_fraction_se_total'] > 1.5*boot['HF_Mrh_fraction_se']
+        assert boot['HF_Mrh_fraction'] == exact['HF_Mrh_fraction']
+
+    def test_pipeline_passes_the_fit_uncertainty(self, capsys):
+        # bootstrap on: the total SE exceeds the conditional one on an open
+        # loop whose Ms is ill conditioned, the verdict stays open, and the
+        # -W- line reports both
+        hard_Ms = _hard_Ms_for_openness_Ms(0.05)
+        H, M = synthetic_loop(noise=2e-3, hard_Ms=hard_Ms, rng=np.random.default_rng(1))
+        capsys.readouterr()
+        r = rmag.process_hyst_loop(H, M, specimen_name='sp', show_results_table=False,
+                                   show_plot=False, n_bootstrap=200)
+        out = capsys.readouterr().out
+        assert r['closure_state'] == 'open' and r['hf_fit'] == 'inverse_field'
+        assert r['HF_Mrh_fraction_se_total'] > r['HF_Mrh_fraction_se']
+        assert r['HF_Mrh_fraction_se_total'] == pytest.approx(np.sqrt(
+            r['HF_Mrh_fraction_se']**2 + (r['HF_Mrh_fraction']*r['Ms_se']/r['Ms'])**2))
+        assert r['HF_Mrh_fraction_se_total'] > 1.5*r['HF_Mrh_fraction_se']
+        assert 'including the uncertainty of Ms' in out
+        # bootstrap off: the total falls back to the conditional value
+        r0 = rmag.process_hyst_loop(H, M, show_results_table=False, show_plot=False, n_bootstrap=0)
+        assert np.isnan(r0['Ms_se'])
+        assert r0['HF_Mrh_fraction_se_total'] == r0['HF_Mrh_fraction_se']
+        # and the key reaches the specimens table JSON
+        hyst = pd.DataFrame([{**{k: r[k] for k in ('Ms', 'Mr', 'Bc', 'chi_HF', 'Q', 'Qf', 'sigma', 'Brh',
+                                                  'FNL', 'FNL60', 'FNL70', 'FNL80', 'Fnl_lin',
+                                                  'loop_is_linear', 'loop_is_closed', 'closure_state',
+                                                  'HF_Mrh_fraction', 'HF_Mrh_fraction_se',
+                                                  'HF_Mrh_fraction_se_total', 'HF_Mrh_fraction_upper',
+                                                  'loop_is_saturated',
+                                                  'magn_unit')},
+                              'specimen': 'sp', 'experiment': 'sp-HYS', 'processed_by': 'test'}])
+        table = rmag.add_hyst_stats_to_specimens_table(pd.DataFrame({'specimen': ['sp']}), hyst)
+        row = table[table.experiments == 'sp-HYS'].iloc[0]
+        _, data = rmag.parse_specimen_description(row['description'])
+        assert data['HF_Mrh_fraction_se_total'] == pytest.approx(r['HF_Mrh_fraction_se_total'])
+        assert data['HF_Mrh_fraction_upper'] == pytest.approx(r['HF_Mrh_fraction_upper'])

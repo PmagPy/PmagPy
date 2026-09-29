@@ -33,7 +33,6 @@ from pmag_env import set_env
 from . import pmag
 from . import pmagplotlib
 from . import data_model3 as data_model
-#from .contribution_builder import Contribution appears redundant
 from . import validate_upload3 as val_up3
 from numpy.linalg import inv, eig
 try:
@@ -345,11 +344,11 @@ def kent_distribution_95(dec=None, inc=None, di_block=None):
     dictionary with the Kent mean and statistical parameters.
 
     Parameters:
-    dec: list of declinations
-    inc: list of inclinations
-    di_block: a nested list of [dec,inc,1.0]
-        A di_block can be provided instead of dec, inc lists in which case it will
-        be used. Either dec, inc lists or a di_block need to passed to the function.
+        dec: list of declinations
+        inc: list of inclinations
+        di_block: a nested list of [dec,inc,1.0]
+            A di_block can be provided instead of dec, inc lists in which case it will
+            be used. Either dec, inc lists or a di_block need to passed to the function.
 
     Returns:
         dictionary containing Kent mean and associated statistics.
@@ -367,6 +366,7 @@ def kent_distribution_95(dec=None, inc=None, di_block=None):
         'Einc': 64.23659892174429,
         'Zeta': 13.677129096579478,
         'Eta': 1.4597607031196376}
+
         Use a di_block to calculate a Kent mean (will give the same output as the
         example with the lists):
 
@@ -1889,7 +1889,7 @@ def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False,
     the data into two polarities using the pmag.flip() function and flipping
     the reverse direction to their antipode.
 
-     Parameters:
+    Parameters:
         dec (list, optional): List of declinations.
         inc (list, optional): List of inclinations.
         di_block (list of lists, optional): Nested list of [dec,inc]. If provided, it 
@@ -2212,7 +2212,7 @@ def lat_from_inc(inc, a95=None):
     """
     Calculate paleolatitude from inclination using the dipole equation.
 
-    Parameter:
+    Parameters:
         inc: (paleo)magnetic inclination in degrees
         a95: 95% confidence interval from Fisher mean
 
@@ -2266,7 +2266,7 @@ def inc_from_lat(lat):
     """
     Calculate inclination predicted from latitude using the dipole equation.
 
-    Parameter:
+    Parameters:
         lat : latitude in degrees
 
     Returns:
@@ -2274,6 +2274,7 @@ def inc_from_lat(lat):
 
     Examples:
         Calculate the inclination implied by an latitude of 45 degrees:
+
         >>> ipmag.inc_from_lat(45)
         63.434948822922
     """
@@ -8106,6 +8107,11 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
     (Neel, 1955; plots after Tauxe et al., 2002); plots 'linear mixing'
     curve from Dunlop and Carter-Stiglitz (2006).
 
+    .. deprecated:: 4.6.0
+        ``ipmag.dayplot_magic`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.plot_day_magic`` (MagIC specimens table)
+        or ``pmagpy.rockmag.plot_day`` (arrays) instead.
+
     Parameters:
         path_to_file : path to directory that contains files (default is current directory, '.')
         the default input file is 'specimens.txt' (data_model=3
@@ -8118,6 +8124,12 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
         image_records (boolean): generate and return a record for each image in a list of dicts which can be ingested by pmag.magic_write, default is False
 
     """
+    warnings.warn(
+        "ipmag.dayplot_magic is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.plot_day_magic or pmagpy.rockmag.plot_day instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     hyst_path = os.path.join(path_to_file, hyst_file)
     if data_model == 2 and rem_file != '':
         rem_path = os.path.join(path_to_file, rem_file)
@@ -8220,7 +8232,10 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
         plt.figure(num=DSC['S-Bcr'], figsize=(5, 5))
         plt.figure(num=DSC['bcr1-bcr2'], figsize=(5, 5))
 
-        pmagplotlib.plot_day(DSC['day'], Bcr1Bc, S1, 'ro')
+        with warnings.catch_warnings():
+            # nested deprecated call; the caller has already warned
+            warnings.filterwarnings('ignore', message=r'^(ipmag|pmagplotlib)\.\w+ is deprecated', category=FutureWarning)
+            pmagplotlib.plot_day(DSC['day'], Bcr1Bc, S1, 'ro')
         pmagplotlib.plot_s_bcr(DSC['S-Bcr'], Bcr1, S1, 'ro')
         #pmagplotlib.plot_init(DSC['bcr1-bcr2'], 5, 5)
         pmagplotlib.plot_bcr(DSC['bcr1-bcr2'], Bcr1, Bcr2)
@@ -8256,7 +8271,10 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
         #plt.figure(num=DSC['bcr1-bcr2'], figsize=(5, 5))
         del DSC['bcr1-bcr2']
         # do other plots instead
-        pmagplotlib.plot_day(DSC['day'], BcrBc, S, 'bs')
+        with warnings.catch_warnings():
+            # nested deprecated call; the caller has already warned
+            warnings.filterwarnings('ignore', message=r'^(ipmag|pmagplotlib)\.\w+ is deprecated', category=FutureWarning)
+            pmagplotlib.plot_day(DSC['day'], BcrBc, S, 'bs')
         pmagplotlib.plot_s_bcr(DSC['S-Bcr'], Bcr, S, 'bs')
         pmagplotlib.plot_s_bc(DSC['S-Bc'], Bc, S, 'bs')
     if pmagplotlib.isServer:
@@ -8293,7 +8311,7 @@ def smooth(x, window_len, window='bartlett'):
     Smooth the data using a sliding window with requested size - meant to be
     used with the ipmag function curie().
 
-    .. deprecated::
+    .. deprecated:: 4.6.0
         ``ipmag.smooth`` is deprecated and will be removed in a future
         release. Use ``pmagpy.rockmag.smooth_moving_average`` instead.
 
@@ -8302,19 +8320,17 @@ def smooth(x, window_len, window='bartlett'):
     with average of the first (last) ten values of the signal, to evoid jumps
     at the beginning/end. Output is an array of the smoothed signal.
 
-    Required Parameters
+    Parameters
     ----------
     x : the input signal, equally spaced!
     window_len : the dimension of the smoothing window
-
-    Optional Parameters (defaults are used if not specified)
-    ----------
-    window : type of window from numpy library ['flat','hanning','hamming','bartlett','blackman']
+    window : optional, type of window from numpy library ['flat','hanning','hamming','bartlett','blackman']
         (default is Bartlett)
-        -flat window will produce a moving average smoothing.
-        -Bartlett window is very similar to triangular window,
-            but always ends with zeros at points 1 and n.
-        -hanning,hamming,blackman are used for smoothing the Fourier transform
+
+        - flat window will produce a moving average smoothing.
+        - Bartlett window is very similar to triangular window,
+          but always ends with zeros at points 1 and n.
+        - hanning,hamming,blackman are used for smoothing the Fourier transform
     """
     warnings.warn(
         "ipmag.smooth is deprecated and will be removed in a future release. "
@@ -8362,7 +8378,7 @@ def curie(path_to_file='.', file_name='', magic=False,
     The estimated curie temperation is the maximum of the 2nd derivative.
     Temperature steps should be in multiples of 1.0 degrees.
 
-    .. deprecated::
+    .. deprecated:: 4.6.0
         ``ipmag.curie`` is deprecated and will be removed in a future release.
         It reports a single Curie temperature from the maximum of the smoothed
         second derivative. Use the multi-method estimators in ``pmagpy.rockmag``
@@ -9216,12 +9232,23 @@ def iplot_hys(fignum, B, M, s):
     This function has been adapted from pmagplotlib.iplot_hys for specific use
     within a Jupyter notebook.
 
+    .. deprecated:: 4.6.0
+        ``ipmag.iplot_hys`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.plot_hyst_loop`` and other
+        ``pmagpy.rockmag`` hysteresis functions instead.
+
     Parameters:
         fignum : reference number for matplotlib figure being created
         B : list of B (flux density) values of hysteresis experiment
         M : list of M (magnetization) values of hysteresis experiment
         s : specimen name
     """
+    warnings.warn(
+        "ipmag.iplot_hys is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.plot_hyst_loop instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     if fignum != 0:
         plt.figure(num=fignum)
         plt.clf()
@@ -9323,6 +9350,11 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
     If selected, this function also plots hysteresis loops, delta M curves,
     d (Delta M)/dB curves, and IRM backfield curves.
 
+    .. deprecated:: 4.6.0
+        ``ipmag.hysteresis_magic2`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.process_hyst_loops`` and other
+        ``pmagpy.rockmag`` hysteresis functions instead.
+
     Parameters:
         path_to_file : path to directory that contains files (default is current directory, '.')
         hyst_file : hysteresis file (default is 'rmag_hysteresis.txt')
@@ -9331,6 +9363,12 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
         fmt : format of saved figures (default is 'pdf')
         plots: whether or not to display the plots (default is true)
     """
+    warnings.warn(
+        "ipmag.hysteresis_magic2 is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.process_hyst_loops instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     user, meas_file, rmag_out, rmag_file = "", "agm_measurements.txt", "rmag_hysteresis.txt", ""
     pltspec = ""
     dir_path = save_folder
@@ -9428,7 +9466,10 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
                 hmeths.append(meth)
     #         fignum = 1
             fig = plt.figure(figsize=(8, 8))
-            hpars, deltaM, Bdm, B, Mnorm, MadjN = iplot_hys(1, B, M, sample)
+            with warnings.catch_warnings():
+                # nested deprecated call; the caller has already warned
+                warnings.filterwarnings('ignore', message=r'^(ipmag|pmagplotlib)\.\w+ is deprecated', category=FutureWarning)
+                hpars, deltaM, Bdm, B, Mnorm, MadjN = iplot_hys(1, B, M, sample)
             ax1 = fig.add_subplot(2, 2, 1)
             ax1.axhline(0, color='k')
             ax1.axvline(0, color='k')
@@ -9564,8 +9605,8 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     sys.stdout.flush()
 
     E, I = [], []
-    plt.figure(num=1, figsize=(4, 4))
-    plot_net(1)
+    plt.figure(figsize=(4, 4))
+    plot_net()
     plot_di(di_block=data, color=data_color)
     plt.title('Original')
 
@@ -9580,7 +9621,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
         Inc, Elong = Is[-1], Es[-1]
         flat_f = Fs[-1]
 
-    plt.figure(num=2, figsize=(4, 4))
+    plt.figure(figsize=(4, 4))
     plt.plot(Is, Es, EI_color, zorder = nb+1, lw=3)
     plt.xlabel(r"inclination ($^\circ$)", fontsize=12)
     plt.ylabel("elongation", fontsize=12)
@@ -9622,8 +9663,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     if save:
         plt.savefig(save_folder+'/'+figprefix+'_EI_bootstraps'+'.'+fmt, bbox_inches='tight', dpi=300)
 
-    cdf_fig_num = 3
-    plt.figure(num=cdf_fig_num, figsize=(4, 4))
+    cdf_fig_num = plt.figure(figsize=(4, 4)).number
     pmagplotlib.plot_cdf(cdf_fig_num, I, r'inclination ($^\circ$)', 'r', title)
     pmagplotlib.plot_vs(cdf_fig_num, [i_lo, i_hi], 'b', '--')
     pmagplotlib.plot_vs(cdf_fig_num, [Inc], 'g', '-')
@@ -9640,15 +9680,12 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
         decs, incs = di_lists
     if flat_f:
         unsquished_incs = unsquish(incs, flat_f)
-        plt.figure(num=4, figsize=(4, 4))
-        plot_net(4)
-        plot_di(decs, unsquished_incs, color=data_color)
-        plt.title('Corrected for flattening')
     else:
-        plt.figure(num=4, figsize=(4, 4))
-        plot_net(4)
-        plot_di(decs, incs, color=data_color)
-        plt.title('Corrected for flattening')
+        unsquished_incs = incs
+    plt.figure(figsize=(4, 4))
+    plot_net()
+    plot_di(decs, unsquished_incs, color=data_color)
+    plt.title('Corrected for flattening')
     if save:
         plt.savefig(save_folder+'/'+figprefix+'_corrected_directions'+'.'+fmt, bbox_inches='tight', dpi=300)
 
@@ -9683,7 +9720,7 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
                 return_new_dirs=False, return_values=False, figprefix='EI',
                 num_resample_to_plot=1000, EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05,
                  vgp_nb=100, cmap='viridis_r', central_longitude=0, central_latitude=0,
-                 random_seed=None):
+                 random_seed=None, return_poles=False):
     """
     Applies series of assumed flattening factor and "unsquishes" inclinations assuming tangent function.
     Finds flattening factor that gives elongation/inclination pair consistent with TK03
@@ -9719,15 +9756,38 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
         EI_color: the color of the EI curve associated with the most frequent f value (rounded to 2 decimal points, default is red)
         resample_EI_color: the color of the EI curves for all f values except for the most frequent f (default is grey)
         resample_EI_alpha: the transparency of the EI curves for all f values except for the most frequent f (default is grey)
+        random_seed : None, int, or numpy.random.Generator, optional
+            Seed for reproducible resampling (default None).
+        return_poles : if True, also return the nb*vgp_nb resampled mean pole longitudes and latitudes
+            from which the Kent distribution is calculated, appended after the other returned values
+            (default is False)
 
     Returns:
-        four plots :  
-            1) equal area plot of original directions
-            2) Elongation/inclination pairs as a function of f,  data plus 25 bootstrap samples
-            3) Cumulative distribution of bootstrapped optimal inclinations plus uncertainties. Estimate from original data set plotted as solid line
-            4) Orientation of principle direction through unflattening
-     
-    NOTE: 
+        kent_stats : dictionary of Kent distribution statistics (as returned by
+            kent_distribution_95) for the resampled mean poles, returned on its
+            own by default
+        di_block : nested list of dec/inc pairs unflattened with the best-fit f,
+            returned instead of (return_new_dirs=True) or before
+            (return_new_dirs=True and return_values=True) kent_stats
+        I, E, F : lists of the bootstrap inclinations, elongations, and
+            flattening factors, appended when return_values=True
+        mean_lons, mean_lats : lists of the nb*vgp_nb resampled mean pole
+            longitudes and latitudes, appended when return_poles=True
+        A single object is returned bare; otherwise the outputs are returned
+        as a tuple in the order above, e.g. (kent_stats, I, E, F, mean_lons,
+        mean_lats) for return_values=True and return_poles=True.
+
+        five plots :
+            1) Elongation/inclination pairs as a function of f, data plus
+               num_resample_to_plot bootstrap samples
+            2) Cumulative distribution of bootstrapped optimal inclinations plus
+               uncertainties. Estimate from original data set plotted as solid line
+            3) Equal area plot of directions unflattened with each bootstrap f,
+               color-coded by f
+            4) Histogram of bootstrap paleolatitudes with a normal fit
+            5) Orthographic map of the resampled mean poles with the Kent ellipse
+
+    NOTE:
         If distribution does not have a solution, plot labeled: Pathological.  Some bootstrap samples may have
         valid solutions and those are plotted in the CDFs and E/I plot.
     """
@@ -9747,7 +9807,7 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     Inc, Elong = Is[-1], Es[-1]
     flat_f = Fs[-1]
     # plot E/I figure
-    plt.figure(num=1, figsize=(4, 4))
+    plt.figure(figsize=(4, 4))
     plt.plot(Is, Es, EI_color, zorder = nb+1, lw=3)
     plt.xlabel(r"inclination ($^\circ$)", fontsize=12)
     plt.ylabel("elongation", fontsize=12)
@@ -9785,11 +9845,11 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     if save:
         plt.savefig(save_folder+'/'+figprefix+'_bootstraps'+'.'+fmt, bbox_inches='tight', dpi=300)
 
-    plt.figure(figsize=(4, 4))
-    pmagplotlib.plot_cdf(2, I, r'inclination ($^\circ$)', 'r', title)
-    pmagplotlib.plot_vs(2, [i_lo, i_hi], 'b', '--')
-    pmagplotlib.plot_vs(2, [Inc], 'g', '-')
-    pmagplotlib.plot_vs(2, [Io], 'k', '-')
+    cdf_fig_num = plt.figure(figsize=(4, 4)).number
+    pmagplotlib.plot_cdf(cdf_fig_num, I, r'inclination ($^\circ$)', 'r', title)
+    pmagplotlib.plot_vs(cdf_fig_num, [i_lo, i_hi], 'b', '--')
+    pmagplotlib.plot_vs(cdf_fig_num, [Inc], 'g', '-')
+    pmagplotlib.plot_vs(cdf_fig_num, [Io], 'k', '-')
     if save:
         plt.savefig(save_folder+'/'+figprefix+'_inc_CDF'+'.'+fmt, bbox_inches='tight', dpi=300)
 
@@ -9817,7 +9877,8 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
         unsquish_lons, unsquish_lats = unsquish_VGPs[0], unsquish_VGPs[1]
         unsquish_VGPs_mean = fisher_mean(unsquish_lons, unsquish_lats)
         resampled_lons, resampled_lats = fisher_mean_resample(alpha95=unsquish_VGPs_mean['alpha95'], n=vgp_nb, 
-                                                       dec=unsquish_VGPs_mean['dec'], inc=unsquish_VGPs_mean['inc'], di_block=0)
+                                                       dec=unsquish_VGPs_mean['dec'], inc=unsquish_VGPs_mean['inc'], di_block=0,
+                                                       random_seed=rng)
         mean_lons.extend(resampled_lons)
         mean_lats.extend(resampled_lats)
         
@@ -9885,15 +9946,19 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
 
     if return_new_dirs and return_values :
         unsquished_incs = unsquish(incs, flat_f)
-        return make_di_block(decs, unsquished_incs), kent_stats, I, E, F
-    
+        results = [make_di_block(decs, unsquished_incs), kent_stats, I, E, F]
     elif return_new_dirs:
         unsquished_incs = unsquish(incs, flat_f)
-        return make_di_block(decs, unsquished_incs)
+        results = [make_di_block(decs, unsquished_incs)]
     elif return_values:
-        return kent_stats, I, E, F
+        results = [kent_stats, I, E, F]
     else:
-        return kent_stats
+        results = [kent_stats]
+    if return_poles:
+        results.extend([mean_lons, mean_lats])
+    if len(results) == 1:
+        return results[0]
+    return tuple(results)
 
 
 # Measured flattening factors compiled by Pierce et al. (2022, Table S1,
@@ -10484,34 +10549,39 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
 def zeq(path_to_file='.', file='', data="", units='U', calculation_type="DE-BFL",
         save=False, save_folder='.', fmt='svg', begin_pca="", end_pca="", angle=0,make_plots=True,show_data=True):
     """
-    NAME
-       zeq.py
+    Plots demagnetization data for a single specimen as a Zijderveld diagram,
+    an equal area projection and a demagnetization diagram. Data are read from
+    a file or taken from a pandas DataFrame with specimen, treatment, intensity,
+    declination and inclination as columns.
 
-    DESCRIPTION
-       plots demagnetization data for a single specimen:
-          - The solid (open) symbols in the Zijderveld diagram are X,Y (X,Z) pairs.  The demagnetization diagram plots the
-          fractional remanence remaining after each step. The green line is the fraction of the total remaence removed
-          between each step.  If the principle direction is desired, specify begin_pca and end_pca steps as bounds for calculation.
+    - The solid (open) symbols in the Zijderveld diagram are X,Y (X,Z) pairs.
+      If the principal direction is desired, specify begin_pca and end_pca steps
+      as bounds for calculation.
+    - The equal area projection has the X direction (usually North in geographic
+      coordinates) to the top. The red line is the X axis of the Zijderveld diagram.
+      Solid symbols are lower hemisphere.
+    - The demagnetization diagram plots the fractional remanence remaining after
+      each step (red dots and blue line). The green line is the fraction of the
+      total remanence removed between each step.
 
-          -The equal area projection has the X direction (usually North in geographic coordinates)
-          to the top.  The red line is the X axis of the Zijderveld diagram.  Solid symbols are lower hemisphere.
-
-          - red dots and blue line is the remanence remaining after each step.  The green line is the partial TRM removed in each interval
-
-    INPUT FORMAT
-       reads from  file_name or takes a  Pandas DataFrame data with specimen treatment intensity declination inclination   as columns
-
-    Keywords:
-        file= FILE   a space or tab delimited file with
-            specimen  treatment  declination inclination intensity
-        units= [mT,C] specify units of mT OR C, default is unscaled
-        save=[True,False]  save figure and quit, default is False
-        fmt [svg,jpg,png,pdf] set figure format [default is svg]
-        begin_pca [step number] treatment step for beginning of PCA calculation, default
-        end_pca [step number] treatment step for end of PCA calculation, last step is default
-        calculation_type [DE-BFL,DE-BFP,DE-FM] Calculation Type: best-fit line,  plane or fisher mean; line is default
-        angle=[0-360]: angle to subtract from declination to rotate in horizontal plane, default is 0
-
+    Parameters:
+        path_to_file : path to the directory containing file, default is "."
+        file : name of a space or tab delimited file with columns
+            specimen treatment intensity declination inclination
+        data : pandas DataFrame with the columns specimen, treatment, intensity,
+            declination, inclination (used if file is not provided)
+        units : units of the treatment steps, 'mT' or 'C', default is 'U' (unscaled)
+        calculation_type : 'DE-BFL', 'DE-BFP' or 'DE-FM' for best-fit line,
+            plane or Fisher mean, default is 'DE-BFL'
+        save : if True, save the figures, default is False
+        save_folder : not currently used, figures are saved to the current directory
+        fmt : format of saved figures ('svg', 'jpg', 'png', 'pdf'), default is 'svg'
+        begin_pca : index of the treatment step for the beginning of the PCA calculation
+        end_pca : index of the treatment step for the end of the PCA calculation
+        angle : angle (0-360) to subtract from declination to rotate in
+            horizontal plane, default is 0
+        make_plots : if True, make the plots, default is True
+        show_data : if True, print the data for the specimen, default is True
     """
     if units == "C":
         SIunits = "K"
@@ -11291,7 +11361,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
             g : geographic coordinates, aniso_tile_correction = 0
             t : tilt corrected coordinates, aniso_tile_correction = 100
         num_bootstraps : how many bootstraps to do, default 1000
-        dir_path : directory path
+        dir_path : directory with the input files, in which the plots are also saved
         fignum : matplotlib figure number, default 1
         save_plots : bool, default True
             if True, create and save all requested plots
@@ -11358,6 +11428,21 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
     else:
         con = contribution
         dir_path = con.directory
+    # the specimens table with the anisotropy tensors is required
+    problem = ""
+    if 'specimens' not in con.tables:
+        if contribution is None:
+            problem = "could not read a specimens table from {}".format(
+                os.path.join(input_dir_path, infile))
+        else:
+            problem = "the contribution has no specimens table"
+    elif 'aniso_s' not in con.tables['specimens'].df.columns:
+        problem = "the specimens table has no aniso_s column, so there are no anisotropy data to plot"
+    if problem:
+        print("-E- aniso_magic: " + problem)
+        if image_records:
+            return False, [], []
+        return False, []
     # get contribution id if available
     con_id = ""
     if 'contribution' in con.tables:
@@ -11457,12 +11542,12 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                     image_recs.append(image_rec)
 
             if save_plots:
-                saved.extend(pmagplotlib.save_plots(figs, files))
+                saved.extend(pmagplotlib.save_plots(figs, files, dir_path=dir_path))
             elif interactive:
                 pmagplotlib.draw_figs(figs)
                 ans = pmagplotlib.save_or_quit()
                 if ans == 'a':
-                    saved.extend(pmagplotlib.save_plots(figs, files))
+                    saved.extend(pmagplotlib.save_plots(figs, files, dir_path=dir_path))
                 else:
                     continue
             else:
@@ -11511,12 +11596,12 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
 
 
         if save_plots:
-            saved.extend(pmagplotlib.save_plots(figs, files))
+            saved.extend(pmagplotlib.save_plots(figs, files, dir_path=dir_path))
         elif interactive:
             pmagplotlib.draw_figs(figs)
             ans = pmagplotlib.save_or_quit()
             if ans == 'a':
-                saved.extend(pmagplotlib.save_plots(figs, files))
+                saved.extend(pmagplotlib.save_plots(figs, files, dir_path=dir_path))
     if image_records:
         return True, saved, image_recs
     return True, saved
@@ -13093,6 +13178,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
               samp_file='samples.txt', contribution=None,fignum=1, image_records=False):
     """
     eeq_magic makes zijderveld and equal area plots for magic formatted measurements files.
+
     Parameters
     ----------
     meas_file : str
@@ -13133,7 +13219,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
         bool, default False
 
     Returns
-    ---------
+    -------
     if image_records == False:
         Tuple : (True or False indicating if conversion was successful, output file name written)
     if image_records == True:
@@ -13722,6 +13808,11 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
     Plotting may be called interactively with save_plots==False,
     or be suppressed entirely with make_plots==False.
 
+    .. deprecated:: 4.6.0
+        ``ipmag.hysteresis_magic`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.process_hyst_loops`` and other
+        ``pmagpy.rockmag`` hysteresis functions instead.
+
     Parameters:
         output_dir_path : str, default "."
             Note: if using Windows, all figures will be saved to working directly
@@ -13752,6 +13843,12 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
         Tuple 
             (True or False indicating if conversion was successful, output file names written)
     """
+    warnings.warn(
+        "ipmag.hysteresis_magic is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.process_hyst_loops instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     # put plots in output_dir_path, unless isServer
     incl_directory = True
     if pmagplotlib.isServer or set_env.IS_WIN:
@@ -13885,7 +13982,10 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
             for meth in meths:
                 hmeths.append(meth)
 
-            hpars = pmagplotlib.plot_hdd(HDD, B, M, e)
+            with warnings.catch_warnings():
+                # nested deprecated call; the caller has already warned
+                warnings.filterwarnings('ignore', message=r'^(ipmag|pmagplotlib)\.\w+ is deprecated', category=FutureWarning)
+                hpars = pmagplotlib.plot_hdd(HDD, B, M, e)
             if interactive:
                 if not set_env.IS_WIN:
                     pmagplotlib.draw_figs(HDD)
@@ -13919,7 +14019,10 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
                 if make_plots and (not save_plots):
                     pmagplotlib.plot_init(HDD['irm'], 5, 5)
                 irm_init = 1
-            rpars = pmagplotlib.plot_irm(HDD['irm'], Bdcd, Mdcd, irm_exp)
+            with warnings.catch_warnings():
+                # nested deprecated call; the caller has already warned
+                warnings.filterwarnings('ignore', message=r'^(ipmag|pmagplotlib)\.\w+ is deprecated', category=FutureWarning)
+                rpars = pmagplotlib.plot_irm(HDD['irm'], Bdcd, Mdcd, irm_exp)
             HystRec['rem_mr_moment'] = rpars['remanence_mr_moment']
             HystRec['rem_bcr'] = rpars['remanence_bcr']
             HystRec['experiments'] = specimen+':'+irm_exp
@@ -14278,10 +14381,10 @@ def criteria_extract(crit_file='criteria.txt', output_file='criteria.xls',
         latex : boolean, default False
             if True, output file should be latex formatted table with a .tex ending
 
-    Returns :
+    Returns:
         [True,False],  data table error type : True if successful
 
-    Effects :
+    Notes:
         writes xls or latex formatted tables for use in publications
     """
     input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, output_dir_path)
@@ -16239,8 +16342,9 @@ def df_depthplot(df,d_key='core_depth',fmt='png',location='unknown',save=False):
 def validate_magic(top_dir,doi=False,private_key=False,contribution_id=False):
     """
     download and validate a magic contribution
+
     Parameters
-    -----------
+    ----------
     top_dir: str
         name of project
     doi: str
@@ -16356,14 +16460,14 @@ def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_re
     field. Original written in Python by S. Bogue, translated to PmagPy functionality by AFP.
 
     Parameters:
-    sec_var: kappa estimate of regional secular variation (probably 30 or 40)
-    alpha: angle between paleomagnetic directions (or poles)
-    delta1: distance of direction 1 from mean direction
-    delta2: distance of direction 2 from mean direction
-    trials: the number of simulations, default=10,000
-    print_result: the probability value printed as a sentence, default=False
-    random_seed: None, int, or numpy.random.Generator, optional
-        Seed for reproducible Monte Carlo sampling (default None).
+        sec_var: kappa estimate of regional secular variation (probably 30 or 40)
+        alpha: angle between paleomagnetic directions (or poles)
+        delta1: distance of direction 1 from mean direction
+        delta2: distance of direction 2 from mean direction
+        trials: the number of simulations, default=10,000
+        print_result: the probability value printed as a sentence, default=False
+        random_seed: None, int, or numpy.random.Generator, optional
+            Seed for reproducible Monte Carlo sampling (default None).
 
     Returns:
         float

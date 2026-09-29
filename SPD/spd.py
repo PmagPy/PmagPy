@@ -14,15 +14,9 @@
 # Initial revision: September 2013:
 #
 #============================================================================================
-
-from builtins import object
 import sys
 import numpy
 import os
-#import pylab
-#import scipy
-#from scipy import *
-#import os
 import SPD.lib.lib_arai_plot_statistics as lib_arai
 #import SPD.lib.lib_curvature as lib_k
 import SPD.lib.leastsq_jacobian as lib_k

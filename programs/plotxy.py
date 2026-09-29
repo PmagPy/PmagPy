@@ -1,12 +1,11 @@
 #!/usr/bin/env python
-from builtins import range
+
 import sys
 import numpy
 from pmag_env import set_env
 set_env.set_backend_if_unset("TKAgg")
 
 import pylab
-#pylab.ion()
 import pmagpy.pmag as pmag
 
 def main():

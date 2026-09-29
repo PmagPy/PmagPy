@@ -1,14 +1,9 @@
 #!/usr/bin/env python
 # data from http://geomagia.ucsd.edu
 
-
-
-from builtins import input
-import matplotlib
 import sys
 import pylab
 import numpy
-#matplotlib.use("TkAgg")
 import pmagpy.pmagplotlib as pmagplotlib
 
 def main():

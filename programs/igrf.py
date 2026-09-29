@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from builtins import input
+
 import sys
 from pmag_env import set_env
 set_env.set_backend_if_unset("TKAgg")
@@ -7,7 +7,6 @@ from matplotlib import pyplot as plt
 import numpy
 import pmagpy.pmag as pmag
 from pmagpy import pmagplotlib
-#
 
 
 def main():

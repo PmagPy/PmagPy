@@ -96,7 +96,7 @@ setup(
 
     install_requires=[
         'numpy',
-        'scipy',
+        'scipy>=1.6',  # scipy.integrate.trapezoid
         'matplotlib',
         'pandas',
         'pytz',

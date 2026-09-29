@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from builtins import range
+
 import sys
 from pmag_env import set_env
 set_env.set_backend_if_unset("TKAgg")

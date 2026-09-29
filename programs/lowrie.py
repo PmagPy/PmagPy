@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-from builtins import input
-from builtins import range
+
 import sys
 import codecs
 from pmag_env import set_env

@@ -1886,11 +1886,13 @@ class Demag_GUI(wx.Frame):
             tmax_ax.set_xlim(tmax_xmin, tmax_xmax)
             tmax_ax.set_ylim(tmax_ymin, tmax_ymax)
 
-            # logger
+            # logger: tint the steps within the bounds with the fit's color
             if fit == self.current_fit:
                 for item in range(self.logger.GetItemCount()):
+                    tint = None
                     if item >= tmin_index and item <= tmax_index:
                         role = gui_theme.ANALYSIS
+                        tint = self.get_logger_tint(fit)
                     else:
                         role = gui_theme.NORMAL
                     try:
@@ -1899,7 +1901,8 @@ class Demag_GUI(wx.Frame):
                         relability = 'b'
                     if relability == 'b':
                         role = gui_theme.ERROR
-                    gui_theme.style_list_item(self.logger, item, role)
+                        tint = None
+                    gui_theme.style_list_item(self.logger, item, role, tint=tint)
 
         if problems != {}:
             if 'no bounds' in list(problems.keys()):
@@ -6446,11 +6449,12 @@ class Demag_GUI(wx.Frame):
         if self.s not in list(self.Data.keys()):
             self.select_specimen(list(self.Data.keys())[0])
         self.T_list = self.Data[self.s]['zijdblock_steps']
+        self.tmin_box.SetItems(self.T_list)
+        self.tmax_box.SetItems(self.T_list)
         if self.current_fit:
-            self.tmin_box.SetItems(self.T_list)
-            self.tmax_box.SetItems(self.T_list)
-            if type(self.current_fit.tmin) is str and type(self.current_fit.tmax) is str:
+            if self.current_fit.tmin:
                 self.tmin_box.SetStringSelection(self.current_fit.tmin)
+            if self.current_fit.tmax:
                 self.tmax_box.SetStringSelection(self.current_fit.tmax)
         if self.ie_open:
             self.ie.update_bounds_boxes(self.T_list)
@@ -6694,15 +6698,13 @@ class Demag_GUI(wx.Frame):
         """
         self.tmin_box.Clear()
         self.tmin_box.SetStringSelection("")
-        if self.current_fit:
-            self.tmin_box.SetItems(self.T_list)
-            self.tmin_box.SetSelection(-1)
+        self.tmin_box.SetItems(self.T_list)
+        self.tmin_box.SetSelection(-1)
 
         self.tmax_box.Clear()
         self.tmax_box.SetStringSelection("")
-        if self.current_fit:
-            self.tmax_box.SetItems(self.T_list)
-            self.tmax_box.SetSelection(-1)
+        self.tmax_box.SetItems(self.T_list)
+        self.tmax_box.SetSelection(-1)
 
         self.fit_box.Clear()
         self.fit_box.SetStringSelection("")
@@ -8179,11 +8181,33 @@ class Demag_GUI(wx.Frame):
             self.logger.SetItem(i, 5, "%.2e" % Int)
             self.logger.SetItem(i, 6, csd)
             role = gui_theme.NORMAL
+            tint = None
             if i >= tmin_index and i <= tmax_index:
                 role = gui_theme.ANALYSIS
+                tint = self.get_logger_tint(self.current_fit)
             if self.Data[self.s]['measurement_flag'][i] == 'b':
                 role = gui_theme.ERROR
-            gui_theme.style_list_item(self.logger, i, role)
+                tint = None
+            gui_theme.style_list_item(self.logger, i, role, tint=tint)
+
+    def get_logger_tint(self, fit):
+        """
+        Get the color used to tint the steps of a fit in the measurement
+        list so that they match the fit as drawn on the plots.
+
+        Parameters
+        ----------
+        fit : Fit object whose color should be used
+
+        Returns
+        -------
+        hexadecimal color string, or None (the default highlight color is
+        then used) if the fit color is not one matplotlib can interpret
+        """
+        try:
+            return matplotlib.colors.to_hex(fit.color)
+        except ValueError:
+            return None
 
     def on_click_listctrl(self, event):
         if not self.current_fit:
@@ -8371,6 +8395,11 @@ class Demag_GUI(wx.Frame):
 
         if tmin in self.T_list and tmax in self.T_list and \
            (self.T_list.index(tmax) <= self.T_list.index(tmin)):
+            return
+
+        # both bounds picked with no fit yet: auto-create one (issue #360)
+        if self.current_fit is None:
+            self.on_btn_add_fit(event)
             return
 
         PCA_type = self.PCA_type_box.GetValue()
@@ -8604,10 +8633,21 @@ class Demag_GUI(wx.Frame):
         ------
         pmag_results_data
         """
+        # only honor dropdown bounds when there's no current fit (issue #360);
+        # otherwise a new fit would just clone the currently selected fit's bounds
+        fmin = fmax = None
+        if self.current_fit is None:
+            fmin = str(self.tmin_box.GetValue()) or None
+            fmax = str(self.tmax_box.GetValue()) or None
+        if self.T_list:
+            if fmin is None:
+                fmin = self.T_list[0]
+            if fmax is None:
+                fmax = self.T_list[-1]
         if self.auto_save.GetValue():
-            self.current_fit = self.add_fit(self.s, None, None, None, saved=True)
+            self.current_fit = self.add_fit(self.s, None, fmin, fmax, saved=True)
         else:
-            self.current_fit = self.add_fit(self.s, None, None, None, saved=False)
+            self.current_fit = self.add_fit(self.s, None, fmin, fmax, saved=False)
         self.generate_warning_text()
         self.update_warning_box()
 

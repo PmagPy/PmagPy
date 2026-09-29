@@ -35,12 +35,6 @@ Use of all these features is described in the [PmagPy documentation](https://pma
 
 There are several different ways to install PmagPy.  Complete documentation for PmagPy installation and use is available in the [PmagPy documentation](https://pmagpy.github.io/PmagPy-docs/installation/PmagPy_install.html).
 
-You can try a preview of PmagPy here:
-
-[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/PmagPy/PmagPy-notebooks/master?filepath=PmagPy.ipynb)
-
-Please be patient, the preview will take a few minutes to launch.
-
 ### Stand alone applications
 If you do not need the full PmagPy functionality, and you only want to use Pmag GUI, MagIC GUI, Thellier GUI, and Demag GUI, there a standalone download for which Python does not need to be installed. Once downloaded, the GUIs should run when you double click on their icon, but they will take time to start up (anywhere from 5 to 30 seconds) please be patient.
 

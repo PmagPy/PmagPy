@@ -1,10 +1,8 @@
 #!/usr/bin/env python
-#
-from builtins import range
+
 import sys
 import pmagpy.pmag as pmag
 import numpy as np
-#import numpy.linalg
 
 def main():
     """

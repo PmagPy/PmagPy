@@ -1,8 +1,7 @@
 #!/usr/bin/env python
-from builtins import input
+
 import sys
 import numpy
-
 
 import pmagpy.pmag as pmag
 

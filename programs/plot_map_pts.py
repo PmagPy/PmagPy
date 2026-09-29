@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-# define some variables
-from builtins import input
+
 import numpy
 import sys
 from pmag_env import set_env

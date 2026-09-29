@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-from builtins import input
-from builtins import str
+
 import sys
 import pmagpy.pmag as pmag
+
 def main():
     """
     NAME

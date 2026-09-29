@@ -1,10 +1,8 @@
 #!/usr/bin/env python
-from builtins import input
+
 import sys
 import scipy
 import numpy
-
-
 import pmagpy.pmagplotlib as pmagplotlib
 
 def main():

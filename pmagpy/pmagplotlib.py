@@ -11,7 +11,6 @@ import warnings
 
 import numpy as np
 import pandas as pd
-warnings.filterwarnings("ignore")  # what you don't know won't hurt you, or will it?
 from packaging.version import Version
 
 # no longer setting backend here
@@ -43,12 +42,10 @@ if has_cartopy:
     LAKES = cfeature.LAKES
     BORDERS = cfeature.BORDERS
 
-import os
 import matplotlib
 from matplotlib import cm as color_map
 from matplotlib import pyplot as plt
 from matplotlib.backend_bases import NonGuiException
-from pylab import meshgrid  # matplotlib's meshgrid function
 import matplotlib.ticker as mticker
 globals = 0
 graphmenu = 0
@@ -77,8 +74,9 @@ def draw_figs(FIGS):
     """
     Can only be used if matplotlib backend is set to TKAgg
     Does not play well with wxPython
+
     Parameters
-    _________
+    ----------
     FIGS : dictionary of figure names as keys and numbers as values
 
     """
@@ -119,9 +117,10 @@ def click(event):
 
 def delticks(fig):
     """
-     deletes half the x-axis tick marks
+    deletes half the x-axis tick marks
+
     Parameters
-    ___________
+    ----------
     fig : matplotlib figure number
 
     """
@@ -138,8 +137,9 @@ plt_num = 0
 def plot_init(fignum, w, h):
     """
     initializes plot number fignum with width w and height h
+
     Parameters
-    __________
+    ----------
     fignum : matplotlib figure number
     w : width
     h : height
@@ -185,8 +185,9 @@ def plot3d_init(fignum):
 def plot_square(fignum):
     """
     makes the figure square (equal axes)
+
     Parameters
-    __________
+    ----------
     fignum : matplotlib figure number
     """
     plt.figure(num=fignum)
@@ -199,8 +200,9 @@ def gaussfunc(y, ybar, sigma):
     with mean ybar,standard deviation sigma
     uses expression 7.1.26 from Abramowitz & Stegun
     accuracy better than 1.5e-7 absolute
+
     Parameters
-    _________
+    ----------
     y : input variable
     ybar : mean
     sigma : standard deviation
@@ -339,14 +341,15 @@ def plot_site(fignum, SiteRec, data, key):
 def plot_qq_norm(fignum, Y, title):
     """
     makes a Quantile-Quantile plot for data
+
     Parameters
-    _________
+    ----------
     fignum : matplotlib figure number
     Y : list or array of data
     title : title string for plot
 
     Returns
-    ___________
+    -------
     d,dc : the values for D and Dc (the critical value)
        if d>dc, likely to be normally distributed (95% confidence)
     """
@@ -382,20 +385,22 @@ def plot_qq_norm(fignum, Y, title):
 def plot_qq_unf(fignum, D, title, subplot=False, degrees=True):
     """
     plots data against a uniform distribution in 0=>360.
+
     Parameters
-    _________
+    ----------
     fignum : matplotlib figure number
     D : data
     title : title for plot
     subplot : if True, make this number one of two subplots
     degrees : if True, assume that these are degrees
 
-    Return
+    Returns
+    -------
     Mu : Mu statistic (Fisher et al., 1987)
     Mu_crit : critical value of Mu for uniform distribution
 
-    Effect
-    ______
+    Notes
+    -----
     makes a Quantile Quantile plot of data
     """
     if subplot == True:
@@ -503,8 +508,9 @@ def plot_qq_exp(fignum, I, title, subplot=False):
 def plot_net(fignum):
     """
     draws circle and tick marks for equal area projection
+
     Parameters
-    _________
+    ----------
     fignum : matplotlib figure number
     """
 #
@@ -648,8 +654,9 @@ def plot_di_sym(fignum, DIblock, sym):
 def plot_circ(fignum, pole, ang, col):
     """
     function to put a small circle on an equal area projection plot, fig,fignum
+
     Parameters
-    __________
+    ----------
     fignum : matplotlib figure number
     pole : dec,inc of center of circle
     ang : angle of circle
@@ -726,9 +733,12 @@ def plot_zij(fignum, datablock, angle, s, norm=True):
     amax = np.maximum(amax, gXYZ.Y.max())
     amin = np.minimum(gXYZ.X.min(), gXYZ.Z.min())
     amin = np.minimum(amin, gXYZ.Y.min())
+    bXYZ = pmag.dir2cart(bdata[['dec', 'inc', 'int']].values).transpose()
+    if bXYZ.size > 0:  # keep steps flagged bad within the plot as well
+        amax = np.maximum(amax, bXYZ.max())
+        amin = np.minimum(amin, bXYZ.min())
     if amin > 0:
         amin = 0
-    bXYZ = pmag.dir2cart(bdata[['dec', 'inc', 'int']].values).transpose()
 # plotting stuff
     if angle != 0:
         tempstr = "\n Declination rotated by: " + str(angle) + '\n'
@@ -749,14 +759,11 @@ def plot_zij(fignum, datablock, angle, s, norm=True):
     for k in range(len(gXYZ)):
         plt.annotate(str(k), (gXYZ['X'][k], gXYZ['Z']
                               [k]), ha='left', va='bottom')
-    if amin > 0 and amax >0:amin=0 # complete the line
-    if amin < 0 and amax <0:amax=0 # complete the line
-    xline = [amin, amax]
-   # yline=[-amax,-amin]
-    yline = [amax, amin]
-    zline = [0, 0]
-    plt.plot(xline, zline, 'k-')
-    plt.plot(zline, xline, 'k-')
+    if amin > 0 and amax >0:amin=0 # include the origin
+    if amin < 0 and amax <0:amax=0 # include the origin
+    # axis lines through the origin that span the full frame
+    plt.axhline(0, color='k')
+    plt.axvline(0, color='k')
     if angle != 0:
         xlab = "X: rotated to Dec = " + '%7.1f' % (angle)
     if angle == 0:
@@ -764,7 +771,11 @@ def plot_zij(fignum, datablock, angle, s, norm=True):
     plt.xlabel(xlab)
     plt.ylabel('Circles: Y; Squares: Z')
     tstring = s + ': NRM = ' + '%9.2e' % (datablock[0][3])
-    plt.axis([amin, amax, amax, amin])
+    # pad the frame beyond the extent of the data so that the points at the
+    # extremes are not clipped and so that the axis lines do not fall on the
+    # frame when the data are all on one side of the origin (issue #922)
+    pad = 0.08 * (amax - amin)
+    plt.axis([amin - pad, amax + pad, amax + pad, amin - pad])
     plt.gca().set_aspect("equal")
     plt.title(tstring)
 #
@@ -1510,8 +1521,9 @@ def plot_lnp(fignum, s, datablock, fpars, direction_type_key):
 def plot_eq(fignum, DIblock, s):
     """
     plots directions on eqarea projection
+
     Parameters
-    __________
+    ----------
     fignum : matplotlib figure number
     DIblock : nested list of dec/inc pairs
     s : specimen name
@@ -1536,8 +1548,9 @@ def plot_eq(fignum, DIblock, s):
 def plot_eq_sym(fignum, DIblock, s, sym):
     """
     plots directions with specified symbol
+
     Parameters
-    __________
+    ----------
     fignum : matplotlib figure number
     DIblock : nested list of dec/inc pairs
     s : specimen name
@@ -1703,8 +1716,9 @@ def plot_evec(fignum, Vs, symsize, title):
 def plot_ell(fignum, pars, col='k', lower=True, plot=True):
     """
     function to calculate/plot points on an ellipse about Pdec,Pdip with angle beta,gamma
+
     Parameters
-    _________
+    ----------
     fignum : matplotlib figure number
     pars : list of [Pdec, Pinc, beta, Bdec, Binc, gamma, Gdec, Ginc ]
          where P is direction, Bdec,Binc are beta direction, and Gdec,Ginc are gamma direction
@@ -1808,12 +1822,13 @@ def vertical_plot_init(fignum, w, h):
 
 def plot_strat(fignum, data, labels):
     """
-     plots a time/depth series
-     Parameters
-     _________
-     fignum : matplotlib figure number
-     data : nested list of [X,Y] pairs
-     labels : [xlabel, ylabel, title]
+    plots a time/depth series
+
+    Parameters
+    ----------
+    fignum : matplotlib figure number
+    data : nested list of [X,Y] pairs
+    labels : [xlabel, ylabel, title]
     """
     vertical_plot_init(fignum, 10, 3)
     xlab, ylab, title = labels[0], labels[1], labels[2]
@@ -1832,16 +1847,20 @@ def plot_strat(fignum, data, labels):
 
 
 def plot_cdf(fignum, data, xlab, sym, title, **kwargs):
-    """ Makes a plot of the cumulative distribution function.
+    """
+    Makes a plot of the cumulative distribution function.
+
     Parameters
-    __________
+    ----------
     fignum : matplotlib figure number
     data : list of data to be plotted - doesn't need to be sorted
+    xlab : label for the x axis
     sym : matplotlib symbol for plotting, e.g., 'r--' for a red dashed line
+    title : title for plot
     **kwargs :  optional dictionary with {'color': color, 'linewidth':linewidth, 'fontsize':fontsize for axes labels}
 
     Returns
-    __________
+    -------
     x : sorted list of data
     y : fraction of cdf
     """
@@ -1915,20 +1934,36 @@ def plot_vs(fignum, Xs, c, ls):
 
 def plot_hys(fignum, B, M, s):
     """
-   function to plot hysteresis data
-   Parameters:
-   _____________________
-   Input :
-       fignum : matplotlib figure number
-       B : list of field values (in tesla)
-       M : list of magnetizations
-   Output :
-       hpars : dictionary of hysteresis parameters
-           keys: ['hysteresis_xhf', 'hysteresis_ms_moment', 'hysteresis_mr_moment', 'hysteresis_bc']
-       deltaM : list of differences between down and upgoing loops
-       Bdm : field values
+    Plot hysteresis data.
 
+    .. deprecated:: 4.6.0
+       ``pmagplotlib.plot_hys`` is deprecated and will be removed in a future
+       release. Use ``pmagpy.rockmag.plot_hyst_loop`` and other
+       ``pmagpy.rockmag`` hysteresis functions instead.
+
+    Parameters
+    ----------
+    fignum : matplotlib figure number
+    B : list of field values (in tesla)
+    M : list of magnetizations
+    s : specimen name string
+
+    Returns
+    -------
+    hpars : dictionary of hysteresis parameters
+        Keys: ``'hysteresis_xhf'``, ``'hysteresis_ms_moment'``,
+        ``'hysteresis_mr_moment'``, ``'hysteresis_bc'``.
+    deltaM : list
+        Differences between descending and ascending loop branches.
+    Bdm : list
+        Field values corresponding to ``deltaM``.
     """
+    warnings.warn(
+        "pmagplotlib.plot_hys is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.plot_hyst_loop instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     B = list(B)
     from . import spline
     if fignum != 0:
@@ -2105,20 +2140,21 @@ def plot_imag(fignum, Bimag, Mimag, s):
 def plot_hdd(HDD, B, M, s):
     """
     Function to make hysteresis, deltaM and DdeltaM plots
-    Parameters:
-    _______________
-    Input
-        HDD :  dictionary with figure numbers for the keys:
-            'hyst' : hysteresis plot  normalized to maximum value
-            'deltaM' : Delta M plot
-            'DdeltaM' : differential of Delta M plot
-        B : list of field values in tesla
-        M : list of magnetizations in arbitrary units
-        s : specimen name string
-    Ouput
-      hpars : dictionary of hysteresis parameters with keys:
-        'hysteresis_xhf', 'hysteresis_ms_moment', 'hysteresis_mr_moment', 'hysteresis_bc'
 
+    Parameters
+    ----------
+    HDD :  dictionary with figure numbers for the keys:
+        'hyst' : hysteresis plot  normalized to maximum value
+        'deltaM' : Delta M plot
+        'DdeltaM' : differential of Delta M plot
+    B : list of field values in tesla
+    M : list of magnetizations in arbitrary units
+    s : specimen name string
+
+    Returns
+    -------
+    hpars : dictionary of hysteresis parameters with keys:
+        'hysteresis_xhf', 'hysteresis_ms_moment', 'hysteresis_mr_moment', 'hysteresis_bc'
     """
     hpars, deltaM, Bdm = plot_hys(
         HDD['hyst'], B, M, s)  # Moff is the "fixed" loop data
@@ -2156,6 +2192,10 @@ def plot_day(fignum, BcrBc, S, sym, **kwargs):
     """
     function to plot Day plots
 
+    .. deprecated:: 4.6.0
+        ``pmagplotlib.plot_day`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.plot_day`` instead.
+
     Parameters
     _________
     fignum : matplotlib figure number
@@ -2164,6 +2204,12 @@ def plot_day(fignum, BcrBc, S, sym, **kwargs):
     sym : matplotlib symbol (e.g., 'rs' for red squares)
     **kwargs :  dictionary with {'names':[list of names for symbols]}
     """
+    warnings.warn(
+        "pmagplotlib.plot_day is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.plot_day instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     plt.figure(num=fignum)
     plt.plot(BcrBc, S, sym)
     plt.axhline(0, color='k')
@@ -2299,6 +2345,10 @@ def plot_irm(fignum, B, M, title):
     """
     function to plot IRM backfield curves
 
+    .. deprecated:: 4.6.0
+        ``pmagplotlib.plot_irm`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.plot_backfield_data`` instead.
+
     Parameters
     _________
     fignum : matplotlib figure number
@@ -2306,6 +2356,12 @@ def plot_irm(fignum, B, M, title):
     M : list or array of magnetizations
     title : string title for plot
     """
+    warnings.warn(
+        "pmagplotlib.plot_irm is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.plot_backfield_data instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     rpars = {}
     Mnorm = []
     backfield = 0
@@ -2936,13 +2992,14 @@ def plot_map(fignum, lats, lons, Opts):
     makes a cartopy map  with lats/lons
     Requires installation of cartopy
 
-    Parameters:
-    _______________
+    Parameters
+    ----------
     fignum : matplotlib figure number
     lats : array or list of latitudes
     lons : array or list of longitudes
-    Opts : dictionary of plotting options:
-        Opts.keys=
+    Opts : dictionary of plotting options
+        Opts.keys::
+
             proj : projection [supported cartopy projections:
                 pc = Plate Carree
                 aea = Albers Equal Area
@@ -2999,17 +3056,17 @@ def plot_map(fignum, lats, lons, Opts):
                  creating a new one. This allows overlaying multiple datasets
                  (e.g., continents, site symbols) on a single map.
 
-        if Opts keys not set :these are the defaults:
+        if Opts keys not set these are the defaults::
+
            Opts={'latmin':-90,'latmax':90,'lonmin':0,'lonmax':360,'lat_0':0,'lon_0':0,
                  'proj':'moll','sym':'ro','symsize':5,'edge':'black','pltgrid':1,
                  'res':'c','boundinglat':0.,'padlon':0,'padlat':0,'gridspace':30,
                  'details':all False,'edge':None,'cmap':'jet','fancy':0,'zone':'',
                  'south':False,'oceancolor':'azure','landcolor':'bisque'}
 
-    Returns:
-    ____________
+    Returns
+    -------
     ax : matplotlib/cartopy axes object containing the map
-            
     """
     if not has_cartopy:
         print("This function requires installation of cartopy")
@@ -3445,14 +3502,12 @@ def plot_mag_map(fignum, element, lons, lats, element_type, cmap='coolwarm', lon
 def plot_eq_cont(fignum, DIblock, color_map='coolwarm'):
     """
     plots dec inc block as a color contour
+
     Parameters
-    __________________
-    Input:
-        fignum :  figure number
-        DIblock : nested pairs of [Declination, Inclination]
-        color_map : matplotlib color map [default is coolwarm]
-    Output:
-        figure
+    ----------
+    fignum : matplotlib figure number
+    DIblock : nested pairs of [Declination, Inclination]
+    color_map : matplotlib color map [default is coolwarm]
     """
     import random
     plt.figure(num=fignum)
@@ -3549,12 +3604,12 @@ def plot_ts(ax, agemin, agemax, step=1.0, timescale='gts20', ylabel="Age (Ma)"):
     as defined in pmag.get_ts(). The maximum possible age is ca. 83 Ma.
 
     Parameters:
-    ax : figure object
-    agemin : (float) Minimum age for timescale in Ma
-    agemax : (float) Maximum age for timescale in Ma
-    step : (float) Y tick label spacing in Ma
-    timescale : (string) polarity time scale, default is gts20 (Gradstein et al. 2020), other options ck95, gts04, gts20
-    ylabel : (string) if set, plot as ylabel
+        ax : figure object
+        agemin : (float) Minimum age for timescale in Ma
+        agemax : (float) Maximum age for timescale in Ma
+        step : (float) Y tick label spacing in Ma
+        timescale : (string) polarity time scale, default is gts20 (Gradstein et al. 2020), other options ck95, gts04, gts20
+        ylabel : (string) if set, plot as ylabel
 
     Returns:
         figure object
@@ -3682,8 +3737,8 @@ def msp_magic(spec_df,axa="",axb="",site='site',labels=['a)','b)'],save_plots=Fa
     (DSC) of multi-specimen paleointensity technique. 
     NB: this code requires seaborn and scipy to be installed
     
-    Parameters: 
-    _____________
+    Parameters
+    ----------
     spec_df : pandas dataframe
         data frame with MagIC measurement formatted data for one MSP experiment.
         measurements must have these MagIC method codes: 
@@ -3693,8 +3748,6 @@ def msp_magic(spec_df,axa="",axb="",site='site',labels=['a)','b)'],save_plots=Fa
         M3 (heat to T, cool in lab field): must contain 'LT-T-Z-NRM-PAR'
         M4 (repeat of M1): must contain 'LT-PTRM-I'
         lab field must be in 'treat_dc_field'
-
-
     axa : matplotlib figure subplot for DB plot, default is to create and return.
     axb : matplotlib figure subplot for DSC plot, default is to create and return.
     site : name of group of specimens for y-axis label, default is generic 'site'
@@ -3704,10 +3757,11 @@ def msp_magic(spec_df,axa="",axb="",site='site',labels=['a)','b)'],save_plots=Fa
     fmt : str
         format of saved figure (default is 'pdf')
     
-    Returns: 
-        B (in uT)
-        standard error of slope
-        axa, axb    
+    Returns
+    -------
+    B (in uT)
+    standard error of slope
+    axa, axb
     """
     try: 
         import seaborn as sns

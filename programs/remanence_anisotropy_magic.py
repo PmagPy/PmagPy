@@ -1,13 +1,7 @@
 #!/usr/bin/env python
 
-#import matplotlib
-
-from builtins import range
 import sys
-import pylab
 from pylab import *
-import scipy
-import os
 import pmagpy.pmag as pmag
 
 def main():
