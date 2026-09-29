@@ -371,6 +371,174 @@ with sync_playwright() as p:
         if name not in ("dmag_magic", "McMurdo"):
             switch_by_path(path)
             verify(name, n, foreign)
+
+    # ---- the files: an export in place (two clicks), what it wrote against what the tabs show,
+    # dir_polarity only when asked, an export to another folder, and a reopen that restores the work.
+    # With PMAGPY_DIRECTIONS_UI_WORKING_COPY=<the server's PMAGPY_APPS_OUTPUT> the same checks run on the
+    # working copy, and the status line must say so.
+    import tempfile
+    import numpy as np
+    import pandas as pd
+
+    def read_table(directory, table):
+        path = os.path.join(directory, table + ".txt")
+        return pd.read_csv(path, sep="\t", skiprows=1, dtype=str, keep_default_na=False) if os.path.exists(path) else None
+
+    def tilt(values):
+        return [str(int(float(v))) if str(v).strip() else "" for v in values]
+
+    def angle(d1, i1, d2, i2):
+        d1, i1, d2, i2 = np.radians([float(d1), float(i1), float(d2), float(i2)])
+        c = np.sin(i1) * np.sin(i2) + np.cos(i1) * np.cos(i2) * np.cos(d1 - d2)
+        return float(np.degrees(np.arccos(np.clip(c, -1, 1))))
+
+    def expected_polarity(vlat, vlon, ref=(90.0, 0.0)):
+        a = angle(vlon, vlat, ref[1], ref[0])
+        return "n" if a <= 55 else ("r" if a >= 125 else "t")
+
+    TABLE_DATA_JS = """(need) => {
+      const doc = Bokeh.documents[0]; const models = doc._all_models ?? doc.all_models;
+      const list = models instanceof Map ? [...models.values()] : [...models];
+      const t = list.find(m => String(m.type).endsWith('DataTabulator') && need.every(c => c in m.source.data));
+      if (!t) return null; const d = {};
+      for (const k of need) d[k] = Array.from(t.source.data[k]);
+      return d;
+    }"""
+
+    def step_is_bad(pg, i, timeout=30):
+        """Wait (up to `timeout` s) for step `i` of the logger to show as flagged bad."""
+        row = pg.locator(f".step-logger tr[data-i='{i}']")
+        for _ in range(int(timeout / 0.25)):
+            if "bad" in (row.get_attribute("class") or ""):
+                return True
+            pg.wait_for_timeout(250)
+        return False
+
+    def wait_text(pattern, timeout=180):
+        locator = page.get_by_text(re.compile(pattern)).first
+        try:
+            locator.wait_for(timeout=timeout * 1000)
+            return True
+        except Exception:
+            return False
+
+    dmag = DATASETS["dmag_magic"][0]
+    if list(DATASETS)[-1] != "dmag_magic":
+        switch_by_path(dmag)
+    wc_base = os.environ.get("PMAGPY_DIRECTIONS_UI_WORKING_COPY", "")
+    header = page.get_by_text(re.compile("specimens from")).first.inner_text()
+    open_tab(page, "Export")
+    out_box = page.get_by_role("textbox", name="Output directory for tables and figures")
+    out_box.wait_for()
+    workdir = out_box.input_value()
+    if wc_base:
+        side = page.get_by_text(re.compile(r"^working copy · ")).first
+        check(os.path.realpath(workdir).startswith(os.path.realpath(wc_base) + os.sep) and side.count() > 0
+              and "specimens from dmag_magic;" in header and os.sep not in header,
+              f"working copy: the app works in {os.path.basename(workdir)}, the side column says 'working copy ·' "
+              f"and the header names the study, not a path")
+    else:
+        check(os.path.realpath(workdir) == os.path.realpath(dmag), "the app works in the study itself")
+    # flag one good step of the current specimen
+    open_tab(page, "Specimen")
+    page.locator(".step-logger tr[data-i]").first.wait_for()
+    spec_now = page.locator("select").first.evaluate("el => el.value")
+    steps_now = page.locator(".step-logger tr[data-i]")
+    good = [i for i in range(1, steps_now.count()) if "bad" not in (steps_now.nth(i).get_attribute("class") or "")]
+    k = good[0]
+    steps_now.nth(k).click(button="right")
+    check(step_is_bad(page, k), f"step {k} of {spec_now} flagged for the export")
+    meas_before = read_table(workdir, "measurements")
+    n_bad_before = int(((meas_before["specimen"] == spec_now) & (meas_before["quality"] == "b")).sum())
+    # export in place: the first click asks, the second writes
+    open_tab(page, "Export")
+    spec_path = os.path.join(workdir, "specimens.txt")
+    stamp = os.path.getmtime(spec_path) if os.path.exists(spec_path) else None
+    pol_box = page.locator("div.bk-Checkbox").filter(has_text="write dir_polarity").locator("input")
+    check(not pol_box.is_checked(), "dir_polarity is not asked for by default")
+    page.get_by_role("button", name="Write MagIC tables").click()
+    confirm = page.get_by_role("button", name="Confirm: replace the tables")
+    confirm.wait_for(timeout=30000)
+    asked = page.get_by_text(re.compile("This writes into")).count() > 0
+    check((os.path.getmtime(spec_path) if stamp else None) == stamp and asked,
+          "export in place: the first click asks and writes nothing")
+    confirm.click()
+    check(wait_text(re.escape(spec_path)), "export in place: the second click writes the tables")
+    check(os.path.getmtime(spec_path) != stamp and os.path.isdir(os.path.join(workdir, "backup_before_pmagpy_directions")),
+          "specimens.txt replaced, the originals kept in backup_before_pmagpy_directions/")
+    meas = read_table(workdir, "measurements")
+    n_bad = int(((meas["specimen"] == spec_now) & (meas["quality"] == "b")).sum())
+    check(n_bad == n_bad_before + 1, f"measurements.txt has the flag ({n_bad_before} -> {n_bad} 'b' rows for {spec_now})")
+    # what the Fits tab lists is what specimens.txt holds, in the coordinate system on show
+    open_tab(page, "Specimen")
+    coord_name = page.locator("button.bk-active:visible").filter(
+        has_text=re.compile(r"^(specimen|geographic|tilt-corrected)$")).first.inner_text()
+    code = {"specimen": "-1", "geographic": "0", "tilt-corrected": "100"}[coord_name]
+    open_tab(page, "Fits")
+    page.wait_for_function("(need) => { const doc = Bokeh.documents[0]; const m = doc._all_models ?? doc.all_models;"
+                           " const l = m instanceof Map ? [...m.values()] : [...m];"
+                           " return l.some(t => String(t.type).endsWith('DataTabulator') && need.every(c => c in t.source.data)"
+                           " && t.source.data.specimen.length > 0); }", arg=["specimen", "fit", "from"], timeout=60000)
+    shown = page.evaluate(TABLE_DATA_JS, ["specimen", "site", "fit", "from", "dec", "inc", "q"])
+    spec_tab = read_table(workdir, "specimens")
+    spec_tab["tc"] = tilt(spec_tab["dir_tilt_correction"])
+    rows = spec_tab[(spec_tab["tc"] == code) & (spec_tab["dir_dec"] != "")]
+    by_key = {(r["specimen"], r["dir_comp"]): r for _, r in rows.iterrows()}
+    off = []
+    for i, key in enumerate(zip(shown["specimen"], shown["fit"])):
+        r = by_key.get(key)
+        if r is None:
+            off.append((key, "missing"))
+        elif shown["dec"][i] not in ("", "–") and angle(shown["dec"][i], shown["inc"][i], r["dir_dec"], r["dir_inc"]) > 0.15:
+            off.append((key, shown["dec"][i], shown["inc"][i], r["dir_dec"], r["dir_inc"]))
+    check(shown and not off and len(rows) == len(shown["specimen"]),
+          f"the {len(shown['specimen'])} fits on the Fits tab are the {len(rows)} {coord_name} rows of specimens.txt "
+          f"({off[:3] or 'same directions'})")
+    sites = read_table(workdir, "sites")
+    produced = sites[sites.get("software_packages", pd.Series("", index=sites.index)).str.contains("pmagpy_directions")]
+    check(len(produced) and ("dir_polarity" not in produced or (produced["dir_polarity"] == "").all()),
+          f"no dir_polarity on the {len(produced)} site rows written without asking")
+    # an export to another folder, with dir_polarity against the present north pole
+    open_tab(page, "Export")
+    folder = tempfile.mkdtemp(prefix="ui_export_")
+    out_box.fill(folder); out_box.press("Enter")
+    pol_box.check()
+    page.get_by_text(re.compile("present geographic north pole")).first.wait_for(timeout=30000)
+    page.get_by_role("button", name="Write MagIC tables").click()
+    check(wait_text(re.escape(os.path.join(folder, "specimens.txt"))) and os.path.exists(os.path.join(folder, "specimens.txt"))
+          and os.path.exists(os.path.join(folder, "measurements.txt")),
+          "an export to another folder writes with one click, with the companion tables")
+    other = read_table(folder, "sites")
+    vgp = other[(other.get("vgp_lat", "") != "") & other["software_packages"].str.contains("pmagpy_directions")]
+    wrong = [r["site"] for _, r in vgp.iterrows()
+             if r.get("dir_polarity", "") != expected_polarity(float(r["vgp_lat"]), float(r["vgp_lon"]))]
+    check(len(vgp) and not wrong, f"dir_polarity of {len(vgp)} site VGPs right against the present pole ({wrong[:3]})")
+    out_box.fill(""); out_box.press("Enter")
+    pol_box.uncheck()
+    # reopen: a new tab restores the flag and the fits
+    n_fits = len(shown["specimen"])
+    page.wait_for_timeout(1500)                      # the autosave's debounce
+    page2 = browser.new_page(viewport={"width": 1680, "height": 1050})
+    page2.goto(page.url, wait_until="load", timeout=120000)
+    page2.wait_for_selector(".step-logger tr[data-i]", timeout=120000)
+    page2.locator("select").first.select_option(spec_now)
+    check(step_is_bad(page2, k), "reopened in a new tab: the flag is restored")
+    page2.locator(".bk-tab").filter(has_text=re.compile("^Fits$", re.I)).first.click()
+    try:
+        page2.wait_for_function("(n) => { const doc = Bokeh.documents[0]; const m = doc._all_models ?? doc.all_models;"
+                                " const l = m instanceof Map ? [...m.values()] : [...m];"
+                                " return l.some(t => String(t.type).endsWith('DataTabulator') && 'from' in t.source.data"
+                                " && t.source.data.specimen.length === n); }", arg=n_fits, timeout=60000)
+        same = True
+    except Exception:
+        same = False
+    check(same, f"reopened: the Fits tab lists the same {n_fits} fits")
+    page2.screenshot(path=f"{prefix}_reopened.png")
+    page2.close()
+    # leave the step as it was (the files keep the flag until the next export)
+    open_tab(page, "Specimen")
+    page.locator(".step-logger tr[data-i]").nth(k).click(button="right")
+    page.wait_for_timeout(1500)
     browser.close()
 
 if failures:
