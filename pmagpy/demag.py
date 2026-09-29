@@ -843,8 +843,10 @@ class DemagData:
         self._build()
 
     def invalidate(self) -> None:
-        """Drop cached fits (call after editing step flags or step tables directly)."""
+        """Drop cached fits and coordinate coverage (call after editing step flags or step tables directly)."""
         self._fit_cache.clear()
+        for spec in self.specimens.values():
+            spec.__dict__.pop("_coord_cache", None)
 
     # ----- construction ----------------------------------------------------
     @classmethod

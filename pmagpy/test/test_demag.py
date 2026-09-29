@@ -821,9 +821,11 @@ class TestDefaultCoordinates:
         stripped = deepcopy(dmag)
         for sp in stripped.specimens.values():
             sp.steps["dec_t"] = np.nan
+        stripped.invalidate()                        # step tables edited directly
         assert stripped.default_coord() == COORD_GEOGRAPHIC
         for sp in stripped.specimens.values():
             sp.steps["dec_g"] = np.nan
+        stripped.invalidate()
         assert stripped.default_coord() == COORD_SPECIMEN
 
     def test_majority_rule_and_best_coord(self, dmag):
@@ -833,10 +835,12 @@ class TestDefaultCoordinates:
         names = data.specimen_names
         for name in names[: int(0.6 * len(names))]:            # bedding missing for 60 % of the specimens
             data.specimens[name].steps["dec_t"] = np.nan
+        data.invalidate()                            # step tables edited directly
         assert data.default_coord() == COORD_GEOGRAPHIC
         assert data.best_coord(names[0], COORD_TILT) == COORD_GEOGRAPHIC
         assert data.best_coord(names[-1], COORD_TILT) == COORD_TILT
         data.specimens[names[0]].steps["dec_g"] = np.nan
+        data.invalidate()
         assert data.best_coord(names[0], COORD_TILT) == COORD_SPECIMEN
         assert data.best_coord(names[-1], COORD_SPECIMEN) == COORD_SPECIMEN     # never upgrades
 
