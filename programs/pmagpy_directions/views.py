@@ -1253,7 +1253,7 @@ class ExportView:
         self.status = pn.pane.Markdown("", sizing_mode="stretch_width")        # export messages only
         self.report = pn.pane.HTML("", sizing_mode="stretch_width")            # validator report
         self.messages = pn.pane.HTML("", sizing_mode="stretch_width")          # what reading and writing reported
-        session.param.watch(lambda e: self._show_messages(), ["version", "directory"])
+        session.param.watch(lambda *events: self._show_messages(), ["version", "directory"])
         self._show_messages()
         session.param.watch(lambda e: setattr(self.redo_path, "value", os.path.join(e.new, REDO_NAME)),
                             "output_dir")

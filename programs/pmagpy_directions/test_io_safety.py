@@ -252,3 +252,14 @@ class TestFailurePage:
         page = create_app(str(bad))
         text = str(page[0].object)
         assert "Could not open" in text and "not a MagIC table" in text
+
+
+class TestSwitchWithTheExportPaneBuilt:
+    def test_a_dataset_loads_while_the_pane_watches_the_session(self, two):
+        # a load changes version and directory in one batch; a watcher of both must take both events
+        from pmagpy_directions.views import ExportView
+        a, b = two
+        s = Session(a)
+        view = ExportView(s)
+        assert s.load(b) and s.directory == b
+        assert "nothing to report" in view.messages.object or view.messages.object
