@@ -45,9 +45,14 @@ class TestAarmMagicCli:
         assert (specs["aniso_type"] == "AARM").all()
         assert (specs["aniso_s_n_measurements"] == 9).all()
         assert (specs["aniso_tilt_correction"] == -1).all()
+        # the tensor fit runs in float32 and is written with %f, so the last
+        # printed digit can differ between platforms
         bg201 = specs.set_index("specimen").loc["bg2.01"]
-        assert bg201["aniso_v1"] == "0.396615:198.5:-53.8"
-        assert bg201["aniso_p"] == pytest.approx(1.347395, abs=1e-6)
+        tau1, dec1, inc1 = np.array(bg201["aniso_v1"].split(":"), dtype=float)
+        assert tau1 == pytest.approx(0.396615, abs=1e-5)
+        assert dec1 == pytest.approx(198.5, abs=0.2)
+        assert inc1 == pytest.approx(-53.8, abs=0.2)
+        assert bg201["aniso_p"] == pytest.approx(1.347395, abs=1e-5)
 
     def test_existing_specimen_records_are_kept(self, tmp_path, monkeypatch):
         """AARM results are merged into, not substituted for, specimens.txt."""
