@@ -231,6 +231,20 @@ class SpecimenView:
     def _labels(self):
         return list(self.s.spec.steps["label"])
 
+    def _bound_options(self) -> dict:
+        """The bound selectors' options, label -> step index; a label shared by several steps (two NRM
+        measurements, a repeated step) is told apart by its place among them: "NRM (1)", "NRM (2)"."""
+        labels = self._labels()
+        repeated = {lab for lab in labels if labels.count(lab) > 1}
+        seen: dict = {}
+        options = {}
+        for i, lab in enumerate(labels):
+            if lab in repeated:
+                seen[lab] = seen.get(lab, 0) + 1
+                lab = f"{lab} ({seen[lab]})"
+            options[lab] = i
+        return options
+
     def _on_logger_click(self, event):
         click = event.new
         if not click:
@@ -310,10 +324,9 @@ class SpecimenView:
     def _on_bound_widget(self, event):
         if self._syncing or self.s.current is None:
             return
-        labels = self._labels()
-        if self.tmin_sel.value in labels and self.tmax_sel.value in labels:
-            self.s.update_component(self.s.current, imin=labels.index(self.tmin_sel.value),
-                                    imax=labels.index(self.tmax_sel.value))
+        lo, hi = self.tmin_sel.value, self.tmax_sel.value
+        if isinstance(lo, int) and isinstance(hi, int):
+            self.s.update_component(self.s.current, imin=lo, imax=hi)
 
     def _on_type_widget(self, event):
         if not self._syncing and self.s.current is not None:
@@ -390,18 +403,20 @@ class SpecimenView:
             self.specimen_sel.value = s.specimen
             self.coord_sel.options = {dc.COORD_NAMES[c]: c for c in spec.available_coords()}
             self.coord_sel.value = coord
-            labels = self._labels()
-            self.tmin_sel.options = labels
-            self.tmax_sel.options = labels
+            options = self._bound_options()
+            labels = list(options)
+            self.tmin_sel.options = options
+            self.tmax_sel.options = options
+            last = len(options) - 1
             cur = s.current
             if cur is not None:
                 self.comp_name.value, self.fit_type_sel.value = cur.name, cur.fit_type
-                self.tmin_sel.value, self.tmax_sel.value = labels[cur.imin], labels[cur.imax]
+                self.tmin_sel.value, self.tmax_sel.value = cur.imin, cur.imax
             else:
-                if self.tmin_sel.value not in labels:
-                    self.tmin_sel.value = labels[0]
-                if self.tmax_sel.value not in labels:
-                    self.tmax_sel.value = labels[-1]
+                if self.tmin_sel.value not in options.values():
+                    self.tmin_sel.value = 0
+                if self.tmax_sel.value not in options.values():
+                    self.tmax_sel.value = last
         finally:
             self._syncing = False
 

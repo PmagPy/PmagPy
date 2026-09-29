@@ -497,6 +497,24 @@ class TestSpecimenView:
         s.toggle_step(4)
         assert list(view.eq.src.data["alpha"]) == [1.0] * n and len(view.decay.path.data["x"]) == n
 
+    def test_the_bound_selectors_tell_repeated_step_labels_apart(self, tmp_path):
+        """Two steps with one label (two NRM measurements, a repeated step): each can be chosen as a bound."""
+        from pmagpy_directions.views import SpecimenView
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        steps = s.spec.steps
+        steps.loc[steps.index[1], "label"] = steps["label"].iloc[0]
+        view = SpecimenView(s)
+        view._new_fit()
+        s.update_component(s.current, imin=0, imax=5)
+        options = dict(view.tmin_sel.options)
+        first = steps["label"].iloc[0]
+        assert options[f"{first} (1)"] == 0 and options[f"{first} (2)"] == 1 and len(options) == s.spec.n_steps
+        view.tmin_sel.value = options[f"{first} (2)"]
+        assert (s.current.imin, s.current.imax) == (1, 5)
+        view.tmax_sel.value = s.spec.n_steps - 1
+        assert (s.current.imin, s.current.imax) == (1, s.spec.n_steps - 1)
+        assert view.tmin_sel.value == 1
+
     def test_new_fit_creates_and_selects_a_fit_at_once(self, tmp_path):
         """New fit makes a fit immediately (after the last one, or over all steps); clicks then move its bounds."""
         from pmagpy_directions.views import SpecimenView
