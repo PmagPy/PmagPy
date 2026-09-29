@@ -1341,7 +1341,13 @@ class ExportView:
                        if os.path.exists(os.path.join(target, n))]
             self._confirm_in_place = True
             self.write_btn.name, self.write_btn.button_type = "Confirm: replace the tables", "danger"
-            self.status.object = (f"**This writes into the data directory itself** and replaces "
+            source = self.s.source_directory
+            if source and os.path.realpath(source) != os.path.realpath(target):
+                where = (f"**This writes into the working copy of `{source}`** that every application shares "
+                         "(the study itself is not changed) and replaces ")
+            else:
+                where = "**This writes into the data directory itself** and replaces "
+            self.status.object = (where +
                                   f"{', '.join(f'`{n}`' for n in present) or 'its tables'}. Each is kept in "
                                   f"`{self.s.BACKUP_DIR}/previous/` (and the originals, once, in "
                                   f"`{self.s.BACKUP_DIR}/`). Click again to write, or type another output "

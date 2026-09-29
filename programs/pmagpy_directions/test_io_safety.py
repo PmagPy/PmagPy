@@ -198,6 +198,23 @@ class TestExportPane:
         assert "Wrote:" in view.status.object
         assert os.path.exists(os.path.join(src, Session.BACKUP_DIR, "specimens.txt"))
 
+    def test_the_question_names_the_working_copy_when_there_is_one(self, tmp_path, monkeypatch):
+        from pmagpy_directions.views import ExportView
+        for var in datasets.OUTPUT_BASE_VARS:
+            monkeypatch.setenv(var, "placeholder")
+            monkeypatch.delenv(var)
+        monkeypatch.setenv("PMAGPY_APPS_OUTPUT", str(tmp_path / "base"))
+        src = copy_study(tmp_path / "s")
+        before = digest(src)
+        s = Session(src)
+        view = ExportView(s)
+        view._write()
+        assert "writes into the working copy of" in view.status.object and src in view.status.object
+        assert "data directory itself" not in view.status.object
+        view._write()
+        assert "Wrote:" in view.status.object and os.path.exists(os.path.join(s.directory, "specimens.txt"))
+        assert digest(src) == before
+
     def test_the_output_field_does_not_move_the_autosave(self, tmp_path):
         from pmagpy_directions.views import ExportView
         src = copy_study(tmp_path / "s")
