@@ -102,16 +102,6 @@ def clearFIG(fignum):
     if not isServer:
         plt.figtext(.02, .01, version_num)
 
-# def gui_init(gvars,interface):
-#	global globals, graphmenu
-##	globals = gvars
-##	graphmenu = interface
-#
-
-
-#
-#
-
 
 def delticks(fig):
     """
@@ -164,7 +154,6 @@ def plot_init(fignum, w, h):
             # window to raise or place, but the figure itself is fine (#781)
             pass
         plt.figtext(.02, .01, version_num)
-#
     # plt.ioff()
     return fig
 
@@ -495,9 +484,7 @@ def plot_net(fignum):
     ----------
     fignum : matplotlib figure number
     """
-#
 # make the perimeter
-#
     plt.figure(num=fignum)
     plt.clf()
     if not isServer:
@@ -511,7 +498,6 @@ def plot_net(fignum):
         Xcirc.append(XY[0])
         Ycirc.append(XY[1])
     plt.plot(Xcirc, Ycirc, 'k')
-#
 # put on the tick marks
     Xsym, Ysym = [], []
     for I in range(10, 100, 10):
@@ -560,9 +546,7 @@ def plot_di(fignum, DIblock):
     """
     X_down, X_up, Y_down, Y_up = [], [], [], []  # initialize some variables
     plt.figure(num=fignum)
-#
 #   plot the data - separate upper and lower hemispheres
-#
     for rec in DIblock:
         Up, Down = 0, 0
         XY = pmag.dimap(rec[0], rec[1])
@@ -572,7 +556,6 @@ def plot_di(fignum, DIblock):
         else:
             X_up.append(XY[0])
             Y_up.append(XY[1])
-#
     if len(X_down) > 0:
         #        plt.scatter(X_down,Y_down,marker='s',c='r')
         plt.scatter(X_down, Y_down, marker='o', c='blue')
@@ -600,9 +583,7 @@ def plot_di_sym(fignum, DIblock, sym):
     """
     X_down, X_up, Y_down, Y_up = [], [], [], []  # initialize some variables
     plt.figure(num=fignum)
-#
 #   plot the data - separate upper and lower hemispheres
-#
     for rec in DIblock:
         Up, Down = 0, 0
         XY = pmag.dimap(rec[0], rec[1])
@@ -612,7 +593,6 @@ def plot_di_sym(fignum, DIblock, sym):
         else:
             X_up.append(XY[0])
             Y_up.append(XY[1])
-#
     if 'size' not in list(sym.keys()):
         size = 50
     else:
@@ -660,9 +640,6 @@ def plot_circ(fignum, pole, ang, col):
     plt.plot(X_c_up, Y_c_up, 'c.', ms=2)
 
 
-#
-#
-#
 def plot_zij(fignum, datablock, angle, s, norm=True):
     """
     function to make Zijderveld diagrams
@@ -760,8 +737,6 @@ def plot_zij(fignum, datablock, angle, s, norm=True):
     plt.axis([amin - pad, amax + pad, amax + pad, amin - pad])
     plt.gca().set_aspect("equal")
     plt.title(tstring)
-#
-#
 
 
 def plot_mag(fignum, datablock, s, num, units, norm):
@@ -967,9 +942,7 @@ def plot_dir(ZED, pars, datablock, angle):
 
     DEPRECATED (used in zeq_magic)
     """
-#
 # find start and end points from datablock
-#
     if pars["calculation_type"] == 'DE-FM':
         x, y = [], []
         plt.figure(num=ZED['eqarea'])
@@ -992,9 +965,7 @@ def plot_dir(ZED, pars, datablock, angle):
             if pars["specimen_direction_type"] == 'l':
                 EndDir[2] = rec[3]/datablock[0][3]
 
-#
 #  put them on the plots
-#
     x, y, z, pole = [], [], [], []
     if pars["calculation_type"] != 'DE-BFP':
         plt.figure(num=ZED['eqarea'])
@@ -1018,7 +989,6 @@ def plot_dir(ZED, pars, datablock, angle):
         plt.scatter(x, z, marker='d', s=80, c='g')
         plt.scatter(x, y, marker='o', c='r', s=20)
         plt.scatter(x, z, marker='s', c='w', s=20)
-#
 # put on best fit line
 # new way (from Jeff Gee's favorite website http://GET THIS):
 #      P1=pmag.dir2cart([(pars["specimen_dec"]-angle),pars["specimen_inc"],1.]) #  princ comp.
@@ -1223,7 +1193,6 @@ def plot_np(fignum, indata, s, units):
     if not isServer:
         plt.figtext(.02, .01, version_num)
     X, Y, recnum = [], [], 0
-#
     for rec in first_Z:
         if units == "K":
             if rec[0] != 0:
@@ -1359,9 +1328,7 @@ def plot_b(Figs, araiblock, zijdblock, pars):
     plot_teq(Figs['eqarea'], newblock, "", pars)
     plt.figure(num=Figs['arai'])
     plt.scatter(ax, ay, marker='d', s=100, c='y')
-#
 #  find midpoint between two endpoints
-#
     sy = []
     sy.append((pars["specimen_b"] * ax[0] +
                pars["specimen_ytot"] / first_Z[0][3]))
@@ -1385,9 +1352,7 @@ def plot_slnp(fignum, SiteRec, datablock, key):
     plt.figure(num=fignum)
     plot_net(fignum)
     s = SiteRec['er_site_name']
-#
 #   plot on the data
-#
     coord = SiteRec['site_tilt_correction']
     title = ''
     if coord == '-1':
@@ -1409,18 +1374,14 @@ def plot_slnp(fignum, SiteRec, datablock, key):
     if len(GCblock) > 0:
         for pole in GCblock:
             plot_circ(fignum, pole, 90., 'g')  # plot directed lines
-#
 # put on the mean direction
-#
     x, y = [], []
     XY = pmag.dimap(float(SiteRec["site_dec"]), float(SiteRec["site_inc"]))
     x.append(XY[0])
     y.append(XY[1])
     plt.scatter(x, y, marker='d', s=80, c='g')
     plt.title(title)
-#
 # get the alpha95
-#
     Xcirc, Ycirc = [], []
     Da95, Ia95 = pmag.circ(float(SiteRec["site_dec"]), float(
         SiteRec["site_inc"]), float(SiteRec["site_alpha95"]))
@@ -1451,9 +1412,7 @@ def plot_lnp(fignum, s, datablock, fpars, direction_type_key):
     """
 # make the stereonet
     plot_net(fignum)
-#
 #   plot on the data
-#
     dec_key, inc_key, tilt_key = 'dec', 'inc', 'tilt_correction'
     if 'dir_dec' in datablock[0].keys():  # this is data model 3.0
         dec_key, inc_key, tilt_key = 'dir_dec', 'dir_inc', 'dir_tilt_correction'
@@ -1477,9 +1436,7 @@ def plot_lnp(fignum, s, datablock, fpars, direction_type_key):
     if len(GCblock) > 0:
         for pole in GCblock:
             plot_circ(fignum, pole, 90., 'g')  # plot directed lines
-#
 # put on the mean direction
-#
     x, y = [], []
     XY = pmag.dimap(float(fpars["dec"]), float(fpars["inc"]))
     x.append(XY[0])
@@ -1487,9 +1444,7 @@ def plot_lnp(fignum, s, datablock, fpars, direction_type_key):
     plt.figure(num=fignum)
     plt.scatter(x, y, marker='d', s=80, c='g')
     plt.title(title)
-#
 # get the alpha95
-#
     Xcirc, Ycirc = [], []
     Da95, Ia95 = pmag.circ(float(fpars["dec"]), float(
         fpars["inc"]), float(fpars["alpha95"]))
@@ -1518,9 +1473,7 @@ def plot_eq(fignum, DIblock, s):
     if not isServer:
         plt.figtext(.02, .01, version_num)
     plot_net(fignum)
-#
 #   put on the directions
-#
     plot_di(fignum, DIblock)  # plot directions
     plt.gca().set_aspect("equal")
     plt.text(-1.1, 1.15, s)
@@ -1546,13 +1499,10 @@ def plot_eq_sym(fignum, DIblock, s, sym):
     if not isServer:
         plt.figtext(.02, .01, version_num)
     plot_net(fignum)
-#
 #   put on the directions
-#
     plot_di_sym(fignum, DIblock, sym)  # plot directions with symbols in sym
     plt.gca().set_aspect("equal")
     plt.text(-1.1, 1.15, s)
-#
 
 
 def plot_teq(fignum, araiblock, s, pars):
@@ -1600,9 +1550,7 @@ def plot_teq(fignum, araiblock, s, pars):
         return
     if not isServer:
         plt.figtext(.02, .01, version_num)
-#
 #   put on the directions
-#
     sym = {'lower': ['o', 'r'], 'upper': ['o', 'm']}
     if len(ZIblock) > 0:
         plot_di_sym(fignum, ZIblock, sym)  # plot ZI directions
@@ -1673,7 +1621,6 @@ def plot_evec(fignum, Vs, symsize, title):
     symsize : size in pts for symbol
     title : title for plot
     """
-#
     plt.figure(num=fignum)
     plt.text(-1.1, 1.15, title)
     # plot V1s as squares, V2s as triangles and V3s as circles
@@ -1682,17 +1629,13 @@ def plot_evec(fignum, Vs, symsize, title):
     for VEC in range(3):
         X, Y = [], []
         for Vdirs in Vs:
-            #
-            #
             #   plot the V1 data  first
-            #
             XY = pmag.dimap(Vdirs[VEC][0], Vdirs[VEC][1])
             X.append(XY[0])
             Y.append(XY[1])
         plt.scatter(X, Y, s=symsize,
                     marker=symb[VEC], c=col[VEC], edgecolors='none')
     plt.gca().set_aspect("equal")
-#
 
 
 def plot_ell(fignum, pars, col='k', lower=True, plot=True):
@@ -1785,8 +1728,6 @@ def plot_ell(fignum, pars, col='k', lower=True, plot=True):
         return PTS
 
 
-#
-#
 fig_y_pos = 25
 
 
@@ -1824,9 +1765,6 @@ def plot_strat(fignum, data, labels):
     plt.ylabel(ylab)
     plt.title(title)
 
-#
-#
-
 
 def plot_cdf(fignum, data, xlab, sym, title, **kwargs):
     """
@@ -1846,7 +1784,6 @@ def plot_cdf(fignum, data, xlab, sym, title, **kwargs):
     x : sorted list of data
     y : fraction of cdf
     """
-#
     #if len(sym)==1:sym=sym+'-'
     fig = plt.figure(num=fignum)
     # sdata=np.array(data).sort()
@@ -1874,7 +1811,6 @@ def plot_cdf(fignum, data, xlab, sym, title, **kwargs):
     plt.ylabel('Cumulative Distribution', fontsize=kwargs.get('fontsize', 12))
     plt.title(title)
     return X, Y
-#
 
 
 def plot_hs(fignum, Ys, c, ls):
@@ -1892,7 +1828,6 @@ def plot_hs(fignum, Ys, c, ls):
     for yv in Ys:
         bounds = plt.axis()
         plt.axhline(y=yv, xmin=0, xmax=1, linewidth=1, color=c, linestyle=ls)
-#
 
 
 def plot_vs(fignum, Xs, c, ls):
@@ -2003,7 +1938,6 @@ def plot_hys(fignum, B, M, s):
         if Mzero != "" and Mazero == "" and Moff[k] > 0:
             Mazero = k
     hpars['hysteresis_ms_moment'] = '%8.3e' % (Msat)  # Ms in Am^2
-#
 # split into upper and lower loops for splining
     Mupper, Bupper, Mlower, Blower = [], [], [], []
     deltaM, Bdm = [], []  # diff between upper and lower curves at Bdm
@@ -2051,7 +1985,6 @@ def plot_hys(fignum, B, M, s):
     except Exception:
         hpars['hysteresis_bc'] = '0'
     return hpars, deltaM, Bdm
-#
 
 
 def plot_delta_m(fignum, B, DM, Bcr, s):
@@ -2077,7 +2010,6 @@ def plot_delta_m(fignum, B, DM, Bcr, s):
     liney = [DM[0] / 2.0, DM[0] / 2.0, 0]
     plt.plot(linex, liney, 'r')
     plt.title(s)
-#
 
 
 def plot_d_delta_m(fignum, Bdm, DdeltaM, s):
@@ -2100,7 +2032,6 @@ def plot_d_delta_m(fignum, Bdm, DdeltaM, s):
     plt.xlabel('B (T)')
     plt.ylabel('d (Delta M)/dB')
     plt.title(s)
-#
 
 
 def plot_imag(fignum, Bimag, Mimag, s):
@@ -2116,7 +2047,6 @@ def plot_imag(fignum, Bimag, Mimag, s):
     plt.ylabel('M/Ms')
     plt.axvline(0, color='k')
     plt.title(s)
-#
 
 
 def plot_hdd(HDD, B, M, s):
@@ -2167,7 +2097,6 @@ def plot_hdd(HDD, B, M, s):
         hpars['hysteresis_bcr'] = '0'
         hpars['magic_method_codes'] = ""
     return hpars
-#
 
 
 def plot_day(fignum, BcrBc, S, sym, **kwargs):
@@ -2232,7 +2161,6 @@ def plot_day(fignum, BcrBc, S, sym, **kwargs):
             plt.text(BcrBc[k], S[k], names[k])  # ,'ha'='left'
 
 
-#
 def plot_s_bc(fignum, Bc, S, sym):
     """
     function to plot Squareness,Coercivity
@@ -2251,7 +2179,6 @@ def plot_s_bc(fignum, Bc, S, sym):
     plt.title('Squareness-Coercivity Plot')
     bounds = plt.axis()
     plt.axis([0, bounds[1], 0, 1])
-#
 
 
 def plot_s_bcr(fignum, Bcr, S, sym):
@@ -2272,7 +2199,6 @@ def plot_s_bcr(fignum, Bcr, S, sym):
     plt.title('Squareness-Bcr Plot')
     bounds = plt.axis()
     plt.axis([0, bounds[1], 0, 1])
-#
 
 
 def plot_bcr(fignum, Bcr1, Bcr2):
@@ -2320,7 +2246,6 @@ def plot_hpars(HDD, hpars, sym):
     if Bcr != "":
         n1 = 'Bcr: ' + '%8.2e' % (Bcr) + ' T'
         plt.text(bounds[1] - .5 * bounds[1], .9 * bounds[3], n1)
-#
 
 
 def plot_irm(fignum, B, M, title):
@@ -2426,7 +2351,6 @@ def plot_xtf(fignum, XTF, Fs, e, b):
         k += 1
     plt.title(e + ': B = ' + '%8.1e' % (b) + ' T')
 #    plt.legend(Flab,'upper left')
-#
 
 
 def plot_xtb(fignum, XTB, Bs, e, f):
@@ -2448,7 +2372,6 @@ def plot_xtb(fignum, XTB, Bs, e, f):
         k += 1
     plt.title(e + ': f = ' + '%i' % (int(f)) + ' Hz')
 #    plt.legend(Blab,'upper left')
-#
 
 
 def plot_xft(fignum, XF, T, e, b):
@@ -2470,7 +2393,6 @@ def plot_xft(fignum, XF, T, e, b):
     plt.title(e + ': B = ' + '%8.1e' % (b) + ' T')
 
     plt.legend(['%i' % (int(T)) + ' K'])
-#
 
 
 def plot_xbt(fignum, XB, T, e, b):
@@ -2490,16 +2412,13 @@ def plot_xbt(fignum, XB, T, e, b):
     plt.plot(B, X)
     plt.legend(['%i' % (int(T)) + ' K'])
     plt.title(e + ': f = ' + '%i' % (int(f)) + ' Hz')
-#
 
 
 def plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb):
     imeas, bpars, hpars = 1, [], []
     npts = len(Ss)  # number of data points
     plots = {}
-#
 # plot eigenvectors:
-#
     Vs = []
     for s in Ss:
         tau, V = pmag.doseigs(s)
@@ -2513,9 +2432,7 @@ def plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, n
                 plt.figtext(.02, .01, version_num)
         plot_net(ANIS['data'])  # draw the net
         plot_evec(ANIS['data'], Vs, 40, title)  # put on the data eigenvectors
-#
 # plot mean eigenvectors
-#
     Vs = []
     mtau, mV = pmag.doseigs(avs)
     Vs.append(mV)
@@ -2532,9 +2449,7 @@ def plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, n
             title = title[1:]
         plot_net(ANIS['conf'])  # draw the net
         plot_evec(ANIS['conf'], Vs, 36, title)  # put on the mean eigenvectors
-#
 # plot mean confidence
-#
     if iboot == 1:
         print('Doing bootstrap - be patient')
         Tmean, Vmean, Taus, BVs = pmag.s_boot(
@@ -2685,7 +2600,6 @@ def plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, n
 
 
 def plot_trm(fig, B, TRM, Bp, Mp, NLpars, title):
-    #
     # plots TRM acquisition data and correction to B_estimated to B_ancient
     plt.figure(num=fig)
     plt.clf()
@@ -2694,7 +2608,6 @@ def plot_trm(fig, B, TRM, Bp, Mp, NLpars, title):
     plt.xlabel('B (uT)')
     plt.ylabel('Fractional TRM ')
     plt.title(title + ':TRM=' + '%8.2e' % (Mp[-1]))
-#
 # scale data
     Bnorm, Bpnorm = [], []
     Tnorm, Mnorm = [], []
@@ -2744,17 +2657,13 @@ def plot_conf(fignum, s, datablock, pars, new):
 # make the stereonet
     if new == 1:
         plot_net(fignum)
-#
 #   plot the data
-#
     DIblock = []
     for plotrec in datablock:
         DIblock.append((float(plotrec["dec"]), float(plotrec["inc"])))
     if len(DIblock) > 0:
         plot_di(fignum, DIblock)  # plot directed lines
-#
 # put on the mean direction
-#
     x, y = [], []
     XY = pmag.dimap(float(pars[0]), float(pars[1]))
     x.append(XY[0])
@@ -2768,9 +2677,7 @@ def plot_conf(fignum, s, datablock, pars, new):
         else:
             plt.scatter(x, y, marker='^', s=100, c='y')
     plt.title(s)
-#
 # plot the ellipse
-#
     plot_ell(fignum, pars, 'r-,', 0, 1)
 
 
@@ -2802,9 +2709,7 @@ def plot_v2s(fignum, V2s, I, f):
 
 
 def plot_com(CDF, BDI1, BDI2, d):
-    #
     #   convert to cartesian coordinates X1,X2, Y1,Y2 and Z1, Z2
-    #
     cart = pmag.dir2cart(BDI1).transpose()
     X1, Y1, Z1 = cart[0], cart[1], cart[2]
     min = int(0.025 * len(X1))
@@ -2840,7 +2745,6 @@ def plot_com(CDF, BDI1, BDI2, d):
     return
 
 # functions for images - requires additional modules
-#
 #import Image,os
 # def combineFigs(Name,filenames,Ncols):
 #    Nfigs=len(filenames.keys())
