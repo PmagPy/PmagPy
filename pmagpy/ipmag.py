@@ -9606,8 +9606,8 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     sys.stdout.flush()
 
     E, I = [], []
-    plt.figure(num=1, figsize=(4, 4))
-    plot_net(1)
+    plt.figure(figsize=(4, 4))
+    plot_net()
     plot_di(di_block=data, color=data_color)
     plt.title('Original')
 
@@ -9622,7 +9622,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
         Inc, Elong = Is[-1], Es[-1]
         flat_f = Fs[-1]
 
-    plt.figure(num=2, figsize=(4, 4))
+    plt.figure(figsize=(4, 4))
     plt.plot(Is, Es, EI_color, zorder = nb+1, lw=3)
     plt.xlabel(r"inclination ($^\circ$)", fontsize=12)
     plt.ylabel("elongation", fontsize=12)
@@ -9664,8 +9664,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     if save:
         plt.savefig(save_folder+'/'+figprefix+'_EI_bootstraps'+'.'+fmt, bbox_inches='tight', dpi=300)
 
-    cdf_fig_num = 3
-    plt.figure(num=cdf_fig_num, figsize=(4, 4))
+    cdf_fig_num = plt.figure(figsize=(4, 4)).number
     pmagplotlib.plot_cdf(cdf_fig_num, I, r'inclination ($^\circ$)', 'r', title)
     pmagplotlib.plot_vs(cdf_fig_num, [i_lo, i_hi], 'b', '--')
     pmagplotlib.plot_vs(cdf_fig_num, [Inc], 'g', '-')
@@ -9682,15 +9681,12 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
         decs, incs = di_lists
     if flat_f:
         unsquished_incs = unsquish(incs, flat_f)
-        plt.figure(num=4, figsize=(4, 4))
-        plot_net(4)
-        plot_di(decs, unsquished_incs, color=data_color)
-        plt.title('Corrected for flattening')
     else:
-        plt.figure(num=4, figsize=(4, 4))
-        plot_net(4)
-        plot_di(decs, incs, color=data_color)
-        plt.title('Corrected for flattening')
+        unsquished_incs = incs
+    plt.figure(figsize=(4, 4))
+    plot_net()
+    plot_di(decs, unsquished_incs, color=data_color)
+    plt.title('Corrected for flattening')
     if save:
         plt.savefig(save_folder+'/'+figprefix+'_corrected_directions'+'.'+fmt, bbox_inches='tight', dpi=300)
 
@@ -9725,7 +9721,7 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
                 return_new_dirs=False, return_values=False, figprefix='EI',
                 num_resample_to_plot=1000, EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05,
                  vgp_nb=100, cmap='viridis_r', central_longitude=0, central_latitude=0,
-                 random_seed=None):
+                 random_seed=None, return_poles=False):
     """
     Applies series of assumed flattening factor and "unsquishes" inclinations assuming tangent function.
     Finds flattening factor that gives elongation/inclination pair consistent with TK03
@@ -9761,15 +9757,38 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
         EI_color: the color of the EI curve associated with the most frequent f value (rounded to 2 decimal points, default is red)
         resample_EI_color: the color of the EI curves for all f values except for the most frequent f (default is grey)
         resample_EI_alpha: the transparency of the EI curves for all f values except for the most frequent f (default is grey)
+        random_seed : None, int, or numpy.random.Generator, optional
+            Seed for reproducible resampling (default None).
+        return_poles : if True, also return the nb*vgp_nb resampled mean pole longitudes and latitudes
+            from which the Kent distribution is calculated, appended after the other returned values
+            (default is False)
 
     Returns:
-        four plots :  
-            1) equal area plot of original directions
-            2) Elongation/inclination pairs as a function of f,  data plus 25 bootstrap samples
-            3) Cumulative distribution of bootstrapped optimal inclinations plus uncertainties. Estimate from original data set plotted as solid line
-            4) Orientation of principle direction through unflattening
-     
-    NOTE: 
+        kent_stats : dictionary of Kent distribution statistics (as returned by
+            kent_distribution_95) for the resampled mean poles, returned on its
+            own by default
+        di_block : nested list of dec/inc pairs unflattened with the best-fit f,
+            returned instead of (return_new_dirs=True) or before
+            (return_new_dirs=True and return_values=True) kent_stats
+        I, E, F : lists of the bootstrap inclinations, elongations, and
+            flattening factors, appended when return_values=True
+        mean_lons, mean_lats : lists of the nb*vgp_nb resampled mean pole
+            longitudes and latitudes, appended when return_poles=True
+        A single object is returned bare; otherwise the outputs are returned
+        as a tuple in the order above, e.g. (kent_stats, I, E, F, mean_lons,
+        mean_lats) for return_values=True and return_poles=True.
+
+        five plots :
+            1) Elongation/inclination pairs as a function of f, data plus
+               num_resample_to_plot bootstrap samples
+            2) Cumulative distribution of bootstrapped optimal inclinations plus
+               uncertainties. Estimate from original data set plotted as solid line
+            3) Equal area plot of directions unflattened with each bootstrap f,
+               color-coded by f
+            4) Histogram of bootstrap paleolatitudes with a normal fit
+            5) Orthographic map of the resampled mean poles with the Kent ellipse
+
+    NOTE:
         If distribution does not have a solution, plot labeled: Pathological.  Some bootstrap samples may have
         valid solutions and those are plotted in the CDFs and E/I plot.
     """
@@ -9789,7 +9808,7 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     Inc, Elong = Is[-1], Es[-1]
     flat_f = Fs[-1]
     # plot E/I figure
-    plt.figure(num=1, figsize=(4, 4))
+    plt.figure(figsize=(4, 4))
     plt.plot(Is, Es, EI_color, zorder = nb+1, lw=3)
     plt.xlabel(r"inclination ($^\circ$)", fontsize=12)
     plt.ylabel("elongation", fontsize=12)
@@ -9827,11 +9846,11 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     if save:
         plt.savefig(save_folder+'/'+figprefix+'_bootstraps'+'.'+fmt, bbox_inches='tight', dpi=300)
 
-    plt.figure(figsize=(4, 4))
-    pmagplotlib.plot_cdf(2, I, r'inclination ($^\circ$)', 'r', title)
-    pmagplotlib.plot_vs(2, [i_lo, i_hi], 'b', '--')
-    pmagplotlib.plot_vs(2, [Inc], 'g', '-')
-    pmagplotlib.plot_vs(2, [Io], 'k', '-')
+    cdf_fig_num = plt.figure(figsize=(4, 4)).number
+    pmagplotlib.plot_cdf(cdf_fig_num, I, r'inclination ($^\circ$)', 'r', title)
+    pmagplotlib.plot_vs(cdf_fig_num, [i_lo, i_hi], 'b', '--')
+    pmagplotlib.plot_vs(cdf_fig_num, [Inc], 'g', '-')
+    pmagplotlib.plot_vs(cdf_fig_num, [Io], 'k', '-')
     if save:
         plt.savefig(save_folder+'/'+figprefix+'_inc_CDF'+'.'+fmt, bbox_inches='tight', dpi=300)
 
@@ -9928,15 +9947,19 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
 
     if return_new_dirs and return_values :
         unsquished_incs = unsquish(incs, flat_f)
-        return make_di_block(decs, unsquished_incs), kent_stats, I, E, F
-    
+        results = [make_di_block(decs, unsquished_incs), kent_stats, I, E, F]
     elif return_new_dirs:
         unsquished_incs = unsquish(incs, flat_f)
-        return make_di_block(decs, unsquished_incs)
+        results = [make_di_block(decs, unsquished_incs)]
     elif return_values:
-        return kent_stats, I, E, F
+        results = [kent_stats, I, E, F]
     else:
-        return kent_stats
+        results = [kent_stats]
+    if return_poles:
+        results.extend([mean_lons, mean_lats])
+    if len(results) == 1:
+        return results[0]
+    return tuple(results)
 
 
 # Measured flattening factors compiled by Pierce et al. (2022, Table S1,
