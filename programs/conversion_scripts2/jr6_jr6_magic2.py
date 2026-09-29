@@ -189,7 +189,7 @@ def main(command_line=True, **kwargs):
     tmp_data.close()
     pre_data.close()
 
-    data=pd.read_csv(tmp_file, delim_whitespace=True,header=None)
+    data=pd.read_csv(tmp_file, sep=r"\s+",header=None)
 
     if JR==0: #
         data.columns=['er_specimen_name','step','x','y','z','expon','sample_azimuth','sample_dip',              'sample_bed_dip_direction','sample_bed_dip','bed_dip_dir2','bed_dip2','param1','param2','param3','param4','measurement_csd']

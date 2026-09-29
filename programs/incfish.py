@@ -46,7 +46,7 @@ def main():
         file=sys.argv[ind+1]
         inc=numpy.loadtxt(file)
     else:
-        inc = numpy.loadtxt(sys.stdin,dtype=numpy.float)
+        inc = numpy.loadtxt(sys.stdin,dtype=float)
     ofile=""
     if '-F' in sys.argv:
         ind = sys.argv.index('-F')

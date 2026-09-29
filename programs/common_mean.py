@@ -51,8 +51,8 @@ def main():
         ind=sys.argv.index('-dir')
         d=float(sys.argv[ind+1])
         i=float(sys.argv[ind+2])
-    D1=numpy.loadtxt(file1,dtype=numpy.float)
-    if file2!="": D2=numpy.loadtxt(file2,dtype=numpy.float)
+    D1=numpy.loadtxt(file1,dtype=float)
+    if file2!="": D2=numpy.loadtxt(file2,dtype=float)
 #
     counter,NumSims=0,1000
 #

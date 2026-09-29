@@ -27,9 +27,9 @@ def main():
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]  
-        DI=numpy.loadtxt(file,dtype=numpy.float)
+        DI=numpy.loadtxt(file,dtype=float)
     else:
-        DI = numpy.loadtxt(sys.stdin,dtype=numpy.float)  # read from standard input
+        DI = numpy.loadtxt(sys.stdin,dtype=float)  # read from standard input
     Ds=DI.transpose()[0]
     Is=DI.transpose()[1]
     if len(DI)>1: #array of data
