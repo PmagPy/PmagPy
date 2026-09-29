@@ -285,6 +285,20 @@ class TestBundleTrim:
                      "bokeh/server/static/js/lib/index.d.ts", "panel/dist/panel.js", "panel/dist/panel.js.map"):
             assert not bundle.keep_data(dest), dest
 
+    def test_what_a_session_wrote_into_the_example_is_not_shipped(self):
+        """A build from a checkout collects data_files/3_0/McMurdo whole, git-ignored files and all."""
+        from pmagpy_apps import bundle
+        ex = "data_files/3_0/McMurdo/"
+        for name in ("pmagpy_directions_autosave.redo", "pmagpy_directions_autosave.json",
+                     "pmagpy_intensity_autosave.json", "demag_v3_autosave.redo", ".pmagpy_working_copy.json",
+                     "backup_before_pmagpy_directions/specimens.txt",
+                     "backup_before_pmagpy_intensity/previous/sites.txt",
+                     "pmagpy_intensity_autosave.json.unreadable-20260929-101500", ".DS_Store"):
+            assert not bundle.keep_data(ex + name), name
+        for name in ("measurements.txt", "specimens.txt", "contribution.txt", "criteria.txt"):
+            assert bundle.keep_data(ex + name), name
+        assert bundle.keep_data("pmagpy/data_model/data_model.json")
+
     def test_the_library_chains_are_dropped_and_pillows_core_kept(self):
         from pmagpy_apps import bundle
         for name in ("libicudata.78.3.dylib", "libicuuc.78.dylib", "libsqlite3.0.dylib", "libtk8.6.dylib",

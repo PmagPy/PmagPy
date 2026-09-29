@@ -67,6 +67,17 @@ KEEP_BUNDLED: Tuple[str, ...] = (
 DROP_JS_NAMES: Tuple[str, ...] = ("compiler.js",)
 DROP_JS_DIRS: Tuple[str, ...] = ("bokeh/server/static/js/lib",)      # what compiler.js compiles against
 
+#: Files the applications themselves write into a study, never part of the shipped example:
+#: the spec collects ``data_files/3_0/McMurdo`` whole, so from a checkout it would also take
+#: an autosave (which every application would then restore instead of specimens.txt),
+#: backups and working-copy markers left there by a session run on the example (they are
+#: git-ignored, so a ``git archive`` build never has them).
+STUDY_DIR = "data_files"
+APP_WRITTEN_PREFIXES: Tuple[str, ...] = ("pmagpy_directions_autosave", "pmagpy_intensity_autosave",
+                                         "pmagpy_rockmag_autosave", "pmagpy_anisotropy_autosave",
+                                         "demag_v3_autosave", "backup_before_", ".copying-", ".staging-")
+APP_WRITTEN_NAMES: Tuple[str, ...] = (".pmagpy_working_copy.json", ".DS_Store")
+
 #: Python modules excluded from the analysis (see the module docstring for why).
 EXCLUDE_MODULES: Tuple[str, ...] = (
     "sqlite3", "_sqlite3",                 # drops libsqlite3 and with it ICU (42 MB)
@@ -94,6 +105,9 @@ def keep_data(dest: str) -> bool:
     """
     path = posixpath.normpath(dest.replace(os.sep, "/"))
     parts = _parts(path)
+    if parts[0] == STUDY_DIR and any(p.startswith(APP_WRITTEN_PREFIXES) or p in APP_WRITTEN_NAMES
+                                     or ".unreadable-" in p for p in parts[1:]):
+        return False                          # what a session wrote into the example, not the example
     if len(parts) > 3 and parts[:3] == ["panel", "dist", "bundled"]:
         return parts[3] in KEEP_BUNDLED
     name = parts[-1]

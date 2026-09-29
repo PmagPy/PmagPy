@@ -66,7 +66,7 @@ hiddenimports = (
        "pmagpy.convert_2_magic", "pmagpy.paleointensity", "pmagpy.pint_stats", "pmagpy.bicep", "pmagpy.tdt",
        "pmag_env", "pmag_env.set_env",
        "scipy.special._ufuncs", "scipy.optimize", "scipy.interpolate", "scipy.stats",
-       "pandas._libs.tslibs.timedeltas", "tornado", "markdown", "bleach"]
+       "pandas._libs.tslibs.timedeltas", "tornado", "markdown"]
     + [name for app in APPLICATIONS for name in (app, f"{app}.app")]
 )
 
