@@ -1,9 +1,8 @@
 #!/usr/bin/env python
-from builtins import range
+
 import sys
 import os
 import pmagpy.pmag as pmag
-
 
 def skip(N, ind, L):
     for b in range(N):
