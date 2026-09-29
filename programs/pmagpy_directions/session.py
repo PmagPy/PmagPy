@@ -501,12 +501,15 @@ class Session(param.Parameterized):
                       levels=("sample", "site", "location"), mean_coord: Optional[int] = None,
                       site_over: str = "specimens", write_measurements: bool = True,
                       analysts: Optional[str] = None, common_polarity: Optional[bool] = None,
-                      flip: Optional[bool] = None, mean_coords=None, output_dir: Optional[str] = None) -> list[str]:
+                      flip: Optional[bool] = None, mean_coords=None, output_dir: Optional[str] = None,
+                      polarity_pole: Optional[tuple] = None) -> list[str]:
         """Write MagIC tables (and a .redo) to ``output_dir``; returns the paths written.
 
         ``output_dir`` defaults to the session's; another one receives the
         tables without moving the session's autosave, which stays with the
-        dataset.
+        dataset. ``dir_polarity`` is written only with ``polarity_pole``, the
+        reference north pole as (lat, lon) (``dc.PRESENT_NORTH_POLE`` for the
+        present geographic pole).
 
         Means and poles are written for every coordinate system in
         ``mean_coords`` (default: each of ``coords`` the dataset supports —
@@ -542,7 +545,7 @@ class Session(param.Parameterized):
             for level in levels:
                 over = {"site": site_over, "location": "sites"}.get(level, "specimens")
                 self.data.write_means(level, stage.dir, coords=tuple(mean_coords), over=over, analysts=analysts,
-                                      common_polarity=common_polarity, flip=flip)
+                                      common_polarity=common_polarity, flip=flip, polarity_pole=polarity_pole)
             self.data.write_redo(os.path.join(stage.dir, REDO_NAME), current_specimen=self.specimen)
         written = list(stage.written)
         if in_place and write_measurements:

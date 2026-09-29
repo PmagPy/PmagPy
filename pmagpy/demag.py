@@ -810,13 +810,38 @@ def _has_direction(mean) -> bool:
         and not np.isnan(_to_float(mean.get("dir_inc")))
 
 
-def vgp_polarity(vgp_lat: float) -> str:
-    """MagIC ``dir_polarity`` from a VGP latitude, as the legacy Demag GUI assigned it:
-    within 55° of the north pole 'n', within 55° of the south pole 'r', else 't'."""
+#: the reference north pole of the present day, for :func:`vgp_polarity`
+PRESENT_NORTH_POLE = (90.0, 0.0)
+
+
+def vgp_polarity(vgp_lat: float, vgp_lon: Optional[float] = None,
+                 reference: tuple = PRESENT_NORTH_POLE) -> str:
+    """MagIC ``dir_polarity`` of a VGP or pole relative to a reference north pole.
+
+    Within 55 degrees of the reference pole 'n', within 55 degrees of its
+    antipode 'r', otherwise 't' -- the thresholds the legacy Demag GUI used,
+    which it applied with the present geographic north pole as the reference
+    (the default here). For an older study the reference is the analyst's to
+    give (a coeval pole of the plate, say): the exports assign polarity only
+    when asked to, and with the reference asked for.
+
+    Args:
+        vgp_lat, vgp_lon: the VGP (or pole) in degrees; the longitude may be
+            omitted only for the present north pole.
+        reference: (latitude, longitude) of the reference north pole.
+    """
     if vgp_lat is None or np.isnan(vgp_lat):
         return ""
-    colat = 90.0 - float(vgp_lat)
-    return "n" if colat <= 55.0 else ("r" if colat >= 125.0 else "t")
+    ref_lat, ref_lon = float(reference[0]), float(reference[1])
+    if vgp_lon is None or np.isnan(vgp_lon):
+        if ref_lat != 90.0:
+            return ""
+        vgp_lon = 0.0
+    a = np.radians([float(vgp_lat), float(vgp_lon)])
+    b = np.radians([ref_lat, ref_lon])
+    cos_d = np.sin(a[0]) * np.sin(b[0]) + np.cos(a[0]) * np.cos(b[0]) * np.cos(a[1] - b[1])
+    distance = float(np.degrees(np.arccos(np.clip(cos_d, -1.0, 1.0))))
+    return "n" if distance <= 55.0 else ("r" if distance >= 125.0 else "t")
 
 # ---------------------------------------------------------------------------
 # The session object
@@ -1926,12 +1951,16 @@ class DemagData:
         return (COORD_GEOGRAPHIC if coord is None else coord,)
 
     def means_table(self, level: str, coord: Optional[int] = None, over: str = "specimens",
-                    analysts: Optional[str] = None, coords=None) -> pd.DataFrame:
+                    analysts: Optional[str] = None, coords=None,
+                    polarity_pole: Optional[tuple] = None) -> pd.DataFrame:
         """Sample or site means (and VGPs for sites) merged into the existing table.
 
         One row per (entity, component, coordinate system): pass ``coords`` to
         write geographic and tilt-corrected rows side by side, as the legacy
-        GUI did (``coord`` alone writes one system).
+        GUI did (``coord`` alone writes one system). ``dir_polarity`` is written
+        only when ``polarity_pole`` gives the reference north pole ((lat, lon);
+        :data:`PRESENT_NORTH_POLE` for the present geographic pole), from each
+        site's VGP (:func:`vgp_polarity`).
         """
         if level not in ("sample", "site"):
             raise ValueError("means_table handles samples and sites; use locations_table for locations")
@@ -1955,7 +1984,9 @@ class DemagData:
             has_vgp = means["vgp_lat"].notna()
             means.loc[has_vgp, "method_codes"] = [_join_codes(_codes(mc) + [VGP_CODE])
                                                   for mc in means.loc[has_vgp, "method_codes"]]
-            means.loc[has_vgp, "dir_polarity"] = [vgp_polarity(v) for v in means.loc[has_vgp, "vgp_lat"]]
+            if polarity_pole is not None:        # only when asked, and against the pole asked for
+                means.loc[has_vgp, "dir_polarity"] = [vgp_polarity(lat, lon, polarity_pole) for lat, lon in
+                                                      zip(means.loc[has_vgp, "vgp_lat"], means.loc[has_vgp, "vgp_lon"])]
         for col in ("dir_dec", "dir_inc", "dir_alpha95", "dir_k", "dir_r", "vgp_lat", "vgp_lon", "vgp_dp", "vgp_dm"):
             if col in means.columns:
                 means[col] = pd.to_numeric(means[col], errors="coerce").round(4 if col == "dir_r" else 1)
@@ -1985,16 +2016,19 @@ class DemagData:
     def write_means(self, level: str, dir_path: str, coord: Optional[int] = None,
                     custom_name: Optional[str] = None, over: str = "specimens",
                     analysts: Optional[str] = None, common_polarity: bool = True,
-                    flip: bool = False, coords=None) -> Optional[str]:
+                    flip: bool = False, coords=None, polarity_pole: Optional[tuple] = None) -> Optional[str]:
         """Write sample or site means (and VGPs) merged into the existing table.
 
         ``common_polarity`` and ``flip`` apply to the location level only (see
         ``mean_directions`` / ``mean_pole``); ``coords`` writes one row per
-        coordinate system."""
+        coordinate system; ``polarity_pole`` asks for ``dir_polarity`` (see
+        :meth:`means_table`)."""
         if level == "location":
             return self.write_locations(dir_path, coord=coord, custom_name=custom_name, over=over, analysts=analysts,
-                                        common_polarity=common_polarity, flip=flip, coords=coords)
-        df = self.means_table(level, coord=coord, over=over, analysts=analysts, coords=coords)
+                                        common_polarity=common_polarity, flip=flip, coords=coords,
+                                        polarity_pole=polarity_pole)
+        df = self.means_table(level, coord=coord, over=over, analysts=analysts, coords=coords,
+                              polarity_pole=polarity_pole)
         if len(df) == 0:
             return None
         return mp.magic_write(os.path.join(dir_path, os.path.basename(custom_name or level + "s.txt")), df,
@@ -2002,7 +2036,7 @@ class DemagData:
 
     def locations_table(self, coord: Optional[int] = None, over: str = "sites",
                         analysts: Optional[str] = None, common_polarity: bool = True,
-                        flip: bool = False, coords=None) -> pd.DataFrame:
+                        flip: bool = False, coords=None, polarity_pole: Optional[tuple] = None) -> pd.DataFrame:
         """Location rows: the mean direction per component plus the paleomagnetic pole.
 
         One row per (location, component, coordinate system). The pole is the
@@ -2039,7 +2073,8 @@ class DemagData:
                             "pole_reversed_perc": round(pole["reversed_perc"], 1)})
                 if "paleolat" in pole:
                     rec["paleolat"] = round(pole["paleolat"], 1)
-                rec["dir_polarity"] = vgp_polarity(pole["plat"])
+                if polarity_pole is not None:    # only when asked, and against the pole asked for
+                    rec["dir_polarity"] = vgp_polarity(pole["plat"], pole["plon"], polarity_pole)
                 rec["method_codes"] = _join_codes(_codes(rec["method_codes"]) + [POLE_CODE])
             if "sites" in m and not _is_null(m["sites"]):
                 rec["sites"] = m["sites"]
@@ -2113,9 +2148,9 @@ class DemagData:
 
     def write_locations(self, dir_path: str, coord: Optional[int] = None, custom_name: Optional[str] = None,
                         over: str = "sites", analysts: Optional[str] = None, common_polarity: bool = True,
-                        flip: bool = False, coords=None) -> Optional[str]:
+                        flip: bool = False, coords=None, polarity_pole: Optional[tuple] = None) -> Optional[str]:
         df = self.locations_table(coord=coord, over=over, analysts=analysts, common_polarity=common_polarity,
-                                  flip=flip, coords=coords)
+                                  flip=flip, coords=coords, polarity_pole=polarity_pole)
         if len(df) == 0:
             return None
         return mp.magic_write(os.path.join(dir_path, os.path.basename(custom_name or "locations.txt")), df,

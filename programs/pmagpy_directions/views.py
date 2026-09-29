@@ -1217,6 +1217,20 @@ class ExportView:
                                                        stylesheets=[CHECKBOX_CSS])
         self.criteria_note = pn.pane.HTML("", sizing_mode="stretch_width")
         session.param.watch(lambda e: self._describe_criteria(), ["version", "apply_criteria"])   # loads bump version
+        # dir_polarity is an interpretation: written only when asked for, against a chosen north pole
+        self.assign_polarity = pn.widgets.Checkbox(name="write dir_polarity of site VGPs and poles", value=False,
+                                                   stylesheets=[CHECKBOX_CSS])
+        self.polarity_reference = pn.widgets.RadioButtonGroup(
+            options={"present north pole": "present", "a reference pole": "given"}, value="present",
+            button_type="primary", button_style="outline", stylesheets=[BUTTON_GROUP_CSS])
+        self.pole_lat = pn.widgets.FloatInput(name="pole latitude", value=90.0, start=-90.0, end=90.0, step=0.1,
+                                              width=120, stylesheets=[INPUT_CSS])
+        self.pole_lon = pn.widgets.FloatInput(name="pole longitude", value=0.0, start=-360.0, end=360.0, step=0.1,
+                                              width=120, stylesheets=[INPUT_CSS])
+        self.polarity_note = pn.pane.HTML("", sizing_mode="stretch_width")
+        for w in (self.assign_polarity, self.polarity_reference, self.pole_lat, self.pole_lon):
+            w.param.watch(lambda e: self._describe_polarity(), "value")
+        self._describe_polarity()
         self._describe_criteria()
         self.write_btn = pn.widgets.Button(name="Write MagIC tables", button_type="primary", width=180)
         self.validate_btn = pn.widgets.Button(name="Validate output tables", width=180)
@@ -1288,6 +1302,29 @@ class ExportView:
         self.mean_coords.value = list(self.s.default_mean_coords())
         self.fig_coord.value = self.s.data.default_coord()
 
+    def polarity_pole(self):
+        """The reference north pole the export assigns dir_polarity against, or None (not assigned)."""
+        if not self.assign_polarity.value:
+            return None
+        if self.polarity_reference.value == "present":
+            return dc.PRESENT_NORTH_POLE
+        return (float(self.pole_lat.value), float(self.pole_lon.value))
+
+    def _describe_polarity(self):
+        on = self.assign_polarity.value
+        self.polarity_reference.visible = on
+        given = on and self.polarity_reference.value == "given"
+        self.pole_lat.visible = self.pole_lon.visible = given
+        if not on:
+            text = ("<code>dir_polarity</code> is not written: which polarity a direction is depends on the "
+                    "north pole of its time, which is the analyst's to give")
+        else:
+            lat, lon = self.polarity_pole()
+            where = "the present geographic north pole" if not given else f"the pole at {lat:g}°, {lon:g}°E"
+            text = (f"site VGPs and location poles within 55° of {where} are written 'n', within 55° of its "
+                    "antipode 'r', otherwise 't'")
+        self.polarity_note.object = f'<div style="{MUTED_STYLE}">{text}</div>'
+
     # --- MagIC tables ---------------------------------------------------------
     def _target(self) -> str:
         return os.path.abspath(os.path.expanduser(self.output_dir.value.strip() or self.s.output_dir))
@@ -1317,7 +1354,8 @@ class ExportView:
                                            mean_coords=tuple(self.mean_coords.value) or None,
                                            site_over=self.site_over.value,
                                            write_measurements=self.write_meas.value,
-                                           analysts=self.analysts.value.strip() or None, output_dir=target)
+                                           analysts=self.analysts.value.strip() or None, output_dir=target,
+                                           polarity_pole=self.polarity_pole())
         except Exception as exc:
             self.status.object = (f"**Export failed:** {exc}\n\nNothing in `{target}` was changed "
                                   "(the tables are written all or nothing).")
@@ -1497,6 +1535,8 @@ class ExportView:
                    pn.Column(pn.pane.HTML("site means over"), self.site_over)),
             pn.Row(self.analysts, pn.Column(self.write_meas, self.criteria, margin=(28, 10, 0, 10))),
             self.criteria_note,
+            pn.Row(self.assign_polarity, self.polarity_reference, self.pole_lat, self.pole_lon),
+            self.polarity_note,
             pn.Row(self.write_btn, self.validate_btn),
             self.status, self.report,
             section("Fits (.redo)"),

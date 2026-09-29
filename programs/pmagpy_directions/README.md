@@ -226,7 +226,7 @@ browser is only visible to the application that way.
 **Export pane.** Writes MagIC 3 `specimens.txt` (one row per coordinate
 system chosen, plane fits carrying the `dir_bfv_*` direction their site's
 lines resolve them to), `measurements.txt` with the good/bad flags, `samples.txt`
-and `sites.txt` means (site rows with VGPs, `DE-DI`, `dir_polarity`,
+and `sites.txt` means (site rows with VGPs, `DE-DI`,
 `dir_n_samples`, `LP-DC4` for PCA-based means), `locations.txt` with the
 mean direction and the paleomagnetic pole of every component (`pole_*`,
 `paleolat`, `pole_reversed_perc`, `DE-VGP`), and a `.redo`. Means, VGPs
@@ -234,6 +234,13 @@ and poles are written for every coordinate system ticked — geographic and
 tilt-corrected side by side by default, as the legacy GUI wrote them — and
 the polarity axis is taken from the whole study so that every location is
 reported in one polarity (flip it on the Poles tab).
+`dir_polarity` is written only when asked for (*write dir_polarity*), for
+site VGPs and location poles, against a reference north pole the analyst
+chooses: the present geographic pole, or a pole given by latitude and
+longitude (for an older study, a coeval pole of the plate). Within 55° of
+that pole is 'n', within 55° of its antipode 'r', otherwise 't' (the legacy
+Demag GUI's thresholds, which it applied with the present pole only). A
+replaced row's `dir_polarity` is not carried to the mean that replaces it.
 The merge policy is stated on the pane: the directional results of the
 specimens, samples, sites and locations the dataset has measurements for
 are replaced by the current interpretations; every other row (intensity

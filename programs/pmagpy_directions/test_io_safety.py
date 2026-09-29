@@ -359,3 +359,15 @@ class TestMeasurementsAsWritten:
         s.export_tables()
         now = pd.read_csv(path, sep="\t", skiprows=1, dtype=str, keep_default_na=False)
         assert now.loc[other, "quality"] == "b"
+
+
+class TestPolarityControls:
+    def test_off_by_default_and_the_pole_is_the_one_given(self, tmp_path):
+        from pmagpy_directions.views import ExportView
+        view = ExportView(Session(copy_study(tmp_path / "s")))
+        assert view.polarity_pole() is None and "not written" in view.polarity_note.object
+        view.assign_polarity.value = True
+        assert view.polarity_pole() == dc.PRESENT_NORTH_POLE
+        view.polarity_reference.value = "given"
+        view.pole_lat.value, view.pole_lon.value = -12.5, 305.0
+        assert view.polarity_pole() == (-12.5, 305.0) and "-12.5" in view.polarity_note.object

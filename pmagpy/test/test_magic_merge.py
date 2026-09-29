@@ -199,3 +199,33 @@ class TestRegressionsFromTheSecondSweep:
         assert os.path.exists(os.path.join(out, "backup", "sites.txt"))
         assert not os.path.exists(os.path.join(out, "backup", "made_by_the_app.redo"))
         assert os.path.exists(os.path.join(out, "backup", "previous", "made_by_the_app.redo"))
+
+
+class TestPolarityIsTheAnalystsCall:
+    def test_the_rule_is_measured_from_the_reference_pole(self):
+        assert dc.vgp_polarity(60.0, 10.0) == "n"                           # 30 degrees from the present pole
+        assert dc.vgp_polarity(-70.0, 10.0) == "r"
+        assert dc.vgp_polarity(60.0, 10.0, reference=(0.0, 10.0)) == "t"     # 60 degrees from that pole
+        assert dc.vgp_polarity(60.0, 10.0, reference=(-60.0, 190.0)) == "r"  # at its antipode
+        assert dc.vgp_polarity(60.0, np.nan, reference=(0.0, 10.0)) == ""    # a longitude is needed then
+
+    def test_no_polarity_unless_asked(self, mcmurdo_copy):
+        data = dc.DemagData.from_directory(mcmurdo_copy)
+        data.load_components_from_specimens_table()
+        plain = data.means_table("site", coords=(dc.COORD_GEOGRAPHIC,))
+        mine = plain["software_packages"].astype(str).str.contains(dc.APP_ID, na=False)
+        assert "dir_polarity" not in plain.columns or plain.loc[mine, "dir_polarity"].isna().all()
+        asked = data.means_table("site", coords=(dc.COORD_GEOGRAPHIC,), polarity_pole=dc.PRESENT_NORTH_POLE)
+        mine = asked["software_packages"].astype(str).str.contains(dc.APP_ID, na=False) & asked["vgp_lat"].notna()
+        assert set(asked.loc[mine, "dir_polarity"]) <= {"n", "r", "t"} and mine.any()
+        pole = data.locations_table(coords=(dc.COORD_GEOGRAPHIC,))
+        mine = pole["software_packages"].astype(str).str.contains(dc.APP_ID, na=False)
+        assert "dir_polarity" not in pole.columns or pole.loc[mine, "dir_polarity"].isna().all()
+
+    def test_an_old_polarity_is_not_carried_to_the_mean_that_replaces_it(self):
+        existing = pd.DataFrame({"site": ["s1"], "dir_comp_name": ["A"], "dir_tilt_correction": [0],
+                                 "dir_polarity": ["n"], "description": ["flow"]})
+        new = pd.DataFrame({"site": ["s1"], "dir_comp_name": ["A"], "dir_tilt_correction": [0]})
+        out = mp.carry_annotations(new, existing, "site")
+        assert out["description"].iloc[0] == "flow"
+        assert "dir_polarity" not in out.columns or out["dir_polarity"].isna().all()

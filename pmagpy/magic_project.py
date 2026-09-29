@@ -293,9 +293,10 @@ COLUMN_GROUPS = (("age", "age_unit", "age_sigma", "age_low", "age_high"),
                  ("bed_dip", "bed_dip_direction"),
                  ("azimuth", "dip"))
 #: annotations of a result row that an application does not produce itself: carried to the new row
-#: that replaces it (same name, component and coordinate system) when the new row leaves them empty
-ANNOTATION_COLUMNS = ("description", "dir_nrm_origin", "experiments", "analysts", "external_database_ids",
-                      "dir_polarity")
+#: that replaces it (same name, component and coordinate system) when the new row leaves them empty.
+#: Not dir_polarity: it describes the mean it was assigned to, and is written only when the analyst
+#: asks for it, against the reference pole they choose
+ANNOTATION_COLUMNS = ("description", "dir_nrm_origin", "experiments", "analysts", "external_database_ids")
 
 
 def is_metadata_column(column: str) -> bool:
