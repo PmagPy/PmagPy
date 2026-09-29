@@ -83,6 +83,18 @@ class TestTheWorkingCopy:
         assert digest(copy)["sites.txt"] == edited
 
 
+    def test_a_read_only_study_gives_a_copy_the_applications_can_write(self, study, base):
+        import stat
+        for name in os.listdir(study):
+            os.chmod(os.path.join(study, name), 0o444)
+        before = digest(study)
+        copy = datasets.working_directory(study)
+        for name in before:
+            assert os.stat(os.path.join(copy, name)).st_mode & stat.S_IWUSR, name
+            assert not os.stat(os.path.join(study, name)).st_mode & stat.S_IWUSR       # the study is left as it was
+        assert digest(study) == before
+
+
 class TestEveryApplicationWorksThere:
     def test_directions_intensity_rockmag_and_the_hub_open_one_folder(self, study, base, tmp_path):
         from pmagpy_directions.session import Session as Directions

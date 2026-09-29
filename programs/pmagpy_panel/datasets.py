@@ -149,7 +149,7 @@ def working_directory(directory: str, base: Optional[str] = None) -> str:
         import shutil
         for name in files:
             if not os.path.exists(os.path.join(target, name)):
-                shutil.copy2(os.path.join(directory, name), os.path.join(target, name))
+                _copy_writable(os.path.join(directory, name), os.path.join(target, name))
         if not os.path.exists(os.path.join(target, WORKING_COPY_MARKER)):
             _write_marker(target, directory)
         return target
@@ -160,7 +160,7 @@ def working_directory(directory: str, base: Optional[str] = None) -> str:
     os.mkdir(staging, 0o777)
     try:
         for name in files:
-            shutil.copy2(os.path.join(directory, name), os.path.join(staging, name))
+            _copy_writable(os.path.join(directory, name), os.path.join(staging, name))
         _write_marker(staging, directory)
         try:
             os.rename(staging, target)
@@ -171,6 +171,18 @@ def working_directory(directory: str, base: Optional[str] = None) -> str:
         if os.path.isdir(staging):
             shutil.rmtree(staging, ignore_errors=True)
     return target
+
+
+def _copy_writable(src: str, dst: str) -> None:
+    """Copy a study's file into its working copy, which the applications write: a read-only
+    study (a download kept read-only, an archive, a read-only share) gives writable copies,
+    so that no writer -- an atomic replace or a plain open() -- meets a read-only table there."""
+    import shutil
+    import stat
+    shutil.copy2(src, dst)
+    mode = os.stat(dst).st_mode
+    if not mode & stat.S_IWUSR:
+        os.chmod(dst, stat.S_IMODE(mode) | stat.S_IWUSR)
 
 
 def _write_marker(target: str, source: str) -> None:
