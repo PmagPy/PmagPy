@@ -215,6 +215,16 @@ class TestExportPane:
         assert "Wrote:" in view.status.object and os.path.exists(os.path.join(s.directory, "specimens.txt"))
         assert digest(src) == before
 
+    def test_a_study_with_read_only_tables_exports_more_than_once(self, tmp_path):
+        src = copy_study(tmp_path / "s")
+        for name in os.listdir(src):
+            if name.endswith(".txt"):
+                os.chmod(os.path.join(src, name), 0o444)
+        s = Session(src)
+        for _ in range(3):
+            s.export_tables()
+        assert os.path.exists(os.path.join(src, Session.BACKUP_DIR, "previous", "specimens.txt"))
+
     def test_the_output_field_does_not_move_the_autosave(self, tmp_path):
         from pmagpy_directions.views import ExportView
         src = copy_study(tmp_path / "s")

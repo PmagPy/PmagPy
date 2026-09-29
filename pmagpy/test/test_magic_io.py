@@ -216,6 +216,20 @@ class TestStagedExport:
         assert stage.written == [os.path.join(out, "sites.txt")]
         assert not [n for n in os.listdir(out) if n.startswith(".staging")]
 
+    def test_read_only_tables_can_be_exported_again_and_again(self, tmp_path):
+        out = str(tmp_path / "out")
+        backup = os.path.join(out, "backup")
+        os.makedirs(out)
+        with open(os.path.join(out, "sites.txt"), "w") as fh:
+            fh.write("v0")
+        os.chmod(os.path.join(out, "sites.txt"), 0o444)
+        for version in ("v1", "v2", "v3"):
+            with mp.StagedExport(out, backup=backup, originals=True) as stage:
+                mp.atomic_write_text(os.path.join(stage.dir, "sites.txt"), version)
+        assert open(os.path.join(out, "sites.txt")).read() == "v3"
+        assert open(os.path.join(backup, "sites.txt")).read() == "v0"
+        assert open(os.path.join(backup, "previous", "sites.txt")).read() == "v2"
+
     def test_a_separate_output_directory_is_a_complete_contribution(self, study, tmp_path):
         out = str(tmp_path / "out")
         with mp.StagedExport(out) as stage:

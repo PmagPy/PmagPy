@@ -1101,7 +1101,10 @@ class StagedExport:
                     shutil.copy2(target, os.path.join(self.backup, name))
                     self.backed_up.append(os.path.join(self.backup, name))
                 os.makedirs(previous, exist_ok=True)
-                shutil.copy2(target, os.path.join(previous, name))
+                kept = os.path.join(previous, name)
+                if os.path.lexists(kept):
+                    os.remove(kept)
+                shutil.copy2(target, kept)
         for name in names:
             target = os.path.join(self.output_dir, name)
             if os.path.isfile(target):
