@@ -8,6 +8,7 @@ can never disagree.
 """
 from __future__ import annotations
 
+import html
 import io
 import math
 import os
@@ -340,9 +341,10 @@ class SpecimenView:
                     "dec": "dec", "inc": "inc", "quality": ""})
         self.steps.on_click(self._on_step_click)
         self.step_help = pn.pane.HTML(
-            f'<div style="{MUTED_STYLE}">Click a step to move the nearer bound; the ⨯ button '
-            f'flags a measurement bad. Flagging one half of a Z/I pair removes the whole Arai '
-            f'point, and the consequence is reported here.</div>', sizing_mode="stretch_width")
+            f'<div style="{MUTED_STYLE}">Click a step\'s ● or ○ to move the nearer bound to it. '
+            f'Click anywhere else in a row to select it, and flag it bad or good with the button '
+            f'above; that never moves a bound. Flagging one half of a Z/I pair removes the whole '
+            f'Arai point, and the consequence is reported here.</div>', sizing_mode="stretch_width")
         self.flag_step = pn.widgets.Button(name="Flag the selected step bad/good", width=250)
         self.flag_step.on_click(self._flag_step)
         self.notes = pn.pane.HTML("", sizing_mode="stretch_width")
@@ -400,11 +402,17 @@ class SpecimenView:
         else:
             self.s.move_nearest_bound(int(indices[0]))
 
+    #: the step-table column whose click moves a bound; a click anywhere else
+    #: only selects the row, so that selecting a step to flag it leaves the fit alone
+    BOUND_COLUMN = "step"
+
     def _on_step_click(self, event):
         if not self.s.ready:
             return
         frame = self.steps.value
         if event.row is None or event.row >= len(frame):
+            return
+        if getattr(event, "column", None) != self.BOUND_COLUMN:
             return
         row = frame.iloc[event.row]
         index = row.get("_arai")
@@ -512,7 +520,8 @@ class SpecimenView:
         rows = []
         for _, step in spec.steps.iterrows():
             index = temp_to_index.get(float(step["treat_temp"]), -1)
-            marker = "●" if index in inside else ""
+            # ● a point of the fit, ○ an Arai point outside it: both can be clicked to move a bound
+            marker = "●" if index in inside else ("○" if index >= 0 else "")
             rows.append({"_sequence": int(step["sequence"]), "_arai": index,
                          "step": marker, "label": step["label"],
                          "kind": pint.STEP_LABELS.get(step["kind"], step["kind"]),
@@ -756,7 +765,7 @@ def _round(stat, decimals):
 
 #: what an analyst looks for first in an exported table, in that order
 FRONT_COLUMNS = ("specimen", "sample", "site", "location", "int_abs", "int_abs_sigma",
-                 "int_corr", "int_corr_anisotropy", "int_corr_cooling_rate", "int_corr_nlt",
+                 "int_corr", "int_corr_aniso", "int_corr_cooling_rate", "int_corr_nlt",
                  "meas_step_min", "meas_step_max", "int_n_measurements", "int_b_beta",
                  "int_frac", "int_scat", "result_quality", "method_codes")
 
@@ -1024,6 +1033,12 @@ class CorrectionsView(LazyView):
     def redraw(self, *events):
         if self.s.data is None:
             return
+        # a restored session brings its anisotropy policy: the widgets show what is in force
+        limit = self.s.data.anisotropy_alteration_limit
+        if (limit or None) != (self.alt_limit.value or None):
+            self.alt_limit.value = limit
+        if bool(self.s.data.anisotropy_require_ftest) != bool(self.ftest.value):
+            self.ftest.value = bool(self.s.data.anisotropy_require_ftest)
         self._fill_detail()
         rows = []
         for res in self.s.data.results():
@@ -1153,14 +1168,17 @@ class GroupView(LazyView):
             for column in ("int_abs", "int_abs_sigma", "int_abs_sigma_perc", "dBN_percent"):
                 if column in display:
                     display[column] = display[column].round(2)
-            if "vadm" in display:
-                display["vadm"] = display["vadm"].map(
-                    lambda v: f"{v:.2e}" if np.isfinite(v) else "")
+            for column in ("vadm", "vadm_sigma", "vdm", "vdm_sigma"):
+                if column in display:
+                    display[column] = display[column].map(
+                        lambda v: f"{v:.2e}" if np.isfinite(v) else "")
             display = display.rename(columns={"int_abs": "B (µT)", "int_abs_sigma": "s (µT)",
                                               "int_abs_sigma_perc": "s (%)",
                                               "dBN_percent": "δB_N (%)",
-                                              "n": "N", "corrected": "corrected"})
-            self.table.value = display.drop(columns=["specimens"], errors="ignore")
+                                              "n": "N", "n_samples": "N samples",
+                                              "corrected": "corrected"})
+            self.table.value = display.drop(columns=["specimens", "samples", "n_accepted"],
+                                            errors="ignore")
             self.group.options = list(frame[level])
             if self.group.value not in self.group.options:
                 self.group.value = self.group.options[0] if self.group.options else None
@@ -1499,11 +1517,17 @@ The intensity results of the specimens this study has measurements for are
 replaced by the current interpretations. Everything else is inherited: the
 directional and rock-magnetic rows of the same specimens, the anisotropy
 tensors, and all descriptive metadata (locations, ages, lithologies). Only
-MagIC 3 columns are written. Site rows carry the mean of the accepted
-specimens, its scatter and, where the site has coordinates, a VADM. Every row
-records the software, the analyst, the criteria set and the correction method
-codes it was produced under. The first export into the data directory copies
-the original tables to a backup folder.
+MagIC 3 columns are written. Every site with an interpreted specimen gets a
+row: the mean of the accepted specimens, its scatter, the numbers of
+specimens and samples and, where the site has coordinates, a VADM (and a VDM
+where the sites table holds a mean inclination). A site that fails the site
+criteria, or has no accepted specimen, is written with result_quality 'b'
+rather than left out; a published mean of a site with no interpretation here
+is kept as it was. In criteria.txt only the intensity criteria this
+application tests are replaced; directional, sample and pole criteria are
+kept. Every row records the software, the analyst, the criteria set and the
+correction method codes it was produced under. The first export into the data
+directory copies the original tables to a backup folder.
 """
 
     def __init__(self, session: Session):
@@ -1528,6 +1552,9 @@ the original tables to a backup folder.
         self.which.param.watch(lambda e: self._preview(), "value")
         self.report = pn.pane.HTML("", sizing_mode="stretch_width")
         self.message = pn.pane.HTML("", sizing_mode="stretch_width")
+        #: what reading the data and the last export reported (skipped steps, units, kept rows ...)
+        self.messages = pn.pane.HTML("", sizing_mode="stretch_width")
+        self._confirm_in_place = False
         self.session_path = pn.widgets.TextInput(name="session file", value=SESSION_NAME,
                                                  sizing_mode="stretch_width")
         self.save_session_btn = pn.widgets.Button(name="Save session", width=140)
@@ -1556,11 +1583,30 @@ the original tables to a backup folder.
         self.import_btn.on_click(self._import)
         self.figure_btn.on_click(self._save_figure)
         session.param.watch(lambda e: self._refresh(), ["version", "directory", "specimen"])
+        session.param.watch(lambda e: self._reset_confirmation(), ["directory", "output_dir"])
         self._refresh()
 
     def _refresh(self):
         self._preview()
         self.citations.object = self._citations()
+        self._show_messages()
+
+    def _show_messages(self):
+        """What reading the data (and the last export) reported, so that nothing is said only to a log."""
+        data = self.s.data
+        warnings = list(dict.fromkeys(data.project.warnings + data.warnings)) if data is not None else []
+        if not warnings:
+            self.messages.object = f'<div style="{MUTED_STYLE}">nothing to report</div>'
+            return
+        shown = warnings[:200]
+        more = (f'<div style="{MUTED_STYLE}">… and {len(warnings) - 200} more</div>'
+                if len(warnings) > 200 else "")
+        self.messages.object = "".join(f'<div style="{MUTED_STYLE}">{html.escape(w)}</div>'
+                                       for w in shown) + more
+
+    def _reset_confirmation(self):
+        self._confirm_in_place = False
+        self.export_btn.name, self.export_btn.button_type = "Write MagIC tables", "success"
 
     def _preview(self):
         if self.s.data is None:
@@ -1573,10 +1619,26 @@ the original tables to a backup folder.
             frame = self.s.data.merged_group_table("site", self.analysts.value,
                                                    self.weighted.value)
         else:
-            frame = self.s.data.criteria_table()
+            frame = self.s.data.merged_criteria_table()
         self.preview.value = _front(frame).head(400)
 
-    def _export(self, event=None):
+    def _export(self, event=None, confirmed: bool = False):
+        if self.s.data is None:
+            return
+        if self.s.writes_in_place() and not (confirmed or self._confirm_in_place):
+            # the study's own tables are about to be replaced: say so once, and ask
+            present = [n for n in ("specimens.txt", "samples.txt", "sites.txt", "measurements.txt",
+                                   "criteria.txt") if os.path.exists(os.path.join(self.s.output_dir, n))]
+            self._confirm_in_place = True
+            self.export_btn.name, self.export_btn.button_type = "Confirm: replace the tables", "danger"
+            backup = self.s.data.project.backup_dir_name()
+            self.message.object = (
+                f'<div style="color:{FAIL_COLOR}"><b>This writes into the data directory itself</b> '
+                f'and replaces {", ".join(present) or "its tables"}. Each is kept in {backup}/previous/ '
+                f'(and the originals, once, in {backup}/). Click again to write.</div>')
+            return
+        self._reset_confirmation()
+        n_before = len(self.s.data.warnings)
         try:
             written = self.s.export_tables(analysts=self.analysts.value,
                                            levels=tuple(self.levels.value),
@@ -1584,7 +1646,9 @@ the original tables to a backup folder.
                                            only_accepted=self.only_accepted.value,
                                            weighted=self.weighted.value)
         except Exception as exc:
-            self.message.object = f'<div style="color:{FAIL_COLOR}">{exc}</div>'
+            self.message.object = (f'<div style="color:{FAIL_COLOR}">{html.escape(str(exc))}; nothing '
+                                   f'in {html.escape(self.s.output_dir)} was changed (the tables are '
+                                   f'written all or nothing)</div>')
             return
         listed = "<br>".join(os.path.basename(p) for p in written if p)
         # the family's rule: an export comes with the lines that made it. One
@@ -1594,33 +1658,49 @@ the original tables to a backup folder.
         if tables:
             script = code.write_beside(tables[0].rsplit(".", 1)[0] + "_export.txt",
                                        self._export_code())
+        news = list(dict.fromkeys(self.s.data.warnings[n_before:]))
         self.message.object = (
             f'<div style="color:{PASS_COLOR}">wrote {len(written)} files to '
             f'{self.s.output_dir}</div><div style="{MUTED_STYLE}">{listed}'
-            + (f'<br>{os.path.basename(script)}, the calls that wrote them' if script else "")
-            + "</div>")
+            + (f'<br>{os.path.basename(script)}, which writes the same tables again from the '
+               f'session saved with them' if script else "")
+            + "".join(f"<br>{html.escape(w)}" for w in news) + "</div>")
+        self._show_messages()
         self._validate()
 
     def _export_code(self) -> str:
-        """The lines that write these tables, as a script beside them."""
+        """The lines that reproduce this export, as a script beside the tables.
+
+        It restores the session file the export wrote beside them -- the
+        interpretations, flags, criteria and correction choices exactly as
+        exported -- and writes the tables into a folder of its own (the
+        first argument, or ``reproduced/`` beside the script), never over the
+        tables it describes.
+        """
+        session_file = os.path.join(self.s.output_dir, SESSION_NAME)
         lines = preamble(self.s) + [
-            "", "# the interpretations this export carries",
-            code.call("data.auto_interpret_all"), "",
-            code.call("data.write_specimens", self.s.output_dir,
+            "import os",
+            "import sys",
+            "",
+            "# the interpretations this export carries: the session written with it",
+            code.call("data.load_session", session_file),
+            "",
+            "# where to write: the first argument, or reproduced/ beside this script",
+            "here = os.path.dirname(os.path.abspath(__file__))",
+            "output = sys.argv[1] if len(sys.argv) > 1 else os.path.join(here, 'reproduced')",
+            code.call("data.write_specimens", code.Name("output"),
                       analysts=self.analysts.value or None,
                       only_accepted=self.only_accepted.value)]
         for level in self.levels.value:
-            lines.append(code.call("data.write_group", self.s.output_dir, level=level,
+            lines.append(code.call("data.write_group", code.Name("output"), level=level,
                                    analysts=self.analysts.value or None,
                                    weighted=self.weighted.value))
         if self.measurements.value:
-            lines.append(code.call("data.write_measurements", self.s.output_dir))
-        lines += [code.call("data.write_criteria", self.s.output_dir),
-                  code.call("data.save_session",
-                            os.path.join(self.s.output_dir, SESSION_NAME)),
+            lines.append(code.call("data.write_measurements", code.Name("output")))
+        lines += [code.call("data.write_criteria", code.Name("output")),
                   "",
                   "# and the check the panel runs on them",
-                  code.assign("report", code.call("data.validate_output", self.s.output_dir)),
+                  code.assign("report", code.call("data.validate_output", code.Name("output"))),
                   "print({t: 'ok' if f is None else f['failing_items'] "
                   "for t, f in report.items()})"]
         return code.script(lines, app=APP_NAME, what="these tables")
@@ -1691,7 +1771,7 @@ the original tables to a backup folder.
         n, problems = self.s.import_from_specimens_table()
         text = f"imported {n} interpretations from specimens.txt"
         if problems:
-            text += f"; {len(problems)} did not match a step"
+            text += f"; {len(problems)} problems: " + "; ".join(problems[:3])
         self.message.object = f'<div style="color:{PASS_COLOR}">{text}</div>'
 
     def _figure(self):
@@ -1789,6 +1869,7 @@ the original tables to a backup folder.
             pn.Row(self.only_accepted, self.weighted, self.measurements,
                    stylesheets=[CHECKBOX_CSS]),
             pn.Row(self.export_btn, self.validate_btn), self.message, self.report,
+            pn.pane.HTML(f'<div style="{SECTION_STYLE}">Messages</div>'), self.messages,
             pn.pane.HTML(f'<div style="{SECTION_STYLE}">Merge policy</div>'
                          f'<div style="{MUTED_STYLE}">{self.POLICY}</div>'),
             sizing_mode="stretch_width")

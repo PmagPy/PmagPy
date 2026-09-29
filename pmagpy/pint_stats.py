@@ -878,12 +878,31 @@ def _scat(exp: Experiment, fit: dict, start: int, end: int, beta_threshold: floa
     for chk in exp.tail_checks:
         if tmin <= exp.temps[chk.i] <= tmax:
             points.append((exp.x[chk.i], chk.y))
-    inside = [_point_in_polygon(px, py, box) for px, py in points]
+    # the test is made on the Arai plot normalised by the NRM, as SPD and the
+    # legacy Thellier GUI make it: the edge tolerance of _point_in_polygon is
+    # then a fraction of the NRM, and the verdict does not depend on whether
+    # the moments are in Am^2, emu or anything else
+    scale = _scat_scale(exp)
+    box = box / scale
+    inside = [_point_in_polygon(px / scale, py / scale, box) for px, py in points]
     return ok("SCAT", bool(np.all(inside)))
 
 
+def _scat_scale(exp: Experiment) -> float:
+    """The NRM that normalises the Arai plot for SCAT (the first point's, else the largest)."""
+    y = np.abs(np.asarray(exp.y, dtype=float))
+    if len(y) and np.isfinite(y[0]) and y[0] > 0:
+        return float(y[0])
+    finite = y[np.isfinite(y)]
+    return float(finite.max()) if len(finite) and finite.max() > 0 else 1.0
+
+
 def _point_in_polygon(px: float, py: float, poly: np.ndarray, tol: float = 1e-12) -> bool:
-    """Ray-casting with a tolerance so that points exactly on an edge count as inside."""
+    """Ray-casting with a tolerance so that points exactly on an edge count as inside.
+
+    ``tol`` is absolute, so the coordinates must be of order one: :func:`_scat`
+    passes the Arai plot normalised by the NRM.
+    """
     n = len(poly)
     for i in range(n):
         x1, y1 = poly[i]
@@ -1050,7 +1069,14 @@ def _delta_pal(exp: Experiment, start: int, end: int, fit: dict) -> Stat:
     reference implementation and the published calibration table both use
     ``check - TRM``, which is what is implemented here -- it reproduces the
     20 calibration values exactly, the printed form does not. See
-    ``docs/paleointensity_literature_audit.md``.
+    ``docs/paleointensity_literature_audit.md``. ThellierTool and the Valet
+    et al. (1996) correction subtract the cumulative difference instead;
+    which convention to adopt is an open question (PmagPy/PmagPy#246).
+
+    The first Arai point is left as it is, ``TRM*_1 = TRM_1`` (SPD v1.2.0,
+    section 5.3): no check precedes it. That matters only when the first
+    point carries a pTRM -- a study without an NRM step, or with the NRM
+    flagged bad -- and setting it to zero there moved the corrected slope.
     """
     if exp.trm_vectors is None:
         return na("delta_pal", "the pTRM vectors were not recorded")
@@ -1064,6 +1090,7 @@ def _delta_pal(exp: Experiment, start: int, end: int, fit: dict) -> Stat:
             to_sum[c.i] = np.asarray(c.vector, dtype=float) - trm[c.i]
     cumulative = np.cumsum(to_sum, axis=0)
     corr = np.zeros(len(trm))
+    corr[0] = float(np.linalg.norm(trm[0]))
     for j in range(1, len(trm)):
         corr[j] = float(np.linalg.norm(trm[j] + cumulative[j - 1]))
     xs_corr = corr[start:end + 1]
@@ -1751,13 +1778,13 @@ CATALOG: Dict[str, StatSpec] = dict([
           "box through (xbar, ybar) with slopes b +/- 2 beta_threshold |b|", "",
           "Shaar & Tauxe (2013)", "10.1002/ggge.20062", "int_scat", "bool", 0),
     _spec("R2_corr", "R^2 corr", "Arai fit", "Square of the Pearson correlation over the segment.",
-          "", "", SPD14, SPD14_DOI, "", "high", 3),
+          "", "", SPD14, SPD14_DOI, "int_r2_corr", "high", 3),
     _spec("R2_det", "R^2 det", "Arai fit", "Coefficient of determination of the linear model.",
-          "R2_det = 1 - sum (y_i - y'_i)^2 / sum (y_i - ybar)^2", "", SPD14, SPD14_DOI, "", "high", 3),
+          "R2_det = 1 - sum (y_i - y'_i)^2 / sum (y_i - ybar)^2", "", SPD14, SPD14_DOI, "int_r2_det", "high", 3),
     _spec("Z", "Z", "Arai fit", "Zig-zag parameter of Yu & Tauxe (2005).",
           "Z = sum x_i |b~_i - |b|| / |X_int|", "", SPD14, SPD14_DOI, "int_z", "low", 1),
     _spec("Z_star", "Z*", "Arai fit", "Zig-zag parameter of Yu (2012).",
-          "Z* = 100 sum x_i |b~_i - |b|| / (|Y_int| (n-1))", "", SPD14, SPD14_DOI, "int_z_md", "low", 1),
+          "Z* = 100 sum x_i |b~_i - |b|| / (|Y_int| (n-1))", "", SPD14, SPD14_DOI, "", "low", 1),
     _spec("S", "S", "Arai fit", "Goodness of fit minimised by the SMA line (York, 1966).",
           "S = sum (y_i - b x_i - Y_int)^2 / (b^2 var_x + var_y)", "", SPD14, SPD14_DOI, "", "low", 2),
     _spec("S_prime", "S'", "Arai fit", "S per degree of freedom; expectation 1.", "S' = S / (n-2)", "",
@@ -1767,7 +1794,7 @@ CATALOG: Dict[str, StatSpec] = dict([
           "p = 1 - F_chi2(S; n-2)", "", SPD14, SPD14_DOI, "", "high", 3),
     _spec("IZZI_MD", "IZZI_MD", "Arai fit", "Signed zig-zag area of the Arai plot.",
           "sum of signed triangle areas / ZI polyline length", "", "Shaar et al. (2011)",
-          "10.1016/j.epsl.2011.08.024", "", "low", 3),
+          "10.1016/j.epsl.2011.08.024", "int_z_md", "low", 3),
     # --- directional -------------------------------------------------------
     _spec("Dec_Free", "Dec (free)", "Direction", "Declination of the free-floating PCA fit.", "", "deg",
           SPD14, SPD14_DOI, "dir_dec", "", 1),
@@ -1785,9 +1812,9 @@ CATALOG: Dict[str, StatSpec] = dict([
           "", "deg", SPD14, SPD14_DOI, "int_alpha", "low", 1),
     _spec("alpha_prime", "alpha'", "Direction",
           "Angle between the anchored direction and an independent measure of the direction.",
-          "", "deg", "Kissel & Laj (2004)", "10.1016/j.pepi.2003.11.006", "", "low", 1),
+          "", "deg", "Kissel & Laj (2004)", "10.1016/j.pepi.2003.11.006", "int_alpha_prime", "low", 1),
     _spec("theta", "theta", "Direction", "Angle between the applied field and the NRM direction.",
-          "", "deg", SPD14, SPD14_DOI, "", "", 1),
+          "", "deg", SPD14, SPD14_DOI, "int_theta", "", 1),
     _spec("DANG", "DANG", "Direction",
           "Angle between the free-floating direction and the centre of mass seen from the origin.",
           "", "deg", "Tauxe & Staudigel (2004)", "10.1029/2003GC000635", "int_dang", "low", 1),
@@ -1797,7 +1824,7 @@ CATALOG: Dict[str, StatSpec] = dict([
           "", "low", 1),
     _spec("gamma", "gamma", "Direction",
           "Angle between the pTRM gained at Tmax and the laboratory field; a quick anisotropy check.",
-          "", "deg", SPD14, SPD14_DOI, "", "low", 1),
+          "", "deg", SPD14, SPD14_DOI, "int_gamma", "low", 1),
     _spec("CRM_percent", "CRM(%)", "Direction",
           "Deflection of the NRM toward B_lab expected from a chemical remanence.",
           "CRM(%) = 100 max(CRM_i) / dx'", "%", "Coe et al. (1984)", "", "int_crm", "low", 1),
@@ -1806,7 +1833,7 @@ CATALOG: Dict[str, StatSpec] = dict([
           "int_n_ptrm", "high", 0),
     _spec("check_percent", "check(%)", "pTRM check",
           "Largest pTRM check difference relative to the pTRM at that step.", "", "%",
-          SPD14, SPD14_DOI, "", "low", 1),
+          SPD14, SPD14_DOI, "int_ptrm", "low", 1),
     _spec("dCK", "dCK", "pTRM check", "Largest pTRM check difference relative to the total TRM.",
           "dCK = 100 max|dpTRM| / |X_int|", "%", "Leonhardt et al. (2004a)", "10.1029/2004GC000807",
           "int_dck", "low", 1),
@@ -1843,7 +1870,7 @@ CATALOG: Dict[str, StatSpec] = dict([
           "10.1029/2004GC000807", "int_dpal", "low", 1),
     # --- tail checks -------------------------------------------------------
     _spec("n_tail", "n tail", "pTRM tail check", "Number of pTRM tail checks used.", "", "",
-          SPD14, SPD14_DOI, "int_n_tail", "high", 0),
+          SPD14, SPD14_DOI, "int_n_ptrm_tail", "high", 0),
     _spec("DRAT_tail", "DRAT tail", "pTRM tail check",
           "Largest tail check difference relative to the fit length.", "", "%",
           "Biggin et al. (2007)", "", "int_drat_tail", "low", 1),
@@ -1859,7 +1886,7 @@ CATALOG: Dict[str, StatSpec] = dict([
           "Leonhardt et al. (2004a, 2004b)", "10.1029/2004GC000807", "int_dt", "low", 1),
     # --- additivity --------------------------------------------------------
     _spec("n_add", "n add", "Additivity check", "Number of additivity checks used.", "", "",
-          SPD14, SPD14_DOI, "int_n_add", "high", 0),
+          SPD14, SPD14_DOI, "int_n_ac", "high", 0),
     _spec("dAC", "dAC", "Additivity check",
           "Largest additivity check difference relative to the total TRM.",
           "dAC = 100 max|AC| / |X_int|", "%", "Krasa et al. (2003); Leonhardt et al. (2004a)",
@@ -1867,7 +1894,7 @@ CATALOG: Dict[str, StatSpec] = dict([
     # --- corrections -------------------------------------------------------
     _spec("c", "c", "Correction", "Anisotropy correction factor.",
           "c = |chi B_lab_hat| / |chi B_anc_hat|", "", "Veitch et al. (1984); SPD section 8", "",
-          "int_corr_anisotropy", "", 3),
+          "int_corr_aniso", "", 3),
     _spec("delta_TRM_anis", "dTRM anis", "Correction",
           "Alteration during the anisotropy experiment (repeat of position 1).", "", "%",
           SPD14, SPD14_DOI, "aniso_alt", "low", 1),
@@ -1885,6 +1912,8 @@ CATALOG: Dict[str, StatSpec] = dict([
     # --- group -------------------------------------------------------------
     _spec("N", "N", "Group", "Number of accepted estimates in the group.", "", "", SPD14, SPD14_DOI,
           "int_n_specimens", "high", 0),
+    _spec("N_samples", "N samples", "Group", "Number of samples with an accepted estimate in the group.",
+          "", "", SPD14, SPD14_DOI, "int_n_samples", "high", 0),
     _spec("mean", "mean", "Group", "Arithmetic mean of the estimates.", "", "uT", SPD14, SPD14_DOI,
           "int_abs", "", 1),
     _spec("sd", "s", "Group", "Standard deviation of the estimates.", "", "uT", SPD14, SPD14_DOI,

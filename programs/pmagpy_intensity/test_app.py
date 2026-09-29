@@ -310,11 +310,18 @@ class TestInterpretationsView:
         assert "why" in frame.columns
 
     def test_a_failure_says_which_criterion_and_what_the_value_was(self, study):
-        view = InterpretationsView(study)
-        view.set_active(True)
-        failed = view.table.value[view.table.value["verdict"] == "fail"]
-        assert len(failed)
-        assert failed["why"].str.contains("got").any()
+        # the criteria it needs are set here: the module's study is shared, and
+        # which set the tests before this one left active must not matter
+        kept = (study.criteria_name, study.add_ziggie)
+        study.param.update(criteria_name="CCRIT", add_ziggie=False)
+        try:
+            view = InterpretationsView(study)
+            view.set_active(True)
+            failed = view.table.value[view.table.value["verdict"] == "fail"]
+            assert len(failed)
+            assert failed["why"].str.contains("got").any()
+        finally:
+            study.param.update(criteria_name=kept[0], add_ziggie=kept[1])
 
     def test_bulk_flagging_and_deleting(self, workdir):
         src, out = workdir
@@ -428,16 +435,27 @@ class TestCorrectionsView:
         assert "DA-" in view.detail.object
 
     def test_raising_the_alteration_limit_applies_more_corrections(self, study):
+        # the policy governs interpretations left on "use if available"; those
+        # imported from specimens.txt carry the published choice instead
+        kept = {n: i.use_anisotropy for n, i in study.data.interpretations.items()}
+        for interp in study.data.interpretations.values():
+            interp.use_anisotropy = None
+        study.data.invalidate()
         view = CorrectionsView(study)
         view.set_active(True)
         applied = lambda: sum(1 for r in study.data.results()
                               if r.corrections.get("anisotropy")
                               and r.corrections["anisotropy"].applied)
-        before = applied()
-        view.alt_limit.value = 100.0
-        after = applied()
-        view.alt_limit.value = 5.0
-        assert after > before
+        try:
+            before = applied()
+            view.alt_limit.value = 100.0
+            after = applied()
+            view.alt_limit.value = 5.0
+            assert after > before
+        finally:
+            for name, use in kept.items():
+                study.data.interpretations[name].use_anisotropy = use
+            study.data.invalidate()
 
     def test_switching_a_correction_off_is_reflected(self, study):
         study.specimen = "hz05a1"

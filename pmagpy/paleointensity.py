@@ -156,10 +156,16 @@ class Interpretation:
     name: str = "A"
     notes: str = ""
     #: corrections the analyst has switched on for this specimen; ``None``
-    #: means "use whatever data are available" (the default)
+    #: means "use whatever data are available" (the default). ``True`` applies
+    #: the correction even when the anisotropy policy (alteration limit,
+    #: F-test) would not -- it is what "always" means, and what a stored
+    #: result's DA-AC code says was done.
     use_anisotropy: Optional[bool] = None
     use_nlt: Optional[bool] = None
     use_cooling_rate: Optional[bool] = None
+    #: the anisotropy tensor to use when the specimen has more than one
+    #: ('ATRM' or 'AARM'); ``None`` takes the default (AARM, as the legacy GUI)
+    anisotropy_type: Optional[str] = None
 
     def key(self) -> tuple:
         return (self.specimen, self.name)
@@ -214,9 +220,25 @@ class PintResult:
 # ---------------------------------------------------------------------------
 # Criteria
 # ---------------------------------------------------------------------------
+#: statistics that carry a sign but are judged by their magnitude. The Arai
+#: curvature k (and k' over the selected segment) is signed by the side of the
+#: data its best-fit circle's centre lies on, i.e. by which way the plot bends
+#: (Paterson, 2011); the published thresholds -- |k'| <= 0.164 (CCRIT), 0.300
+#: (RCRIT), 0.270 (the modified sets of Paterson et al., 2014) -- are on the
+#: magnitude, and the legacy Thellier GUI tested abs(k) and abs(k') too
+#: (dialogs/thellier_gui_lib.py). Testing the signed value let every strongly
+#: curved plot of negative k' pass (PmagPy/PmagPy#246).
+MAGNITUDE_CRITERIA = ("k", "k_prime")
+
+
 @dataclass(frozen=True)
 class Criterion:
-    """One acceptance threshold on one statistic."""
+    """One acceptance threshold on one statistic.
+
+    A curvature criterion (:data:`MAGNITUDE_CRITERIA`) is tested on the
+    magnitude of the statistic, so ``Criterion("k_prime", "<=", 0.164)``
+    means |k'| <= 0.164.
+    """
     key: str
     operation: str            # '<=', '>=', '=' , '<', '>'
     value: float | bool
@@ -232,6 +254,8 @@ class Criterion:
             v = float(v)
         except (TypeError, ValueError):
             return None
+        if self.key in MAGNITUDE_CRITERIA:
+            v = abs(v)
         op = self.operation
         if op == "<=":
             return v <= self.value
@@ -246,7 +270,8 @@ class Criterion:
     def describe(self) -> str:
         spec = ps.describe(self.key)
         value = "true" if self.value is True else ("false" if self.value is False else f"{self.value:g}")
-        return f"{spec.label} {self.operation} {value}"
+        label = f"|{spec.label}|" if self.key in MAGNITUDE_CRITERIA else spec.label
+        return f"{label} {self.operation} {value}"
 
 
 @dataclass
@@ -259,6 +284,12 @@ class CriteriaSet:
     specimen: Tuple[Criterion, ...] = ()
     site: Tuple[Criterion, ...] = ()
 
+    #: site criteria of which passing either one is enough: the scatter of a
+    #: mean may be small in microtesla *or* as a percentage, as the legacy
+    #: Thellier GUI applies ``int_abs_sigma`` and ``int_abs_sigma_perc``
+    #: (a mean fails only when it fails both that are set)
+    EITHER = ("sd", "dB_percent")
+
     def evaluate(self, stats: Dict[str, ps.Stat], level: str = "specimen") -> dict:
         """Test every criterion; report pass / fail / not applicable with reasons."""
         rows, failures, not_applicable = [], [], []
@@ -267,10 +298,18 @@ class CriteriaSet:
             verdict = crit.test(stat)
             rows.append({"key": crit.key, "criterion": crit.describe(), "value": stat,
                          "pass": verdict})
-            if verdict is False:
-                failures.append(f"{crit.describe()} (got {stat.text()})")
-            elif verdict is None:
-                not_applicable.append(f"{crit.describe()} ({stat.reason or 'no value'})")
+        if level != "specimen":
+            either = [r for r in rows if r["key"] in self.EITHER]
+            if len(either) > 1 and any(r["pass"] is True for r in either):
+                for r in either:
+                    if r["pass"] is False:
+                        r["pass"] = True
+                        r["note"] = "passes on the other scatter criterion"
+        for r in rows:
+            if r["pass"] is False:
+                failures.append(f"{r['criterion']} (got {r['value'].text()})")
+            elif r["pass"] is None:
+                not_applicable.append(f"{r['criterion']} ({r['value'].reason or 'no value'})")
         passed = None if not rows else all(r["pass"] is not False for r in rows)
         return {"rows": rows, "passed": passed, "failures": failures,
                 "not_applicable": not_applicable}
@@ -420,6 +459,23 @@ def _step_kind(codes: Sequence[str]) -> Optional[str]:
     return None
 
 
+#: why a microwave experiment is not read. Its steps are not temperatures: a
+#: zero-field and an in-field step of one Arai point are matched by their
+#: step number (``treat_step_num``), with a power, time and absorbed energy
+#: that differ between the two, whereas every step here is identified by
+#: ``treat_temp``. Read as a thermal experiment, every step would collapse
+#: onto one blank temperature.
+MICROWAVE_UNSUPPORTED = ("PmagPy Intensity identifies each step by its temperature (treat_temp), and a "
+                         "microwave step is identified by its step number and power; microwave "
+                         "experiments are not supported yet (the legacy Thellier GUI has a microwave mode)")
+
+
+def _is_microwave(spec_meas: pd.DataFrame) -> bool:
+    """True for a specimen whose paleointensity steps are microwave (LT-M-*) and none thermal."""
+    codes = {c for v in spec_meas["method_codes"].fillna("") for c in split_codes(v)}
+    return bool(codes & {"LT-M-Z", "LT-M-I"}) and not (codes & {"LT-T-Z", "LT-T-I"})
+
+
 STEP_SOURCE_COLUMNS = ("method_codes", "dir_dec", "dir_inc", "treat_temp", "treat_dc_field", "treat_dc_field_phi",
                        "treat_dc_field_theta", "quality", "measurement", "description", "specimen", "sequence")
 
@@ -496,8 +552,9 @@ def build_step_table(spec_meas: pd.DataFrame, intensity_col: str,
             "kind": kind,
             "treat_temp": float(temp),
             "treat_dc_field": to_float(rec.get("treat_dc_field"), 0.0),
-            "field_phi": to_float(rec.get("treat_dc_field_phi"), 0.0),
-            "field_theta": to_float(rec.get("treat_dc_field_theta"), 0.0),
+            # left NaN when not recorded: a missing direction is unknown, not +x
+            "field_phi": to_float(rec.get("treat_dc_field_phi"), np.nan),
+            "field_theta": to_float(rec.get("treat_dc_field_theta"), np.nan),
             "dec": dec, "inc": inc, "moment": moment,
             "x": vec[0], "y": vec[1], "z": vec[2],
             "pair": pair,
@@ -512,16 +569,43 @@ def build_step_table(spec_meas: pd.DataFrame, intensity_col: str,
     return steps
 
 
-def _lab_field(steps: pd.DataFrame) -> Tuple[float, np.ndarray]:
-    """The laboratory field strength (T) and unit direction from the in-field steps."""
+#: a laboratory field above this (tesla) is taken to be recorded in the wrong
+#: unit: Thellier experiments use tens of microtesla, and MagIC stores
+#: ``treat_dc_field`` in tesla, so 40 (meaning 40 uT) would make B_anc 1e6 too large
+LAB_FIELD_MAX_TESLA = 1e-3
+
+
+def _lab_field(steps: pd.DataFrame, warnings: Optional[list] = None,
+               specimen: str = "") -> Tuple[float, Optional[np.ndarray]]:
+    """The laboratory field strength (T) and unit direction from the in-field steps.
+
+    The direction is None when no in-field step records ``treat_dc_field_phi``
+    and ``treat_dc_field_theta``: it is then unknown, and the statistics that
+    depend on it (theta, gamma, delta_t*, CRM%) and the anisotropy correction
+    say so, rather than being computed against an assumed +x field. That, and
+    a field strength that cannot be in tesla, are reported in ``warnings``.
+    """
     infield = steps[steps["kind"].isin([STEP_I, STEP_PTRM, STEP_ADD])]
     fields = pd.to_numeric(infield["treat_dc_field"], errors="coerce").dropna()
     fields = fields[fields > 0]
     blab = float(fields.mode().iloc[0]) if len(fields) else np.nan
+    if np.isfinite(blab) and blab > LAB_FIELD_MAX_TESLA and warnings is not None:
+        warnings.append(f"{specimen}: the laboratory field (treat_dc_field) is {blab:g}, which "
+                        f"cannot be tesla; MagIC records it in T (40 uT is 4e-05), so every "
+                        f"intensity of this specimen is wrong by the unit's factor")
     if len(infield):
-        phi = float(pd.to_numeric(infield["field_phi"], errors="coerce").fillna(0).mode().iloc[0])
-        theta = float(pd.to_numeric(infield["field_theta"], errors="coerce").fillna(0).mode().iloc[0])
-        direction = ps.dir_to_cart(phi, theta, 1.0)
+        phi = pd.to_numeric(infield["field_phi"], errors="coerce")
+        theta = pd.to_numeric(infield["field_theta"], errors="coerce")
+        known = phi.notna() & theta.notna()
+        if known.any():
+            direction = ps.dir_to_cart(float(phi[known].mode().iloc[0]),
+                                       float(theta[known].mode().iloc[0]), 1.0)
+        else:
+            direction = None
+            if warnings is not None:
+                warnings.append(f"{specimen}: the laboratory field direction (treat_dc_field_phi, "
+                                f"treat_dc_field_theta) is not recorded, so theta, gamma, delta_t*, "
+                                f"CRM% and the anisotropy correction are not computed")
     else:
         direction = np.array([0.0, 0.0, -1.0])
     return blab, direction
@@ -759,24 +843,56 @@ def experiment(spec: PintSpecimen, chrm: Optional[np.ndarray] = None) -> Optiona
 # ---------------------------------------------------------------------------
 # Auxiliary experiments: anisotropy, non-linear TRM, cooling rate
 # ---------------------------------------------------------------------------
-def anisotropy_from_specimens_table(spec_df: Optional[pd.DataFrame], specimen: str) -> Optional[dict]:
-    """Read a stored anisotropy tensor (``aniso_s``) from the specimens table."""
-    if spec_df is None or "aniso_s" not in spec_df.columns:
+def parse_aniso_s(text) -> Optional[List[float]]:
+    """The six tensor elements of a stored ``aniso_s``, or None when it cannot be read.
+
+    MagIC 3 writes ``aniso_s`` colon-delimited (``0.2992 : 0.3468 : ...`` or
+    ``a:b:c:d:e:f``); older files and hand-made tables separate the elements
+    with spaces or commas, sometimes inside brackets. All are read.
+    """
+    if text is None or is_null(text):
         return None
-    rows = spec_df[(spec_df["specimen"].astype(str) == str(specimen)) & spec_df["aniso_s"].notna()]
-    if len(rows) == 0:
-        return None
-    row = rows.iloc[0]
-    parts = [p for p in str(row["aniso_s"]).replace(",", " ").split() if p]
+    cleaned = str(text)
+    for sep in (":", ",", ";", "[", "]", "(", ")"):
+        cleaned = cleaned.replace(sep, " ")
+    parts = cleaned.split()
     if len(parts) < 6:
         return None
     try:
-        s6 = [float(p) for p in parts[:6]]
+        return [float(p) for p in parts[:6]]
     except ValueError:
         return None
-    kind = str(row.get("aniso_type", "") or "").upper()
-    return {"s": s6, "type": kind or "ATRM", "alteration": to_float(row.get("aniso_alt")),
-            "source": "specimens table"}
+
+
+def anisotropy_from_specimens_table(spec_df: Optional[pd.DataFrame], specimen: str,
+                                    prefer: str = "AARM") -> Optional[dict]:
+    """Read a stored anisotropy tensor (``aniso_s``) from the specimens table.
+
+    A specimen with both an ATRM and an AARM row gets the ``prefer`` one,
+    with the other kept in ``alternatives``, as
+    :func:`anisotropy_from_measurements` does.
+    """
+    if spec_df is None or "aniso_s" not in spec_df.columns:
+        return None
+    rows = spec_df[(spec_df["specimen"].astype(str) == str(specimen)) & spec_df["aniso_s"].notna()]
+    found: Dict[str, dict] = {}
+    for _, row in rows.iterrows():
+        s6 = parse_aniso_s(row["aniso_s"])
+        if s6 is None:
+            continue
+        kind = str(row.get("aniso_type", "") or "").strip().upper()
+        kind = kind if kind in ("ATRM", "AARM") else (kind or "ATRM")
+        found.setdefault(kind, {"s": s6, "type": kind, "alteration": to_float(row.get("aniso_alt")),
+                                "source": "specimens table"})
+    if not found:
+        return None
+    order = [prefer] + [k for k in ("AARM", "ATRM") if k != prefer] + sorted(found)
+    kind = next(k for k in order if k in found)
+    chosen = dict(found[kind])
+    others = {k: v for k, v in found.items() if k != kind}
+    if others:
+        chosen["alternatives"] = others
+    return chosen
 
 
 def _vector(rec) -> Optional[np.ndarray]:
@@ -874,17 +990,42 @@ def aarm_from_measurements(meas: pd.DataFrame, specimen: str) -> Optional[dict]:
     """Fit an AARM tensor from a 6-, 9- or 15-position LP-AN-ARM block.
 
     Each position is a pair of measurements: an AF demagnetisation (the
-    baseline) followed by the ARM acquisition, ordered by ``treat_step_num``.
+    baseline) followed by the ARM acquisition. With ``treat_step_num`` the
+    pairs are read by step number; without it (a MagIC download has none)
+    they are read in measurement order -- each ARM with the zero-field step
+    before it -- and each ARM is placed by its bias-field direction
+    (``treat_dc_field_phi/theta``), falling back to the order when the
+    directions are not the standard positions.
     """
     rows = meas[(meas["specimen"].astype(str) == str(specimen)) &
                 meas["method_codes"].fillna("").astype(str).str.contains(CODE_ANISO_ARM, regex=False)]
     if len(rows) < 12:
         return None
     rows = rows.copy()
-    if "treat_step_num" not in rows.columns:
+    step_num = (pd.to_numeric(rows["treat_step_num"], errors="coerce")
+                if "treat_step_num" in rows.columns else pd.Series(np.nan, index=rows.index))
+    if step_num.notna().all():
+        moments = _aarm_moments_by_step_number(rows.assign(_n=step_num))
+    else:
+        moments = _aarm_moments_by_order(rows)
+    if moments is None:
         return None
-    rows["_n"] = pd.to_numeric(rows["treat_step_num"], errors="coerce")
-    rows = rows.dropna(subset=["_n"]).sort_values("_n", kind="stable")
+    n_pos = len(moments)
+    positions = ps.ANISOTROPY_POSITIONS[n_pos]
+    try:
+        s6 = ps.fit_anisotropy_tensor(np.array(moments), positions)
+    except (ValueError, np.linalg.LinAlgError):
+        return None
+    s = _normalised(s6)
+    sigma, nf = ps.anisotropy_residual_sigma(np.array(moments), s, positions)
+    return {"s": s, "type": "AARM", "alteration": np.nan, "sigma": sigma, "nf": nf,
+            "hext": ps.hext_statistics(s, sigma, nf),
+            "n_positions": n_pos, "baseline_subtracted": True, "source": "measurements"}
+
+
+def _aarm_moments_by_step_number(rows: pd.DataFrame) -> Optional[List[np.ndarray]]:
+    """AARM position moments (ARM minus baseline) paired by ``treat_step_num``: 1-2, 3-4, ..."""
+    rows = rows.sort_values("_n", kind="stable")
     n_pos = {12: 6, 18: 9, 30: 15}.get(len(rows))
     if n_pos is None:
         return None
@@ -898,16 +1039,38 @@ def aarm_from_measurements(meas: pd.DataFrame, specimen: str) -> Optional[dict]:
         if b is None or a is None:
             return None
         moments.append(a - b)
-    positions = ps.ANISOTROPY_POSITIONS[n_pos]
-    try:
-        s6 = ps.fit_anisotropy_tensor(np.array(moments), positions)
-    except (ValueError, np.linalg.LinAlgError):
+    return moments
+
+
+def _aarm_moments_by_order(rows: pd.DataFrame) -> Optional[List[np.ndarray]]:
+    """AARM position moments read in measurement order, each ARM less the zero-field step before it."""
+    if "sequence" in rows.columns and pd.to_numeric(rows["sequence"], errors="coerce").notna().all():
+        rows = rows.assign(_order=pd.to_numeric(rows["sequence"], errors="coerce")).sort_values(
+            "_order", kind="stable")
+    pairs, baseline = [], None
+    for _, rec in rows.iterrows():
+        vec = _vector(rec)
+        if vec is None:
+            return None
+        if to_float(rec.get("treat_dc_field"), 0.0) == 0:
+            baseline = vec
+            continue
+        if baseline is None:
+            return None
+        pairs.append((vec - baseline, to_float(rec.get("treat_dc_field_phi")),
+                      to_float(rec.get("treat_dc_field_theta"))))
+        baseline = None
+    n_pos = len(pairs)
+    if n_pos not in ps.ANISOTROPY_POSITIONS:
         return None
-    s = _normalised(s6)
-    sigma, nf = ps.anisotropy_residual_sigma(np.array(moments), s, positions)
-    return {"s": s, "type": "AARM", "alteration": np.nan, "sigma": sigma, "nf": nf,
-            "hext": ps.hext_statistics(s, sigma, nf),
-            "n_positions": n_pos, "baseline_subtracted": True, "source": "measurements"}
+    placed = [_position_index(phi, theta, n_pos) if np.isfinite(phi) and np.isfinite(theta) else None
+              for _, phi, theta in pairs]
+    if None not in placed and len(set(placed)) == n_pos:
+        moments: List[Optional[np.ndarray]] = [None] * n_pos
+        for (moment, _, _), k in zip(pairs, placed):
+            moments[k] = moment
+        return moments
+    return [moment for moment, _, _ in pairs]
 
 
 def _normalised(s6) -> List[float]:
@@ -1022,6 +1185,33 @@ def nlt_from_measurements(meas: pd.DataFrame, specimen: str) -> Optional[dict]:
 
 
 # ---------------------------------------------------------------------------
+# Criteria tables
+# ---------------------------------------------------------------------------
+#: statistics kept in microtesla here and in tesla in MagIC tables
+MAGIC_UNIT_SCALE = {"B_anc": 1e-6, "sigma_B": 1e-6, "mean": 1e-6, "sd": 1e-6}
+
+
+def criteria_columns() -> Dict[str, Tuple[str, str]]:
+    """MagIC ``table_column`` -> (level, statistic key) for every criterion this core can test.
+
+    Specimen statistics are ``specimens.<column>``; the group statistics a
+    site criterion tests are ``sites.<column>``. ``specimens.int_mad`` is
+    the legacy Thellier GUI's name for the free MAD.
+    """
+    out: Dict[str, Tuple[str, str]] = {}
+    for key, spec in ps.CATALOG.items():
+        if not spec.magic_column or key in ("Tmin", "Tmax", "mean"):
+            continue
+        if spec.category == "Group":
+            out.setdefault("sites." + spec.magic_column, ("site", key))
+        else:
+            out.setdefault("specimens." + spec.magic_column, ("specimen", key))
+    out.setdefault("specimens.int_mad", ("specimen", "MAD_Free"))
+    out.setdefault("specimens.int_scat", ("specimen", "SCAT"))
+    return out
+
+
+# ---------------------------------------------------------------------------
 # The session object
 # ---------------------------------------------------------------------------
 class PintData:
@@ -1044,6 +1234,8 @@ class PintData:
         self.nlt: Dict[str, dict] = {}
         self.cooling_rate: Dict[str, dict] = {}
         self._result_cache: Dict[tuple, PintResult] = {}
+        #: interpretations whose bound step was flagged away, with their bounds in kelvin
+        self._set_aside: Dict[str, Tuple[Interpretation, Tuple[float, float]]] = {}
         self._build()
 
     # ----- construction ----------------------------------------------------
@@ -1092,18 +1284,27 @@ class PintData:
         spec_df, samp_df = self._table("specimens"), self._table("samples")
         site_df = self._table("sites")
         self.hierarchy = mp.build_hierarchy(meas, spec_df, samp_df, site_df)
-        self.site_coords = mp.build_site_coords(site_df, samp_df)
+        self.site_coords = mp.build_site_coords(site_df, samp_df, self.warnings)
         self.sample_cooling_rate = self._sample_cooling_rates(samp_df)
 
         codes = meas["method_codes"].fillna("").astype(str)
         pi_rows = meas[codes.str.contains("|".join(PI_PROTOCOLS), regex=True)]
+        microwave_only = []
+        no_direction, bad_unit = [], []
         for name, spec_meas in pi_rows.groupby("specimen", sort=False):
+            if _is_microwave(spec_meas):
+                microwave_only.append(name)
+                continue
             steps = build_step_table(spec_meas, intensity_col, self.warnings)
             if len(steps) < 3:
                 continue
-            blab, direction = _lab_field(steps)
-            sample, site, location = self.hierarchy.loc[name, ["sample", "site", "location"]]
             spec_warnings: List[str] = []
+            blab, direction = _lab_field(steps, spec_warnings, name)
+            if direction is None:
+                no_direction.append(name)
+            if np.isfinite(blab) and blab > LAB_FIELD_MAX_TESLA:
+                bad_unit.append(f"{name} ({blab:g})")
+            sample, site, location = self.hierarchy.loc[name, ["sample", "site", "location"]]
             arai = build_arai(steps, spec_warnings)
             if arai is None or arai.n < 2:
                 self.warnings.append(f"{name}: no usable Arai points")
@@ -1117,7 +1318,24 @@ class PintData:
                 microwave=any(c.startswith("LT-M-") or c.startswith("LT-PMRM")
                               for v in spec_meas["method_codes"].fillna("") for c in split_codes(v)),
                 arai=arai, warnings=spec_warnings)
+        if bad_unit:
+            self.warnings.append(
+                f"{len(bad_unit)} specimens record a laboratory field (treat_dc_field) that cannot be in "
+                f"tesla, e.g. {', '.join(bad_unit[:3])}: MagIC records it in T (40 uT is 4e-05), so "
+                f"their intensities are wrong by the unit's factor")
+        if no_direction:
+            self.warnings.append(
+                f"{len(no_direction)} specimens do not record the laboratory field direction "
+                f"(treat_dc_field_phi/theta), e.g. {', '.join(no_direction[:3])}: theta, gamma, "
+                f"delta_t*, CRM% and the anisotropy correction are not computed for them")
+        if microwave_only:
+            self.warnings.append(
+                f"{len(microwave_only)} microwave specimens were not read, e.g. "
+                f"{', '.join(microwave_only[:3])}: {MICROWAVE_UNSUPPORTED}")
         if not self.specimens:
+            if microwave_only:
+                raise ValueError(f"This study's paleointensity experiments are microwave experiments, "
+                                 f"which are not supported yet: {MICROWAVE_UNSUPPORTED}")
             raise ValueError("No specimens with Thellier-type paleointensity data found")
 
         self._load_auxiliary(spec_df)
@@ -1143,8 +1361,16 @@ class PintData:
         for name, spec in self.specimens.items():
             own = by_specimen.get(name, empty)
             aniso = anisotropy_from_measurements(own, name, spec.steps)
+            stored = anisotropy_from_specimens_table(spec_df, name)
             if aniso is None:
-                aniso = anisotropy_from_specimens_table(spec_df, name)
+                aniso = stored
+            elif stored is not None:
+                # a stored tensor of a kind not measured here is kept as an alternative
+                have = {aniso["type"], *(aniso.get("alternatives") or {})}
+                for tensor in [stored, *(stored.get("alternatives") or {}).values()]:
+                    if tensor["type"] not in have:
+                        extra = {k: v for k, v in tensor.items() if k != "alternatives"}
+                        aniso.setdefault("alternatives", {})[tensor["type"]] = extra
             if aniso is not None:
                 self.anisotropy[name] = aniso
             nlt = nlt_from_measurements(own, name)
@@ -1196,8 +1422,13 @@ class PintData:
     def set_step_quality(self, specimen: str, sequence: int, quality: str) -> List[str]:
         """Flag one measurement good ('g') or bad ('b') and rebuild the Arai plot.
 
+        The interpretation keeps its treatment steps, not its point numbers:
+        removing a point inside or outside the fit leaves Tmin and Tmax where
+        the analyst put them (see :meth:`_rebuild_arai`).
+
         Returns the notes the rebuild produced (which pairs were dropped and
-        why), so that the caller can show the consequence of the flag.
+        why, and what happened to the fit), so that the caller can show the
+        consequence of the flag.
         """
         spec = self.specimens[specimen]
         idx = spec.steps.index[spec.steps["sequence"] == sequence]
@@ -1205,16 +1436,69 @@ class PintData:
             raise KeyError(f"{specimen} has no step {sequence}")
         spec.steps.loc[idx, "quality"] = quality
         notes: List[str] = []
-        arai = build_arai(spec.steps, notes)
-        if arai is None or arai.n < 2:
-            spec.warnings = notes + ["every Arai point is now excluded"]
-            spec.arai = arai
-        else:
-            spec.arai = arai
-            spec.warnings = notes
-            self._clamp_bounds(specimen)
+        self._rebuild_arai(specimen, notes)
         self.invalidate(specimen)
         return notes
+
+    def _rebuild_arai(self, specimen: str, notes: List[str]) -> None:
+        """Rebuild a specimen's Arai plot from its steps, keeping the fit on the same treatments.
+
+        A bound is an Arai point index, and removing a point (or bringing one
+        back) renumbers the points after it, so the bounds are carried across
+        the rebuild by their temperatures. When a bound's own step is no longer
+        an Arai point -- the analyst flagged the step a fit starts or ends at --
+        there is no step to put it on, and the interpretation is set aside, as
+        the legacy Thellier GUI leaves a specimen uninterpreted when its stored
+        bounds do not match a measured step (``read_redo_file``: "can't fit
+        temperature bounds ... to the actual measurement"); a fit is never
+        silently moved onto other steps. It comes back as it was when the step
+        is flagged good again, unless another interpretation was made meanwhile.
+        """
+        spec = self.specimens[specimen]
+        interp = self.interpretations.get(specimen)
+        bounds = None
+        if interp is not None and spec.arai is not None and spec.arai.n:
+            last = spec.arai.n - 1
+            bounds = (float(spec.arai.temps[min(interp.imin, last)]),
+                      float(spec.arai.temps[min(interp.imax if interp.imax >= 0 else last, last)]))
+        arai = build_arai(spec.steps, notes)
+        spec.arai = arai
+        if arai is None or arai.n < 2:
+            spec.warnings = notes + ["every Arai point is now excluded"]
+        else:
+            spec.warnings = list(notes)
+        if bounds is not None:
+            where = self._indices_of(arai, bounds)
+            if where is None:
+                self.interpretations.pop(specimen, None)
+                self._set_aside[specimen] = (interp, bounds)
+                notes.append(f"the fit {bounds[0] - KELVIN_OFFSET:.0f}-{bounds[1] - KELVIN_OFFSET:.0f}°C "
+                             f"starts or ends at a step that is no longer an Arai point, so it was "
+                             f"set aside; flag the step good again to restore it, or choose new bounds")
+            else:
+                interp.imin, interp.imax = where
+        elif specimen in self._set_aside and arai is not None:
+            held, held_bounds = self._set_aside[specimen]
+            where = self._indices_of(arai, held_bounds)
+            if where is not None:
+                held.imin, held.imax = where
+                self.interpretations[specimen] = held
+                del self._set_aside[specimen]
+                notes.append(f"the fit {held_bounds[0] - KELVIN_OFFSET:.0f}-"
+                             f"{held_bounds[1] - KELVIN_OFFSET:.0f}°C set aside earlier is restored")
+
+    @staticmethod
+    def _indices_of(arai: Optional[AraiData], bounds: Tuple[float, float]) -> Optional[Tuple[int, int]]:
+        """The Arai point indices of two temperatures, or None when either is not a point."""
+        if arai is None or arai.n < 2:
+            return None
+        found = []
+        for temp in bounds:
+            hits = np.flatnonzero(np.isclose(arai.temps, temp, rtol=0.0, atol=1e-6))
+            if not len(hits):
+                return None
+            found.append(int(hits[0]))
+        return found[0], found[1]
 
     def toggle_step_quality(self, specimen: str, sequence: int) -> Tuple[str, List[str]]:
         spec = self.specimens[specimen]
@@ -1226,15 +1510,6 @@ class PintData:
     def step_quality(self, specimen: str) -> pd.Series:
         return self.specimens[specimen].steps.set_index("sequence")["quality"]
 
-    def _clamp_bounds(self, specimen: str) -> None:
-        interp = self.interpretations.get(specimen)
-        spec = self.specimens.get(specimen)
-        if interp is None or spec is None or spec.arai is None:
-            return
-        last = spec.arai.n - 1
-        interp.imin = max(0, min(interp.imin, last))
-        interp.imax = max(interp.imin, min(interp.imax if interp.imax >= 0 else last, last))
-
     # ----- interpretations --------------------------------------------------
     def set_interpretation(self, specimen: str, imin: int, imax: int, **kwargs) -> Interpretation:
         spec = self.specimens[specimen]
@@ -1245,6 +1520,7 @@ class PintData:
         if interp is None:
             interp = Interpretation(specimen=specimen, imin=imin, imax=imax)
             self.interpretations[specimen] = interp
+        self._set_aside.pop(specimen, None)      # a new choice replaces one set aside
         interp.imin, interp.imax = imin, imax
         for key, value in kwargs.items():
             setattr(interp, key, value)
@@ -1253,10 +1529,12 @@ class PintData:
 
     def remove_interpretation(self, specimen: str) -> None:
         self.interpretations.pop(specimen, None)
+        self._set_aside.pop(specimen, None)
         self.invalidate(specimen)
 
     def clear_interpretations(self) -> None:
         self.interpretations.clear()
+        self._set_aside.clear()
         self.invalidate()
 
     def step_index_for_temperature(self, specimen: str, temp_k: float) -> Optional[int]:
@@ -1318,7 +1596,7 @@ class PintData:
         if interp is None or spec is None or spec.arai is None:
             return None
         key = (specimen, interp.imin, interp.imax, interp.use_anisotropy, interp.use_nlt,
-               interp.use_cooling_rate, self.criteria.name)
+               interp.use_cooling_rate, interp.anisotropy_type, self.criteria.name)
         if key in self._result_cache:
             return self._result_cache[key]
         result = self._build_result(spec, interp)
@@ -1342,14 +1620,34 @@ class PintData:
 
         # --- anisotropy ---------------------------------------------------
         aniso = self.anisotropy.get(spec.name)
+        if aniso and interp.anisotropy_type and aniso.get("type") != interp.anisotropy_type:
+            other = (aniso.get("alternatives") or {}).get(interp.anisotropy_type)
+            if other is not None:
+                alternatives = {k: v for k, v in (aniso.get("alternatives") or {}).items()
+                                if k != interp.anisotropy_type}
+                alternatives[aniso["type"]] = {k: v for k, v in aniso.items() if k != "alternatives"}
+                aniso = dict(other, alternatives=alternatives)
+            else:
+                res.warnings.append(f"no {interp.anisotropy_type} tensor for this specimen; "
+                                    f"the {aniso.get('type')} tensor is used")
         c_factor = np.nan
         if aniso and interp.use_anisotropy is not False:
             gate = self._anisotropy_gate(aniso)
             free = stats.get("Dec_Free"), stats.get("Inc_Free")
+            if gate and interp.use_anisotropy is True:
+                # switched on for this specimen (or so recorded in the stored
+                # result): the policy is overridden, and the note says so
+                res.warnings.append(f"anisotropy applied as switched on, although {gate.split(', so')[0]}")
+                gate = ""
             if gate:
                 res.corrections["anisotropy"] = Correction(
                     "anisotropy", np.nan, False, "", aniso.get("source", ""),
                     {"type": aniso["type"], "alteration": aniso.get("alteration")}, gate)
+            elif spec.blab_dir is None:
+                res.corrections["anisotropy"] = Correction(
+                    "anisotropy", np.nan, False, "", aniso.get("source", ""), {},
+                    "the laboratory field direction is not recorded, so the correction "
+                    "cannot be computed")
             elif free[0] and free[1]:
                 chrm = ps.dir_to_cart(float(free[0]), float(free[1]), 1.0)
                 try:
@@ -1535,35 +1833,39 @@ class PintData:
         return self.criteria
 
     def load_criteria_from_table(self) -> Optional[CriteriaSet]:
-        """Read the study's own ``criteria.txt`` as the 'This study' preset."""
+        """Read the study's own ``criteria.txt`` as the 'This study' preset.
+
+        Specimen criteria (``specimens.*``) and site criteria (``sites.*``:
+        N specimens, N samples, the scatter in T and in percent) are read; a
+        value of -999, the legacy Thellier GUI's "not set", is passed over.
+        Values in tesla are converted to the microtesla the statistics are in.
+        """
         table = self._table("criteria")
         if table is None or "table_column" not in table.columns:
             return None
-        column_to_key = {}
-        for key, spec in ps.CATALOG.items():
-            if spec.magic_column:
-                column_to_key.setdefault("specimens." + spec.magic_column, key)
-        column_to_key.setdefault("specimens.int_mad", "MAD_Free")
-        column_to_key.setdefault("specimens.int_scat", "SCAT")
+        column_to_key = criteria_columns()
         specimen, site = [], []
         for _, row in table.iterrows():
             column = str(row.get("table_column", "")).strip()
-            key = column_to_key.get(column)
-            if key is None:
+            level_key = column_to_key.get(column)
+            if level_key is None:
                 continue
+            level, key = level_key
             op = str(row.get("criterion_operation", "")).strip() or "<="
             raw = str(row.get("criterion_value", "")).strip()
             value: float | bool
-            if raw.lower() in ("true", "false"):
-                value = raw.lower() == "true"
+            if raw.lower() in ("true", "false", "t", "f"):
+                value = raw.lower() in ("true", "t")
                 op = "="
             else:
                 try:
                     value = float(raw)
                 except ValueError:
                     continue
-            target = site if column.startswith("sites.") else specimen
-            target.append(Criterion(key, op, value))
+                if value == -999:
+                    continue
+                value = value / MAGIC_UNIT_SCALE.get(key, 1.0)
+            (site if level == "site" else specimen).append(Criterion(key, op, value))
         if not specimen and not site:
             return None
         citation = str(table.get("citations", pd.Series(["This study"])).iloc[0])
@@ -1574,48 +1876,89 @@ class PintData:
         return cs
 
     def criteria_table(self) -> pd.DataFrame:
-        """The active criteria as a MagIC 3 criteria table."""
+        """The active criteria as MagIC 3 criteria rows (IE-SPEC and IE-SITE)."""
         rows = []
         for level, crits in (("specimens", self.criteria.specimen), ("sites", self.criteria.site)):
             for crit in crits:
                 spec = ps.describe(crit.key)
                 if not spec.magic_column:
                     continue
+                if isinstance(crit.value, bool):
+                    value = "True" if crit.value else "False"
+                else:
+                    value = f"{crit.value * MAGIC_UNIT_SCALE.get(crit.key, 1.0):g}"
                 rows.append({"criterion": "IE-SPEC" if level == "specimens" else "IE-SITE",
                              "table_column": f"{level}.{spec.magic_column}",
                              "criterion_operation": crit.operation,
-                             "criterion_value": ("True" if crit.value is True else
-                                                 "False" if crit.value is False else f"{crit.value:g}"),
-                             "definition": f"{self.criteria.name}: {spec.definition}",
+                             "criterion_value": value,
+                             "description": f"{self.criteria.name}: {spec.definition}"
+                                            + (" Tested on the magnitude." if crit.key in MAGNITUDE_CRITERIA
+                                               else ""),
                              "citations": self.criteria.citation or "This study"})
         return pd.DataFrame(rows)
 
+    def merged_criteria_table(self) -> pd.DataFrame:
+        """The contribution's criteria with this application's rows replaced and every other kept.
+
+        The rows this application owns are the ones it can read back: a
+        specimen or site paleointensity statistic (:func:`criteria_columns`).
+        Directional (DE-), sample (IE-SAMP), pole and every other criterion
+        stays exactly as it was.
+        """
+        new = self.criteria_table()
+        existing = self._table("criteria")
+        if existing is None or len(existing) == 0 or "table_column" not in existing.columns:
+            return new
+        owned = set(criteria_columns())
+        mine = existing["table_column"].astype(str).str.strip().isin(owned)
+        kept = existing[~mine]
+        if len(new) == 0:
+            return kept.reset_index(drop=True)
+        return pd.concat([kept, new], ignore_index=True, sort=False)
+
     # ----- group results ----------------------------------------------------
     def group_results(self, level: str = "site", only_accepted: bool = True,
-                      weighted: bool = False, corrected_only: bool = False) -> pd.DataFrame:
-        """Sample, site or location means of the accepted specimen results."""
+                      weighted: bool = False, corrected_only: bool = False,
+                      include_rejected: bool = False) -> pd.DataFrame:
+        """Sample, site or location means of the accepted specimen results.
+
+        With ``include_rejected`` a group none of whose interpreted specimens
+        is accepted is still listed, as the mean of those the analyst did not
+        reject ('b') -- or of all of them when every one was rejected -- with
+        ``passed`` False and ``n_accepted`` 0, so that it can be written with
+        result_quality 'b' rather than left out.
+        """
         rows = []
+        site_inc = self._site_inclinations() if level == "site" else {}
         for name in self.names_at(level):
-            members = []
+            members, interpreted = [], []
             for spec_name in self.specimens_in(level, name):
                 res = self.result(spec_name)
                 if res is None or not np.isfinite(res.b_anc):
                     continue
-                if only_accepted and not self.is_accepted(res):
-                    continue
                 if corrected_only and not res.corrected:
                     continue
+                interpreted.append(res)
+                if only_accepted and not self.is_accepted(res):
+                    continue
                 members.append(res)
+            rejected = False
             if not members:
-                continue
+                if not (include_rejected and interpreted):
+                    continue
+                rejected = True
+                members = [r for r in interpreted if r.quality != "b"] or interpreted
             values = [m.b_anc for m in members]
             weights = [1.0 / (m.sigma ** 2) if np.isfinite(m.sigma) and m.sigma > 0 else np.nan
                        for m in members] if weighted else None
             if weights is not None and not all(np.isfinite(w) for w in weights):
                 weights = None
             stats = ps.group_statistics(values, weights)
-            row = {level: name, "n": len(members),
+            n_samples = len({m.sample for m in members if m.sample})
+            row = {level: name, "n": len(members), "n_samples": n_samples,
+                   "n_accepted": 0 if rejected else len(members),
                    "specimens": ":".join(m.specimen for m in members),
+                   "samples": ":".join(sorted({m.sample for m in members if m.sample}, key=natural_key)),
                    "int_abs": float(stats["mean"]) if stats["mean"] else np.nan,
                    "int_abs_sigma": float(stats["sd"]) if stats["sd"] else np.nan,
                    "int_abs_sigma_perc": float(stats["dB_percent"]) if stats["dB_percent"] else np.nan,
@@ -1627,17 +1970,50 @@ class PintData:
                 row["int_abs_weighted_sigma"] = float(stats["weighted_sd"]) \
                     if stats.get("weighted_sd") else np.nan
             verdict = self.criteria.evaluate(
-                {"N": ps.ok("N", len(members)), "sd": stats["sd"], "dB_percent": stats["dB_percent"]},
-                "site")
-            row["passed"] = verdict["passed"]
-            row["failures"] = "; ".join(verdict["failures"])
+                {"N": ps.ok("N", len(members)), "N_samples": ps.ok("N_samples", n_samples),
+                 "sd": stats["sd"], "dB_percent": stats["dB_percent"]}, "site")
+            if rejected:
+                row["passed"] = False
+                row["failures"] = "; ".join(
+                    [f"no specimen is accepted under {self.criteria.name}"] + verdict["failures"])
+            else:
+                row["passed"] = verdict["passed"]
+                row["failures"] = "; ".join(verdict["failures"])
             if level in ("site", "sample"):
                 coords = self.site_coords.get(name if level == "site" else "")
                 if coords and np.isfinite(row["int_abs"]):
                     row["lat"], row["lon"] = coords
                     row["vadm"] = vadm(row["int_abs"], coords[0])
+                    # the dipole moment is linear in B, so its uncertainty is the
+                    # moment of the scatter (the legacy GUI's (VADM+ - VADM-)/2)
+                    row["vadm_sigma"] = vadm(row["int_abs_sigma"], coords[0])
+            inc = site_inc.get(name)
+            if inc is not None and np.isfinite(row["int_abs"]):
+                row["vdm_inc"] = inc
+                row["vdm"] = vdm(row["int_abs"], inc)
+                row["vdm_sigma"] = vdm(row["int_abs_sigma"], inc)
             rows.append(row)
         return pd.DataFrame(rows)
+
+    def _site_inclinations(self) -> Dict[str, float]:
+        """site -> the inclination of its directional mean in the sites table, for a VDM.
+
+        The tilt-corrected mean is preferred, then the geographic one; a site
+        with neither (or only a specimen-coordinate one) has no VDM, since the
+        paleointensity specimens themselves are rarely oriented.
+        """
+        df = self._table("sites")
+        if df is None or not {"site", "dir_inc"} <= set(df.columns):
+            return {}
+        inc = pd.to_numeric(df["dir_inc"], errors="coerce")
+        tilt = (pd.to_numeric(df["dir_tilt_correction"], errors="coerce")
+                if "dir_tilt_correction" in df.columns else pd.Series(np.nan, index=df.index))
+        out: Dict[str, float] = {}
+        for coord in (COORD_TILT, COORD_GEOGRAPHIC):
+            for site, value in zip(df["site"].astype(str)[(tilt == coord) & inc.notna()],
+                                   inc[(tilt == coord) & inc.notna()]):
+                out.setdefault(site, float(value))
+        return out
 
     # ----- export -----------------------------------------------------------
     def specimens_table(self, analysts: Optional[str] = None,
@@ -1672,7 +2048,7 @@ class PintData:
                 if not corr.applied:
                     continue
                 if name == "anisotropy":
-                    row["int_corr_anisotropy"] = corr.factor
+                    row["int_corr_aniso"] = corr.factor
                 elif name == "cooling_rate":
                     row["int_corr_cooling_rate"] = corr.factor
                 elif name == "nlt":
@@ -1730,14 +2106,28 @@ class PintData:
 
     def sites_table(self, analysts: Optional[str] = None, level: str = "site",
                     weighted: bool = False) -> pd.DataFrame:
-        """MagIC 3 sites (or samples) rows with the group means."""
-        groups = self.group_results(level=level, only_accepted=True, weighted=weighted)
+        """MagIC 3 sites (or samples) rows with the group means.
+
+        Every group with an interpreted specimen gets a row, as PmagPy
+        Directions writes a mean that fails its criteria: a mean that fails
+        the site criteria, or that has no accepted specimen (then the mean of
+        the interpreted ones), is written with ``result_quality`` 'b' and
+        says why in its description, rather than being left out -- leaving
+        it out deleted the published mean from the table.
+        """
+        groups = self.group_results(level=level, only_accepted=True, weighted=weighted,
+                                    include_rejected=True)
         if len(groups) == 0:
             return pd.DataFrame()
         rows = []
         for _, g in groups.iterrows():
             note = ("weighted mean; " if weighted else "") + \
                 f"{int(g['corrected'])} of {int(g['n'])} specimens corrected"
+            if int(g["n_accepted"]) == 0:
+                note = (f"no specimen is accepted under {self.criteria.name}: the mean of the "
+                        f"{int(g['n'])} interpreted specimens, not accepted; ") + note
+            elif g["passed"] is False and g["failures"]:
+                note = f"fails {self.criteria.name}: {g['failures']}; " + note
             # the data model caps int_abs_sigma_perc at 100; a group whose
             # scatter exceeds its mean cannot be expressed in that column, so
             # the percentage is left out and the absolute sigma -- which is not
@@ -1751,28 +2141,53 @@ class PintData:
                    "int_abs_sigma": g["int_abs_sigma"] * 1e-6 if np.isfinite(g["int_abs_sigma"]) else None,
                    "int_abs_sigma_perc": perc,
                    "int_n_specimens": int(g["n"]),
+                   # the members of this mean (a replaced row's lists are not carried)
+                   "specimens": g["specimens"],
                    "method_codes": "IE-SPEC:LP-PI-TRM",
                    "result_quality": "g" if g["passed"] is not False else "b",
                    "result_type": "a",          # an average of the specimens below it
                    "description": note,
                    }
-            if level == "site" and "vadm" in g and np.isfinite(g.get("vadm", np.nan)):
-                row["vadm"] = g["vadm"]
-                row["method_codes"] += ":IE-VADM"
             if level == "site":
+                row["samples"] = g["samples"]
+                row["int_n_samples"] = int(g["n_samples"])
+                if np.isfinite(g.get("vadm", np.nan)):
+                    row["vadm"] = g["vadm"]
+                    row["vadm_n_samples"] = int(g["n_samples"])
+                    if np.isfinite(g.get("vadm_sigma", np.nan)):
+                        row["vadm_sigma"] = g["vadm_sigma"]
+                    row["method_codes"] += ":IE-VADM"
+                if np.isfinite(g.get("vdm", np.nan)):
+                    row["vdm"] = g["vdm"]
+                    row["vdm_n_samples"] = int(g["n_samples"])
+                    if np.isfinite(g.get("vdm_sigma", np.nan)):
+                        row["vdm_sigma"] = g["vdm_sigma"]
                 row["location"] = next((s.location for s in self.specimens.values()
                                         if s.site == g[level]), "")
             rows.append(row)
         df = pd.DataFrame(rows)
         df = self.project.stamp(df, analysts)
-        df = carry_metadata(df, self._table(level + "s"), level)
+        existing = self._table(level + "s")
+        df = carry_metadata(df, existing, level)
+        if existing is not None and level in existing.columns:
+            # what a replaced intensity mean said about itself that is not recomputed here
+            df = mp.carry_annotations(df, existing[mp.intensity_rows(existing)], level,
+                                      columns=("external_database_ids",))
         return df
 
     def merged_group_table(self, level: str = "site", analysts: Optional[str] = None,
                            weighted: bool = False) -> pd.DataFrame:
+        """The sites (or samples) table with this study's intensity means merged in.
+
+        The groups this application owns are those with at least one
+        interpreted specimen -- each gets a row (:meth:`sites_table`). A
+        published mean of a group none of whose specimens is interpreted here
+        is kept as it was: nothing was recomputed for it.
+        """
         new = self.sites_table(analysts, level=level, weighted=weighted)
         existing = self._table(level + "s")
-        owned = {getattr(s, level) for s in self.specimens.values() if getattr(s, level)}
+        owned = {getattr(self.specimens[name], level) for name in self.interpretations
+                 if name in self.specimens and getattr(self.specimens[name], level)}
         merged = mp.merge_results(existing, new, level, owned, owns=mp.intensity_rows)
         return trim_to_model(merged, level + "s", self.warnings)
 
@@ -1813,29 +2228,66 @@ class PintData:
         return mp.magic_write(os.path.join(dir_path, os.path.basename(custom_name)), df, "measurements")
 
     def write_criteria(self, dir_path: str) -> Optional[str]:
-        df = self.criteria_table()
-        return self.project.write_table(df, "criteria", dir_path)
+        # not trimmed to the data model: the rows kept are written as they were read
+        return self.project.write_table(self.merged_criteria_table(), "criteria", dir_path)
 
     def validate_output(self, dir_path: str) -> dict:
         return validate_directory(dir_path)
 
     # ----- session persistence ---------------------------------------------
+    @staticmethod
+    def _step_keys(spec: PintSpecimen) -> List[tuple]:
+        """What identifies each of a specimen's steps across sessions, in step order.
+
+        The measurement name is not enough: many MagIC tables repeat names
+        (every specimen's first step called ``1``, or one name for a whole
+        experiment), and a flag kept by name alone lands on every step that
+        shares it. The key is the specimen, the name and which occurrence of
+        that name among the specimen's steps it is.
+        """
+        seen: Dict[str, int] = {}
+        keys = []
+        for m in spec.steps["measurement"].astype(str):
+            k = seen.get(m, 0)
+            seen[m] = k + 1
+            keys.append((spec.name, m, k))
+        return keys
+
     def to_json(self) -> str:
-        """The interpretations, flags and criteria as a human-readable session."""
+        """The interpretations, flags, criteria and anisotropy policy as a human-readable session."""
+        bad_steps = []
+        for spec in self.specimens.values():
+            bad = (spec.steps["quality"] == "b").to_numpy()
+            for (name, measurement, occurrence), pos, is_bad in zip(self._step_keys(spec),
+                                                                    spec.steps["meas_pos"], bad):
+                if is_bad:
+                    bad_steps.append({"specimen": name, "measurement": measurement,
+                                      "occurrence": occurrence, "meas_pos": int(pos)})
         payload = {
             "format": "pmagpy_intensity_session",
-            "version": 1,
+            "version": 2,
             "software": SOFTWARE_TAG,
             "directory": self.directory,
             "criteria": self.criteria.name,
+            # the whole set, so that a variant (a preset with Ziggie added, a study's
+            # own table) is restored as it was used rather than by its name
+            "criteria_set": {"name": self.criteria.name, "citation": self.criteria.citation,
+                             "doi": self.criteria.doi, "description": self.criteria.description,
+                             "specimen": [[c.key, c.operation, c.value] for c in self.criteria.specimen],
+                             "site": [[c.key, c.operation, c.value] for c in self.criteria.site]},
+            "anisotropy_policy": {"alteration_limit": self.anisotropy_alteration_limit,
+                                  "require_ftest": bool(self.anisotropy_require_ftest)},
             "interpretations": [asdict(i) for i in self.interpretations.values()],
-            "bad_measurements": sorted(
-                m for spec in self.specimens.values()
-                for m in spec.steps.loc[spec.steps["quality"] == "b", "measurement"]),
+            # one row each (version 2); the names alone are kept for earlier readers
+            "bad_steps": bad_steps,
+            "bad_measurements": sorted({b["measurement"] for b in bad_steps}),
             "bounds_in_kelvin": {
                 name: [float(self.specimens[name].arai.temps[i.imin]),
                        float(self.specimens[name].arai.temps[i.imax])]
                 for name, i in self.interpretations.items() if self.specimens.get(name)},
+            # fits whose end step is flagged bad, kept to come back when it is flagged good
+            "set_aside": [{"interpretation": asdict(i), "bounds_in_kelvin": list(bounds)}
+                          for i, bounds in self._set_aside.values()],
         }
         return json.dumps(payload, indent=2, sort_keys=True)
 
@@ -1844,9 +2296,11 @@ class PintData:
 
         A file that is not a session, or whose interpretations are all of
         specimens this study does not have, raises ``ValueError`` before
-        anything changes. The session's list of bad measurements is the whole
-        flag state: a step flagged good again after being bad in the
-        measurements table stays good.
+        anything changes. The session's list of bad steps is the whole flag
+        state: a step flagged good again after being bad in the measurements
+        table stays good. A version 1 session names its bad steps by
+        measurement name only; it is still read, and when a flagged name
+        belongs to more than one step that is said in ``warnings``.
         """
         try:
             payload = json.loads(text)
@@ -1858,14 +2312,36 @@ class PintData:
         if items and not any(self.specimens.get(i.get("specimen")) is not None for i in items
                              if isinstance(i, dict)):
             raise ValueError("the session holds no interpretations of specimens in this study")
-        if "bad_measurements" in payload:
-            bad = set(payload.get("bad_measurements") or [])
+        criteria = self._criteria_from_json(payload)
+        if "bad_steps" in payload:
+            bad_keys = {(str(b.get("specimen")), str(b.get("measurement")), int(b.get("occurrence", 0)))
+                        for b in (payload.get("bad_steps") or []) if isinstance(b, dict)}
+            flagged = {spec.name: np.array(["b" if k in bad_keys else "g" for k in self._step_keys(spec)],
+                                           dtype=object)
+                       for spec in self.specimens.values()}
+        elif "bad_measurements" in payload:
+            bad = {str(m) for m in (payload.get("bad_measurements") or [])}
+            flagged = {}
             for spec in self.specimens.values():
-                quality = np.where(spec.steps["measurement"].isin(bad), "b", "g")
-                if (quality != spec.steps["quality"].to_numpy(dtype=object)).any():
-                    spec.steps["quality"] = quality
-                    spec.arai = build_arai(spec.steps, spec.warnings)
+                names = spec.steps["measurement"].astype(str)
+                flagged[spec.name] = np.where(names.isin(bad), "b", "g").astype(object)
+            counts = pd.Series([m for spec in self.specimens.values()
+                                for m in spec.steps["measurement"].astype(str)]).value_counts()
+            repeated = [m for m in bad if counts.get(m, 0) > 1]
+            if repeated:
+                self.warnings.append(
+                    f"the session names its bad steps by measurement name only, and {len(repeated)} of "
+                    f"those names belong to more than one step (e.g. {repeated[0]!r}); every step with "
+                    f"the name was flagged")
+        else:
+            flagged = {}
+        for spec in self.specimens.values():
+            quality = flagged.get(spec.name)
+            if quality is not None and (quality != spec.steps["quality"].to_numpy(dtype=object)).any():
+                spec.steps["quality"] = quality
+                spec.arai = build_arai(spec.steps, spec.warnings)
         self.interpretations.clear()
+        self._set_aside.clear()
         count = 0
         bounds = payload.get("bounds_in_kelvin", {})
         for item in payload.get("interpretations", []):
@@ -1880,15 +2356,53 @@ class PintData:
             else:
                 imin, imax = int(item.get("imin", 0)), int(item.get("imax", 0))
             interp = self.set_interpretation(name, imin, imax)
-            for key in ("quality", "name", "notes", "use_anisotropy", "use_nlt", "use_cooling_rate"):
+            for key in ("quality", "name", "notes", "use_anisotropy", "use_nlt", "use_cooling_rate",
+                        "anisotropy_type"):
                 if key in item:
                     setattr(interp, key, item[key])
             count += 1
-        name = payload.get("criteria")
-        if name in CRITERIA_SETS:
-            self.criteria = CRITERIA_SETS[name]
+        for held in payload.get("set_aside", []) or []:
+            try:
+                interp = Interpretation(**held["interpretation"])
+                bounds = (float(held["bounds_in_kelvin"][0]), float(held["bounds_in_kelvin"][1]))
+            except (KeyError, TypeError, ValueError, IndexError):
+                continue
+            if interp.specimen in self.specimens and interp.specimen not in self.interpretations:
+                self._set_aside[interp.specimen] = (interp, bounds)
+        if criteria is not None:
+            self.criteria = criteria
+        policy = payload.get("anisotropy_policy")
+        if isinstance(policy, dict):
+            limit = policy.get("alteration_limit")
+            self.anisotropy_alteration_limit = None if limit is None else float(limit)
+            self.anisotropy_require_ftest = bool(policy.get("require_ftest", False))
         self.invalidate()
         return count
+
+    @staticmethod
+    def _criteria_from_json(payload: dict) -> Optional[CriteriaSet]:
+        """The criteria set a session was saved under: the whole set when stored, else by name."""
+        stored = payload.get("criteria_set")
+        name = payload.get("criteria")
+        if isinstance(stored, dict):
+            try:
+                def crits(rows):
+                    return tuple(Criterion(str(k), str(op), v if isinstance(v, bool) else float(v))
+                                 for k, op, v in rows)
+                cs = CriteriaSet(str(stored.get("name", name or "session")), stored.get("citation", ""),
+                                 stored.get("doi", ""), stored.get("description", ""),
+                                 crits(stored.get("specimen", [])), crits(stored.get("site", [])))
+            except (TypeError, ValueError) as exc:
+                raise ValueError(f"the session's criteria cannot be read ({exc})") from exc
+            registered = CRITERIA_SETS.get(cs.name)
+            if registered is not None and registered.specimen == cs.specimen and registered.site == cs.site:
+                return registered
+            if registered is None:
+                CRITERIA_SETS[cs.name] = cs
+            return cs
+        if name in CRITERIA_SETS:
+            return CRITERIA_SETS[name]
+        return None
 
     def save_session(self, path: str) -> str:
         return mp.atomic_write_text(path, self.to_json())
@@ -1949,13 +2463,25 @@ class PintData:
             raise ValueError(f"{os.path.basename(path)} holds no interpretations of specimens in this study")
         if replace:
             self.interpretations.clear()
+            self._set_aside.clear()
         for name, imin, imax in planned:
             self.set_interpretation(name, imin, imax)
         self.invalidate()
         return len(planned), problems
 
     def import_from_specimens_table(self) -> Tuple[int, List[str]]:
-        """Re-import stored paleointensity interpretations (``meas_step_min/max``)."""
+        """Re-import stored paleointensity interpretations from the specimens table.
+
+        Each stored result gives its bounds (``meas_step_min/max``), the
+        analyst's verdict (``result_quality``: a result stored as 'b' comes
+        back rejected) and the corrections it was made with, from its method
+        codes: DA-AC-ATRM / DA-AC-AARM (anisotropy, and which tensor), DA-CR
+        (cooling rate), DA-NL (non-linear TRM). A row that says which
+        corrections were applied -- it has ``int_corr`` ('c' or 'u') or any
+        DA- code -- switches each correction on or off as it records; a row
+        that says nothing leaves the defaults (use what is available). A
+        stored correction this study cannot recompute is reported.
+        """
         table = self._table("specimens")
         if table is None or "meas_step_min" not in table.columns:
             return 0, ["the specimens table has no meas_step_min column"]
@@ -1978,10 +2504,56 @@ class PintData:
             imax = int(np.argmin(np.abs(spec.arai.temps - tmax)))
             if abs(spec.arai.temps[imin] - tmin) > 1 or abs(spec.arai.temps[imax] - tmax) > 1:
                 problems.append(f"{name}: stored bounds {tmin:.0f}-{tmax:.0f} K do not match a step")
-            self.set_interpretation(name, imin, imax)
+            interp = self.set_interpretation(name, imin, imax)
+            quality = row.get("result_quality")
+            interp.quality = "b" if (not is_null(quality) and str(quality).strip() == "b") else "g"
+            problems.extend(self._import_corrections(interp, row))
             count += 1
         self.invalidate()
         return count, problems
+
+    def _import_corrections(self, interp: Interpretation, row) -> List[str]:
+        """Set an interpretation's correction switches from a stored result row; returns problems."""
+        codes = set(split_codes(row.get("method_codes", "")))
+        corr = row.get("int_corr")
+        corr = "" if is_null(corr) else str(corr).strip().lower()
+        applied = {c for c in codes if c.startswith("DA-")}
+        if corr not in ("c", "u") and not applied:
+            return []                           # the row does not say: keep the defaults
+        name = interp.specimen
+
+        def factor_is_one(*columns) -> bool:
+            # the legacy Thellier GUI records DA-AC-* for a specimen whose tensor
+            # it then did not apply (factor 1.00, e.g. an altered ATRM): the
+            # factor it wrote is the better record of what was done
+            for column in columns:
+                value = to_float(row.get(column))
+                if np.isfinite(value):
+                    return abs(value - 1.0) < 1e-9
+            return False
+        aniso_codes = {c for c in applied if c.startswith("DA-AC")}
+        interp.use_anisotropy = bool(aniso_codes) and not factor_is_one("int_corr_aniso",
+                                                                        "int_corr_anisotropy")
+        interp.anisotropy_type = None if not interp.use_anisotropy else (
+            "AARM" if "DA-AC-AARM" in aniso_codes else "ATRM" if "DA-AC-ATRM" in aniso_codes else None)
+        interp.use_cooling_rate = (any(c.startswith("DA-CR") for c in applied)
+                                   and not factor_is_one("int_corr_cooling_rate"))
+        interp.use_nlt = any(c.startswith("DA-NL") for c in applied) and not factor_is_one("int_corr_nlt")
+        problems = []
+        aniso = self.anisotropy.get(name)
+        if interp.use_anisotropy:
+            kinds = {aniso["type"], *(aniso.get("alternatives") or {})} if aniso else set()
+            if not aniso or (interp.anisotropy_type and interp.anisotropy_type not in kinds):
+                problems.append(f"{name}: the stored result is anisotropy corrected "
+                                f"({', '.join(sorted(aniso_codes))}), but no "
+                                f"{interp.anisotropy_type or 'anisotropy'} tensor was found here")
+        if interp.use_cooling_rate and name not in self.cooling_rate:
+            problems.append(f"{name}: the stored result is cooling-rate corrected (DA-CR), but this "
+                            f"study has no cooling-rate experiment or sample cooling rate for it")
+        if interp.use_nlt and name not in self.nlt:
+            problems.append(f"{name}: the stored result is NLT corrected (DA-NL), but no TRM "
+                            f"acquisition experiment was found")
+        return problems
 
 
 # ---------------------------------------------------------------------------

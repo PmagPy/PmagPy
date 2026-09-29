@@ -92,7 +92,7 @@ def create_app(directory: str, output_dir: str | None = None):
     """Build the page for a MagIC directory. Returns a servable Panel template."""
     session = Session(directory, output_dir, cache=True)
     if session.data is None:
-        return pn.pane.Markdown(f"## Could not load `{directory}`\n\n{session.status}")
+        return DataView(session).failure_page(directory, session.status)
     template = shell.template(build_body(session), logo=LOGO, hub_url=runtime.hub_url())
     template.session = session       # handy for tests
     return template
@@ -115,7 +115,7 @@ def serve_default():
         session = Session(directory, None, cache=True)
         holder["session"] = session
         if session.data is None:
-            return pn.pane.Markdown(f"## Could not load `{directory}`\n\n{session.status}")
+            return DataView(session).failure_page(directory, session.status)
         return build_body(session)
     template = shell.deferred_template(APP, LOGO, build, hub_url=runtime.hub_url(), loading=f"Loading {name} …",
                                        side_width=SIDE_WIDTH)

@@ -215,7 +215,7 @@ class TestAnisotropyCorrectedExport:
             checked += 1
             assert row["int_corr"] == "c"
             expected = res.b_anc_uncorrected
-            for key, column in (("anisotropy", "int_corr_anisotropy"),
+            for key, column in (("anisotropy", "int_corr_aniso"),
                                 ("cooling_rate", "int_corr_cooling_rate")):
                 correction = res.corrections.get(key)
                 if correction and correction.applied:
@@ -240,10 +240,36 @@ class TestAnisotropyCorrectedExport:
                    and a["alteration"] > megiddo.anisotropy_alteration_limit
                    and n in megiddo.interpretations]
         assert altered, "the study should contain at least one over-altered tensor"
-        res = megiddo.result(altered[0])
-        correction = res.corrections["anisotropy"]
-        assert correction.applied is False
-        assert "altered" in correction.message
+        # under the default switch ("use if available"); the imported
+        # interpretation records what the published result did instead
+        interp = megiddo.interpretations[altered[0]]
+        kept = interp.use_anisotropy
+        interp.use_anisotropy = None
+        try:
+            res = megiddo.result(altered[0])
+            correction = res.corrections["anisotropy"]
+            assert correction.applied is False
+            assert "altered" in correction.message
+        finally:
+            interp.use_anisotropy = kept
+            megiddo.invalidate(altered[0])
+
+    def test_switching_a_correction_on_overrides_the_alteration_limit(self, megiddo):
+        name = next(n for n, a in megiddo.anisotropy.items()
+                    if np.isfinite(a.get("alteration", np.nan))
+                    and a["alteration"] > megiddo.anisotropy_alteration_limit
+                    and n in megiddo.interpretations)
+        interp = megiddo.interpretations[name]
+        kept = interp.use_anisotropy
+        interp.use_anisotropy = True
+        try:
+            megiddo.invalidate(name)
+            res = megiddo.result(name)
+            assert res.corrections["anisotropy"].applied
+            assert any("although" in w for w in res.warnings)
+        finally:
+            interp.use_anisotropy = kept
+            megiddo.invalidate(name)
 
 
 # ---------------------------------------------------------------------------
@@ -335,13 +361,20 @@ class TestMeasurementQuality:
         assert small.specimens[name].arai is None or small.specimens[name].arai.n < 2
         assert small.result(name) is None or True     # no exception is the point
 
-    def test_bounds_are_clamped_when_points_disappear(self, small):
+    def test_a_fit_whose_end_step_is_flagged_is_set_aside_not_moved(self, small):
+        """As the legacy GUI leaves a specimen whose bounds match no step uninterpreted."""
         name = small.specimen_names[0]
         arai = small.specimens[name].arai
         small.set_interpretation(name, 0, arai.n - 1)
-        small.set_step_quality(name, arai.rows[-1]["i"], "b")
+        tmax = float(arai.temps[-1])
+        sequence = arai.rows[-1]["i"]
+        notes = small.set_step_quality(name, sequence, "b")
+        assert name not in small.interpretations
+        assert any("set aside" in n for n in notes)
+        notes = small.set_step_quality(name, sequence, "g")
         interp = small.interpretations[name]
-        assert interp.imax < small.specimens[name].arai.n
+        assert float(small.specimens[name].arai.temps[interp.imax]) == tmax
+        assert any("restored" in n for n in notes)
 
     def test_flags_round_trip_through_measurements_txt(self, small):
         name = small.specimen_names[0]

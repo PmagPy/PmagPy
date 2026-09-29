@@ -60,7 +60,7 @@ and writes MagIC 3 tables that validate against the data model.
 | | |
 |---|---|
 | **Input** | MagIC 3 contributions; ThellierTool `.tdt` files (imported through the data dialog); legacy `thellier_gui.redo` files; interpretations already in a `specimens.txt` |
-| **Protocols** | IZZI, Coe (ZI), Aitken (IZ), original Thellier–Thellier (antiparallel pairs), microwave; with pTRM checks, pTRM tail checks and additivity checks |
+| **Protocols** | IZZI, Coe (ZI), Aitken (IZ), original Thellier–Thellier (antiparallel pairs); with pTRM checks, pTRM tail checks and additivity checks. Thermal experiments only: microwave experiments are not read yet (see below) |
 | **Statistics** | the SPD v1.2.0 set, in full: Arai-fit, directional, pTRM-check, tail-check, additivity and anisotropy categories, plus Ziggie (Tully & Paterson, 2025) |
 | **Corrections** | anisotropy (ATRM or AARM tensor, with Hext statistics), non-linear TRM, cooling rate |
 | **Criteria** | CCRIT, RCRIT, TTA, TTB and their modified forms, PICRIT03, SELCRIT2, the study's own `criteria.txt`, or none — each with its citation |
@@ -227,10 +227,11 @@ Everything goes to the output directory, which is the data directory unless
 |---|---|---|
 | `pmagpy_intensity_autosave.json` | after every change | the interpretations and the step flags, so a reload or a crash loses nothing |
 | `pmagpy_intensity_session.json` | on *Save session* and on export | the whole session: interpretations, flags, criteria, correction switches — human-readable JSON |
+| `specimens_export.py` | on export | a script that restores that session file and writes the same tables again, into a folder of its own |
 | `pmagpy_intensity.redo` | on *Save .redo* and on export | the legacy bounds format, so the old GUI can read the interpretations back |
 | `specimens.txt` | on export | interpretations merged into the existing rows |
-| `sites.txt`, `samples.txt` | on export | the group means |
-| `criteria.txt` | on export | the criteria set the results were produced under |
+| `sites.txt`, `samples.txt` | on export | the group means: one row for every site with an interpreted specimen; a mean that fails the site criteria, or has no accepted specimen, has `result_quality` b |
+| `criteria.txt` | on export | the criteria set the results were produced under; only the intensity rows it tests are replaced, every other criterion (directional, sample, pole) is kept |
 | `measurements.txt` | on export, optional | the measurements with the quality flags |
 | `backup_before_pmagpy_intensity/` | before the first in-place export | the original tables, copied once |
 | `backup_before_pmagpy_intensity/previous/` | before every export | each table the export replaces |
@@ -320,7 +321,8 @@ would be a different claim.
 
 **Curvature has no universal threshold.** `k` and `k′` are shown signed, with
 their SSE, and the presets that exist in the literature are offered by name and
-citation rather than one being imposed.
+citation rather than one being imposed. A curvature criterion is tested on the
+magnitude, |k′| ≤ 0.164 for CCRIT, as the legacy GUI tested it.
 
 **It is a web application.** It runs in a browser against a local server, so it
 resizes with the window, works over SSH with port forwarding, and does not need
@@ -355,7 +357,7 @@ file operations live in the Export tab and the data dialog.
 
 | | |
 |---|---|
-| Microwave-specific plots | the statistics work on microwave data (the treatment is read as an equivalent step), but there is no power/time axis |
+| Microwave experiments | not read: each step here is identified by its temperature (`treat_temp`), and a microwave step by its step number and power. A study whose paleointensity experiments are all microwave is refused with that reason; in a mixed study the microwave specimens are left out and listed in the Export pane's Messages |
 | Multi-specimen (MSP-DSC) methods | out of scope for this rewrite; use `pmag.py`'s routines |
 | Editing measurements | this reads measurements and flags them; it does not change them |
 

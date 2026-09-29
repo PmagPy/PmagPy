@@ -163,11 +163,19 @@ class Session(param.Parameterized):
         n_warnings = len(data.warnings) + len(data.project.warnings)
         if n_warnings:
             message += f"; {n_warnings} warning{'s' if n_warnings > 1 else ''} while reading"
+        restored = data.criteria
+        preset = pint.CRITERIA_SETS.get(restored.name)
+        ziggie = (preset is not None and restored is not preset
+                  and any(c.key == "Ziggie" for c in restored.specimen)
+                  and not any(c.key == "Ziggie" for c in preset.specimen))
         self.param.update(
             specimen=(interpreted or names)[0], directory=directory,
-            criteria_name=data.criteria.name,
+            criteria_name=restored.name, add_ziggie=ziggie,
             status=(f"{len(names)} specimens from {os.path.basename(directory.rstrip('/'))}; {message}"),
             version=self.version + 1)
+        if data.criteria is not restored:
+            # the criteria the session was saved under win over the preset of that name
+            data.set_criteria(restored)
         return True
 
     def _restore(self, data: pint.PintData, output_dir: str) -> str:
@@ -430,6 +438,14 @@ class Session(param.Parameterized):
         directory also receives the source's other tables.
         """
         self.flush_autosave()
+        # merge into the tables as they are now, not as they were when the study
+        # was opened: PmagPy Directions (or another browser session) may have
+        # written its results into them since
+        self.data.project.refresh_tables(self.output_dir, ("specimens", "samples", "sites",
+                                                           "locations", "criteria"))
+        # the site coordinates behind the VADMs are the one value read from those tables
+        # that the export uses again (the hierarchy is kept as it was when the study opened)
+        self.data.site_coords = mp.build_site_coords(self.data._table("sites"), self.data._table("samples"))
         in_place = os.path.realpath(self.output_dir) == os.path.realpath(self.directory)
         stage = mp.StagedExport(self.output_dir, backup=os.path.join(self.output_dir,
                                                                      self.data.project.backup_dir_name()),
@@ -447,6 +463,10 @@ class Session(param.Parameterized):
         written += mp.copy_companion_tables(self.directory, self.output_dir, skip=written)
         self.last_backup = stage.backed_up
         return written
+
+    def writes_in_place(self) -> bool:
+        """True when an export replaces the study's own tables (the output directory is the data directory)."""
+        return bool(self.directory) and os.path.realpath(self.output_dir) == os.path.realpath(self.directory)
 
     def validate_output(self) -> dict:
         return self.data.validate_output(self.output_dir)
