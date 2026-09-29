@@ -63,7 +63,7 @@ def main():
         file_input = numpy.loadtxt(file)
     else:
         # read from standard input
-        file_input = numpy.loadtxt(sys.stdin.readlines(), dtype=numpy.float)
+        file_input = numpy.loadtxt(sys.stdin.readlines(), dtype=float)
     if len(file_input.shape) > 1:  # list of directions
         dir1, dir2 = file_input[:, 0:2], file_input[:, 2:]
     else:

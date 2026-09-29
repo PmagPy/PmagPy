@@ -124,7 +124,7 @@ def main():
         alts = numpy.ones(len(ages))*alt
         inp = numpy.array([ages, alts, lats, lons]).transpose()
     else:
-        inp = numpy.loadtxt(sys.stdin, dtype=numpy.float)
+        inp = numpy.loadtxt(sys.stdin, dtype=float)
     if '-F' in sys.argv:
         ind = sys.argv.index('-F')
         outfile = sys.argv[ind+1]
