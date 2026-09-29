@@ -26,6 +26,7 @@ import pandas as pd
 
 from pmagpy.convert_registry import CONVERSION_LOG, FORMATS, conversion_sources, guess_format, read_conversions
 from pmagpy.magic_upload import is_upload_file
+from pmagpy_panel import datasets
 
 # MagIC 3 tables in the order Home lists them; contribution is read but not listed
 TABLES = ("measurements", "specimens", "samples", "sites", "locations", "ages", "criteria", "images", "contribution")
@@ -108,7 +109,8 @@ class Inventory:
 
     @property
     def name(self) -> str:
-        return os.path.basename(self.directory.rstrip(os.sep)) or self.directory
+        # a working copy's folder is fingerprinted (McMurdo-1a2b3c4d); the study is McMurdo
+        return datasets.study_name(self.directory)
 
     @property
     def is_magic(self) -> bool:

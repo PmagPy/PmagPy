@@ -105,6 +105,22 @@ def working_copy_source(directory: str) -> str:
         return ""
 
 
+def study_name(directory: str) -> str:
+    """The name to show for a study: its folder's name, also when `directory` is its working copy.
+
+    A working copy's own folder carries a path fingerprint (``McMurdo-1a2b3c4d``),
+    which means nothing to the analyst; the study it was made from is ``McMurdo``.
+    """
+    path = working_copy_source(directory) or directory
+    return os.path.basename(os.path.abspath(path).rstrip(os.sep)) or path
+
+
+def shorten_home(path: str) -> str:
+    """`path` with the home folder written as ``~``."""
+    home = os.path.expanduser("~")
+    return "~" + path[len(home):] if path == home or path.startswith(home + os.sep) else path
+
+
 def working_directory(directory: str, base: Optional[str] = None) -> str:
     """The directory an application reads and writes for a study: its working copy when there is a base.
 

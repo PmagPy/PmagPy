@@ -127,13 +127,21 @@ class DirectoryChooser:
 
     def refresh(self) -> None:
         directory = getattr(self.s, "directory", "") or ""
-        name = os.path.basename(directory.rstrip("/")) or "(none)"
-        self.summary.object = kpi([
-            f"<b>{name}</b>",
-            f'<span style="{MUTED_STYLE}">{self._count(self.s)}</span>',
-            f'<span style="{MUTED_STYLE}" title="{directory}">{shorten(directory)}</span>'])
+        source = (getattr(self.s, "source_directory", "") or datasets.working_copy_source(directory)
+                  or directory) if directory else ""
+        name = html.escape(datasets.study_name(directory)) if directory else "(none)"
+        if directory and os.path.realpath(source) != os.path.realpath(directory):
+            tip = (f"{source} is never written: every application reads and writes "
+                   f"this copy of it, {directory}")
+            where = (f'<span style="{MUTED_STYLE}" title="{html.escape(tip)}">working copy · '
+                     f'{html.escape(shorten(datasets.shorten_home(directory)))}</span>')
+        else:
+            where = (f'<span style="{MUTED_STYLE}" title="{html.escape(directory)}">'
+                     f'{html.escape(shorten(datasets.shorten_home(directory)))}</span>')
+        self.summary.object = kpi([f"<b>{name}</b>", f'<span style="{MUTED_STYLE}">{self._count(self.s)}</span>',
+                                   where])
         self.recent.options = {shorten(d, 70): d for d in self.recent_directories()}
-        self.path.value = directory
+        self.path.value = source
 
     # ----- events -----------------------------------------------------------
     def _on_browse(self, event) -> None:

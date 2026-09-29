@@ -136,6 +136,13 @@ class TestShell:
         s.status = "1034 specimens"
         assert "1034 specimens" in line.object
 
+    def test_a_long_status_is_cut_at_two_lines_and_kept_whole_on_hover(self):
+        s = FakeSession()
+        line = shell.status_line(s)
+        s.status = "1034 specimens; " + "demag_gui.redo (2458 fits) was not read & kept " * 6
+        assert "-webkit-line-clamp:2" in line.object
+        assert f'title="{s.status.replace("&", "&amp;")}"' in line.object
+
     def test_back_link_only_under_a_hub(self):
         body = _body()
         assert len(shell.template(body, logo=LOGO).header) == 0

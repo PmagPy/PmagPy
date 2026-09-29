@@ -177,8 +177,6 @@ class Session(param.Parameterized):
         self.param.specimen.objects = names
         self.param.criteria_name.objects = list(pint.CRITERIA_SETS)
         interpreted = [n for n in names if n in data.interpretations]
-        if os.path.realpath(source) != os.path.realpath(directory):
-            message += f"; working on a copy of {source}"
         n_warnings = len(data.warnings) + len(data.project.warnings)
         if n_warnings:
             message += f"; {n_warnings} warning{'s' if n_warnings > 1 else ''} while reading"
@@ -190,7 +188,7 @@ class Session(param.Parameterized):
         self.param.update(
             specimen=(interpreted or names)[0], directory=directory, source_directory=source,
             criteria_name=restored.name, add_ziggie=ziggie,
-            status=(f"{len(names)} specimens from {os.path.basename(directory.rstrip('/'))}; {message}"),
+            status=(f"{len(names)} specimens from {datasets.study_name(directory)}; {message}"),
             version=self.version + 1)
         if data.criteria is not restored:
             # the criteria the session was saved under win over the preset of that name

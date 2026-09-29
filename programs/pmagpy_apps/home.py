@@ -231,9 +231,7 @@ def fmt(n: int) -> str:
     return f"{n:,}"
 
 
-def shorten_home(path: str) -> str:
-    home = os.path.expanduser("~")
-    return "~" + path[len(home):] if path.startswith(home) else path
+shorten_home = datasets.shorten_home
 
 
 def _esc(text: str) -> str:
@@ -248,7 +246,13 @@ def title_html(inv: Inventory) -> str:
 
 def ref_html(inv: Inventory) -> str:
     """Under the title, at full width: the path, then contribution · DOI · contributor or what the directory lacks."""
-    lines = [f'<div class="path">{_esc(shorten_home(inv.directory))}</div>']
+    source = datasets.working_copy_source(inv.directory)
+    if source and os.path.realpath(source) != os.path.realpath(inv.directory):
+        tip = f"{source} is never written: every application reads and writes this copy of it"
+        lines = [f'<div class="path">{_esc(shorten_home(source))}</div>',
+                 f'<div class="path" title="{_esc(tip)}">working copy · {_esc(shorten_home(inv.directory))}</div>']
+    else:
+        lines = [f'<div class="path">{_esc(shorten_home(inv.directory))}</div>']
     c = inv.contribution
     if inv.is_magic and c:
         bits = []

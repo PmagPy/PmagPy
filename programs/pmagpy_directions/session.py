@@ -208,12 +208,10 @@ class Session(param.Parameterized):
         # one batched update: the views' watchers must see the new dataset, the new
         # specimen and the cleared selection together (a redraw in between would look
         # the old specimen name up in the new dataset)
-        if os.path.realpath(source) != os.path.realpath(directory):
-            message += f"; working on a copy of {source}"
         self.param.update(current=None, specimen=current if current in names else names[0], directory=directory,
                           source_directory=source,
                           coord=data.default_coord(),
-                          status=f"{len(names)} specimens from {os.path.basename(directory.rstrip('/'))}; {message}",
+                          status=f"{len(names)} specimens from {datasets.study_name(directory)}; {message}",
                           version=self.version + 1)
         # re-opening the directory that is already open leaves `specimen` unchanged, so
         # its watcher does not run: the selected fit is settled here in every case

@@ -18,6 +18,9 @@ copied between the applications' ``app.py`` files; they live here now.
 """
 from __future__ import annotations
 
+import html
+import re
+
 from dataclasses import dataclass, field
 from typing import Callable, Optional, Union
 
@@ -35,6 +38,9 @@ HEADER_HEIGHT = 52     # the template's header, which the panes sit under
 #: however quick it was (a switch to a tab already shown takes about 15 ms)
 BUSY_MIN_MS = 100
 STATUS_STYLE = "color:inherit;opacity:.88;font-size:0.85rem"   # follows the header's text colour
+#: a long status (a legacy .redo not read, a warning count) is cut at two lines rather than
+#: pushing the header down over the tabs; the whole text is its tooltip
+STATUS_CLAMP = "display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden"
 
 
 def setup(*extensions: str) -> None:
@@ -91,8 +97,10 @@ def status_line(session, text: Optional[Callable[[], str]] = None) -> pn.pane.HT
     text = text or (lambda: session.status)
 
     def refresh(event=None):
+        shown = text()
+        whole = html.escape(re.sub(r"<[^>]+>", "", shown), quote=True)
         pane.object = (f'<div style="display:flex;gap:18px;align-items:baseline;padding-top:2px">'
-                       f'<span style="{STATUS_STYLE}">{text()}</span></div>')
+                       f'<span style="{STATUS_STYLE};{STATUS_CLAMP}" title="{whole}">{shown}</span></div>')
     session.param.watch(refresh, "status")
     refresh()
     pane.refresh = refresh          # for callers that watch more than `status`

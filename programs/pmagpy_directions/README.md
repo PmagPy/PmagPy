@@ -304,7 +304,8 @@ wrote there are also kept, once, in `backup_before_pmagpy_directions/`. With
 an output base (`PMAGPY_APPS_OUTPUT`, the desktop build's `~/PmagPy/`) the
 applications share one working copy of the study, named after the dataset and a
 fingerprint of its path, so studies in folders of the same name never share
-one. An export to another folder, chosen in the Export pane, receives the
+one; the pages name the study, and the dataset block in the side column says
+"working copy · <folder>" (the whole story on hover). An export to another folder, chosen in the Export pane, receives the
 source's other tables so that it is a complete contribution.
 
 ### Publication figures

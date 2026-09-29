@@ -85,7 +85,7 @@ class TestEveryApplicationWorksThere:
         d = Directions(study)
         copy = d.directory
         assert copy != study and d.source_directory == os.path.realpath(study)
-        assert "working on a copy of" in d.status
+        assert d.status.startswith("1034 specimens from McMurdo;") and copy not in d.status
         assert Intensity(study).directory == copy
         assert RockMag(study).directory == copy
         assert HubSession(study, recent_file=str(tmp_path / "hub_recent.json")).directory == copy
@@ -96,6 +96,40 @@ class TestEveryApplicationWorksThere:
         spec = open(os.path.join(copy, "specimens.txt")).read()
         assert "pmagpy_directions" in spec
         assert digest(study) == before
+
+    def test_every_page_names_the_study_not_its_fingerprinted_copy(self, study, base, tmp_path):
+        from pmagpy_directions.session import Session as Directions
+        from pmagpy_intensity.session import Session as Intensity
+        from pmagpy_apps.home import HubSession, ref_html
+        from pmagpy_apps.inventory import take_inventory
+        from pmagpy_panel.chooser import DirectoryChooser
+        d = Directions(study)
+        copy = d.directory
+        assert os.path.basename(copy) != "McMurdo" and datasets.study_name(copy) == "McMurdo"
+        pint = Intensity(study)
+        assert pint.status.startswith("396 specimens from McMurdo;") and copy not in pint.status
+        # the side column's block: the study's name, then the copy said once, with the whole story on hover
+        chooser = DirectoryChooser(d, recent_file=str(tmp_path / "chooser_recent.json"), count=lambda s: "")
+        block = chooser.summary.object
+        assert "<b>McMurdo</b>" in block and "working copy · " in block
+        assert f"{os.path.realpath(study)} is never written" in block
+        assert chooser.path.value == os.path.realpath(study)   # "open another" starts from the study
+        # the hub: the study's name heads every page, its path first, the copy under it
+        inv = take_inventory(copy)
+        assert inv.name == "McMurdo"
+        assert HubSession(study, recent_file=str(tmp_path / "hub_recent.json")).status.startswith("McMurdo loaded")
+        ref = ref_html(inv)
+        assert ref.index(os.path.basename(study)) < ref.index("working copy · ")
+
+    def test_without_a_copy_the_block_shows_the_path(self, study, monkeypatch, tmp_path):
+        from pmagpy_directions.session import Session as Directions
+        from pmagpy_panel.chooser import DirectoryChooser
+        for var in datasets.OUTPUT_BASE_VARS:
+            monkeypatch.setenv(var, "placeholder")
+            monkeypatch.delenv(var)
+        d = Directions(study)
+        chooser = DirectoryChooser(d, recent_file=str(tmp_path / "chooser_recent.json"), count=lambda s: "")
+        assert "working copy" not in chooser.summary.object and "<b>McMurdo</b>" in chooser.summary.object
 
     def test_the_recent_list_names_the_study_not_its_copy(self, study, base, tmp_path):
         from pmagpy_directions.session import Session as Directions, load_recent
