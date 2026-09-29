@@ -134,8 +134,14 @@ class SpecimenData:
         return ":".join(sorted(units))
 
     def has_coord(self, coord: int) -> bool:
-        dec_col, _ = COORD_COLUMNS[coord]
-        return dec_col in self.steps.columns and self.steps[dec_col].notna().any()
+        # asked tens of thousands of times per export; the answer changes only with the step
+        # table itself (a flag does not change it), so it is kept per table
+        cache = self.__dict__.setdefault("_coord_cache", {})
+        key = (id(self.steps), coord)
+        if key not in cache:
+            dec_col, _ = COORD_COLUMNS[coord]
+            cache[key] = bool(dec_col in self.steps.columns and self.steps[dec_col].notna().any())
+        return cache[key]
 
     def available_coords(self) -> list[int]:
         return [c for c in (COORD_SPECIMEN, COORD_GEOGRAPHIC, COORD_TILT) if self.has_coord(c)]

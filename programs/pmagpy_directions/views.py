@@ -7,6 +7,7 @@ from __future__ import annotations
 import io
 import html
 import os
+import threading
 
 import numpy as np
 import pandas as pd
@@ -1346,10 +1347,34 @@ class ExportView:
                                 + more)
 
     def _validate(self):
+        """Run the MagIC validator on the output tables -- off the server thread when served.
+
+        It takes seconds on a large study (measurements.txt alone ~6 s for
+        McMurdo), which blocked every tab; the report is drawn when it is done.
+        """
+        target = self._target()
+        doc = pn.state.curdoc
+        served = doc is not None and getattr(doc, "session_context", None) is not None
+        if not served:
+            self._show_report(self._run_validator(target))
+            return
+        self.report.object = f'<div style="{MUTED_STYLE}">validating the tables in {html.escape(target)} …</div>'
+
+        def worker():
+            outcome = self._run_validator(target)
+            doc.add_next_tick_callback(lambda: self._show_report(outcome))
+        threading.Thread(target=worker, daemon=True).start()
+
+    @staticmethod
+    def _run_validator(target):
         try:
-            report = dc.validate_directory(self._target())
+            return dc.validate_directory(target)
         except Exception as exc:
-            self.report.object = f'<div style="color:#c0392b">Validation failed to run: {exc}</div>'
+            return exc
+
+    def _show_report(self, report):
+        if isinstance(report, Exception):
+            self.report.object = f'<div style="color:#c0392b">Validation failed to run: {html.escape(str(report))}</div>'
             return
         rows = []
         for table, result in report.items():
