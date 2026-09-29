@@ -60,7 +60,7 @@ def main():
         file=sys.argv[ind+1]  
         inp=numpy.loadtxt(file)
     else:
-        inp=numpy.loadtxt(sys.stdin,dtype=numpy.float)
+        inp=numpy.loadtxt(sys.stdin,dtype=float)
     cart= pmag.dir2cart(inp)
     if len(cart.shape)==1:
         line=cart

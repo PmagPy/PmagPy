@@ -62,7 +62,7 @@ def main():
     data = []
     if not fname:
         print('-I- Trying to read from stdin... <ctrl>-c to quit')
-        data = np.loadtxt(sys.stdin, dtype=np.float)
+        data = np.loadtxt(sys.stdin, dtype=float)
 
     ipmag.histplot(fname, data, outfile, xlab, binsize, norm,
              fmt, save_plots, interactive)
