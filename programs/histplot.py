@@ -1,13 +1,12 @@
 #!/usr/bin/env python
+from pmag_env import set_env
+set_env.set_backend_if_unset("TKAgg")
 from pmagpy import pmag
 from pmagpy import pmagplotlib
 from matplotlib import pyplot as plt
 import sys
 import os
 import numpy as np
-import matplotlib
-if matplotlib.get_backend() != "TKAgg":
-    matplotlib.use("TKAgg")
 from pmagpy import ipmag
 
 

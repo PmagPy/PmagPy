@@ -13,15 +13,10 @@ import sys
 import os
 import numpy as np
 import itertools
-import matplotlib
-# To fix backend issues in Jupyter vs normal Python
-try:
-    get_ipython()  # means we're in Jupyter/IPython
-    print("Detected Jupyter environment - using inline plotting")
-except NameError:
-    # if in normal, use TKAgg for external windows
-    matplotlib.use('TKAgg')
-    print("Using TKAgg backend for external windows")
+from pmag_env import set_env
+# open figures in external windows from the command line; leave the notebook
+# inline backend untouched
+set_env.set_backend_if_unset("TKAgg")
 from matplotlib import pyplot as plt
 import pandas as pd
 import time

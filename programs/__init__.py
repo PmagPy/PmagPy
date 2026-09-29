@@ -6,7 +6,7 @@ try:
 except ImportError:
     import importlib_metadata # if Python < 3.7
 from os import path
-import matplotlib
+from pmag_env import set_env
 from .program_envs import prog_env
 
 command = path.split(sys.argv[0])[-1]
@@ -18,15 +18,10 @@ elif command.endswith("_a"):
 else:
     mpl_env = prog_env.get(command)
 
-# if backend was already set, skip this step
-if matplotlib.get_backend() in ('WXAgg', 'TKAgg'):
-    pass
-# if backend wasn't set yet, set it appropriately
-else:
-    if mpl_env:
-        matplotlib.use(mpl_env)
-    else:
-        matplotlib.use("TKAgg")
+# Pick a GUI backend for the command-line program being run. If a backend has
+# already been chosen (notebook inline backend, MPLBACKEND, an explicit
+# matplotlib.use() call) it is left alone -- see set_env.set_backend_if_unset.
+set_env.set_backend_if_unset(mpl_env or "TKAgg")
 
 if "-v" in sys.argv:
     print("You are running:")

@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # define some variables
 import sys
-import matplotlib
-if matplotlib.get_backend() != "TKAgg":
-    matplotlib.use("TKAgg")
+from pmag_env import set_env
+set_env.set_backend_if_unset("TKAgg")
 
 import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib

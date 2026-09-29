@@ -4,8 +4,8 @@ import wx
 import os
 import sys
 import matplotlib
-if matplotlib.get_backend() != "WXAgg":
-  matplotlib.use("WXAgg")
+from pmag_env import set_env
+set_env.set_backend_if_unset("WXAgg")
 
 import matplotlib.pylab as plt
 import pmagpy.command_line_extractor as extractor

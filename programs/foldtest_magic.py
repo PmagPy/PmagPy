@@ -2,15 +2,13 @@
 import os
 import sys
 import numpy as np
-import matplotlib
-if matplotlib.get_backend() != "TKAgg":
-    matplotlib.use("TKAgg")
+from pmag_env import set_env
+set_env.set_backend_if_unset("TKAgg")
 import pandas as pd
 
 from matplotlib import pyplot as plt
 import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
-from pmag_env import set_env
 
 import operator
 OPS = {'<' : operator.lt, '<=' : operator.le,
