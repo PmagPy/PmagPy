@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from builtins import range
+
 import sys
 import numpy
 import matplotlib
@@ -7,7 +7,6 @@ if matplotlib.get_backend() != "TKAgg":
   matplotlib.use("TKAgg")
 
 import pylab
-#pylab.ion()
 import pmagpy.pmag as pmag
 
 def main():

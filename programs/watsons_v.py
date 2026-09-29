@@ -1,13 +1,11 @@
 #!/usr/bin/env python
-from builtins import input
-from builtins import range
+
 import sys
 import os
 import numpy
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
   matplotlib.use("TKAgg")
-
 import pmagpy.pmagplotlib as pmagplotlib
 import pmagpy.pmag as pmag
 

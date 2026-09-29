@@ -1,8 +1,6 @@
 #!/usr/bin/env python
-from builtins import input
-from builtins import range
+
 import sys
-import codecs
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
     matplotlib.use("TKAgg")
