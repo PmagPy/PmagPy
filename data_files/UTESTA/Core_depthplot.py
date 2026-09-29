@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-from builtins import input
-from builtins import str
-from builtins import range
+
 import pmagplotlib
 import pmag,sys,exceptions,pylab
 pylab.ion()

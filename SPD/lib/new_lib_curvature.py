@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from builtins import range
 import numpy
 from . import lib_curvature as lib_k
 

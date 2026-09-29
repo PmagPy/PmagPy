@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from builtins import input
+
 import sys
 import os
 import pmagpy.pmag as pmag

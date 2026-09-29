@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-from builtins import str
-from builtins import range
+
 import pandas as pd
 import sys
 import numpy as np

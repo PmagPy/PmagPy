@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-# define some variables
-from builtins import str
+
 import numpy as np
 import sys
 import matplotlib

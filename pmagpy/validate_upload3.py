@@ -1,15 +1,10 @@
 #!/usr/bin/env python
 
-from builtins import zip
-from builtins import str
-from builtins import range
-
 import math
 import os
 import re
 import numpy as np
 from pmagpy import contribution_builder as cb
-
 
 ## LOW-LEVEL VALIDATION FUNCTIONS
 

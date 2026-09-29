@@ -1,9 +1,6 @@
 #!/usr/bin/env python
-from builtins import input
-from builtins import range
+
 import sys
-
-
 import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
 

@@ -20,10 +20,7 @@ versions.
 
 """
 
-from builtins import range
-
 from . import func
-#from Numeric import *
 import numpy
 BadInput = "Bad xa input to routine splint."
 

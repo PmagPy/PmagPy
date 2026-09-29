@@ -5,10 +5,6 @@ Module for building or reading in specimen, sample, site, and location data.
 """
 
 import os
-
-from builtins import str
-from builtins import range
-from builtins import object
 import pmagpy.pmag as pmag
 import pmagpy.validate_upload2 as validate_upload
 

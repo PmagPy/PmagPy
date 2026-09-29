@@ -1,5 +1,5 @@
 #!/usr/bin/env pythonw
-from builtins import str
+
 import wx
 import os
 import sys

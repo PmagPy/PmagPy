@@ -1,10 +1,7 @@
 #! /usr/bin/env python
-from builtins import input
-from builtins import str
+
 import numpy as np
 import sys
-
-
 import matplotlib.pylab as plt
 import pmagpy.pmag as pmag
 plt.ion()

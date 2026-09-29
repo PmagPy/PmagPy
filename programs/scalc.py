@@ -1,10 +1,7 @@
 #!/usr/bin/env python
-from builtins import range
+
 import sys
-import random
 import pandas as pd
-import numpy as np
-import pylab
 import pmagpy.pmag as pmag
 
 def main():

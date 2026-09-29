@@ -1,13 +1,11 @@
 import codecs
 import math
 import os
-import string
 import sys
 import time
 import importlib
 
 import numpy as np
-from numpy import random
 from numpy import linalg
 import pandas as pd
 from .mapping import map_magic

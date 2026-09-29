@@ -1,8 +1,5 @@
 #!/usr/bin/env python 
 
-from builtins import zip
-from builtins import map
-from builtins import range
 import numpy
 from numpy import *
 

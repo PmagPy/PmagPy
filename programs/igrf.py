@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from builtins import input
+
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -8,7 +8,6 @@ from matplotlib import pyplot as plt
 import numpy
 import pmagpy.pmag as pmag
 from pmagpy import pmagplotlib
-#
 
 
 def main():

@@ -1,8 +1,3 @@
-
-from builtins import map
-from builtins import str
-from builtins import object
-
 class Fit(object):
 
     meas_data = None
