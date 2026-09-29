@@ -829,13 +829,33 @@ class TestPersistence:
     def test_a_redo_naming_an_unknown_specimen_is_reported_not_fatal(self, megiddo):
         tmp = tempfile.mkdtemp(prefix="pint-redo2-")
         try:
+            data = pi.PintData.from_directory(MEGIDDO)
+            known = data.specimen_names[0]
+            temps = data.specimens[known].arai.temps
             path = os.path.join(tmp, "bad.redo")
             with open(path, "w") as fh:
-                fh.write("not_a_specimen\t373\t773\n")
-            data = pi.PintData.from_directory(MEGIDDO)
+                fh.write(f"not_a_specimen\t373\t773\n{known}\t{temps[0]:.0f}\t{temps[-1]:.0f}\n")
             count, problems = data.read_redo(path)
-            assert count == 0
+            assert count == 1
             assert problems == ["not_a_specimen: not in this study"]
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_a_redo_of_another_study_changes_nothing(self, megiddo):
+        # replacing the interpretations with a file none of whose lines is a
+        # specimen here would wipe them for nothing: it is refused instead
+        tmp = tempfile.mkdtemp(prefix="pint-redo3-")
+        try:
+            data = pi.PintData.from_directory(MEGIDDO)
+            data.auto_interpret_all()
+            before = {n: (i.imin, i.imax) for n, i in data.interpretations.items()}
+            assert before
+            path = os.path.join(tmp, "other.redo")
+            with open(path, "w") as fh:
+                fh.write("not_a_specimen\t373\t773\n")
+            with pytest.raises(ValueError, match="no interpretations of specimens in this study"):
+                data.read_redo(path)
+            assert {n: (i.imin, i.imax) for n, i in data.interpretations.items()} == before
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
 

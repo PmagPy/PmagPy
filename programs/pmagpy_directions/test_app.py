@@ -810,8 +810,8 @@ class TestAutosaveDebounce:
         doc = self.FakeDoc()
         monkeypatch.setattr(sess, "_server_document", lambda: doc)
         writes = []
-        real = s.data.write_redo
-        monkeypatch.setattr(s.data, "write_redo", lambda path, **kw: writes.append(path) or real(path, **kw))
+        real = s.data.save_components
+        monkeypatch.setattr(s.data, "save_components", lambda path, **kw: writes.append(path) or real(path, **kw))
         cur = s.current
         for _ in range(5):
             s.update_component(cur, imin=cur.imin + 1)
@@ -826,13 +826,14 @@ class TestAutosaveDebounce:
         s.load(src, out)
         assert len(writes) == 2 and not doc.pending
         # so does an export (the reload made a new dataset object: patch its writer too)
-        real = s.data.write_redo
-        monkeypatch.setattr(s.data, "write_redo", lambda path, **kw: writes.append(path) or real(path, **kw))
+        real = s.data.save_components
+        monkeypatch.setattr(s.data, "save_components", lambda path, **kw: writes.append(path) or real(path, **kw))
         cur = s.current
         s.update_component(cur, imax=cur.imax + 1)
         assert len(doc.pending) == 1
         s.export_tables(coords=(dc.COORD_SPECIMEN,), levels=(), write_measurements=False)
-        assert writes[2] == s.autosave_path and len(writes) == 4      # the flush, then the export's own .redo
+        assert writes[2] == s.autosave_path and len(writes) == 3      # the flush (the export's .redo is a separate file)
+        assert os.path.exists(os.path.join(out, sess.REDO_NAME))
         assert s._autosave_pending is None and not doc.pending
 
 

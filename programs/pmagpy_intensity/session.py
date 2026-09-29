@@ -12,6 +12,7 @@ import numpy as np
 import param
 
 import pmagpy.paleointensity as pint
+from pmagpy import magic_project as mp
 from pmagpy import pint_stats as ps
 
 from pmagpy_panel import AppInfo, datasets
@@ -122,34 +123,46 @@ class Session(param.Parameterized):
 
     # ------------------------------------------------------------------ loading
     def load(self, directory: str, output_dir: Optional[str] = None) -> bool:
+        """Open a MagIC directory; False (with the reason in ``status``) when it cannot be opened.
+
+        Nothing about the session changes until the new dataset has been read
+        and its interpretations restored: a directory that fails to open
+        leaves the open dataset, its output directory and its interpretations
+        exactly as they were.
+        """
         directory = os.path.abspath(os.path.expanduser(directory))
         if not looks_like_magic_dir(directory):
             self.status = f"{directory} has no measurements.txt"
             return False
         self.flush_autosave()           # the dataset being left keeps its last edits
-        self.output_dir = output_dir or default_output_dir(directory)
-        stamp = _code_stamp()
+        output_dir = os.path.abspath(os.path.expanduser(output_dir)) if output_dir else default_output_dir(directory)
+        stamp = (_code_stamp(), datasets.table_stamp(directory))
         cached = _DATASETS.get(directory) if self.cache else None
-        if cached is not None and cached[1] == stamp:
-            data = cached[0]
-            message = f"{len(data.interpretations)} interpretations in memory"
-        else:
-            try:
+        try:
+            if cached is not None and cached[1] == stamp:
+                data = cached[0]
+                message = f"{len(data.interpretations)} interpretations in memory"
+            else:
                 data = pint.PintData.from_directory(directory)
-            except Exception as exc:
-                self.status = f"Could not load {directory}: {exc}"
-                self.data = None
-                return False
-            message = self._restore(data)
-            if self.cache:
-                _DATASETS[directory] = (data, stamp)
+                message = self._restore(data, output_dir)
+                if self.cache:
+                    _DATASETS[directory] = (data, stamp)
+            names = data.specimen_names
+            if not names:
+                raise ValueError("no specimens with paleointensity experiments")
+        except Exception as exc:          # anything at all: the dataset is not opened, the open one is kept
+            self.status = f"Could not open {directory}: {str(exc) or type(exc).__name__}"
+            return False
+        self.output_dir = output_dir
         self.data = data
         self.bicep_results = {}
         remember_recent(directory)
-        names = data.specimen_names
         self.param.specimen.objects = names
         self.param.criteria_name.objects = list(pint.CRITERIA_SETS)
         interpreted = [n for n in names if n in data.interpretations]
+        n_warnings = len(data.warnings) + len(data.project.warnings)
+        if n_warnings:
+            message += f"; {n_warnings} warning{'s' if n_warnings > 1 else ''} while reading"
         self.param.update(
             specimen=(interpreted or names)[0], directory=directory,
             criteria_name=data.criteria.name,
@@ -157,22 +170,52 @@ class Session(param.Parameterized):
             version=self.version + 1)
         return True
 
-    def _restore(self, data: pint.PintData) -> str:
-        """Bring back the last session, a legacy .redo, or the stored interpretations."""
-        autosave = os.path.join(self.output_dir, AUTOSAVE_NAME)
+    def _restore(self, data: pint.PintData, output_dir: str) -> str:
+        """Bring back the last session, the stored interpretations, or a legacy .redo; says which.
+
+        An autosave that cannot be read is set aside (renamed, not deleted) and
+        one that holds nothing is passed over. The stored interpretations in
+        specimens.txt come before a legacy Thellier GUI .redo, as they do in
+        MagIC; the message names any other source that exists.
+        """
+        notes = []
+        autosave = os.path.join(output_dir, AUTOSAVE_NAME)
+        legacy = [n for n in LEGACY_REDO_NAMES if os.path.exists(os.path.join(data.directory, n))]
         if os.path.exists(autosave):
             try:
                 n = data.load_session(autosave)
-                return f"restored {n} interpretations from {AUTOSAVE_NAME}"
-            except Exception as exc:                      # a corrupt autosave must not block loading
-                self.status = f"could not read {AUTOSAVE_NAME}: {exc}"
-        for name in LEGACY_REDO_NAMES:
-            path = os.path.join(data.directory, name)
-            if os.path.exists(path):
-                n, problems = data.read_redo(path)
-                return f"loaded {n} interpretations from {name}"
+                if n:
+                    return "; ".join([f"restored {n} interpretations from the autosave"] + notes)
+                notes.append("the autosave held no interpretations and was passed over")
+            except (OSError, ValueError, KeyError, TypeError) as exc:
+                moved = datasets.set_aside(autosave)
+                notes.append(f"the autosave could not be read ({exc}) and was set aside as "
+                             f"{os.path.basename(moved)}")
+        spec_file = os.path.join(data.directory, "specimens.txt")
+        if legacy and os.path.exists(spec_file) and \
+                os.path.getmtime(os.path.join(data.directory, legacy[0])) > os.path.getmtime(spec_file):
+            # the legacy GUI saved its .redo more often than it exported: the newer of the two is the later work
+            try:
+                n, problems = data.read_redo(os.path.join(data.directory, legacy[0]))
+            except (OSError, ValueError) as exc:
+                n = 0
+                notes.append(f"{legacy[0]} could not be read ({exc})")
+            if n:
+                return "; ".join([f"loaded {n} interpretations from {legacy[0]}, which is newer than "
+                                  "specimens.txt (Export → Import from specimens.txt reads those)"] + notes)
+            legacy = legacy[1:]
         n, problems = data.import_from_specimens_table()
-        return f"imported {n} interpretations from specimens.txt"
+        if n:
+            if legacy:
+                notes.append(f"{legacy[0]} was not read (Export → Load .redo reads it)")
+            return "; ".join([f"imported {n} interpretations from specimens.txt"] + notes)
+        for name in legacy:
+            try:
+                n, problems = data.read_redo(os.path.join(data.directory, name))
+                return "; ".join([f"loaded {n} interpretations from {name}"] + notes)
+            except (OSError, ValueError) as exc:
+                notes.append(f"{name} could not be read ({exc})")
+        return "; ".join(["no interpretations yet"] + notes)
 
     # ------------------------------------------------------------------ accessors
     @property
@@ -375,34 +418,34 @@ class Session(param.Parameterized):
         return out
 
     # ------------------------------------------------------------------ export
-    BACKUP_TABLES = ("specimens.txt", "samples.txt", "sites.txt", "locations.txt",
-                     "measurements.txt", "criteria.txt")
-
     def export_tables(self, analysts: str = "", levels=("site",), write_measurements: bool = True,
                       only_accepted: bool = False, weighted: bool = False) -> list:
-        """Write the MagIC 3 tables to ``output_dir``; returns the paths written."""
-        os.makedirs(self.output_dir, exist_ok=True)
+        """Write the MagIC 3 tables to ``output_dir``; returns the paths written.
+
+        All or nothing (:class:`pmagpy.magic_project.StagedExport`): a failure
+        part way leaves the output directory as it was. Every file replaced is
+        kept in ``backup_before_pmagpy_intensity/previous/``, and in place the
+        tables as they were before this application first wrote there are
+        kept once in ``backup_before_pmagpy_intensity/``. A separate output
+        directory also receives the source's other tables.
+        """
         self.flush_autosave()
-        self.data.project.backup_originals(self.output_dir, self.BACKUP_TABLES)
-        written = []
-        path = self.data.write_specimens(self.output_dir, analysts=analysts,
-                                         only_accepted=only_accepted)
-        if path:
-            written.append(path)
-        for level in levels:
-            path = self.data.write_group(self.output_dir, level=level, analysts=analysts,
-                                         weighted=weighted)
-            if path:
-                written.append(path)
-        if write_measurements:
-            path = self.data.write_measurements(self.output_dir)
-            if path:
-                written.append(path)
-        path = self.data.write_criteria(self.output_dir)
-        if path:
-            written.append(path)
-        written.append(self.data.save_session(os.path.join(self.output_dir, SESSION_NAME)))
-        written.append(self.data.write_redo(os.path.join(self.output_dir, REDO_NAME)))
+        in_place = os.path.realpath(self.output_dir) == os.path.realpath(self.directory)
+        stage = mp.StagedExport(self.output_dir, backup=os.path.join(self.output_dir,
+                                                                     self.data.project.backup_dir_name()),
+                                originals=in_place)
+        with stage:
+            self.data.write_specimens(stage.dir, analysts=analysts, only_accepted=only_accepted)
+            for level in levels:
+                self.data.write_group(stage.dir, level=level, analysts=analysts, weighted=weighted)
+            if write_measurements:
+                self.data.write_measurements(stage.dir)
+            self.data.write_criteria(stage.dir)
+            self.data.save_session(os.path.join(stage.dir, SESSION_NAME))
+            self.data.write_redo(os.path.join(stage.dir, REDO_NAME))
+        written = list(stage.written)
+        written += mp.copy_companion_tables(self.directory, self.output_dir, skip=written)
+        self.last_backup = stage.backed_up
         return written
 
     def validate_output(self) -> dict:

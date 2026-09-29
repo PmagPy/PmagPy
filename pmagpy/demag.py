@@ -57,6 +57,25 @@ _codes, _join_codes = mp.split_codes, mp.join_codes
 _natural_key, _first_valid = mp.natural_key, mp.first_valid
 _intensity_column, _data_model = mp.intensity_column, mp.data_model
 
+
+def _redo_color(text) -> Optional[str]:
+    """A .redo colour as a CSS colour: a name or ``#rrggbb`` as written, a matplotlib
+    ``(r, g, b[, a])`` tuple (which the legacy GUI sometimes wrote) as hex, else None."""
+    text = "" if text is None else str(text).strip()
+    if not text:
+        return None
+    if text.startswith("(") and text.endswith(")"):
+        try:
+            rgb = [float(v) for v in text.strip("()").split(",")[:3]]
+        except ValueError:
+            return None
+        if len(rgb) == 3 and all(0.0 <= v <= 1.0 for v in rgb):
+            return "#" + "".join(f"{int(round(v * 255)):02x}" for v in rgb)
+        return None
+    if text.startswith("#") or text.replace(" ", "").isalpha():
+        return text
+    return None
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -638,10 +657,17 @@ def steps_from_columns(columns: dict, positions: list, intensity_col: str, warni
             continue
         if "LT-NO" in codes:
             treat_type, value, unit = "NRM", 0.0, ""
-        elif "LT-AF-Z" in codes:
-            treat_type, value, unit = "AF", _to_float(ac_fields[i], 0.0), "T"
-        elif "LT-T-Z" in codes or "LT-LT-Z" in codes:
-            treat_type, value, unit = "T", _to_float(temps[i], KELVIN_OFFSET), "K"
+        elif "LT-AF-Z" in codes or "LT-T-Z" in codes or "LT-LT-Z" in codes:
+            treat_type, unit = ("AF", "T") if "LT-AF-Z" in codes else ("T", "K")
+            value = _to_float(ac_fields[i] if treat_type == "AF" else temps[i])
+            if np.isnan(value):
+                # a step without its field or temperature cannot be placed in the sequence
+                if warnings is not None:
+                    measurement = names[i] if names[i] is not None and not mp.is_null(names[i]) else positions[i]
+                    column = "treat_ac_field" if treat_type == "AF" else "treat_temp"
+                    warnings.append(f"{specimens[i] if specimens[i] is not None else '?'}: measurement "
+                                    f"{measurement} has no {column}; step skipped")
+                continue
         elif "LT-M-Z" in codes:
             power, time = _to_float(mw_powers[i]), _to_float(mw_times[i])
             value = power * time if not (np.isnan(power) or np.isnan(time)) else _to_float(step_nums[i], 0.0)
@@ -796,10 +822,13 @@ class DemagData:
             offline_data_model: use the MagIC data model bundled with pmagpy
                 instead of fetching it from EarthRef (faster, works offline).
         """
-        con = cb.Contribution(directory, custom_filenames={"measurements": meas_file},
-                              read_tables=["measurements", "specimens", "samples", "sites", "locations", "criteria"],
-                              dmodel=_data_model(offline_data_model))
-        return cls(con)
+        warnings: list[str] = []
+        con = mp.read_contribution(directory, meas_file=meas_file, offline_data_model=offline_data_model,
+                                   tables=["measurements", "specimens", "samples", "sites", "locations",
+                                           "criteria"], warnings=warnings)
+        data = cls(con)
+        data.warnings[:0] = warnings
+        return data
 
     def _table(self, name: str) -> Optional[pd.DataFrame]:
         table = self.contribution.tables.get(name)
@@ -922,9 +951,8 @@ class DemagData:
                 names.append(c.name)
         return names
 
-    def add_component(self, specimen: str, name: str, imin: int, imax: int,
-                      fit_type: str = "DE-BFL", quality: str = "g", color: Optional[str] = None) -> Component:
-        """Create (or replace) a component for a specimen."""
+    def _make_component(self, specimen: str, name: str, imin: int, imax: int,
+                        fit_type: str = "DE-BFL", quality: str = "g", color: Optional[str] = None) -> Component:
         if specimen not in self.specimens:
             raise KeyError(specimen)
         if fit_type not in FIT_TYPES:
@@ -933,10 +961,23 @@ class DemagData:
         imin, imax = int(imin) % n, int(imax) % n
         if imin > imax:
             imin, imax = imax, imin
-        comp = Component(specimen, str(name), imin, imax, fit_type, quality, color)
+        return Component(specimen, str(name), imin, imax, fit_type, "b" if quality == "b" else "g", color)
+
+    def add_component(self, specimen: str, name: str, imin: int, imax: int,
+                      fit_type: str = "DE-BFL", quality: str = "g", color: Optional[str] = None) -> Component:
+        """Create (or replace) a component for a specimen."""
+        comp = self._make_component(specimen, name, imin, imax, fit_type, quality, color)
         self.components = [c for c in self.components if c.key() != comp.key()]
         self.components.append(comp)
         return comp
+
+    def _set_components(self, new: list, replace: bool = True) -> None:
+        """Install many components at once (a later one of the same specimen and name wins)."""
+        merged: dict = {} if replace else {c.key(): c for c in self.components}
+        for comp in new:
+            merged.pop(comp.key(), None)
+            merged[comp.key()] = comp
+        self.components = list(merged.values())
 
     def set_step_quality(self, specimen: str, index: int, quality: str) -> None:
         """Flag one measurement step 'g' or 'b' (kept in memory until measurements are written)."""
@@ -961,24 +1002,86 @@ class DemagData:
             self.components = [c for c in self.components if c.specimen != specimen]
 
     # ----- bounds <-> SI values -------------------------------------------
+    #: how far a stored bound may sit from a step and still name it: the legacy
+    #: .redo writes tesla to three significant figures, and kelvin to the degree
+    BOUND_TOLERANCE = {"T": (5e-5, 5e-3), "K": (0.6, 0.0), "J": (0.0, 1e-3), "": (1e-9, 1e-6)}
+
+    @staticmethod
+    def _normalize_bound(spec: SpecimenData, value: float, unit) -> tuple[float, str]:
+        """An SI bound and its unit as the step table holds them.
+
+        Accepts the display units some tables carry (``mT``, ``C``), and repairs
+        the legacy mixed-protocol convention of labelling tesla values ``K``
+        (and kelvin values ``T``), which a value's size gives away when the
+        specimen has steps of both kinds.
+        """
+        unit = "" if mp.is_null(unit) else str(unit).strip()
+        if unit == "mT":
+            value, unit = value * 1e-3, "T"
+        elif unit in ("C", "°C", "degC"):
+            value, unit = value + KELVIN_OFFSET, "K"
+        units = {u for u in spec.steps["treat_unit"].unique() if u}
+        if unit not in ("T", "K", "J") or unit not in units:
+            if len(units) == 1:
+                unit = next(iter(units))
+            elif units:
+                unit = "T" if value < 1.0 else "K"
+        elif unit == "K" and value < 1.0 and "T" in units:
+            unit = "T"
+        elif unit == "T" and value > 1.0 and "K" in units:
+            unit = "K"
+        return value, unit
+
+    def _tolerance(self, value: float, unit: str) -> float:
+        absolute, relative = self.BOUND_TOLERANCE.get(unit, self.BOUND_TOLERANCE[""])
+        return max(absolute, relative * abs(value))
+
     def step_index_for_value(self, specimen: str, value_si: float, unit: str) -> Optional[int]:
-        """Nearest step index for an SI treatment value (MagIC meas_step_*)."""
-        steps = self.specimens[specimen].steps
+        """The step a stored bound (MagIC ``meas_step_min``/``max``, or a .redo bound) refers to.
+
+        The step with that treatment value, taken as the legacy Demag GUI takes
+        it (``demag_gui.get_indices``): the first occurrence, moved on past a
+        repeat of the same treatment when that occurrence is flagged bad -- so
+        a bound on a re-measured step lands on the good re-measurement. A
+        bound that matches no step within :data:`BOUND_TOLERANCE` takes the
+        nearest step, and ``warnings`` says so.
+        """
+        spec = self.specimens[specimen]
+        steps = spec.steps
         value = _to_float(value_si)
-        if np.isnan(value):
+        if np.isnan(value) or len(steps) == 0:
             return None
-        is_nrm_value = value == 0 or (unit == "K" and abs(value - KELVIN_OFFSET) < 1e-6)
+        value, unit = self._normalize_bound(spec, value, unit)
+        types = steps["treat_type"].to_numpy()
+        is_nrm_value = value == 0 or (unit == "K" and abs(value - KELVIN_OFFSET) < 0.6)
         if is_nrm_value:
-            nrm = steps.index[steps["treat_type"] == "NRM"]
+            nrm = np.flatnonzero(types == "NRM")
             if len(nrm):
-                return int(steps.loc[nrm[0], "sequence"])
-        cand = steps[(steps["treat_unit"] == unit) & (steps["treat_type"] != "NRM")]
-        if len(cand) == 0:
-            cand = steps[steps["treat_type"] != "NRM"]
-        if len(cand) == 0:
+                return self._past_bad_repeats(steps, int(nrm[0]))
+        units = steps["treat_unit"].to_numpy()
+        mask = (units == unit) & (types != "NRM")
+        if not mask.any():
+            mask = types != "NRM"
+        if not mask.any():
             return None
-        diffs = (cand["treat_value"] - value).abs()
-        return int(cand.loc[diffs.idxmin(), "sequence"])
+        diffs = np.where(mask, np.abs(steps["treat_value"].to_numpy(dtype=float) - value), np.inf)
+        best = int(np.argmin(diffs))
+        if diffs[best] > self._tolerance(value, unit):
+            self.warnings.append(f"{specimen}: no step at {step_label(value, unit)}; the nearest step "
+                                 f"({steps['label'].iloc[best]}) was used as the bound")
+        return self._past_bad_repeats(steps, best)
+
+    def _past_bad_repeats(self, steps: pd.DataFrame, index: int) -> int:
+        """Move a bound on a bad step on to the next step while that step repeats the same treatment."""
+        quality = steps["quality"].to_numpy()
+        types, units = steps["treat_type"].to_numpy(), steps["treat_unit"].to_numpy()
+        values = steps["treat_value"].to_numpy(dtype=float)
+        n = len(steps)
+        while (quality[index] == "b" and index + 1 < n and types[index + 1] == types[index]
+               and units[index + 1] == units[index]
+               and abs(values[index + 1] - values[index]) <= self._tolerance(values[index], units[index])):
+            index += 1
+        return index
 
     def _si_bound(self, spec: SpecimenData, index: int) -> tuple[float, str]:
         row = spec.steps.iloc[index]
@@ -1018,9 +1121,7 @@ class DemagData:
                         bounds.append("%g" % value)
                 lines.append("\t".join([prefix + specimen, comp.fit_type, bounds[0], bounds[1],
                                         comp.name, comp.color or "", comp.quality]))
-        with open(path, "w") as fh:
-            fh.write("\n".join(lines) + ("\n" if lines else ""))
-        return path
+        return mp.atomic_write_text(path, "\n".join(lines) + ("\n" if lines else ""))
 
     def _unit_for_redo_value(self, spec: SpecimenData, value: float) -> str:
         units = [u for u in spec.steps["treat_unit"].unique() if u]
@@ -1031,40 +1132,71 @@ class DemagData:
     def read_redo(self, path: str, replace: bool = True) -> tuple[int, Optional[str]]:
         """Load components from a .redo file.
 
+        The whole file is read and matched to the specimens before anything
+        changes, so a file that cannot be read, or that belongs to another
+        study, leaves the current fits exactly as they were.
+
         Returns:
             (number of components loaded, name of the 'current_' specimen if any)
+
+        Raises:
+            OSError: the file cannot be read.
+            ValueError: the file holds lines but none of them is a fit of a
+                specimen in this study (``replace`` would otherwise have wiped
+                the current fits for nothing).
         """
-        if replace:
-            self.components = []
+        with open(path, "rb") as fh:
+            text, _ = mp.decode_table_text(fh.read())
         current = None
-        n_added = 0
-        with open(path) as fh:
-            for raw in fh.read().splitlines():
-                if not raw.strip():
-                    continue
-                parts = raw.split("\t")
-                specimen = parts[0]
-                if specimen.startswith("current_"):
-                    specimen = specimen[len("current_"):]
-                    current = specimen
-                if len(parts) < 5 or specimen not in self.specimens:
-                    continue
-                fit_type = parts[1].strip()
-                if fit_type not in FIT_TYPES:
-                    continue
-                spec = self.specimens[specimen]
-                vmin, vmax = _to_float(parts[2]), _to_float(parts[3])
-                if np.isnan(vmin) or np.isnan(vmax):
-                    continue
-                imin = self.step_index_for_value(specimen, vmin, self._unit_for_redo_value(spec, vmin))
-                imax = self.step_index_for_value(specimen, vmax, self._unit_for_redo_value(spec, vmax))
-                if imin is None or imax is None:
-                    continue
-                color = parts[5].strip() if len(parts) > 5 and parts[5].strip() else None
-                quality = "b" if len(parts) > 6 and parts[6].strip() == "b" else "g"
-                self.add_component(specimen, parts[4].strip() or "A", imin, imax, fit_type, quality, color)
-                n_added += 1
-        return n_added, current
+        parsed: list[Component] = []
+        n_lines = 0
+        for raw in text.splitlines():
+            if not raw.strip():
+                continue
+            n_lines += 1
+            parts = raw.split("\t")
+            specimen = parts[0].strip()
+            if specimen.startswith("current_"):
+                specimen = specimen[len("current_"):]
+                current = specimen
+                n_lines -= len(parts) < 5          # a bare "current_" line is not a fit
+            if len(parts) < 5 or specimen not in self.specimens:
+                continue
+            fit_type = parts[1].strip()
+            if fit_type not in FIT_TYPES:
+                continue
+            spec = self.specimens[specimen]
+            vmin, vmax = _to_float(parts[2]), _to_float(parts[3])
+            if np.isnan(vmin) or np.isnan(vmax):
+                continue
+            imin = self.step_index_for_value(specimen, vmin, self._unit_for_redo_value(spec, vmin))
+            imax = self.step_index_for_value(specimen, vmax, self._unit_for_redo_value(spec, vmax))
+            if imin is None or imax is None:
+                continue
+            color = _redo_color(parts[5]) if len(parts) > 5 else None
+            quality = "b" if len(parts) > 6 and parts[6].strip() == "b" else "g"
+            parsed.append(self._make_component(specimen, parts[4].strip() or "A", imin, imax, fit_type,
+                                               quality, color))
+        if n_lines and not parsed:
+            raise ValueError(f"{os.path.basename(path)} holds no fits of specimens in this study")
+        self._set_components(parsed, replace)
+        return len(parsed), (current if current in self.specimens else None)
+
+    def stored_interpretation_count(self) -> int:
+        """How many directional interpretations the specimens table holds (one per specimen and component)."""
+        spec_df = self._table("specimens")
+        if spec_df is None or not {"specimen", "method_codes", "meas_step_min"} <= set(spec_df.columns):
+            return 0
+        rows = spec_df
+        if "dir_dec" in rows.columns:
+            rows = rows[pd.to_numeric(rows["dir_dec"], errors="coerce").notna()]
+        codes = rows["method_codes"].fillna("").astype(str)
+        rows = rows[codes.str.contains("DE-BF|DE-FM", regex=True) & ~codes.str.contains("LP-PI", regex=False)]
+        rows = rows[rows["specimen"].astype(str).isin(self.specimens)]
+        if len(rows) == 0:
+            return 0
+        comp = rows["dir_comp"].fillna("").astype(str) if "dir_comp" in rows.columns else pd.Series("", index=rows.index)
+        return int(pd.DataFrame({"s": rows["specimen"].astype(str), "c": comp}).drop_duplicates().shape[0])
 
     def load_components_from_specimens_table(self, coord: Optional[int] = None) -> int:
         """Import prior interpretations stored in the contribution's specimens table.
@@ -1098,7 +1230,8 @@ class DemagData:
             rank = tilt.map({COORD_SPECIMEN: 0, COORD_GEOGRAPHIC: 1, COORD_TILT: 2}).fillna(3)
             rows = rows.assign(_rank=rank).sort_values("_rank", kind="stable")
         seen = set()
-        n_added = 0
+        parsed: list[Component] = []
+        taken_names: dict = {}
         for _, row in rows.iterrows():
             spec = str(row["specimen"])
             if spec not in self.specimens:
@@ -1117,14 +1250,15 @@ class DemagData:
             if key in seen:            # the same component in another coordinate system
                 continue
             seen.add(key)
+            taken = taken_names.setdefault(spec, {c.name for c in self.components_for(spec)})
             if _is_null(name):
                 # unnamed component: pick the first free letter for this specimen
-                taken = {c.name for c in self.components_for(spec)}
-                name = next(ch for ch in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" if ch not in taken)
+                name = next((ch for ch in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" if ch not in taken), f"F{len(taken) + 1}")
+            taken.add(str(name))
             quality = "b" if str(row.get("result_quality", "g")).strip() == "b" else "g"
-            self.add_component(spec, str(name), imin, imax, fit_types[0], quality)
-            n_added += 1
-        return n_added
+            parsed.append(self._make_component(spec, str(name), imin, imax, fit_types[0], quality))
+        self._set_components(parsed, replace=False)
+        return len(parsed)
 
     # ----- fitting ---------------------------------------------------------
     def _snap_bounds(self, spec: SpecimenData, imin: int, imax: int) -> tuple[int, int]:
@@ -1615,8 +1749,8 @@ class DemagData:
         df = self.merged_specimens_table(coords, analysts)
         if len(df) == 0:
             return None
-        mdf = cb.MagicDataFrame(dtype="specimens", df=df)
-        return mdf.write_magic_file(custom_name=custom_name, dir_path=dir_path)
+        return mp.magic_write(os.path.join(dir_path, os.path.basename(custom_name or "specimens.txt")), df,
+                              "specimens")
 
     def write_measurements(self, dir_path: str, custom_name: str = "measurements.txt") -> Optional[str]:
         """Write the measurements table with the current good/bad (``quality``) flags.
@@ -1634,8 +1768,7 @@ class DemagData:
         col = df.columns.get_loc("quality")
         for spec in self.specimens.values():
             df.iloc[spec.steps["meas_pos"].values, col] = spec.steps["quality"].values
-        target = os.path.join(os.path.realpath(dir_path), os.path.basename(custom_name))
-        return table.write_magic_file(custom_name=target, dir_path=dir_path)
+        return mp.magic_write(os.path.join(dir_path, os.path.basename(custom_name)), df, "measurements")
 
     def _coords_arg(self, coord, coords):
         if coords is not None:
@@ -1694,8 +1827,8 @@ class DemagData:
         df = self.means_table(level, coord=coord, over=over, analysts=analysts, coords=coords)
         if len(df) == 0:
             return None
-        mdf = cb.MagicDataFrame(dtype=level + "s", df=df)
-        return mdf.write_magic_file(custom_name=custom_name, dir_path=dir_path)
+        return mp.magic_write(os.path.join(dir_path, os.path.basename(custom_name or level + "s.txt")), df,
+                              level + "s")
 
     def locations_table(self, coord: Optional[int] = None, over: str = "sites",
                         analysts: Optional[str] = None, common_polarity: bool = True,
@@ -1784,34 +1917,142 @@ class DemagData:
                                   flip=flip, coords=coords)
         if len(df) == 0:
             return None
-        mdf = cb.MagicDataFrame(dtype="locations", df=df)
-        return mdf.write_magic_file(custom_name=custom_name, dir_path=dir_path)
+        return mp.magic_write(os.path.join(dir_path, os.path.basename(custom_name or "locations.txt")), df,
+                              "locations")
 
     # ----- persistence of the interpretation state -------------------------
-    def components_to_json(self) -> str:
+    SESSION_FORMAT = "pmagpy_directions_session"
+
+    def step_flag_changes(self) -> list[dict]:
+        """The steps whose good/bad flag differs from the measurements table as it was read.
+
+        Those flags reach the table only when it is exported, so the session
+        file carries them in between (by measurement name, with the row's
+        position as a fallback for tables whose names are not unique).
+        """
+        table = self.contribution.tables.get("measurements")
+        original = None
+        if table is not None and "quality" in table.df.columns:
+            original = table.df["quality"].to_numpy(dtype=object)
+        changes = []
+        for name, spec in self.specimens.items():
+            steps = spec.steps
+            positions = steps["meas_pos"].to_numpy()
+            now = steps["quality"].to_numpy(dtype=object)
+            if original is None:
+                was = np.full(len(steps), "g", dtype=object)
+            else:
+                was = np.array(["b" if (not _is_null(v) and str(v).strip() == "b") else "g"
+                                for v in original[positions]], dtype=object)
+            for k in np.flatnonzero(now != was):
+                changes.append({"specimen": name, "measurement": str(steps["measurement"].iloc[k]),
+                                "meas_pos": int(positions[k]), "quality": str(now[k])})
+        return changes
+
+    def _bound_ref(self, spec: SpecimenData, index: int) -> dict:
+        value, unit = self._si_bound(spec, index)
+        row = spec.steps.iloc[index]
+        return {"index": int(index), "measurement": str(row["measurement"]), "value": float(value),
+                "unit": unit, "label": str(row["label"])}
+
+    def components_to_json(self, current_specimen: Optional[str] = None) -> str:
+        """The interpretation state -- fits and step flags -- as a JSON session.
+
+        Each bound is recorded as the step's index *and* its measurement name
+        and treatment, so a session restores exactly the steps that were
+        chosen (a re-measured step included), and still finds them by name or
+        value if the measurements table has been edited since.
+        """
         payload = []
         for c in self.components:
             spec = self.specimens[c.specimen]
-            payload.append({**asdict(c),
+            payload.append({"specimen": c.specimen, "name": c.name, "fit_type": c.fit_type, "quality": c.quality,
+                            "color": c.color, "imin": int(c.imin), "imax": int(c.imax),
+                            "min": self._bound_ref(spec, c.imin), "max": self._bound_ref(spec, c.imax),
+                            # read by earlier builds
                             "step_min_label": spec.steps["label"].iloc[c.imin],
                             "step_max_label": spec.steps["label"].iloc[c.imax]})
-        return json.dumps({"software": SOFTWARE_TAG, "components": payload}, indent=1)
+        return json.dumps({"format": self.SESSION_FORMAT, "version": 2, "software": SOFTWARE_TAG,
+                           "directory": self.contribution.directory, "current": current_specimen,
+                           "components": payload, "step_flags": self.step_flag_changes()}, indent=1)
 
-    def components_from_json(self, text: str) -> int:
-        data = json.loads(text)
-        n = 0
-        for c in data.get("components", []):
-            if c["specimen"] in self.specimens:
-                self.add_component(c["specimen"], c["name"], c["imin"], c["imax"],
-                                   c.get("fit_type", "DE-BFL"), c.get("quality", "g"))
-                n += 1
-        return n
+    def _resolve_bound(self, spec: SpecimenData, index, ref) -> Optional[int]:
+        steps = spec.steps
+        n = len(steps)
+        name = (ref or {}).get("measurement")
+        if isinstance(index, (int, float)) and 0 <= int(index) < n:
+            if not name or str(steps["measurement"].iloc[int(index)]) == name:
+                return int(index)
+        if name:
+            hits = np.flatnonzero(steps["measurement"].to_numpy(dtype=object) == name)
+            if len(hits):
+                return int(hits[0])
+        if ref and "value" in ref:
+            return self.step_index_for_value(spec.name, ref["value"], ref.get("unit", ""))
+        return None
 
-    def save_components(self, path: str) -> str:
-        with open(path, "w") as fh:
-            fh.write(self.components_to_json())
-        return path
+    def components_from_json(self, text: str, replace: bool = True) -> tuple[int, Optional[str]]:
+        """Restore a session written by :meth:`components_to_json` (or by earlier builds).
 
-    def load_components(self, path: str) -> int:
-        with open(path) as fh:
-            return self.components_from_json(fh.read())
+        Everything is parsed and matched before anything changes: a file that
+        is not a session, or that belongs to another study, raises
+        ``ValueError`` and leaves the fits and flags as they were.
+
+        Returns:
+            (number of components restored, the session's current specimen or None)
+        """
+        try:
+            data = json.loads(text)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"not a PmagPy Directions session ({exc})") from exc
+        if not isinstance(data, dict) or not isinstance(data.get("components", []), list):
+            raise ValueError("not a PmagPy Directions session")
+        flags = []
+        for item in data.get("step_flags", []) or []:
+            spec = self.specimens.get(str(item.get("specimen")))
+            if spec is None or item.get("quality") not in ("g", "b"):
+                continue
+            names = spec.steps["measurement"].to_numpy(dtype=object)
+            hits = np.flatnonzero(names == item.get("measurement")) if item.get("measurement") else []
+            if len(hits) == 1:
+                flags.append((spec.name, int(hits[0]), item["quality"]))
+                continue
+            positions = np.flatnonzero(spec.steps["meas_pos"].to_numpy() == item.get("meas_pos", -1))
+            if len(positions):
+                flags.append((spec.name, int(positions[0]), item["quality"]))
+        column = lambda name: self.specimens[name].steps.columns.get_loc("quality")       # noqa: E731
+        saved = {(name, index): self.specimens[name].steps["quality"].iloc[index] for name, index, _ in flags}
+        for name, index, quality in flags:            # flags first: they decide where a bad-repeat bound lands
+            self.specimens[name].steps.iat[index, column(name)] = quality
+        parsed: list[Component] = []
+        try:
+            for c in data.get("components", []):
+                spec = self.specimens.get(str(c.get("specimen")))
+                if spec is None or c.get("fit_type", "DE-BFL") not in FIT_TYPES:
+                    continue
+                imin = self._resolve_bound(spec, c.get("imin"), c.get("min"))
+                imax = self._resolve_bound(spec, c.get("imax"), c.get("max"))
+                if imin is None or imax is None:
+                    continue
+                parsed.append(self._make_component(spec.name, str(c.get("name") or "A"), imin, imax,
+                                                   c.get("fit_type", "DE-BFL"), c.get("quality", "g"),
+                                                   _redo_color(c.get("color"))))
+            if data.get("components") and not parsed and not flags:
+                raise ValueError("the session holds no fits of specimens in this study")
+        except Exception:
+            for (name, index), quality in saved.items():
+                self.specimens[name].steps.iat[index, column(name)] = quality
+            raise
+        if flags:
+            self._fit_cache.clear()
+        self._set_components(parsed, replace)
+        current = data.get("current")
+        return len(parsed), (current if current in self.specimens else None)
+
+    def save_components(self, path: str, current_specimen: Optional[str] = None) -> str:
+        return mp.atomic_write_text(path, self.components_to_json(current_specimen))
+
+    def load_components(self, path: str, replace: bool = True) -> tuple[int, Optional[str]]:
+        with open(path, "rb") as fh:
+            text, _ = mp.decode_table_text(fh.read())
+        return self.components_from_json(text, replace)

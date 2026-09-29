@@ -268,7 +268,7 @@ class TestMeansAndExport:
         text = dmag.components_to_json()
         n_before = len(dmag.components)
         dmag.clear_components()
-        assert dmag.components_from_json(text) == n_before
+        assert dmag.components_from_json(text)[0] == n_before
         assert len(dmag.components) == n_before
 
 

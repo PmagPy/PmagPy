@@ -1810,8 +1810,7 @@ class PintData:
         col = df.columns.get_loc("quality")
         for spec in self.specimens.values():
             df.iloc[spec.steps["meas_pos"].values, col] = spec.steps["quality"].values
-        target = os.path.join(os.path.realpath(dir_path), os.path.basename(custom_name))
-        return table.write_magic_file(custom_name=target, dir_path=dir_path)
+        return mp.magic_write(os.path.join(dir_path, os.path.basename(custom_name)), df, "measurements")
 
     def write_criteria(self, dir_path: str) -> Optional[str]:
         df = self.criteria_table()
@@ -1841,13 +1840,30 @@ class PintData:
         return json.dumps(payload, indent=2, sort_keys=True)
 
     def from_json(self, text: str) -> int:
-        payload = json.loads(text)
-        bad = set(payload.get("bad_measurements", []))
-        if bad:
+        """Restore a session written by :meth:`to_json`.
+
+        A file that is not a session, or whose interpretations are all of
+        specimens this study does not have, raises ``ValueError`` before
+        anything changes. The session's list of bad measurements is the whole
+        flag state: a step flagged good again after being bad in the
+        measurements table stays good.
+        """
+        try:
+            payload = json.loads(text)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"not a PmagPy Intensity session ({exc})") from exc
+        if not isinstance(payload, dict) or not isinstance(payload.get("interpretations", []), list):
+            raise ValueError("not a PmagPy Intensity session")
+        items = payload.get("interpretations", [])
+        if items and not any(self.specimens.get(i.get("specimen")) is not None for i in items
+                             if isinstance(i, dict)):
+            raise ValueError("the session holds no interpretations of specimens in this study")
+        if "bad_measurements" in payload:
+            bad = set(payload.get("bad_measurements") or [])
             for spec in self.specimens.values():
-                mask = spec.steps["measurement"].isin(bad)
-                if mask.any():
-                    spec.steps.loc[mask, "quality"] = "b"
+                quality = np.where(spec.steps["measurement"].isin(bad), "b", "g")
+                if (quality != spec.steps["quality"].to_numpy(dtype=object)).any():
+                    spec.steps["quality"] = quality
                     spec.arai = build_arai(spec.steps, spec.warnings)
         self.interpretations.clear()
         count = 0
@@ -1875,10 +1891,7 @@ class PintData:
         return count
 
     def save_session(self, path: str) -> str:
-        os.makedirs(os.path.dirname(os.path.realpath(path)) or ".", exist_ok=True)
-        with open(path, "w", encoding="utf-8") as fh:
-            fh.write(self.to_json())
-        return path
+        return mp.atomic_write_text(path, self.to_json())
 
     def load_session(self, path: str) -> int:
         with open(path, encoding="utf-8") as fh:
@@ -1894,43 +1907,52 @@ class PintData:
             if interp is None or spec is None or spec.arai is None:
                 continue
             lines.append(f"{name}\t{spec.arai.temps[interp.imin]:.0f}\t{spec.arai.temps[interp.imax]:.0f}")
-        with open(path, "w", encoding="utf-8") as fh:
-            fh.write("\n".join(lines) + ("\n" if lines else ""))
-        return path
+        return mp.atomic_write_text(path, "\n".join(lines) + ("\n" if lines else ""))
 
     def read_redo(self, path: str, replace: bool = True) -> Tuple[int, List[str]]:
-        """Read a legacy Thellier GUI ``.redo`` file (specimen, Tmin, Tmax)."""
+        """Read a legacy Thellier GUI ``.redo`` file (specimen, Tmin, Tmax).
+
+        The file is read and matched to the specimens before anything changes:
+        a file that cannot be read, or none of whose lines is a specimen of this
+        study, raises (``OSError`` / ``ValueError``) and leaves the current
+        interpretations as they were.
+        """
+        with open(path, "rb") as fh:
+            text, _ = mp.decode_table_text(fh.read())
+        planned, problems, n_lines = [], [], 0
+        for line in text.splitlines():
+            parts = line.split()
+            if len(parts) < 3:
+                continue
+            n_lines += 1
+            name, tmin, tmax = parts[0], to_float(parts[1]), to_float(parts[2])
+            spec = self.specimens.get(name)
+            if spec is None or spec.arai is None:
+                problems.append(f"{name}: not in this study")
+                continue
+            if np.isnan(tmin) or np.isnan(tmax):
+                problems.append(f"{name}: unreadable bounds")
+                continue
+            imin = int(np.argmin(np.abs(spec.arai.temps - tmin)))
+            imax = int(np.argmin(np.abs(spec.arai.temps - tmax)))
+            # a .redo names a temperature, and matching it to a step by
+            # nearest value is how a bound silently lands on the wrong one.
+            # The interpretation is still made -- it is almost always right
+            # -- but a bound that is not a step of this specimen is said so.
+            for want, got in ((tmin, spec.arai.temps[imin]), (tmax, spec.arai.temps[imax])):
+                if abs(got - want) > REDO_STEP_TOLERANCE:
+                    problems.append(
+                        f"{name}: {want - KELVIN_OFFSET:.0f} C is not a step of this "
+                        f"specimen; used {got - KELVIN_OFFSET:.0f} C")
+            planned.append((name, imin, imax))
+        if n_lines and not planned:
+            raise ValueError(f"{os.path.basename(path)} holds no interpretations of specimens in this study")
         if replace:
             self.interpretations.clear()
-        count, problems = 0, []
-        with open(path, encoding="utf-8", errors="replace") as fh:
-            for line in fh:
-                parts = line.split()
-                if len(parts) < 3:
-                    continue
-                name, tmin, tmax = parts[0], to_float(parts[1]), to_float(parts[2])
-                spec = self.specimens.get(name)
-                if spec is None or spec.arai is None:
-                    problems.append(f"{name}: not in this study")
-                    continue
-                if np.isnan(tmin) or np.isnan(tmax):
-                    problems.append(f"{name}: unreadable bounds")
-                    continue
-                imin = int(np.argmin(np.abs(spec.arai.temps - tmin)))
-                imax = int(np.argmin(np.abs(spec.arai.temps - tmax)))
-                # a .redo names a temperature, and matching it to a step by
-                # nearest value is how a bound silently lands on the wrong one.
-                # The interpretation is still made -- it is almost always right
-                # -- but a bound that is not a step of this specimen is said so.
-                for want, got in ((tmin, spec.arai.temps[imin]), (tmax, spec.arai.temps[imax])):
-                    if abs(got - want) > REDO_STEP_TOLERANCE:
-                        problems.append(
-                            f"{name}: {want - KELVIN_OFFSET:.0f} C is not a step of this "
-                            f"specimen; used {got - KELVIN_OFFSET:.0f} C")
-                self.set_interpretation(name, imin, imax)
-                count += 1
+        for name, imin, imax in planned:
+            self.set_interpretation(name, imin, imax)
         self.invalidate()
-        return count, problems
+        return len(planned), problems
 
     def import_from_specimens_table(self) -> Tuple[int, List[str]]:
         """Re-import stored paleointensity interpretations (``meas_step_min/max``)."""

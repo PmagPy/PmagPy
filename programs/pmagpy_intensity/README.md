@@ -225,7 +225,7 @@ Everything goes to the output directory, which is the data directory unless
 
 | file | when | what |
 |---|---|---|
-| `pmagpy_intensity_autosave.json` | after every change | the interpretations, so a reload or a crash loses nothing |
+| `pmagpy_intensity_autosave.json` | after every change | the interpretations and the step flags, so a reload or a crash loses nothing |
 | `pmagpy_intensity_session.json` | on *Save session* and on export | the whole session: interpretations, flags, criteria, correction switches — human-readable JSON |
 | `pmagpy_intensity.redo` | on *Save .redo* and on export | the legacy bounds format, so the old GUI can read the interpretations back |
 | `specimens.txt` | on export | interpretations merged into the existing rows |
@@ -233,10 +233,16 @@ Everything goes to the output directory, which is the data directory unless
 | `criteria.txt` | on export | the criteria set the results were produced under |
 | `measurements.txt` | on export, optional | the measurements with the quality flags |
 | `backup_before_pmagpy_intensity/` | before the first in-place export | the original tables, copied once |
+| `backup_before_pmagpy_intensity/previous/` | before every export | each table the export replaces |
 
 On opening a directory it restores, in this order: the autosave if there is
-one, then a legacy `thellier_gui.redo` if there is one, then whatever
-interpretations `specimens.txt` already holds. It says which it used.
+one (an unreadable one is renamed `*.unreadable-<time>` and set aside, an
+empty one passed over), then the newer of `specimens.txt` and a legacy
+`thellier_GUI.redo`. It says which it used and names the other. Opening a
+study never writes to it, and a directory that fails to open leaves the open
+study as it was. An export is all or nothing (written to a staging folder,
+moved into place when complete, as UTF-8), and *Load .redo* changes nothing
+unless the file holds interpretations of this study.
 
 ### Settings
 
@@ -247,7 +253,7 @@ back to.
 | variable | does |
 |---|---|
 | `PMAGPY_INTENSITY_DIR` | the directory to open at start-up |
-| `PMAGPY_INTENSITY_OUTPUT` | write under `<this>/<dataset name>` instead of into the data directory |
+| `PMAGPY_INTENSITY_OUTPUT` | write under `<this>/<dataset name>-<path fingerprint>` instead of into the data directory |
 | `PMAGPY_INTENSITY_PORT` | the port (default 5101) |
 | `PMAGPY_INTENSITY_RECENT` | where the recent-directory list is kept |
 

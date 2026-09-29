@@ -195,12 +195,12 @@ def read_table(directory: str, table: str) -> Optional[pd.DataFrame]:
     path = table_path(directory, table)
     if not os.path.isfile(path):
         return None
-    with open(path, encoding="utf-8", errors="replace") as fh:
-        first = fh.readline()
-    if not first.startswith("tab"):
+    import io
+    with open(path, "rb") as fh:
+        text, _ = mp.decode_table_text(fh.read())       # UTF-8, or the Windows code page Excel saves in
+    if not text.startswith("tab"):
         return None
-    df = pd.read_csv(path, sep="\t", header=1, dtype=str, keep_default_na=False, encoding="utf-8",
-                     encoding_errors="replace", low_memory=False)
+    df = pd.read_csv(io.StringIO(text), sep="\t", header=1, dtype=str, keep_default_na=False, low_memory=False)
     df.columns = [c.strip() for c in df.columns]
     return df.reset_index(drop=True)
 
@@ -301,14 +301,19 @@ def backup_exists(directory: str, table: str) -> bool:
 
 
 def backup_once(directory: str, table: str) -> Optional[str]:
-    """Copy ``<table>.txt`` into the backup folder the first time it is about to be rewritten."""
+    """Keep ``<table>.txt`` before it is rewritten: once as the original, and every time as ``previous/``.
+
+    Returns the path of the original's copy when it was made now, else None.
+    """
     src = table_path(directory, table)
     if not os.path.isfile(src):
         return None
+    previous = os.path.join(directory, BACKUP_DIR, "previous", table + ".txt")
+    os.makedirs(os.path.dirname(previous), exist_ok=True)
+    shutil.copy2(src, previous)
     dst = os.path.join(directory, BACKUP_DIR, table + ".txt")
     if os.path.exists(dst):
         return None
-    os.makedirs(os.path.dirname(dst), exist_ok=True)
     shutil.copy2(src, dst)
     return dst
 

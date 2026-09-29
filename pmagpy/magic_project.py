@@ -518,9 +518,12 @@ class MagicProject:
     def from_directory(cls, directory: str, meas_file: str = "measurements.txt",
                        offline_data_model: bool = True, tables: Iterable[str] = None,
                        app_id: str = "pmagpy") -> "MagicProject":
-        con = read_contribution(directory, meas_file=meas_file,
-                                offline_data_model=offline_data_model, tables=tables)
-        return cls(con, app_id=app_id)
+        warnings: list[str] = []
+        con = read_contribution(directory, meas_file=meas_file, offline_data_model=offline_data_model,
+                                tables=tables, warnings=warnings)
+        project = cls(con, app_id=app_id)
+        project.warnings.extend(warnings)
+        return project
 
     @property
     def directory(self) -> str:
@@ -559,6 +562,15 @@ class MagicProject:
                 copied.append(dst)
         return copied
 
+    def reload_table(self, table: str) -> None:
+        """Read one table again from the directory (after it was written), as :func:`read_contribution` reads it."""
+        path = os.path.join(self.directory, self.contribution.filenames.get(table, table + ".txt"))
+        if not os.path.isfile(path):
+            self.contribution.tables.pop(table, None)
+            return
+        _, df = read_table_file(path, expected=table, warnings=self.warnings)
+        self.contribution.tables[table] = table_frame(table, df, self.contribution.data_model)
+
     def write_table(self, df: pd.DataFrame, table: str, dir_path: str,
                     custom_name: Optional[str] = None) -> Optional[str]:
         """Write a DataFrame as a MagIC 3 table inside ``dir_path`` only."""
@@ -571,27 +583,309 @@ class MagicProject:
         return path
 
 
+# ---------------------------------------------------------------------------
+# Reading and writing table files
+# ---------------------------------------------------------------------------
+#
+# The applications read a study with the functions below rather than with
+# ``cb.Contribution(directory)``, for three reasons: contribution_builder
+# rewrites measurements.txt in place when it has no ``measurement`` column
+# (opening a study must never write to it); it lets pandas infer the type of
+# the name columns (``001`` becomes 1, and one blank cell turns every name into
+# a float); and it opens files in the locale's encoding, so a table saved by
+# Excel on Windows either fails or reads differently on another computer.
+# Tables are written back as UTF-8, whole-file-at-once (see atomic_write_text).
+
+#: tried in order; the last never fails, and anything but UTF-8 is reported
+TEXT_ENCODINGS = ("utf-8-sig", "cp1252", "latin-1")
+#: columns that hold names (or lists of names), which must be read as text
+NAME_COLUMNS = ("measurement", "experiment", "specimen", "sample", "site", "location",
+                "specimens", "samples", "sites", "locations", "experiments", "measurements",
+                "table_column", "result_name")
+
+
+class MagicReadError(ValueError):
+    """A table file that cannot be read, with a sentence that says which and why."""
+
+
+def decode_table_text(raw: bytes) -> tuple[str, str]:
+    """``(text, encoding)`` for the bytes of a table file: UTF-8 when it is, else a Windows code page."""
+    for encoding in TEXT_ENCODINGS:
+        try:
+            return raw.decode(encoding), encoding
+        except UnicodeDecodeError:
+            continue
+    raise AssertionError("latin-1 decodes any byte")  # pragma: no cover
+
+
+def read_table_file(path: str, expected: Optional[str] = None,
+                    warnings: Optional[list] = None) -> tuple[Optional[str], Optional[pd.DataFrame]]:
+    """Read one MagIC 3 table file without changing it: ``(table type, DataFrame)``.
+
+    The name columns (:data:`NAME_COLUMNS`) are read as text, the file is
+    decoded as UTF-8 or, failing that, as Windows-1252 (with a warning), and
+    rows that are entirely blank are dropped. A file with only its header line
+    reads as an empty table.
+
+    Raises:
+        MagicReadError: the file is not a MagIC 3 table (no ``tab <type>``
+            first line, a MagIC 2.5 table, or a table of another type than
+            ``expected``), or its body cannot be parsed.
+    """
+    import io
+    name = os.path.basename(path)
+    with open(path, "rb") as fh:
+        raw = fh.read()
+    text, encoding = decode_table_text(raw)
+    if encoding != TEXT_ENCODINGS[0] and warnings is not None:
+        warnings.append(f"{name} is not UTF-8; it was read as {'Windows-1252' if encoding == 'cp1252' else 'Latin-1'} "
+                        "and will be written back as UTF-8")
+    lines = text.splitlines()
+    if not lines or not lines[0].strip():
+        return expected, pd.DataFrame()
+    first = [f.strip() for f in lines[0].split("\t")]
+    if len(first) < 2 or not first[0].lower().startswith("tab"):
+        raise MagicReadError(f"{name} is not a MagIC table: its first line should be 'tab' and the table name "
+                             f"(it is {lines[0][:40]!r})")
+    table = first[1]
+    if table.startswith(("magic_", "er_", "pmag_", "rmag_")):
+        raise MagicReadError(f"{name} is a MagIC 2.5 table ({table}); convert the directory to MagIC 3 first "
+                             "(PmagPy's upgrade_magic.py, or the Convert page)")
+    if expected and table != expected:
+        raise MagicReadError(f"{name} holds a '{table}' table, not '{expected}'")
+    if len(lines) < 2 or not lines[1].strip():
+        return table, pd.DataFrame()
+    header = lines[1].rstrip("\r").split("\t")
+    dtypes = {c: str for c in header if c in NAME_COLUMNS}
+    try:
+        df = pd.read_csv(io.StringIO(text), skiprows=1, sep="\t", dtype=dtypes, low_memory=False)
+    except (pd.errors.ParserError, ValueError) as exc:
+        raise MagicReadError(f"{name} could not be read: {exc}") from exc
+    df = df.dropna(how="all", axis=0)
+    df.columns = [str(c).strip() for c in df.columns]
+    df = df.loc[:, [c for c in df.columns if c and not c.startswith("Unnamed:")]]
+    for col in dtypes:
+        if col in df.columns:
+            df[col] = df[col].where(df[col].isna(), df[col].astype(str).str.strip())
+    return table, df
+
+
+def _name_measurements(df: pd.DataFrame) -> pd.DataFrame:
+    """Give an unnamed measurements table its ``sequence`` and ``measurement`` columns, in memory.
+
+    contribution_builder does this too -- and then writes the file back; here
+    it happens on the copy being read only.
+    """
+    df = df.copy()
+    if "sequence" not in df.columns:
+        df["sequence"] = range(1, len(df) + 1)
+    if "measurement" in df.columns:
+        return df
+    if "number" in df.columns and "treat_step_num" not in df.columns:
+        df = df.rename(columns={"number": "treat_step_num"})
+    steps = df["treat_step_num"] if "treat_step_num" in df.columns else pd.Series(None, index=df.index)
+    steps = steps.map(lambda v: "" if is_null(v) else (str(int(v)) if isinstance(v, float) and v.is_integer()
+                                                        else str(v)))
+    base = df["experiment"] if "experiment" in df.columns else df.get("specimen", pd.Series("", index=df.index))
+    names = base.fillna("").astype(str) + steps
+    # the name must say which row it is (the applications keep flags by it):
+    # where experiment and step number do not, the row's sequence number does
+    repeated = names.duplicated(keep=False) | (names == "")
+    names = names.where(~repeated, names + "-" + df["sequence"].astype(str))
+    df["measurement"] = names
+    return df
+
+
+def table_frame(table: str, df: pd.DataFrame, dmodel=None) -> "cb.MagicDataFrame":
+    """A ``cb.MagicDataFrame`` for rows already read (contribution_builder's own post-processing)."""
+    if table == "measurements":
+        df = _name_measurements(df)
+    df = df.where(df.notnull(), None)
+    mdf = cb.MagicDataFrame(dtype=table, df=df, dmodel=dmodel)
+    if table == "criteria" and "table_column" in mdf.df.columns:
+        mdf.df.index = mdf.df["table_column"]
+    return mdf
+
+
 def read_contribution(directory: str, meas_file: str = "measurements.txt",
                       offline_data_model: bool = True,
-                      tables: Iterable[str] = None) -> cb.Contribution:
-    """Read a MagIC 3 directory with ``contribution_builder``."""
+                      tables: Iterable[str] = None,
+                      warnings: Optional[list] = None) -> cb.Contribution:
+    """Read a MagIC 3 directory into a ``cb.Contribution`` without writing anything.
+
+    Each table is read by :func:`read_table_file`. A missing table is simply
+    absent; a table that exists but cannot be read is left out with a warning,
+    except the measurements table, whose problems are raised
+    (:class:`MagicReadError`) because nothing can be done without it.
+    """
     tables = list(tables) if tables is not None else \
         ["measurements", "specimens", "samples", "sites", "locations"]
-    return cb.Contribution(directory, custom_filenames={"measurements": meas_file},
-                           read_tables=tables, dmodel=data_model(offline_data_model))
+    dmodel = data_model(offline_data_model)
+    con = cb.Contribution(directory, custom_filenames={"measurements": meas_file},
+                          read_tables=[], dmodel=dmodel)
+    for table in tables:
+        path = os.path.join(con.directory, con.filenames.get(table, table + ".txt"))
+        if not os.path.isfile(path):
+            continue
+        try:
+            _, df = read_table_file(path, expected=table, warnings=warnings)
+        except (MagicReadError, OSError) as exc:
+            if table == "measurements":
+                raise MagicReadError(str(exc)) from exc
+            if warnings is not None:
+                warnings.append(f"{os.path.basename(path)} was not read: {exc}")
+            continue
+        name = table[:-1]
+        if table == "measurements" and len(df) and "specimen" not in df.columns:
+            raise MagicReadError(f"{os.path.basename(path)} has no 'specimen' column")
+        if len(df) and table not in ("ages", "contribution", "images", "criteria", "measurements") \
+                and name not in df.columns:
+            if warnings is not None:
+                warnings.append(f"{os.path.basename(path)} was not read: it has no '{name}' column")
+            continue
+        if table == "measurements" and len(df) == 0:
+            raise MagicReadError(f"{os.path.basename(path)} holds no measurements")
+        con.tables[table] = table_frame(table, df, dmodel)
+    return con
+
+
+def atomic_write_text(path: str, text: str, encoding: str = "utf-8") -> str:
+    """Write ``text`` to ``path`` all at once: a crash leaves the old file or the new one, never half of one.
+
+    The text goes to a temporary file beside the target, which then replaces
+    it (``os.replace`` is atomic on one file system). UTF-8, ``\\n`` line
+    endings, whatever the computer's locale.
+    """
+    import tempfile
+    directory = os.path.dirname(os.path.abspath(path)) or "."
+    os.makedirs(directory, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(prefix="." + os.path.basename(path) + ".", suffix=".tmp", dir=directory)
+    try:
+        with os.fdopen(fd, "w", encoding=encoding, newline="\n") as fh:
+            fh.write(text)
+            fh.flush()
+            os.fsync(fh.fileno())
+        if os.path.exists(path):
+            try:
+                shutil.copymode(path, tmp)
+            except OSError:
+                pass
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+    return path
+
+
+class StagedExport:
+    """Write a set of files into a directory all or nothing, keeping what they replace.
+
+    Everything is first written to a staging folder inside ``output_dir``;
+    only when every file has been written are they moved into place, each
+    replacing its target in one step. An exception on the way leaves the
+    output directory exactly as it was. Every file that is replaced is first
+    copied to ``<backup>/previous/`` (so the last export can be undone), and,
+    when ``originals`` is true, to ``<backup>/`` the first time it is
+    replaced (so the contribution as it was before the application first
+    wrote to it can always be recovered)::
+
+        with StagedExport(output_dir, backup) as stage:
+            data.write_specimens(stage.dir)          # writers write into stage.dir
+        stage.written                                # the final paths
+    """
+
+    def __init__(self, output_dir: str, backup: Optional[str] = None, originals: bool = False):
+        self.output_dir = os.path.abspath(output_dir)
+        self.backup = backup
+        self.originals = originals
+        self.dir = ""
+        self.written: list[str] = []
+        self.backed_up: list[str] = []
+
+    def __enter__(self) -> "StagedExport":
+        import tempfile
+        os.makedirs(self.output_dir, exist_ok=True)
+        self.dir = tempfile.mkdtemp(prefix=".staging-", dir=self.output_dir)
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> bool:
+        try:
+            if exc_type is None:
+                self._commit()
+        finally:
+            shutil.rmtree(self.dir, ignore_errors=True)
+        return False
+
+    def _commit(self) -> None:
+        # in the order they were written (the callers list the first table first)
+        names = sorted((n for n in os.listdir(self.dir) if not n.startswith(".")),
+                       key=lambda n: (os.stat(os.path.join(self.dir, n)).st_mtime_ns, n))
+        if self.backup:
+            previous = os.path.join(self.backup, "previous")
+            for name in names:
+                target = os.path.join(self.output_dir, name)
+                if not os.path.isfile(target):
+                    continue
+                if self.originals and not os.path.exists(os.path.join(self.backup, name)):
+                    os.makedirs(self.backup, exist_ok=True)
+                    shutil.copy2(target, os.path.join(self.backup, name))
+                    self.backed_up.append(os.path.join(self.backup, name))
+                os.makedirs(previous, exist_ok=True)
+                shutil.copy2(target, os.path.join(previous, name))
+        for name in names:
+            target = os.path.join(self.output_dir, name)
+            os.replace(os.path.join(self.dir, name), target)
+            self.written.append(target)
+
+
+#: tables a complete MagIC directory carries that an application does not write itself
+COMPANION_TABLES = ("contribution.txt", "ages.txt", "criteria.txt", "images.txt",
+                    "specimens.txt", "samples.txt", "sites.txt", "locations.txt", "measurements.txt")
+
+
+def copy_companion_tables(source_dir: str, output_dir: str, skip: Iterable[str] = ()) -> list[str]:
+    """Copy the source's other tables into a separate output directory so that it is a complete contribution.
+
+    Only tables the export did not write (``skip``) and that the output
+    directory does not hold in a newer copy are copied. Nothing happens when
+    the output directory is the source directory.
+    """
+    if os.path.realpath(source_dir) == os.path.realpath(output_dir):
+        return []
+    skip = {os.path.basename(s) for s in skip}
+    copied = []
+    for name in COMPANION_TABLES:
+        src, dst = os.path.join(source_dir, name), os.path.join(output_dir, name)
+        if name in skip or not os.path.isfile(src):
+            continue
+        if os.path.isfile(dst) and os.path.getmtime(dst) >= os.path.getmtime(src):
+            continue
+        os.makedirs(output_dir, exist_ok=True)
+        shutil.copy2(src, dst)
+        copied.append(dst)
+    return copied
+
+
+def magic_table_text(df: pd.DataFrame, table: str) -> str:
+    """A DataFrame as the text of a MagIC 3 table file (columns in data-model order)."""
+    if table == "measurements" and "measurement" not in df.columns:
+        df = _name_measurements(df)
+    mdf = cb.MagicDataFrame(dtype=table, df=df.copy())
+    mdf.sort_dataframe_cols()
+    out = mdf.df
+    name = table[:-1]
+    out = out.drop(columns=[c for c in ("num", name + "_name") if c in out.columns])
+    if name in out.columns:
+        out[name] = out[name].astype(str)
+    return f"tab\t{table}\n" + out.to_csv(sep="\t", index=False, lineterminator="\n")
 
 
 def magic_write(path: str, df: pd.DataFrame, table: str) -> str:
-    """Write a MagIC 3 tab-delimited table through ``contribution_builder``."""
-    if table == "measurements" and "measurement" not in df.columns and "experiment" in df.columns:
-        # MagicDataFrame adds this column itself — and writes the table into the
-        # working directory as a side effect; name the measurements here instead
-        df = df.copy()
-        steps = df["treat_step_num"].astype(str) if "treat_step_num" in df.columns else pd.Series("", index=df.index)
-        df["measurement"] = df["experiment"].astype(str) + steps.where(steps != "nan", "")
-    mdf = cb.MagicDataFrame(dtype=table, df=df)
-    return mdf.write_magic_file(custom_name=os.path.basename(path),
-                                dir_path=os.path.dirname(os.path.realpath(path)) or ".")
+    """Write a MagIC 3 tab-delimited table (UTF-8, atomically)."""
+    return atomic_write_text(path, magic_table_text(df, table))
 
 
 def table_rows(path: str) -> int:

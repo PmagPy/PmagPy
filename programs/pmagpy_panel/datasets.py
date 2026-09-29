@@ -49,18 +49,60 @@ def looks_like_magic_dir(directory: str) -> bool:
 
 
 def default_output_dir(directory: str, base: str = "") -> str:
-    """The data directory itself, or ``<base>/<dataset name>`` when a base is given."""
+    """The data directory itself, or a folder of its own under ``base`` when a base is given.
+
+    The folder is named after the dataset *and* a short fingerprint of its full
+    path (``MagIC-3f2a91c0``): studies are often kept in folders with the same
+    name (``MagIC``, ``data``), and two of them sharing one output folder would
+    share -- and overwrite -- one autosave and one set of exported tables.
+    """
     if base:
-        return os.path.join(base, os.path.basename(os.path.abspath(directory).rstrip("/")))
+        import hashlib
+        path = os.path.realpath(os.path.abspath(os.path.expanduser(directory)).rstrip("/"))
+        tag = hashlib.sha1(path.encode("utf-8")).hexdigest()[:8]
+        return os.path.join(base, f"{os.path.basename(path)}-{tag}")
     return directory
+
+
+#: the tables whose files decide whether a dataset read earlier is still current
+STAMPED_TABLES = ("measurements.txt", "specimens.txt", "samples.txt", "sites.txt", "locations.txt",
+                  "criteria.txt", "ages.txt")
+
+
+def table_stamp(directory: str, names: Sequence[str] = STAMPED_TABLES) -> tuple:
+    """(name, size, modification time) of each table file: changes whenever a table is edited on disk."""
+    stamp = []
+    for name in names:
+        try:
+            st = os.stat(os.path.join(directory, name))
+        except OSError:
+            continue
+        stamp.append((name, st.st_size, st.st_mtime_ns))
+    return tuple(stamp)
+
+
+def set_aside(path: str) -> str:
+    """Rename a file that could not be read to ``<name>.unreadable-<time>`` beside it; returns the new path.
+
+    Used for an autosave that no longer parses: it must not block opening the
+    dataset, and it must not be silently overwritten by the next autosave
+    either, in case it is worth recovering by hand.
+    """
+    import time
+    target = f"{path}.unreadable-{time.strftime('%Y%m%d-%H%M%S')}"
+    try:
+        os.replace(path, target)
+    except OSError:
+        return path
+    return target
 
 
 def load_recent(path: str) -> list:
     """Recently opened MagIC directories (most recent first) that still exist."""
     try:
-        with open(path) as fh:
-            return [d for d in json.load(fh) if os.path.isdir(d)]
-    except (OSError, ValueError):
+        with open(path, encoding="utf-8") as fh:
+            return [d for d in json.load(fh) if isinstance(d, str) and os.path.isdir(d)]
+    except (OSError, ValueError, TypeError):
         return []
 
 
@@ -71,9 +113,8 @@ def remember_recent(path: str, directory: str, limit: int = 12) -> list:
     recent.insert(0, directory)
     recent = recent[:limit]
     try:
-        os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
-        with open(path, "w") as fh:
-            json.dump(recent, fh, indent=1)
+        from pmagpy.magic_project import atomic_write_text
+        atomic_write_text(path, json.dumps(recent, indent=1))
     except OSError:
         pass
     return recent

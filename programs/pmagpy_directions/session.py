@@ -1,7 +1,8 @@
 """
 The analysis session: one ``DemagData`` plus the interactive state that every
 view shares (current specimen, coordinate system, projection, selected fit,
-component colours) and the persistence policy (auto-saved ``.redo``).
+component colours) and the persistence policy (an auto-saved session file:
+the fits and the step flags, restored when the dataset is opened again).
 """
 from __future__ import annotations
 
@@ -12,6 +13,7 @@ import numpy as np
 import param
 
 import pmagpy.demag as dc
+from pmagpy import magic_project as mp
 
 from pmagpy_panel import AppInfo, datasets, runtime
 from pmagpy_panel.theme import ComponentColors
@@ -26,8 +28,9 @@ def env(name: str, default: str = "") -> str:
     return datasets.env(name, APP.env_prefixes, default)
 
 
-AUTOSAVE_NAME = f"{dc.APP_ID}_autosave.redo"
-LEGACY_AUTOSAVE_NAMES = ("demag_v3_autosave.redo",)          # written by earlier builds of this app
+AUTOSAVE_NAME = f"{dc.APP_ID}_autosave.json"
+# written by earlier builds of this app (fits only, as a .redo), read when there is no newer autosave
+LEGACY_AUTOSAVE_NAMES = (f"{dc.APP_ID}_autosave.redo", "demag_v3_autosave.redo")
 REDO_NAME = f"{dc.APP_ID}.redo"
 # the recent list is shared by every PmagPy application; the per-application file
 # earlier builds kept seeds it once
@@ -64,12 +67,12 @@ def session_directory(default: str) -> str:
 
 
 def default_output_dir(directory: str) -> str:
-    """The data directory itself, or <PMAGPY_DIRECTIONS_OUTPUT>/<dataset name> when that variable is set."""
+    """The data directory itself, or a folder of the dataset's own under ``PMAGPY_DIRECTIONS_OUTPUT`` when set."""
     return datasets.default_output_dir(directory, base=env("OUTPUT", ""))
 
 
-_DATASETS: dict = {}          # directory -> (DemagData, code stamp); shared by all browser sessions
-AUTOSAVE_DELAY = 0.8          # seconds of quiet after an edit before the .redo is written
+_DATASETS: dict = {}          # directory -> (DemagData, (code stamp, table stamp)); shared by all browser sessions
+AUTOSAVE_DELAY = 0.8          # seconds of quiet after an edit before the session file is written
 
 
 def _server_document():
@@ -92,7 +95,7 @@ def _code_stamp() -> float:
     """
     here = os.path.dirname(os.path.abspath(__file__))
     core = os.path.dirname(os.path.abspath(dc.__file__))
-    files = [os.path.join(core, "demag.py"), os.path.join(core, "demag_geo.py")]
+    files = [os.path.join(core, "demag.py"), os.path.join(core, "demag_geo.py"), os.path.join(core, "magic_project.py")]
     if os.path.isdir(here):
         files += [os.path.join(here, f) for f in os.listdir(here) if f.endswith(".py")]
     stamps = [os.path.getmtime(f) for f in files if os.path.exists(f)]
@@ -134,37 +137,33 @@ class Session(param.Parameterized):
 
     # ------------------------------------------------------------------ loading
     def load(self, directory: str, output_dir: Optional[str] = None) -> bool:
+        """Open a MagIC directory; False (with the reason in ``status``) when it cannot be opened.
+
+        Nothing about the session changes until the new dataset has been read
+        and its fits restored: a directory that fails to open leaves the open
+        dataset, its output directory and its fits exactly as they were.
+        """
         directory = os.path.abspath(os.path.expanduser(directory))
         if not looks_like_magic_dir(directory):
             self.status = f"{directory} has no measurements.txt"
             return False
         self.flush_autosave()         # the dataset being left keeps its last edits
-        self.output_dir = output_dir or default_output_dir(directory)
-        stamp = _code_stamp()
+        output_dir = os.path.abspath(os.path.expanduser(output_dir)) if output_dir else default_output_dir(directory)
+        stamp = (_code_stamp(), datasets.table_stamp(directory))
         cached = _DATASETS.get(directory) if self.cache else None
-        if cached is not None and cached[1] == stamp:
-            data, current, message = cached[0], None, f"{len(cached[0].components)} fits in memory"
-        else:
-            try:
-                data = dc.DemagData.from_directory(directory)
-            except Exception as exc:
-                self.status = f"Could not load {directory}: {exc}"
-                return False
-            autosaves = [os.path.join(self.output_dir, n) for n in (AUTOSAVE_NAME,) + LEGACY_AUTOSAVE_NAMES]
-            autosave = next((p for p in autosaves if os.path.exists(p)), None)
-            legacy = os.path.join(directory, "demag_gui.redo")
-            if autosave:
-                n, current = data.read_redo(autosave)
-                message = f"restored {n} fits from {os.path.basename(autosave)}"
-            elif os.path.exists(legacy):
-                n, current = data.read_redo(legacy)
-                message = f"loaded {n} fits from demag_gui.redo"
+        try:
+            if cached is not None and cached[1] == stamp:
+                data, current, message = cached[0], None, f"{len(cached[0].components)} fits in memory"
             else:
-                n = data.load_components_from_specimens_table()
-                current = None
-                message = f"imported {n} fits from specimens.txt"
-            if self.cache:
-                _DATASETS[directory] = (data, stamp)
+                data = dc.DemagData.from_directory(directory)
+                current, message = self._restore(data, directory, output_dir)
+                if self.cache:
+                    _DATASETS[directory] = (data, stamp)
+        except Exception as exc:          # anything at all: the dataset is not opened, the open one is kept
+            reason = str(exc) or type(exc).__name__
+            self.status = f"Could not open {directory}: {reason}"
+            return False
+        self.output_dir = output_dir
         self.data = data
         data.set_criteria(data._table("criteria") if self.apply_criteria else None)   # a cached dataset may differ
         self.colors = ComponentColors()
@@ -174,6 +173,9 @@ class Session(param.Parameterized):
                 self.colors.assign(comp.name, comp.color) if comp.name not in self.colors.as_dict() else None
         names = data.specimen_names
         self.param.specimen.objects = names
+        n_warnings = len(data.warnings)
+        if n_warnings:
+            message += f"; {n_warnings} warning{'s' if n_warnings > 1 else ''} while reading (see Export → Log)"
         # one batched update: the views' watchers must see the new dataset, the new
         # specimen and the cleared selection together (a redraw in between would look
         # the old specimen name up in the new dataset)
@@ -185,6 +187,71 @@ class Session(param.Parameterized):
         # its watcher does not run: the selected fit is settled here in every case
         self._sync_current()
         return True
+
+    def _restore(self, data: dc.DemagData, directory: str, output_dir: str) -> tuple:
+        """Bring back the interpretations of a freshly read dataset: ``(current specimen, message)``.
+
+        In order: the autosave (the work in progress of this application), the
+        interpretations stored in specimens.txt, the legacy Demag GUI's
+        demag_gui.redo. An autosave that cannot be read is set aside (renamed,
+        not deleted) and one that holds nothing is passed over; the message
+        says where the fits came from and which other source exists.
+        """
+        notes = []
+        stored = data.stored_interpretation_count()
+        legacy = os.path.join(directory, "demag_gui.redo")
+        spec_file = os.path.join(directory, "specimens.txt")
+        for path in [os.path.join(output_dir, n) for n in (AUTOSAVE_NAME,) + LEGACY_AUTOSAVE_NAMES]:
+            if not os.path.exists(path):
+                continue
+            name = os.path.basename(path)
+            try:
+                if path.endswith(".json"):
+                    n, current = data.load_components(path)
+                else:
+                    n, current = data.read_redo(path)
+            except (OSError, ValueError, KeyError, TypeError) as exc:
+                moved = datasets.set_aside(path)
+                notes.append(f"the autosave {name} could not be read ({exc}) and was set aside as "
+                             f"{os.path.basename(moved)}")
+                continue
+            if n == 0:
+                notes.append(f"the autosave {name} held no fits and was passed over")
+                continue
+            message = f"restored {n} fits from the autosave"
+            if stored:
+                newer = os.path.exists(spec_file) and os.path.getmtime(spec_file) > os.path.getmtime(path)
+                notes.append(f"specimens.txt holds {stored} interpretations{' and is newer' if newer else ''} "
+                             "(Export → Import from specimens.txt replaces the restored fits with them)")
+            return current, "; ".join([message] + notes)
+        if stored and os.path.exists(legacy) and os.path.exists(spec_file) and \
+                os.path.getmtime(legacy) > os.path.getmtime(spec_file):
+            # the legacy GUI saved its .redo more often than it exported: the newer of the two is the later work
+            try:
+                n, current = data.read_redo(legacy)
+            except (OSError, ValueError) as exc:
+                n, current = 0, None
+                notes.append(f"demag_gui.redo could not be read ({exc})")
+            if n:
+                return current, "; ".join([f"loaded {n} fits from demag_gui.redo, which is newer than specimens.txt "
+                                           f"(its {stored} interpretations: Export → Import from specimens.txt)"]
+                                          + notes)
+            if not notes:
+                notes.append("demag_gui.redo held no fits and was passed over")
+            legacy = ""
+        if stored:
+            n = data.load_components_from_specimens_table()
+            message = f"imported {n} fits from specimens.txt"
+            if legacy and os.path.exists(legacy):
+                notes.append("demag_gui.redo was not read (Export → Load .redo reads it)")
+            return None, "; ".join([message] + notes)
+        if legacy and os.path.exists(legacy):
+            try:
+                n, current = data.read_redo(legacy)
+                return current, "; ".join([f"loaded {n} fits from demag_gui.redo"] + notes)
+            except (OSError, ValueError) as exc:
+                notes.append(f"demag_gui.redo could not be read ({exc})")
+        return None, "; ".join(["no interpretations yet"] + notes)
 
     # ------------------------------------------------------------------ accessors
     @property
@@ -364,13 +431,12 @@ class Session(param.Parameterized):
         return os.path.join(self.output_dir, AUTOSAVE_NAME)
 
     def autosave(self) -> None:
-        """Write the auto-saved ``.redo`` now."""
+        """Write the auto-saved session (fits and step flags) now."""
         self._autosave_pending = None
-        if self.data is None:
+        if self.data is None or not self.autosave_enabled:
             return
         try:
-            os.makedirs(self.output_dir, exist_ok=True)
-            self.data.write_redo(self.autosave_path, current_specimen=self.specimen)
+            self.data.save_components(self.autosave_path, current_specimen=self.specimen)
         except OSError as exc:
             self.status = f"autosave failed: {exc}"
 
@@ -439,33 +505,35 @@ class Session(param.Parameterized):
         geographic and tilt-corrected rows side by side, as the legacy GUI
         wrote them); ``mean_coord`` selects a single one instead.
 
-        When the output directory is the data directory itself, the tables
-        about to be overwritten are copied once to ``backup_before_pmagpy_directions/``
-        so that the original contribution can always be recovered.
+        The tables are written all or nothing (:class:`pmagpy.magic_project.StagedExport`):
+        a failure part way leaves the output directory as it was. Every table
+        replaced is kept in ``backup_before_pmagpy_directions/previous/``, and
+        when the output directory is the data directory itself the tables as
+        they were before this application first wrote there are kept once in
+        ``backup_before_pmagpy_directions/``. An output directory of its own
+        also receives the source's other tables (ages, criteria, contribution,
+        ...) so that it is a complete contribution.
         """
-        os.makedirs(self.output_dir, exist_ok=True)
         self.flush_autosave()
-        self.backup_originals(levels, write_measurements)
-        written = []
-        p = self.data.write_specimens(self.output_dir, coords=coords, analysts=analysts)
-        if p:
-            written.append(p)
-        if write_measurements:
-            p = self.data.write_measurements(self.output_dir)
-            if p:
-                written.append(p)
         if mean_coords is None:
             mean_coords = (mean_coord,) if mean_coord is not None else self.default_mean_coords()
         common_polarity = self.unify_polarity if common_polarity is None else common_polarity
         flip = self.flip_polarity if flip is None else flip
-        for level in levels:
-            over = {"site": site_over, "location": "sites"}.get(level, "specimens")
-            p = self.data.write_means(level, self.output_dir, coords=tuple(mean_coords), over=over, analysts=analysts,
+        in_place = os.path.realpath(self.output_dir) == os.path.realpath(self.directory)
+        stage = mp.StagedExport(self.output_dir, backup=os.path.join(self.output_dir, self.BACKUP_DIR),
+                                originals=in_place)
+        with stage:
+            self.data.write_specimens(stage.dir, coords=coords, analysts=analysts)
+            if write_measurements:
+                self.data.write_measurements(stage.dir)
+            for level in levels:
+                over = {"site": site_over, "location": "sites"}.get(level, "specimens")
+                self.data.write_means(level, stage.dir, coords=tuple(mean_coords), over=over, analysts=analysts,
                                       common_polarity=common_polarity, flip=flip)
-            if p:
-                written.append(p)
-        written.append(self.data.write_redo(os.path.join(self.output_dir, REDO_NAME),
-                                            current_specimen=self.specimen))
+            self.data.write_redo(os.path.join(stage.dir, REDO_NAME), current_specimen=self.specimen)
+        written = list(stage.written)
+        written += mp.copy_companion_tables(self.directory, self.output_dir, skip=written)
+        self.last_backup = stage.backed_up
         return written
 
     def default_mean_coords(self) -> tuple:
@@ -477,22 +545,6 @@ class Session(param.Parameterized):
         return oriented or (dc.COORD_SPECIMEN,)
 
     BACKUP_DIR = f"backup_before_{dc.APP_ID}"
-
-    def backup_originals(self, levels=("sample", "site", "location"), measurements: bool = True) -> list[str]:
-        """Copy the source tables that an in-place export would overwrite (once)."""
-        if os.path.realpath(self.output_dir) != os.path.realpath(self.directory):
-            return []
-        import shutil
-        names = ["specimens.txt"] + [f"{lvl}s.txt" for lvl in levels] + (["measurements.txt"] if measurements else [])
-        backup = os.path.join(self.output_dir, self.BACKUP_DIR)
-        copied = []
-        for name in names:
-            src, dst = os.path.join(self.directory, name), os.path.join(backup, name)
-            if os.path.exists(src) and not os.path.exists(dst):
-                os.makedirs(backup, exist_ok=True)
-                shutil.copy2(src, dst)
-                copied.append(dst)
-        return copied
 
     def validate_output(self) -> dict:
         """Validate the MagIC tables in the output directory with pmagpy's validator."""

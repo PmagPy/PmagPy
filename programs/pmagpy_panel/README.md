@@ -320,7 +320,7 @@ python ui_test.py http://localhost:5100/pmagpy_directions screenshots/app
 The browser suite is worth writing for the second application too: it is what
 catches the things unit tests cannot — circularity, drag behaviour, a template
 that fails to build. Note that running it leaves a gitignored
-`*_autosave.redo` in the data directory; delete it afterwards so a throwaway
+`*_autosave.json` in the data directory; delete it afterwards so a throwaway
 interpretation is not restored on the next load.
 
 ## Working on the shared branch

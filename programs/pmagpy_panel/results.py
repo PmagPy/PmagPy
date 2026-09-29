@@ -195,7 +195,7 @@ class TableSave:
         after.loc[touched, "software_packages"] = project.software_tag
         backed_up = project.backup_originals(project.directory, [self.table + ".txt"])
         path = project.write_table(after, self.table, project.directory)
-        project.contribution.add_magic_table(self.table)                   # the in-memory table follows the file
+        project.reload_table(self.table)                                    # the in-memory table follows the file
         if self.after_save is not None:                                    # e.g. a session reload: views refresh...
             self.after_save(path)
         lines = self.analysis + self.save_lines()                           # ...and the record of the save stays up

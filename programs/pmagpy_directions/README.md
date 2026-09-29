@@ -268,19 +268,32 @@ pole criteria (`NPOLE`/`RPOLE`) are not the concern of this application.
 
 ### Persistence model
 
-Fits are the light-weight, coordinate-independent part of the
-work, so they are kept in the legacy `.redo` format (specimen, fit type,
-lower/upper treatment in K or T, name, colour, flag) — human readable and
-interchangeable with the old GUI. The app auto-saves
-`pmagpy_directions_autosave.redo` after every change and restores it on the next
-load (falling back to `demag_gui.redo`, then to `specimens.txt`). Writing
-the full MagIC tables is the explicit, deliberate step. Measurement
-good/bad flags live where MagIC keeps them, in the `quality` column of
-`measurements.txt`, and are written on export. The app never rewrites the
-files it was loaded from unless the output directory is the data directory
-(the MagIC workflow of building the contribution in place); in that case
-the original tables are copied once to `backup_before_pmagpy_directions/` before
-the first export.
+The work in progress is the fits and the step flags. The app auto-saves them
+to `pmagpy_directions_autosave.json` after every change (each bound recorded
+by step index, measurement name and treatment, so a re-measured step comes
+back exactly; flags recorded where they differ from `measurements.txt`) and
+restores them on the next load. On opening a directory the fits come from,
+in order: that autosave (one that cannot be read is renamed
+`*.unreadable-<time>` and set aside; one that holds no fits is passed over);
+then the newer of `specimens.txt` and the legacy `demag_gui.redo`. The
+status line says which was used and names the other sources present. The
+legacy `.redo` format (specimen, fit type, bounds in K or T, name, colour,
+flag) is still written on export (`pmagpy_directions.redo`) and read by
+*Load .redo*, which changes nothing unless the file holds fits of this study.
+
+Writing the MagIC tables is the explicit, deliberate step. Opening a study
+never writes to it (a `measurements.txt` without measurement names is named
+in memory only). An export is all or nothing: the tables are written to a
+staging folder and moved into place only when every one of them is complete,
+always as UTF-8. Every table an export replaces is kept in
+`backup_before_pmagpy_directions/previous/`, and when the output directory
+is the data directory itself (the MagIC workflow of building the
+contribution in place) the tables as they were before this application first
+wrote there are also kept, once, in `backup_before_pmagpy_directions/`. An
+output directory of its own (`PMAGPY_DIRECTIONS_OUTPUT`, or the desktop
+build's `~/PmagPy Directions/`) is named after the dataset and a fingerprint
+of its path, so studies in folders of the same name never share one, and it
+receives the source's other tables so that it is a complete contribution.
 
 ### Publication figures
 
