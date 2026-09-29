@@ -196,8 +196,11 @@ class Session(param.Parameterized):
         if os.path.exists(autosave):
             try:
                 n = data.load_session(autosave)
-                if n:
-                    return "; ".join([f"restored {n} interpretations from the autosave"] + notes)
+                held = len(getattr(data, "_set_aside", {}))
+                if n or held or data.step_flag_changes():
+                    # interpretations, fits set aside by a bad-step flag, or flags: work, not an empty file
+                    extra = f" and {held} set aside by a flag" if held else ""
+                    return "; ".join([f"restored {n} interpretations{extra} from the autosave"] + notes)
                 notes.append("the autosave held no interpretations and was passed over")
             except (OSError, ValueError, KeyError, TypeError) as exc:
                 moved = datasets.set_aside(autosave)
@@ -452,6 +455,8 @@ class Session(param.Parameterized):
             self.data.save_session(os.path.join(stage.dir, SESSION_NAME))
             self.data.write_redo(os.path.join(stage.dir, REDO_NAME))
         written = list(stage.written)
+        if in_place and write_measurements:
+            self.data.flags_written()        # the study's file now has these flags: later changes count from them
         written += mp.copy_companion_tables(self.directory, self.output_dir, skip=written)
         self.last_backup = stage.backed_up
         return written

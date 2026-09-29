@@ -390,7 +390,10 @@ class SpecimenView:
         if self._updating or not self.s.ready:
             return
         lo, hi = self.tmin.value, self.tmax.value
-        if lo is None or hi is None:
+        if lo is None or hi is None or lo == hi:
+            # equal bounds are no interpretation: they are what the two selectors hold when a
+            # specimen without one is shown (each defaults to its first option, and the browser
+            # sends that back), and they would otherwise create a one-point fit on opening
             return
         self.s.set_bounds(min(lo, hi), max(lo, hi))
 

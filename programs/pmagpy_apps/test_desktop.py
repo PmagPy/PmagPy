@@ -121,8 +121,12 @@ class TestSplash:
 
 class TestDesktop:
     def test_the_environment_is_prepared_for_the_edition(self, monkeypatch, tmp_path):
-        monkeypatch.delenv("PMAGPY_APPS_DIR", raising=False)
-        monkeypatch.delenv("PMAGPY_DIRECTIONS_OUTPUT", raising=False)
+        # set, then delete, through monkeypatch: deleting a variable that is not set registers no
+        # undo, and what prepare_environment writes would then leak into every later test (the
+        # output folder moved later exports out of place)
+        for var in (EDITION_VAR, "PMAGPY_APPS_DIR", "PMAGPY_DIRECTIONS_OUTPUT", "MPLCONFIGDIR"):
+            monkeypatch.setenv(var, "placeholder")
+            monkeypatch.delenv(var)
         desktop.prepare_environment(EDITIONS["directions"], directory=str(tmp_path), output=str(tmp_path / "out"))
         assert os.environ[EDITION_VAR] == "directions"
         assert os.environ["PMAGPY_APPS_DIR"] == str(tmp_path)

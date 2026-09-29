@@ -121,4 +121,6 @@ def serve_default():
     """The page for the directory this session asked for — ``?dir=``, then ``PMAGPY_APPS_DIR`` — or the start
     page; in the edition ``PMAGPY_APPS_EDITION`` names."""
     asked = datasets.session_directory(APP.env_prefixes, default="")
-    return create_app(asked, recent_file=datasets.shared_recent_file(), edition=current_edition())
+    # PMAGPY_APPS_RECENT points the hub's list elsewhere (a test, a sandbox), as the applications' own settings do
+    recent = datasets.env("RECENT", ("PMAGPY_APPS_",)) or datasets.shared_recent_file()
+    return create_app(asked, recent_file=recent, edition=current_edition())

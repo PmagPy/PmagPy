@@ -220,3 +220,37 @@ class TestLinesAndPlanesK:
         import pmagpy.demag as dc
         assert dc._lnp_k({"n_lines": "4", "n_planes": "0", "R": "3.1176"}) == pytest.approx(3 / (4 - 3.1176))
         assert dc._lnp_k({"n_lines": "2", "n_planes": "2", "R": "3.9"}) == pytest.approx(2.0 / 0.1)
+
+
+class TestMeasurementFlagWriter:
+    def lines(self, tmp_path, text):
+        path = os.path.join(str(tmp_path), "measurements.txt")
+        with open(path, "w", newline="") as fh:
+            fh.write(text)
+        return path
+
+    def test_line_endings_are_kept(self, tmp_path):
+        path = self.lines(tmp_path, "tab\tmeasurements\r\nmeasurement\tquality\r\nm1\tg\r\nm2\tg\r\n")
+        out = os.path.join(str(tmp_path), "out.txt")
+        mp.write_measurement_flags(path, out, {1: "b"})
+        assert open(out, "rb").read() == b"tab\tmeasurements\r\nmeasurement\tquality\r\nm1\tg\r\nm2\tb\r\n"
+
+    def test_a_stray_carriage_return_is_not_a_blank_line(self, tmp_path):
+        path = self.lines(tmp_path, "tab\tmeasurements\r\r\nmeasurement\tquality\r\r\nm1\tg\r\r\n")
+        out = os.path.join(str(tmp_path), "out.txt")
+        mp.write_measurement_flags(path, out, {})
+        assert open(out, "rb").read().count(b"\n") == 3
+
+    def test_no_final_newline_stays_so(self, tmp_path):
+        path = self.lines(tmp_path, "tab\tmeasurements\nmeasurement\tquality\nm1\tg")
+        out = os.path.join(str(tmp_path), "out.txt")
+        mp.write_measurement_flags(path, out, {})
+        assert open(out, "rb").read() == open(path, "rb").read()
+
+
+class TestRequiredParentColumn:
+    def test_an_empty_parent_column_is_kept(self):
+        existing = pd.DataFrame({"specimen": ["a"], "sample": [np.nan], "method_codes": ["LP-DIR-AF"],
+                                 "lithologies": [np.nan]})
+        out = mp.merge_results(existing, pd.DataFrame(), "specimen", owned=["a"])
+        assert "sample" in out.columns and "lithologies" not in out.columns

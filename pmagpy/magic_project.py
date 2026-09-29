@@ -513,7 +513,11 @@ def merge_results(existing: Optional[pd.DataFrame], new: pd.DataFrame, key: str,
         lost = existing[names.isin(gone)]
         stub = metadata_by_key(lost, key, meta_cols).reset_index()
         keep = pd.concat([keep, stub], ignore_index=True, sort=False)
-    keep = keep.dropna(axis=1, how="all")
+    # empty columns are left out -- except the name of the level above, which MagIC requires
+    # whether or not it is known (a study of measurements only has no samples to name)
+    parent = {"specimen": "sample", "sample": "site", "site": "location"}.get(key)
+    empty = [c for c in keep.columns if c != parent and keep[c].isna().all()]
+    keep = keep.drop(columns=empty)
     return pd.concat([keep, new], ignore_index=True, sort=False)
 
 
@@ -1155,7 +1159,12 @@ def write_measurement_flags(source_path: str, target_path: str, changes: dict,
     """
     with open(source_path, "rb") as fh:
         text, _ = decode_table_text(fh.read())
-    lines = text.splitlines()
+    # the file's own line ending (\r\n from Windows; stray \r\r\n is one ending, not a blank line)
+    newline = "\r\n" if "\r\n" in text else "\n"
+    final = text.endswith(("\n", "\r"))
+    lines = [line.rstrip("\r") for line in text.replace("\r\n", "\n").split("\n")]
+    if final and lines and lines[-1] == "":
+        lines = lines[:-1]
     if len(lines) < 2 or not lines[0].lower().startswith("tab"):
         return None
     header = lines[1].rstrip("\r").split("\t")
@@ -1185,22 +1194,43 @@ def write_measurement_flags(source_path: str, target_path: str, changes: dict,
         if k in changes:
             fields[q_col] = changes[k]
         out.append("\t".join(fields))
-    return atomic_write_text(target_path, "\n".join(out) + "\n")
+    return atomic_write_text(target_path, newline.join(out) + (newline if final else ""))
 
 
-def flag_changes(table_df: pd.DataFrame, steps_by_specimen) -> dict:
-    """``{row position: flag}`` where a step's flag differs from the measurements table as it was read."""
-    loaded = table_df["quality"].to_numpy(dtype=object) if "quality" in table_df.columns else None
+def flag_baseline(table_df: pd.DataFrame) -> np.ndarray:
+    """The good/bad flag of every row of a measurements table as read: ``'b'`` or ``'g'``."""
+    if "quality" not in table_df.columns:
+        return np.full(len(table_df), "g", dtype=object)
+    return np.array(["b" if (not is_null(v) and str(v).strip() == "b") else "g"
+                     for v in table_df["quality"].to_numpy(dtype=object)], dtype=object)
+
+
+def flag_changes(baseline, steps_by_specimen) -> dict:
+    """``{row position: flag}`` where a step's flag differs from ``baseline``.
+
+    ``baseline`` is the flags as the file on disk has them -- read when the
+    study was opened, and brought up to date by the application after each
+    export into the study itself (:func:`flag_baseline`; a measurements
+    DataFrame is also accepted). An export writes these changes, and only
+    these, onto the file as it is: a flag the analyst changed (either way)
+    is written, a flag another application changed in the meantime is kept.
+    """
+    if isinstance(baseline, pd.DataFrame):
+        baseline = flag_baseline(baseline)
     changes = {}
     for steps in steps_by_specimen:
         for pos, quality in zip(steps["meas_pos"].to_numpy(), steps["quality"].to_numpy(dtype=object)):
-            was = "g"
-            if loaded is not None and not is_null(loaded[pos]) and str(loaded[pos]).strip() == "b":
-                was = "b"
             now = "b" if quality == "b" else "g"
-            if now != was:
+            if now != baseline[pos]:
                 changes[int(pos)] = now
     return changes
+
+
+def mark_flags_written(baseline: np.ndarray, steps_by_specimen) -> None:
+    """After an export into the study itself: the file now has these steps' flags."""
+    for steps in steps_by_specimen:
+        for pos, quality in zip(steps["meas_pos"].to_numpy(), steps["quality"].to_numpy(dtype=object)):
+            baseline[pos] = "b" if quality == "b" else "g"
 
 
 def magic_table_text(df: pd.DataFrame, table: str) -> str:

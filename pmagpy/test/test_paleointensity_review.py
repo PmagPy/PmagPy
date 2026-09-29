@@ -447,6 +447,7 @@ class TestFlagsByRow:
         measurement = str(data.specimens[name].steps["measurement"].iloc[4])
         payload = json.loads(data.to_json())
         payload.pop("bad_steps")
+        payload.pop("step_flag_changes", None)           # a version 1 file has neither
         payload["version"] = 1
         payload["bad_measurements"] = [measurement]
         data.from_json(json.dumps(payload))

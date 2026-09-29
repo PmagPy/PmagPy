@@ -934,6 +934,8 @@ class DemagData:
                                                 protocol_codes=_protocol_codes(steps))
         if not self.specimens:
             raise ValueError("No specimens with demagnetization steps found")
+        # the flags as the file on disk has them: what this session's flag changes are measured from
+        self._flag_base = mp.flag_baseline(self._table("measurements"))
         if from_site:
             self.warnings.append(f"{len(from_site)} samples have no bedding of their own and take their site's "
                                  "(bed_dip, bed_dip_direction in sites.txt) for the tilt correction")
@@ -1898,7 +1900,7 @@ class DemagData:
         target = os.path.join(dir_path, os.path.basename(custom_name))
         source = source or os.path.join(self.contribution.directory,
                                         self.contribution.filenames.get("measurements", "measurements.txt"))
-        changes = mp.flag_changes(table.df, (spec.steps for spec in self.specimens.values()))
+        changes = mp.flag_changes(self._flag_base, (spec.steps for spec in self.specimens.values()))
         names = table.df["measurement"].tolist() if "measurement" in table.df.columns else None
         if os.path.isfile(source):
             written = mp.write_measurement_flags(source, target, changes, names)
@@ -1913,6 +1915,10 @@ class DemagData:
         for spec in self.specimens.values():
             df.iloc[spec.steps["meas_pos"].values, col] = spec.steps["quality"].values
         return mp.magic_write(target, df, "measurements")
+
+    def flags_written(self) -> None:
+        """The study's own measurements.txt now has this session's flags (after an export into it)."""
+        mp.mark_flags_written(self._flag_base, (spec.steps for spec in self.specimens.values()))
 
     def _coords_arg(self, coord, coords):
         if coords is not None:
@@ -2119,26 +2125,21 @@ class DemagData:
     SESSION_FORMAT = "pmagpy_directions_session"
 
     def step_flag_changes(self) -> list[dict]:
-        """The steps whose good/bad flag differs from the measurements table as it was read.
+        """The steps whose good/bad flag differs from the measurements table on disk.
 
-        Those flags reach the table only when it is exported, so the session
-        file carries them in between (by measurement name, with the row's
-        position as a fallback for tables whose names are not unique).
+        That is the table as read, brought up to date after each export into
+        the study itself. Those flags reach the file only when it is exported,
+        so the session file carries them in between (by measurement name, with
+        the row's position as a fallback for tables whose names are not
+        unique). Only the differences are kept, so a flag another application
+        set in the file is not undone when the session is restored.
         """
-        table = self.contribution.tables.get("measurements")
-        original = None
-        if table is not None and "quality" in table.df.columns:
-            original = table.df["quality"].to_numpy(dtype=object)
         changes = []
         for name, spec in self.specimens.items():
             steps = spec.steps
             positions = steps["meas_pos"].to_numpy()
-            now = steps["quality"].to_numpy(dtype=object)
-            if original is None:
-                was = np.full(len(steps), "g", dtype=object)
-            else:
-                was = np.array(["b" if (not _is_null(v) and str(v).strip() == "b") else "g"
-                                for v in original[positions]], dtype=object)
+            now = np.where(steps["quality"].to_numpy(dtype=object) == "b", "b", "g")
+            was = self._flag_base[positions]
             for k in np.flatnonzero(now != was):
                 changes.append({"specimen": name, "measurement": str(steps["measurement"].iloc[k]),
                                 "meas_pos": int(positions[k]), "quality": str(now[k])})

@@ -237,7 +237,7 @@ class Session(param.Parameterized):
                 notes.append(f"the autosave {name} held no fits and was passed over")
                 continue
             message = f"restored {n} fits from the autosave"
-            if stored:
+            if stored and stored != n:
                 newer = os.path.exists(spec_file) and os.path.getmtime(spec_file) > os.path.getmtime(path)
                 notes.append(f"specimens.txt holds {stored} interpretations{' and is newer' if newer else ''} "
                              "(Export → Import from specimens.txt replaces the restored fits with them)")
@@ -545,6 +545,8 @@ class Session(param.Parameterized):
                                       common_polarity=common_polarity, flip=flip)
             self.data.write_redo(os.path.join(stage.dir, REDO_NAME), current_specimen=self.specimen)
         written = list(stage.written)
+        if in_place and write_measurements:
+            self.data.flags_written()        # the study's file now has these flags: later changes count from them
         written += mp.copy_companion_tables(self.directory, target, skip=written)
         self.last_backup = stage.backed_up
         return written

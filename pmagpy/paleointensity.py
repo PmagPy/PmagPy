@@ -1337,6 +1337,8 @@ class PintData:
                 raise ValueError(f"This study's paleointensity experiments are microwave experiments, "
                                  f"which are not supported yet: {MICROWAVE_UNSUPPORTED}")
             raise ValueError("No specimens with Thellier-type paleointensity data found")
+        # the flags as the file on disk has them: what this session's flag changes are measured from
+        self._flag_base = mp.flag_baseline(self._table("measurements"))
 
         self._load_auxiliary(spec_df)
         self.load_criteria_from_table()
@@ -2230,7 +2232,7 @@ class PintData:
         target = os.path.join(dir_path, os.path.basename(custom_name))
         source = source or os.path.join(self.contribution.directory,
                                         self.contribution.filenames.get("measurements", "measurements.txt"))
-        changes = mp.flag_changes(table.df, (spec.steps for spec in self.specimens.values()))
+        changes = mp.flag_changes(self._flag_base, (spec.steps for spec in self.specimens.values()))
         names = table.df["measurement"].tolist() if "measurement" in table.df.columns else None
         if os.path.isfile(source):
             written = mp.write_measurement_flags(source, target, changes, names)
@@ -2239,6 +2241,22 @@ class PintData:
             self.warnings.append(f"{os.path.basename(source)} no longer has the rows it had when the study was "
                                  "opened; the measurements table was written in full")
         return mp.magic_write(target, self.measurements_table(), "measurements")
+
+    def flags_written(self) -> None:
+        """The study's own measurements.txt now has this session's flags (after an export into it)."""
+        mp.mark_flags_written(self._flag_base, (spec.steps for spec in self.specimens.values()))
+
+    def step_flag_changes(self) -> List[dict]:
+        """The steps whose flag differs from the file on disk, each identified as in :meth:`_step_keys`."""
+        changes = []
+        for spec in self.specimens.values():
+            positions = spec.steps["meas_pos"].to_numpy()
+            now = np.where(spec.steps["quality"].to_numpy(dtype=object) == "b", "b", "g")
+            for (name, measurement, occurrence), pos, q in zip(self._step_keys(spec), positions, now):
+                if q != self._flag_base[pos]:
+                    changes.append({"specimen": name, "measurement": measurement, "occurrence": occurrence,
+                                    "meas_pos": int(pos), "quality": str(q)})
+        return changes
 
     def write_criteria(self, dir_path: str) -> Optional[str]:
         # not trimmed to the data model: the rows kept are written as they were read
@@ -2278,7 +2296,7 @@ class PintData:
                                       "occurrence": occurrence, "meas_pos": int(pos)})
         payload = {
             "format": "pmagpy_intensity_session",
-            "version": 2,
+            "version": 3,
             "software": SOFTWARE_TAG,
             "directory": self.directory,
             "criteria": self.criteria.name,
@@ -2291,7 +2309,10 @@ class PintData:
             "anisotropy_policy": {"alteration_limit": self.anisotropy_alteration_limit,
                                   "require_ftest": bool(self.anisotropy_require_ftest)},
             "interpretations": [asdict(i) for i in self.interpretations.values()],
-            # one row each (version 2); the names alone are kept for earlier readers
+            # version 3: the flags that differ from the measurements table on disk, and only
+            # those, so that a flag another application set there is not undone on reopening
+            "step_flag_changes": self.step_flag_changes(),
+            # the whole state, for earlier readers (version 2: one row each; version 1: names)
             "bad_steps": bad_steps,
             "bad_measurements": sorted({b["measurement"] for b in bad_steps}),
             "bounds_in_kelvin": {
@@ -2309,11 +2330,13 @@ class PintData:
 
         A file that is not a session, or whose interpretations are all of
         specimens this study does not have, raises ``ValueError`` before
-        anything changes. The session's list of bad steps is the whole flag
-        state: a step flagged good again after being bad in the measurements
-        table stays good. A version 1 session names its bad steps by
-        measurement name only; it is still read, and when a flagged name
-        belongs to more than one step that is said in ``warnings``.
+        anything changes. A version 3 session records the flags that differ
+        from the measurements table on disk, and those alone are applied, onto
+        the flags the file has now: a step flagged good again stays good, and a
+        flag PmagPy Directions set in the file since is not undone. Earlier
+        sessions hold the whole flag state (version 2 by step, version 1 by
+        measurement name only; when a flagged name belongs to more than one
+        step that is said in ``warnings``).
         """
         try:
             payload = json.loads(text)
@@ -2326,7 +2349,20 @@ class PintData:
                              if isinstance(i, dict)):
             raise ValueError("the session holds no interpretations of specimens in this study")
         criteria = self._criteria_from_json(payload)
-        if "bad_steps" in payload:
+        if "step_flag_changes" in payload:
+            # version 3: apply the session's changes onto the flags the file has now
+            flagged = {}
+            wanted = {(str(c.get("specimen")), str(c.get("measurement")), int(c.get("occurrence", 0))):
+                      c.get("quality") for c in (payload.get("step_flag_changes") or []) if isinstance(c, dict)
+                      and c.get("quality") in ("g", "b")}
+            if wanted:
+                for spec in self.specimens.values():
+                    quality = spec.steps["quality"].to_numpy(dtype=object).copy()
+                    for k, key in enumerate(self._step_keys(spec)):
+                        if key in wanted:
+                            quality[k] = wanted[key]
+                    flagged[spec.name] = quality
+        elif "bad_steps" in payload:
             bad_keys = {(str(b.get("specimen")), str(b.get("measurement")), int(b.get("occurrence", 0)))
                         for b in (payload.get("bad_steps") or []) if isinstance(b, dict)}
             flagged = {spec.name: np.array(["b" if k in bad_keys else "g" for k in self._step_keys(spec)],
