@@ -124,15 +124,32 @@ class TestDesktop:
         # set, then delete, through monkeypatch: deleting a variable that is not set registers no
         # undo, and what prepare_environment writes would then leak into every later test (the
         # output folder moved later exports out of place)
-        for var in (EDITION_VAR, "PMAGPY_APPS_DIR", "PMAGPY_DIRECTIONS_OUTPUT", "MPLCONFIGDIR"):
+        for var in (EDITION_VAR, "PMAGPY_APPS_DIR", "PMAGPY_DIRECTIONS_OUTPUT", "PMAGPY_INTENSITY_OUTPUT",
+                    "MPLCONFIGDIR"):
             monkeypatch.setenv(var, "placeholder")
             monkeypatch.delenv(var)
         desktop.prepare_environment(EDITIONS["directions"], directory=str(tmp_path), output=str(tmp_path / "out"))
         assert os.environ[EDITION_VAR] == "directions"
         assert os.environ["PMAGPY_APPS_DIR"] == str(tmp_path)
         assert os.environ["PMAGPY_DIRECTIONS_OUTPUT"] == str(tmp_path / "out")
+        assert os.environ["PMAGPY_INTENSITY_OUTPUT"] == str(tmp_path / "out")
         assert desktop.bundle_root() is None                                # not frozen here
         assert "MPLCONFIGDIR" not in os.environ or "PmagPy" not in os.environ["MPLCONFIGDIR"]   # only when frozen
+
+    def test_a_frozen_build_keeps_both_applications_out_of_the_bundle(self, monkeypatch, tmp_path):
+        # the bundle is read-only and holds the example dataset: without an output setting for
+        # each application, Intensity's autosave and exports would go into the application
+        for var in (EDITION_VAR, "PMAGPY_APPS_DIR", "PMAGPY_DIRECTIONS_OUTPUT", "PMAGPY_INTENSITY_OUTPUT",
+                    "MPLCONFIGDIR"):
+            monkeypatch.setenv(var, "placeholder")
+            monkeypatch.delenv(var)
+        monkeypatch.setattr(desktop, "bundle_root", lambda: str(tmp_path))
+        monkeypatch.setattr(desktop.os.path, "expanduser", lambda p: str(tmp_path / "home") if p == "~" else p)
+        monkeypatch.setattr(desktop, "cache_dir", lambda *a: str(tmp_path / "cache"))
+        monkeypatch.chdir(tmp_path)
+        desktop.prepare_environment(EDITIONS["directions"])
+        assert os.environ["PMAGPY_DIRECTIONS_OUTPUT"] == str(tmp_path / "home" / "PmagPy Directions")
+        assert os.environ["PMAGPY_INTENSITY_OUTPUT"] == str(tmp_path / "home" / "PmagPy Intensity")
 
     def test_the_cache_dir_is_per_user_and_created(self, monkeypatch, tmp_path):
         monkeypatch.setattr(desktop.os.path, "expanduser", lambda p: str(tmp_path))

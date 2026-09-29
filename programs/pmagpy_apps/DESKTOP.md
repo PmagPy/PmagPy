@@ -26,9 +26,14 @@ intended. Rock magnetism and Anisotropy join by adding them to the edition
   registered with `pmagpy_panel.runtime.set_folder_dialog`).
 * Output stays out of the application: with no `PMAGPY_DIRECTIONS_OUTPUT` /
   `PMAGPY_INTENSITY_OUTPUT` set, the applications write their auto-saves,
-  tables and figures under `~/PmagPy Directions/<dataset>/` and
-  `~/PmagPy Intensity/<dataset>/` — the bundle is read-only and the example
-  dataset lives inside it.
+  tables and figures under `~/PmagPy Directions/<dataset>-<fingerprint>/` and
+  `~/PmagPy Intensity/<dataset>-<fingerprint>/` -- the bundle is read-only and
+  the example dataset lives inside it. The fingerprint is a short hash of the
+  dataset's full path (`pmagpy_panel.datasets.default_output_dir`): studies are
+  often kept in folders of the same name (`MagIC`, `data`), and without it two
+  of them would share -- and overwrite -- one autosave and one set of tables.
+  Each output folder is a complete contribution (the dataset's other tables
+  are copied beside the ones written).
 * Closing the window ends the process; nothing keeps running.
 
 ## How it is built
