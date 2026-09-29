@@ -40,7 +40,7 @@ def main():
     if '-F' in sys.argv: # set up output file
         ind = sys.argv.index('-F')
         ofile= sys.argv[ind+1]
-        out = open(ofile, 'w + a')
+        out = open(ofile, 'w')
     for line in data:   # read in the data from standard input
         if '\t' in line:
             rec=line.split('\t') # split each line on space to get records

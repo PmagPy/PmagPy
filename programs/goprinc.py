@@ -48,7 +48,7 @@ def main():
     if '-F' in sys.argv:
         ind = sys.argv.index('-F')
         ofile= sys.argv[ind+1]
-        out = open(ofile, 'w + a')
+        out = open(ofile, 'w')
     DIs= [] # set up list for dec inc data
     for line in data:   # read in the data from standard input
         if '\t' in line:

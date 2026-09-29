@@ -51,7 +51,7 @@ def main():
     if '-F' in sys.argv:
         ind = sys.argv.index('-F')
         ofile= sys.argv[ind+1]
-        out = open(ofile, 'w + a')
+        out = open(ofile, 'w')
     #
     #get doincfish to do the dirty work:
     fpars= pmag.doincfish(inc)
