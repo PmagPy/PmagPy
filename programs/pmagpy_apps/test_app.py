@@ -73,6 +73,7 @@ class TestPage:
 
     def test_nothing_asked_for_is_the_start_page(self, monkeypatch, tmp_path):
         monkeypatch.delenv("PMAGPY_APPS_DIR", raising=False)
+        monkeypatch.setenv("PMAGPY_APPS_RECENT", "")
         recent = str(tmp_path / "recent.json")
         monkeypatch.setattr(datasets, "SHARED_RECENT_FILE", recent)
         datasets.remember_recent(recent, str(tmp_path))
@@ -89,6 +90,7 @@ class TestPage:
         assert datasets.load_recent(recent) == [str(tmp_path)]
 
     def test_a_directory_asked_for_opens_straight_away(self, monkeypatch, tmp_path):
+        monkeypatch.setenv("PMAGPY_APPS_RECENT", "")
         recent = str(tmp_path / "recent.json")
         monkeypatch.setattr(datasets, "SHARED_RECENT_FILE", recent)
         datasets.remember_recent(recent, str(tmp_path))
