@@ -887,10 +887,13 @@ class TestServeDefault:
         monkeypatch.delenv("DEMAG_DIR", raising=False)
         monkeypatch.setenv("PMAGPY_DIRECTIONS_OUTPUT", str(tmp_path))
         seen = {}
-        monkeypatch.setattr(app, "build_body", lambda session: seen.setdefault("dir", session.directory) and _stub_body(session))
+        monkeypatch.setattr(app, "build_body",
+                            lambda session: seen.setdefault("dir", session.source_directory) and _stub_body(session))
         tmpl = app.serve_default()
         assert seen["dir"] == datasets.example_dir("McMurdo") != ""
-        assert tmpl.session is not None and tmpl.session.directory == seen["dir"]
+        # with an output base the example is worked on as a copy there, never in place
+        assert tmpl.session is not None and tmpl.session.source_directory == seen["dir"]
+        assert tmpl.session.directory.startswith(str(tmp_path))
         assert tmpl.body is not None
 
 

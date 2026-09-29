@@ -126,6 +126,13 @@ class Session(param.Parameterized):
         if not datasets.looks_like_magic_dir(directory):
             self.status = f"{directory} has no measurements.txt"
             return False
+        source = directory
+        try:
+            # the folder every application works on: the study, or the working copy they share
+            directory = datasets.working_directory(source)
+        except OSError as ex:
+            self.status = f"could not make a working copy of {source}: {ex}"
+            return False
         try:
             project = MagicProject.from_directory(directory, app_id=APP.app_id)
             measurements = project.table("measurements")
@@ -141,6 +148,7 @@ class Session(param.Parameterized):
         self.status = (f"{self.experiments['specimen'].nunique()} specimens · {len(self.experiments)} experiments"
                        f" · {n_types} experiment type{'s' if n_types != 1 else ''}")
         self.directory = directory
+        self.source_directory = datasets.working_copy_source(directory) or source
         return True
 
     def set_measurements(self, measurements: pd.DataFrame, status: str = "") -> None:

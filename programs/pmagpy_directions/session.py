@@ -67,8 +67,9 @@ def session_directory(default: str) -> str:
 
 
 def default_output_dir(directory: str) -> str:
-    """The data directory itself, or a folder of the dataset's own under ``PMAGPY_DIRECTIONS_OUTPUT`` when set."""
-    return datasets.default_output_dir(directory, base=env("OUTPUT", ""))
+    """Where this study is worked on: the study itself, or its working copy under the shared output base
+    (``PMAGPY_APPS_OUTPUT``; see :func:`pmagpy_panel.datasets.working_directory`)."""
+    return datasets.default_output_dir(directory, base=datasets.output_base())
 
 
 _DATASETS: dict = {}          # directory -> (DemagData, (code stamp, table stamp)); shared by all browser sessions
@@ -120,7 +121,9 @@ def _count_lines(path: str) -> int:
 class Session(param.Parameterized):
     """State shared by the views. Views watch the parameters below."""
 
-    directory = param.String(default="", doc="MagIC directory that was loaded")
+    directory = param.String(default="", doc="MagIC directory that was loaded (the working copy, when there is one)")
+    source_directory = param.String(default="", doc="the study as the analyst chose it (differs from directory "
+                                                    "when the applications work on a copy of it)")
     output_dir = param.String(default="", doc="where .redo files, tables and figures are written")
     specimen = param.Selector(default=None, objects=[], doc="current specimen name")
     coord = param.Selector(default=dc.COORD_SPECIMEN, objects=list(dc.COORD_NAMES),
@@ -163,7 +166,17 @@ class Session(param.Parameterized):
             self.status = f"{directory} has no measurements.txt"
             return False
         self.flush_autosave()         # the dataset being left keeps its last edits
-        output_dir = os.path.abspath(os.path.expanduser(output_dir)) if output_dir else default_output_dir(directory)
+        source = directory
+        if not output_dir:
+            # every application works on the same folder: the study itself, or -- when the output is
+            # kept out of it (the desktop build) -- one working copy of it that all of them share
+            try:
+                directory = datasets.working_directory(source)
+            except OSError as exc:
+                self.status = f"Could not make a working copy of {source}: {exc}"
+                return False
+        source = datasets.working_copy_source(directory) or source
+        output_dir = os.path.abspath(os.path.expanduser(output_dir)) if output_dir else directory
         stamp = (_code_stamp(), datasets.table_stamp(directory))
         cached = _DATASETS.get(directory) if self.cache else None
         try:
@@ -183,7 +196,7 @@ class Session(param.Parameterized):
         self._source_files = _listing(directory)        # what an in-place export may keep as "originals"
         data.set_criteria(data._table("criteria") if self.apply_criteria else None)   # a cached dataset may differ
         self.colors = ComponentColors()
-        remember_recent(directory)
+        remember_recent(source)                         # the study the analyst chose, not its copy
         for comp in data.components:
             if comp.color:
                 self.colors.assign(comp.name, comp.color) if comp.name not in self.colors.as_dict() else None
@@ -195,7 +208,10 @@ class Session(param.Parameterized):
         # one batched update: the views' watchers must see the new dataset, the new
         # specimen and the cleared selection together (a redraw in between would look
         # the old specimen name up in the new dataset)
+        if os.path.realpath(source) != os.path.realpath(directory):
+            message += f"; working on a copy of {source}"
         self.param.update(current=None, specimen=current if current in names else names[0], directory=directory,
+                          source_directory=source,
                           coord=data.default_coord(),
                           status=f"{len(names)} specimens from {os.path.basename(directory.rstrip('/'))}; {message}",
                           version=self.version + 1)

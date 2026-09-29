@@ -89,9 +89,13 @@ checkout are `PMAGPY_APPS_EDITION=directions pmagpy-apps`.
 (*Data › Change data…* at the top of the side column: *Browse with Finder…*
 opens the system folder chooser and loads the directory you pick; there are
 also recent directories, a path field, and an in-page browser for sessions
-served from another machine). `PMAGPY_DIRECTIONS_OUTPUT` redirects everything the
-app writes to `<PMAGPY_DIRECTIONS_OUTPUT>/<dataset name>/`; by default the output
-directory is the data directory, as with the legacy GUI. Recently opened
+served from another machine). By default the app works in the data directory,
+as the legacy GUI did. `PMAGPY_APPS_OUTPUT` (or `PMAGPY_DIRECTIONS_OUTPUT`) keeps
+the study itself untouched instead: the first application to open it copies its
+tables to `<base>/<dataset>-<path fingerprint>/`, and every application --
+Directions, Intensity, Rock Magnetism, Anisotropy, the hub -- then works on that
+one copy, so they all see the same tables (the desktop build does this under
+`~/PmagPy/`). Recently opened
 directories are remembered in `~/.pmagpy_directions_recent.json` (override with
 `PMAGPY_DIRECTIONS_RECENT`; the older `DEMAG_*` variable names are still
 honoured). The launcher's default port is `PMAGPY_DIRECTIONS_PORT` (5100).
@@ -296,11 +300,12 @@ always as UTF-8. Every table an export replaces is kept in
 `backup_before_pmagpy_directions/previous/`, and when the output directory
 is the data directory itself (the MagIC workflow of building the
 contribution in place) the tables as they were before this application first
-wrote there are also kept, once, in `backup_before_pmagpy_directions/`. An
-output directory of its own (`PMAGPY_DIRECTIONS_OUTPUT`, or the desktop
-build's `~/PmagPy Directions/`) is named after the dataset and a fingerprint
-of its path, so studies in folders of the same name never share one, and it
-receives the source's other tables so that it is a complete contribution.
+wrote there are also kept, once, in `backup_before_pmagpy_directions/`. With
+an output base (`PMAGPY_APPS_OUTPUT`, the desktop build's `~/PmagPy/`) the
+applications share one working copy of the study, named after the dataset and a
+fingerprint of its path, so studies in folders of the same name never share
+one. An export to another folder, chosen in the Export pane, receives the
+source's other tables so that it is a complete contribution.
 
 ### Publication figures
 

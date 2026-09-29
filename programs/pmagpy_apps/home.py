@@ -108,14 +108,29 @@ class HubSession(param.Parameterized):
             self.load(directory)
 
     def load(self, directory: str, remember: bool = True) -> bool:
-        """Take the directory's inventory and make it the session's. False when it is not a directory."""
-        inv = take_inventory(directory)
+        """Take the directory's inventory and make it the session's. False when it is not a directory.
+
+        A MagIC directory is opened where every application works on it: the
+        study itself, or -- when the output is kept out of it (the desktop
+        build) -- the working copy all of them share
+        (:func:`pmagpy_panel.datasets.working_directory`), so the Metadata
+        page and the applications edit one set of tables.
+        """
+        target = os.path.abspath(os.path.expanduser(directory)) if directory else directory
+        if target and datasets.looks_like_magic_dir(target):
+            try:
+                target = datasets.working_directory(target)
+            except OSError as exc:
+                self.status = f"Could not make a working copy of {target}: {exc}"
+                return False
+        inv = take_inventory(target)
         if not os.path.isdir(inv.directory):
             self.status = inv.error
             return False
         self.inventory = inv
         if remember and self.recent_file:
-            datasets.remember_recent(self.recent_file, inv.directory)
+            # the study the analyst chose, not its working copy
+            datasets.remember_recent(self.recent_file, datasets.working_copy_source(inv.directory) or inv.directory)
         self.status = _status(inv)
         self.landing = False
         if inv.directory == self.directory:

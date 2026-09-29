@@ -16,7 +16,7 @@ from __future__ import annotations
 import json
 import os
 import sys
-from typing import Sequence
+from typing import Optional, Sequence
 
 from .runtime import native_choose_directory, native_chooser_available, query_param  # noqa: F401
 
@@ -62,6 +62,106 @@ def default_output_dir(directory: str, base: str = "") -> str:
         tag = hashlib.sha1(path.encode("utf-8")).hexdigest()[:8]
         return os.path.join(base, f"{os.path.basename(path)}-{tag}")
     return directory
+
+
+#: the settings that name the one folder under which every application works on a copy of each
+#: study (the shared one first; an application's own older setting still counts, for all of them)
+OUTPUT_BASE_VARS = ("PMAGPY_APPS_OUTPUT", "PMAGPY_DIRECTIONS_OUTPUT", "PMAGPY_INTENSITY_OUTPUT",
+                    "DEMAG_OUTPUT", "THELLIER_OUTPUT")
+#: written into a working copy: where it was copied from, and when
+WORKING_COPY_MARKER = ".pmagpy_working_copy.json"
+#: the files of a study a working copy takes (MagIC tables, legacy .redo files, session files)
+WORKING_COPY_SUFFIXES = (".txt", ".redo", ".json")
+
+
+def output_base() -> str:
+    """The folder the applications keep their working copies in, or "" to work in the study itself.
+
+    Every application answers the same setting, so that PmagPy Directions,
+    PmagPy Intensity, Rock Magnetism, Anisotropy and the hub all read and
+    write one copy of a study rather than each keeping its own.
+    """
+    for var in OUTPUT_BASE_VARS:
+        value = os.environ.get(var)
+        if value:
+            return os.path.abspath(os.path.expanduser(value))
+    return ""
+
+
+def is_working_copy(directory: str, base: str = "") -> bool:
+    """True for a directory that is itself a working copy (inside ``base``, or marked as one)."""
+    path = os.path.realpath(directory)
+    if base and (path + os.sep).startswith(os.path.realpath(base) + os.sep):
+        return True
+    return os.path.isfile(os.path.join(path, WORKING_COPY_MARKER))
+
+
+def working_copy_source(directory: str) -> str:
+    """The study a working copy was made from ("" when it is not one, or does not say)."""
+    try:
+        with open(os.path.join(directory, WORKING_COPY_MARKER), encoding="utf-8") as fh:
+            return str(json.load(fh).get("source", ""))
+    except (OSError, ValueError, AttributeError):
+        return ""
+
+
+def working_directory(directory: str, base: Optional[str] = None) -> str:
+    """The directory an application reads and writes for a study: its working copy when there is a base.
+
+    With no base (a checkout, a pip install) that is the study itself, as it
+    always was. With one (the desktop build sets ``~/PmagPy``; the setting is
+    :func:`output_base`), the study's tables are copied once to
+    ``<base>/<name>-<path fingerprint>/`` (:func:`default_output_dir`) and every
+    application works there, so they all see one set of tables -- and the
+    study itself is never written to. A copy that already exists is used as it
+    is; files the study has gained since are added to it, files it has are
+    never overwritten. Two applications opening the same study at once make
+    one copy: it is assembled beside the target and moved into place whole.
+
+    Raises:
+        OSError: the copy cannot be made (the base is not writable, the disk is full).
+    """
+    directory = os.path.abspath(os.path.expanduser(directory))
+    base = output_base() if base is None else base
+    if not base or is_working_copy(directory, base):
+        return directory
+    target = default_output_dir(directory, base)
+    files = [n for n in sorted(os.listdir(directory))
+             if n.endswith(WORKING_COPY_SUFFIXES) and not n.startswith(".")
+             and os.path.isfile(os.path.join(directory, n))]
+    if os.path.isdir(target):
+        import shutil
+        for name in files:
+            if not os.path.exists(os.path.join(target, name)):
+                shutil.copy2(os.path.join(directory, name), os.path.join(target, name))
+        if not os.path.exists(os.path.join(target, WORKING_COPY_MARKER)):
+            _write_marker(target, directory)
+        return target
+    import shutil
+    import tempfile
+    os.makedirs(base, exist_ok=True)
+    staging = tempfile.mkdtemp(prefix=".copying-", dir=base)
+    try:
+        for name in files:
+            shutil.copy2(os.path.join(directory, name), os.path.join(staging, name))
+        _write_marker(staging, directory)
+        try:
+            os.rename(staging, target)
+        except OSError:
+            if not os.path.isdir(target):          # not another application's copy landing first
+                raise
+    finally:
+        if os.path.isdir(staging):
+            shutil.rmtree(staging, ignore_errors=True)
+    return target
+
+
+def _write_marker(target: str, source: str) -> None:
+    import time
+    from pmagpy.magic_project import atomic_write_text
+    atomic_write_text(os.path.join(target, WORKING_COPY_MARKER),
+                      json.dumps({"source": os.path.realpath(source),
+                                  "copied": time.strftime("%Y-%m-%dT%H:%M:%S")}, indent=1))
 
 
 #: the tables whose files decide whether a dataset read earlier is still current

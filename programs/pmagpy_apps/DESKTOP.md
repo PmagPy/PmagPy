@@ -24,16 +24,21 @@ intended. Rock magnetism and Anisotropy join by adding them to the edition
   in an application's header comes back.
 * "Browse with Finder…" is the system's own folder chooser (pywebview's dialog,
   registered with `pmagpy_panel.runtime.set_folder_dialog`).
-* Output stays out of the application: with no `PMAGPY_DIRECTIONS_OUTPUT` /
-  `PMAGPY_INTENSITY_OUTPUT` set, the applications write their auto-saves,
-  tables and figures under `~/PmagPy Directions/<dataset>-<fingerprint>/` and
-  `~/PmagPy Intensity/<dataset>-<fingerprint>/` -- the bundle is read-only and
-  the example dataset lives inside it. The fingerprint is a short hash of the
-  dataset's full path (`pmagpy_panel.datasets.default_output_dir`): studies are
-  often kept in folders of the same name (`MagIC`, `data`), and without it two
-  of them would share -- and overwrite -- one autosave and one set of tables.
-  Each output folder is a complete contribution (the dataset's other tables
-  are copied beside the ones written).
+* One copy of each study, shared by every application: the first time a
+  study is opened, its tables (and any legacy `.redo` or session files) are
+  copied to `~/PmagPy/<dataset>-<fingerprint>/`, and Directions, Intensity,
+  Rock Magnetism, Anisotropy and the hub's Metadata page all read and write
+  that folder -- so a flag set in Directions, an interpretation exported from
+  Intensity and a metadata edit on the hub are one set of tables, ready to
+  upload. The study itself (and the read-only bundle, where the example lives)
+  is never written to. The fingerprint is a short hash of the study's full
+  path (`pmagpy_panel.datasets.default_output_dir`), so studies kept in
+  folders of the same name (`MagIC`, `data`) get copies of their own; the copy
+  records where it came from (`.pmagpy_working_copy.json`) and the status line
+  names it. A copy is made once: files the study gains later are added to it,
+  files it already has are not overwritten. `PMAGPY_APPS_OUTPUT` (or `--output`)
+  names another base; without one -- a checkout or a pip install -- every
+  application works in the study's own folder, as before.
 * Closing the window ends the process; nothing keeps running.
 
 ## How it is built
@@ -86,7 +91,7 @@ waits):
 ```bash
 PMAGPY_DIRECTIONS_DIR=$PWD/data_files/dmag_magic \
 PMAGPY_DIRECTIONS_CHOOSER_STUB=$PWD/data_files/3_0/McMurdo \
-PMAGPY_DIRECTIONS_OUTPUT=/tmp/out PMAGPY_INTENSITY_OUTPUT=/tmp/out_pint \
+PMAGPY_APPS_OUTPUT=/tmp/out \
   "dist/PmagPy Apps.app/Contents/MacOS/PmagPy Apps" --no-window --port 5166 &
 python programs/pmagpy_apps/bundle_audit.py http://localhost:5166 \
   "$PWD/dist/PmagPy Apps.app/Contents/Frameworks/data_files/3_0/McMurdo"   # no bundled 404s

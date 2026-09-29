@@ -62,8 +62,9 @@ def session_directory(default: str) -> str:
 
 
 def default_output_dir(directory: str) -> str:
-    """The data directory, or ``<PMAGPY_INTENSITY_OUTPUT>/<dataset>`` when that is set."""
-    return datasets.default_output_dir(directory, base=env("OUTPUT", ""))
+    """Where this study is worked on: the study itself, or its working copy under the shared output base
+    (``PMAGPY_APPS_OUTPUT``; see :func:`pmagpy_panel.datasets.working_directory`)."""
+    return datasets.default_output_dir(directory, base=datasets.output_base())
 
 
 _DATASETS: dict = {}        # directory -> (PintData, code stamp); shared by all browser sessions
@@ -97,7 +98,9 @@ def _code_stamp() -> float:
 class Session(param.Parameterized):
     """State shared by the views. Views watch the parameters below."""
 
-    directory = param.String(default="", doc="MagIC directory that was loaded")
+    directory = param.String(default="", doc="MagIC directory that was loaded (the working copy, when there is one)")
+    source_directory = param.String(default="", doc="the study as the analyst chose it (differs from directory "
+                                                    "when the applications work on a copy of it)")
     output_dir = param.String(default="", doc="where sessions, tables and figures are written")
     specimen = param.Selector(default=None, objects=[], doc="current specimen name")
     criteria_name = param.Selector(default=pint.DEFAULT_CRITERIA,
@@ -135,7 +138,17 @@ class Session(param.Parameterized):
             self.status = f"{directory} has no measurements.txt"
             return False
         self.flush_autosave()           # the dataset being left keeps its last edits
-        output_dir = os.path.abspath(os.path.expanduser(output_dir)) if output_dir else default_output_dir(directory)
+        source = directory
+        if not output_dir:
+            # every application works on the same folder: the study itself, or -- when the output is
+            # kept out of it (the desktop build) -- one working copy of it that all of them share
+            try:
+                directory = datasets.working_directory(source)
+            except OSError as exc:
+                self.status = f"Could not make a working copy of {source}: {exc}"
+                return False
+        source = datasets.working_copy_source(directory) or source
+        output_dir = os.path.abspath(os.path.expanduser(output_dir)) if output_dir else directory
         stamp = (_code_stamp(), datasets.table_stamp(directory))
         cached = _DATASETS.get(directory) if self.cache else None
         try:
@@ -160,10 +173,12 @@ class Session(param.Parameterized):
         except OSError:
             self._source_files = set()
         self.bicep_results = {}
-        remember_recent(directory)
+        remember_recent(source)                         # the study the analyst chose, not its copy
         self.param.specimen.objects = names
         self.param.criteria_name.objects = list(pint.CRITERIA_SETS)
         interpreted = [n for n in names if n in data.interpretations]
+        if os.path.realpath(source) != os.path.realpath(directory):
+            message += f"; working on a copy of {source}"
         n_warnings = len(data.warnings) + len(data.project.warnings)
         if n_warnings:
             message += f"; {n_warnings} warning{'s' if n_warnings > 1 else ''} while reading"
@@ -173,7 +188,7 @@ class Session(param.Parameterized):
                   and any(c.key == "Ziggie" for c in restored.specimen)
                   and not any(c.key == "Ziggie" for c in preset.specimen))
         self.param.update(
-            specimen=(interpreted or names)[0], directory=directory,
+            specimen=(interpreted or names)[0], directory=directory, source_directory=source,
             criteria_name=restored.name, add_ziggie=ziggie,
             status=(f"{len(names)} specimens from {os.path.basename(directory.rstrip('/'))}; {message}"),
             version=self.version + 1)

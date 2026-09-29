@@ -92,6 +92,13 @@ class Session(param.Parameterized):
         if not can_open(directory):
             self.status = f"{directory} has no specimens.txt and no anisotropy measurements"
             return False
+        source = directory
+        try:
+            # the folder every application works on: the study, or the working copy they share
+            directory = datasets.working_directory(source)
+        except OSError as ex:
+            self.status = f"could not make a working copy of {source}: {ex}"
+            return False
         try:
             project = MagicProject.from_directory(directory, app_id=APP.app_id)
             specimens = project.table("specimens")
@@ -107,6 +114,7 @@ class Session(param.Parameterized):
         self.set_tables(specimens if specimens is not None else pd.DataFrame(columns=["specimen"]),
                         project.table("samples"), project.table("sites"))
         self.directory = directory
+        self.source_directory = datasets.working_copy_source(directory) or source
         self.status = self.describe()
         return True
 

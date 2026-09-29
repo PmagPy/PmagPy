@@ -791,7 +791,7 @@ class TestStartUp:
         mcmurdo = datasets.example_dir("McMurdo")
 
         def stub(session):
-            seen["dir"] = session.directory
+            seen["dir"] = session.source_directory
             return self._stub_body(session)
         monkeypatch.setattr(app, "build_body", stub)
         tmpl = app.serve_default()

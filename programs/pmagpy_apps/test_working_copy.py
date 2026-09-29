@@ -1,0 +1,110 @@
+"""
+One copy of a study that every application works on.
+
+When the output is kept out of a study (the desktop build, or an output base
+set with PMAGPY_APPS_OUTPUT), the first application to open it copies its
+tables to <base>/<dataset>-<fingerprint>/, and Directions, Intensity, Rock
+Magnetism, Anisotropy and the hub all read and write that folder -- so they
+see one set of tables, and the study itself is never written to.
+"""
+import hashlib
+import os
+import shutil
+
+import pytest
+
+from pmagpy_panel import datasets
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
+MCMURDO = os.path.join(REPO, "data_files", "3_0", "McMurdo")
+
+
+def digest(directory):
+    return {n: hashlib.md5(open(os.path.join(directory, n), "rb").read()).hexdigest()
+            for n in sorted(os.listdir(directory)) if os.path.isfile(os.path.join(directory, n))}
+
+
+@pytest.fixture
+def study(tmp_path):
+    src = tmp_path / "studies" / "McMurdo"
+    src.mkdir(parents=True)
+    for name in os.listdir(MCMURDO):
+        if name.endswith(".txt"):
+            shutil.copy(os.path.join(MCMURDO, name), src)
+    return str(src)
+
+
+@pytest.fixture
+def base(tmp_path, monkeypatch):
+    for var in datasets.OUTPUT_BASE_VARS:
+        monkeypatch.setenv(var, "placeholder")
+        monkeypatch.delenv(var)
+    out = str(tmp_path / "PmagPy")
+    monkeypatch.setenv("PMAGPY_APPS_OUTPUT", out)
+    monkeypatch.setenv("PMAGPY_DIRECTIONS_RECENT", str(tmp_path / "recent.json"))
+    monkeypatch.setenv("PMAGPY_INTENSITY_RECENT", str(tmp_path / "recent.json"))
+    return out
+
+
+class TestTheWorkingCopy:
+    def test_without_a_base_the_study_itself(self, study, monkeypatch):
+        for var in datasets.OUTPUT_BASE_VARS:
+            monkeypatch.setenv(var, "placeholder")
+            monkeypatch.delenv(var)
+        assert datasets.working_directory(study) == study
+
+    def test_made_once_and_the_study_left_alone(self, study, base):
+        before = digest(study)
+        copy = datasets.working_directory(study)
+        assert os.path.dirname(copy) == base and os.path.basename(copy).startswith("McMurdo-")
+        assert {n for n in os.listdir(copy) if n.endswith(".txt")} == {n for n in before}
+        assert datasets.working_copy_source(copy) == os.path.realpath(study)
+        assert datasets.working_directory(study) == copy                  # the same copy every time
+        assert datasets.working_directory(copy) == copy                   # a copy is not copied again
+        assert digest(study) == before
+
+    def test_files_the_study_gains_are_added_and_edits_in_the_copy_kept(self, study, base):
+        copy = datasets.working_directory(study)
+        with open(os.path.join(copy, "sites.txt"), "a") as fh:
+            fh.write("\n")
+        edited = digest(copy)["sites.txt"]
+        shutil.copy(os.path.join(study, "sites.txt"), os.path.join(study, "ages_extra.txt"))
+        datasets.working_directory(study)
+        assert os.path.exists(os.path.join(copy, "ages_extra.txt"))
+        assert digest(copy)["sites.txt"] == edited
+
+
+class TestEveryApplicationWorksThere:
+    def test_directions_intensity_rockmag_and_the_hub_open_one_folder(self, study, base, tmp_path):
+        from pmagpy_directions.session import Session as Directions
+        from pmagpy_intensity.session import Session as Intensity
+        from pmagpy_rockmag.session import Session as RockMag
+        from pmagpy_apps.home import HubSession
+        before = digest(study)
+        d = Directions(study)
+        copy = d.directory
+        assert copy != study and d.source_directory == os.path.realpath(study)
+        assert "working on a copy of" in d.status
+        assert Intensity(study).directory == copy
+        assert RockMag(study).directory == copy
+        assert HubSession(study, recent_file=str(tmp_path / "hub_recent.json")).directory == copy
+        # one set of tables: Directions' export is what Intensity reads, and the study is untouched
+        d.export_tables()
+        pint = Intensity(study)
+        assert pint.directory == copy
+        spec = open(os.path.join(copy, "specimens.txt")).read()
+        assert "pmagpy_directions" in spec
+        assert digest(study) == before
+
+    def test_the_recent_list_names_the_study_not_its_copy(self, study, base, tmp_path):
+        from pmagpy_directions.session import Session as Directions, load_recent
+        import pmagpy_directions.session as sess
+        recent = str(tmp_path / "recent_list.json")
+        old = sess.RECENT_FILE
+        sess.RECENT_FILE = recent
+        try:
+            Directions(study)
+            assert load_recent()[0] == os.path.abspath(study)
+        finally:
+            sess.RECENT_FILE = old

@@ -220,8 +220,10 @@ as PDF, SVG or PNG.
 
 ## Files it writes
 
-Everything goes to the output directory, which is the data directory unless
-`PMAGPY_INTENSITY_OUTPUT` says otherwise.
+Everything goes to the directory the study is worked on: the data directory
+itself, or, with an output base (`PMAGPY_APPS_OUTPUT` or `PMAGPY_INTENSITY_OUTPUT`;
+the desktop build's `~/PmagPy/`), the working copy of the study that every
+application shares.
 
 | file | when | what |
 |---|---|---|
@@ -254,7 +256,7 @@ back to.
 | variable | does |
 |---|---|
 | `PMAGPY_INTENSITY_DIR` | the directory to open at start-up |
-| `PMAGPY_INTENSITY_OUTPUT` | write under `<this>/<dataset name>-<path fingerprint>` instead of into the data directory |
+| `PMAGPY_APPS_OUTPUT` (or `PMAGPY_INTENSITY_OUTPUT`) | work on a copy of the study under `<this>/<dataset name>-<path fingerprint>`, shared with the other applications, instead of in the data directory |
 | `PMAGPY_INTENSITY_PORT` | the port (default 5101) |
 | `PMAGPY_INTENSITY_RECENT` | where the recent-directory list is kept |
 

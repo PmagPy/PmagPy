@@ -49,8 +49,8 @@ def bundle_root() -> Optional[str]:
     return getattr(sys, "_MEIPASS", None) if getattr(sys, "frozen", False) else None
 
 
-#: where each application writes in a desktop build (a folder of this name in the home directory)
-OUTPUT_VARS = {"PmagPy Directions": "PMAGPY_DIRECTIONS_OUTPUT", "PmagPy Intensity": "PMAGPY_INTENSITY_OUTPUT"}
+#: the folder, in the home directory, under which a desktop build works on its copy of each study
+OUTPUT_FOLDER = "PmagPy"
 
 
 def prepare_environment(edition: Edition, directory: str = "", output: str = "") -> None:
@@ -58,22 +58,21 @@ def prepare_environment(edition: Edition, directory: str = "", output: str = "")
 
     A frozen build also makes the bundle its working directory (pmagpy finds
     its data files relative to it) and keeps the analyst's output out of the
-    read-only bundle: with no ``PMAGPY_DIRECTIONS_OUTPUT`` / ``PMAGPY_INTENSITY_OUTPUT``
-    set, the example dataset's autosave would otherwise land inside the
-    application. ``output`` is the base for both applications (each dataset
-    gets its own folder under it, ``<dataset>-<path fingerprint>``).
+    read-only bundle and the analyst's own studies: every application works
+    on one working copy of a study under ``~/PmagPy/<dataset>-<fingerprint>/``
+    (``PMAGPY_APPS_OUTPUT``; :func:`pmagpy_panel.datasets.working_directory`),
+    so Directions, Intensity, Rock Magnetism, Anisotropy and the hub all see
+    the same tables. ``output`` names another base.
     """
     os.environ[EDITION_VAR] = edition.key
     if directory:
         os.environ["PMAGPY_APPS_DIR"] = os.path.abspath(os.path.expanduser(directory))
     if output:
-        for var in OUTPUT_VARS.values():
-            os.environ[var] = os.path.abspath(os.path.expanduser(output))
+        os.environ["PMAGPY_APPS_OUTPUT"] = os.path.abspath(os.path.expanduser(output))
     root = bundle_root()
     if root:
         os.chdir(root)
-        for title, var in OUTPUT_VARS.items():
-            os.environ.setdefault(var, os.path.join(os.path.expanduser("~"), title))
+        os.environ.setdefault("PMAGPY_APPS_OUTPUT", os.path.join(os.path.expanduser("~"), OUTPUT_FOLDER))
         # PyInstaller's matplotlib hook points MPLCONFIGDIR at a fresh temporary directory
         # on every launch, so the font cache (tens of seconds on a Mac with many fonts)
         # would be rebuilt every time; a cache directory of our own keeps it between launches

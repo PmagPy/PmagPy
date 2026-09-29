@@ -5,8 +5,9 @@ PmagPy Directions — Panel application launcher.
     PMAGPY_DIRECTIONS_DIR=/path/to/magic/dir panel serve programs/pmagpy_directions/pmagpy_directions.py --show
 
 ``PMAGPY_DIRECTIONS_DIR`` selects the MagIC directory (default ``data_files/3_0/McMurdo``);
-``PMAGPY_DIRECTIONS_OUTPUT`` redirects everything the app writes (auto-saved .redo, MagIC
-tables, figures) away from the data directory.
+``PMAGPY_APPS_OUTPUT`` (or ``PMAGPY_DIRECTIONS_OUTPUT``) keeps everything the app writes
+away from the data directory: every application then works on one shared copy of the study
+under it (``pmagpy_panel.datasets.working_directory``).
 """
 import os
 import sys
