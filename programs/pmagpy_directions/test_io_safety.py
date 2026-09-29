@@ -308,3 +308,54 @@ class TestRepeatedExports:
         os.remove(s.autosave_path) if os.path.exists(s.autosave_path) else None
         s2 = Session(src)
         assert "imported" in s2.status and "demag_gui.redo" in s2.status and "was not read" in s2.status
+
+
+class TestMeasurementsAsWritten:
+    def test_an_export_without_edits_leaves_the_file_byte_for_byte(self, tmp_path):
+        src = copy_study(tmp_path / "s")
+        path = os.path.join(src, "measurements.txt")
+        before = open(path, "rb").read()
+        Session(src).export_tables()
+        assert open(path, "rb").read() == before
+
+    def test_one_flag_is_one_line(self, tmp_path):
+        src = copy_study(tmp_path / "s")
+        path = os.path.join(src, "measurements.txt")
+        before = open(path).read().splitlines()
+        s = Session(src)
+        s.specimen = "jm002a1"
+        s.toggle_step(3)
+        s.export_tables()
+        after = open(path).read().splitlines()
+        assert len(after) == len(before)
+        assert sum(a != b for a, b in zip(before, after)) == 1
+
+    def test_flags_exported_elsewhere_are_still_there_after_reopening(self, tmp_path):
+        src = copy_study(tmp_path / "s")
+        out = str(tmp_path / "out")
+        s = Session(src, out)
+        s.specimen = "jm002a1"
+        s.toggle_step(3)
+        s.export_tables()
+        s.flush_autosave()
+        again = Session(src, out)
+        assert again.data.specimens["jm002a1"].steps["quality"].iloc[3] == "b"
+
+    def test_flags_written_by_the_other_application_are_kept(self, tmp_path):
+        src = copy_study(tmp_path / "s")
+        path = os.path.join(src, "measurements.txt")
+        s = Session(src)                                          # opened before the other application writes
+        df = pd.read_csv(path, sep="\t", skiprows=1, dtype=str, keep_default_na=False)
+        other = df.index[df["specimen"] != "jm002a1"][10]
+        lines = open(path).read().splitlines()
+        header = lines[1].split("\t")
+        fields = lines[other + 2].split("\t")
+        fields[header.index("quality")] = "b"
+        lines[other + 2] = "\t".join(fields)
+        with open(path, "w") as fh:
+            fh.write("\n".join(lines) + "\n")
+        s.specimen = "jm002a1"
+        s.toggle_step(3)
+        s.export_tables()
+        now = pd.read_csv(path, sep="\t", skiprows=1, dtype=str, keep_default_na=False)
+        assert now.loc[other, "quality"] == "b"

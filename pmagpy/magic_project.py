@@ -220,14 +220,15 @@ def orientation_from_rows(rows: list, sample: str, site_bedding: Optional[tuple]
     else:
         chosen = None
     bed_rows = ([chosen] if chosen is not None else []) + [r for r in rows if r is not chosen]
-    for row in bed_rows:
-        ddir, bdip = to_float(row.get("bed_dip_direction")), to_float(row.get("bed_dip"))
-        if not (np.isnan(ddir) or np.isnan(bdip)):
-            orient.bed_dip_direction, orient.bed_dip = ddir, bdip
-            break
-    else:
-        if site_bedding is not None:
-            orient.bed_dip_direction, orient.bed_dip = site_bedding
+    beddings = [(to_float(r.get("bed_dip_direction")), to_float(r.get("bed_dip"))) for r in bed_rows]
+    beddings = [b for b in beddings if not (np.isnan(b[0]) or np.isnan(b[1]))]
+    for ddir, bdip in beddings[:1]:
+        orient.bed_dip_direction, orient.bed_dip = ddir, bdip
+    if warnings is not None and len({(round(d, 1), round(b, 1)) for d, b in beddings}) > 1:
+        warnings.append(f"sample {sample}: its rows give different bedding; dip direction/dip "
+                        f"{orient.bed_dip_direction:g}/{orient.bed_dip:g} was used for the tilt correction")
+    if not beddings and site_bedding is not None:
+        orient.bed_dip_direction, orient.bed_dip = site_bedding
     if not orient.has_geographic and np.isnan(orient.bed_dip):
         return orient if rows else None
     return orient
@@ -1127,6 +1128,79 @@ def copy_companion_tables(source_dir: str, output_dir: str, skip: Iterable[str] 
         shutil.copy2(src, dst)
         copied.append(dst)
     return copied
+
+
+def write_measurement_flags(source_path: str, target_path: str, changes: dict,
+                            names: Optional[Iterable[str]] = None) -> Optional[str]:
+    """Write a measurements table with some ``quality`` flags changed and nothing else.
+
+    The table is rewritten from its own text -- column order, number formats,
+    blank cells and all -- so an export that changed three flags is a diff of
+    three lines, however large the table (a round trip through pandas
+    reformatted every number). Rows are counted as :func:`read_table_file`
+    counts them, so the positions are the ``meas_pos`` of the step tables.
+
+    Args:
+        source_path: the table to start from: the study's own file, or, when
+            the export goes back into the study, the file as it is on disk now
+            (so flags another application wrote since are kept).
+        target_path: where to write.
+        changes: ``{row position: 'g' or 'b'}``, the flags the analyst changed.
+        names: the measurement names, one per row, added as a ``measurement``
+            column when the file has none (MagIC requires it).
+
+    Returns:
+        the path written, or None when the file's rows are not the rows the
+        positions refer to (the caller then writes the table in full).
+    """
+    with open(source_path, "rb") as fh:
+        text, _ = decode_table_text(fh.read())
+    lines = text.splitlines()
+    if len(lines) < 2 or not lines[0].lower().startswith("tab"):
+        return None
+    header = lines[1].rstrip("\r").split("\t")
+    kept = [i for i, line in enumerate(lines[2:], start=2) if any(f.strip() for f in line.split("\t"))]
+    names = list(names) if names is not None else None
+    if names is not None and len(names) != len(kept):
+        return None
+    if changes and max(changes) >= len(kept):
+        return None
+    add_names = "measurement" not in header and names is not None
+    add_quality = "quality" not in header
+    new_header = header + (["measurement"] if add_names else []) + (["quality"] if add_quality else [])
+    q_col = new_header.index("quality")
+    out = [lines[0], "\t".join(new_header)]
+    position = {line_no: k for k, line_no in enumerate(kept)}
+    for line_no, line in enumerate(lines[2:], start=2):
+        k = position.get(line_no)
+        if k is None:
+            out.append(line)
+            continue
+        fields = line.rstrip("\r").split("\t")
+        fields += [""] * (len(header) - len(fields))
+        if add_names:
+            fields.append(str(names[k]))
+        if add_quality:
+            fields.append("g")
+        if k in changes:
+            fields[q_col] = changes[k]
+        out.append("\t".join(fields))
+    return atomic_write_text(target_path, "\n".join(out) + "\n")
+
+
+def flag_changes(table_df: pd.DataFrame, steps_by_specimen) -> dict:
+    """``{row position: flag}`` where a step's flag differs from the measurements table as it was read."""
+    loaded = table_df["quality"].to_numpy(dtype=object) if "quality" in table_df.columns else None
+    changes = {}
+    for steps in steps_by_specimen:
+        for pos, quality in zip(steps["meas_pos"].to_numpy(), steps["quality"].to_numpy(dtype=object)):
+            was = "g"
+            if loaded is not None and not is_null(loaded[pos]) and str(loaded[pos]).strip() == "b":
+                was = "b"
+            now = "b" if quality == "b" else "g"
+            if now != was:
+                changes[int(pos)] = now
+    return changes
 
 
 def magic_table_text(df: pd.DataFrame, table: str) -> str:

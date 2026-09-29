@@ -2215,17 +2215,30 @@ class PintData:
         df = self.merged_group_table(level, analysts, weighted)
         return self.project.write_table(df, level + "s", dir_path)
 
-    def write_measurements(self, dir_path: str, custom_name: str = "measurements.txt") -> Optional[str]:
+    def write_measurements(self, dir_path: str, custom_name: str = "measurements.txt",
+                           source: Optional[str] = None) -> Optional[str]:
+        """Write the measurements table with the current good/bad flags, changing nothing else.
+
+        Only the flags changed in this session are changed, in the file as it
+        is (``source``, default the study's own; see
+        :func:`pmagpy.magic_project.write_measurement_flags`), so the rest is
+        written byte for byte and flags another application wrote are kept.
+        """
         table = self.contribution.tables.get("measurements")
         if table is None:
             return None
-        df = table.df
-        if "quality" not in df.columns:
-            df["quality"] = "g"
-        col = df.columns.get_loc("quality")
-        for spec in self.specimens.values():
-            df.iloc[spec.steps["meas_pos"].values, col] = spec.steps["quality"].values
-        return mp.magic_write(os.path.join(dir_path, os.path.basename(custom_name)), df, "measurements")
+        target = os.path.join(dir_path, os.path.basename(custom_name))
+        source = source or os.path.join(self.contribution.directory,
+                                        self.contribution.filenames.get("measurements", "measurements.txt"))
+        changes = mp.flag_changes(table.df, (spec.steps for spec in self.specimens.values()))
+        names = table.df["measurement"].tolist() if "measurement" in table.df.columns else None
+        if os.path.isfile(source):
+            written = mp.write_measurement_flags(source, target, changes, names)
+            if written:
+                return written
+            self.warnings.append(f"{os.path.basename(source)} no longer has the rows it had when the study was "
+                                 "opened; the measurements table was written in full")
+        return mp.magic_write(target, self.measurements_table(), "measurements")
 
     def write_criteria(self, dir_path: str) -> Optional[str]:
         # not trimmed to the data model: the rows kept are written as they were read

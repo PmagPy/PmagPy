@@ -1282,6 +1282,8 @@ class DemagData:
             rank = tilt.map({COORD_SPECIMEN: 0, COORD_GEOGRAPHIC: 1, COORD_TILT: 2}).fillna(3)
             rows = rows.assign(_rank=rank, _unnamed=unnamed).sort_values(["_unnamed", "_rank"], kind="stable")
         seen = set()
+        seen_as: dict = {}
+        conflicting: set = set()
         bounds_seen = {(c.specimen, c.imin, c.imax, c.fit_type) for c in self.components}
         parsed: list[Component] = []
         taken_names: dict = {}
@@ -1301,7 +1303,10 @@ class DemagData:
             name = row.get("dir_comp") if "dir_comp" in rows.columns else None
             key = (spec, str(name).strip()) if not _is_null(name) else (spec, imin, imax, fit_types[0])
             if key in seen:            # the same component in another coordinate system
+                if not _is_null(name) and seen_as.get(key) != (imin, imax, fit_types[0]):
+                    conflicting.add(key)
                 continue
+            seen_as[key] = (imin, imax, fit_types[0])
             seen.add(key)
             bounds = (spec, imin, imax, fit_types[0])
             if _is_null(name) and bounds in bounds_seen:
@@ -1317,6 +1322,11 @@ class DemagData:
             quality = "b" if str(row.get("result_quality", "g")).strip() == "b" else "g"
             parsed.append(self._make_component(spec, str(name), imin, imax, fit_types[0], quality))
         self._set_components(parsed, replace=False)
+        if conflicting:
+            examples = ", ".join(f"{s} {c}" for s, c in sorted(conflicting)[:5])
+            self._warn_once(f"specimens.txt: {len(conflicting)} interpretations have different bounds or fit types "
+                            f"in different coordinate systems; the specimen-coordinate one (else geographic) was "
+                            f"imported: {examples}" + (" ..." if len(conflicting) > 5 else ""))
         return len(parsed)
 
     # ----- fitting ---------------------------------------------------------
@@ -1872,23 +1882,37 @@ class DemagData:
         return mp.magic_write(os.path.join(dir_path, os.path.basename(custom_name or "specimens.txt")), df,
                               "specimens")
 
-    def write_measurements(self, dir_path: str, custom_name: str = "measurements.txt") -> Optional[str]:
+    def write_measurements(self, dir_path: str, custom_name: str = "measurements.txt",
+                           source: Optional[str] = None) -> Optional[str]:
         """Write the measurements table with the current good/bad (``quality``) flags.
 
-        The file is always written inside ``dir_path`` (``custom_name`` is a
-        bare file name); the source file the contribution was read from is
-        never touched.
+        Only the flags changed in this session are changed in the file, which is
+        otherwise written as it was (:func:`pmagpy.magic_project.write_measurement_flags`);
+        ``source`` is the file to start from (default: the study's own). The
+        table read when the study was opened is left as it was, so the flags
+        remain changes relative to it (and the autosave keeps carrying them).
         """
         table = self.contribution.tables.get("measurements")
         if table is None:
             return None
-        df = table.df
+        target = os.path.join(dir_path, os.path.basename(custom_name))
+        source = source or os.path.join(self.contribution.directory,
+                                        self.contribution.filenames.get("measurements", "measurements.txt"))
+        changes = mp.flag_changes(table.df, (spec.steps for spec in self.specimens.values()))
+        names = table.df["measurement"].tolist() if "measurement" in table.df.columns else None
+        if os.path.isfile(source):
+            written = mp.write_measurement_flags(source, target, changes, names)
+            if written:
+                return written
+            self._warn_once(f"{os.path.basename(source)} no longer has the rows it had when the study was opened; "
+                            "the measurements table was written in full")
+        df = table.df.copy()
         if "quality" not in df.columns:
             df["quality"] = "g"
         col = df.columns.get_loc("quality")
         for spec in self.specimens.values():
             df.iloc[spec.steps["meas_pos"].values, col] = spec.steps["quality"].values
-        return mp.magic_write(os.path.join(dir_path, os.path.basename(custom_name)), df, "measurements")
+        return mp.magic_write(target, df, "measurements")
 
     def _coords_arg(self, coord, coords):
         if coords is not None:
