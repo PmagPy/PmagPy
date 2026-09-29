@@ -1,19 +1,22 @@
-# Conda environment for running PmagPy and the PmagPy GUIs.
+# Conda environment for developing and running PmagPy and the PmagPy GUIs.
 #
-# Create with:
-#   conda env create -f environment.yml
-#   conda activate pmagpy
+# Create with (from the repo root):
+#   conda env create -f environment.yml -n pmagpy-dev
+#   conda activate pmagpy-dev
 #
-# Then install PmagPy itself in editable mode (from the repo root):
-#   pip install -e .
+# Then install PmagPy itself in editable mode:
+#   pip install -e ".[maps]"
 #
-# Or install the released package from PyPI:
-#   pip install pmagpy[maps] pmagpy-cli
+# Or install the released packages from PyPI:
+#   pip install --upgrade "pmagpy[maps]" pmagpy-cli
+#
+# Without -n, the environment is named "pmagpy", matching the user install
+# instructions at https://pmagpy.github.io/PmagPy-docs/installation/pip_install.html
 name: pmagpy
 channels:
   - conda-forge
 dependencies:
-  - python>=3.9
+  - python=3.12
   # core scientific stack — required by pmagpy
   - numpy
   - scipy
@@ -31,4 +34,6 @@ dependencies:
   # interactive use
   - jupyterlab
   - ipython
+  # running the test suite (pytest pmagpy/test)
+  - pytest
   - pip
