@@ -154,9 +154,10 @@ def working_directory(directory: str, base: Optional[str] = None) -> str:
             _write_marker(target, directory)
         return target
     import shutil
-    import tempfile
+    import uuid
     os.makedirs(base, exist_ok=True)
-    staging = tempfile.mkdtemp(prefix=".copying-", dir=base)
+    staging = os.path.join(base, f".copying-{uuid.uuid4().hex[:12]}")
+    os.mkdir(staging, 0o777)
     try:
         for name in files:
             shutil.copy2(os.path.join(directory, name), os.path.join(staging, name))

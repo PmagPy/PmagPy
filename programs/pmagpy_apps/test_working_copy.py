@@ -64,6 +64,14 @@ class TestTheWorkingCopy:
         assert datasets.working_directory(copy) == copy                   # a copy is not copied again
         assert digest(study) == before
 
+    def test_the_copy_is_an_ordinary_folder(self, study, base):
+        umask = os.umask(0o022)
+        try:
+            copy = datasets.working_directory(study)
+        finally:
+            os.umask(umask)
+        assert os.stat(copy).st_mode & 0o777 == 0o755
+
     def test_files_the_study_gains_are_added_and_edits_in_the_copy_kept(self, study, base):
         copy = datasets.working_directory(study)
         with open(os.path.join(copy, "sites.txt"), "a") as fh:

@@ -153,7 +153,41 @@ class TestAtomicWrites:
         assert os.listdir(str(tmp_path)) == ["specimens.txt"]          # no temporary file left behind
 
 
+    def test_a_new_file_gets_the_permissions_open_would_give_it(self, tmp_path):
+        umask = os.umask(0o022)
+        try:
+            path = os.path.join(str(tmp_path), "sites.txt")
+            mp.atomic_write_text(path, "new\n")
+        finally:
+            os.umask(umask)
+        assert os.stat(path).st_mode & 0o777 == 0o644
+
+    def test_a_replaced_file_keeps_its_permissions(self, tmp_path):
+        path = os.path.join(str(tmp_path), "sites.txt")
+        with open(path, "w") as fh:
+            fh.write("old\n")
+        os.chmod(path, 0o664)
+        mp.atomic_write_text(path, "new\n")
+        assert os.stat(path).st_mode & 0o777 == 0o664
+
+
 class TestStagedExport:
+    def test_the_tables_an_export_replaces_keep_their_permissions(self, tmp_path):
+        out = str(tmp_path / "out")
+        os.makedirs(out)
+        with open(os.path.join(out, "sites.txt"), "w") as fh:
+            fh.write("v0")
+        os.chmod(os.path.join(out, "sites.txt"), 0o664)
+        umask = os.umask(0o022)
+        try:
+            with mp.StagedExport(out, backup=os.path.join(out, "backup"), originals=True) as stage:
+                mp.atomic_write_text(os.path.join(stage.dir, "sites.txt"), "v1")
+                mp.atomic_write_text(os.path.join(stage.dir, "samples.txt"), "new")
+        finally:
+            os.umask(umask)
+        assert os.stat(os.path.join(out, "sites.txt")).st_mode & 0o777 == 0o664
+        assert os.stat(os.path.join(out, "samples.txt")).st_mode & 0o777 == 0o644
+
     def test_all_or_nothing(self, tmp_path):
         out = str(tmp_path / "out")
         os.makedirs(out)

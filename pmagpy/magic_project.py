@@ -1018,10 +1018,11 @@ def atomic_write_text(path: str, text: str, encoding: str = "utf-8") -> str:
     it (``os.replace`` is atomic on one file system). UTF-8, ``\\n`` line
     endings, whatever the computer's locale.
     """
-    import tempfile
+    import uuid
     directory = os.path.dirname(os.path.abspath(path)) or "."
     os.makedirs(directory, exist_ok=True)
-    fd, tmp = tempfile.mkstemp(prefix="." + os.path.basename(path) + ".", suffix=".tmp", dir=directory)
+    tmp = os.path.join(directory, f".{os.path.basename(path)}.{uuid.uuid4().hex[:12]}.tmp")
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o666)
     try:
         with os.fdopen(fd, "w", encoding=encoding, newline="\n") as fh:
             fh.write(text)
@@ -1103,6 +1104,11 @@ class StagedExport:
                 shutil.copy2(target, os.path.join(previous, name))
         for name in names:
             target = os.path.join(self.output_dir, name)
+            if os.path.isfile(target):
+                try:
+                    shutil.copymode(target, os.path.join(self.dir, name))
+                except OSError:
+                    pass
             os.replace(os.path.join(self.dir, name), target)
             self.written.append(target)
 
