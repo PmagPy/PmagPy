@@ -40,9 +40,9 @@ def main():
     if '-f' in sys.argv:
         ind = sys.argv.index("-f")
         in_file = sys.argv[ind + 1]
-        vgp_df=pd.read_csv(in_file,delim_whitespace=True,header=None) 
+        vgp_df=pd.read_csv(in_file,sep=r"\s+",header=None)
     else:
-        vgp_df=pd.read_csv(sys.stdin,delim_whitespace=True,header=None) 
+        vgp_df=pd.read_csv(sys.stdin,sep=r"\s+",header=None)
     if '-c' in sys.argv:
         ind = sys.argv.index('-c')
         cutoff = float(sys.argv[ind + 1])

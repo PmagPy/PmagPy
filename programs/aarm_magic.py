@@ -70,9 +70,10 @@ def main():
     #if "-Fr" in args:
     #    ind = args.index("-Fr")
     #    rmag_res = args[ind + 1]
-    ipmag.aarm_magic(infile, dir_path, input_dir_path,
-            spec_file, samp_file, data_model_num,
-            coord)
+    ipmag.aarm_magic_dm2(infile=infile, dir_path=dir_path,
+                         input_dir_path=input_dir_path, spec_file=spec_file,
+                         samp_file=samp_file, data_model_num=data_model_num,
+                         coord=coord)
 
 
 if __name__ == "__main__":
