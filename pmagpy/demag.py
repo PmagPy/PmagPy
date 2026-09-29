@@ -776,6 +776,18 @@ POLE_CODE = "DE-VGP"
 PCA_CODE = "LP-DC4"        # IAGA DC4: principal component analysis (written to means built from PCA fits)
 
 
+def _is_lone_plane(mean) -> bool:
+    """A mean resting on a single plane and no line: its dec/inc is that plane's pole."""
+    lines = _to_float(mean.get("dir_n_specimens_lines", np.nan), 0.0)
+    planes = _to_float(mean.get("dir_n_specimens_planes", np.nan), 0.0)
+    return lines == 0 and planes == 1
+
+
+def _has_direction(mean) -> bool:
+    return not _is_lone_plane(mean) and not np.isnan(_to_float(mean.get("dir_dec"))) \
+        and not np.isnan(_to_float(mean.get("dir_inc")))
+
+
 def vgp_polarity(vgp_lat: float) -> str:
     """MagIC ``dir_polarity`` from a VGP latitude, as the legacy Demag GUI assigned it:
     within 55° of the north pole 'n', within 55° of the south pole 'r', else 't'."""
@@ -852,7 +864,7 @@ class DemagData:
         spec_df, samp_df = self._table("specimens"), self._table("samples")
         site_df, loc_df = self._table("sites"), self._table("locations")
         self.hierarchy = self._build_hierarchy(meas, spec_df, samp_df, site_df)
-        self.site_coords = self._build_site_coords(site_df, samp_df)
+        self.site_coords = self._build_site_coords(site_df, samp_df, self.warnings)
 
         # the samples table is grouped once and each sample's orientation worked out
         # once, however many specimens share it (scanning the table per specimen
@@ -862,6 +874,8 @@ class DemagData:
             for row in samp_df.to_dict("records"):
                 sample_rows.setdefault(str(row["sample"]), []).append(row)
         orientations: dict = {}
+        site_bedding = mp.site_bedding_table(site_df)
+        from_site = set()
         hierarchy = self.hierarchy[["sample", "site", "location"]].to_dict("index")
         # the measurement columns are pulled out of the table once and sliced per
         # specimen: reading them out of a thousand small frames took longer than
@@ -874,8 +888,15 @@ class DemagData:
             sample, site, location = levels["sample"], levels["site"], levels["location"]
             if sample:
                 if sample not in orientations:
-                    orientations[sample] = mp.orientation_from_rows(sample_rows.get(str(sample), []), sample) \
-                        if str(sample) in sample_rows else None
+                    own = sample_rows.get(str(sample), [])
+                    bedding = site_bedding.get(str(site))
+                    orientation = mp.orientation_from_rows(own, sample, bedding, self.warnings) \
+                        if own or bedding else None
+                    if orientation is not None and bedding is not None and \
+                            (orientation.bed_dip_direction, orientation.bed_dip) == bedding and \
+                            not any(not np.isnan(_to_float(r.get("bed_dip"))) for r in own):
+                        from_site.add(str(sample))
+                    orientations[sample] = orientation
                 orientation = orientations[sample]
             else:
                 orientation = None
@@ -889,6 +910,9 @@ class DemagData:
                                                 protocol_codes=_protocol_codes(steps))
         if not self.specimens:
             raise ValueError("No specimens with demagnetization steps found")
+        if from_site:
+            self.warnings.append(f"{len(from_site)} samples have no bedding of their own and take their site's "
+                                 "(bed_dip, bed_dip_direction in sites.txt) for the tilt correction")
 
     _build_hierarchy = staticmethod(mp.build_hierarchy)
     _build_site_coords = staticmethod(mp.build_site_coords)
@@ -1464,6 +1488,8 @@ class DemagData:
             spec = self.specimens[r.specimen]
             if (r.specimen, r.dir_comp) in failing or (spec.site, r.dir_comp) in failing_sites:
                 continue
+            if not getattr(spec, level):                # no sample/site/location to average into
+                continue
             rows.append({"group": getattr(spec, level), "site": spec.site,
                          "location": spec.location, "dir_comp": r.dir_comp,
                          "dir_dec": r.dir_dec, "dir_inc": r.dir_inc,
@@ -1499,6 +1525,10 @@ class DemagData:
                    "specimens": ":".join(grp["specimen"]),
                    "dir_n_samples": len({self.specimens[sp].sample for sp in grp["specimen"]}),
                    "site": grp["site"].iloc[0], "location": grp["location"].iloc[0]}
+            if level == "site":
+                rec["samples"] = ":".join(dict.fromkeys(self.specimens[sp].sample for sp in grp["specimen"]))
+            elif level == "location":
+                rec["sites"] = ":".join(dict.fromkeys(grp["site"].astype(str)))
             codes = set()
             for mc in grp["method_codes"]:
                 codes |= set(_codes(mc))
@@ -1507,14 +1537,19 @@ class DemagData:
                 codes.add(PCA_CODE)
             rec["method_codes"] = _join_codes(codes)
             site_for_vgp = group if level == "site" else rec["site"]
-            if level in ("sample", "site") and site_for_vgp in self.site_coords:
-                lat, lon = self.site_coords[site_for_vgp]
-                a95 = rec["dir_alpha95"] if not np.isnan(rec["dir_alpha95"]) else 0.0
-                plon, plat, dp, dm = pmag.dia_vgp(rec["dir_dec"], rec["dir_inc"], a95, lat, lon)
-                rec.update({"lat": lat, "lon": lon, "vgp_lat": float(plat), "vgp_lon": float(plon),
-                            "vgp_dp": float(dp), "vgp_dm": float(dm)})
+            if level in ("sample", "site") and site_for_vgp in self.site_coords and _has_direction(rec):
+                rec.update(self._vgp(rec, *self.site_coords[site_for_vgp]))
             out.append(rec)
         return pd.DataFrame(out)
+
+    @staticmethod
+    def _vgp(rec: dict, lat: float, lon: float) -> dict:
+        """The VGP of a mean direction; dp and dm are blank where the mean has no alpha95 (one direction)."""
+        a95 = rec["dir_alpha95"]
+        known = not np.isnan(a95)
+        plon, plat, dp, dm = pmag.dia_vgp(rec["dir_dec"], rec["dir_inc"], a95 if known else 0.0, lat, lon)
+        return {"lat": lat, "lon": lon, "vgp_lat": float(plat), "vgp_lon": float(plon),
+                "vgp_dp": float(dp) if known else np.nan, "vgp_dm": float(dm) if known else np.nan}
 
     def best_fit_vectors(self, coord: int = COORD_GEOGRAPHIC, level: str = "site",
                          include_bad: bool = False) -> dict:
@@ -1578,11 +1613,13 @@ class DemagData:
         axes = {name: polarity_axis(g[["dir_dec", "dir_inc"]].values)
                 for name, g in lower_means.groupby("dir_comp_name")} if level == "location" and common_polarity else {}
         for (group, comp_name), grp in lower_means.groupby(["group", "dir_comp_name"], sort=False):
-            # A lower-level mean made only of planes is still a plane (its
-            # dec/inc is a pole), so it enters the next level as a plane and
-            # the lines-and-planes mean of McFadden & McElhinny is used again.
+            # A lower-level mean of a single plane is still a plane (its dec/inc
+            # is the plane's pole), so it enters the next level as a plane and
+            # the lines-and-planes mean of McFadden & McElhinny is used again;
+            # a mean of two or more planes is a direction (MM88 fit their
+            # intersection) and enters as one.
             recs = [{"dir_dec": m["dir_dec"], "dir_inc": m["dir_inc"], "dir_tilt_correction": coord,
-                     "dir_type": "l" if int(m.get("dir_n_specimens_lines", 1) or 0) > 0 else "p"}
+                     "dir_type": "p" if _is_lone_plane(m) else "l"}
                     for _, m in grp.iterrows()]
             reversed_perc = 0.0
             if level == "location" and (common_polarity or flip):
@@ -1602,12 +1639,8 @@ class DemagData:
                                                | {"DE-FM-LP" if any(r["dir_type"] == "p" for r in recs) else "DE-FM"})}
             if level == "site":
                 rec["site"] = group
-                if group in self.site_coords:
-                    lat, lon = self.site_coords[group]
-                    a95 = rec["dir_alpha95"] if not np.isnan(rec["dir_alpha95"]) else 0.0
-                    plon, plat, dp, dm = pmag.dia_vgp(rec["dir_dec"], rec["dir_inc"], a95, lat, lon)
-                    rec.update({"lat": lat, "lon": lon, "vgp_lat": float(plat), "vgp_lon": float(plon),
-                                "vgp_dp": float(dp), "vgp_dm": float(dm)})
+                if group in self.site_coords and _has_direction(rec):
+                    rec.update(self._vgp(rec, *self.site_coords[group]))
             out.append(rec)
         return pd.DataFrame(out)
 
@@ -1681,6 +1714,26 @@ class DemagData:
     #     location it has measurements for: those rows are replaced, all other
     #     rows (intensity results, other studies' entities) are kept
     #     (``merge_results``).
+    def produced_coords(self, level: str, coords) -> dict:
+        """``{name: coordinate systems}`` an export in ``coords`` recomputes for each entity at ``level``.
+
+        A specimen yields a coordinate system its orientation allows; a sample,
+        site or location every system one of its specimens yields. Rows of an
+        entity in any other system are the application's to keep, not to replace.
+        """
+        wanted = {int(c) for c in coords}
+        out: dict = {}
+        for spec in self.specimens.values():
+            name = spec.name if level == "specimen" else getattr(spec, level)
+            if not name:
+                continue
+            out.setdefault(str(name), set()).update(c for c in spec.available_coords() if c in wanted)
+        return out
+
+    def _warn_once(self, text: str) -> None:
+        if text not in self.warnings:
+            self.warnings.append(text)
+
     def _stamp(self, df: pd.DataFrame, analysts: Optional[str] = None) -> pd.DataFrame:
         if len(df) == 0:
             return df
@@ -1725,22 +1778,33 @@ class DemagData:
         """
         new = self.specimens_table(coords, analysts)
         existing = self._table("specimens")
+        new = mp.carry_annotations(new, existing, "specimen")
         new = carry_metadata(new, existing, "specimen")
         samples = self._table("samples")
         if samples is not None and len(new):
             new = carry_metadata(new, samples, "sample", columns=("geologic_classes", "geologic_types", "lithologies"))
-        merged = merge_results(existing, new, "specimen", owned=self.specimen_names)
+        merged = merge_results(existing, new, "specimen", owned=self.specimen_names,
+                               produced=self.produced_coords("specimen", coords), warnings=self.warnings)
         # every measured specimen must appear in the specimens table (MagIC
         # checks measurements.specimen against it): add a minimal row for the
         # ones without an interpretation and without any existing row
         present = set(merged["specimen"].astype(str)) if len(merged) else set()
         missing = [n for n in self.specimen_names if n not in present]
         if missing:
-            stub = pd.DataFrame({"specimen": missing, "sample": [self.specimens[n].sample for n in missing]})
+            # the row MagIC requires: the specimen's sample, its protocol and a citation
+            stub = pd.DataFrame({"specimen": missing, "sample": [self.specimens[n].sample for n in missing],
+                                 "method_codes": [_join_codes(self.specimens[n].protocol_codes) or "LP-DIR"
+                                                  for n in missing],
+                                 "citations": "This study"})
             if samples is not None:
                 stub = carry_metadata(stub, samples, "sample",
-                                      columns=("geologic_classes", "geologic_types", "lithologies", "citations"))
+                                      columns=("geologic_classes", "geologic_types", "lithologies"))
             merged = pd.concat([merged, stub], ignore_index=True, sort=False)
+        unplaced = [n for n in self.specimen_names if not self.specimens[n].sample]
+        if unplaced:
+            self._warn_once(f"{len(unplaced)} specimens have no sample (in specimens.txt or measurements.txt), "
+                            f"so no sample, site or location means include them: {', '.join(unplaced[:5])}"
+                            + (" ..." if len(unplaced) > 5 else ""))
         return trim_to_model(merged, "specimens", self.warnings)
 
     def write_specimens(self, dir_path: str, coords=(COORD_SPECIMEN, COORD_GEOGRAPHIC, COORD_TILT),
@@ -1790,6 +1854,14 @@ class DemagData:
         if not parts:
             return pd.DataFrame()
         means = pd.concat(parts, ignore_index=True, sort=False)
+        # a lone plane is not a mean direction (its dec/inc is the plane's pole): it is not written
+        lone_plane = means.apply(_is_lone_plane, axis=1).astype(bool)
+        if lone_plane.any():
+            self._warn_once(f"{level}s: {int(lone_plane.sum())} means rest on a single plane and have no direction; "
+                            "they are not written")
+            means = means[~lone_plane].reset_index(drop=True)
+        if len(means) == 0:
+            return pd.DataFrame()
         means["result_type"] = "a"
         means["result_quality"] = "g"
         means.loc[self._fails(means, level), "result_quality"] = "b"
@@ -1798,18 +1870,28 @@ class DemagData:
             means.loc[has_vgp, "method_codes"] = [_join_codes(_codes(mc) + [VGP_CODE])
                                                   for mc in means.loc[has_vgp, "method_codes"]]
             means.loc[has_vgp, "dir_polarity"] = [vgp_polarity(v) for v in means.loc[has_vgp, "vgp_lat"]]
-        for col in ("dir_dec", "dir_inc", "dir_alpha95", "dir_k", "dir_r", "vgp_lat", "vgp_lon", "vgp_dp", "vgp_dm",
-                    "lat", "lon"):
+        for col in ("dir_dec", "dir_inc", "dir_alpha95", "dir_k", "dir_r", "vgp_lat", "vgp_lon", "vgp_dp", "vgp_dm"):
             if col in means.columns:
-                means[col] = pd.to_numeric(means[col], errors="coerce").round(4 if col in ("lat", "lon") else 1)
+                means[col] = pd.to_numeric(means[col], errors="coerce").round(1)
         internal = ["reversed_perc"]                 # helper columns of mean_directions, not MagIC columns
         if level == "sample":           # sample coordinates and VGPs belong to sites, never to sample rows
             internal += ["lat", "lon", "location", "vgp_lat", "vgp_lon", "vgp_dp", "vgp_dm"]
         means = means.drop(columns=[c for c in internal if c in means.columns])
         table = level + "s"
         existing = self._table(table)
-        new = carry_metadata(self._stamp(means, analysts), existing, level)
-        merged = merge_results(existing, new, level, owned=self.names_at(level))
+        new = self._stamp(means, analysts)
+        if level == "site" and existing is not None and {"lat", "lon"} <= set(existing.columns):
+            # a site's coordinates are the table's, exactly as written there; the ones worked
+            # out for the VGP (from the samples when the sites table has none) only fill a gap
+            recorded = set(existing.loc[pd.to_numeric(existing["lat"], errors="coerce").notna()
+                                        & pd.to_numeric(existing["lon"], errors="coerce").notna(), "site"].astype(str))
+            has = new["site"].astype(str).isin(recorded)
+            new.loc[has, ["lat", "lon"]] = np.nan
+        new = mp.carry_annotations(new, existing, level)
+        new = carry_metadata(new, existing, level)
+        merged = merge_results(existing, new, level, owned=self.names_at(level),
+                               produced=self.produced_coords(level, self._coords_arg(coord, coords)),
+                               warnings=self.warnings)
         return trim_to_model(merged, table, self.warnings)
 
     def write_means(self, level: str, dir_path: str, coord: Optional[int] = None,
@@ -1871,20 +1953,51 @@ class DemagData:
                     rec["paleolat"] = round(pole["paleolat"], 1)
                 rec["dir_polarity"] = vgp_polarity(pole["plat"])
                 rec["method_codes"] = _join_codes(_codes(rec["method_codes"]) + [POLE_CODE])
-            sites = [s for s in self.site_coords if s in self.names_at("site")
-                     and any(sp.site == s and sp.location == loc for sp in self.specimens.values())]
-            if sites:
-                lats = [self.site_coords[s][0] for s in sites]
-                lons = [self.site_coords[s][1] for s in sites]
-                rec.update({"lat_s": round(min(lats), 4), "lat_n": round(max(lats), 4),
-                            "lon_w": round(min(lons), 4), "lon_e": round(max(lons), 4)})
+            if "sites" in m and not _is_null(m["sites"]):
+                rec["sites"] = m["sites"]
             rows.append(rec)
         new = self._stamp(pd.DataFrame(rows), analysts)
         existing = self._table("locations")
+        new = mp.carry_annotations(new, existing, "location")
         new = carry_metadata(new, existing, "location")
+        new = self._fill_location_extent(new)
         new = self._aggregate_site_geology(new)
-        merged = merge_results(existing, new, "location", owned=self.names_at("location"))
+        merged = merge_results(existing, new, "location", owned=self.names_at("location"),
+                               produced=self.produced_coords("location", self._coords_arg(coord, coords)),
+                               warnings=self.warnings)
         return trim_to_model(merged, "locations", self.warnings)
+
+    def _fill_location_extent(self, locations: pd.DataFrame) -> pd.DataFrame:
+        """Fill a location's lat_s/lat_n/lon_w/lon_e from its sites where the table does not give them.
+
+        The existing extent is kept as written. Longitudes are reported in the
+        convention the site coordinates use (0-360 when any site is east of
+        180, else -180-180).
+        """
+        if len(locations) == 0:
+            return locations
+        locations = locations.copy()
+        for c in ("lat_s", "lat_n", "lon_w", "lon_e"):
+            if c not in locations.columns:
+                locations[c] = np.nan
+            locations[c] = locations[c].astype(object)
+        by_location: dict = {}
+        for spec in self.specimens.values():
+            if spec.location and spec.site in self.site_coords:
+                by_location.setdefault(spec.location, {})[spec.site] = self.site_coords[spec.site]
+        for i, row in locations.iterrows():
+            if not all(_is_null(row[c]) for c in ("lat_s", "lat_n", "lon_w", "lon_e")):
+                continue
+            coords = list(by_location.get(str(row["location"]), {}).values())
+            if not coords:
+                continue
+            lats = [c[0] for c in coords]
+            lons = [c[1] % 360.0 for c in coords]
+            if max(lons) <= 180.0 or not any(l > 180.0 for l in (c[1] for c in coords)):
+                lons = [((l + 180.0) % 360.0) - 180.0 for l in lons]
+            locations.loc[i, ["lat_s", "lat_n", "lon_w", "lon_e"]] = [round(min(lats), 4), round(max(lats), 4),
+                                                                      round(min(lons), 4), round(max(lons), 4)]
+        return locations
 
     def _aggregate_site_geology(self, locations: pd.DataFrame) -> pd.DataFrame:
         """Fill empty geologic_classes/lithologies of location rows with the union of the

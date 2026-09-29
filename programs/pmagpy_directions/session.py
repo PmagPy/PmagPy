@@ -520,6 +520,10 @@ class Session(param.Parameterized):
         common_polarity = self.unify_polarity if common_polarity is None else common_polarity
         flip = self.flip_polarity if flip is None else flip
         in_place = os.path.realpath(self.output_dir) == os.path.realpath(self.directory)
+        # merge into the tables as they are now: another application (PmagPy Intensity on the
+        # same directory) may have exported into them since this study was opened
+        mp.refresh_tables(self.data.contribution, self.output_dir,
+                          ("specimens", "samples", "sites", "locations"), self.data.warnings)
         stage = mp.StagedExport(self.output_dir, backup=os.path.join(self.output_dir, self.BACKUP_DIR),
                                 originals=in_place)
         with stage:

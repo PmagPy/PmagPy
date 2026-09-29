@@ -151,17 +151,18 @@ class Orientation:
                                             or np.isnan(self.bed_dip))
 
 
-def build_orientation(samp_df: Optional[pd.DataFrame], sample: str) -> Optional[Orientation]:
+#: orientation methods in order of preference, as ``pmag.set_priorities`` ranks them
+SO_PRIORITY = ("SO-SUN", "SO-GPS-DIFF", "SO-SUN-SIGHT", "SO-SIGHT", "SO-SIGHT-BS", "SO-CMD-NORTH",
+               "SO-MAG", "SO-SM", "SO-REC", "SO-V", "SO-CORE", "SO-NO")
+
+
+def build_orientation(samp_df: Optional[pd.DataFrame], sample: str, site_bedding: Optional[tuple] = None,
+                      warnings: Optional[list] = None) -> Optional[Orientation]:
     """Pick the orientation row for a sample from a MagIC 3 samples table.
 
-    MagIC 3 tables may hold several rows per sample (orientation rows, result
-    rows). Rows flagged ``orientation_quality == 'b'`` are skipped, the first
-    row with both azimuth and dip provides the geographic transform, and
-    bedding is taken from the same row or, failing that, from any row of the
-    sample that carries it.
-
-    ``samp_df`` may be the whole table or just this sample's rows (a caller
-    opening a large study groups the table once and passes each sample's rows).
+    See :func:`orientation_from_rows` for the rules. ``samp_df`` may be the
+    whole table or just this sample's rows (a caller opening a large study
+    groups the table once and passes each sample's rows).
     """
     if samp_df is None or "sample" not in samp_df.columns or len(samp_df) == 0:
         return None
@@ -171,33 +172,75 @@ def build_orientation(samp_df: Optional[pd.DataFrame], sample: str) -> Optional[
         if len(samp_df) == 0:
             return None
     # a sample has a handful of rows: plain dicts are far quicker than a frame here
-    return orientation_from_rows(samp_df.to_dict("records"), sample)
+    return orientation_from_rows(samp_df.to_dict("records"), sample, site_bedding, warnings)
 
 
-def orientation_from_rows(rows: list, sample: str) -> Optional[Orientation]:
-    """:func:`build_orientation` over a sample's rows as dicts (see there for the rules)."""
+def _so_rank(codes: list) -> int:
+    ranks = [SO_PRIORITY.index(c) for c in codes if c in SO_PRIORITY]
+    return min(ranks) if ranks else len(SO_PRIORITY)
+
+
+def orientation_from_rows(rows: list, sample: str, site_bedding: Optional[tuple] = None,
+                          warnings: Optional[list] = None) -> Optional[Orientation]:
+    """The orientation of a sample from its rows (as dicts), chosen as ``pmag.get_orient`` chooses it.
+
+    MagIC 3 tables may hold several rows per sample (orientation rows, result
+    rows, one row per orientation method). Rows flagged
+    ``orientation_quality == 'b'`` are skipped; of the rows with both azimuth
+    and dip, the one whose orientation method ranks highest in
+    :data:`SO_PRIORITY` is used (SO-ASC and SO-POM never supply the azimuth;
+    among equals, the first). Bedding comes from the same row, failing that
+    from any other row of the sample, failing that from the site
+    (``site_bedding``, the sites table's ``(bed_dip_direction, bed_dip)``).
+    Rows that give different orientations are reported in ``warnings``.
+    """
     rows = [r for r in rows if str(r.get("orientation_quality", "")).strip() != "b"] \
         if any("orientation_quality" in r for r in rows) else list(rows)
-    if not rows:
-        return None
     orient = Orientation(sample=str(sample))
-    for row in rows:
-        if "azimuth" not in row or "dip" not in row:
-            break
+    if not rows and site_bedding is None:
+        return None
+    candidates = []
+    for position, row in enumerate(rows):
         az, dip = to_float(row.get("azimuth")), to_float(row.get("dip"))
         if np.isnan(az) or np.isnan(dip):
             continue
-        orient.azimuth, orient.dip = az, dip
-        orient.method_codes = [c for c in split_codes(row.get("method_codes", ""))
-                               if c.startswith("SO-") and c not in NON_PRIMARY_SO_CODES]
-        for col in ("bed_dip_direction", "bed_dip"):
-            if any(col in r for r in rows):
-                val = to_float(row.get(col))
-                if np.isnan(val):
-                    val = next((v for v in (to_float(r.get(col)) for r in rows) if not np.isnan(v)), np.nan)
-                setattr(orient, col, val)
-        break
+        codes = [c for c in split_codes(row.get("method_codes", ""))
+                 if c.startswith("SO-") and c not in NON_PRIMARY_SO_CODES]
+        if not codes and any(c in NON_PRIMARY_SO_CODES for c in split_codes(row.get("method_codes", ""))):
+            continue                          # an SO-ASC/SO-POM row alone never supplies the azimuth
+        candidates.append((_so_rank(codes), position, row, codes, az, dip))
+    if candidates:
+        candidates.sort(key=lambda c: (c[0], c[1]))
+        _, _, chosen, codes, az, dip = candidates[0]
+        orient.azimuth, orient.dip, orient.method_codes = az, dip, codes
+        others = {(round(c[4], 1), round(c[5], 1)) for c in candidates} - {(round(az, 1), round(dip, 1))}
+        if others and warnings is not None:
+            warnings.append(f"sample {sample}: {len(candidates)} orientation rows disagree; azimuth/dip "
+                            f"{az:g}/{dip:g} ({':'.join(codes) or 'no SO- method'}) was used")
+    else:
+        chosen = None
+    bed_rows = ([chosen] if chosen is not None else []) + [r for r in rows if r is not chosen]
+    for row in bed_rows:
+        ddir, bdip = to_float(row.get("bed_dip_direction")), to_float(row.get("bed_dip"))
+        if not (np.isnan(ddir) or np.isnan(bdip)):
+            orient.bed_dip_direction, orient.bed_dip = ddir, bdip
+            break
+    else:
+        if site_bedding is not None:
+            orient.bed_dip_direction, orient.bed_dip = site_bedding
+    if not orient.has_geographic and np.isnan(orient.bed_dip):
+        return orient if rows else None
     return orient
+
+
+def site_bedding_table(site_df: Optional[pd.DataFrame]) -> dict:
+    """site -> (bed_dip_direction, bed_dip) from the sites table, where a site gives both."""
+    if site_df is None or not {"site", "bed_dip", "bed_dip_direction"} <= set(site_df.columns):
+        return {}
+    sub = pd.DataFrame({"site": site_df["site"].astype(str),
+                        "ddir": pd.to_numeric(site_df["bed_dip_direction"], errors="coerce"),
+                        "dip": pd.to_numeric(site_df["bed_dip"], errors="coerce")}).dropna()
+    return {site: (float(g["ddir"].iloc[0]), float(g["dip"].iloc[0])) for site, g in sub.groupby("site", sort=False)}
 
 
 # ---------------------------------------------------------------------------
@@ -238,16 +281,68 @@ _RESULT_PREFIXES = ("dir_", "vgp_", "pole_", "int_", "aniso_", "hyst_", "rem_", 
                     "padm", "paleolat", "critical_temp", "susc_", "curie", "magn_", "treat_", "result_")
 _RESULT_COLUMNS = {"method_codes", "citations", "software_packages", "description", "analysts", "experiments",
                    "measurements", "criteria", "result_names", "timestamp"}
+#: the members of a mean (a site's samples, a location's sites ...): an application writes its own list;
+#: the list of a row being replaced describes a mean that no longer exists and is never carried
+LIST_COLUMNS = ("specimens", "samples", "sites", "locations")
+#: columns whose values mean something only together, so they are always carried from one row:
+#: an age from one row and its unit from another made 1730 AD into 1730 ka
+COLUMN_GROUPS = (("age", "age_unit", "age_sigma", "age_low", "age_high"),
+                 ("lat", "lon"),
+                 ("lat_s", "lat_n", "lon_w", "lon_e"),
+                 ("bed_dip", "bed_dip_direction"),
+                 ("azimuth", "dip"))
+#: annotations of a result row that an application does not produce itself: carried to the new row
+#: that replaces it (same name, component and coordinate system) when the new row leaves them empty
+ANNOTATION_COLUMNS = ("description", "dir_nrm_origin", "experiments", "analysts", "external_database_ids",
+                      "dir_polarity")
 
 
 def is_metadata_column(column: str) -> bool:
     """True for descriptive columns that a new result row should inherit."""
-    return not (column.startswith(_RESULT_PREFIXES) or column in _RESULT_COLUMNS)
+    return not (column.startswith(_RESULT_PREFIXES) or column in _RESULT_COLUMNS or column in LIST_COLUMNS)
+
+
+def _blank_to_nan(frame: pd.DataFrame, cols) -> pd.DataFrame:
+    frame = frame.copy()
+    for c in cols:
+        text = frame[c].astype(str).str.strip()
+        frame[c] = frame[c].where(~(frame[c].isna() | text.isin(["", "nan", "None"])))
+        frame[c] = frame[c].astype(object)
+    return frame
+
+
+def metadata_by_key(existing: pd.DataFrame, key: str, cols) -> pd.DataFrame:
+    """One row of metadata per name: each column's first value, but each :data:`COLUMN_GROUPS` from one row."""
+    cols = [c for c in cols if c in existing.columns and c != key]
+    source = _blank_to_nan(existing[[key] + cols], cols)
+    source[key] = source[key].astype(str)
+    grouped = {c for g in COLUMN_GROUPS for c in g}
+    single = [c for c in cols if c not in grouped]
+    out = source.groupby(key, sort=False)[single].first() if single else \
+        pd.DataFrame(index=pd.Index(pd.unique(source[key]), name=key))
+    for group in COLUMN_GROUPS:
+        members = [c for c in group if c in cols]
+        if not members:
+            continue
+        # the row that gives the group's leading column (the age, the latitude ...); failing that,
+        # the first row that gives any of it
+        lead = source[members[0]].notna() if members[0] == group[0] else source[members].notna().any(axis=1)
+        rank = np.where(lead, 0, np.where(source[members].notna().any(axis=1), 1, 2))
+        ranked = source.assign(_rank=rank)
+        ranked = ranked[ranked["_rank"] < 2].sort_values("_rank", kind="stable")
+        rows = ranked.groupby(key, sort=False).head(1)
+        out = out.join(rows.set_index(key)[members], how="left")
+    return out
 
 
 def carry_metadata(new: pd.DataFrame, existing: Optional[pd.DataFrame], key: str,
                    columns: Optional[tuple] = None) -> pd.DataFrame:
     """Fill empty metadata cells of ``new`` rows from existing rows with the same key.
+
+    Columns that belong together (:data:`COLUMN_GROUPS`: an age and its unit,
+    a latitude and longitude ...) are taken from one existing row and only
+    into a new row that has none of them; the member lists of a mean
+    (:data:`LIST_COLUMNS`) are never carried.
 
     Args:
         new: rows about to be written (must have column ``key``).
@@ -262,20 +357,76 @@ def carry_metadata(new: pd.DataFrame, existing: Optional[pd.DataFrame], key: str
         cols = [c for c in cols if c in columns]
     if not cols:
         return new
-    source = existing[[key] + cols].copy()
-    source[key] = source[key].astype(str)
-    for c in cols:
-        source[c] = source[c].where(source[c].astype(str).str.strip().replace("nan", "") != "")
-    firsts = source.groupby(key, sort=False)[cols].first()
+    meta = metadata_by_key(existing, key, cols)
     new = new.copy()
     keys = new[key].astype(str)
+    grouped = {c for g in COLUMN_GROUPS for c in g}
+
+    def empty(c):
+        if c not in new.columns:
+            return pd.Series(True, index=new.index)
+        return new[c].isna() | new[c].astype(str).str.strip().isin(["", "nan", "None"])
+
     for c in cols:
-        fill = keys.map(firsts[c])
+        if c in grouped:
+            continue
+        fill = keys.map(meta[c]) if c in meta.columns else pd.Series(np.nan, index=new.index)
         if c not in new.columns:
             new[c] = fill
         else:
-            empty = new[c].isna() | (new[c].astype(str).str.strip() == "")
-            new[c] = new[c].where(~empty, fill)
+            new[c] = new[c].astype(object).where(~empty(c), fill)
+    for group in COLUMN_GROUPS:
+        members = [c for c in group if c in cols and c in meta.columns]
+        if not members:
+            continue
+        none_yet = pd.Series(True, index=new.index)
+        for c in members:
+            none_yet &= empty(c)
+        for c in members:
+            fill = keys.map(meta[c])
+            if c not in new.columns:
+                new[c] = np.nan
+            new[c] = new[c].astype(object).where(~none_yet, fill)
+    return new
+
+
+def carry_annotations(new: pd.DataFrame, existing: Optional[pd.DataFrame], key: str,
+                      columns=ANNOTATION_COLUMNS) -> pd.DataFrame:
+    """Keep what a replaced result row said about itself (its description, NRM origin ...).
+
+    A new row inherits these from the existing row it replaces -- the same
+    name, component (``dir_comp`` or ``dir_comp_name``) and coordinate system
+    -- wherever the new row leaves them empty.
+    """
+    if existing is None or len(new) == 0 or key not in existing.columns or key not in new.columns:
+        return new
+    cols = [c for c in columns if c in existing.columns]
+    if not cols:
+        return new
+    match = [c for c in ("dir_comp", "dir_comp_name", "dir_tilt_correction") if c in existing.columns
+             and c in new.columns]
+
+    def ids(frame):
+        parts = [frame[key].astype(str)]
+        for c in match:
+            values = frame[c]
+            if c == "dir_tilt_correction":
+                values = pd.to_numeric(values, errors="coerce").map(lambda v: "" if pd.isna(v) else str(int(v)))
+            parts.append(values.fillna("").astype(str).str.strip())
+        return pd.Series(["\x1f".join(t) for t in zip(*parts)], index=frame.index)
+
+    source = _blank_to_nan(existing[cols], cols)
+    source.index = ids(existing).values
+    source = source[~source.index.duplicated()]
+    new = new.copy()
+    new_ids = ids(new)
+    for c in cols:
+        fill = new_ids.map(source[c])
+        if c not in new.columns:
+            new[c] = fill
+        else:
+            blank = new[c].isna() | new[c].astype(str).str.strip().isin(["", "nan", "None"])
+            new[c] = new[c].astype(object).where(~blank, fill)
     return new
 
 
@@ -308,7 +459,8 @@ def intensity_rows(existing: pd.DataFrame) -> pd.Series:
 
 
 def merge_results(existing: Optional[pd.DataFrame], new: pd.DataFrame, key: str, owned,
-                  owns: Optional[Callable[[pd.DataFrame], pd.Series]] = None) -> pd.DataFrame:
+                  owns: Optional[Callable[[pd.DataFrame], pd.Series]] = None,
+                  produced: Optional[dict] = None, warnings: Optional[list] = None) -> pd.DataFrame:
     """Replace the rows an application owns; keep and inherit everything else.
 
     ``owned`` are the entity names (specimens, samples ...) the application has
@@ -320,6 +472,12 @@ def merge_results(existing: Optional[pd.DataFrame], new: pd.DataFrame, key: str,
     ``owns`` decides which existing rows count as the application's own; the
     default is the directional policy used by PmagPy Directions (directional
     rows that are not paleointensity results).
+
+    ``produced`` narrows that to the coordinate systems the application
+    actually wrote: ``{name: {dir_tilt_correction codes}}``. An owned row in
+    another coordinate system -- a tilt-corrected mean of a study whose
+    bedding the application cannot read, a system this export left out -- is
+    kept, and ``warnings`` says how many were.
     """
     if existing is None or len(existing) == 0:
         return new
@@ -330,15 +488,24 @@ def merge_results(existing: Optional[pd.DataFrame], new: pd.DataFrame, key: str,
             return directional_rows(df) & ~intensity_rows(df)
     owned = set(str(o) for o in owned)
     names = existing[key].astype(str)
-    mine = owns(existing)
-    keep = existing[~(mine & names.isin(owned))]
+    mine = owns(existing) & names.isin(owned)
+    if produced is not None and "dir_tilt_correction" in existing.columns:
+        tilt = pd.to_numeric(existing["dir_tilt_correction"], errors="coerce")
+        wrote = pd.Series([pd.isna(t) or int(t) in produced.get(n, ()) for n, t in zip(names, tilt)],
+                          index=existing.index)
+        kept = mine & ~wrote
+        if kept.any() and warnings is not None:
+            systems = sorted({COORD_NAMES.get(int(t), str(t)) for t in tilt[kept]})
+            warnings.append(f"{key}s: kept {int(kept.sum())} existing {' and '.join(systems)} result rows of "
+                            f"{names[kept].nunique()} {key}s that this export did not recompute")
+        mine &= wrote
+    keep = existing[~mine]
     new_names = set(new[key].astype(str)) if len(new) and key in new.columns else set()
     gone = (owned & set(names)) - set(keep[key].astype(str)) - new_names
     if gone:
-        meta_cols = [c for c in existing.columns if c == key or is_metadata_column(c)]
-        lost = existing[names.isin(gone)][meta_cols].copy()
-        lost[key] = lost[key].astype(str)
-        stub = lost.groupby(key, sort=False, as_index=False).first()
+        meta_cols = [c for c in existing.columns if c != key and is_metadata_column(c)]
+        lost = existing[names.isin(gone)]
+        stub = metadata_by_key(lost, key, meta_cols).reset_index()
         keep = pd.concat([keep, stub], ignore_index=True, sort=False)
     keep = keep.dropna(axis=1, how="all")
     return pd.concat([keep, new], ignore_index=True, sort=False)
@@ -469,8 +636,32 @@ def build_hierarchy(meas: pd.DataFrame, spec_df, samp_df, site_df) -> pd.DataFra
     return hier
 
 
-def build_site_coords(site_df, samp_df) -> dict:
-    """site -> (lat, lon), from the sites table, falling back to the samples table."""
+def mean_position(lats, lons) -> tuple[float, float]:
+    """The mean of geographic positions, as the position of the mean unit vector.
+
+    A plain average of longitudes fails across a convention change or the
+    antimeridian (-91.7 and 268.3 are the same meridian, and average to
+    88.3). The longitude is returned from 0 to 360 when any of the values is
+    east of 180, otherwise from -180 to 180.
+    """
+    lons = np.asarray(lons, dtype=float)
+    lat = np.radians(np.asarray(lats, dtype=float))
+    lon = np.radians(lons)
+    x, y, z = np.cos(lat) * np.cos(lon), np.cos(lat) * np.sin(lon), np.sin(lat)
+    mlat = float(np.degrees(np.arctan2(z.mean(), np.hypot(x.mean(), y.mean()))))
+    mlon = float(np.degrees(np.arctan2(y.mean(), x.mean())))
+    if (lons > 180.0).any():
+        mlon %= 360.0
+    return mlat, mlon
+
+
+def build_site_coords(site_df, samp_df, warnings: Optional[list] = None) -> dict:
+    """site -> (lat, lon), from the sites table, falling back to the samples table.
+
+    A site with several rows takes the mean position of their coordinates
+    (:func:`mean_position`); rows that disagree by more than a few kilometres
+    are reported, since one site should have one place.
+    """
     coords: dict = {}
     for df in (site_df, samp_df):
         if df is None or not {"site", "lat", "lon"} <= set(df.columns):
@@ -480,7 +671,18 @@ def build_site_coords(site_df, samp_df) -> dict:
         sub["lon"] = pd.to_numeric(sub["lon"], errors="coerce")
         sub = sub.dropna()
         for site, grp in sub.groupby("site"):
-            coords.setdefault(str(site), (float(grp["lat"].mean()), float(grp["lon"].mean())))
+            site = str(site)
+            if site in coords:
+                continue
+            lats, lons = grp["lat"].to_numpy(), grp["lon"].to_numpy()
+            if len(grp) == 1 or (np.ptp(lats) == 0 and np.ptp(lons) == 0):
+                coords[site] = (float(lats[0]), float(lons[0]))
+                continue
+            coords[site] = mean_position(lats, lons)
+            spread = max(np.ptp(lats), np.ptp(((lons - lons[0] + 180.0) % 360.0) - 180.0))
+            if spread > 0.05 and warnings is not None:
+                warnings.append(f"site {site}: its rows give positions up to {spread:.2f} degrees apart; "
+                                "their mean position is used for the VGP")
     return coords
 
 
@@ -561,6 +763,11 @@ class MagicProject:
                 shutil.copy2(src, dst)
                 copied.append(dst)
         return copied
+
+    def refresh_tables(self, output_dir: str,
+                       tables=("specimens", "samples", "sites", "locations", "criteria")) -> list[str]:
+        """Read the result tables again just before an export merges into them; see :func:`refresh_tables`."""
+        return refresh_tables(self.contribution, output_dir, tables, self.warnings)
 
     def reload_table(self, table: str) -> None:
         """Read one table again from the directory (after it was written), as :func:`read_contribution` reads it."""
@@ -747,6 +954,42 @@ def read_contribution(directory: str, meas_file: str = "measurements.txt",
             raise MagicReadError(f"{os.path.basename(path)} holds no measurements")
         con.tables[table] = table_frame(table, df, dmodel)
     return con
+
+
+def refresh_tables(contribution: cb.Contribution, output_dir: str,
+                   tables=("specimens", "samples", "sites", "locations", "criteria"),
+                   warnings: Optional[list] = None) -> list[str]:
+    """Read the result tables again, as they are on disk now, before an export merges into them.
+
+    An export keeps every row it does not own and replaces the ones it does
+    -- so it must merge into the table as it is *now*, not as it was when the
+    study was opened: with PmagPy Directions and PmagPy Intensity both open
+    on one directory, each would otherwise write back its own stale copy and
+    delete what the other had exported since. Each table is read from the
+    output directory when that holds it, else from the source directory.
+
+    Returns:
+        the tables that were read again.
+    """
+    read = []
+    for table in tables:
+        name = contribution.filenames.get(table, table + ".txt")
+        for directory in (output_dir, contribution.directory):
+            path = os.path.join(directory, name)
+            if os.path.isfile(path):
+                break
+        else:
+            continue
+        try:
+            _, df = read_table_file(path, expected=table, warnings=warnings)
+        except (MagicReadError, OSError) as exc:
+            if warnings is not None:
+                warnings.append(f"{name} could not be read again before the export ({exc}); "
+                                "the copy read when the study was opened is merged into instead")
+            continue
+        contribution.tables[table] = table_frame(table, df, contribution.data_model)
+        read.append(table)
+    return read
 
 
 def atomic_write_text(path: str, text: str, encoding: str = "utf-8") -> str:
