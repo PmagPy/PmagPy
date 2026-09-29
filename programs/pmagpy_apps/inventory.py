@@ -235,16 +235,19 @@ def tensor_kind(specimens: Optional[pd.DataFrame]) -> Optional[Kind]:
 
 def _read_table(path: str, wanted) -> Optional[pd.DataFrame]:
     """A MagIC 3 table (``tab<TAB>name`` on line 1, header on line 2), only the wanted columns."""
-    with open(path, encoding="utf-8", errors="replace") as fh:
-        first = fh.readline()
-        header = fh.readline().rstrip("\n").split("\t")
-    if not first.startswith("tab"):
+    import io
+    from pmagpy.magic_project import decode_table_text
+    with open(path, "rb") as fh:
+        text, _ = decode_table_text(fh.read())        # UTF-8, or the Windows code page Excel saves in
+    lines = text.split("\n", 2)
+    if not lines[0].startswith("tab") or len(lines) < 2:
         return None
+    header = lines[1].rstrip("\r").split("\t")
     usecols = [c for c in wanted if c in header] if wanted else []
     if wanted and not usecols:
         usecols = [header[0]]
-    return pd.read_csv(path, sep="\t", header=1, usecols=usecols or None, low_memory=False,
-                       encoding="utf-8", encoding_errors="replace", dtype=str if not wanted else None)
+    return pd.read_csv(io.StringIO(text), sep="\t", header=1, usecols=usecols or None, low_memory=False,
+                       dtype=str if not wanted else None)
 
 
 def _missing(df: pd.DataFrame, key: str, columns) -> int:
