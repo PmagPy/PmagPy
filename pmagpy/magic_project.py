@@ -1255,7 +1255,10 @@ def _integers_as_integers(df: pd.DataFrame, table: str) -> pd.DataFrame:
     except (KeyError, AttributeError):
         return df
     for col in df.columns:
-        if types.get(col) != "Integer" or pd.api.types.is_integer_dtype(df[col]):
+        # Integer columns, and descriptive Number columns (an age, an azimuth) that hold whole numbers
+        # only: a value carried from an existing row came back as a float, and 1106 was written 1106.0
+        whole = types.get(col) == "Integer" or (types.get(col) == "Number" and is_metadata_column(col))
+        if not whole or pd.api.types.is_integer_dtype(df[col]):
             continue
         numbers = pd.to_numeric(df[col], errors="coerce")
         present = df[col].notna() & (df[col].astype(str).str.strip() != "")

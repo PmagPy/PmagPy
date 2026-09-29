@@ -1870,6 +1870,16 @@ class PintData:
             (site if level == "site" else specimen).append(Criterion(key, op, value))
         if not specimen and not site:
             return None
+        # a table that is a preset (the one an earlier export wrote, say) keeps the preset's name,
+        # so the descriptions and the criteria selector still say CCRIT rather than "This study"
+        def signature(criteria):
+            return {(c.key, c.operation, c.value if isinstance(c.value, bool) else round(float(c.value), 6))
+                    for c in criteria}
+        for name, preset in CRITERIA_SETS.items():
+            if name != "This study" and signature(preset.specimen) == signature(specimen) \
+                    and signature(preset.site) == signature(site):
+                self.criteria = preset
+                return preset
         citation = str(table.get("citations", pd.Series(["This study"])).iloc[0])
         cs = CriteriaSet("This study", citation, "", "The criteria table of the loaded contribution.",
                          tuple(specimen), tuple(site))

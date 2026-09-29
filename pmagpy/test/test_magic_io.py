@@ -254,3 +254,13 @@ class TestRequiredParentColumn:
                                  "lithologies": [np.nan]})
         out = mp.merge_results(existing, pd.DataFrame(), "specimen", owned=["a"])
         assert "sample" in out.columns and "lithologies" not in out.columns
+
+
+class TestWholeNumbers:
+    def test_a_carried_age_is_written_as_it_was(self, tmp_path):
+        path = os.path.join(str(tmp_path), "sites.txt")
+        mp.magic_write(path, pd.DataFrame({"site": ["a", "b"], "age": [1106.0, np.nan], "lat": [45.5, 46.0]}),
+                       "sites")
+        rows = [dict(zip(open(path).read().splitlines()[1].split("\t"), line.split("\t")))
+                for line in open(path).read().splitlines()[2:]]
+        assert rows[0]["age"] == "1106" and rows[0]["lat"] == "45.5"

@@ -97,3 +97,14 @@ class TestOpeningMakesNoInterpretation:
         view.tmin.value = view.tmax.value = list(view.tmin.options.values())[0]
         view._on_bound(None)
         assert s.specimen not in s.data.interpretations
+
+
+class TestCriteriaName:
+    def test_a_preset_written_to_criteria_txt_is_read_back_by_its_name(self, tmp_path):
+        import pmagpy.paleointensity as pint
+        src = study(tmp_path)
+        s = IntensitySession(src)
+        s.criteria_name = "CCRIT"
+        s.export_tables()
+        assert os.path.exists(os.path.join(src, "criteria.txt"))
+        assert pint.PintData.from_directory(src).criteria.name == "CCRIT"
