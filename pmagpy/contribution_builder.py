@@ -561,6 +561,26 @@ class Contribution(object):
         """
         Put the data for "col_name" into dataframe with df_name
         Used to add 'site_name' to specimen table, for example.
+
+        The name is looked up through as many levels as needed, so
+        propagate_name_down('location', 'measurements') adds the sample,
+        site and location columns to the measurements table, using the
+        specimens, samples and sites tables in turn.
+
+        Parameters
+        ----------
+        col_name : str
+            name to propagate: 'specimen', 'sample', 'site' or 'location'
+        df_name : str
+            table to put it in, e.g. 'measurements'
+        verbose : bool
+            if True, print a warning when a table or a column needed along
+            the way is missing, default False
+
+        Returns
+        -------
+        the pandas DataFrame of the df_name table (None if that table
+        could not be read)
         """
         if df_name not in self.tables:
             table = self.add_magic_table(df_name)[1]
@@ -583,7 +603,8 @@ class Contribution(object):
         bottom_table_name, bottom_name = self.get_table_name(ind - 2)
 
         # merge in bottom level
-        if child_name not in df.columns:
+        # (there is none when col_name is 'sample' or 'specimen')
+        if bottom_table_name and child_name not in df.columns:
             # add child table if missing
             if bottom_table_name not in self.tables:
                 result = self.add_magic_table(bottom_table_name)[1]
@@ -595,9 +616,12 @@ class Contribution(object):
             add_df = self.tables[bottom_table_name].df
             # drop duplicate names
             add_df = add_df.drop_duplicates(subset=bottom_name)
-            if child_name not in df.columns:
+            if child_name not in add_df.columns:
                 if verbose:
-                    print("-W- Cannot complete propagation, {} table is missing {} column".format(df_name, child_name))
+                    print("-W- Cannot complete propagation, {} table is missing {} column".format(bottom_table_name, child_name))
+            elif bottom_name not in df.columns:
+                if verbose:
+                    print("-W- Cannot complete propagation, {} table is missing {} column".format(df_name, bottom_name))
             else:
                 add_df = stringify_col(add_df, child_name)
                 df = stringify_col(df, bottom_name)
@@ -607,7 +631,8 @@ class Contribution(object):
                 self.tables[df_name].df = df
 
         # merge in one level above
-        if parent_name not in df.columns:
+        # (there is none when col_name is 'specimen')
+        if child_table_name and parent_name not in df.columns:
             # add parent_table if missing
             if child_table_name not in self.tables:
                 result = self.add_magic_table(child_table_name)[1]
@@ -623,9 +648,9 @@ class Contribution(object):
             if parent_name not in add_df:
                 if verbose:
                     print('-W- could not finish propagating names: {} table is missing {} column'.format(child_table_name, parent_name))
-            elif parent_name not in df:
+            elif child_name not in df:
                 if verbose:
-                    print('-W- could not finish propagating names: {} table is missing {} column'.format(df_name, parent_name))
+                    print('-W- could not finish propagating names: {} table is missing {} column'.format(df_name, child_name))
             else:
                 add_df = stringify_col(add_df, parent_name)
                 df = stringify_col(df, child_name)
@@ -635,7 +660,9 @@ class Contribution(object):
                 self.tables[df_name].df = df
 
         # merge in two levels above
-        if grandparent_name not in df.columns:
+        # (the measurements table is the lowest level, so there is nothing
+        # to look 'specimen' up in)
+        if parent_table_name and grandparent_name not in df.columns:
             # add grandparent table if it is missing
             if parent_table_name not in self.tables:
                 result = self.add_magic_table(parent_table_name)[1]
