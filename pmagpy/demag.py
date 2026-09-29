@@ -776,6 +776,22 @@ POLE_CODE = "DE-VGP"
 PCA_CODE = "LP-DC4"        # IAGA DC4: principal component analysis (written to means built from PCA fits)
 
 
+def _lnp_k(lnp: dict) -> float:
+    """The precision parameter of a lines-and-planes mean, at full precision.
+
+    ``pmag.dolnp`` formats K as a whole number (k = 3.4 was written 3); this is
+    its formula, K = (N' - 1) / (N - R) with N' = lines + planes / 2 (at least
+    1.1), from the R it reports to four decimals.
+    """
+    n_lines = _to_float(lnp.get("n_lines"), 0.0)
+    n_planes = _to_float(lnp.get("n_planes"), 0.0)
+    r, n_total = _to_float(lnp.get("R")), n_lines + n_planes
+    if np.isnan(r) or n_total < 2:
+        return np.nan
+    n_prime = max(n_lines + 0.5 * n_planes, 1.1)
+    return float((n_prime - 1.0) / (n_total - r)) if n_total - r > 0 else np.inf
+
+
 def _is_lone_plane(mean) -> bool:
     """A mean resting on a single plane and no line: its dec/inc is that plane's pole."""
     lines = _to_float(mean.get("dir_n_specimens_lines", np.nan), 0.0)
@@ -1532,7 +1548,7 @@ class DemagData:
             rec = {level: group, "dir_comp_name": comp_name, "dir_tilt_correction": coord,
                    "reversed_perc": reversed_perc,
                    "dir_dec": _to_float(lnp.get("dec")), "dir_inc": _to_float(lnp.get("inc")),
-                   "dir_alpha95": _to_float(lnp.get("alpha95")), "dir_k": _to_float(lnp.get("K")),
+                   "dir_alpha95": _to_float(lnp.get("alpha95")), "dir_k": _lnp_k(lnp),
                    "dir_r": _to_float(lnp.get("R")),
                    "dir_n_specimens": int(_to_float(lnp.get("n_total"), 0)),
                    "dir_n_specimens_lines": int(_to_float(lnp.get("n_lines"), 0)),
@@ -1643,7 +1659,7 @@ class DemagData:
             rec = {level: group, "dir_comp_name": comp_name, "dir_tilt_correction": coord,
                    "reversed_perc": reversed_perc,
                    "dir_dec": _to_float(lnp.get("dec")), "dir_inc": _to_float(lnp.get("inc")),
-                   "dir_alpha95": _to_float(lnp.get("alpha95")), "dir_k": _to_float(lnp.get("K")),
+                   "dir_alpha95": _to_float(lnp.get("alpha95")), "dir_k": _lnp_k(lnp),
                    "dir_r": _to_float(lnp.get("R")), n_col: int(_to_float(lnp.get("n_total"), len(recs))),
                    "dir_n_specimens_lines": int(_to_float(lnp.get("n_lines"), 0)),
                    "dir_n_specimens_planes": int(_to_float(lnp.get("n_planes"), 0)),
@@ -1889,7 +1905,9 @@ class DemagData:
             means.loc[has_vgp, "dir_polarity"] = [vgp_polarity(v) for v in means.loc[has_vgp, "vgp_lat"]]
         for col in ("dir_dec", "dir_inc", "dir_alpha95", "dir_k", "dir_r", "vgp_lat", "vgp_lon", "vgp_dp", "vgp_dm"):
             if col in means.columns:
-                means[col] = pd.to_numeric(means[col], errors="coerce").round(1)
+                means[col] = pd.to_numeric(means[col], errors="coerce").round(4 if col == "dir_r" else 1)
+        if "dir_k" in means.columns:
+            means["dir_k"] = means["dir_k"].replace([np.inf], np.nan)
         internal = ["reversed_perc"]                 # helper columns of mean_directions, not MagIC columns
         if level == "sample":           # sample coordinates and VGPs belong to sites, never to sample rows
             internal += ["lat", "lon", "location", "vgp_lat", "vgp_lon", "vgp_dp", "vgp_dm"]
@@ -1958,8 +1976,8 @@ class DemagData:
                    "method_codes": m["method_codes"]}
             for col in ("dir_dec", "dir_inc", "dir_alpha95", "dir_k", "dir_r", "dir_n_sites", "dir_n_samples",
                         "dir_n_specimens"):
-                if col in m and not _is_null(m[col]):
-                    rec[col] = round(float(m[col]), 1) if col.startswith("dir_") and "n_" not in col else int(m[col])
+                if col in m and not _is_null(m[col]) and np.isfinite(float(m[col])):
+                    rec[col] = int(m[col]) if "n_" in col else round(float(m[col]), 4 if col == "dir_r" else 1)
             pole = self.mean_pole(coord, comp, "site", common_polarity=common_polarity, location=loc, flip=flip)
             if pole:
                 rec.update({"pole_lat": round(pole["plat"], 1), "pole_lon": round(pole["plon"], 1),

@@ -865,7 +865,10 @@ def read_table_file(path: str, expected: Optional[str] = None,
     header = lines[1].rstrip("\r").split("\t")
     dtypes = {c: str for c in header if c in NAME_COLUMNS}
     try:
-        df = pd.read_csv(io.StringIO(text), skiprows=1, sep="\t", dtype=dtypes, low_memory=False)
+        # round_trip: the fast parser can be a unit in the last place off, which turned every
+        # rewritten table into a diff of thousands of lines
+        df = pd.read_csv(io.StringIO(text), skiprows=1, sep="\t", dtype=dtypes, low_memory=False,
+                         float_precision="round_trip")
     except (pd.errors.ParserError, ValueError) as exc:
         raise MagicReadError(f"{name} could not be read: {exc}") from exc
     df = df.dropna(how="all", axis=0)
@@ -1123,7 +1126,25 @@ def magic_table_text(df: pd.DataFrame, table: str) -> str:
     out = out.drop(columns=[c for c in ("num", name + "_name") if c in out.columns])
     if name in out.columns:
         out[name] = out[name].astype(str)
+    out = _integers_as_integers(out, table)
     return f"tab\t{table}\n" + out.to_csv(sep="\t", index=False, lineterminator="\n")
+
+
+def _integers_as_integers(df: pd.DataFrame, table: str) -> pd.DataFrame:
+    """Write the data model's Integer columns as 11, not 11.0 (a column with a blank cell is float in pandas)."""
+    try:
+        types = data_model(True).dm[table]["type"]
+    except (KeyError, AttributeError):
+        return df
+    for col in df.columns:
+        if types.get(col) != "Integer" or pd.api.types.is_integer_dtype(df[col]):
+            continue
+        numbers = pd.to_numeric(df[col], errors="coerce")
+        present = df[col].notna() & (df[col].astype(str).str.strip() != "")
+        if present.any() and numbers[present].notna().all() and (numbers[present] % 1 == 0).all():
+            df = df.copy() if df is not None else df
+            df[col] = numbers.astype("Int64")
+    return df
 
 
 def magic_write(path: str, df: pd.DataFrame, table: str) -> str:

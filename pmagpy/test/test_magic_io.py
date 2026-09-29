@@ -10,6 +10,7 @@ half-written contribution behind.
 import os
 import shutil
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -188,3 +189,34 @@ class TestStagedExport:
         copied = mp.copy_companion_tables(study, out, skip=stage.written)
         names = {os.path.basename(p) for p in copied}
         assert "specimens.txt" not in names and {"measurements.txt", "sites.txt"} <= names
+
+
+class TestExactValues:
+    def test_a_rewritten_table_keeps_every_value(self, study, tmp_path):
+        path = os.path.join(study, "measurements.txt")
+        _, before = mp.read_table_file(path)
+        out = os.path.join(str(tmp_path), "measurements.txt")
+        mp.magic_write(out, before, "measurements")
+        _, after = mp.read_table_file(out)
+        for col in before.columns:
+            a, b = before[col], after[col]
+            if pd.api.types.is_float_dtype(a):
+                assert ((a == b) | (a.isna() & b.isna())).all(), col
+            else:
+                assert (a.fillna("").astype(str) == b.fillna("").astype(str)).all(), col
+
+    def test_integer_columns_are_written_as_integers(self, tmp_path):
+        path = os.path.join(str(tmp_path), "sites.txt")
+        mp.magic_write(path, pd.DataFrame({"site": ["a", "b"], "dir_n_specimens": [11.0, np.nan],
+                                           "dir_k": [12.0, 3.5]}), "sites")
+        lines = open(path).read().splitlines()
+        header = lines[1].split("\t")
+        first = dict(zip(header, lines[2].split("\t")))
+        assert first["dir_n_specimens"] == "11" and first["dir_k"] == "12.0"
+
+
+class TestLinesAndPlanesK:
+    def test_k_keeps_its_precision(self):
+        import pmagpy.demag as dc
+        assert dc._lnp_k({"n_lines": "4", "n_planes": "0", "R": "3.1176"}) == pytest.approx(3 / (4 - 3.1176))
+        assert dc._lnp_k({"n_lines": "2", "n_planes": "2", "R": "3.9"}) == pytest.approx(2.0 / 0.1)
