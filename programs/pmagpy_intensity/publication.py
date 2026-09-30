@@ -62,7 +62,7 @@ def _headline(stats: Dict[str, ps.Stat], keys=HEADLINE) -> str:
         if stat is None:
             continue
         spec = ps.describe(key)
-        parts.append(f"{spec.label} = {stat.text('{:.' + str(spec.decimals) + 'g}')}")
+        parts.append(f"{spec.label} = {stat.rounded()}")
     return "\n".join(parts)
 
 

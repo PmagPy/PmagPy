@@ -687,6 +687,14 @@ class TestPublication:
         assert "µT" in texts
         assert "FRAC" in texts
 
+    def test_the_statistics_are_written_as_the_panel_shows_them(self, study):
+        # at the precision the result line uses: n reads 11 and B_anc 96.1, not 1e+01 and 1e+02
+        study.specimen = "hz05a1"
+        stats = study.statistics()
+        text = pub._headline(stats)
+        assert f"n = {stats['n'].rounded()}" in text and "e+0" not in text
+        assert f"{ps.describe('B_anc').label} = {stats['B_anc'].rounded()}" in text
+
     @pytest.mark.parametrize("fmt", ["pdf", "svg", "png"])
     def test_every_format_writes(self, study, tmp_path, fmt):
         study.specimen = "hz05a1"
