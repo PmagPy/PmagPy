@@ -33,7 +33,7 @@ from pmagpy_panel.theme import (ACCENT, BUTTON_GROUP_CSS, CHECKBOX_CSS, INPUT_CS
 from . import APP_NAME
 from .plots import (AraiPlot, ChecksPlot, DecayPlot, GroupPlot, SpecimenZijderveldPlot,
                     StepNetPlot)
-from .session import AUTOSAVE_NAME, RECENT_FILE, REDO_NAME, SESSION_NAME, Session, env
+from .session import AUTOSAVE_NAME, LEGACY_REDO_NAMES, RECENT_FILE, REDO_NAME, SESSION_NAME, Session, env
 
 #: The four companion figures are a 2 x 2 block beside the Arai plot, and a
 #: block only reads as one if its tiles line up. Each figure declares what it
@@ -1762,13 +1762,26 @@ directory copies the original tables to a backup folder.
                 self.s.save_redo(path)
                 self.message.object = f'<div style="color:{PASS_COLOR}">saved {path}</div>'
             else:
+                path = self._redo_to_load()
                 n, problems = self.s.load_redo(path)
-                text = f"loaded {n} interpretations"
+                text = f"loaded {n} interpretations from {os.path.basename(path)}"
                 if problems:
                     text += f"; {len(problems)} problems: " + "; ".join(problems[:3])
                 self.message.object = f'<div style="color:{PASS_COLOR}">{text}</div>'
         except (OSError, ValueError) as exc:
             self.message.object = f'<div style="color:{FAIL_COLOR}">{exc}</div>'
+
+    def _redo_to_load(self) -> str:
+        """The .redo that *Load .redo* reads: this application's own, else the legacy Thellier GUI's
+        beside the data (the one the status names when the stored interpretations were used instead)."""
+        own = os.path.join(self.s.output_dir, REDO_NAME)
+        if os.path.exists(own):
+            return own
+        for name in LEGACY_REDO_NAMES:
+            legacy = os.path.join(self.s.directory, name)
+            if os.path.exists(legacy):
+                return legacy
+        return own
 
     def _import(self, event=None):
         n, problems = self.s.import_from_specimens_table()

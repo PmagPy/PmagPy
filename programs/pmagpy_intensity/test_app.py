@@ -554,6 +554,24 @@ class TestExportView:
         assert "wrote" in view.message.object
         assert "✓" in view.report.object or "✗" in view.report.object
 
+    def test_load_redo_reads_the_legacy_redo_the_status_names(self, workdir, tmp_path):
+        # the status says a legacy thellier_GUI.redo "was not used ... (Export -> Load .redo reads it)":
+        # with no .redo of this application's own yet, Load .redo reads that file
+        src, out = workdir
+        first = Session(src, out)
+        first.autosave_enabled = False
+        first.set_bounds(0, 6)
+        name = first.specimen
+        first.save_redo(os.path.join(src, "thellier_GUI.redo"))
+        session = Session(src, str(tmp_path / "elsewhere"))
+        session.autosave_enabled = False
+        session.delete_interpretation(name)
+        assert name not in session.data.interpretations
+        view = ExportView(session)
+        view._redo(False)
+        assert "thellier_gui.redo" in view.message.object.lower(), view.message.object
+        assert name in session.data.interpretations
+
     def test_the_merge_policy_is_stated_on_the_pane(self, workdir):
         src, out = workdir
         view = ExportView(Session(src, out))
