@@ -286,6 +286,25 @@ def small():
     shutil.rmtree(tmp, ignore_errors=True)
 
 
+def test_a_step_with_an_infinite_value_is_skipped_not_fatal(tmp_path):
+    """One 'inf' (or 1e999) in a Thellier step used to stop the whole study from opening."""
+    src = os.path.join(THELLIER_MAGIC, "measurements.txt")
+    with open(src, encoding="utf-8") as fh:
+        lines = fh.read().split("\n")
+    cols = lines[1].split("\t")
+    i_dec, i_codes = cols.index("dir_dec"), cols.index("method_codes")
+    row = next(k for k, line in enumerate(lines[2:], start=2)
+               if "LP-PI-TRM" in line.split("\t")[i_codes] and "LT-T-Z" in line.split("\t")[i_codes])
+    fields = lines[row].split("\t")
+    fields[i_dec] = "inf"
+    lines[row] = "\t".join(fields)
+    with open(tmp_path / "measurements.txt", "w", encoding="utf-8") as fh:
+        fh.write("\n".join(lines))
+    data = pi.PintData.from_directory(str(tmp_path))
+    assert data.specimen_names
+    assert any("has no direction or moment; skipped" in w for w in data.warnings)
+
+
 class TestMeasurementQuality:
     def test_flagging_the_in_field_half_removes_the_whole_arai_point(self, small):
         name = small.specimen_names[0]

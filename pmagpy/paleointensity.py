@@ -522,7 +522,7 @@ def build_step_table(spec_meas: pd.DataFrame, intensity_col: str,
             continue
         moment = to_float(rec.get(intensity_col))
         dec, inc = to_float(rec.get("dir_dec")), to_float(rec.get("dir_inc"))
-        if np.isnan(moment) or np.isnan(dec) or np.isnan(inc):
+        if not (np.isfinite(moment) and np.isfinite(dec) and np.isfinite(inc)):
             if warnings is not None:
                 measurement = rec.get("measurement")
                 if measurement is None or is_null(measurement):
