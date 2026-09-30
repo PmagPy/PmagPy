@@ -60,7 +60,9 @@ def default_output_dir(directory: str, base: str = "") -> str:
         import hashlib
         path = os.path.realpath(os.path.abspath(os.path.expanduser(directory)).rstrip("/"))
         tag = hashlib.sha1(path.encode("utf-8")).hexdigest()[:8]
-        return os.path.join(base, f"{os.path.basename(path)}-{tag}")
+        # a folder name is at most 255 bytes: a long study name is shortened (the fingerprint keeps it unique)
+        name = os.path.basename(path).encode("utf-8")[:200].decode("utf-8", "ignore")
+        return os.path.join(base, f"{name}-{tag}")
     return directory
 
 

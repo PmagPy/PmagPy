@@ -82,6 +82,16 @@ class TestTheWorkingCopy:
         assert os.path.exists(os.path.join(copy, "ages_extra.txt"))
         assert digest(copy)["sites.txt"] == edited
 
+    def test_a_study_with_a_very_long_folder_name_gets_its_copy(self, tmp_path, base):
+        """<name>-<fingerprint> was longer than the 255 bytes a folder name may have."""
+        src = tmp_path / ("é" * 130)                        # 260 bytes in UTF-8
+        src.mkdir()
+        shutil.copy(os.path.join(MCMURDO, "measurements.txt"), src)
+        copy = datasets.working_directory(str(src))
+        assert os.path.isfile(os.path.join(copy, "measurements.txt"))
+        assert len(os.path.basename(copy).encode("utf-8")) <= 255
+        assert datasets.working_directory(str(src)) == copy
+
 
     def test_a_read_only_study_gives_a_copy_the_applications_can_write(self, study, base):
         import stat
