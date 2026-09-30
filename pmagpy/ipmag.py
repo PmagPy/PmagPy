@@ -12227,6 +12227,81 @@ def aarm_magic(meas_file, dir_path=".", input_dir_path="",
     pmag.magic_write(output_spec_file,spec_dicts,'specimens')
 
 
+def calculate_aniso_parameters(K,n_pos=6):
+    """
+        calculate anisotropy parameters from n_pos positions plus optional baseline measurements
+    """
+    aniso_parameters = {}
+    Matrices=get_matrix(n_pos)
+    tmpH=Matrices['tmpH']
+    B = Matrices['B']
+    S_bs = np.dot(B, K)
+
+    # normalize by trace
+    trace = S_bs[0] + S_bs[1] + S_bs[2]
+    S_bs = S_bs / trace
+    s1, s2, s3, s4, s5, s6 = S_bs[0], S_bs[1], S_bs[2], S_bs[3], S_bs[4], S_bs[5]
+    s_matrix = [[s1, s4, s6], [s4, s2, s5], [s6, s5, s3]]
+    s_vec=[s1,s2,s3,s4,s5,s6]
+    # calculate eigen vector,
+    t, evectors = eig(s_matrix)
+    # sort vectors
+    t = list(t)
+    t1 = max(t)
+    ix_1 = t.index(t1)
+    t3 = min(t)
+    ix_3 = t.index(t3)
+    for tt in range(3):
+        if t[tt] != t1 and t[tt] != t3:
+            t2 = t[tt]
+            ix_2 = t.index(t2)
+    v1 = [evectors[0][ix_1], evectors[1][ix_1], evectors[2][ix_1]]
+    v2 = [evectors[0][ix_2], evectors[1][ix_2], evectors[2][ix_2]]
+    v3 = [evectors[0][ix_3], evectors[1][ix_3], evectors[2][ix_3]]
+
+    DIR_v1 = pmag.cart2dir(v1)
+    DIR_v2 = pmag.cart2dir(v2)
+    DIR_v3 = pmag.cart2dir(v3)
+    # package up the aniso_s and aniso_tau and aniso_v here:  START HERE
+    aniso_parameters['aniso_s']=s1.astype('str')+':'+ s2.astype('str')+':'+s3.astype('str')+':'+\
+                              s4.astype('str')+':'+ s5.astype('str')+':'+ s6.astype('str')
+    aniso_parameters['aniso_v1']="%f" % t1+":"+"%.1f" % DIR_v1[0]+":"+"%.1f" % DIR_v1[1]
+    aniso_parameters['aniso_v2']="%f" % t2+":"+"%.1f" % DIR_v2[0]+":"+"%.1f" % DIR_v2[1]
+    aniso_parameters['aniso_v3']="%f" % t3+":"+"%.1f" % DIR_v3[0]+":"+"%.1f" % DIR_v3[1]
+    aniso_parameters['aniso_p'] = "%f" % (t1 / t3)
+    if len(K) / 3 == 9 or len(K) / 3 == 6 or len(K) / 3 == 15:
+        n_pos = len(K) / 3
+        tmpH = Matrices['tmpH']
+        a = s_matrix
+        S = 0.
+        comp = np.zeros((int(n_pos) * 3), 'f')
+        for i in range(int(n_pos)):
+            for j in range(3):
+                index = i * 3 + j
+                compare = a[j][0] * tmpH[i][0] + a[j][1] * \
+                    tmpH[i][1] + a[j][2] * tmpH[i][2]
+                comp[index] = compare
+        for i in range(int(n_pos * 3)):
+            d = K[i] / trace - comp[i]  # del values
+            S += d * d
+        nf = float(n_pos * 3 - 6)  # number of degrees of freedom
+        if S > 0:
+            sigma = np.sqrt(S / nf)
+        hpars = pmag.dohext(nf, sigma, [s1, s2, s3, s4, s5, s6])
+        aniso_parameters['aniso_tilt_correction']=-1
+        aniso_parameters['aniso_s_sigma'] = "%f" % sigma
+        aniso_parameters['aniso_ftest'] = "%f" % hpars["F"]
+        aniso_parameters['aniso_ftest12'] = "%f" % hpars["F12"]
+        aniso_parameters['aniso_ftest23'] = "%f" % hpars["F23"]
+        aniso_parameters['description'] = "Critical F: %s" % (hpars['F_crit'])
+        aniso_parameters['aniso_s_n_measurements'] = '%i' % (n_pos)
+        if float(hpars["F"]) > float(hpars['F_crit']): # significant anisotropy
+            aniso_parameters['aniso_ftest_quality'] = 'g'
+        else:
+            aniso_parameters['aniso_ftest_quality'] = 'b'
+    return aniso_parameters
+
+
 def atrm_magic(meas_file, dir_path=".", input_dir_path="",
                input_spec_file='specimens.txt', output_spec_file='specimens.txt'):
     """
