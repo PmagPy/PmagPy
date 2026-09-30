@@ -361,3 +361,13 @@ class TestWholeNumbers:
         rows = [dict(zip(open(path).read().splitlines()[1].split("\t"), line.split("\t")))
                 for line in open(path).read().splitlines()[2:]]
         assert rows[0]["age"] == "1106" and rows[0]["lat"] == "45.5"
+
+    def test_text_read_from_a_table_is_written_as_it_was_read(self, tmp_path):
+        path = os.path.join(str(tmp_path), "locations.txt")
+        mp.magic_write(path, pd.DataFrame({"location": ["Nipigon", "Other", "Carried"],
+                                           "lat_n": ["49.0", "1", 1106.0], "lon_e": ["272.0", "2", np.nan]}),
+                       "locations")
+        lines = open(path).read().splitlines()
+        rows = [dict(zip(lines[1].split("\t"), line.split("\t"))) for line in lines[2:]]
+        assert [r["lat_n"] for r in rows] == ["49.0", "1", "1106"]
+        assert [r["lon_e"] for r in rows] == ["272.0", "2", ""]

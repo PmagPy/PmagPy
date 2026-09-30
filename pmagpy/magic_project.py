@@ -1298,16 +1298,24 @@ def _integers_as_integers(df: pd.DataFrame, table: str) -> pd.DataFrame:
     except (KeyError, AttributeError):
         return df
     for col in df.columns:
-        # Integer columns, and descriptive Number columns (an age, an azimuth) that hold whole numbers
-        # only: a value carried from an existing row came back as a float, and 1106 was written 1106.0
-        whole = types.get(col) == "Integer" or (types.get(col) == "Number" and is_metadata_column(col))
-        if not whole or pd.api.types.is_integer_dtype(df[col]):
+        if pd.api.types.is_integer_dtype(df[col]):
             continue
-        numbers = pd.to_numeric(df[col], errors="coerce")
-        present = df[col].notna() & (df[col].astype(str).str.strip() != "")
-        if present.any() and numbers[present].notna().all() and (numbers[present] % 1 == 0).all():
-            df = df.copy() if df is not None else df
-            df[col] = numbers.astype("Int64")
+        if types.get(col) == "Integer":
+            numbers = pd.to_numeric(df[col], errors="coerce")
+            present = df[col].notna() & (df[col].astype(str).str.strip() != "")
+            if present.any() and numbers[present].notna().all() and (numbers[present] % 1 == 0).all():
+                df = df.copy()
+                df[col] = numbers.astype("Int64")
+        elif types.get(col) == "Number" and is_metadata_column(col):
+            # a descriptive number (an age, an azimuth) carried from an existing row comes back as a
+            # float, and 1106 was written 1106.0; text is written as it was read ("49.0" stays 49.0)
+            cells = df[col]
+            numeric = cells.map(lambda v: isinstance(v, (int, float, np.number)) and not isinstance(v, bool)
+                                and pd.notna(v))
+            if numeric.any() and all(float(v).is_integer() for v in cells[numeric]):
+                df = df.copy()
+                df[col] = pd.Series([int(v) if is_number else v for v, is_number in zip(cells, numeric)],
+                                    index=df.index, dtype=object)
     return df
 
 
