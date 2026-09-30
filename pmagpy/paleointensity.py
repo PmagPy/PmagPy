@@ -1931,14 +1931,15 @@ class PintData:
     # ----- group results ----------------------------------------------------
     def group_results(self, level: str = "site", only_accepted: bool = True,
                       weighted: bool = False, corrected_only: bool = False,
-                      include_rejected: bool = False) -> pd.DataFrame:
+                      include_rejected: bool = False, scatter_bound: bool = True) -> pd.DataFrame:
         """Sample, site or location means of the accepted specimen results.
 
         With ``include_rejected`` a group none of whose interpreted specimens
         is accepted is still listed, as the mean of those the analyst did not
         reject ('b') -- or of all of them when every one was rejected -- with
         ``passed`` False and ``n_accepted`` 0, so that it can be written with
-        result_quality 'b' rather than left out.
+        result_quality 'b' rather than left out. ``scatter_bound`` False leaves
+        ``dBN_percent`` blank (it is slow to compute, and no table has a column for it).
         """
         rows = []
         site_inc = self._site_inclinations() if level == "site" else {}
@@ -1965,7 +1966,7 @@ class PintData:
                        for m in members] if weighted else None
             if weights is not None and not all(np.isfinite(w) for w in weights):
                 weights = None
-            stats = ps.group_statistics(values, weights)
+            stats = ps.group_statistics(values, weights, scatter_bound=scatter_bound)
             n_samples = len({m.sample for m in members if m.sample})
             row = {level: name, "n": len(members), "n_samples": n_samples,
                    "n_accepted": 0 if rejected else len(members),
@@ -2128,7 +2129,7 @@ class PintData:
         it out deleted the published mean from the table.
         """
         groups = self.group_results(level=level, only_accepted=True, weighted=weighted,
-                                    include_rejected=True)
+                                    include_rejected=True, scatter_bound=False)
         if len(groups) == 0:
             return pd.DataFrame()
         rows = []

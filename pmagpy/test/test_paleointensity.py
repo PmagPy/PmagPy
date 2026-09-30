@@ -789,6 +789,13 @@ class TestGroupsAndExport:
             assert row["int_abs_sigma"] > 0
             assert "% of the mean" in row["description"]
 
+    def test_the_sites_table_does_not_compute_the_slow_dbn(self, megiddo, monkeypatch):
+        """No MagIC column holds dBN; computing it made an export of McMurdo take a minute."""
+        def refuse(*args, **kwargs):
+            raise AssertionError("dBN computed for the sites table")
+        monkeypatch.setattr(pi.ps, "_scatter_upper_bound", refuse)
+        assert len(megiddo.sites_table())
+
     def test_every_group_row_says_it_is_an_average(self, megiddo):
         assert (megiddo.sites_table()["result_type"] == "a").all()
 

@@ -554,6 +554,27 @@ class TestGroupStatistics:
         assert float(s["dB_percent"]) == pytest.approx(48.9, abs=0.1)
         assert float(s["dBN_percent"]) == pytest.approx(66.3, abs=0.5)
 
+    def test_the_bisection_for_dbn_stops_where_further_steps_change_nothing(self):
+        """The early stop gives the very number the full 200 bisection steps give."""
+        def full_bisection(n, mean, sd, alpha=0.05):
+            ncp = mean * math.sqrt(n) / sd
+            lo, hi = -50.0, max(50.0, 5 * abs(ncp) + 50.0)
+            for _ in range(200):
+                mid = (lo + hi) / 2
+                if ps._noncentral_t_cdf(mid, n - 1, ncp) < alpha:
+                    lo = mid
+                else:
+                    hi = mid
+            return 100.0 * math.sqrt(n) / ((lo + hi) / 2)
+        for n, mean, sd in ((20, 49.4, 24.2), (2, 1.0, 1.0), (5, 40.0, 4.0), (12, 61.3, 17.9)):
+            ps._scatter_upper_bound.cache_clear()
+            assert ps._scatter_upper_bound(n, mean, sd).value == full_bisection(n, mean, sd)
+
+    def test_dbn_can_be_left_out(self):
+        s = ps.group_statistics([40.0, 44.0, 48.0], scatter_bound=False)
+        assert s["dBN_percent"].state is ps.State.UNDEFINED
+        assert float(s["dB_percent"]) == pytest.approx(100 * 4.0 / 44.0)
+
 
 class TestDistributions:
     def test_the_chi_squared_tail_matches_known_values(self):
@@ -564,6 +585,33 @@ class TestDistributions:
     def test_the_f_critical_value_matches_a_table(self):
         assert ps.f_critical(5, 12) == pytest.approx(3.106, abs=5e-3)
         assert ps.f_critical(2, 30) == pytest.approx(3.316, abs=5e-3)
+
+    def test_the_noncentral_t_skips_only_terms_that_cannot_change_the_sum(self):
+        """Terms under half a float spacing of the running sum are not computed: the CDF is
+        the very number the full series gives."""
+        def full_series(t, dof, ncp, terms=600):
+            if t < 0:
+                return 1.0 - full_series(-t, dof, -ncp, terms)
+            x = t * t / (t * t + dof)
+            h = ncp * ncp / 2.0
+            total = 0.0
+            for j in range(terms):
+                if h > 0:
+                    log_pj = -h + j * math.log(h) - math.lgamma(j + 1)
+                    log_qj = (-h + j * math.log(h) - math.lgamma(j + 1.5) + math.log(abs(ncp) / math.sqrt(2.0))
+                              if ncp != 0 else -np.inf)
+                else:
+                    log_pj, log_qj = (-h if j == 0 else -np.inf), -np.inf
+                pj = math.exp(log_pj) if log_pj > -700 else 0.0
+                qj = math.copysign(math.exp(log_qj), ncp) if log_qj > -700 else 0.0
+                if pj == 0.0 and qj == 0.0 and j > 5:
+                    break
+                total += pj * ps._betainc(j + 0.5, dof / 2.0, x) + qj * ps._betainc(j + 1.0, dof / 2.0, x)
+            phi = 0.5 * (1.0 + math.erf(-ncp / math.sqrt(2.0)))
+            return min(1.0, max(0.0, phi + 0.5 * total))
+        for t, dof, ncp in ((-1.193, 1, 1.0), (0.3, 4, 0.5), (2.5, 9, 5.0), (7.0, 19, 12.0), (20.0, 30, 25.0),
+                            (-5.0, 2, -3.0), (49.9, 4, 37.0)):
+            assert ps._noncentral_t_cdf(t, dof, ncp) == full_series(t, dof, ncp)
 
     def test_the_noncentral_t_matches_the_value_spd_quotes(self):
         # SPD numerical tip: for N-1 = 1 and a noncentrality parameter of 1 the

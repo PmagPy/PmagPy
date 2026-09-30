@@ -30,6 +30,7 @@ statistic is ever reported as ``-999``.
 from __future__ import annotations
 
 import enum
+import functools
 import math
 from dataclasses import dataclass, field
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
@@ -1537,8 +1538,12 @@ def alteration_percent(first: float, repeat: float) -> float:
 # ---------------------------------------------------------------------------
 def group_statistics(values: Sequence[float], weights: Optional[Sequence[float]] = None,
                      b_max: Optional[float] = None, s_max: Optional[float] = None,
-                     alpha: float = 0.05) -> Dict[str, Stat]:
-    """SPD section 10: mean, scatter and the scatter tests of several estimates."""
+                     alpha: float = 0.05, scatter_bound: bool = True) -> Dict[str, Stat]:
+    """SPD section 10: mean, scatter and the scatter tests of several estimates.
+
+    ``scatter_bound`` False leaves out dBN (its noncentral t quantile is by far
+    the slowest statistic here), for callers that do not use it.
+    """
     v = np.asarray([x for x in values if x is not None and np.isfinite(x)], dtype=float)
     n = len(v)
     s: Dict[str, Stat] = {"N": ok("N", n)}
@@ -1566,7 +1571,8 @@ def group_statistics(values: Sequence[float], weights: Optional[Sequence[float]]
     if n > 1 and mean:
         sd = float(np.std(v, ddof=1))
         s["dB_percent"] = ok("dB_percent", 100.0 * sd / mean)
-        s["dBN_percent"] = _scatter_upper_bound(n, mean, sd, alpha)
+        s["dBN_percent"] = (_scatter_upper_bound(n, mean, sd, alpha) if scatter_bound
+                            else undefined("dBN_percent", "not computed"))
         if b_max is not None:
             s["p_dB"] = _p_scatter(n, mean, sd, b_max)
         if s_max is not None:
@@ -1612,6 +1618,13 @@ def _noncentral_t_cdf(t: float, dof: int, ncp: float, terms: int = 600) -> float
         qj = math.copysign(math.exp(log_qj), ncp) if log_qj > -700 else 0.0
         if pj == 0.0 and qj == 0.0 and j > 5:
             break
+        if 2.0 * (pj + abs(qj)) < math.ulp(total) / 4:
+            # the term (at most pj + |qj|, as I_x <= 1) is under half the spacing of
+            # floats at ``total``: adding it would leave ``total`` exactly as it is.
+            # Past the peak of the weights every later term is smaller still.
+            if j > half_ncp2 + 1:
+                break
+            continue
         total += pj * _betainc(j + 0.5, dof / 2.0, x) + qj * _betainc(j + 1.0, dof / 2.0, x)
     phi = 0.5 * (1.0 + math.erf(-ncp / math.sqrt(2.0)))
     return min(1.0, max(0.0, phi + 0.5 * total))
@@ -1673,6 +1686,7 @@ def _p_scatter(n: int, mean: float, sd: float, b_max: float) -> Stat:
     return ok("p_dB", _noncentral_t_cdf(t, n - 1, ncp))
 
 
+@functools.lru_cache(maxsize=4096)
 def _scatter_upper_bound(n: int, mean: float, sd: float, alpha: float = 0.05) -> Stat:
     """dBN(%) (Paterson et al., 2010a): the 95% upper bound on the scatter.
 
@@ -1694,6 +1708,10 @@ def _scatter_upper_bound(n: int, mean: float, sd: float, alpha: float = 0.05) ->
             lo = mid
         else:
             hi = mid
+        if (lo + hi) / 2 == mid:
+            # lo and hi are adjacent (or equal) floats: every further step would
+            # evaluate this same point again and leave them where they are
+            break
     tnc = (lo + hi) / 2
     if tnc == 0:
         return undefined("dBN_percent", "the critical value is zero")
