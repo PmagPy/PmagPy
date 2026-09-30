@@ -876,9 +876,12 @@ def read_table_file(path: str, expected: Optional[str] = None,
                              "(PmagPy's upgrade_magic.py, or the Convert page)")
     if expected and table != expected:
         raise MagicReadError(f"{name} holds a '{table}' table, not '{expected}'")
-    if len(lines) < 2 or not lines[1].strip():
+    # the header is the next line that is not blank: a file whose lines all end in \r\r\n
+    # (a Windows file converted to Windows once more) splits into a blank line after every line
+    rest = [line for line in lines[1:] if line.strip()]
+    if not rest:
         return table, pd.DataFrame()
-    header = lines[1].rstrip("\r").split("\t")
+    header = rest[0].rstrip("\r").split("\t")
     dtypes = {c: str for c in header if c in NAME_COLUMNS}
     try:
         # round_trip: the fast parser can be a unit in the last place off, which turned every

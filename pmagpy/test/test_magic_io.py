@@ -289,6 +289,13 @@ class TestMeasurementFlagWriter:
         mp.write_measurement_flags(path, out, {})
         assert open(out, "rb").read().count(b"\n") == 3
 
+    def test_a_file_with_cr_cr_lf_after_every_line_is_read_with_its_rows(self, tmp_path):
+        """The reader took the blank line after the first as a missing header: "holds no measurements"."""
+        path = self.lines(tmp_path, "tab\tmeasurements\r\r\nmeasurement\tquality\r\r\nm1\tg\r\r\nm2\tb\r\r\n")
+        table, df = mp.read_table_file(path)
+        assert table == "measurements"
+        assert list(df["measurement"]) == ["m1", "m2"] and list(df["quality"]) == ["g", "b"]
+
     def test_no_final_newline_stays_so(self, tmp_path):
         path = self.lines(tmp_path, "tab\tmeasurements\nmeasurement\tquality\nm1\tg")
         out = os.path.join(str(tmp_path), "out.txt")
