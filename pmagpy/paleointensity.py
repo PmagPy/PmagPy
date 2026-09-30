@@ -1229,6 +1229,8 @@ class PintData:
         self.specimens: Dict[str, PintSpecimen] = {}
         self.interpretations: Dict[str, Interpretation] = {}
         self.criteria: CriteriaSet = CRITERIA_SETS[DEFAULT_CRITERIA]
+        #: this study's own criteria table as a set ("This study"), when it has one that is not a preset
+        self.study_criteria: Optional[CriteriaSet] = None
         self.warnings: List[str] = []
         self.anisotropy: Dict[str, dict] = {}
         self.nlt: Dict[str, dict] = {}
@@ -1829,8 +1831,24 @@ class PintData:
         return copied, skipped
 
     # ----- criteria ---------------------------------------------------------
+    def criteria_named(self, name: str) -> Optional[CriteriaSet]:
+        """The criteria set of that name for this study: "This study" is its own criteria table.
+
+        ``CRITERIA_SETS["This study"]`` holds whichever study was read last, which in a server
+        with several studies open is not necessarily this one; None when this study has no
+        table of its own.
+        """
+        if name == "This study":
+            return self.study_criteria
+        return CRITERIA_SETS[name]
+
     def set_criteria(self, name_or_set) -> CriteriaSet:
-        self.criteria = CRITERIA_SETS[name_or_set] if isinstance(name_or_set, str) else name_or_set
+        if isinstance(name_or_set, str):
+            criteria = self.criteria_named(name_or_set)
+            if criteria is None:
+                raise KeyError(f"{name_or_set!r}: this study has no criteria table of its own")
+            name_or_set = criteria
+        self.criteria = name_or_set
         self.invalidate()
         return self.criteria
 
@@ -1884,6 +1902,7 @@ class PintData:
         cs = CriteriaSet("This study", citation, "", "The criteria table of the loaded contribution.",
                          tuple(specimen), tuple(site))
         CRITERIA_SETS[cs.name] = cs
+        self.study_criteria = cs
         self.criteria = cs
         return cs
 

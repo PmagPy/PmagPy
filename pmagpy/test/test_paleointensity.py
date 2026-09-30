@@ -622,6 +622,18 @@ class TestCriteria:
         keys = {c.key for c in pi.CRITERIA_SETS["This study"].specimen}
         assert {"beta", "FRAC", "SCAT"} <= keys
 
+    def test_this_study_is_each_studys_own_table(self):
+        # "This study" is registered globally by whichever study was read last; each study
+        # must still get its own table back when it is chosen by name
+        megiddo = pi.PintData.from_directory(MEGIDDO)
+        mcmurdo = pi.PintData.from_directory(os.path.join(REPO, "data_files", "3_0", "McMurdo"))
+        own = {(c.key, c.operation, c.value) for c in megiddo.study_criteria.specimen}
+        assert own != {(c.key, c.operation, c.value) for c in mcmurdo.study_criteria.specimen}
+        megiddo.set_criteria("CCRIT")
+        megiddo.set_criteria("This study")
+        assert megiddo.criteria is megiddo.study_criteria
+        assert {(c.key, c.operation, c.value) for c in megiddo.criteria.specimen} == own
+
     def test_the_ziggie_criterion_can_be_added_to_any_set(self):
         base = pi.CRITERIA_SETS["CCRIT"]
         extended = base.with_criterion("Ziggie", "<=", 0.1)

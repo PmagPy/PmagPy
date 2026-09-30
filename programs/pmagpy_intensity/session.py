@@ -181,7 +181,12 @@ class Session(param.Parameterized):
         if n_warnings:
             message += f"; {n_warnings} warning{'s' if n_warnings > 1 else ''} while reading"
         restored = data.criteria
-        preset = pint.CRITERIA_SETS.get(restored.name)
+        if restored.name == "This study" and data.study_criteria is None:
+            data.study_criteria = restored          # a session saved under this study's own criteria
+        try:
+            preset = data.criteria_named(restored.name)
+        except KeyError:
+            preset = None
         ziggie = (preset is not None and restored is not preset
                   and any(c.key == "Ziggie" for c in restored.specimen)
                   and not any(c.key == "Ziggie" for c in preset.specimen))
@@ -357,7 +362,13 @@ class Session(param.Parameterized):
     def _apply_criteria(self) -> None:
         if self.data is None:
             return
-        criteria = pint.CRITERIA_SETS[self.criteria_name]
+        # "This study" is this study's own table, not the last one any session in the server read
+        criteria = self.data.criteria_named(self.criteria_name)
+        if criteria is None:
+            self.status = "this study has no criteria table of its own"
+            self.criteria_name = self.data.criteria.name if self.data.criteria.name in \
+                self.param.criteria_name.objects else pint.DEFAULT_CRITERIA
+            return
         if self.add_ziggie:
             criteria = criteria.with_criterion("Ziggie", "<=", ps.ZIGGIE_CRITERION)
         self.data.set_criteria(criteria)

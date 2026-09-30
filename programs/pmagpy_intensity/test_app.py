@@ -156,6 +156,43 @@ class TestSession:
 
 
 # ---------------------------------------------------------------------------
+class TestThisStudyCriteria:
+    """Two studies in one server: choosing "This study" gives each its own criteria table."""
+
+    @staticmethod
+    def _copy(src, dst):
+        os.makedirs(dst)
+        for name in os.listdir(src):
+            if name.endswith(".txt"):
+                shutil.copy(os.path.join(src, name), dst)
+        return dst
+
+    def test_switching_back_to_this_study_brings_back_this_studys_table(self, tmp_path):
+        first = Session(self._copy(MEGIDDO, str(tmp_path / "Megiddo")))
+        first.autosave_enabled = False
+        own = {(c.key, c.value) for c in first.data.criteria.specimen}
+        second = Session(self._copy(os.path.join(REPO, "data_files", "3_0", "McMurdo"), str(tmp_path / "McMurdo")))
+        second.autosave_enabled = False
+        assert {(c.key, c.value) for c in second.data.criteria.specimen} != own
+        first.criteria_name = "CCRIT"
+        first.criteria_name = "This study"
+        assert {(c.key, c.value) for c in first.data.criteria.specimen} == own
+        first.export_tables()
+        written = pd.read_csv(os.path.join(first.output_dir, "criteria.txt"), sep="\t", header=1, dtype=str)
+        assert "specimens.int_scat" in set(written["table_column"])       # Megiddo's, not McMurdo's
+
+    def test_a_study_without_a_table_does_not_take_another_studys(self, tmp_path, workdir):
+        Session(self._copy(MEGIDDO, str(tmp_path / "Megiddo"))).autosave_enabled = False
+        src, out = workdir                          # thellier_magic: no criteria.txt
+        session = Session(src, out)
+        session.autosave_enabled = False
+        before = session.data.criteria
+        session.criteria_name = "This study"
+        assert session.data.criteria is before and session.criteria_name == before.name
+        assert "no criteria table" in session.status
+
+
+# ---------------------------------------------------------------------------
 class TestExport:
     def test_export_writes_only_into_the_output_directory(self, workdir):
         src, out = workdir
