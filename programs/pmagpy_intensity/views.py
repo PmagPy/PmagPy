@@ -1165,6 +1165,13 @@ class GroupView(LazyView):
         self.group = pn.widgets.Select(name="Group", options=[], sizing_mode="stretch_width")
         self.group.param.watch(lambda e: self._redraw_plot(), "value")
         self.plot = GroupPlot(520, 300)
+        # the figure is only in the page while it has specimens to show and its tab is shown: drawn
+        # empty (a study with no interpretations yet) it gets no ranges, and the browser re-renders
+        # it without end
+        self.no_plot = pn.pane.HTML(f'<div style="{MUTED_STYLE}">no interpreted specimens to plot</div>',
+                                    sizing_mode="stretch_width")
+        self.plot_pane = pn.pane.Bokeh(self.plot.fig)
+        self.plot_holder = pn.Column(self.no_plot, sizing_mode="stretch_width")
         self.table = pn.widgets.Tabulator(pd.DataFrame(), show_index=False, disabled=True,
                                           sizing_mode="stretch_width", height=380, theme="simple",
                                           stylesheets=[TABLE_ROW_CSS])
@@ -1226,14 +1233,32 @@ class GroupView(LazyView):
             "print(means)"])
         self._redraw_plot()
 
+    def set_active(self, active: bool):
+        # the figure is in the page only while this tab is shown: laid out again while hidden
+        # (edits on another tab re-lay out the document) it misplaced the Specimen tab's axes
+        # and, with an empty alteration-checks plot, froze the page
+        super().set_active(active)
+        if not active:
+            self._show_plot(False)
+        elif self.s.data is not None and self.group.value:
+            self._redraw_plot()
+
+    def _show_plot(self, shown: bool):
+        shown = shown and self.active
+        wanted = [self.plot_pane] if shown else [self.no_plot]
+        if list(self.plot_holder.objects) != wanted:
+            self.plot_holder.objects = wanted
+
     def _redraw_plot(self):
         if self.s.data is None or not self.group.value:
             self.plot.update([])
+            self._show_plot(False)
             self.members.object = ""
             return
         level, name = self.level.value, self.group.value
         results = [r for r in (self.s.data.result(n)
                                for n in self.s.data.specimens_in(level, name)) if r is not None]
+        self._show_plot(bool(results))
         accepted = {r.specimen for r in results if self.s.data.is_accepted(r)}
         values = [r.b_anc for r in results if r.specimen in accepted and np.isfinite(r.b_anc)]
         stats = ps.group_statistics(values)
@@ -1252,7 +1277,7 @@ class GroupView(LazyView):
                          self.group, self.members, sizing_mode="stretch_width")
 
     def panel(self):
-        return pn.Column(self.summary, self.plot.fig, self.table, self.code.panel(),
+        return pn.Column(self.summary, self.plot_holder, self.table, self.code.panel(),
                          sizing_mode="stretch_width")
 
 

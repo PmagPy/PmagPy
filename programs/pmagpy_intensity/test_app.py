@@ -499,6 +499,24 @@ class TestGroupView:
         assert len(view.plot.src.data["x"]) >= 1
         assert "sites" in view.summary.object
 
+    def test_the_dot_plot_is_only_in_the_page_with_specimens_to_show(self, workdir, study):
+        # drawn with no specimens (a study with no interpretations yet) the figure has no ranges and
+        # the browser re-renders it without end, freezing the tab: a note stands in for it instead
+        src, out = workdir
+        session = Session(src, out)
+        session.autosave_enabled = False
+        empty = GroupView(session)
+        empty.set_active(True)
+        assert empty.plot_holder.objects == [empty.no_plot]
+        assert "no interpreted specimens" in empty.no_plot.object
+        view = GroupView(study)
+        view.set_active(True)
+        assert view.plot_holder.objects == [view.plot_pane] and view.plot_pane.object is view.plot.fig
+        view.set_active(False)                      # another tab: the figure leaves the page
+        assert view.plot_holder.objects == [view.no_plot]
+        view.set_active(True)
+        assert view.plot_holder.objects == [view.plot_pane]
+
     def test_rejected_specimens_are_named(self, study):
         view = GroupView(study)
         view.set_active(True)
