@@ -593,6 +593,25 @@ class TestExportView:
         assert "thellier_gui.redo" in view.message.object.lower(), view.message.object
         assert name in session.data.interpretations
 
+    def test_the_confirmation_names_the_working_copy_not_the_study(self, workdir, tmp_path, monkeypatch):
+        # with an output base the export replaces the working copy's tables, and the study is untouched:
+        # the second click is still asked for, but the warning says where the tables are written
+        from pmagpy_panel import datasets
+        for var in datasets.OUTPUT_BASE_VARS:
+            monkeypatch.setenv(var, "placeholder")
+            monkeypatch.delenv(var)
+        monkeypatch.setenv("PMAGPY_APPS_OUTPUT", str(tmp_path / "base"))
+        src, _ = workdir
+        session = Session(src)
+        session.autosave_enabled = False
+        assert session.directory != src and session.writes_in_place()
+        session.set_bounds(0, 6)
+        view = ExportView(session)
+        view._export()
+        assert "working copy" in view.message.object and "data directory itself" not in view.message.object
+        assert view.export_btn.name.startswith("Confirm")
+        assert os.listdir(src) == ["measurements.txt"]
+
     def test_the_merge_policy_is_stated_on_the_pane(self, workdir):
         src, out = workdir
         view = ExportView(Session(src, out))

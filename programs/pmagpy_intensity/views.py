@@ -1650,8 +1650,14 @@ directory copies the original tables to a backup folder.
             self._confirm_in_place = True
             self.export_btn.name, self.export_btn.button_type = "Confirm: replace the tables", "danger"
             backup = self.s.data.project.backup_dir_name()
+            source = self.s.source_directory
+            if source and os.path.realpath(source) != os.path.realpath(self.s.directory):
+                where = (f'<b>This writes into the working copy of {html.escape(source)}</b> that every '
+                         f'application shares (the study itself is not changed)')
+            else:
+                where = '<b>This writes into the data directory itself</b>'
             self.message.object = (
-                f'<div style="color:{FAIL_COLOR}"><b>This writes into the data directory itself</b> '
+                f'<div style="color:{FAIL_COLOR}">{where} '
                 f'and replaces {", ".join(present) or "its tables"}. Each is kept in {backup}/previous/ '
                 f'(and the originals, once, in {backup}/). Click again to write.</div>')
             return
