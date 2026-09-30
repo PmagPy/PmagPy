@@ -682,6 +682,20 @@ class TestExportView:
         assert view.export_btn.name.startswith("Confirm")
         assert os.listdir(src) == ["measurements.txt"]
 
+    def test_another_study_can_be_opened_with_the_export_pane_there(self, workdir, tmp_path):
+        # a load changes version, directory and specimen in one batch: the pane's watchers get
+        # an event for each, and a one-argument watcher made the load fail half done
+        src, out = workdir
+        session = Session(src, out)
+        session.autosave_enabled = False
+        view = ExportView(session)
+        other = tmp_path / "other"
+        other.mkdir()
+        shutil.copy(os.path.join(MEGIDDO, "measurements.txt"), other)
+        assert session.load(str(other), str(tmp_path / "other_out")) is True
+        assert session.directory == str(other) and session.specimen in session.data.specimens
+        assert view.export_btn.name == "Write MagIC tables"
+
     def test_the_merge_policy_is_stated_on_the_pane(self, workdir):
         src, out = workdir
         view = ExportView(Session(src, out))

@@ -1629,8 +1629,9 @@ directory copies the original tables to a backup folder.
         self.load_redo_btn.on_click(lambda e: self._redo(False))
         self.import_btn.on_click(self._import)
         self.figure_btn.on_click(self._save_figure)
-        session.param.watch(lambda e: self._refresh(), ["version", "directory", "specimen"])
-        session.param.watch(lambda e: self._reset_confirmation(), ["directory", "output_dir"])
+        # (one call with an event per parameter when a load changes several at once)
+        session.param.watch(lambda *events: self._refresh(), ["version", "directory", "specimen"])
+        session.param.watch(lambda *events: self._reset_confirmation(), ["directory", "output_dir"])
         self._refresh()
 
     def _refresh(self):
