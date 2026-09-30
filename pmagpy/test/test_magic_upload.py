@@ -66,6 +66,28 @@ class TestPresentAndCheck:
         assert "validating sites" in capsys.readouterr().out
 
 
+    def test_a_value_pointing_to_another_table_is_looked_up_once_per_column(self, tmp_path, monkeypatch):
+        """isIn took the unique values of the whole column for every row: quadratic in the rows.
+        The verdicts stay what they were (a sample whose site is not in sites.txt fails)."""
+        from pmagpy import validate_upload3
+        write(tmp_path, "sites", [{"site": f"S{i}", "location": "L", "lat": "10", "lon": "20"} for i in range(300)])
+        write(tmp_path, "samples", [{"sample": f"S{i}.1", "site": f"S{i}" if i != 7 else "nowhere"}
+                                    for i in range(300)])
+        write(tmp_path, "locations", [{"location": "L"}])
+        calls = []
+        real_unique = pd.Series.unique
+
+        def counting_unique(self, *args, **kwargs):
+            calls.append(self.name)
+            return real_unique(self, *args, **kwargs)
+        monkeypatch.setattr(pd.Series, "unique", counting_unique)
+        report = mp.validate_directory(str(tmp_path), tables=("locations", "sites", "samples"))
+        monkeypatch.undo()
+        cells = report["samples"]["failing_items"]
+        assert [(c["row"], c["column"]) for c in cells if "nowhere" in c["problem"]] == [("S7.1", "site")]
+        assert calls.count("site") <= 3
+
+
 class TestUploadFile:
     def test_build_writes_one_file_named_for_the_location_with_every_table(self, study):
         up = mu.build_upload_file(study)

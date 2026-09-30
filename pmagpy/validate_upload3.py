@@ -7,6 +7,7 @@ from builtins import range
 import math
 import os
 import re
+import threading
 import numpy as np
 from pmagpy import contribution_builder as cb
 
@@ -84,6 +85,29 @@ def required(col_name, arg, dm, df, *args):
     else:
         return '"{}" column is required'.format(col_name)
 
+# the values a column may point to, looked up once per validate_df call (isIn runs once per
+# row, and taking the unique values of the whole column every time made validation
+# quadratic in the number of rows: 18 minutes for 14,000 specimens)
+_LOOKUPS = threading.local()
+
+
+def _possible_values(frame, column):
+    """``(unique values of frame[column], the same as a set)``; cached while validate_df runs."""
+    cache = getattr(_LOOKUPS, "cache", None)
+    if cache is None:
+        values = frame[column].unique()
+        return values, None
+    key = (id(frame), column)
+    if key not in cache:
+        values = frame[column].unique()
+        cache[key] = (values, set(values))
+    return cache[key]
+
+
+def _not_among(value, possible_values, lookup):
+    return value not in lookup if lookup is not None else value not in possible_values
+
+
 def isIn(row, col_name, arg, dm, df, con=None):
     """
     row[col_name] must contain a value from another column.
@@ -109,9 +133,9 @@ def isIn(row, col_name, arg, dm, df, con=None):
             #return "Must contain a value from {} table. Missing {} table.".format(table_name, table_name)
         if table_col_name not in con.tables[table_name].df.columns:
             return '{} table is missing "{}" column, which is required for validating "{}" column'.format(table_name, table_col_name, col_name)
-        possible_values = con.tables[table_name].df[table_col_name].unique()
+        possible_values, lookup = _possible_values(con.tables[table_name].df, table_col_name)
         for value in cell_values:
-            if value not in possible_values:
+            if _not_among(value, possible_values, lookup):
                 trunc_possible_values = [str(val).replace(' ', '') for val in possible_values
                              if val and not (isinstance(val, float) and math.isnan(val))]
                 trunc_cell_value = cell_value.replace(' ', '')
@@ -123,9 +147,9 @@ def isIn(row, col_name, arg, dm, df, con=None):
                     break
     # if it's in the present table:
     else:
-        possible_values = df[arg].unique()
+        possible_values, lookup = _possible_values(df, arg)
         for value in cell_values:
-            if value not in possible_values:
+            if _not_among(value, possible_values, lookup):
                 return 'This value: "{}" is not found in: {} column'.format(value, arg)
                 break
     return None
@@ -320,6 +344,14 @@ def validate_df(df, dm, con=None):
     value_pass_ (checking that the value is within the appropriate range)
     group_pass_ (making sure that group validations pass)
     """
+    _LOOKUPS.cache = {}
+    try:
+        return _validate_df(df, dm, con)
+    finally:
+        _LOOKUPS.cache = None
+
+
+def _validate_df(df, dm, con=None):
     # check column validity
     required_one = {}  # keep track of req'd one in group validations here
     cols = df.columns
