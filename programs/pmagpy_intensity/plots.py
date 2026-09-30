@@ -435,6 +435,9 @@ class ChecksPlot:
             self.fig.segment("x", 0, "x", "y", source=src, color=color, line_width=1)
             renderers.append(LegendItem(label=label, renderers=[renderer]))
         self.fig.add_tools(HoverTool(tooltips=[("", "@label")]))
+        # never drawn, but counted in the data ranges: see _show_ranges
+        self.anchor = ColumnDataSource(dict(x=[], y=[]))
+        self.fig.scatter("x", "y", source=self.anchor, visible=False)
         legend = Legend(items=renderers, orientation="horizontal", location="center",
                         border_line_color=None, background_fill_alpha=0, padding=0, spacing=10,
                         label_text_font_size="8pt", label_text_color="#374151",
@@ -445,11 +448,21 @@ class ChecksPlot:
         self.fig.frame_width, self.fig.frame_height = size, height
         self.fig.width, self.fig.height = size + self.CHROME_W, height + self.CHROME_H
 
+    def _show_ranges(self, shown: bool) -> None:
+        """Hold the axes with an invisible pair of points while there are no checks to show.
+
+        A figure with no data gets no ranges, and the browser keeps re-laying it out
+        ("could not set initial ranges"); with the Group results tab drawn as well
+        that froze the page (flag the step a fit starts at, then open another tab).
+        """
+        self.anchor.data = dict(x=[], y=[]) if shown else dict(x=[0.0, 600.0], y=[-1.0, 1.0])
+
     def update(self, spec, bounds) -> None:
         empty = {k: [] for k in ("x", "y", "label")}
         if spec is None or spec.arai is None or bounds is None:
             for src in self.sources.values():
                 src.data = dict(empty)
+            self._show_ranges(False)
             return
         arai = spec.arai
         fit = ps.york_regression(arai.x[bounds[0]:bounds[1] + 1], arai.y[bounds[0]:bounds[1] + 1])
@@ -467,6 +480,7 @@ class ChecksPlot:
                 y.append(float(100.0 * diff / length))
                 labels.append(f"{temp:.0f}°C: {100.0 * diff / length:+.1f}%")
             self.sources[kind].data = dict(x=x, y=y, label=labels)
+        self._show_ranges(any(len(src.data["x"]) for src in self.sources.values()))
 
 
 class GroupPlot:

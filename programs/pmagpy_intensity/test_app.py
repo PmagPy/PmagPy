@@ -241,6 +241,18 @@ class TestExport:
 
 # ---------------------------------------------------------------------------
 class TestSpecimenView:
+    def test_the_checks_plot_always_has_ranges(self, study):
+        # with no checks to draw (a fit set aside, a specimen with no interpretation) the figure
+        # had no data and no ranges, and together with a drawn Group results tab that froze the page
+        from pmagpy_intensity.plots import ChecksPlot
+        plot = ChecksPlot()
+        spec = study.data.specimens["hz05a1"]
+        plot.update(spec, None)
+        assert len(plot.anchor.data["x"]) == 2
+        plot.update(spec, study.data.interpretations and (1, 10))
+        assert any(len(src.data["x"]) for src in plot.sources.values())
+        assert len(plot.anchor.data["x"]) == 0
+
     def test_a_bound_at_the_first_point_is_shown_in_the_selector(self, workdir):
         # an interpretation that starts at the first Arai point, made on a specimen that had none
         # (Auto on a fresh specimen), must show that point in "from", not a blank selector
