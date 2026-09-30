@@ -1046,6 +1046,27 @@ def atomic_write_text(path: str, text: str, encoding: str = "utf-8") -> str:
     return path
 
 
+def _copy_whole(source: str, target: str) -> None:
+    """Copy a file so that ``target`` is the whole of it or is not there (nor changed) at all.
+
+    A backup is written once and then trusted: a copy cut short (a full disk, the
+    application killed) must not leave a truncated file under the backup's name.
+    """
+    import tempfile
+    fd, tmp = tempfile.mkstemp(prefix="." + os.path.basename(target) + ".", suffix=".tmp",
+                               dir=os.path.dirname(os.path.abspath(target)))
+    os.close(fd)
+    try:
+        shutil.copy2(source, tmp)
+        os.replace(tmp, target)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+
+
 class StagedExport:
     """Write a set of files into a directory all or nothing, keeping what they replace.
 
@@ -1101,13 +1122,13 @@ class StagedExport:
                     else bool(self.originals)
                 if is_original and not os.path.exists(os.path.join(self.backup, name)):
                     os.makedirs(self.backup, exist_ok=True)
-                    shutil.copy2(target, os.path.join(self.backup, name))
+                    _copy_whole(target, os.path.join(self.backup, name))
                     self.backed_up.append(os.path.join(self.backup, name))
                 os.makedirs(previous, exist_ok=True)
                 kept = os.path.join(previous, name)
                 if os.path.lexists(kept):
                     os.remove(kept)
-                shutil.copy2(target, kept)
+                _copy_whole(target, kept)
         for name in names:
             target = os.path.join(self.output_dir, name)
             if os.path.isfile(target):

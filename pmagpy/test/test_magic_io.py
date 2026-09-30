@@ -230,6 +230,34 @@ class TestStagedExport:
         assert open(os.path.join(backup, "sites.txt")).read() == "v0"
         assert open(os.path.join(backup, "previous", "sites.txt")).read() == "v2"
 
+    def test_a_backup_cut_short_leaves_no_truncated_original(self, tmp_path, monkeypatch):
+        """A full disk part way through the backup copy left half a file as the kept "original",
+        which the next export then trusted (it is written only once)."""
+        import errno
+        import shutil
+        out = str(tmp_path / "out")
+        backup = os.path.join(out, "backup")
+        os.makedirs(out)
+        with open(os.path.join(out, "measurements.txt"), "w") as fh:
+            fh.write("v0" * 1000)
+        real_copy2 = shutil.copy2
+
+        def half_then_full(src, dst, *args, **kwargs):
+            with open(src, "rb") as a, open(dst, "wb") as b:
+                b.write(a.read()[:100])
+            raise OSError(errno.ENOSPC, "No space left on device")
+        monkeypatch.setattr(mp.shutil, "copy2", half_then_full)
+        with pytest.raises(OSError):
+            with mp.StagedExport(out, backup=backup, originals=True) as stage:
+                mp.atomic_write_text(os.path.join(stage.dir, "measurements.txt"), "v1")
+        assert open(os.path.join(out, "measurements.txt")).read() == "v0" * 1000
+        assert not os.path.exists(os.path.join(backup, "measurements.txt"))
+        assert not [n for n in os.listdir(backup) if n.endswith(".tmp")]
+        monkeypatch.setattr(mp.shutil, "copy2", real_copy2)
+        with mp.StagedExport(out, backup=backup, originals=True) as stage:
+            mp.atomic_write_text(os.path.join(stage.dir, "measurements.txt"), "v1")
+        assert open(os.path.join(backup, "measurements.txt")).read() == "v0" * 1000
+
     def test_a_separate_output_directory_is_a_complete_contribution(self, study, tmp_path):
         out = str(tmp_path / "out")
         with mp.StagedExport(out) as stage:
