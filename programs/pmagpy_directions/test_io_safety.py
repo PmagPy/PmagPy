@@ -174,6 +174,23 @@ class TestEditsOnDisk:
         s3 = Session(src, cache=True)
         assert s3.data is not first
 
+    def test_a_tab_opened_after_an_export_shares_the_dataset_of_the_tab_that_exported(self, tmp_path):
+        """It read the study again and kept its own copy: the two tabs then overwrote each
+        other's autosave, and an edit made in one was gone on the next start."""
+        src = copy_study(tmp_path / "s")
+        a = Session(src, cache=True)
+        a.export_tables()                                   # the table stamp changes
+        b = Session(src, cache=True)
+        assert b.data is a.data
+        b.specimen = b.data.specimen_names[1]
+        b.toggle_step(1)
+        a.specimen = a.data.specimen_names[2]
+        a.toggle_step(1)                                    # a's autosave: b's flag too
+        restarted = Session(src)
+        for k in (1, 2):
+            name = restarted.data.specimen_names[k]
+            assert restarted.data.specimens[name].steps["quality"].iloc[1] == "b"
+
 
 class TestOutputFolders:
     def test_studies_with_the_same_folder_name_get_their_own_output(self, tmp_path):

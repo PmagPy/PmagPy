@@ -74,6 +74,25 @@ class TestDamagedFiles:
 
 
 class TestFlags:
+    def test_a_tab_opened_after_an_export_shares_the_dataset_of_the_tab_that_exported(self, tmp_path):
+        """It read the study again: the two tabs overwrote each other's autosave."""
+        src = copy_study(tmp_path / "s")
+        a = Session(src, cache=True)
+        a.export_tables()
+        b = Session(src, cache=True)
+        assert b.data is a.data
+        names = b.data.specimen_names
+        picked = []
+        for tab, name in ((b, names[0]), (a, names[-1])):
+            tab.specimen = name
+            sequence = int(tab.spec.steps["sequence"].iloc[1])
+            tab.toggle_step(sequence)
+            picked.append((name, sequence))
+        restarted = Session(src)
+        for name, sequence in picked:
+            steps = restarted.data.specimens[name].steps
+            assert steps.loc[steps["sequence"] == sequence, "quality"].iloc[0] == "b"
+
     def test_flags_are_restored_exactly(self, tmp_path):
         src = copy_study(tmp_path / "s")
         s = Session(src)

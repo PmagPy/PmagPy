@@ -564,6 +564,8 @@ class Session(param.Parameterized):
         written = list(stage.written)
         if in_place and write_measurements:
             self.data.flags_written()        # the study's file now has these flags: later changes count from them
+        if in_place:
+            self._share_after_export()
         written += mp.copy_companion_tables(self.directory, target, skip=written)
         self.last_backup = stage.backed_up
         return written
@@ -572,6 +574,14 @@ class Session(param.Parameterized):
         """The study's own tables as it was opened (not this application's .redo or session files)."""
         return {n for n in getattr(self, "_source_files", set())
                 if n.endswith(".txt") and not n.startswith(dc.APP_ID)}
+
+    def _share_after_export(self) -> None:
+        """After an export into the study, the tables on disk are this dataset's own: a browser tab
+        opened from now on shares it, as tabs opened before the export do, instead of reading the
+        study again and keeping a second copy whose autosave would overwrite this one's."""
+        cached = _DATASETS.get(self.directory)
+        if self.cache and cached is not None and cached[0] is self.data:
+            _DATASETS[self.directory] = (self.data, (_code_stamp(), datasets.table_stamp(self.directory)))
 
     def writes_in_place(self, output_dir: Optional[str] = None) -> bool:
         """True when an export to ``output_dir`` (default: the session's) replaces the study's own tables."""
