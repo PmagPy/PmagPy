@@ -1012,10 +1012,11 @@ class CorrectionsView(LazyView):
                                      value=choices[0])
         self.cooling = pn.widgets.Select(name="cooling rate", width=170, options=choices,
                                          value=choices[0])
-        for widget, kind in ((self.aniso, "anisotropy"), (self.nlt, "nlt"),
-                             (self.cooling, "cooling_rate")):
-            widget.param.watch(lambda e, k=kind: self.s.set_correction(k, self.USE[e.new]),
-                               "value")
+        self._switches = ((self.aniso, "anisotropy"), (self.nlt, "nlt"), (self.cooling, "cooling_rate"))
+        self._showing = False           # True while the selectors are set to show the specimen's choice
+        for widget, kind in self._switches:
+            widget.param.watch(lambda e, k=kind: None if self._showing
+                               else self.s.set_correction(k, self.USE[e.new]), "value")
         self.alt_limit = pn.widgets.FloatInput(name="anisotropy alteration limit (%)",
                                                value=5.0, width=220)
         self.alt_limit.param.watch(self._on_limit, "value")
@@ -1042,6 +1043,7 @@ class CorrectionsView(LazyView):
             self.alt_limit.value = limit
         if bool(self.s.data.anisotropy_require_ftest) != bool(self.ftest.value):
             self.ftest.value = bool(self.s.data.anisotropy_require_ftest)
+        self._show_switches()
         self._fill_detail()
         rows = []
         for res in self.s.data.results():
@@ -1061,6 +1063,19 @@ class CorrectionsView(LazyView):
                     row[label] = correction.message
             rows.append(row)
         self.table.value = pd.DataFrame(rows)
+
+    def _show_switches(self):
+        """Set the three selectors to the current specimen's own choice, which is what they change."""
+        interp = self.s.interpretation
+        labels = {use: label for label, use in self.USE.items()}
+        self._showing = True
+        try:
+            for widget, kind in self._switches:
+                use = getattr(interp, f"use_{kind}", None) if interp is not None else None
+                widget.value = labels.get(use, "use if available")
+                widget.disabled = interp is None
+        finally:
+            self._showing = False
 
     def _fill_detail(self):
         if not self.s.ready:

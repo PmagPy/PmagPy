@@ -457,6 +457,27 @@ class TestCorrectionsView:
                 study.data.interpretations[name].use_anisotropy = use
             study.data.invalidate()
 
+    def test_the_switches_show_the_current_specimens_choice(self, study):
+        # the selectors set the current specimen's switches, so they show that specimen's own: a
+        # published DA-AC choice reads "always", and "never" on one specimen is not shown on the next
+        study.specimen = "hz05a1"
+        view = CorrectionsView(study)
+        view.set_active(True)
+        kept = {n: study.data.interpretations[n].use_anisotropy for n in ("hz05a1", "hz05a2")}
+        try:
+            assert kept["hz05a1"] is True and view.aniso.value == "always"
+            view.aniso.value = "never"
+            assert study.data.interpretations["hz05a1"].use_anisotropy is False
+            study.specimen = "hz05a2"
+            assert view.aniso.value == "always"
+            assert study.data.interpretations["hz05a2"].use_anisotropy is True
+            study.specimen = "hz05a1"
+            assert view.aniso.value == "never"
+        finally:
+            for name, use in kept.items():
+                study.data.interpretations[name].use_anisotropy = use
+            study.data.invalidate()
+
     def test_switching_a_correction_off_is_reflected(self, study):
         study.specimen = "hz05a1"
         view = CorrectionsView(study)
