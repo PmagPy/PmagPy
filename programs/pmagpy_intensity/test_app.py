@@ -204,6 +204,21 @@ class TestExport:
 
 # ---------------------------------------------------------------------------
 class TestSpecimenView:
+    def test_a_bound_at_the_first_point_is_shown_in_the_selector(self, workdir):
+        # an interpretation that starts at the first Arai point, made on a specimen that had none
+        # (Auto on a fresh specimen), must show that point in "from", not a blank selector
+        src, out = workdir
+        session = Session(src, out)
+        session.autosave_enabled = False
+        view = SpecimenView(session)
+        model = view.tmin.get_root()
+        assert session.interpretation is None
+        session.set_bounds(0, 6)
+        labels = dict(model.options)
+        assert model.value in labels and labels[model.value] == list(view.tmin.options)[0]
+        view.tmax.value = list(view.tmax.options.values())[4]
+        assert session.bounds() == (0, 4)
+
     def test_the_view_draws_and_follows_the_specimen(self, workdir):
         src, out = workdir
         session = Session(src, out)

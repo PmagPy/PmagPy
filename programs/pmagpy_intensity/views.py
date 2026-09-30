@@ -545,6 +545,10 @@ class SpecimenView:
             self.tmax.options = options
             if bounds:
                 self.tmin.value, self.tmax.value = bounds
+                # sent even when unchanged: replacing the options picks the first one in Python while
+                # the browser's selector stays blank, so a bound at the first point was never shown
+                self.tmin.param.trigger("value")
+                self.tmax.param.trigger("value")
         finally:
             self._updating = False
 
