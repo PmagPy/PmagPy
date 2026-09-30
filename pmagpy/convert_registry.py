@@ -362,10 +362,13 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
             if not ok:
                 failed.append((name, message or "the converter reported failure"))
                 continue
-            for table in MAGIC_TABLES:
-                written = os.path.join(out, f"{table}.txt")
-                if os.path.exists(written):
-                    per_table[table].append(written)
+            produced = [os.path.join(out, f"{t}.txt") for t in MAGIC_TABLES if os.path.exists(os.path.join(out, f"{t}.txt"))]
+            if not produced:
+                # a directory format with none of its files there, or a file with no records: not a conversion
+                failed.append((name, "no MagIC tables were written (no data the converter could read)"))
+                continue
+            for written in produced:
+                per_table[os.path.basename(written)[:-4]].append(written)
         if append:
             for table in MAGIC_TABLES:
                 existing = os.path.join(dir_path, f"{table}.txt")

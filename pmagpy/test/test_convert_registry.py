@@ -51,6 +51,23 @@ def test_example_converts(key, rel, values, tmp_path):
         assert "measurements" in result.message
 
 
+def test_a_conversion_that_writes_no_tables_is_not_reported_as_one(tmp_path):
+    # tdt on a folder with no .tdt files: the converter returns without writing anything, which is a
+    # failure -- also when appending, where the tables already there are not "converted" again
+    empty = tmp_path / "no_tdt_here"
+    empty.mkdir()
+    result = reg.convert_files(reg.FORMATS["tdt"], [str(empty)], {}, str(empty))
+    assert not result.ok and "no MagIC tables" in result.message
+    assert not os.path.exists(empty / reg.CONVERSION_LOG)
+    rel, values = reg.FORMATS["tdt"].examples[0]
+    shutil.copytree(example_path(rel), str(tmp_path / "tdt"))
+    first = reg.convert_files(reg.FORMATS["tdt"], [str(tmp_path / "tdt")], values, str(tmp_path / "out"))
+    assert first.ok
+    again = reg.convert_files(reg.FORMATS["tdt"], [str(empty)], values, str(tmp_path / "out"), append=True)
+    assert not again.ok
+    assert len(reg.read_conversions(str(tmp_path / "out"))) == 1
+
+
 def test_every_format_has_an_example():
     assert all(fmt.examples for fmt in reg.FORMATS.values())
 
