@@ -331,6 +331,20 @@ class TestMeasurementFlagWriter:
         assert open(out, "rb").read() == open(path, "rb").read()
 
 
+    def test_a_flag_is_not_written_onto_another_measurement_when_the_rows_moved(self, tmp_path):
+        """Same number of rows, other order (sorted by another program): position k is no longer
+        the measurement the flag was set on, so this writer declines (the caller writes in full)."""
+        path = self.lines(tmp_path, "tab\tmeasurements\nmeasurement\tquality\nm2\tg\nm1\tg\n")
+        out = os.path.join(str(tmp_path), "out.txt")
+        assert mp.write_measurement_flags(path, out, {1: "b"}, names=["m1", "m2"]) is None
+        assert mp.write_measurement_flags(path, out, {1: "b"}, names=["m2", "m1"]) == out
+        assert open(out).read() == "tab\tmeasurements\nmeasurement\tquality\nm2\tg\nm1\tb\n"
+
+    def test_a_blank_name_matches_a_blank_cell(self, tmp_path):
+        path = self.lines(tmp_path, "tab\tmeasurements\nmeasurement\tquality\nm1\tg\n\tg\n")
+        out = os.path.join(str(tmp_path), "out.txt")
+        assert mp.write_measurement_flags(path, out, {1: "b"}, names=["m1", None]) == out
+
 class TestRequiredParentColumn:
     def test_an_empty_parent_column_is_kept(self):
         existing = pd.DataFrame({"specimen": ["a"], "sample": [np.nan], "method_codes": ["LP-DIR-AF"],

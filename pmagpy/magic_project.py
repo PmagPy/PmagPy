@@ -1209,6 +1209,15 @@ def write_measurement_flags(source_path: str, target_path: str, changes: dict,
     if changes and max(changes) >= len(kept):
         return None
     add_names = "measurement" not in header and names is not None
+    if names is not None and "measurement" in header and changes:
+        # same number of rows is not the same rows (a file sorted or rewritten by another
+        # program): a flag must land on the measurement it was set on, or not be written this way
+        name_col = header.index("measurement")
+        for k in changes:
+            fields = lines[kept[k]].rstrip("\r").split("\t")
+            expected = "" if is_null(names[k]) else str(names[k]).strip()
+            if (fields[name_col].strip() if name_col < len(fields) else "") != expected:
+                return None
     add_quality = "quality" not in header
     new_header = header + (["measurement"] if add_names else []) + (["quality"] if add_quality else [])
     q_col = new_header.index("quality")
