@@ -387,6 +387,34 @@ class TestInterpretationsView:
         finally:
             study.param.update(criteria_name=kept[0], add_ziggie=kept[1])
 
+    def test_auto_interpret_all_changes_the_session_only_under_the_document_lock(self, workdir, monkeypatch):
+        # served, the worker thread must leave the session (whose watchers redraw Bokeh models)
+        # alone: the change is made in the callback run on the document's next tick
+        import threading
+        import panel as pn
+        src, out = workdir
+        session = Session(src, out)
+        session.autosave_enabled = False
+        view = InterpretationsView(session)
+        calls = []
+
+        class FakeDoc:
+            session_context = object()
+
+            def add_next_tick_callback(self, fn):
+                calls.append(fn)
+        monkeypatch.setattr(type(pn.state), "curdoc", property(lambda self: FakeDoc()), raising=False)
+        seen = []
+        session.param.watch(lambda *events: seen.append(threading.current_thread() is threading.main_thread()),
+                            "version")
+        view._auto(None)
+        assert _wait(lambda: any(getattr(fn, "__name__", "") == "done" for fn in calls), 60)
+        assert seen == []                            # nothing changed from the worker thread
+        for fn in list(calls):
+            fn()
+        assert seen and all(seen)
+        assert "interpreted" in view.message.object and session.data.interpretations
+
     def test_bulk_flagging_and_deleting(self, workdir):
         src, out = workdir
         session = Session(src, out)

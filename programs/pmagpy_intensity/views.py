@@ -701,9 +701,13 @@ class InterpretationsView(LazyView):
                     doc.add_next_tick_callback(apply)
                 else:
                     apply()
-            out = self.s.auto_interpret(targets, progress=report)
+            # only the computation runs here: the views follow the session under the document
+            # lock, so the change is announced in done() (a change from this thread raised
+            # "_pending_writes should be non-None", and the run never finished on the page)
+            out = self.s.data.auto_interpret_all(specimens=targets, progress=report)
 
             def done():
+                self.s._changed()
                 self.progress.visible = False
                 passed = sum(1 for n in out if self.s.data.result(n) is not None
                              and self.s.data.result(n).passed)
