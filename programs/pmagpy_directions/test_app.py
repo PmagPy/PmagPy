@@ -470,6 +470,11 @@ class TestSpecimenView:
         assert view.decay.fig.frame_height == ZijderveldPlot.TOP + 300 - net - DecayPlot.TOP
         assert view.decay.fig.width == net
 
+        # the resize lands as one batch: the browser lays the page out once for it
+        from pmagpy_panel.widgets import LayoutHold
+        hold = LayoutHold.of_session()
+        assert hold.begin == hold.end >= 1
+
         view.plot_size.value = 600                                   # and back up
         assert view.zij.fig.frame_width == 600 and view.eq.fig.width > net0
         view.plot_size.value = frame0

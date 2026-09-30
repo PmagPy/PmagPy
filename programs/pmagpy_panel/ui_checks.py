@@ -8,7 +8,7 @@ from __future__ import annotations
 import time
 
 # Every animation frame, after it has been drawn, record where the plot handle
-# is and how tall the figures above it are on screen. (A message posted from
+# and its guide bar are, and how tall the figures above it are on screen. (A message posted from
 # requestAnimationFrame is handled after that frame's layout, resize-observer
 # callbacks and paint, so the log holds what was actually shown.)
 _WATCH_PLOT_HANDLE = r"""() => {
@@ -27,7 +27,9 @@ _WATCH_PLOT_HANDLE = r"""() => {
   const sample = () => {
     const top = block.getBoundingClientRect().top;
     const bottom = Math.max(...figures().map(f => f.getBoundingClientRect().bottom));
-    window.__plotHandleLog.push({bar: bar.getBoundingClientRect().top, height: bottom - top});
+    const guide = document.querySelector('.hsplitter-guide');
+    window.__plotHandleLog.push({bar: bar.getBoundingClientRect().top, height: bottom - top,
+                                 guide: guide ? guide.getBoundingClientRect().top : null});
   };
   window.__plotHandleLog = [];
   const channel = new MessageChannel();
@@ -40,11 +42,10 @@ _WATCH_PLOT_HANDLE = r"""() => {
 
 
 # Each figure's canvas against the figure's own box: the largest departure of the
-# ratio of their widths from 1. Bokeh sizes a canvas from a measurement that
-# includes CSS transforms, so a figure laid out under the preview's transform is
-# left with a canvas too large or too small by the preview's scale (10 to 40 per
-# cent). A figure whose frame and border allowances do not quite add up to its
-# width can be a few per cent out at any size; that is not what this looks for.
+# ratio of their widths from 1: a figure resized but not laid out again keeps a
+# canvas for its old size (10 to 40 per cent out). A figure whose frame and
+# border allowances do not quite add up to its width can be a few per cent out
+# at any size; that is not what this looks for.
 _CANVAS_MISFIT = r"""() => {
   const deep = (root, pred, out = []) => {
     for (const e of root.querySelectorAll('*')) {
@@ -66,16 +67,18 @@ _CANVAS_MISFIT = r"""() => {
 
 
 def drag_plot_handle(page, dy: float, settle: float = 3.0) -> dict | None:
-    """Drag the handle under the plots by ``dy`` pixels and follow the hand-over frame by frame.
+    """Drag the handle under the plots by ``dy`` pixels and follow the resize frame by frame.
 
-    Returns the handle's position when released (``dropped``) and when the
-    resize is over (``final``), the figures' height before and after, and
-    ``drift``: the furthest the handle strayed from ``final`` at any drawn
-    frame after release. A smooth resize leaves the handle where it was let go,
-    so ``drift`` is a pixel or two at most. ``misfit`` is the largest relative
-    difference in width between a figure and its canvas once settled: a few
-    hundredths at most when every figure is drawn to its own size. None if
-    there is no handle.
+    During the drag only the guide bar should move; on release the figures take
+    their new size at once and the handle lands where the guide was let go.
+    Returns the guide's position at release (``dropped``) and the handle's once
+    the resize is over (``final``), the figures' height before and after,
+    ``moved``: the most the figures changed height during the drag (0 when they
+    stood still), ``sizes``: how many different heights the figures were shown
+    at after release (1 when they jumped straight to the new size) and
+    ``misfit``: the largest relative difference in width between a figure and
+    its canvas once settled (a few hundredths at most when every figure is
+    drawn to its own size). None if there is no handle.
     """
     start = page.evaluate(_WATCH_PLOT_HANDLE)
     if start is None:
@@ -91,9 +94,12 @@ def drag_plot_handle(page, dy: float, settle: float = 3.0) -> dict | None:
     page.mouse.up()
     time.sleep(settle)
     log = page.evaluate("() => { const log = window.__plotHandleLog; window.__plotHandleLog = null; return log; }")
-    before, dropped, after = log[0], log[released - 1], log[released:]
+    before, during, after = log[0], log[:released], log[released:]
     final = after[-1]
-    return {"dropped": dropped["bar"], "final": final["bar"],
+    shown = [e for e in after if e["guide"] is None]
+    return {"dropped": during[-1]["guide"] if during[-1]["guide"] is not None else during[-1]["bar"],
+            "final": final["bar"],
             "height_before": before["height"], "height_after": final["height"],
-            "drift": max(abs(e["bar"] - final["bar"]) for e in after),
+            "moved": max(abs(e["height"] - before["height"]) for e in during),
+            "sizes": len({round(e["height"]) for e in shown if abs(e["height"] - before["height"]) > 1}),
             "misfit": page.evaluate(_CANVAS_MISFIT)}

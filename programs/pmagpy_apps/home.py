@@ -29,6 +29,7 @@ import param
 
 from pmagpy_panel import app_color, datasets, runtime, text_on
 from pmagpy_panel.chooser import DirectoryChooser
+from pmagpy_panel.widgets import LayoutHold
 from . import APP, EDITIONS, Edition
 from .inventory import Inventory, take_inventory
 
@@ -583,30 +584,31 @@ class HomeView:
         _set_url("")
 
     def refresh(self) -> None:
-        self.start.visible = self.s.landing
-        self.work.visible = not self.s.landing
-        if self.s.landing:
-            self.recent_pane.object = recent_html(self.s.recent())
-            return
-        inv = self.s.inventory
-        self.heading.object = title_html(inv)
-        self.ref.object = ref_html(inv)
-        self.facts.object = facts_html(inv)
-        self.strip.object = strip_html(inv, self.edition)
-        self.bars.object = bars_html(inv, self.applications)
-        self.aside.object = aside_html(inv)
-        self.aside.visible = self.spacer.visible = bool(self.aside.object)     # no column when there is nothing to put in it
-        # The next thing to do is the primary button: download into an empty directory, convert when it
-        # holds lab files and no tables, fill the metadata when the tables have gaps, otherwise pick a directory.
-        self.change_btn.button_type = "primary" if inv.is_magic and not inv.gaps and inv.uploads else "default"
-        self.upload_btn.button_type = "primary" if inv.is_magic and not inv.gaps and not inv.uploads else "default"
-        self.download_btn.button_type = "primary" if inv.is_empty else "default"
-        self.convert_btn.button_type = "primary" if (inv.files or inv.has_level_tables) and not inv.is_magic else "default"
-        self.convert_btn.visible = not inv.is_empty
-        self.metadata_btn.button_type = "primary" if inv.is_magic and inv.gaps else "default"
-        self.metadata_btn.visible = inv.is_magic and self.edition.has_page("metadata")
-        self.upload_btn.visible = inv.is_magic and self.edition.has_page("upload")
-        self.download_btn.visible = self.edition.has_page("download")
+        with LayoutHold.batch():        # visibility, button styles, texts: one layout of the page
+            self.start.visible = self.s.landing
+            self.work.visible = not self.s.landing
+            if self.s.landing:
+                self.recent_pane.object = recent_html(self.s.recent())
+                return
+            inv = self.s.inventory
+            self.heading.object = title_html(inv)
+            self.ref.object = ref_html(inv)
+            self.facts.object = facts_html(inv)
+            self.strip.object = strip_html(inv, self.edition)
+            self.bars.object = bars_html(inv, self.applications)
+            self.aside.object = aside_html(inv)
+            self.aside.visible = self.spacer.visible = bool(self.aside.object)     # no column when there is nothing to put in it
+            # The next thing to do is the primary button: download into an empty directory, convert when it
+            # holds lab files and no tables, fill the metadata when the tables have gaps, otherwise pick a directory.
+            self.change_btn.button_type = "primary" if inv.is_magic and not inv.gaps and inv.uploads else "default"
+            self.upload_btn.button_type = "primary" if inv.is_magic and not inv.gaps and not inv.uploads else "default"
+            self.download_btn.button_type = "primary" if inv.is_empty else "default"
+            self.convert_btn.button_type = "primary" if (inv.files or inv.has_level_tables) and not inv.is_magic else "default"
+            self.convert_btn.visible = not inv.is_empty
+            self.metadata_btn.button_type = "primary" if inv.is_magic and inv.gaps else "default"
+            self.metadata_btn.visible = inv.is_magic and self.edition.has_page("metadata")
+            self.upload_btn.visible = inv.is_magic and self.edition.has_page("upload")
+            self.download_btn.visible = self.edition.has_page("download")
 
     def panel(self) -> pn.Column:
         return pn.Column(self.start, self.work, sizing_mode="stretch_width", max_width=1100, margin=(18, 40, 40, 40))

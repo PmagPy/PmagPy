@@ -24,6 +24,7 @@ import panel as pn
 from pmagpy import magic_metadata as mm
 from pmagpy import magic_upload as mu
 from pmagpy_panel.theme import MUTED_STYLE
+from pmagpy_panel.widgets import LayoutHold
 from .home import CSS, fmt, shorten_home
 from .metadata import FAIL_COLOR, OK_COLOR, WARN_COLOR
 
@@ -192,11 +193,12 @@ class UploadView:
         self._list_files()
 
     def _list_files(self) -> None:
-        names = self.s.inventory.uploads
-        self.files_pane.object = upload_files_html(self.s.directory, names)
-        self.file.options = names
-        self.file.value = names[0] if names else None
-        self.file.visible = self.validate_btn.visible = self.link.visible = bool(names)
+        with LayoutHold.batch():        # list, selector, three visibilities: one layout
+            names = self.s.inventory.uploads
+            self.files_pane.object = upload_files_html(self.s.directory, names)
+            self.file.options = names
+            self.file.value = names[0] if names else None
+            self.file.visible = self.validate_btn.visible = self.link.visible = bool(names)
 
     def reset(self) -> None:
         """A fresh page: the directory as it is now, last time's reports cleared."""

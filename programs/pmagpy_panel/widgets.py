@@ -4,10 +4,16 @@ The custom components these applications need beyond Panel's own widgets.
 Each is a small ``JSComponent``: a slice of browser behaviour that Panel has no
 widget for, kept here because it is about the application's *frame* rather than
 about any one science — dragging the boundary between the panels, resizing the
-plots, and hearing the keys an analyst presses while working.
+plots, landing a batch of changes in one layout pass, and hearing the keys an
+analyst presses while working.
 """
 from __future__ import annotations
 
+import weakref
+from contextlib import contextmanager
+from typing import Optional
+
+import panel as pn
 import param
 from panel.custom import JSComponent
 
@@ -144,31 +150,24 @@ class HeightSplitter(JSComponent):
     Directions, the Arai frame in Intensity), and the application resizes its
     figures from it in Python, since their geometry is tied together there.
 
-    Re-laying out Bokeh figures costs about 100 ms, far too slow to follow a
-    cursor. So the drag scales the block with a CSS transform, which is free
-    and immediate, and the real resize happens once, on release. How the two
-    are joined is what makes the resize feel smooth:
+    Re-laying out Bokeh figures is far too slow to follow a cursor, so, as
+    with :class:`Splitter`, the drag moves a guide bar only and the figures
+    are resized once, on release. The guide stands where the handle will be
+    once they are: ``px_per_value`` (block height gained per unit of
+    ``value``) converts the distance dragged into a value. The owner lands
+    the resize with :class:`LayoutHold`, so its many size changes cost the
+    browser one layout pass.
 
-    * during the drag the block's bottom edge follows the cursor, so the handle
-      stays under it; ``px_per_value`` (block height gained per unit of
-      ``value``) converts that height into a value;
-    * after release the preview stays on until the resized figures arrive, so
-      the plots never fall back to their size before the drag;
-    * when they arrive, the transform comes off and Bokeh is asked to lay the
-      block out again. Bokeh measures its views with getBoundingClientRect,
-      which includes a transform, and measures again only when a view's box
-      changes size, which removing a transform does not do: without this a
-      figure laid out under the preview keeps a canvas sized for the scaled
-      box, and is drawn too large or too small from then on;
-    * whatever small difference is left between the preview and the real
-      layout (a uniform scale cannot follow axes and legends, which do not
-      grow with the frame) is eased out with a transform alone, so nothing is
-      laid out, or measured, while it runs.
+    (An earlier version scaled the block with a CSS transform during the drag
+    and kept the preview on until the resized figures arrived. It was
+    smoother to look at, but a transform cannot preview the side column, so
+    the two handles behaved differently; and Bokeh measures its views through
+    a transform, which took a hand-made re-layout to undo.)
 
     Given ``width_per_value`` (how much wider the figures get per unit of
     value), the figures may not be dragged wider than the block: a block that
     wraps (a flex box) would otherwise drop half its figures below the rest on
-    release, a jump far from where the handle was let go.
+    release, far from where the guide was let go.
     """
 
     value = param.Integer(default=430, doc="the size the application draws its figures at")
@@ -188,119 +187,44 @@ class HeightSplitter(JSComponent):
       bar.title = 'drag to resize the plots · double click to reset';
       const host = () => el.getRootNode().host || el;
       const block = () => host().previousElementSibling;      // the figures above the handle
-      // The figures' laid-out extent, measured from the block's top left corner.
-      // They are found however deep the layout nests them, and the scale the
-      // preview has put on the block is divided out, so this is the size the
-      // figures really have, even mid-preview and however a flex box has wrapped them.
-      let scale = 1;
-      const figures = () => {
-        const out = [], walk = (root) => {
+      // The right edge of the figures, measured from the block's left: they are
+      // found however deep the layout nests them (each model has its own shadow root)
+      const figuresWidth = () => {
+        const b = block();
+        if (!b) return 0;
+        const left = b.getBoundingClientRect().left;
+        let w = 0;
+        const walk = (root) => {
           for (const e of root.querySelectorAll('*')) {
-            if (e.classList.contains('bk-Figure')) out.push(e);
+            if (e.classList.contains('bk-Figure')) w = Math.max(w, e.getBoundingClientRect().right - left);
             else if (e.shadowRoot) walk(e.shadowRoot);
           }
         };
-        const b = block();
-        if (b && b.shadowRoot) walk(b.shadowRoot);
-        return out;
-      };
-      const extent = () => {
-        const b = block();
-        if (!b) return {w: 0, h: 0};
-        const origin = b.getBoundingClientRect();
-        let w = 0, h = 0;
-        for (const f of figures()) {
-          const r = f.getBoundingClientRect();
-          w = Math.max(w, r.right - origin.left); h = Math.max(h, r.bottom - origin.top);
-        }
-        return {w: w / scale, h: h / scale};
+        if (b.shadowRoot) walk(b.shadowRoot);
+        return w;
       };
       const clamp = (v) => Math.max(model.minimum, Math.min(model.maximum, v));
 
-      // v0/h0: the value and the figures' height when the drag started; below:
-      // the block's own height beyond its figures (margins); vmax: the largest
-      // value that keeps the figures within the block's width (width_per_value);
-      // target: the height the figures are shown at
-      let startY = 0, v0 = 0, h0 = 0, below = 0, vmax = Infinity, target = null, pending = null, frame = null;
-      let observer = null, fallback = null, easing = null;
-
-      const reset = () => {
-        const b = block();
-        if (b) for (const k of ['transform', 'transformOrigin', 'height', 'transition'])
-          b.style[k] = '';
-        scale = 1;
+      // v0: the value when the drag started; vmax: the largest value that keeps the
+      // figures within the block's width (width_per_value)
+      let startY = 0, v0 = 0, vmax = Infinity, pending = null, frame = null, guide = null;
+      // the guide is a bar the shape of the handle, fixed over the page, standing
+      // where the handle will be once the figures take the new size
+      const showGuide = () => {
+        const r = bar.getBoundingClientRect();
+        guide = document.createElement('div');
+        guide.className = 'hsplitter-guide';
+        Object.assign(guide.style, { position: 'fixed', top: r.top + 'px', left: r.left + 'px',
+                                     width: r.width + 'px', height: r.height + 'px', borderRadius: '4px',
+                                     background: '#1f4e9c', zIndex: 10000, pointerEvents: 'none' });
+        document.body.appendChild(guide);
       };
-      // Show the block `target` tall, whatever size its figures have reached. The
-      // block's own height is set too, so that what lies below moves with it.
-      const show = () => {
-        const b = block(), h = extent().h;
-        if (!b || !h) return;
-        scale = target / h;
-        b.style.transition = '';
-        b.style.transformOrigin = 'top left';
-        b.style.transform = 'scale(' + scale + ')';
-        b.style.height = (target + below) + 'px';
-      };
-      const stopWatching = () => {
-        if (observer) { observer.disconnect(); observer = null; }
-        if (fallback !== null) { clearTimeout(fallback); fallback = null; }
-      };
-      // Lay the block out again, measured without a transform (see the docstring).
-      const relayout = () => {
-        const b = block(), B = window.Bokeh;
-        if (!b || !B || !B.index || typeof B.index.query !== 'function') return;
-        for (const view of B.index.query((v) => v.el === b)) { view.compute_layout(); break; }
-      };
-      // The figures are in: hand over to them, easing out what is left.
-      const land = () => {
-        stopWatching();
-        const b = block(), shown = target;
-        reset(); target = null;
-        if (!b) return;
-        relayout();
-        const h = extent().h;
-        if (!shown || !h || Math.abs(shown / h - 1) < 0.002) return;
-        b.style.transformOrigin = 'top left';
-        b.style.transform = 'scale(' + (shown / h) + ')';
-        void b.offsetHeight;             // commit the start of the transition
-        b.style.transition = 'transform 160ms ease-out';
-        b.style.transform = 'scale(1)';
-        easing = setTimeout(() => { easing = null; reset(); }, 200);
-      };
-      // Drop a hand-over still running (a new drag takes over from it).
-      const interrupt = () => {
-        const busy = target !== null || easing !== null;
-        stopWatching();
-        if (easing !== null) { clearTimeout(easing); easing = null; }
-        reset(); target = null;
-        if (busy) relayout();
-      };
-      // Ask for `v` and keep the block `target` tall until the figures have it.
-      const commit = (v) => {
-        if (v === model.value) { land(); return; }
-        show();
-        // a ResizeObserver reports every element once when it starts watching;
-        // the figures are in when one of them has a new size
-        const sizes = new Map(figures().map((f) => [f, f.offsetWidth + 'x' + f.offsetHeight]));
-        observer = new ResizeObserver(() => {
-          for (const [f, size] of sizes) {
-            if (f.offsetWidth + 'x' + f.offsetHeight !== size) { land(); return; }
-          }
-        });
-        for (const f of sizes.keys()) observer.observe(f);
-        fallback = setTimeout(land, 2000);        // should nothing arrive, do not stay scaled
-        model.value = v;
-      };
-
       const onMove = (e) => {
         pending = Math.min(vmax, clamp(v0 + (e.clientY - startY) / model.px_per_value));
-        if (frame === null) {
-          frame = requestAnimationFrame(() => {
-            frame = null;
-            target = h0 + (pending - v0) * model.px_per_value;
-            show();
-          });
-        }
+        if (frame === null) frame = requestAnimationFrame(() => {
+          frame = null;
+          if (guide) guide.style.transform = 'translateY(' + ((pending - v0) * model.px_per_value) + 'px)';
+        });
       };
       const onUp = () => {
         document.removeEventListener('mousemove', onMove);
@@ -308,36 +232,27 @@ class HeightSplitter(JSComponent):
         document.body.style.cursor = ''; document.body.style.userSelect = '';
         bar.classList.remove('dragging');
         if (frame !== null) { cancelAnimationFrame(frame); frame = null; }
-        const v = pending === null ? v0 : Math.min(vmax, Math.round(pending));
+        if (guide) { guide.remove(); guide = null; }
+        if (pending !== null) model.value = Math.round(pending);
         pending = null;
-        target = h0 + (v - v0) * model.px_per_value;
-        commit(v);
       };
       bar.addEventListener('mousedown', (e) => {
-        if (!block()) return;
-        interrupt();
+        if (!block() || e.button !== 0) return;
         startY = e.clientY; v0 = model.value;
-        const b = block(), size = extent();
-        h0 = size.h; below = Math.max(0, b.offsetHeight - size.h);
         // (12 px in hand: the figures' containers, a grid with its gaps, are a
         // little wider than the figures, and the application rounds its sizes)
-        vmax = model.width_per_value && size.w > 0
-          ? Math.max(v0, Math.floor(v0 + (b.clientWidth - 12 - size.w) / model.width_per_value))
+        const w = figuresWidth();
+        vmax = model.width_per_value && w > 0
+          ? Math.max(v0, Math.floor(v0 + (block().clientWidth - 12 - w) / model.width_per_value))
           : Infinity;
+        showGuide();
         bar.classList.add('dragging');
         document.body.style.cursor = 'row-resize'; document.body.style.userSelect = 'none';
         document.addEventListener('mousemove', onMove);
         document.addEventListener('mouseup', onUp);
         e.preventDefault();
       });
-      bar.addEventListener('dblclick', () => {
-        if (!block()) return;
-        interrupt();
-        const b = block(), h = extent().h;
-        below = Math.max(0, b.offsetHeight - h);
-        target = h + (model.default_value - model.value) * model.px_per_value;
-        commit(model.default_value);
-      });
+      bar.addEventListener('dblclick', () => { model.value = model.default_value; });
       return bar;
     }
     """
@@ -346,9 +261,109 @@ class HeightSplitter(JSComponent):
     :host { display: block; width: 100%; }
     .hsplitter { height: 8px; cursor: row-resize; background: #e5e7eb; border-radius: 4px;
                  margin: 2px 0; transition: background .15s; }
-    .hsplitter:hover, .hsplitter.dragging { background: #9aa1ab; }
-    .hsplitter.dragging { background: #1f4e9c; }
+    .hsplitter:hover { background: #9aa1ab; }
+    .hsplitter.dragging { background: #c7d2e5; }
     """]
+
+
+class LayoutHold(JSComponent):
+    """Invisible component that lands a batch of changes in one layout pass of the browser.
+
+    BokehJS lays the whole page out again — synchronously — for every property
+    that affects layout: a width or height, ``visible``, ``css_classes``. A
+    callback that hides three widgets and resizes a table pays four layouts, at
+    some 20 ms each for a page like Directions'; the ten size changes of its
+    plot-height handle paid ten, visibly in two passes. Wrap such a callback::
+
+        with LayoutHold.batch():
+            self.planes_box.visible = bool(planes)
+            self.table.height = ...
+
+    and its changes travel as *one* message, bracketed by ``begin`` and
+    ``end``; the browser notes the layout requests between the two and honours
+    them once, when ``end`` is applied. The single message matters: without
+    ``pn.io.hold()`` Panel writes each change as its own message, and its own
+    model updates before Bokeh's, so nothing could bracket them. (A batch is
+    applied in one task; should ``end`` not be in the message after all, the
+    hold releases itself at the end of that task — the page is never left
+    unlaid.)
+
+    One instance per session, mounted by the shell's ``Workspace``;
+    :meth:`batch` finds it by the current document, and outside a server
+    session (a test, a notebook) does nothing but run the body.
+    """
+
+    begin = param.Integer(default=0, doc="bumped first in a batch: layout requests are collected from here")
+    end = param.Integer(default=0, doc="bumped last in a batch: the collected requests are honoured, once")
+
+    _by_document: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()
+    _without_document: Optional["LayoutHold"] = None
+
+    def __init__(self, **params):
+        super().__init__(**params)
+        self._depth = 0
+
+    @classmethod
+    def of_session(cls) -> "LayoutHold":
+        """The session's instance (made on first use; the shell mounts it)."""
+        doc = pn.state.curdoc
+        if doc is None:
+            if cls._without_document is None:
+                cls._without_document = cls(width=0, height=0, margin=0)
+            return cls._without_document
+        hold = cls._by_document.get(doc)
+        if hold is None:
+            hold = cls._by_document[doc] = cls(width=0, height=0, margin=0)
+        return hold
+
+    @classmethod
+    @contextmanager
+    def batch(cls):
+        """Run the body so that the browser lays the page out once for all its changes."""
+        hold = cls.of_session()
+        with pn.io.hold():
+            hold._depth += 1
+            if hold._depth == 1:
+                hold.begin += 1
+            try:
+                yield
+            finally:
+                hold._depth -= 1
+                if hold._depth == 0:
+                    hold.end += 1
+
+    _esm = """
+    // While `held`, LayoutDOMView.invalidate_layout only notes the root views that
+    // asked; release() lays each out once. Module scope: one hold for the page.
+    let layout_dom = null;
+    try { layout_dom = Bokeh.require('models/layouts/layout_dom'); } catch (e) { layout_dom = null; }
+    let held = null;
+    const release = () => {
+      if (!held) return;
+      clearTimeout(held.timer);
+      layout_dom.LayoutDOMView.prototype.invalidate_layout = held.invalidate;
+      const roots = held.roots;
+      held = null;
+      for (const root of roots) root.invalidate_layout();
+    };
+    const hold = () => {
+      if (!layout_dom || held) return;
+      const proto = layout_dom.LayoutDOMView.prototype, roots = new Set();
+      // a batch is applied within one task: the timer only fires if `end` was not in it
+      held = { invalidate: proto.invalidate_layout, roots, timer: setTimeout(release, 0) };
+      proto.invalidate_layout = function () {    // what the original does, minus the layout itself
+        let view = this;
+        while (view.parent instanceof layout_dom.LayoutDOMView) view = view.parent;
+        roots.add(view);
+      };
+    };
+
+    export function render({ model }) {
+      model.on('begin', hold);
+      model.on('end', release);
+      return document.createElement('span');
+    }
+    """
 
 
 class Hotkeys(JSComponent):

@@ -19,6 +19,7 @@ import panel as pn
 from typing import Optional
 
 from pmagpy_panel import datasets, shell
+from pmagpy_panel.widgets import LayoutHold
 from . import APP, EDITIONS, Edition, current_edition
 from .convert import ConvertView
 from .download import DownloadDialog
@@ -59,8 +60,9 @@ def build_body(session: HubSession, chooser_stub: str = "", edition: Optional[Ed
                       header=shell.status_line(session), modal=pn.Column(*panes.values()))
 
     def show(which: str) -> None:
-        for name, pane in panes.items():
-            pane.visible = name == which
+        with LayoutHold.batch():
+            for name, pane in panes.items():
+                pane.visible = name == which
         body.open_modal()
 
     # the chooser serves two doors: its heading says which, and a folder chosen for conversion goes on to Convert
@@ -83,12 +85,13 @@ def build_body(session: HubSession, chooser_stub: str = "", edition: Optional[Ed
     def turn_to(which: str) -> None:
         if which not in pages:
             return
-        for name, page in pages.items():
-            page.visible = name == which
-        if which == "convert":
-            convert.reset()
-        elif which in tools:
-            tools[which].reset()
+        with LayoutHold.batch():        # pages shown or hidden and the new one refreshed: one layout
+            for name, page in pages.items():
+                page.visible = name == which
+            if which == "convert":
+                convert.reset()
+            elif which in tools:
+                tools[which].reset()
 
     view.change_btn.on_click(lambda e: show_chooser("open"))
     view.open_btn.on_click(lambda e: show_chooser("open"))

@@ -144,6 +144,26 @@ class TestShell:
         assert "window.location.search" in under_hub.header[0].object
         assert len(under_hub.header) == 1 and 'href="http://localhost:5010/"' in under_hub.header[0].object
 
+    def test_layout_hold_brackets_a_batch_once_and_is_mounted_by_the_workspace(self):
+        """Several layout changes go to the browser as one bracketed batch, however deeply nested."""
+        from pmagpy_panel.widgets import LayoutHold
+        hold = LayoutHold.of_session()
+        assert LayoutHold.of_session() is hold                  # one per session
+        b0, e0 = hold.begin, hold.end
+        with LayoutHold.batch():
+            assert (hold.begin, hold.end) == (b0 + 1, e0)       # open ...
+            with LayoutHold.batch():                            # ... nesting does not bump again
+                pass
+            assert (hold.begin, hold.end) == (b0 + 1, e0)
+        assert (hold.begin, hold.end) == (b0 + 1, e0 + 1)       # ... closed once
+        with pytest.raises(ValueError):
+            with LayoutHold.batch():
+                raise ValueError("a callback that fails must still release the hold")
+        assert hold.begin == hold.end == b0 + 2 and hold._depth == 0
+        # every page mounts the session's hold, so the batches reach the browser
+        tmpl = shell.template(_body(), logo=LOGO)
+        assert hold in list(tmpl.workspace.main_area)
+
 
 class TestSessionDirectory:
     def test_query_string_then_environment_then_default(self, monkeypatch, tmp_path):

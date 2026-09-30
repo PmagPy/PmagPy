@@ -25,6 +25,7 @@ from pmagpy_panel import code
 from pmagpy_panel.chooser import DirectoryChooser
 from pmagpy_panel.results import TableSave
 from pmagpy_panel.theme import MUTED_STYLE, SECTION_STYLE, kpi
+from pmagpy_panel.widgets import LayoutHold
 from . import plots
 from .session import ALL, APP, LEVELS, RECENT_FILE, Session, as_session, env
 
@@ -294,22 +295,23 @@ class EigenvectorsView:
         return None
 
     def refresh(self) -> None:
-        self.tensors = t = self.s.selection()
-        self.stats = stats = self.statistics(t)
-        comparison = (self.compare_dec.value, self.compare_inc.value) if self.compare.value else None
-        self.specimen_net.object = plots.specimen_net(t)
-        self.mean_net.object = plots.mean_net(stats, show_hext=self.hext.value, show_bootstrap=self.bootstrap.value,
-                                              cloud=self.cloud.value, comparison=comparison)
-        boot = stats.get("bootstrap") if stats else None
-        if boot is not None:
-            self.cdf.object = plots.eigenvalue_cdf(boot["taus"], anisotropy.bootstrap_eigenvalue_bounds(boot["taus"]))
-        self.cdf_box.visible = boot is not None
-        self.parametric.visible = self.n_bootstraps.visible = self.seed.visible = self.cloud.visible = \
-            self.bootstrap.value
-        self.compare_dec.visible = self.compare_inc.visible = self.compare.value
-        self._summarize(stats)
-        self._emit(stats)
-        self._offer(stats)
+        with LayoutHold.batch():        # two nets replaced, eight visibilities: one layout
+            self.tensors = t = self.s.selection()
+            self.stats = stats = self.statistics(t)
+            comparison = (self.compare_dec.value, self.compare_inc.value) if self.compare.value else None
+            self.specimen_net.object = plots.specimen_net(t)
+            self.mean_net.object = plots.mean_net(stats, show_hext=self.hext.value, show_bootstrap=self.bootstrap.value,
+                                                  cloud=self.cloud.value, comparison=comparison)
+            boot = stats.get("bootstrap") if stats else None
+            if boot is not None:
+                self.cdf.object = plots.eigenvalue_cdf(boot["taus"], anisotropy.bootstrap_eigenvalue_bounds(boot["taus"]))
+            self.cdf_box.visible = boot is not None
+            self.parametric.visible = self.n_bootstraps.visible = self.seed.visible = self.cloud.visible = \
+                self.bootstrap.value
+            self.compare_dec.visible = self.compare_inc.visible = self.compare.value
+            self._summarize(stats)
+            self._emit(stats)
+            self._offer(stats)
 
     # ----- the save ---------------------------------------------------------------
     def mean_type(self) -> Optional[str]:

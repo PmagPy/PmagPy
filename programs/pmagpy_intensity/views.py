@@ -27,7 +27,7 @@ from pmagpy import tdt as tdt_reader
 
 from pmagpy_panel import code
 from pmagpy_panel.chooser import DirectoryChooser, shorten
-from pmagpy_panel.widgets import HeightSplitter, Hotkeys
+from pmagpy_panel.widgets import HeightSplitter, Hotkeys, LayoutHold
 from pmagpy_panel.theme import (ACCENT, BUTTON_GROUP_CSS, CHECKBOX_CSS, INPUT_CSS, KPI_ITEM,
                                 MUTED_STYLE, SECTION_STYLE, STATS_TABLE_CSS, TABLE_ROW_CSS, kpi)
 from . import APP_NAME
@@ -368,13 +368,14 @@ class SpecimenView:
     def _on_plot_size(self, event):
         """Resize the Arai plot and scale the companions with it.
 
-        The changes go to the browser as one message, so the figures are laid
-        out once and change size together rather than one after another.
+        The changes land as one batch (:class:`LayoutHold`): one message, and
+        one layout of the page, so the figures change size together rather
+        than one after another.
         """
         frame = int(event.new)
         tile = companion_tile(frame)
         frames = tile_frames(tile)
-        with pn.io.hold():
+        with LayoutHold.batch():
             self.arai.set_frame(frame)
             self.zij.set_size(frames["zij"])
             self.net.set_size(frames["net"])

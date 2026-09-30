@@ -47,10 +47,12 @@ demagnetization step or a Thellier step *is*, it does not belong here.
   `HeightSplitter` (the handle under a block of figures that resizes them;
   each application maps its `value` onto its own geometry and tells it how
   fast the block grows, `px_per_value` and optionally `width_per_value`),
-  `Hotkeys` (forwards key presses).
+  `LayoutHold` (lands a batch of layout changes in one pass; see the
+  pitfalls), `Hotkeys` (forwards key presses).
 * **`ui_checks.py`** — browser checks shared by the applications' Playwright
   suites: `drag_plot_handle()` drags the plot handle and reports, frame by
-  frame, whether the plots stayed where it was let go and were drawn to size.
+  frame, whether the plots stood still during the drag, took their new size
+  in one step under the guide, and were drawn to size.
 * **`nets.py`** — equal-area primitives. `net_figure()` builds a square,
   toolbar-less figure and `keep_circular()` guards it; `declutter_labels()`
   thins labels where symbols pile up.
@@ -259,18 +261,41 @@ Each of these was found the hard way in Directions; none is obvious.
   (`previousElementSibling`) do work. A wrapper lookup written as plain
   `parentElement` fails *silently*. Browser probes need a recursive
   `shadowRoot` walk to find anything.
-* **Re-laying out a Bokeh figure costs ~100 ms**, whether the request comes
-  from Python (~230 ms end to end) or from JavaScript against the models
-  (90–120 ms). Nothing can follow a cursor at frame rate: preview a resize with
-  a CSS transform and do the real resize once, on release.
+* **BokehJS lays out the whole page again for every size property that
+  changes**, synchronously (`LayoutDOMView.invalidate_layout` walks to the
+  root view and recomputes it: ~20 ms for the Directions main area), and
+  every Tabulator on the page redraws when its width changes. Two
+  consequences. Nothing can follow a cursor at frame rate: during a drag
+  move a guide bar only and do the real resize once, on release — both
+  `Splitter` and `HeightSplitter` do, in every application. (A
+  CSS-transform preview of the plots was tried twice: dropped at once on
+  release, the plots snapped back to their old size for the moment the real
+  resize took; kept on until the figures arrived, it was smooth but needed
+  the work-around below, and a transform cannot preview the side column, so
+  the two handles behaved differently.) And a resize that touches several
+  properties pays for each one: resizing the three Directions plots changed
+  ten (≈300 ms, visibly in two passes). So a callback that changes several layout-affecting properties
+  (sizes, `visible`, `margin`, `css_classes`, `stylesheets`, a pane
+  replaced in a container) wraps them in `with LayoutHold.batch():`. The
+  batch does two things: it is a `pn.io.hold()`, so everything goes to the
+  browser as **one** message — without it Panel writes each change as its
+  own message, and its own model updates before Bokeh's — and it bumps the
+  session's `LayoutHold` component first and last in that message. In the
+  browser `begin` swaps `LayoutDOMView.prototype.invalidate_layout` for a
+  collector of root views and `end` restores it and lays each root out
+  once (≈90 ms end to end for the plot resize, most of it the round trip).
+  A message is applied within one task, so a `setTimeout(…, 0)` releases
+  the hold if `end` somehow was not in it — the page is never left unlaid.
+  Batches nest (only the outermost brackets), and outside a server session
+  they are no-ops, so views can be unit-tested without a browser.
+  `Workspace` mounts the session's hold, so every page has one.
 * **Bokeh measures its views with `getBoundingClientRect()`**, which includes
   CSS transforms, and measures again only when a view's box changes size —
   which adding or removing a transform does not do. A figure laid out while an
   ancestor is scaled keeps a canvas sized for the scaled box, drawn too large
-  or too small, until something else resizes it. Take the transform off and
-  call the layout's `compute_layout()` before showing figures that were laid
-  out under one (`HeightSplitter` does), and never animate a layout property
-  of a Bokeh element under a transform.
+  or too small, until something else resizes it. Don't lay Bokeh elements out
+  under a transform; if one must be, take it off and call the layout's
+  `compute_layout()` before showing the figures.
 * **Equal-area nets go elliptical** when Bokeh aligns the frames of plots that
   share a layout. Build them with `net_figure()` (which sets
   `frame_align=False` and installs `keep_circular`) and assert circularity in

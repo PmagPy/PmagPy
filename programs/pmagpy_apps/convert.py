@@ -25,6 +25,7 @@ from pmagpy import magic_project as mp
 from pmagpy.convert_registry import FORMATS, Format, convert_files, record_conversion
 from pmagpy_panel.forms import Form
 from pmagpy_panel.theme import MUTED_STYLE
+from pmagpy_panel.widgets import LayoutHold
 from .home import CSS, shorten_home
 
 FAIL_COLOR = "#c0392b"
@@ -73,15 +74,16 @@ class ConvertView:
 
     def refresh(self) -> None:
         """Point the page at the session's directory: its files, and the format they look like."""
-        inv = self.s.inventory
-        self.heading.object = (f'<div class="home"><div class="section">Convert</div><h1>{html.escape(inv.name)}</h1>'
-                               f'<div class="path">{html.escape(shorten_home(inv.directory))}</div></div>')
-        if inv.format_key in self.format.options.values():
-            self.format.value = inv.format_key
-        # any table already here is worth keeping — the samples and sites from a field notebook as much as measurements
-        self.append.visible = inv.is_magic or inv.has_level_tables
-        self.append.value = inv.is_magic or inv.has_level_tables
-        self._format_changed()
+        with LayoutHold.batch():
+            inv = self.s.inventory
+            self.heading.object = (f'<div class="home"><div class="section">Convert</div><h1>{html.escape(inv.name)}</h1>'
+                                   f'<div class="path">{html.escape(shorten_home(inv.directory))}</div></div>')
+            if inv.format_key in self.format.options.values():
+                self.format.value = inv.format_key
+            # any table already here is worth keeping — the samples and sites from a field notebook as much as measurements
+            self.append.visible = inv.is_magic or inv.has_level_tables
+            self.append.value = inv.is_magic or inv.has_level_tables
+            self._format_changed()
 
     def reset(self) -> None:
         """A fresh page: the directory as it is now, no message or log from last time."""
@@ -91,30 +93,31 @@ class ConvertView:
         self.home_btn.button_type = "default"
 
     def _format_changed(self) -> None:
-        inv = self.s.inventory
-        fmt = self.fmt
-        names = [f.name for f in inv.files]
-        if fmt is None:                                   # the contribution file
-            self._offer(names, [f.name for f in inv.files if f.role == "MagIC contribution file"])
+        with LayoutHold.batch():        # the form's fields, the file list's size, notes: one layout
+            inv = self.s.inventory
+            fmt = self.fmt
+            names = [f.name for f in inv.files]
+            if fmt is None:                                   # the contribution file
+                self._offer(names, [f.name for f in inv.files if f.role == "MagIC contribution file"])
+                self.files.disabled = False
+                self.form.set_fields(())
+                self._note("One text file with every table in it, as MagIC serves a contribution. It unpacks into "
+                           "the tables here.")
+                return
+            self.form.set_fields(fmt.fields)
+            if fmt.takes_directory:
+                self._offer(names, [])
+                self.files.disabled = True
+                self._note(f"{fmt.label} reads every file in the directory; there is nothing to choose. "
+                           + (fmt.notes or ""))
+                return
             self.files.disabled = False
-            self.form.set_fields(())
-            self._note("One text file with every table in it, as MagIC serves a contribution. It unpacks into "
-                       "the tables here.")
-            return
-        self.form.set_fields(fmt.fields)
-        if fmt.takes_directory:
-            self._offer(names, [])
-            self.files.disabled = True
-            self._note(f"{fmt.label} reads every file in the directory; there is nothing to choose. "
-                       + (fmt.notes or ""))
-            return
-        self.files.disabled = False
-        accepted = [n for n in names if fmt.accepts(n)]
-        # when the guess was this format, the files it recognised are the ones chosen — not every
-        # .txt beside a field notebook
-        recognised = [f.name for f in inv.files if f.role and f.name in accepted] if inv.format_key == fmt.key else []
-        self._offer(accepted or names, recognised or accepted)
-        self._note(fmt.notes or "")
+            accepted = [n for n in names if fmt.accepts(n)]
+            # when the guess was this format, the files it recognised are the ones chosen — not every
+            # .txt beside a field notebook
+            recognised = [f.name for f in inv.files if f.role and f.name in accepted] if inv.format_key == fmt.key else []
+            self._offer(accepted or names, recognised or accepted)
+            self._note(fmt.notes or "")
 
     def _offer(self, options, chosen) -> None:
         """The file list: the files this format takes, sized to them, the likely ones chosen."""

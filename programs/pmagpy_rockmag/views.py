@@ -24,6 +24,7 @@ from pmagpy import forc, rockmag
 from pmagpy_panel import code
 from pmagpy_panel.chooser import DirectoryChooser
 from pmagpy_panel.theme import MUTED_STYLE, SECTION_STYLE, kpi, style_figure
+from pmagpy_panel.widgets import LayoutHold
 from . import plots
 from .results import SpecimenSave
 from .session import RECENT_FILE, Session, as_session, env
@@ -1511,9 +1512,10 @@ class ForcView:
             self.experiment.value = own[0]
 
     def _show_smoothing_controls(self) -> None:
-        variforc = self.smoothing.value == "variforc"
-        self.smooth_strength.visible = not variforc
-        self.preset.visible = self.smoothing_factor.visible = variforc
+        with LayoutHold.batch():        # three visibilities: one layout
+            variforc = self.smoothing.value == "variforc"
+            self.smooth_strength.visible = not variforc
+            self.preset.visible = self.smoothing_factor.visible = variforc
 
     def _on_smoothing(self, event) -> None:
         self._show_smoothing_controls()

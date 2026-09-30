@@ -107,14 +107,19 @@ with sync_playwright() as p:
     check_nets_circular(page, "specimen tab")
     page.screenshot(path=f"{prefix}_specimen.png")
 
-    # the handle under the plots: they follow it and keep it where it was let go
+    # the handle under the plots: only a guide moves during the drag; on release
+    # the plots take the new size at once and the handle lands where the guide was
     for dy in (120, -120):
         drag = drag_plot_handle(page, dy)
+        check(drag is not None and drag["moved"] <= 1,
+              f"dragging the plot handle {dy:+d} px moves a guide and leaves the plots alone "
+              f"(they changed {drag and round(drag['moved'])} px)")
         check(drag is not None and abs(drag["height_after"] - drag["height_before"] - dy) <= 3
-              and drag["drift"] <= 3,
-              f"dragging the plot handle {dy:+d} px resizes the plots by as much, smoothly "
+              and abs(drag["final"] - drag["dropped"]) <= 3 and drag["sizes"] == 1,
+              f"releasing it resizes the plots by {dy:+d} px in one step, under the guide "
               f"({drag and round(drag['height_after'] - drag['height_before'])} px, "
-              f"drifted {drag and drag['drift']:.1f} px)")
+              f"{drag and drag['sizes']} size(s) shown, "
+              f"landed {drag and abs(drag['final'] - drag['dropped']):.1f} px from the guide)")
         check(drag is not None and drag["misfit"] <= 0.05,
               f"after a {dy:+d} px drag every figure is drawn to its own size "
               f"(canvas off by {drag and 100 * drag['misfit']:.1f}%)")

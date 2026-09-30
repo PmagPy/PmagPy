@@ -25,7 +25,7 @@ import panel as pn
 
 from . import AppInfo, text_on
 from .theme import ACCENT, RAW_CSS, asset_data_uri
-from .widgets import Splitter
+from .widgets import LayoutHold, Splitter
 
 SIDE_WIDTH = 450       # default width of the side column
 HANDLE_WIDTH = 14      # the drag handle between the side column and the main pane
@@ -122,7 +122,7 @@ class SidePanels:
     def show(self, index: int) -> None:
         """Show the panel of tab ``index`` (the default's, if it has none) and hide the rest."""
         panel = self.panels.get(index, self.panels[self.default])
-        with pn.io.hold():
+        with LayoutHold.batch():        # one panel shown, the rest hidden: one layout
             if not any(p is panel for p in self.column.objects):
                 self.column.append(panel)
             for p in self.column.objects:
@@ -192,7 +192,9 @@ class Workspace:
         # the widest row): without it the pane cannot give width back when the side column
         # is dragged wider, and it would grow over the column instead. The left padding
         # keeps text set flush left clear of the drag handle
-        self.main_area = pn.Column(body.main, sizing_mode="stretch_both",
+        # the layout hold is invisible; it sits here, after the body, so that every page has
+        # one mounted and the body stays the pane's first object
+        self.main_area = pn.Column(body.main, LayoutHold.of_session(), sizing_mode="stretch_both",
                                    styles={"overflow-y": "auto", "overflow-x": "auto", "min-width": "0",
                                            "max-height": f"calc(100vh - {HEADER_HEIGHT + 8}px)",
                                            "padding-left": "8px" if self.side_area is not None else "0"})

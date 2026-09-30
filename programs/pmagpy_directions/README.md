@@ -104,17 +104,16 @@ navigation and the step logger on *Specimen*; an equal-area plot of the fits
 the table lists on *Fits*; the list of plotted fits
 (with *Go to specimen* and good/bad toggling) on *Means*; the plotted
 VGPs on *Poles*; only *Export* uses the full width. It is resizable —
-drag the grey handle between it and the plots: both panels follow the
-cursor and the boundary stops where the plots would be squeezed
-(double-click resets it). A second handle lies across the *Specimen*
-pane, between the plots and the fits: dragging it scales the three plots
-together, so a large screen can give the diagram more room and a small
-one can take some back to bring the fits above the fold. Re-laying out
-Bokeh figures costs about 100 ms, too slow to follow a cursor, so the
-drag previews the new size with a CSS transform and the figures are
-resized once, on release; the preview holds until the resized figures
-arrive, so the plots stay where the handle was let go rather than
-jumping back and then forward. On the Zijderveld plot, drag = zoom
+drag the grey handle between it and the plots (double-click resets it);
+the main pane keeps at least 360 px and scrolls sideways below what its
+content wants. A second handle lies across the *Specimen* pane, between
+the plots and the fits: dragging it scales the three plots together, so a
+large screen can give the diagram more room and a small one can take some
+back to bring the fits above the fold. Re-laying out the tables and
+figures is too slow to follow a cursor, so both handles work the same way
+in every PmagPy application: the drag moves a guide bar, and on release
+the panels or plots take their new size once, in a single layout pass
+(`LayoutHold`, see `pmagpy_panel/README.md`). On the Zijderveld plot, drag = zoom
 box, tap = pick a step, and box-select is one click away in the toolbar.
 
 Performance notes: the loaded dataset (interpretations included) is shared by

@@ -198,31 +198,37 @@ with sync_playwright() as playwright:
     check(same_range, f"the Arai data range survives repeated resizing (saw {ratios})")
 
     # ---- the handle under the plots ------------------------------------
-    # the plots follow the handle, keep it where it was let go, and the Arai
-    # frame stays square at its new size
+    # only a guide moves during the drag; on release the plots take the new
+    # size at once, the handle lands where the guide was, and the Arai frame
+    # stays square at its new size
     frame_before = arai_scaling(page)["w"]
     drag = drag_plot_handle(page, 60)
     check(drag is not None, "the plots have a resize handle under them")
     if drag:
+        check(drag["moved"] <= 1, f"the plots stand still during the drag (changed {drag['moved']:.0f} px)")
         check(drag["height_after"] > drag["height_before"] + 40,
               f"dragging the handle down enlarges the plots ({drag['height_before']:.0f} -> "
               f"{drag['height_after']:.0f} px)")
-        check(drag["drift"] <= 3, f"the handle stays where it was released (drifted {drag['drift']:.1f} px)")
+        check(abs(drag["final"] - drag["dropped"]) <= 3 and drag["sizes"] == 1,
+              f"the plots take the new size in one step, with the handle where the guide was let go "
+              f"({drag['sizes']} size(s) shown, {abs(drag['final'] - drag['dropped']):.1f} px off)")
         check(drag["misfit"] <= 0.05,
               f"every figure is drawn to its own size (canvas off by {100 * drag['misfit']:.1f}%)")
         scaling = arai_scaling(page)
         check(scaling["w"] > frame_before and abs(scaling["w"] - scaling["h"]) <= 1,
               f"the Arai frame grew and stayed square ({scaling['w']:.0f} x {scaling['h']:.0f})")
         # dragging far past what fits beside the Arai plot must not wrap the
-        # companions below it: the handle stops where the plots fill the pane
+        # companions below it: the guide stops where the plots fill the pane
         drag = drag_plot_handle(page, 400)
-        check(drag["drift"] <= 3 and drag["final"] - drag["dropped"] <= 3,
+        check(abs(drag["final"] - drag["dropped"]) <= 5,
               f"an oversized drag stops at the pane's width, without a jump "
-              f"(drifted {drag['drift']:.1f} px)")
-        # (a long drag ends a few pixels from its estimate, which is eased out)
+              f"(landed {abs(drag['final'] - drag['dropped']):.1f} px from the guide)")
+        # (the companions grow in whole tiles, so a long drag lands a few pixels from the guide)
         drag = drag_plot_handle(page, -250)
-        check(drag["height_after"] < drag["height_before"] and drag["drift"] <= 5,
-              f"dragging up shrinks the plots smoothly (drifted {drag['drift']:.1f} px)")
+        check(drag["height_after"] < drag["height_before"] and abs(drag["final"] - drag["dropped"]) <= 5
+              and drag["sizes"] == 1,
+              f"dragging up shrinks the plots in one step "
+              f"(landed {abs(drag['final'] - drag['dropped']):.1f} px from the guide)")
         check(drag["misfit"] <= 0.05, f"... and every figure is drawn to its own size "
                                       f"(canvas off by {100 * drag['misfit']:.1f}%)")
     page.screenshot(path=f"{prefix}_resized.png")

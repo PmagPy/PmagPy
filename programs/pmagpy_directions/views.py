@@ -16,7 +16,7 @@ import panel as pn
 import pmagpy.demag as dc
 
 from .logger import StepLogger
-from pmagpy_panel.widgets import HeightSplitter, Hotkeys
+from pmagpy_panel.widgets import HeightSplitter, Hotkeys, LayoutHold
 from .plots import DecayPlot, DirectionsPlot, PoleMapPlot, StepEqualAreaPlot, ZijderveldPlot
 from .session import REDO_NAME, AUTOSAVE_NAME, RECENT_FILE, Session, env
 from pmagpy_panel import runtime
@@ -210,12 +210,13 @@ class SpecimenView:
     def _on_plot_size(self, event):
         """Rescale the three plots together, as they are built in __init__.
 
-        The changes go to the browser as one message, so the figures are laid
-        out once and change size together rather than one after another.
+        The changes land as one batch (:class:`LayoutHold`): one message, and
+        one layout of the page, so the figures change size together rather
+        than one after another.
         """
         frame = int(event.new)
         side = max(140, int(round(frame * self.SIDE_RATIO)))
-        with pn.io.hold():
+        with LayoutHold.batch():         # ten size changes, one layout of the page
             self.zij.set_frame(frame)
             self.eq.set_size(side)
             self.decay.set_size(side, ZijderveldPlot.TOP + frame - side - DecayPlot.TOP)
@@ -715,10 +716,11 @@ class MeansView(LazyView):
         self._mark_selection()
         # the planes table is there only when the data holds planes; both tables take
         # the height of what they hold, so the planes are not pushed out of sight by
-        # empty rows above them
-        self.planes_box.visible = bool(plane_records)
-        self.table.height = _table_height(len(records), 300 if plane_records else 520)
-        self.plane_table.height = _table_height(len(plane_records), 220)
+        # empty rows above them (three layout changes: one layout of the page)
+        with LayoutHold.batch():
+            self.planes_box.visible = bool(plane_records)
+            self.table.height = _table_height(len(records), 300 if plane_records else 520)
+            self.plane_table.height = _table_height(len(plane_records), 220)
         listed = "Lines" if plane_records else "Plotted fits"
         self.table_head.object = f'<div style="{SECTION_STYLE}">{listed} · select a row</div>'
         if self.stat.value == "fisher":

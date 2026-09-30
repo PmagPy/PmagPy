@@ -274,8 +274,12 @@ class TestSpecimenView:
         assert view.zij.fig.width == view.decay.fig.width == view.checks.fig.width == tile
         assert all(column.width == tile for column in view.tiles)
         assert view.companions.width == 2 * tile + view.COMPANION_GAP
-        # the handle is told how the block's height follows the frame, so it can
-        # keep itself under the cursor: the block grows faster than the frame
+        # the resize lands as one batch: the browser lays the page out once for it
+        from pmagpy_panel.widgets import LayoutHold
+        hold = LayoutHold.of_session()
+        assert hold.begin == hold.end >= 1
+        # the handle is told how the block's height follows the frame, so its guide
+        # can stand where the handle will land: the block grows faster than the frame
         # because the companions are the taller part and scale with it
         assert view.plot_size.px_per_value > 1
         assert figure_block_height(520) > figure_block_height(500)
