@@ -259,6 +259,24 @@ class TestMeansAndExport:
         n = again.load_components_from_specimens_table(COORD_SPECIMEN)
         assert n == len(dmag.components)
 
+    def test_the_specimens_table_counts_components_in_one_pass(self, dmag, monkeypatch):
+        """components_for once per specimen was quadratic: most of the time of an export of
+        100,000 specimens. The dir_n_comps written are the same."""
+        expected = {s: len([c for c in dmag.components if c.specimen == s]) for s in dmag.specimens}
+        def refuse(*args, **kwargs):
+            raise AssertionError("components_for called for every specimen")
+        monkeypatch.setattr(type(dmag), "components_for", refuse)
+        table = dmag.specimens_table()
+        if "dir_n_comps" in table.columns:
+            got = table.drop_duplicates("specimen").set_index("specimen")["dir_n_comps"]
+            assert all(int(got[s]) == expected[s] for s in got.index if expected.get(s))
+
+    def test_names_at_lists_each_name_once_in_the_order_met(self, dmag):
+        sites = [sp.site for sp in dmag.specimens.values()]
+        names = dmag.names_at("site")
+        assert len(names) == len(set(names)) and set(names) == set(sites)
+        assert names == sorted(set(sites), key=sites.index)
+
     def test_write_site_means(self, dmag, tmp_path):
         path = dmag.write_means("site", str(tmp_path), coord=COORD_GEOGRAPHIC)
         back = pd.read_csv(path, sep="\t", header=1)

@@ -1007,13 +1007,8 @@ class DemagData:
         return [s for s in self.specimens if getattr(self.specimens[s], level) == name]
 
     def names_at(self, level: str) -> list[str]:
-        """Unique sample/site/location names that have demag data."""
-        seen = []
-        for s in self.specimens.values():
-            v = getattr(s, level)
-            if v not in seen:
-                seen.append(v)
-        return seen
+        """Unique sample/site/location names that have demag data (in the order first met)."""
+        return list(dict.fromkeys(getattr(s, level) for s in self.specimens.values()))
 
     # ----- components ------------------------------------------------------
     def components_for(self, specimen: str) -> list[Component]:
@@ -1839,7 +1834,10 @@ class DemagData:
                         analysts: Optional[str] = None) -> pd.DataFrame:
         """MagIC 3 specimens rows for every component in every available coordinate system."""
         rows = []
-        n_comps = {s: len(self.components_for(s)) for s in self.specimens}
+        per_specimen = {}
+        for c in self.components:                   # one pass (components_for per specimen was quadratic)
+            per_specimen[c.specimen] = per_specimen.get(c.specimen, 0) + 1
+        n_comps = {s: per_specimen.get(s, 0) for s in self.specimens}
         # a plane only gains a direction once its site's lines pin it down (MM88),
         # and that direction differs per coordinate system, as the mean does. Not in
         # specimen coordinates: the specimens of a site share no frame there, so
