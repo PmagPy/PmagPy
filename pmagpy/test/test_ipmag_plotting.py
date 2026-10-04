@@ -2,7 +2,8 @@
 Tests for plotting and output formatting functions in ipmag.py.
 
 Covers plot_net / plot_di (stereographic projection plotting),
-fishqq (Fisher QQ plot), and igrf_print (IGRF output formatting).
+fishqq (Fisher QQ plot), igrf_print (IGRF output formatting), and the
+plotting order of the A95 ellipses drawn by plot_pole / plot_poles / equi.
 """
 import warnings
 from contextlib import redirect_stdout
@@ -11,6 +12,7 @@ from io import StringIO
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import pytest
 
 from pmagpy import ipmag
 
@@ -320,3 +322,51 @@ class TestIgrfPrint:
         assert 'Declination: 14.314' in output[0]
         assert 'Inclination: 61.483' in output[1]
         assert 'Intensity: 48992.647 nT' in output[2]
+
+
+# ---------------------------------------------------------------------------
+# plot_pole / plot_poles / equi: plotting order of A95 ellipses
+# ---------------------------------------------------------------------------
+
+class TestPoleEllipseZorder:
+    """The A95 ellipse is drawn with the same zorder as its pole."""
+
+    # Nonesuch Shale pole (Henry et al., 1977, https://doi.org/10.1139/e77-103)
+    plon, plat, A95 = 178.1, 7.6, 5.5
+
+    def setup_method(self):
+        pytest.importorskip('cartopy')
+        self.map_axis = ipmag.make_orthographic_map(central_longitude=230, central_latitude=20,
+                                                    add_land=False)
+
+    def teardown_method(self):
+        plt.close('all')
+
+    def test_plot_pole_ellipse_zorder(self):
+        """plot_pole draws the A95 ellipse with the zorder of the pole."""
+        ipmag.plot_pole(self.map_axis, self.plon, self.plat, self.A95, zorder=20)
+        assert self.map_axis.collections[-1].get_zorder() == 20
+        assert self.map_axis.lines[-1].get_zorder() == 20
+
+    def test_plot_pole_filled_ellipse_zorder(self):
+        """plot_pole draws a filled A95 ellipse with the zorder of the pole."""
+        ipmag.plot_pole(self.map_axis, self.plon, self.plat, self.A95, filled_pole=True, zorder=20)
+        assert [patch.get_zorder() for patch in self.map_axis.patches[-2:]] == [20, 20]
+
+    def test_plot_poles_ellipse_zorder(self):
+        """plot_poles draws each A95 ellipse with the zorder of the poles."""
+        ipmag.plot_poles(self.map_axis, [self.plon, 180.0], [self.plat, 10.0], [self.A95, 4.0], zorder=20)
+        assert [line.get_zorder() for line in self.map_axis.lines[-2:]] == [20, 20]
+
+    def test_equi_default_zorder(self):
+        """equi without a zorder uses the matplotlib default for lines."""
+        ipmag.equi(self.map_axis, self.plon, self.plat, self.A95 * 111.32, 'k')
+        assert self.map_axis.lines[-1].get_zorder() == plt.Line2D.zorder
+
+    def test_equi_draws_on_map_axis(self):
+        """equi draws on the map axis it is given rather than the current axis."""
+        other_map_axis = ipmag.make_orthographic_map(add_land=False)
+        assert plt.gca() is other_map_axis
+        ipmag.equi(self.map_axis, self.plon, self.plat, self.A95 * 111.32, 'k')
+        assert len(self.map_axis.lines) == 1
+        assert len(other_map_axis.lines) == 0
