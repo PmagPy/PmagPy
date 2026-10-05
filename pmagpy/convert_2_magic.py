@@ -1658,10 +1658,13 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
                   norm, '. Using default of cc')
             SpecRec['weight'] = ""
             SpecRec['volume'] = '%10.3e' % (volmass*1e-6)
+        # the CIT sample line holds strikes: the core strike is 90 degrees clockwise of the
+        # core azimuth, and the bedding strike 90 degrees counterclockwise of the dip direction;
+        # both are wrapped into [0, 360) so a strike under 90 does not give a negative azimuth
         dip = float(info[-2])
-        dip_direction = float(info[-3])+Cdec+90.
+        dip_direction = (float(info[-3])+Cdec+90.) % 360.
         sample_dip = -float(info[-4])
-        sample_azimuth = float(info[-5])+Cdec-90.
+        sample_azimuth = (float(info[-5])+Cdec-90.) % 360.
         if len(info) > 5:
             SampRec['height'] = info[-6]
         else:

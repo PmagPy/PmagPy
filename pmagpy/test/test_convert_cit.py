@@ -5,9 +5,11 @@ Coverage:
 - Basic conversion of a .sam file into the five MagIC 3.0 tables
 - Record counts and MagIC 3.0 headers in each output file
 - The oersted flag's effect on AF demag step scaling (Gauss vs milliTesla)
+- Sample azimuths and bedding dip directions wrapped into [0, 360)
 - Actionable error reporting on invalid inputs
 """
 import os
+import shutil
 
 import pytest
 
@@ -124,6 +126,31 @@ class TestCitOerstedScaling:
         assert len(af_steps_T) == len(expected_T)
         for got, exp in zip(af_steps_T, expected_T):
             assert got == pytest.approx(exp, abs=1e-6)
+
+
+class TestCitOrientationRange:
+    """Strikes under 90 degrees give azimuths in [0, 360), not negative ones."""
+
+    def test_azimuths_are_positive(self, tmp_cwd):
+        """BL9001-1 has a core strike of 82.3, i.e. a core azimuth of 352.3 (not -7.7)."""
+        _run_bl9()
+        samp_df = cb.MagicDataFrame('samples.txt').df
+        azimuths = samp_df['azimuth'].astype(float)
+        assert ((azimuths >= 0) & (azimuths < 360)).all()
+        assert azimuths['BL9001-1'] == pytest.approx(352.3)
+
+    def test_bedding_dip_direction_wraps(self, tmp_cwd):
+        """A bedding strike of 300 dips toward 30, not 390."""
+        data_dir = tmp_cwd / 'bl9-1'
+        shutil.copytree(USGS_BL9_DIR, data_dir)
+        spec_file = data_dir / 'BL9001-1'
+        lines = spec_file.read_bytes().decode().splitlines(keepends=True)
+        lines[1] = '      0  82.3  65.0 300.0  20.0  1.00\r\n'
+        spec_file.write_bytes(''.join(lines).encode())
+        _run_bl9(input_dir_path=str(data_dir))
+        samp_df = cb.MagicDataFrame('samples.txt').df
+        assert float(samp_df.loc['BL9001-1', 'bed_dip_direction']) == pytest.approx(30.0)
+        assert float(samp_df.loc['BL9001-1', 'bed_dip']) == pytest.approx(20.0)
 
 
 class TestCitFailureModes:
