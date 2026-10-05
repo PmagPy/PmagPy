@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pytest
+from matplotlib.lines import Line2D
 
 from pmagpy import ipmag
 
@@ -360,7 +361,7 @@ class TestPoleEllipseZorder:
         """Without a zorder the pole is at 100 and the ellipse at the matplotlib default."""
         ipmag.plot_pole(self.map_axis, self.plon, self.plat, self.A95)
         assert self.map_axis.collections[-1].get_zorder() == 100
-        assert self.map_axis.lines[-1].get_zorder() == plt.Line2D.zorder
+        assert self.map_axis.lines[-1].get_zorder() == Line2D.zorder
 
     def test_plot_poles_ellipse_zorder(self):
         """plot_poles draws each A95 ellipse just beneath the poles."""
@@ -383,7 +384,7 @@ class TestPoleEllipseZorder:
         """Without a zorder the poles are at 101 and the ellipses at the matplotlib default."""
         ipmag.plot_poles(self.map_axis, [self.plon, 180.0], [self.plat, 10.0], [self.A95, 4.0])
         assert self.map_axis.collections[-1].get_zorder() == 101
-        assert [line.get_zorder() for line in self.map_axis.lines] == [plt.Line2D.zorder] * 2
+        assert [line.get_zorder() for line in self.map_axis.lines] == [Line2D.zorder] * 2
 
     def test_plot_pole_dp_dm_zorder(self):
         """plot_pole_dp_dm draws the dp/dm ellipse just beneath the pole and site."""
@@ -395,7 +396,38 @@ class TestPoleEllipseZorder:
         """Without a zorder the pole and site are at 101 and the ellipse at the matplotlib default."""
         ipmag.plot_pole_dp_dm(self.map_axis, self.plon, self.plat, 270.0, 46.0, 3.0, 5.0)
         assert [c.get_zorder() for c in self.map_axis.collections] == [101, 101]
-        assert self.map_axis.lines[-1].get_zorder() == plt.Line2D.zorder
+        assert self.map_axis.lines[-1].get_zorder() == Line2D.zorder
+
+    def test_plot_poles_colorbar_zorder(self):
+        """plot_poles_colorbar passes its zorder on to the poles and their ellipses."""
+        ipmag.plot_poles_colorbar(self.map_axis, [self.plon, 180.0], [self.plat, 10.0], [self.A95, 4.0],
+                                  [100, 200], 0, 300, colorbar=False, zorder=20)
+        assert self.map_axis.collections[-1].get_zorder() == 20
+        assert len(self.map_axis.lines) == 2
+        for line in self.map_axis.lines:
+            assert 19 < line.get_zorder() < 20
+
+    def test_plot_poles_colorbar_default_zorder(self):
+        """Without a zorder the poles are at 101 and the ellipses at the matplotlib default."""
+        ipmag.plot_poles_colorbar(self.map_axis, [self.plon, 180.0], [self.plat, 10.0], [self.A95, 4.0],
+                                  [100, 200], 0, 300, colorbar=False)
+        assert self.map_axis.collections[-1].get_zorder() == 101
+        assert [line.get_zorder() for line in self.map_axis.lines] == [Line2D.zorder] * 2
+
+    kent = {'dec': 178.1, 'inc': 7.6, 'Zeta': 5.0, 'Zdec': 90.0, 'Zinc': 10.0,
+            'Eta': 3.0, 'Edec': 270.0, 'Einc': 78.0}
+
+    def test_plot_pole_ellipse_kent_zorder(self):
+        """plot_pole_ellipse draws the Kent ellipse just beneath the pole."""
+        ipmag.plot_pole_ellipse(self.map_axis, self.kent, zorder=20)
+        assert self.map_axis.collections[-1].get_zorder() == 20
+        assert 19 < self.map_axis.lines[-1].get_zorder() < 20
+
+    def test_plot_pole_ellipse_kent_default_zorder(self):
+        """Without a zorder the pole and the Kent ellipse are both at 100."""
+        ipmag.plot_pole_ellipse(self.map_axis, self.kent)
+        assert self.map_axis.collections[-1].get_zorder() == 100
+        assert self.map_axis.lines[-1].get_zorder() == 100
 
     def test_legend_on_map_axis(self):
         """The legend is added to the map axis it is given rather than the current axis."""
@@ -405,16 +437,16 @@ class TestPoleEllipseZorder:
         assert other_map_axis.get_legend() is None
 
     def test_equi_filled_outline(self):
-        """The outline of a filled ellipse is drawn over its face with the given line width."""
+        """The outline of a filled ellipse is added before its face, with the given line width."""
         ipmag.equi(self.map_axis, self.plon, self.plat, self.A95 * 111.32, 'k', fill=True, lw=3)
-        face, edge = self.map_axis.patches
+        edge, face = self.map_axis.patches
         assert face.get_facecolor()[3] == 1 and edge.get_facecolor()[3] == 0
         assert edge.get_linewidth() == 3
 
     def test_equi_default_zorder(self):
         """equi without a zorder uses the matplotlib default for lines."""
         ipmag.equi(self.map_axis, self.plon, self.plat, self.A95 * 111.32, 'k')
-        assert self.map_axis.lines[-1].get_zorder() == plt.Line2D.zorder
+        assert self.map_axis.lines[-1].get_zorder() == Line2D.zorder
 
     def test_equi_draws_on_map_axis(self):
         """equi draws on the map axis it is given rather than the current axis."""
