@@ -437,9 +437,9 @@ class TestPoleEllipseZorder:
         assert other_map_axis.get_legend() is None
 
     def test_equi_filled_outline(self):
-        """The outline of a filled ellipse is added before its face, with the given line width."""
+        """The outline of a filled ellipse is drawn over its face with the given line width."""
         ipmag.equi(self.map_axis, self.plon, self.plat, self.A95 * 111.32, 'k', fill=True, lw=3)
-        edge, face = self.map_axis.patches
+        face, edge = self.map_axis.patches
         assert face.get_facecolor()[3] == 1 and edge.get_facecolor()[3] == 0
         assert edge.get_linewidth() == 3
 

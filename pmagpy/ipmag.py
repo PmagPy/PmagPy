@@ -3718,15 +3718,16 @@ def equi(map_axis, centerlon, centerlat, radius, color, alpha=1.0, outline=True,
     # for filled ellipses
     else:
         XY = np.stack([X,Y],axis=1)
+        circle_face = Polygon(XY,
+                              edgecolor='none',facecolor=color,alpha=alpha,
+                              transform=ccrs.Geodetic(), zorder=zorder)
+        map_axis.add_patch(circle_face)
+        # the outline is added after the face so that the face does not cover it
         if outline:
             circle_edge = Polygon(XY,
                                   edgecolor=color,facecolor='none',lw=lw,
                                   transform=ccrs.Geodetic(), zorder=zorder)
             map_axis.add_patch(circle_edge)
-        circle_face = Polygon(XY,
-                              edgecolor='none',facecolor=color,alpha=alpha,
-                              transform=ccrs.Geodetic(), zorder=zorder)
-        map_axis.add_patch(circle_face)
 
 def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360, filled=False,
             transform=None, **kwargs):
