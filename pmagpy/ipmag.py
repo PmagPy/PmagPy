@@ -2713,10 +2713,23 @@ def make_robinson_map(central_longitude=0, figsize=(8, 8),
     return ax
 
 
+def _pole_zorders(zorder, default_zorder):
+    """
+    Return the plotting order of a pole marker and of its confidence ellipse.
+
+    When zorder is None, the marker is plotted at default_zorder and the ellipse
+    at the matplotlib default for lines and patches. Otherwise the ellipse is
+    plotted just beneath the marker so that it does not cover it.
+    """
+    if zorder is None:
+        return default_zorder, None
+    return zorder, zorder - 0.5
+
+
 def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
               marker='o', markersize=20, legend='no',outline=True,
               filled_pole=False, fill_color='k', fill_alpha=1.0, 
-              mean_alpha = 1.0, A95_alpha=1.0, zorder=100):
+              mean_alpha = 1.0, A95_alpha=1.0, zorder=None):
     """
     This function plots a paleomagnetic pole and A95 error ellipse on a cartopy map axis.
 
@@ -2737,7 +2750,9 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
         fill_color : color of fill; the default is black.
         fill_alpha : transparency of filled ellipse (the default is 1.0; no transparency).
         mean_alpha : transparency of pole mean (the default is 1.0; no transparency).
-        zorder : plotting order of the pole and its A95 ellipse (default is 100; higher will move to top of plot)
+        zorder : plotting order of the pole and its A95 ellipse (higher will move to top of plot).
+                The default is None, which plots the pole at 100 and the ellipse at the matplotlib
+                default. When set, the ellipse is plotted just beneath the pole (at zorder - 0.5).
 
     Examples:
         >>> plon = 200
@@ -2750,20 +2765,21 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
         print('-W- cartopy must be installed to run ipmag.plot_pole')
         return
     A95_km = A95 * 111.32
+    zorder, ellipse_zorder = _pole_zorders(zorder, 100)
     map_axis.scatter(plon, plat, marker=marker,
                      color=color, edgecolors=edgecolor, s=markersize,
                      label=label, zorder=zorder, transform=ccrs.PlateCarree(), alpha = mean_alpha)
     if not filled_pole:
-        equi(map_axis, plon, plat, A95_km, color, alpha=A95_alpha, zorder=zorder)
+        equi(map_axis, plon, plat, A95_km, color, alpha=A95_alpha, zorder=ellipse_zorder)
     elif filled_pole:
-        equi(map_axis, plon, plat, A95_km, fill_color, alpha=fill_alpha, outline=outline,fill=True, zorder=zorder)
+        equi(map_axis, plon, plat, A95_km, fill_color, alpha=fill_alpha, outline=outline,fill=True, zorder=ellipse_zorder)
     if legend == 'yes':
-        plt.legend(loc=2)
+        map_axis.legend(loc=2)
 
 
 def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
                marker='o', markersize=20, legend='no',outline=True,
-               filled_pole=False, fill_color='k', fill_alpha=1.0, alpha=1.0, zorder=101, lw=1):
+               filled_pole=False, fill_color='k', fill_alpha=1.0, alpha=1.0, zorder=None, lw=1):
     """
     This function plots paleomagnetic poles and A95 error ellipses on a cartopy map axis.
 
@@ -2786,7 +2802,10 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
         fill_color : color of fill; the default is black.
         fill_alpha : transparency of filled ellipse (the default is 1.0; no transparency).
         alpha : transparency of pole mean (the default is 1.0; no transparency).
-        zorder : plotting order of the poles and their A95 ellipses (default is 101; higher will move to top of plot)
+        zorder : plotting order of the poles and their A95 ellipses (higher will move to top of plot).
+                The default is None, which plots the poles at 101 and the ellipses at the matplotlib
+                default. When set, the ellipses are plotted just beneath the poles (at zorder - 0.5).
+        lw : line width of the A95 ellipses (default is 1)
 
     Examples:
         >>> plons = [200, 180, 210]
@@ -2806,6 +2825,7 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.plot_poles')
         return
+    zorder, ellipse_zorder = _pole_zorders(zorder, 101)
     map_axis.scatter(plon, plat, marker=marker,
                      color=color, edgecolors=edgecolor, s=markersize,
                      label=label, zorder=zorder, transform=ccrs.PlateCarree(), alpha=alpha)
@@ -2813,23 +2833,23 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
         if isinstance(color,str):
             for n in range(0,len(A95)):
                 A95_km = A95[n] * 111.32
-                equi(map_axis, plon[n], plat[n], A95_km, color, alpha=alpha, lw=lw, zorder=zorder)
+                equi(map_axis, plon[n], plat[n], A95_km, color, alpha=alpha, lw=lw, zorder=ellipse_zorder)
         else:
             for n in range(0,len(A95)):
                 A95_km = A95[n] * 111.32
-                equi(map_axis, plon[n], plat[n], A95_km, color[n], alpha=alpha, lw=lw, zorder=zorder)
+                equi(map_axis, plon[n], plat[n], A95_km, color[n], alpha=alpha, lw=lw, zorder=ellipse_zorder)
     elif filled_pole:
         if isinstance(fill_color,str):
             for n in range(0,len(A95)):
                 A95_km = A95[n] * 111.32
-                equi(map_axis, plon[n], plat[n], A95_km, fill_color, alpha=fill_alpha, outline=outline, fill=True, lw=lw, zorder=zorder)
+                equi(map_axis, plon[n], plat[n], A95_km, fill_color, alpha=fill_alpha, outline=outline, fill=True, lw=lw, zorder=ellipse_zorder)
         else:
             for n in range(0,len(A95)):
                 A95_km = A95[n] * 111.32
-                equi(map_axis, plon[n], plat[n], A95_km, fill_color[n], alpha=fill_alpha, outline=outline, fill=True, lw=lw, zorder=zorder)
+                equi(map_axis, plon[n], plat[n], A95_km, fill_color[n], alpha=fill_alpha, outline=outline, fill=True, lw=lw, zorder=ellipse_zorder)
 
     if legend == 'yes':
-        plt.legend(loc=2)
+        map_axis.legend(loc=2)
 
 
 def plot_pole_ellipse(map_axis, dictionary, 
@@ -2900,7 +2920,7 @@ def plot_pole_ellipse(map_axis, dictionary,
 def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole', site_label='site',
                     pole_color='k', pole_edgecolor='k', pole_marker='o',
                     site_color='r', site_edgecolor='r', site_marker='s',
-                    markersize=20, legend=True, transform="PlateCarree"):
+                    markersize=20, legend=True, transform="PlateCarree", zorder=None):
     """
     This function plots a paleomagnetic pole and a dp/dm confidence ellipse on a cartopy map axis.
 
@@ -2929,6 +2949,9 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
             (e.g., ccrs.PlateCarree()). If a string is provided, it will be
             internally mapped to the appropriate Cartopy transform. This parameter
             rarely needs to be changed, but "Geodetic" may help in certain projections.
+        zorder : plotting order of the pole, the site and the dp/dm ellipse (higher will move to top of plot).
+            The default is None, which plots the pole and site at 101 and the ellipse at the matplotlib
+            default. When set, the ellipse is plotted just beneath the pole (at zorder - 0.5).
 
     Examples:
         >>> dec = 280
@@ -2963,6 +2986,7 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
         
     dp_km = dp*111.32
     dm_km = dm*111.32
+    zorder, ellipse_zorder = _pole_zorders(zorder, 101)
     map_axis.scatter(
         plon,
         plat,
@@ -2971,7 +2995,7 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
         edgecolors=pole_edgecolor,
         s=markersize,
         label=pole_label,
-        zorder=101,
+        zorder=zorder,
         transform=transform_obj,
     )
     map_axis.scatter(
@@ -2982,7 +3006,7 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
         edgecolors=site_edgecolor,
         s=markersize,
         label=site_label,
-        zorder=101,
+        zorder=zorder,
         transform=transform_obj,
     )
     # the orientation of the ellipse needs to be determined using the
@@ -3027,10 +3051,11 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
             C_deg = np.abs(np.rad2deg(C_rad))
 
     # print(C_deg)
-    ellipse(map_axis, plon, plat, dp_km, dm_km, C_deg, color=pole_color, transform=transform_obj)
+    ellipse(map_axis, plon, plat, dp_km, dm_km, C_deg, color=pole_color, transform=transform_obj,
+            zorder=ellipse_zorder)
 
     if legend:
-        plt.legend(loc=2)
+        map_axis.legend(loc=2)
 
 
 def plot_poles_colorbar(map_axis, plons, plats, A95s, colorvalues, vmin, vmax,
@@ -3656,7 +3681,7 @@ def equi(map_axis, centerlon, centerlat, radius, color, alpha=1.0, outline=True,
         outline : boolean specifying if the ellipse should be plotted as a filled polygon or
                 as a set of line segments
         fill : boolean specifying if the ellipse should be plotted as a filled polygon
-        lw : line width of the ellipse
+        lw : line width of the ellipse (of its outline, if filled)
         zorder : plotting order of the ellipse (default is None, which uses the matplotlib
                 default for lines and patches)
     """
@@ -3684,15 +3709,16 @@ def equi(map_axis, centerlon, centerlat, radius, color, alpha=1.0, outline=True,
     # for filled ellipses
     else:
         XY = np.stack([X,Y],axis=1)
-        if outline:
-            circle_edge = Polygon(XY,
-                                  edgecolor=color,facecolor='none',
-                                  transform=ccrs.Geodetic(), zorder=zorder)
-            map_axis.add_patch(circle_edge)
         circle_face = Polygon(XY,
                               edgecolor='none',facecolor=color,alpha=alpha,
                               transform=ccrs.Geodetic(), zorder=zorder)
         map_axis.add_patch(circle_face)
+        # the outline is added after the face so that the face does not cover it
+        if outline:
+            circle_edge = Polygon(XY,
+                                  edgecolor=color,facecolor='none',lw=lw,
+                                  transform=ccrs.Geodetic(), zorder=zorder)
+            map_axis.add_patch(circle_edge)
 
 def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360, filled=False,
             transform=None, **kwargs):

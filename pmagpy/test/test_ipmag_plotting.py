@@ -325,11 +325,11 @@ class TestIgrfPrint:
 
 
 # ---------------------------------------------------------------------------
-# plot_pole / plot_poles / equi: plotting order of A95 ellipses
+# plot_pole / plot_poles / plot_pole_dp_dm / equi: plotting order of ellipses
 # ---------------------------------------------------------------------------
 
 class TestPoleEllipseZorder:
-    """The A95 ellipse is drawn with the same zorder as its pole."""
+    """The A95 ellipse follows the zorder of its pole and is drawn beneath the pole marker."""
 
     # Nonesuch Shale pole (Henry et al., 1977, https://doi.org/10.1139/e77-103)
     plon, plat, A95 = 178.1, 7.6, 5.5
@@ -343,20 +343,73 @@ class TestPoleEllipseZorder:
         plt.close('all')
 
     def test_plot_pole_ellipse_zorder(self):
-        """plot_pole draws the A95 ellipse with the zorder of the pole."""
+        """plot_pole draws the A95 ellipse just beneath the pole."""
         ipmag.plot_pole(self.map_axis, self.plon, self.plat, self.A95, zorder=20)
         assert self.map_axis.collections[-1].get_zorder() == 20
-        assert self.map_axis.lines[-1].get_zorder() == 20
+        assert 19 < self.map_axis.lines[-1].get_zorder() < 20
 
     def test_plot_pole_filled_ellipse_zorder(self):
-        """plot_pole draws a filled A95 ellipse with the zorder of the pole."""
+        """plot_pole draws a filled A95 ellipse just beneath the pole."""
         ipmag.plot_pole(self.map_axis, self.plon, self.plat, self.A95, filled_pole=True, zorder=20)
-        assert [patch.get_zorder() for patch in self.map_axis.patches[-2:]] == [20, 20]
+        assert self.map_axis.collections[-1].get_zorder() == 20
+        assert len(self.map_axis.patches) == 2
+        for patch in self.map_axis.patches:
+            assert 19 < patch.get_zorder() < 20
+
+    def test_plot_pole_default_zorder(self):
+        """Without a zorder the pole is at 100 and the ellipse at the matplotlib default."""
+        ipmag.plot_pole(self.map_axis, self.plon, self.plat, self.A95)
+        assert self.map_axis.collections[-1].get_zorder() == 100
+        assert self.map_axis.lines[-1].get_zorder() == plt.Line2D.zorder
 
     def test_plot_poles_ellipse_zorder(self):
-        """plot_poles draws each A95 ellipse with the zorder of the poles."""
+        """plot_poles draws each A95 ellipse just beneath the poles."""
         ipmag.plot_poles(self.map_axis, [self.plon, 180.0], [self.plat, 10.0], [self.A95, 4.0], zorder=20)
-        assert [line.get_zorder() for line in self.map_axis.lines[-2:]] == [20, 20]
+        assert self.map_axis.collections[-1].get_zorder() == 20
+        assert len(self.map_axis.lines) == 2
+        for line in self.map_axis.lines:
+            assert 19 < line.get_zorder() < 20
+
+    def test_plot_poles_filled_ellipse_zorder(self):
+        """plot_poles draws each filled A95 ellipse just beneath the poles."""
+        ipmag.plot_poles(self.map_axis, [self.plon, 180.0], [self.plat, 10.0], [self.A95, 4.0],
+                         filled_pole=True, zorder=20)
+        assert self.map_axis.collections[-1].get_zorder() == 20
+        assert len(self.map_axis.patches) == 4
+        for patch in self.map_axis.patches:
+            assert 19 < patch.get_zorder() < 20
+
+    def test_plot_poles_default_zorder(self):
+        """Without a zorder the poles are at 101 and the ellipses at the matplotlib default."""
+        ipmag.plot_poles(self.map_axis, [self.plon, 180.0], [self.plat, 10.0], [self.A95, 4.0])
+        assert self.map_axis.collections[-1].get_zorder() == 101
+        assert [line.get_zorder() for line in self.map_axis.lines] == [plt.Line2D.zorder] * 2
+
+    def test_plot_pole_dp_dm_zorder(self):
+        """plot_pole_dp_dm draws the dp/dm ellipse just beneath the pole and site."""
+        ipmag.plot_pole_dp_dm(self.map_axis, self.plon, self.plat, 270.0, 46.0, 3.0, 5.0, zorder=20)
+        assert [c.get_zorder() for c in self.map_axis.collections] == [20, 20]
+        assert 19 < self.map_axis.lines[-1].get_zorder() < 20
+
+    def test_plot_pole_dp_dm_default_zorder(self):
+        """Without a zorder the pole and site are at 101 and the ellipse at the matplotlib default."""
+        ipmag.plot_pole_dp_dm(self.map_axis, self.plon, self.plat, 270.0, 46.0, 3.0, 5.0)
+        assert [c.get_zorder() for c in self.map_axis.collections] == [101, 101]
+        assert self.map_axis.lines[-1].get_zorder() == plt.Line2D.zorder
+
+    def test_legend_on_map_axis(self):
+        """The legend is added to the map axis it is given rather than the current axis."""
+        other_map_axis = ipmag.make_orthographic_map(add_land=False)
+        ipmag.plot_pole(self.map_axis, self.plon, self.plat, self.A95, label='pole', legend='yes')
+        assert self.map_axis.get_legend() is not None
+        assert other_map_axis.get_legend() is None
+
+    def test_equi_filled_outline(self):
+        """The outline of a filled ellipse is drawn over its face with the given line width."""
+        ipmag.equi(self.map_axis, self.plon, self.plat, self.A95 * 111.32, 'k', fill=True, lw=3)
+        face, edge = self.map_axis.patches
+        assert face.get_facecolor()[3] == 1 and edge.get_facecolor()[3] == 0
+        assert edge.get_linewidth() == 3
 
     def test_equi_default_zorder(self):
         """equi without a zorder uses the matplotlib default for lines."""
