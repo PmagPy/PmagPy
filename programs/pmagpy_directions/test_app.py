@@ -424,7 +424,7 @@ class TestColors:
         assert s.color_of(name) == "#123456"
         assert all(c.color == "#123456" for c in s.data.components if c.name == name)
         assert all(col == "#123456" for c, _, col in s.fits(s.specimen) if c.name == name)
-        assert "#123456" in specimen._comp_colors or not [c for c in s.components() if c.name == name]
+        assert "#123456" in specimen._comp_look[0] or not [c for c in s.components() if c.name == name]
         # the auto-saved .redo carries the colour, so a fresh session restores it
         again = Session(_DMAG, output_dir=str(tmp_path))
         assert again.color_of(name) == "#123456"
@@ -449,36 +449,150 @@ class TestApp:
 
 
 class TestSpecimenView:
-    def test_plot_size_handle_scales_the_three_plots_together(self, tmp_path):
-        """The drag bar under the plots resizes them as one; the geometry holds."""
+    def test_tiled_panels_fit_their_figures_and_remember_the_layout(self, tmp_path):
+        """The panels tile the canvas; each figure is fitted to its panel, in one batch, and
+        a rearrangement (a drop, a divider, the height) is kept for the next session."""
         from pmagpy_directions.plots import DecayPlot, ZijderveldPlot
-        from pmagpy_directions.views import SpecimenView
+        from pmagpy_directions.views import SpecimenView, LAYOUT_FILE
+        from pmagpy_panel.widgets import LayoutHold, TileCanvas
         s = Session(_DMAG, output_dir=str(tmp_path))
         view = SpecimenView(s)
-        frame0, net0 = view.zij.fig.frame_width, view.eq.fig.width
+        canvas = view.canvas
+        assert canvas.tree == SpecimenView.DEFAULT_TREE and canvas.height == SpecimenView.HEIGHT
+        assert canvas.rects == []                          # nothing to place until the browser gives a width
 
-        view.plot_size.value = 300
-        assert view.zij.fig.frame_width == view.zij.fig.frame_height == 300
-        assert view.zij.fig.height == 300 + ZijderveldPlot.CHROME
-        assert view.zij.fig.width == 316
-        # the axis-end labels are placed in screen pixels: they follow the frame
-        assert view.zij.lbl_right.x == 294 and view.zij.lbl_top.y == 294
-        net = view.eq.fig.width
-        assert view.eq.fig.height == net < net0                      # square, and smaller
-        assert view.plot_col.width == net + 10
-        # the M/M₀ strip still ends level with the bottom of the diagram
-        assert view.decay.fig.frame_height == ZijderveldPlot.TOP + 300 - net - DecayPlot.TOP
-        assert view.decay.fig.width == net
-
-        # the resize lands as one batch: the browser lays the page out once for it
-        from pmagpy_panel.widgets import LayoutHold
+        canvas.width_px = 1000
+        rects = dict(zip(canvas.titles, canvas.rects))
+        zij = rects[view.ZIJ]
+        assert (zij["x"], zij["y"], zij["h"]) == (0, 0, SpecimenView.HEIGHT) and zij["w"] == 496
+        bw, bh = canvas.sizes[view.ZIJ]
+        assert view.zij.fig.frame_width == bw - 18                       # the frame takes the panel's shape
+        assert view.zij.fig.frame_height == bh - ZijderveldPlot.CHROME - 4
+        assert view.zij.lbl_right.x == bw - 24 and view.zij.lbl_top.y == view.zij.fig.frame_height - 6
+        assert view.zij.legend.orientation == "horizontal"
+        ew, eh = canvas.sizes[view.EQ]
+        assert view.eq.fig.width == view.eq.fig.height == min(ew, eh) - 6
+        dw, dh = canvas.sizes[view.DECAY]
+        assert view.decay.fig.width == dw - 6
+        assert view.decay.fig.frame_height == dh - DecayPlot.TOP - DecayPlot.AXIS_ROWS - 6
         hold = LayoutHold.of_session()
         assert hold.begin == hold.end >= 1
 
-        view.plot_size.value = 600                                   # and back up
-        assert view.zij.fig.frame_width == 600 and view.eq.fig.width > net0
-        view.plot_size.value = frame0
-        assert view.zij.fig.frame_width == frame0 and view.eq.fig.width == net0
+        # the M/M₀ panel dropped on the diagram's lower edge: under it, full width of the old half
+        canvas.drop = {"src": view.DECAY, "dst": view.ZIJ, "zone": "bottom", "n": 1}
+        rects = dict(zip(canvas.titles, canvas.rects))
+        assert rects[view.DECAY]["y"] > rects[view.ZIJ]["y"] and rects[view.DECAY]["x"] == 0
+        assert rects[view.EQ]["h"] == SpecimenView.HEIGHT                 # its sibling took its place
+        assert all(r["y"] + r["h"] <= SpecimenView.HEIGHT for r in rects.values())   # nothing below the canvas
+        assert view.decay.fig.width == canvas.sizes[view.DECAY][0] - 6
+        # a divider moved
+        canvas.split = {"path": [], "ratio": 0.6, "n": 2}
+        assert abs(canvas.tree[1] - 0.6) < 1e-9
+        canvas.drop = {"src": view.ZIJ, "dst": view.EQ, "zone": "left", "n": 3}     # a narrow diagram: room is made for it
+        bw, bh = canvas.sizes[view.ZIJ]
+        assert view.zij.legend.orientation == "vertical" and view.zij.fig.width <= bw
+        assert view.zij.fig.height <= bh
+        # the height handle
+        view.plot_size.value = 700
+        assert canvas.height == 700 and max(r["y"] + r["h"] for r in canvas.rects) == 700
+        kept = canvas.tree
+        again = SpecimenView(s)
+        assert again.canvas.tree == kept and again.canvas.height == 700
+        view._reset_layout()
+        assert canvas.tree == SpecimenView.DEFAULT_TREE and canvas.height == SpecimenView.HEIGHT
+        assert SpecimenView(s).canvas.tree == SpecimenView.DEFAULT_TREE
+        os.remove(LAYOUT_FILE)
+
+    def test_the_level_card_shows_the_specimens_group(self, tmp_path):
+        """The hierarchical card plots the good fits of the current specimen's site, its means, and rings the current fit."""
+        from pmagpy_directions.views import SpecimenView
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        view = SpecimenView(s)
+        card = view.levels
+        site = s.spec.site
+        n_fits = sum(1 for sp in s.data.specimens_in("site", site) for c in s.data.components_for(sp)
+                     if c.quality == "g" and c.fit_type != "DE-BFP")
+        assert len(card.plot.src.data["x"]) == n_fits
+        assert site in card.plot.fig.title.text
+        assert len(card.plot.mean.data["x"]) >= 1 and "α95" in card.stats.object
+        assert len(card.plot.mark_src.data["x"]) == (1 if s.current is not None and s.current.fit_type != "DE-BFP" else 0)
+        card.stat.value = "bingham"
+        assert "η / ζ" in card.stats.object
+        card.level.value = "sample"
+        assert s.spec.sample in card.plot.fig.title.text
+
+    def test_the_colour_picker_recolours_every_fit_of_the_name(self, tmp_path):
+        from pmagpy_directions.views import SpecimenView
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        view = SpecimenView(s)
+        name = s.current.name
+        assert view.color_pick.value == s.color_of(name) and not view.color_pick.disabled
+        view.color_pick.value = "#123456"
+        assert s.color_of(name) == "#123456"
+        assert all(c.color == "#123456" for c in s.data.components if c.name == name)
+        assert view.zij.fits.data["color"][0] == "#123456"
+
+    def test_fit_arrows_point_along_the_fitted_direction(self, tmp_path):
+        """The arrowhead sits at the end the fitted direction points to (first minus last step),
+        whichever end is nearer the origin -- in both projections."""
+        from pmagpy_directions.views import SpecimenView
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        view = SpecimenView(s)
+        checked = 0
+        for spec_name in s.data.specimen_names[:40]:
+            s.specimen = spec_name
+            coord = s.active_coord
+            heads = view.zij.heads.data
+            k = 0
+            for comp, res, _ in s.fits():
+                seg = dc.fit_line_segment(res, s.spec, coord, rotation_dec=s.rotation()) if res is not None else None
+                if seg is None:
+                    continue
+                for ycol in ("y_h", "y_v"):
+                    assert heads["x"][k] == seg["x"][1] and heads["y"][k] == seg[ycol][1]
+                    k += 1
+                cart = dc.cartesian(s.spec.steps, coord)
+                direction = np.asarray(dc.pmag.dir2cart([res.dir_dec, res.dir_inc, 1.0])).ravel()
+                assert (cart[res.imin] - cart[res.imax]) @ direction > 0       # domean's orientation
+                checked += 1
+        assert checked > 10
+
+    def test_upward_fit_directions_are_hollow_stars(self, tmp_path):
+        from pmagpy_directions.views import SpecimenView
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        view = SpecimenView(s)
+        seen = set()
+        for spec_name in s.data.specimen_names:
+            s.specimen = spec_name
+            d = view.eq.dirs.data
+            for inc, fill, line, name in zip(d["inc"], d["fill"], d["line"], d["name"]):
+                color = s.color_of(name)
+                if inc < 0:
+                    assert fill == "white" and line == color
+                    seen.add("up")
+                else:
+                    assert fill == color
+                    seen.add("down")
+            if seen == {"up", "down"}:
+                break
+        assert "down" in seen
+
+    def test_only_the_selected_fit_row_is_coloured_and_bold(self, tmp_path):
+        from pmagpy_directions.views import SpecimenView
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        view = SpecimenView(s)
+        s.add_component("B", 0, 3)                     # a second fit beside the specimen's own
+        comps = s.components()
+        assert len(comps) >= 2
+        for chosen in (0, 1):
+            s.current = comps[chosen]
+            styles = view.comp_table._get_style_data()["data"]
+            for row, cells in styles.items():
+                css = dict(cells[2])
+                if row == chosen:
+                    assert css["font-weight"] == "700" and css["background"] != "#ffffff"
+                else:
+                    assert css["font-weight"] == "400" and css["background"] == "#ffffff"
 
     def test_a_bad_step_is_faded_and_left_out_of_the_path(self, tmp_path):
         """Flagging a step bad fades its symbol on the net and the M/M₀ strip and breaks the connecting line there."""
@@ -622,6 +736,68 @@ class TestInterpretationsView:
         s._changed()
         assert len(view.plot.src.data["x"]) + len(view.plot.circles.data["xs"]) == len(good) - 1
         assert "1 flagged bad" in view.plot_note.object
+
+
+    def test_clicking_a_row_draws_that_fit_on_the_orthogonal_plot(self, tmp_path):
+        """The Fits tab's Zijderveld diagram shows the clicked fit's specimen, its bounds ringed."""
+        from types import SimpleNamespace
+        from pmagpy_directions.views import InterpretationsView
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        view = InterpretationsView(s)
+        assert view.focus is s.current                     # at first, the Specimen tab's fit
+        i, comp = next((i, c) for i, c in enumerate(s.data.components)
+                       if c.specimen != s.specimen and c.fit_type == "DE-BFL")
+        view._on_row_click(SimpleNamespace(row=i))
+        assert view.focus is comp and comp.specimen in view.zij_caption.object
+        n = s.data.specimens[comp.specimen].n_steps
+        good = (s.data.specimens[comp.specimen].steps["quality"] == "g").sum()
+        assert len(view.zij.src.data["x"]) == good and len(view.zij.bad.data["x"]) == n - good
+        assert len(view.zij.bounds.data["x"]) == 4           # first and last step, both projections
+
+    def test_batch_edit_and_add(self, tmp_path):
+        """Apply a name, type and bounds to the ticked fits; add a fit to the ticked specimens."""
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        steps = s.treatment_steps()
+        lines = [c for c in s.data.components if c.fit_type == "DE-BFL"][:4]
+        own = list(s.data.specimens[lines[0].specimen].steps["label"])       # one specimen's treatments
+        lo, hi = steps[own[1]], steps[own[-2]]
+        n, skipped = s.edit_components(lines, fit_type="DE-BFL-A", lower=lo, upper=hi)
+        assert n + len(skipped) == len(lines) and n >= 1
+        for c in lines:
+            if c.fit_type == "DE-BFL-A":
+                spec = s.data.specimens[c.specimen]
+                assert c.imin == s.data.step_index_for_value(c.specimen, *lo)
+                assert c.imax == s.data.step_index_for_value(c.specimen, *hi) and c.imax < spec.n_steps
+        # a rename to a name the specimen already uses is refused for that fit
+        b = s.data.add_component(lines[0].specimen, "B", 0, 2)
+        n, skipped = s.edit_components([lines[0]], name="b")
+        assert n == 0 and "already has a fit named B" in skipped[0]
+        # a thermal bound means nothing to an AF specimen: skipped, not snapped to some step
+        units = {sp: set(s.data.specimens[sp].steps["treat_unit"]) for sp in s.data.specimen_names}
+        other = next((c for c in s.data.components if c.fit_type == "DE-BFL"
+                      and lo[1] not in units[c.specimen]), None)
+        if other is not None:
+            n, skipped = s.edit_components([other], lower=lo)
+            assert n == 0 and "no step of that treatment" in skipped[0]
+        # adding: one fit per specimen, named and coloured as the study's own
+        targets = [c.specimen for c in lines]
+        before = len(s.data.components)
+        n, _ = s.add_fit_to(targets + targets[:1], " b ", "DE-BFL")
+        assert n == len(set(targets))                                         # once per specimen
+        added = [c for c in s.data.components if c.name == "B"]
+        assert {c.specimen for c in added} == set(targets)                   # "b" is the study's "B"
+        assert all(c.color == s.color_of("B") for c in added)
+
+    def test_a_typed_name_takes_the_studys_spelling_and_colour(self, tmp_path):
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        first, second = s.data.specimen_names[:2]
+        s.data.add_component(first, "mt", 0, 2)
+        assert s.known_name(" M T ") == "mt" and s.known_name("brand-new") == "brand-new"
+        s.specimen = second
+        comp = s.add_component("zz-tmp", 0, 2)
+        assert s.rename_component(comp, "MT")
+        assert comp.name == "mt" and comp.color == s.color_of("mt")
+        assert "coloured as the 1 other mt fit" in s.status
 
 
 class TestSwitchingDatasets:

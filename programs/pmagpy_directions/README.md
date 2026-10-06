@@ -106,15 +106,30 @@ the table lists on *Fits*; the list of plotted fits
 VGPs on *Poles*; only *Export* uses the full width. It is resizable —
 drag the grey handle between it and the plots (double-click resets it);
 the main pane keeps at least 360 px and scrolls sideways below what its
-content wants. A second handle lies across the *Specimen* pane, between
-the plots and the fits: dragging it scales the three plots together, so a
-large screen can give the diagram more room and a small one can take some
-back to bring the fits above the fold. Re-laying out the tables and
-figures is too slow to follow a cursor, so both handles work the same way
-in every PmagPy application: the drag moves a guide bar, and on release
-the panels or plots take their new size once, in a single layout pass
-(`LayoutHold`, see `pmagpy_panel/README.md`). On the Zijderveld plot, drag = zoom
-box, tap = pick a step, and box-select is one click away in the toolbar.
+content wants. Re-laying out the tables and figures is too slow to follow a
+cursor, so the handle works as it does in every PmagPy application: the
+drag moves a guide bar, and on release the panels take their new size once,
+in a single layout pass (`LayoutHold`, see `pmagpy_panel/README.md`).
+
+The *Specimen* pane's plots are tiled over a canvas of fixed height, as a
+tiling window manager (Hyprland's dwindle layout, as Omarchy uses it)
+tiles windows: the panels always fill it exactly, never overlap and never
+spill over the fits below (`TileCanvas`, `pmagpy_panel/tiling.py`). Drop a
+panel's title on the middle of another panel to swap the two, or near one
+of its edges to put the panel on that side (that panel gives up half its
+area, and the dropped panel's old place goes to its neighbour); drag the
+gap between two panels to share the space out differently, and the bar
+under the canvas for its height. No panel is left smaller than 140 px: one
+dropped into a small corner takes its room from the larger panels around
+it. During a drag only an outline moves; on release every figure is fitted
+to its panel in one layout pass (the Zijderveld frame takes the panel's
+shape, at one scale on both axes). The layout and height are remembered
+in `~/.pmagpy_directions_layout.json` (`PMAGPY_DIRECTIONS_LAYOUT`);
+*Reset layout* restores the default: the Zijderveld diagram on the left
+half, the equal-area plot over the M/M₀ curve, and the higher-level means. On the
+Zijderveld plot, drag = zoom box, tap = pick a step, and box-select is one
+click away in the toolbar; the nets and the M/M₀ curve have zoom (box,
+wheel), pan and reset in a toolbar that shows inside the plot on hover.
 
 Performance notes: the loaded dataset (interpretations included) is shared by
 all browser sessions of the server process, so reloading the page or opening
@@ -138,13 +153,18 @@ only sample orientations are, specimen coordinates otherwise, and a
 specimen lacking the chosen system falls back to the next one down), Zijderveld projection (x = East,
 North or NRM dec, with the legacy axis labelling), step-label
 density, and the *step logger*: every measurement in sequence with dec, inc,
-moment and csd. Clicking a row selects that step: it is set bold in the
+moment and csd. Above the coordinate buttons, *Sample orientation* names
+the angles behind them: the azimuth and dip of the lab arrow (the fiducial
+line on the sample, the x-axis of specimen coordinates), which turn
+specimen into geographic coordinates, and the bedding, which turns
+geographic into tilt-corrected ones. Clicking a row selects that step: it is set bold in the
 logger and ringed on the Zijderveld (both projections), the net and the
 M/M₀ strip, so one measurement can be followed across the three views; `↑`
 `↓` move the selection, a second click (or a change of specimen) clears it.
 Right click toggles a measurement good/bad (struck through
-and tagged; on the plots a bad step is an open symbol on the Zijderveld, a
-faded one on the net and the M/M₀ strip, and the connecting line skips it). Fits are edited without modes or buttons: with a fit selected,
+and tagged; on every plot a bad step is greyed out — it takes part in no
+fit — and the connecting line joins the good steps either side of it,
+never the bad one). Fits are edited without modes or buttons: with a fit selected,
 tapping a point on the Zijderveld or equal-area plot moves its nearest bound
 and the fit recomputes at once;
 box-selecting a range sets both bounds; the bound, fit-type and name fields
@@ -155,15 +175,35 @@ taps place its bounds. With no fit selected, two tapped points also make a
 fit. `←` `→` step through specimens.
 Fit types: line, anchored line, line through the origin, plane, Fisher
 mean; the same fit name gets the same colour on every specimen and plot.
-Fit lines carry an arrowhead at their outward end — the fitted direction is
-the vector removed between the bounds, which points away from the origin.
+The *Colour* picker beside the name sets that colour for every fit of the
+name, and a name typed to match one the study already uses, ignoring case
+and spaces ("MT" for "mt"), takes that spelling and colour, so it is
+averaged with the others rather than becoming a component of its own.
+Fit lines carry an arrowhead pointing the way the fitted direction does —
+the vector removed between the bounds (first step minus last, as
+`pmag.domean` orients it). That is usually away from the origin, but not
+always in both projections (a component whose projection crosses the
+origin, as HJ-14's and SW10-1's low-temperature components in the Swedish
+dikes do), so the head is placed by the direction, never by distance to
+the origin. On the equal-area plot the fitted direction is a star in the
+component's colour, filled on the lower hemisphere and hollow when the
+vector points up.
 Step labels are thinned automatically where symbols pile up ("auto"), or
 shown for every step / none. The current fit's steps are tinted in the
 logger, its line is drawn on the Zijderveld diagram, its direction (or great
-circle) on the equal-area plot, and open circles mark its bounds on the
-M/M₀ curve. The fit controls and the single, colour-coded table of fits
-(dec, inc, MAD, DANG, α95, n, quality; click a row to select a fit) sit
-under the plots.
+circle) on the equal-area plot, and rings in its colour mark its first and
+last step on the Zijderveld diagram (both projections) and on the M/M₀
+curve. The fit controls and the single table of fits (dec, inc, MAD,
+DANG, α95, n, quality; click a row to select a fit) sit under the plots;
+only the selected fit's row is tinted in its colour and bold, the others
+keep a stripe of their colour on white.
+
+The *Higher-level means* card puts the specimen among its sample, site or
+location, as the legacy GUI's fourth plot did: every good fit of the group
+on a net in its component's colour, the current fit ringed, the mean of each
+component under the chosen statistic (Fisher, by polarity, Bingham) with
+its α95 (or η/ζ), and a compact table of those means (dec, inc, α95, k, n
+lines and planes).
 
 **Means pane.** Sample, site or location means of the specimen fits (lines
 and planes, McFadden & McElhinny) or of the next level's means (site means
@@ -210,7 +250,17 @@ VGPs on the far hemisphere are counted. The same map downloads as PDF.
 **Fits pane.** Every fit in the study with filters (means are
 interpretations too, hence the name); go to a
 specimen, delete or flag in bulk, copy the current fit's bounds to all
-specimens of the site or of the study. One colour picker per fit name:
+specimens of the site or of the study. *Batch edit* does what the legacy
+Interpretation Editor did for its highlighted fits: give the ticked fits a
+new name, fit type, lower and/or upper bound (a field left at "keep" is
+not changed), or add a fit with those settings to every ticked fit's
+specimen. Bounds are treatments: each specimen takes its own step of that
+treatment, or the nearest one; a specimen with no step of that kind (a
+thermal bound on an AF specimen) is skipped and said so, as is a rename
+that would give a specimen two fits of one name. Clicking a row draws that
+fit's specimen in the side column's orthogonal (Zijderveld) plot, its
+bounds ringed, so fits can be reviewed down the table without leaving it.
+One colour picker per fit name:
 fits with the same name share a colour everywhere (logger, plots, tables,
 exported figures), and the choice is kept in the `.redo` file.
 The side column plots what the table shows on an equal-area net, in the

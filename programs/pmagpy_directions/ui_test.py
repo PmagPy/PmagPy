@@ -13,7 +13,7 @@ import time
 from playwright.sync_api import sync_playwright
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # programs/
-from pmagpy_panel.ui_checks import drag_plot_handle  # noqa: E402
+from pmagpy_panel.ui_checks import drag_divider, drop_tile, tiles  # noqa: E402
 
 url = sys.argv[1]
 prefix = sys.argv[2]
@@ -30,7 +30,7 @@ NETS_JS = """() => {
   const doc = Bokeh.documents[0];
   const models = doc._all_models ?? doc.all_models;
   const list = models instanceof Map ? [...models.values()] : [...models];
-  return list.filter(m => (m.name === 'equal_area_net' || m.name === 'pole_map') && m.inner_width > 0).map(m => ({
+  return list.filter(m => (m.name === 'equal_area_net' || m.name === 'level_net' || m.name === 'pole_map') && m.inner_width > 0).map(m => ({
     w: m.inner_width, h: m.inner_height,
     x_per_px: (m.x_range.end - m.x_range.start) / m.inner_width,
     y_per_px: (m.y_range.end - m.y_range.start) / m.inner_height}));
@@ -107,23 +107,69 @@ with sync_playwright() as p:
     check_nets_circular(page, "specimen tab")
     page.screenshot(path=f"{prefix}_specimen.png")
 
-    # the handle under the plots: only a guide moves during the drag; on release
-    # the plots take the new size at once and the handle lands where the guide was
-    for dy in (120, -120):
-        drag = drag_plot_handle(page, dy)
-        check(drag is not None and drag["moved"] <= 1,
-              f"dragging the plot handle {dy:+d} px moves a guide and leaves the plots alone "
-              f"(they changed {drag and round(drag['moved'])} px)")
-        check(drag is not None and abs(drag["height_after"] - drag["height_before"] - dy) <= 3
-              and abs(drag["final"] - drag["dropped"]) <= 3 and drag["sizes"] == 1,
-              f"releasing it resizes the plots by {dy:+d} px in one step, under the guide "
-              f"({drag and round(drag['height_after'] - drag['height_before'])} px, "
-              f"{drag and drag['sizes']} size(s) shown, "
-              f"landed {drag and abs(drag['final'] - drag['dropped']):.1f} px from the guide)")
-        check(drag is not None and drag["misfit"] <= 0.05,
-              f"after a {dy:+d} px drag every figure is drawn to its own size "
-              f"(canvas off by {drag and 100 * drag['misfit']:.1f}%)")
-    check_nets_circular(page, "after resizing the plots")
+    # the plots are tiled over the canvas: a title dropped on another panel's edge puts the
+    # panel there (its old place goes to its neighbour), on its middle swaps the two, a divider
+    # shares the space out again -- and nothing ever leaves the canvas or covers the fits
+    FIGURE_JS = """(name) => {
+      const doc = Bokeh.documents[0]; const models = doc._all_models ?? doc.all_models;
+      const list = models instanceof Map ? [...models.values()] : [...models];
+      const m = list.find(m => m.name === name && m.inner_width > 0);
+      return m ? {w: m.width, h: m.height, fw: m.inner_width, fh: m.inner_height} : null;
+    }"""
+    ZIJ, EQ, DECAY, LEVELS = "Zijderveld diagram", "Equal-area plot", "Intensity decay (M/M₀)", "Higher-level means"
+
+    def tiled(state, where):
+        c, ts = state["canvas"], state["tiles"]
+        inside = all(t["x"] >= c["x"] - 1 and t["y"] >= c["y"] - 1 and t["x"] + t["w"] <= c["x"] + c["w"] + 1
+                     and t["y"] + t["h"] <= c["y"] + c["h"] + 1 for t in ts.values())
+        pairs = [(a, b) for a in ts for b in ts if a < b]
+        apart = all(min(ts[a]["x"] + ts[a]["w"], ts[b]["x"] + ts[b]["w"]) - max(ts[a]["x"], ts[b]["x"]) <= 1
+                    or min(ts[a]["y"] + ts[a]["h"], ts[b]["y"] + ts[b]["h"]) - max(ts[a]["y"], ts[b]["y"]) <= 1
+                    for a, b in pairs)
+        fits = page.locator(".tabulator", has_text="bounds").first.bounding_box()
+        clear = fits is None or fits["y"] >= c["y"] + c["h"] - 1
+        check(inside and apart and clear, f"{where}: the panels tile the canvas (inside it, no overlap, "
+              f"the fits below it)")
+
+    start = tiles(page)
+    check(set(start["tiles"]) == {ZIJ, EQ, DECAY, LEVELS}, f"the Specimen tab shows {len(start['tiles'])} panels")
+    tiled(start, "at the start")
+    zij = page.evaluate(FIGURE_JS, "zijderveld")
+    body = start["tiles"][ZIJ]["body"]
+    check(zij and zij["w"] <= body["w"] and zij["h"] <= body["h"], f"the Zijderveld diagram fits its panel ({zij} in {body})")
+    after = drop_tile(page, DECAY, ZIJ, "bottom")
+    t = after["tiles"]
+    check(t[DECAY]["y"] > t[ZIJ]["y"] and abs(t[DECAY]["x"] - t[ZIJ]["x"]) <= 1 and t[EQ]["h"] > start["tiles"][EQ]["h"],
+          "the M/M₀ title dropped on the diagram's lower edge puts it under the diagram; the net takes its place")
+    tiled(after, "after the drop")
+    decay = page.evaluate(FIGURE_JS, "decay")
+    check(decay["w"] <= t[DECAY]["body"]["w"] and decay["w"] > t[DECAY]["body"]["w"] - 20,
+          f"the M/M₀ plot is fitted to its new panel ({decay['w']} px in {t[DECAY]['body']['w']})")
+    swapped = drop_tile(page, LEVELS, EQ, "swap")
+    check(abs(swapped["tiles"][LEVELS]["x"] - t[EQ]["x"]) <= 1 and abs(swapped["tiles"][EQ]["x"] - t[LEVELS]["x"]) <= 1,
+          "a title dropped on the middle of another panel swaps the two")
+    root = next(i for i, d in enumerate(swapped["dividers"]) if d["row"] and abs(d["x"] - swapped["tiles"][ZIJ]["x"]
+                                                                               - swapped["tiles"][ZIJ]["w"]) < 10)
+    widened = drag_divider(page, root, 80)
+    check(widened["tiles"][ZIJ]["w"] > swapped["tiles"][ZIJ]["w"] + 60, "dragging a divider shares the width out again")
+    tiled(widened, "after the divider")
+    check_nets_circular(page, "after rearranging the panels")
+    open_tab(page, "Fits"); time.sleep(3); open_tab(page, "Specimen"); time.sleep(3)
+    back = tiles(page)
+    check(abs(back["tiles"][ZIJ]["w"] - widened["tiles"][ZIJ]["w"]) <= 1, "the arrangement survives a visit to another tab")
+    legend_ok = page.evaluate("""() => {
+      const views = []; const walk = (v) => { views.push(v); (v.child_views || []).forEach(walk); };
+      Object.values(Bokeh.index).forEach(walk);
+      const z = views.find(v => v.model && v.model.name === 'zijderveld' && v.bbox.width > 0);
+      return [...z.renderer_views.values()].filter(r => r.bbox && r.bbox.y0 < -1)
+                 .map(r => [r.model.constructor.name, r.bbox.x0, r.bbox.y0, r.bbox.width, r.bbox.height]);
+    }""")
+    check(not legend_ok, "back on the tab, the diagram's legend and axes are laid out again "
+          f"(none at the origin: {legend_ok})")
+    page.get_by_role("button", name="Reset layout").click(); time.sleep(3)
+    reset = tiles(page)["tiles"]
+    check(all(abs(reset[k]["x"] - v["x"]) <= 1 and abs(reset[k]["y"] - v["y"]) <= 1 for k, v in start["tiles"].items()),
+          "Reset layout restores the default arrangement")
 
     # right click toggles good/bad on row 5
     row5 = page.locator(".step-logger tr[data-i='5']")
@@ -165,7 +211,8 @@ with sync_playwright() as p:
     check(selected() == [2], f"clicking step 2 selected it (got {selected()})")
     check(highlighted()[0] == 0, f"... and left the fit's bounds alone (got {highlighted()[:1]})")
     marks = page.evaluate(MARKS_JS)
-    check(sorted(marks) == [1, 1, 2], f"the selected step is ringed on all three plots (got {marks})")
+    # (the other tabs' nets carry rings of their own, empty here)
+    check(sorted(m for m in marks if m) == [1, 1, 2], f"the selected step is ringed on all three plots (got {marks})")
     page.mouse.click(900, 500)
     page.keyboard.press("ArrowDown"); time.sleep(2)
     check(selected() == [3], f"↓ moved the selection to step 3 (got {selected()})")
@@ -195,7 +242,7 @@ with sync_playwright() as p:
         if (xs[i] < z.x_range.start || xs[i] > z.x_range.end || y < z.y_range.start || y > z.y_range.end) n++;
       return n;
     }"""
-    canvas = page.locator("canvas.bk-layer").first.bounding_box()
+    canvas = page.locator(".tile", has_text="Zijderveld diagram").locator("canvas.bk-layer").first.bounding_box()
 
     def zoom_box():
         page.mouse.move(canvas["x"] + 150, canvas["y"] + 150)
@@ -283,7 +330,13 @@ with sync_playwright() as p:
             }""")
             check(n_land > 20, f"Poles tab: globe shows {n_land} land polygons")
             # a click on the globe re-centres it: the centre control switches to "custom"
-            globe = page.locator("canvas.bk-layer").first.bounding_box()      # the only canvas on this tab
+            # (the other tabs' canvases stay in the page: find the globe's own view)
+            globe = page.evaluate("""() => {
+              const views = []; const walk = (v) => { views.push(v); (v.child_views || []).forEach(walk); };
+              Object.values(Bokeh.index).forEach(walk);
+              const r = views.find(v => v.model && v.model.name === 'pole_map').el.getBoundingClientRect();
+              return {x: r.left, y: r.top, width: r.width, height: r.height};
+            }""")
             page.mouse.click(globe["x"] + globe["width"] * 0.65, globe["y"] + globe["height"] * 0.45)
             time.sleep(2)
             custom = page.get_by_role("button", name="custom")

@@ -364,7 +364,10 @@ def fit_line_segment(result: DirectionResult, spec: SpecimenData, coord: int,
     projection of the bounding steps onto that line.
 
     Returns:
-        DataFrame with two rows (x, y_h, y_v) or None for plane fits.
+        DataFrame with two rows (x, y_h, y_v) or None for plane fits. The
+        rows are ordered along the fitted direction (row 0 -> row 1 points the
+        way ``dir_dec``/``dir_inc`` does: the vector removed between the bounds),
+        so an arrowhead belongs at row 1 in both projections.
     """
     if result.direction_type != "l":
         return None

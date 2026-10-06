@@ -32,6 +32,8 @@ AUTOSAVE_NAME = f"{dc.APP_ID}_autosave.json"
 # written by earlier builds of this app (fits only, as a .redo), read when there is no newer autosave
 LEGACY_AUTOSAVE_NAMES = (f"{dc.APP_ID}_autosave.redo", "demag_v3_autosave.redo")
 REDO_NAME = f"{dc.APP_ID}.redo"
+# where the Specimen tab's plot cards were left (a per-user preference, not part of a dataset)
+LAYOUT_FILE = env("LAYOUT", os.path.join(os.path.expanduser("~"), f".{dc.APP_ID}_layout.json"))
 # the recent list is shared by every PmagPy application; the per-application file
 # earlier builds kept seeds it once
 RECENT_FILE = env("RECENT", datasets.shared_recent_file(
@@ -343,8 +345,8 @@ class Session(param.Parameterized):
             self.request_autosave()
 
     def add_component(self, name: str, imin: int, imax: int, fit_type: str = "DE-BFL") -> dc.Component:
-        comp = self.data.add_component(self.specimen, name or "A", imin, imax, fit_type,
-                                       color=self.color_of(name or "A"))
+        name = self.known_name(name or "A")
+        comp = self.data.add_component(self.specimen, name, imin, imax, fit_type, color=self.color_of(name))
         self.current = comp
         self._changed()
         return comp
@@ -366,6 +368,32 @@ class Session(param.Parameterized):
         if fit_type is not None and fit_type in dc.FIT_TYPES:
             comp.fit_type = fit_type
         self._changed()
+        return True
+
+    def known_name(self, name: str) -> str:
+        """The spelling the study already uses for ``name``, matched ignoring case and spaces.
+
+        A fit typed "MT" or "m t" on one specimen is the "mt" of the others: it
+        takes that name, and with it that colour, so that it is averaged with
+        them rather than becoming a component of its own.
+        """
+        key = "".join(name.split()).lower()
+        if self.data is not None:
+            for comp in self.data.components:
+                if "".join(comp.name.split()).lower() == key:
+                    return comp.name
+        return name.strip()
+
+    def rename_component(self, comp: dc.Component, name: str) -> bool:
+        """Rename a fit, adopting the study's spelling (and so the colour) of a name it already uses."""
+        known = self.known_name(name)
+        if known == comp.name:
+            return False
+        if not self.update_component(comp, name=known):
+            return False
+        same = sum(c.name == known for c in self.data.components) - 1
+        self.status = (f"fit {known}: coloured as the {same} other {known} fit{'s' if same != 1 else ''} of the study"
+                       if same else f"fit {known}: a new component, coloured {self.color_of(known)}")
         return True
 
     def move_nearest_bound(self, comp: dc.Component, index: int) -> str:
@@ -428,6 +456,97 @@ class Session(param.Parameterized):
         if n:
             self._changed()
         return n
+
+    def edit_components(self, comps, name: Optional[str] = None, fit_type: Optional[str] = None,
+                        lower: Optional[tuple] = None, upper: Optional[tuple] = None) -> tuple[int, list[str]]:
+        """Batch-edit fits (the legacy Interpretation Editor's "apply changes to highlighted fits").
+
+        ``lower``/``upper`` are treatment values, ``(value in SI, unit)``: on each
+        specimen the bound goes to the step of that treatment, or the nearest one
+        (``DemagData.step_index_for_value``). Anything given as None is left as it
+        is. A fit is skipped, and said why, when the rename would give its
+        specimen two fits of one name or the bounds would leave fewer than two steps.
+
+        Returns:
+            (number of fits changed, reasons for the ones skipped)
+        """
+        name = self.known_name(name) if name and name.strip() else None
+        changed, skipped = 0, []
+        for comp in list(comps):
+            imin = self._bound_index(comp.specimen, lower) if lower else comp.imin
+            imax = self._bound_index(comp.specimen, upper) if upper else comp.imax
+            if imin is None or imax is None:
+                skipped.append(f"{comp.specimen} {comp.name}: no step of that treatment")
+                continue
+            if imax <= imin:
+                skipped.append(f"{comp.specimen} {comp.name}: fewer than two steps between the bounds")
+                continue
+            if name and name != comp.name and any(c.name == name for c in self.data.components_for(comp.specimen)):
+                skipped.append(f"{comp.specimen}: already has a fit named {name}")
+                continue
+            if name and name != comp.name:
+                comp.name, comp.color = name, self.color_of(name)
+            if fit_type in dc.FIT_TYPES:
+                comp.fit_type = fit_type
+            comp.imin, comp.imax = imin, imax
+            changed += 1
+        if changed:
+            self._changed()
+        return changed, skipped
+
+    def add_fit_to(self, specimens, name: str, fit_type: str = "DE-BFL", lower: Optional[tuple] = None,
+                   upper: Optional[tuple] = None) -> tuple[int, list[str]]:
+        """Add one fit to each of ``specimens`` (the legacy "add fit to highlighted specimens").
+
+        Bounds are treatment values as in :meth:`edit_components`; None takes the
+        specimen's first or last step. A specimen that already has a fit of that
+        name has it replaced, as a new fit of a used name does on the Specimen tab.
+        """
+        name = self.known_name(name or self.next_fit_name())
+        n, skipped = 0, []
+        for spec_name in dict.fromkeys(specimens):
+            last = self.data.specimens[spec_name].n_steps - 1
+            imin = self._bound_index(spec_name, lower) if lower else 0
+            imax = self._bound_index(spec_name, upper) if upper else last
+            if imin is None or imax is None:
+                skipped.append(f"{spec_name}: no step of that treatment")
+                continue
+            if imax <= imin:
+                skipped.append(f"{spec_name}: fewer than two steps between the bounds")
+                continue
+            self.data.add_component(spec_name, name, imin, imax, fit_type, color=self.color_of(name))
+            n += 1
+        if n:
+            self._sync_current()
+            self._changed()
+        return n, skipped
+
+    def _bound_index(self, specimen: str, bound: tuple) -> Optional[int]:
+        """The step of ``specimen`` a batch bound ``(value in SI, unit)`` names, or None.
+
+        None when the specimen has no step of that kind of treatment (a thermal
+        bound on an AF specimen): the nearest step would then be a step of
+        another treatment, which is no bound at all. The NRM fits every specimen.
+        """
+        value, unit = bound
+        steps = self.data.specimens[specimen].steps
+        is_nrm = value == 0 or (unit == "K" and abs(value - dc.KELVIN_OFFSET) < 0.6)
+        if not is_nrm and not ((steps["treat_unit"] == unit) & (steps["treat_type"] != "NRM")).any():
+            return None
+        return self.data.step_index_for_value(specimen, value, unit)
+
+    def treatment_steps(self) -> dict:
+        """{label: (value in SI, unit)} of every treatment step in the study, in treatment order.
+
+        The bounds a batch edit can set: one list for a whole study, as each
+        specimen then takes its own step of that treatment (or the nearest).
+        """
+        seen = {}
+        for spec in self.data.specimens.values():
+            for i, label in enumerate(spec.steps["label"]):
+                if label not in seen:
+                    seen[label] = self.data._si_bound(spec, i)
+        return dict(sorted(seen.items(), key=lambda kv: (kv[1][1], kv[1][0])))
 
     # ------------------------------------------------------------------ persistence
     @property

@@ -3,7 +3,8 @@ from __future__ import annotations
 
 import numpy as np
 from bokeh.events import Reset, Tap
-from bokeh.models import ColumnDataSource, CustomJS, HoverTool, Label, LabelSet, Legend, LegendItem, Span
+from bokeh.models import (BoxZoomTool, ColumnDataSource, CustomJS, HoverTool, Label, LabelSet, Legend,
+                          LegendItem, PanTool, ResetTool, SaveTool, Span, WheelZoomTool)
 from bokeh.plotting import figure
 
 import pmagpy.demag as dc
@@ -13,23 +14,41 @@ from pmagpy_panel.nets import declutter_labels, keep_circular, net_figure
 from pmagpy_panel.theme import (HORIZONTAL_COLOR, LAND_COLOR, LAND_EDGE, MEAN_COLOR, NET_COLOR, OCEAN_COLOR,
                                 SITE_COLOR, VERTICAL_COLOR, style_figure)
 
-BAD_ALPHA = 0.25        # a step flagged bad stays visible on the net and the M/M₀ strip, but faded
+BAD_ALPHA = 0.55        # a step flagged bad stays visible on every plot, greyed out
+BAD_FILL = "#e5e7eb"    # ... as a pale grey symbol with a grey edge, joined to nothing
+BAD_LINE = "#9ca3af"
 MARK_COLOR = "#1f2937"  # the ring around the selected step / fit: the same dark as the logger's side bar
 
 
-def add_mark(fig, size=17):
+def zoom_tools(fig, match_aspect=True):
+    """Box zoom, wheel zoom, pan and reset in a toolbar that shows on hover.
+
+    The toolbar sits inside the frame (``toolbar_inner``) so it takes no room
+    from the plot, and hides while the pointer is elsewhere. ``match_aspect``
+    keeps a zoom box square, which a net needs to stay circular.
+    """
+    zoom = BoxZoomTool(match_aspect=match_aspect)
+    tools = [zoom, WheelZoomTool(), PanTool(), ResetTool(), SaveTool()]
+    fig.add_tools(*tools)
+    fig.toolbar.active_drag = zoom
+    fig.toolbar.autohide = True
+    fig.toolbar.logo = None
+    return fig
+
+
+def add_mark(fig, size=17, name="step_mark"):
     """A ring that singles out the selected item on `fig`: a white halo under a dark ring.
 
     Returns the ring's ColumnDataSource (x, y); an empty source hides the ring.
     The halo keeps the ring legible over a coloured symbol or a dense cluster,
     and the ring is open so the symbol underneath stays visible. The renderers
-    are named ``step_mark`` (the UI tests look them up).
+    are named ``step_mark`` unless told otherwise (the UI tests look them up).
     """
     src = ColumnDataSource(dict(x=[], y=[]))
     fig.scatter("x", "y", source=src, size=size, fill_alpha=0.0, line_color="white", line_width=5,
-                name="step_mark_halo")
+                name=f"{name}_halo")
     fig.scatter("x", "y", source=src, size=size, fill_alpha=0.0, line_color=MARK_COLOR, line_width=2,
-                name="step_mark")
+                name=name)
     return src
 
 
@@ -75,28 +94,38 @@ class ZijderveldPlot:
                      selection_line_alpha=1.0)
         rh = self.fig.scatter("x", "y_h", source=self.src, marker="circle", size=9, color=HORIZONTAL_COLOR, **solid)
         rv = self.fig.scatter("x", "y_v", source=self.src, marker="square", size=9, color=VERTICAL_COLOR, **solid)
-        bh = self.fig.scatter("x", "y_h", source=self.bad, marker="circle", size=9, fill_color="white",
-                              line_color=HORIZONTAL_COLOR, **solid)
-        bv = self.fig.scatter("x", "y_v", source=self.bad, marker="square", size=9, fill_color="white",
-                              line_color=VERTICAL_COLOR, **solid)
+        # a step flagged bad is excluded from every fit: greyed out, and the traces
+        # above join the good steps on either side of it, never the bad step itself
+        grey = dict(fill_color=BAD_FILL, line_color=BAD_LINE, fill_alpha=BAD_ALPHA, line_alpha=1.0,
+                    nonselection_fill_alpha=BAD_ALPHA, nonselection_line_alpha=1.0)
+        bh = self.fig.scatter("x", "y_h", source=self.bad, marker="circle", size=8, name="bad_steps", **grey)
+        bv = self.fig.scatter("x", "y_v", source=self.bad, marker="square", size=8, name="bad_steps", **grey)
         self.fig.add_layout(LabelSet(x="x", y="y_v", text="text", source=self.src, x_offset=6, y_offset=-4,
                                      text_font_size="8pt", text_color="#6b7280"))
-        self.fig.add_tools(HoverTool(renderers=[rh, rv, bh, bv], tooltips=[("step", "@label")]))
+        self.fig.add_tools(HoverTool(renderers=[rh, rv], tooltips=[("step", "@label")]))
+        self.fig.add_tools(HoverTool(renderers=[bh, bv], tooltips=[("step", "@label"), ("", "flagged bad: excluded")]))
         # legend in a strip below the frame: it can never cover axes, labels or data
-        legend = Legend(items=[LegendItem(label="horizontal projection (circles)", renderers=[rh, bh]),
-                               LegendItem(label="vertical projection (squares)", renderers=[rv, bv])],
+        legend = Legend(items=[LegendItem(label="horizontal (circles)", renderers=[rh, bh]),
+                               LegendItem(label="vertical (squares)", renderers=[rv, bv])],
                         orientation="horizontal", location="center", click_policy="hide",
                         border_line_color=None, background_fill_alpha=0, padding=0, spacing=24,
                         label_text_font_size="9pt", label_text_color="#374151", glyph_height=14, glyph_width=14)
         self.fig.add_layout(legend, "below")
+        self.legend = legend
         self.fig.min_border_bottom = 4
-        self.fits = ColumnDataSource(dict(xs=[], ys=[], color=[], name=[]))
-        self.fig.multi_line("xs", "ys", source=self.fits, color="color", line_width=2.5)
-        # arrowheads at the outward end of each fit line: the fitted direction is the
-        # vector removed between the bounds, which points away from the origin
+        self.fits = ColumnDataSource(dict(xs=[], ys=[], color=[], name=[], width=[]))
+        self.fig.multi_line("xs", "ys", source=self.fits, color="color", line_width="width")
+        # an arrowhead on each fit line, pointing the way the fitted direction does:
+        # the vector removed between the bounds (first step minus last step, as
+        # pmag.domean orients it). It usually points away from the origin, but not
+        # when a component's projection passes over or towards the origin
         self.heads = ColumnDataSource(dict(x=[], y=[], angle=[], color=[]))
         self.fig.scatter("x", "y", source=self.heads, marker="triangle", size=12, angle="angle",
-                         fill_color="color", line_color="color")
+                         fill_color="color", line_color="color", name="fit_heads")
+        # the first and last step of the selected fit, ringed in its colour (both projections)
+        self.bounds = ColumnDataSource(dict(x=[], y=[], color=[]))
+        self.fig.scatter("x", "y", source=self.bounds, size=17, fill_alpha=0.0, line_color="color", line_width=2.5,
+                         name="fit_bounds")
         # the selected step is ringed in both projections
         self.mark_src = add_mark(self.fig)
         self._xy = None                      # (x, y_h, y_v) of every step, for mark()
@@ -141,21 +170,38 @@ class ZijderveldPlot:
         x, y_h, y_v = self._xy
         self.mark_src.data = dict(x=[x[i], x[i]], y=[y_h[i], y_v[i]])
 
-    def set_frame(self, frame: int):
-        """Resize the square diagram frame, keeping the axis-end labels on its edges.
+    NARROW = 300         # below this frame width the legend's two entries are stacked
+    STACKED = 18         # ... which takes this much more height
 
-        The labels are placed in screen pixels (the frame is a fixed square), so
-        the two that sit at the far edges move with it.
+    def set_frame(self, frame: int, frame_height: int = None):
+        """Resize the diagram frame (square unless ``frame_height`` is given), keeping the
+        axis-end labels on its edges.
+
+        The labels are placed in screen pixels, so the two that sit at the far
+        edges move with the frame. The axes keep one scale whatever the frame's
+        shape (``match_aspect``): a wider frame shows more of the diagram's width.
         """
-        frame = int(frame)
-        self.frame = frame
-        self.fig.frame_width = self.fig.frame_height = frame
-        self.fig.width = frame + 16
-        self.fig.height = frame + self.CHROME
-        self.lbl_right.x = frame - 6
-        self.lbl_top.y = frame - 6
+        width = int(frame)
+        height = int(frame if frame_height is None else frame_height)
+        narrow = width < self.NARROW
+        self.frame = width
+        self.legend.orientation = "vertical" if narrow else "horizontal"
+        self.fig.frame_width, self.fig.frame_height = width, height
+        self.fig.width = width + 16
+        self.fig.height = height + self.CHROME + (self.STACKED if narrow else 0)
+        self.lbl_right.x = width - 6
+        self.lbl_top.y = height - 6
 
-    def update(self, spec, fits, coord, rotation, label_every, projection):
+    def fit(self, width: int, height: int):
+        """Take as much of a ``width`` x ``height`` box as it offers, frame not necessarily square."""
+        frame_w = max(120, int(width) - 18)
+        chrome = self.CHROME + 4 + (self.STACKED if frame_w < self.NARROW else 0)
+        frame_h = max(120, int(height) - chrome)
+        if (frame_w, frame_h) != (self.fig.frame_width, self.fig.frame_height):
+            self.set_frame(frame_w, frame_h)
+
+    def update(self, spec, fits, coord, rotation, label_every, projection, current=None):
+        """Draw ``spec``; ``current`` (a Component) is the selected fit, whose bounds are ringed."""
         # a zoom box belongs to one view of one specimen: switching specimen,
         # coordinates, projection (or the rotation of the "best-fit dec" projection)
         # resets it, editing a fit's bounds keeps it
@@ -177,20 +223,29 @@ class ZijderveldPlot:
         self.bad.data = dict(x=z["x"][~good], y_h=z["y_h"][~good], y_v=z["y_v"][~good], label=z["label"][~good])
         self._xy = (z["x"].values, z["y_h"].values, z["y_v"].values)
         self.mark(self._marked)
-        xs, ys, cols, names = [], [], [], []
+        xs, ys, cols, names, widths = [], [], [], [], []
         hx, hy, hang, hcol = [], [], [], []
+        bx, by, bcol = [], [], []
+        key = current.key() if current is not None else None
         for comp, res, color in fits:
+            selected = key is not None and comp.key() == key
+            if selected and res is not None:
+                x, y_h, y_v = self._xy
+                for i in (res.imin, res.imax):
+                    bx += [x[i], x[i]]; by += [y_h[i], y_v[i]]; bcol += [color, color]
             seg = dc.fit_line_segment(res, spec, coord, rotation_dec=rotation) if res is not None else None
             if seg is None:
                 continue
             for ycol in ("y_h", "y_v"):
                 px, py = list(seg["x"]), list(seg[ycol])
                 xs.append(px); ys.append(py); cols.append(color); names.append(comp.name)
-                near, far = (0, 1) if np.hypot(px[0], py[0]) < np.hypot(px[1], py[1]) else (1, 0)
-                theta = np.arctan2(py[far] - py[near], px[far] - px[near])
-                hx.append(px[far]); hy.append(py[far]); hang.append(theta - np.pi / 2); hcol.append(color)
-        self.fits.data = dict(xs=xs, ys=ys, color=cols, name=names)
+                widths.append(3.5 if selected else 2.5)
+                # row 0 -> row 1 of the segment runs along the fitted direction
+                theta = np.arctan2(py[1] - py[0], px[1] - px[0])
+                hx.append(px[1]); hy.append(py[1]); hang.append(theta - np.pi / 2); hcol.append(color)
+        self.fits.data = dict(xs=xs, ys=ys, color=cols, name=names, width=widths)
         self.heads.data = dict(x=hx, y=hy, angle=hang, color=hcol)
+        self.bounds.data = dict(x=bx, y=by, color=bcol)
         labels = dc.axis_labels(coord, projection, rotation)
         self.lbl_right.text = labels["right"]
         self.lbl_left.text = labels["left"]
@@ -216,19 +271,21 @@ class StepEqualAreaPlot:
     """Equal-area plot of a specimen's steps with fitted directions and great circles."""
 
     def __init__(self, size=340):
-        self.fig = net_figure(None, size)          # no title: the net speaks for itself
-        # every step is a symbol (a bad one faded); the path joins the good ones only
-        self.src = ColumnDataSource(dict(x=[], y=[], fill=[], label=[], seq=[], alpha=[]))
+        self.fig = zoom_tools(net_figure(None, size, tools="tap"))   # no title: the net speaks for itself
+        self.fig.toolbar_location, self.fig.toolbar_inner = "right", True
+        # every step is a symbol (a bad one greyed out); the path joins the good ones only
+        self.src = ColumnDataSource(dict(x=[], y=[], fill=[], line=[], label=[], seq=[], alpha=[]))
         self.path = ColumnDataSource(dict(x=[], y=[]))
         self.fig.line("x", "y", source=self.path, color="#9aa1ab", line_width=0.8)
-        pts = self.fig.scatter("x", "y", source=self.src, size=8, fill_color="fill", line_color="#2b2b2b",
-                               fill_alpha="alpha", line_alpha="alpha",
-                               nonselection_fill_alpha="alpha", nonselection_line_alpha="alpha")
+        pts = self.fig.scatter("x", "y", source=self.src, size=8, fill_color="fill", line_color="line",
+                               fill_alpha="alpha", nonselection_fill_alpha="alpha")
         self.fig.add_tools(HoverTool(renderers=[pts], tooltips=[("step", "@label")]))
-        self.dirs = ColumnDataSource(dict(x=[], y=[], color=[], name=[]))
-        stars = self.fig.scatter("x", "y", source=self.dirs, marker="star", size=17, fill_color="color",
-                                 line_color="#2b2b2b", line_width=0.6)
-        self.fig.add_tools(HoverTool(renderers=[stars], tooltips=[("component", "@name")]))
+        # the fitted directions: a star in the component's colour, filled on the lower
+        # hemisphere and hollow (white, edged in the colour) when the vector points up
+        self.dirs = ColumnDataSource(dict(x=[], y=[], fill=[], line=[], width=[], name=[], inc=[]))
+        stars = self.fig.scatter("x", "y", source=self.dirs, marker="star", size=17, fill_color="fill",
+                                 line_color="line", line_width="width", name="fit_directions")
+        self.fig.add_tools(HoverTool(renderers=[stars], tooltips=[("component", "@name"), ("inc", "@inc{0.0}")]))
         self.circles = ColumnDataSource(dict(xs=[], ys=[], color=[]))
         self.fig.multi_line("xs", "ys", source=self.circles, color="color", line_width=2)
         self.mark_src = add_mark(self.fig, size=16)
@@ -264,21 +321,26 @@ class StepEqualAreaPlot:
                 fill[res.imin:res.imax + 1] = color
         fill[(steps[inc_col] < 0).values] = "white"
         good = (steps["quality"] == "g").values
-        self.src.data = dict(x=x, y=y, fill=fill, label=steps["label"], seq=steps["sequence"],
-                             alpha=np.where(good, 1.0, BAD_ALPHA))
+        fill[~good] = BAD_FILL
+        self.src.data = dict(x=x, y=y, fill=fill, line=np.where(good, "#2b2b2b", BAD_LINE), label=steps["label"],
+                             seq=steps["sequence"], alpha=np.where(good, 1.0, BAD_ALPHA))
         self.path.data = dict(x=x[good], y=y[good])
         self._xy = (np.asarray(x), np.asarray(y))
         self.mark(self._marked)
-        dx, dy, dcol, names, gxs, gys, gcol = [], [], [], [], [], [], []
+        dx, dy, dfill, dline, dwidth, names, dinc, gxs, gys, gcol = [], [], [], [], [], [], [], [], [], []
         for comp, res, color in fits:
             if res is None:
                 continue
             fx, fy = dc.equal_area_xy([res.dir_dec], [res.dir_inc])
-            dx.append(fx[0]); dy.append(fy[0]); dcol.append(color); names.append(comp.name)
+            up = res.dir_inc < 0
+            dx.append(fx[0]); dy.append(fy[0]); names.append(comp.name); dinc.append(res.dir_inc)
+            dfill.append("white" if up else color)
+            dline.append(color if up else "#2b2b2b")
+            dwidth.append(2.0 if up else 0.6)
             if res.direction_type == "p":
                 gx, gy = dc.great_circle_xy(res.dir_dec, res.dir_inc)
                 gxs.append(list(gx)); gys.append(list(gy)); gcol.append(color)
-        self.dirs.data = dict(x=dx, y=dy, color=dcol, name=names)
+        self.dirs.data = dict(x=dx, y=dy, fill=dfill, line=dline, width=dwidth, name=names, inc=dinc)
         self.circles.data = dict(xs=gxs, ys=gys, color=gcol)
 
 
@@ -296,23 +358,24 @@ class DecayPlot:
     def __init__(self, size=340, height=None, frame_height=None):
         if frame_height is None:
             frame_height = (height or size) - self.TOP - self.AXIS_ROWS
-        # no toolbar: a right-hand toolbar strip would push the frame's right edge
-        # out of line with the net box above (hover and drag-pan work without one)
+        # the toolbar sits inside the frame and shows on hover: a toolbar strip
+        # would push the frame's edge out of line with the net box above
         self.fig = figure(height=height or (frame_height + self.TOP + self.AXIS_ROWS), width=size,
                           frame_height=frame_height, min_border_top=self.TOP, min_border_bottom=4,
-                          tools="pan,wheel_zoom", toolbar_location=None, frame_align=False,
-                          sizing_mode="fixed", x_axis_label="treatment", y_axis_label="M / M₀")
+                          tools="", toolbar_location="right", toolbar_inner=True, frame_align=False,
+                          sizing_mode="fixed", x_axis_label="treatment", y_axis_label="M / M₀", name="decay")
+        zoom_tools(self.fig, match_aspect=False)
         style_figure(self.fig)
         # compact axis text: this plot is an overview strip, its labels need not
         # compete with the Zijderveld axis-end labels for attention (or height)
         self.fig.axis.axis_label_text_font_size = "9pt"
         self.fig.axis.major_label_text_font_size = "8pt"
         self.fig.min_border_right = 4          # same right border as the net box above: frames end flush
-        self.src = ColumnDataSource(dict(x=[], y=[], label=[], color=[], alpha=[]))
+        self.src = ColumnDataSource(dict(x=[], y=[], label=[], color=[], line=[], alpha=[]))
         self.path = ColumnDataSource(dict(x=[], y=[]))               # good steps only, as on the net
         self.fig.line("x", "y", source=self.path, color="#6b7280", line_width=1)
-        pts = self.fig.scatter("x", "y", source=self.src, size=7, fill_color="color", line_color="#2b2b2b",
-                               line_width=0.5, fill_alpha="alpha", line_alpha="alpha")
+        pts = self.fig.scatter("x", "y", source=self.src, size=7, fill_color="color", line_color="line",
+                               line_width=0.5, fill_alpha="alpha")
         self.fig.add_tools(HoverTool(renderers=[pts], tooltips=[("step", "@label"), ("M/M₀", "@y{0.000}")]))
         self.bounds = ColumnDataSource(dict(x=[], y=[], color=[]))
         self.fig.scatter("x", "y", source=self.bounds, size=17, fill_alpha=0.0, line_color="color", line_width=2)
@@ -346,8 +409,9 @@ class DecayPlot:
             for i in (res.imin, res.imax):
                 bx.append(steps["treat_display"][i]); by.append(steps["moment_norm"][i]); bcol.append(col)
         good = (steps["quality"] == "g").values
+        color[~good] = BAD_FILL
         self.src.data = dict(x=steps["treat_display"], y=steps["moment_norm"], label=steps["label"], color=color,
-                             alpha=np.where(good, 1.0, BAD_ALPHA))
+                             line=np.where(good, "#2b2b2b", BAD_LINE), alpha=np.where(good, 1.0, BAD_ALPHA))
         self.path.data = dict(x=steps["treat_display"][good], y=steps["moment_norm"][good])
         self._xy = (steps["treat_display"].values, steps["moment_norm"].values)
         self.mark(self._marked)
@@ -359,8 +423,9 @@ class DecayPlot:
 class DirectionsPlot:
     """Equal-area plot of many directions (specimen fits or site means) with a Fisher mean."""
 
-    def __init__(self, title="Directions", size=460):
-        self.fig = net_figure(None, size)
+    def __init__(self, title="Directions", size=460, mark_name="step_mark"):
+        self.fig = zoom_tools(net_figure(None, size, tools=""))
+        self.fig.toolbar_location, self.fig.toolbar_inner = "right", True
         self.fig.title.text = title
         self.fig.height = size + 28          # room for the title row above the square frame
         self.src = ColumnDataSource(dict(x=[], y=[], fill=[], line=[], label=[], comp=[]))
@@ -394,8 +459,13 @@ class DirectionsPlot:
         self.mark_circle_src = ColumnDataSource(dict(xs=[], ys=[]))
         self.fig.multi_line("xs", "ys", source=self.mark_circle_src, color="white", line_width=5)
         self.fig.multi_line("xs", "ys", source=self.mark_circle_src, color=MARK_COLOR, line_width=2,
-                            name="step_mark_circle")
-        self.mark_src = add_mark(self.fig, size=16)
+                            name=f"{mark_name}_circle")
+        self.mark_src = add_mark(self.fig, size=16, name=mark_name)
+
+    def set_size(self, size: int):
+        """Resize the square net (the title row above it keeps its height)."""
+        self.fig.width = int(size)
+        self.fig.height = int(size) + (28 if self.fig.title.text else 0)
 
     def mark(self, dec=None, inc=None, plane=False):
         """Single out one direction: ring it, or draw its great circle heavy if `plane`.

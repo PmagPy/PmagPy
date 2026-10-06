@@ -15,7 +15,9 @@ from typing import Optional
 
 import panel as pn
 import param
-from panel.custom import JSComponent
+from panel.custom import Children, JSComponent
+
+from . import tiling
 
 
 class Splitter(JSComponent):
@@ -397,3 +399,258 @@ class Hotkeys(JSComponent):
       return el;
     }
     """
+
+
+
+class TileCanvas(JSComponent):
+    """Panels tiled over a fixed area, as a tiling window manager tiles windows.
+
+    The panels always fill the canvas exactly -- no gaps, no overlaps, nothing
+    pushed out over what lies below -- and are rearranged by dragging:
+
+    * a panel's title bar dropped on the middle of another panel swaps the two;
+    * dropped near another panel's edge, the panel moves to that side of it
+      (the other panel gives up half its area, the panel's old place goes to
+      its neighbour);
+    * the gap between two panels is a divider: drag it to share the space
+      differently.
+
+    During a drag only an outline moves; on release the layout is recomputed
+    in Python (:mod:`pmagpy_panel.tiling`) and the panels and the figures in
+    them are resized once (see :class:`LayoutHold`). The canvas's height is
+    the application's (``height``); its width is the browser's, reported as
+    ``width_px``. ``sizes`` holds the pixel size of every panel's body after the
+    last layout, for the application to fit its fixed-size figures to.
+
+    A panel is any Panel object; its ``name`` is its title. ``tree`` is the
+    layout (see :mod:`~pmagpy_panel.tiling`), JSON to save and restore.
+    """
+
+    objects = Children(doc="the panels; each one's name is its title")
+    titles = param.List(default=[], doc="the panels' titles, in the order of objects")
+    rects = param.List(default=[], doc="{x, y, w, h} of each panel (pixels), in the order of objects")
+    dividers = param.List(default=[], doc="the dividers between panels (see tiling.layout)")
+    width_px = param.Integer(default=0, doc="the canvas's width in the browser")
+    drop = param.Dict(default={}, doc="the last panel dropped: {src, dst, zone, n}")
+    split = param.Dict(default={}, doc="the last divider dropped: {path, ratio, n}")
+    sizes = param.Dict(default={}, doc="{title: (width, height)} of each panel's body after the last layout")
+    gap = param.Integer(default=8, doc="the space between panels, which is also the divider")
+    min_panel = param.Integer(default=140, doc="smallest width or height a divider leaves a panel")
+
+    HEAD = 26        # a panel's title bar, border included
+
+    _esm = """
+    export function render({ model, el, view }) {
+      const root = document.createElement('div');
+      root.className = 'tiles';
+      const tiles = [];
+      const mount = () => {
+        const kids = model.get_child('objects');
+        kids.forEach((child, i) => {
+          let tile = tiles[i];
+          if (!tile) {
+            tile = document.createElement('div'); tile.className = 'tile';
+            const head = document.createElement('div'); head.className = 'tile-head';
+            head.title = 'drag onto another panel: its middle swaps the two, its edge puts this panel on that side';
+            const body = document.createElement('div'); body.className = 'tile-body';
+            tile.append(head, body); root.appendChild(tile); tiles[i] = tile;
+            head.addEventListener('mousedown', (e) => startMove(e, i));
+          }
+          tile.querySelector('.tile-head').innerHTML = '<span class="grip">⠿</span>' + (model.titles[i] || '');
+          const body = tile.querySelector('.tile-body');
+          if (child && child.parentNode !== body) { body.innerHTML = ''; body.appendChild(child); }
+        });
+      };
+      const place = () => {
+        model.rects.forEach((r, i) => {
+          if (!tiles[i]) return;
+          Object.assign(tiles[i].style, {left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px',
+                                         visibility: 'visible'});
+        });
+        for (const d of root.querySelectorAll('.divider')) d.remove();
+        for (const d of model.dividers) {
+          const bar = document.createElement('div');
+          bar.className = 'divider ' + d.orient;
+          Object.assign(bar.style, {left: d.x + 'px', top: d.y + 'px', width: d.w + 'px', height: d.h + 'px'});
+          bar.title = 'drag to share the space between the panels differently';
+          bar.addEventListener('mousedown', (e) => startResize(e, d));
+          root.appendChild(bar);
+        }
+      };
+      // --- moving a panel: an outline of where it would go, the layout on release
+      const local = (e) => { const r = root.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+      const zoneOf = (x, y, r) => {
+        const u = (x - r.x) / r.w, v = (y - r.y) / r.h;
+        if (u > 0.3 && u < 0.7 && v > 0.3 && v < 0.7) return 'swap';
+        const near = {left: u, right: 1 - u, top: v, bottom: 1 - v};
+        return Object.keys(near).reduce((a, b) => near[a] <= near[b] ? a : b);
+      };
+      const preview = (r, zone) => {
+        if (zone === 'swap') return r;
+        const half = {left: {x: r.x, y: r.y, w: r.w / 2, h: r.h}, right: {x: r.x + r.w / 2, y: r.y, w: r.w / 2, h: r.h},
+                      top: {x: r.x, y: r.y, w: r.w, h: r.h / 2}, bottom: {x: r.x, y: r.y + r.h / 2, w: r.w, h: r.h / 2}};
+        return half[zone];
+      };
+      const startMove = (e, src) => {
+        if (e.button !== 0) return;
+        e.preventDefault();
+        const ghost = document.createElement('div'); ghost.className = 'drop-preview'; ghost.style.display = 'none';
+        root.appendChild(ghost);
+        tiles[src].classList.add('lifted');
+        let target = null, zone = null;
+        const onMove = (ev) => {
+          const [x, y] = local(ev);
+          target = null;
+          model.rects.forEach((r, j) => { if (j !== src && x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) target = j; });
+          if (target === null) { ghost.style.display = 'none'; return; }
+          zone = zoneOf(x, y, model.rects[target]);
+          const p = preview(model.rects[target], zone);
+          Object.assign(ghost.style, {display: 'block', left: p.x + 'px', top: p.y + 'px', width: p.w + 'px', height: p.h + 'px'});
+          ghost.textContent = zone === 'swap' ? 'swap with ' + model.titles[target] : '';
+        };
+        const onUp = () => {
+          document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp);
+          document.body.style.cursor = ''; document.body.style.userSelect = '';
+          ghost.remove(); tiles[src].classList.remove('lifted');
+          if (target !== null)
+            model.drop = {src: model.titles[src], dst: model.titles[target], zone: zone, n: Date.now()};
+        };
+        document.body.style.cursor = 'grabbing'; document.body.style.userSelect = 'none';
+        document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp);
+      };
+      // --- moving a divider: a guide bar, the new ratio on release
+      const startResize = (e, d) => {
+        if (e.button !== 0) return;
+        e.preventDefault();
+        const row = d.orient === 'row', gap = model.gap, lo = d.start + model.min_panel,
+              hi = d.start + d.length - gap - model.min_panel;
+        const guide = document.createElement('div'); guide.className = 'divider-guide ' + d.orient;
+        Object.assign(guide.style, {left: d.x + 'px', top: d.y + 'px', width: d.w + 'px', height: d.h + 'px'});
+        root.appendChild(guide);
+        let pos = row ? d.x : d.y;
+        const onMove = (ev) => {
+          const [x, y] = local(ev);
+          pos = Math.max(lo, Math.min(hi, (row ? x : y) - gap / 2));
+          guide.style[row ? 'left' : 'top'] = pos + 'px';
+        };
+        const onUp = () => {
+          document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp);
+          document.body.style.cursor = ''; document.body.style.userSelect = '';
+          guide.remove();
+          model.split = {path: d.path, ratio: (pos - d.start) / (d.length - gap), n: Date.now()};
+        };
+        document.body.style.cursor = row ? 'col-resize' : 'row-resize'; document.body.style.userSelect = 'none';
+        document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp);
+      };
+      // The width is the browser's: reported whenever it changes (the window, the side
+      // column's handle, the tab coming into view). A tab not on show has no size, and
+      // Bokeh lays its figures out at that size; shown again at the size they had, they
+      // are not measured again -- so coming into view, the canvas asks for a layout.
+      let timer = null, shown = false;
+      const observer = new ResizeObserver(() => {
+        const visible = root.offsetWidth > 0 && root.offsetHeight > 0;
+        if (visible && !shown) view.invalidate_layout();
+        shown = visible;
+        // the first width at once (the panels are hidden until they have a place), later ones once settled
+        const report = () => { if (root.offsetWidth > 0) model.width_px = Math.round(root.clientWidth); };
+        clearTimeout(timer);
+        if (!model.width_px) report(); else timer = setTimeout(report, 120);
+      });
+      observer.observe(root);
+      model.on('objects', () => { mount(); place(); });
+      model.on('titles', mount);
+      model.on(['rects', 'dividers'], place);
+      model.on('remove', () => observer.disconnect());
+      mount(); place();
+      return root;
+    }
+    """
+
+    _stylesheets = ["""
+    :host { display: block; }
+    .tiles { position: relative; width: 100%; height: 100%; }
+    .tile { position: absolute; box-sizing: border-box; visibility: hidden; display: flex; flex-direction: column; overflow: hidden;
+            background: #ffffff; border: 1px solid #e3e6eb; border-radius: 8px; box-shadow: 0 1px 2px rgba(16, 24, 40, .06);
+            transition: left .16s ease, top .16s ease, width .16s ease, height .16s ease, opacity .12s; }
+    .tile.lifted { opacity: .55; }
+    .tile-head { flex: 0 0 25px; box-sizing: border-box; display: flex; align-items: center; gap: 6px; padding: 0 10px;
+                 font-weight: 600; font-size: 0.72rem; letter-spacing: .05em; text-transform: uppercase; color: #5b6470;
+                 background: #f7f8fa; border-bottom: 1px solid #edf0f3; cursor: grab; user-select: none;
+                 white-space: nowrap; overflow: hidden; }
+    .tile-head:hover { background: #eef3fb; color: #1f2937; }
+    .tile-head .grip { color: #b5bbc4; font-size: 0.9rem; }
+    .tile-body { flex: 1 1 auto; position: relative; overflow: hidden; display: flex; justify-content: center;
+                 align-items: flex-start; padding-top: 2px; }
+    .divider { position: absolute; z-index: 2; }
+    .divider.row { cursor: col-resize; }
+    .divider.col { cursor: row-resize; }
+    .divider::after { content: ''; position: absolute; border-radius: 3px; background: transparent; transition: background .15s; }
+    .divider.row::after { left: 2px; right: 2px; top: 30%; bottom: 30%; }
+    .divider.col::after { top: 2px; bottom: 2px; left: 30%; right: 30%; }
+    .divider:hover::after { background: #9aa1ab; }
+    .divider-guide { position: absolute; z-index: 5; pointer-events: none; }
+    .divider-guide::after { content: ''; position: absolute; inset: 1px; border-radius: 3px; background: #1f4e9c; }
+    .drop-preview { position: absolute; z-index: 4; pointer-events: none; box-sizing: border-box; border-radius: 8px;
+                    border: 2px dashed #1f4e9c; background: rgba(31, 78, 156, .10); display: flex;
+                    align-items: center; justify-content: center; font: 600 0.8rem sans-serif; color: #1f4e9c; }
+    """]
+
+    def __init__(self, objects=(), tree=None, **params):
+        objects = list(objects)
+        params.setdefault("titles", [obj.name for obj in objects])
+        super().__init__(objects=objects, **params)
+        self._tree = tree if tree is not None and tiling.valid(tree, self.titles) else self._default_tree()
+        self.param.watch(self._on_drop, "drop")
+        self.param.watch(self._on_split, "split")
+        self.param.watch(lambda e: self._relayout(), ["width_px", "height", "gap"])
+        self._relayout()
+
+    def _default_tree(self):
+        tree = self.titles[-1]
+        for title in reversed(self.titles[:-1]):
+            tree = ["row", 0.5, title, tree]
+        return tree
+
+    @property
+    def tree(self):
+        """The layout (see :mod:`pmagpy_panel.tiling`)."""
+        return self._tree
+
+    def arrange(self, tree) -> None:
+        """Lay the panels out as ``tree`` (ignored unless it holds exactly these panels)."""
+        if tiling.valid(tree, self.titles):
+            self._tree = tree
+            self._relayout()
+
+    def _on_drop(self, event):
+        drop = event.new or {}
+        src, dst, zone = drop.get("src"), drop.get("dst"), drop.get("zone")
+        if src not in self.titles or dst not in self.titles or src == dst:
+            return
+        self.arrange(tiling.swap(self._tree, src, dst) if zone == "swap" else tiling.move(self._tree, src, dst, zone))
+
+    def _on_split(self, event):
+        move = event.new or {}
+        path = move.get("path")
+        if path is None:
+            return
+        node = tiling.node_at(self._tree, path)
+        if tiling.is_leaf(node):
+            return
+        # the split's extent along its axis, so that no panel is left narrower than min_panel
+        extent = next((d["length"] for d in self.dividers if list(d["path"]) == list(path)), 0) or 1
+        self.arrange(tiling.set_ratio(self._tree, path, move.get("ratio", node[1]),
+                                      minimum=self.min_panel / max(extent - self.gap, 1)))
+
+    def _relayout(self):
+        """Place the panels for the current tree and size, in one layout pass."""
+        width, height = self.width_px, self.height or 0
+        if not (width > 0 and height > 0):
+            return
+        # a panel dropped into a small corner takes its room from the larger ones around it
+        self._tree = tiling.fit_minimum(self._tree, width, height, self.min_panel, self.gap)
+        rects, dividers = tiling.layout(self._tree, width, height, self.gap)
+        with LayoutHold.batch():
+            self.rects = [dict(zip("xywh", rects[t])) for t in self.titles]
+            self.dividers = dividers
+            self.sizes = {t: (rects[t][2] - 2, rects[t][3] - self.HEAD - 2) for t in self.titles}

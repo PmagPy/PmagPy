@@ -103,3 +103,62 @@ def drag_plot_handle(page, dy: float, settle: float = 3.0) -> dict | None:
             "moved": max(abs(e["height"] - before["height"]) for e in during),
             "sizes": len({round(e["height"]) for e in shown if abs(e["height"] - before["height"]) > 1}),
             "misfit": page.evaluate(_CANVAS_MISFIT)}
+
+
+
+# where each panel of a TileCanvas is: {title: {x, y, w, h (pixels, on screen), body: {w, h}}}, plus the dividers
+_TILES = r"""() => {
+  const deep = (root, sel, out = []) => {
+    out.push(...root.querySelectorAll(sel));
+    for (const e of root.querySelectorAll('*')) if (e.shadowRoot) deep(e.shadowRoot, sel, out);
+    return out;
+  };
+  const tiles = {}, dividers = [];
+  for (const tile of deep(document, '.tile')) {
+    const r = tile.getBoundingClientRect();
+    if (r.width === 0) continue;
+    const head = tile.querySelector('.tile-head'), body = tile.querySelector('.tile-body');
+    tiles[head.textContent.replace('⠿', '').trim()] = {x: r.left, y: r.top, w: r.width, h: r.height,
+      head: {x: r.left + 40, y: head.getBoundingClientRect().top + 12}, body: {w: body.clientWidth, h: body.clientHeight}};
+  }
+  for (const d of deep(document, '.divider')) {
+    const r = d.getBoundingClientRect();
+    if (r.width > 0) dividers.push({x: r.left + r.width / 2, y: r.top + r.height / 2, row: d.classList.contains('row')});
+  }
+  const root = deep(document, '.tiles').find(e => e.getBoundingClientRect().width > 0);
+  const box = root && root.getBoundingClientRect();
+  return {tiles, dividers, canvas: box && {x: box.left, y: box.top, w: box.width, h: box.height}};
+}"""
+
+
+def tiles(page) -> dict:
+    """The TileCanvas on show: its panels (screen boxes, body sizes), dividers, and its own box."""
+    return page.evaluate(_TILES)
+
+
+def drop_tile(page, title: str, target: str, zone: str, settle: float = 2.0) -> dict:
+    """Drag a panel by its title onto ``zone`` ("swap", "left", "right", "top", "bottom") of ``target``.
+
+    The pointer moves in small steps, as a hand does. Returns the canvas afterwards.
+    """
+    now = tiles(page)["tiles"]
+    src, dst = now[title], now[target]
+    u, v = {"swap": (0.5, 0.5), "left": (0.1, 0.5), "right": (0.9, 0.5),
+            "top": (0.5, 0.1), "bottom": (0.5, 0.9)}[zone]
+    page.mouse.move(src["head"]["x"], src["head"]["y"])
+    page.mouse.down()
+    page.mouse.move(dst["x"] + u * dst["w"], dst["y"] + v * dst["h"], steps=20)
+    page.mouse.up()
+    time.sleep(settle)
+    return tiles(page)
+
+
+def drag_divider(page, index: int, delta: float, settle: float = 2.0) -> dict:
+    """Drag the ``index``-th divider by ``delta`` pixels across it; returns the canvas afterwards."""
+    d = tiles(page)["dividers"][index]
+    page.mouse.move(d["x"], d["y"])
+    page.mouse.down()
+    page.mouse.move(d["x"] + (delta if d["row"] else 0), d["y"] + (0 if d["row"] else delta), steps=12)
+    page.mouse.up()
+    time.sleep(settle)
+    return tiles(page)

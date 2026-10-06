@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import io
 import html
+import json
 import os
 import threading
 
@@ -16,9 +17,10 @@ import panel as pn
 import pmagpy.demag as dc
 
 from .logger import StepLogger
-from pmagpy_panel.widgets import HeightSplitter, Hotkeys, LayoutHold
+from pmagpy_panel import tiling
+from pmagpy_panel.widgets import HeightSplitter, Hotkeys, LayoutHold, TileCanvas
 from .plots import DecayPlot, DirectionsPlot, PoleMapPlot, StepEqualAreaPlot, ZijderveldPlot
-from .session import REDO_NAME, AUTOSAVE_NAME, RECENT_FILE, Session, env
+from .session import REDO_NAME, AUTOSAVE_NAME, LAYOUT_FILE, RECENT_FILE, Session, env
 from pmagpy_panel import runtime
 from pmagpy_panel.chooser import DirectoryChooser
 from pmagpy_panel.theme import (BUTTON_GROUP_CSS, CHECKBOX_CSS, INPUT_CSS, KPI_ITEM, MUTED_STYLE, SECTION_STYLE,
@@ -116,10 +118,176 @@ def _table_height(rows: int, cap: int) -> int:
     return int(min(cap, max(96, 46 + 28 * rows)))
 
 
+def orientation_html(orient) -> str:
+    """The sample's orientation, saying what each angle is and what it is used for.
+
+    MagIC records the field orientation of a sample as the azimuth and dip of
+    its *lab arrow* (the fiducial line drawn on the sample, the x-axis of the
+    specimen coordinates); bedding as a dip direction and dip.
+    """
+    row = '<div style="display:flex;gap:8px;align-items:baseline;font-size:0.9rem;line-height:1.5">' \
+          '<span style="min-width:62px;color:#374151">{}</span><span>{}</span></div>'
+    note = '<div style="{};margin-top:2px">{}</div>'
+    if orient is None or not orient.has_geographic:
+        return note.format(MUTED_STYLE, "no sample orientation: plots are in specimen coordinates")
+    lab = (f"azimuth <b>{orient.azimuth:g}°</b> · dip <b>{orient.dip:g}°</b>")
+    out = [row.format('<span title="the fiducial line marked on the sample: the x-axis of the specimen '
+                      'coordinates">lab arrow ⓘ</span>', lab)]
+    if orient.has_tilt:
+        out.append(row.format("bedding", f"dip direction <b>{orient.bed_dip_direction:g}°</b> · "
+                                         f"dip <b>{orient.bed_dip:g}°</b>"))
+        text = ("the lab arrow's field orientation turns specimen into geographic coordinates; "
+                "the bedding then turns geographic into tilt-corrected coordinates")
+    else:
+        text = "the lab arrow's field orientation turns specimen into geographic coordinates (no bedding recorded)"
+    return "".join(out) + note.format(MUTED_STYLE, text)
+
+
 def _fmt(v, nd=1):
     if v is None or (isinstance(v, float) and np.isnan(v)):
         return "–"
     return f"{v:.{nd}f}"
+
+
+# ===========================================================================
+class LevelMeansCard:
+    """The current specimen among its sample, site or location (the legacy GUI's
+    "higher level" panel).
+
+    Every good fit of the group is drawn on a net in its component's colour —
+    the current fit ringed, so the specimen being interpreted can be judged
+    against its neighbours — with the mean of each component under the chosen
+    statistic, and a compact table of those means beneath.
+    """
+
+    STATS = {"Fisher": "fisher", "by polarity": "polarity", "Bingham": "bingham"}
+    CONTROLS = 76            # the two button rows above the net
+    TABLE_MIN = 96           # room kept for the statistics below it
+
+    def __init__(self, session: Session):
+        self.s = session
+        small = dict(button_type="primary", button_style="outline", stylesheets=[BUTTON_GROUP_CSS],
+                     sizing_mode="stretch_width", margin=(2, 4))
+        self.level = pn.widgets.RadioButtonGroup(options=["sample", "site", "location"], value="site", **small)
+        self.stat = pn.widgets.RadioButtonGroup(options=self.STATS, value="fisher", **small)
+        self.plot = DirectionsPlot("", size=240, mark_name="fit_mark")      # it rings a fit, not a step
+        self.plot.fig.name = "level_net"
+        self.stats = pn.pane.HTML("", sizing_mode="stretch_width", margin=(0, 6))
+        for w in (self.level, self.stat):
+            w.param.watch(lambda e: self.redraw(), "value")
+        session.param.watch(lambda e: self.redraw(), ["unify_polarity", "flip_polarity"])
+
+    def panel(self, title):
+        return pn.Column(self.level, self.stat, pn.pane.Bokeh(self.plot.fig, margin=(0, 4)), self.stats,
+                         name=title, sizing_mode="stretch_width", margin=0, scroll=True)
+
+    def fit(self, width, height):
+        """Size the net to the card: as wide as it is, leaving room for the controls and the table."""
+        size = int(max(140, min(width - 12, height - self.CONTROLS - self.TABLE_MIN - 28)))
+        if size != self.plot.fig.width:
+            self.plot.set_size(size)
+
+    def _group(self):
+        level = self.level.value
+        return level, getattr(self.s.spec, level, None)
+
+    def _collect(self, level, name, coord):
+        """(directions, planes, best-fit vectors, current fit's mark) of the good fits in the group."""
+        s, cur = self.s, self.s.current
+        dirs, planes, by_comp, mark = [], [], {}, None
+        for spec_name in s.data.specimens_in(level, name):
+            for c in s.data.components_for(spec_name):
+                if c.quality != "g":
+                    continue
+                res = s.data.fit(c, coord)
+                if res is None:
+                    continue
+                color = s.color_of(c.name)
+                if res.direction_type == "p":
+                    planes.append((res.dir_dec, res.dir_inc, color))
+                else:
+                    dirs.append((res.dir_dec, res.dir_inc, spec_name, c.name, color))
+                by_comp.setdefault(c.name, []).append({"dir_dec": res.dir_dec, "dir_inc": res.dir_inc,
+                                                       "dir_type": res.direction_type, "specimen": spec_name,
+                                                       "color": color})
+                if cur is not None and c.key() == cur.key():
+                    mark = (res.dir_dec, res.dir_inc, res.direction_type == "p")
+        vectors = []
+        for comp_name, recs in by_comp.items():
+            on_planes = [r for r in recs if r["dir_type"] == "p"]
+            for rec, (vdec, vinc) in zip(on_planes, dc.plane_best_fit_vectors(recs)):
+                vectors.append((vdec, vinc, rec["specimen"], comp_name, rec["color"]))
+        return dirs, planes, vectors, mark
+
+    def _means(self, level, name, coord, dirs):
+        """[(row dict, colour)]: the group's mean of each component under the chosen statistic."""
+        s = self.s
+        if self.stat.value == "fisher":
+            means = s.data.mean_directions(level, coord, None, common_polarity=s.unify_polarity,
+                                           flip=s.flip_polarity, group=name)
+            return [(m.to_dict(), s.color_of(m["dir_comp_name"])) for _, m in means.iterrows()] if len(means) else []
+        by_comp = {}
+        for dec, inc, _label, comp_name, _color in dirs:
+            by_comp.setdefault(comp_name, []).append((dec, inc))
+        rows = []
+        for comp_name, block in by_comp.items():
+            found = dc.fisher_means_by_polarity(block) if self.stat.value == "polarity" else [dc.bingham_mean(block)]
+            rows += [({"dir_comp_name": comp_name, **m}, s.color_of(comp_name)) for m in found if m]
+        return rows
+
+    def redraw(self):
+        s = self.s
+        if not s.ready:
+            return
+        level, name = self._group()
+        coord = s.coord
+        if not name:
+            self.plot.update([], [], [], title="")
+            self.stats.object = f'<div style="{MUTED_STYLE}">this specimen has no {level}</div>'
+            return
+        dirs, planes, vectors, mark = self._collect(level, name, coord)
+        means = self._means(level, name, coord, dirs)
+        n_spec = len(s.data.specimens_in(level, name))
+        self.plot.update(dirs, planes, means, title=f"{level} {name} · {dc.COORD_NAMES[coord]}", plane_vectors=vectors)
+        self.plot.set_size(self.plot.fig.width)          # the title row may have appeared
+        if mark is None:
+            self.plot.mark()
+        else:
+            self.plot.mark(mark[0], mark[1], plane=mark[2])
+        self.stats.object = self._table(means, n_spec, len(dirs), len(planes))
+
+    def _table(self, means, n_spec, n_lines, n_planes):
+        bingham = self.stat.value == "bingham"
+        head = ["", "dec", "inc", "η / ζ" if bingham else "α95", "" if bingham else "k", "n"]
+        cell = 'style="padding:1px 5px;text-align:right"'
+        rows = []
+        for m, color in means:
+            comp = html.escape(str(m.get("dir_comp_name", "")))
+            mode = m.get("mode")
+            label = f'<span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:{color};' \
+                    f'margin-right:4px"></span>{comp}' + (f" <small>{html.escape(str(mode))}</small>" if mode else "")
+            spread = (f'{_fmt(m.get("eta"))} / {_fmt(m.get("zeta"))}' if bingham else _fmt(m.get("dir_alpha95")))
+            n = m.get("dir_n_specimens", m.get("n", ""))
+            lines, planes = m.get("dir_n_specimens_lines"), m.get("dir_n_specimens_planes")
+            if planes and not (isinstance(planes, float) and np.isnan(planes)) and int(planes):
+                n = f"{int(lines or 0)}L {int(planes)}P"
+            elif n != "" and not (isinstance(n, float) and np.isnan(n)):
+                n = int(n)
+            rows.append(f'<tr><td style="padding:1px 5px;white-space:nowrap">{label}</td>'
+                        f'<td {cell}>{_fmt(m.get("dir_dec"))}</td><td {cell}>{_fmt(m.get("dir_inc"))}</td>'
+                        f'<td {cell}>{spread}</td><td {cell}>{"" if bingham else _fmt(m.get("dir_k"))}</td>'
+                        f'<td {cell}>{n}</td></tr>')
+        caption = (f'<div style="{MUTED_STYLE};margin:2px 0 4px 0">{n_spec} specimen{"s" if n_spec != 1 else ""} · '
+                   f'{n_lines} line{"s" if n_lines != 1 else ""}'
+                   + (f' · {n_planes} plane{"s" if n_planes != 1 else ""}' if n_planes else "")
+                   + ' · the current fit is ringed</div>')
+        if not rows:
+            return caption + f'<div style="{MUTED_STYLE}">no mean: fewer than two good fits of a component</div>'
+        header = "".join(f'<th style="padding:1px 5px;text-align:{"left" if i == 0 else "right"};'
+                         f'font-weight:600;color:#5b6470">{h}</th>' for i, h in enumerate(head))
+        return (caption + '<table style="border-collapse:collapse;font-size:0.82rem;width:100%">'
+                f'<thead><tr style="border-bottom:1px solid #e5e7eb">{header}</tr></thead>'
+                f'<tbody>{"".join(rows)}</tbody></table>')
 
 
 # ===========================================================================
@@ -158,6 +326,9 @@ class SpecimenView:
         same = dict(stylesheets=[INPUT_CSS])
         self.fit_type_sel = pn.widgets.Select(name="Fit type", options=FIT_OPTIONS, value="DE-BFL", width=210, **same)
         self.comp_name = pn.widgets.TextInput(name="Component", value="A", width=110, **same)
+        # the colour of the selected fit's name: every fit of that name, on every specimen, follows
+        self.color_pick = pn.widgets.ColorPicker(name="Colour", value="#2b2b2b", width=64)
+        self.color_pick.param.watch(self._on_color_widget, "value")
         self.tmin_sel = pn.widgets.Select(name="Lower bound", options=[], width=130, **same)
         self.tmax_sel = pn.widgets.Select(name="Upper bound", options=[], width=130, **same)
         self.add_btn = pn.widgets.Button(name="New fit", button_type="success", width=110, margin=(22, 5, 5, 5))
@@ -182,45 +353,95 @@ class SpecimenView:
         self.comp_table.param.watch(self._on_comp_select, "selection")
 
         # --- figures ---------------------------------------------------------
-        self.zij = ZijderveldPlot()
-        # the net sits on top of the M/M₀ plot; the M/M₀ frame bottom is aligned with
-        # the Zijderveld frame bottom (both measured from the top of the row)
-        side = ZijderveldPlot.SIDE
-        self.eq = StepEqualAreaPlot(size=side)
-        decay_frame = ZijderveldPlot.TOP + ZijderveldPlot.FRAME - side - DecayPlot.TOP
-        self.decay = DecayPlot(size=side, frame_height=decay_frame)
+        # four cards on a canvas the analyst rearranges (drag a title bar, resize from
+        # a corner); each figure is resized to its card once the browser reports it
+        self.zij = ZijderveldPlot(frame=380)
+        self.eq = StepEqualAreaPlot(size=250)
+        self.decay = DecayPlot(size=250, frame_height=110)
+        self.levels = LevelMeansCard(session)
         self.zij.on_select(self._on_plot_select)
         self.eq.on_select(self._on_plot_select)
         self.info = pn.pane.HTML("", sizing_mode="stretch_width")
-        # the plots and the fits below them share the height of the window: a big
-        # screen can give the diagram more, a small one has to take some back
-        self.plot_col = pn.Column(self.eq.fig, self.decay.fig, width=side + 10, margin=0,
-                                  styles={"overflow": "visible"})
-        self.plot_size = HeightSplitter(value=ZijderveldPlot.FRAME, default_value=ZijderveldPlot.FRAME,
-                                        minimum=240, maximum=1000)
-        self.plot_size.param.watch(self._on_plot_size, "value")
+        self.orientation = pn.pane.HTML("", sizing_mode="stretch_width", margin=(0, 5, 4, 5))
+        self.cards = [
+            pn.pane.Bokeh(self.zij.fig, name=self.ZIJ, margin=0),
+            pn.pane.Bokeh(self.eq.fig, name=self.EQ, margin=0),
+            pn.pane.Bokeh(self.decay.fig, name=self.DECAY, margin=0),
+            self.levels.panel(self.LEVELS),
+        ]
+        saved = self._saved_layout()
+        self.canvas = TileCanvas(self.cards, tree=saved.get("tree"), height=saved.get("height", self.HEIGHT),
+                                 sizing_mode="stretch_width", margin=(0, 0, 0, 0))
+        self.canvas.param.watch(self._on_card_sizes, "sizes")
+        # the handle under the canvas shares the window's height between the plots and the fits
+        self.plot_size = HeightSplitter(value=self.canvas.height, default_value=self.HEIGHT, minimum=300,
+                                        maximum=1400)
+        self.plot_size.param.watch(lambda e: setattr(self.canvas, "height", int(e.new)), "value")
+        self.reset_layout_btn = pn.widgets.Button(name="Reset layout", width=110, height=26, button_type="light",
+                                                  margin=(0, 5, 0, 5))
+        self.reset_layout_btn.on_click(self._reset_layout)
 
         s.param.watch(self._reset_pending, ["specimen"])
         s.param.watch(self.redraw, ["specimen", "coord", "projection", "label_every", "version", "current"])
         self.redraw()
 
-    # the net and the M/M₀ strip keep their share of the diagram's height
-    SIDE_RATIO = ZijderveldPlot.SIDE / ZijderveldPlot.FRAME
+    # the panels' titles (also the leaves of a saved layout), and the default tiling:
+    # the diagram on the left half, then the equal-area plot over the M/M₀ curve, then
+    # the higher-level means (see pmagpy_panel.tiling)
+    ZIJ, EQ, DECAY, LEVELS = "Zijderveld diagram", "Equal-area plot", "Intensity decay (M/M₀)", "Higher-level means"
+    DEFAULT_TREE = ["row", 0.5, ZIJ, ["row", 0.5, ["col", 0.62, EQ, DECAY], LEVELS]]
+    HEIGHT = 540
 
-    def _on_plot_size(self, event):
-        """Rescale the three plots together, as they are built in __init__.
+    def _saved_layout(self) -> dict:
+        """{"tree", "height"} as the analyst left them, or the defaults."""
+        try:
+            with open(LAYOUT_FILE) as fh:
+                saved = json.load(fh).get("specimen_tiles", {})
+        except (OSError, ValueError, AttributeError):
+            saved = {}
+        titles = [self.ZIJ, self.EQ, self.DECAY, self.LEVELS]
+        tree = saved.get("tree") if isinstance(saved, dict) and tiling.valid(saved.get("tree"), titles) \
+            else self.DEFAULT_TREE
+        height = saved.get("height") if isinstance(saved, dict) else None
+        height = int(height) if isinstance(height, (int, float)) and 300 <= height <= 1400 else self.HEIGHT
+        return {"tree": tree, "height": height}
 
-        The changes land as one batch (:class:`LayoutHold`): one message, and
-        one layout of the page, so the figures change size together rather
-        than one after another.
-        """
-        frame = int(event.new)
-        side = max(140, int(round(frame * self.SIDE_RATIO)))
-        with LayoutHold.batch():         # ten size changes, one layout of the page
-            self.zij.set_frame(frame)
-            self.eq.set_size(side)
-            self.decay.set_size(side, ZijderveldPlot.TOP + frame - side - DecayPlot.TOP)
-            self.plot_col.width = side + 10
+    def _save_layout(self):
+        try:
+            with open(LAYOUT_FILE, "w") as fh:
+                json.dump({"specimen_tiles": {"tree": self.canvas.tree, "height": self.canvas.height}}, fh)
+        except OSError:
+            pass                                    # a layout not remembered is no loss
+
+    def _reset_layout(self, event=None):
+        with LayoutHold.batch():
+            self.canvas.arrange(self.DEFAULT_TREE)
+            self.plot_size.value = self.HEIGHT
+
+    def _on_card_sizes(self, event):
+        """The browser laid the cards out: fit each figure into its card, in one layout pass."""
+        sizes = event.new
+        with LayoutHold.batch():
+            if self.ZIJ in sizes:
+                w, h = sizes[self.ZIJ]
+                if w and h:
+                    self.zij.fit(w, h)
+            if self.EQ in sizes:
+                w, h = sizes[self.EQ]
+                size = max(140, min(w, h) - 6)
+                if w and h and size != self.eq.fig.width:
+                    self.eq.set_size(size)
+            if self.DECAY in sizes:
+                w, h = sizes[self.DECAY]
+                width, frame = max(160, w - 6), max(40, h - DecayPlot.TOP - DecayPlot.AXIS_ROWS - 6)
+                if w and h and (width, frame) != (self.decay.fig.width, self.decay.fig.frame_height):
+                    self.decay.set_size(width, frame)
+            if self.LEVELS in sizes:
+                w, h = sizes[self.LEVELS]
+                if w and h:
+                    self.levels.fit(w, h)
+        if {"tree": self.canvas.tree, "height": self.canvas.height} != self._saved_layout():
+            self._save_layout()
 
     # --- interaction ----------------------------------------------------------
     def _on_coord_widget(self, event):
@@ -326,7 +547,12 @@ class SpecimenView:
             # enter-pressed event, and it runs the pair outside the document lock;
             # a next-tick callback holds the lock again when the redraw touches the plots.
             cur, name = self.s.current, event.new.strip()
-            next_tick(lambda: self.s.update_component(cur, name=name))
+            next_tick(lambda: self.s.rename_component(cur, name))
+
+    def _on_color_widget(self, event):
+        if not self._syncing and self.s.current is not None and event.new:
+            name, color = self.s.current.name, event.new
+            next_tick(lambda: self.s.set_color(name, color))
 
     def _on_hotkey(self, event):
         key = self.hotkeys.key
@@ -398,19 +624,22 @@ class SpecimenView:
             if cur is not None:
                 self.comp_name.value, self.fit_type_sel.value = cur.name, cur.fit_type
                 self.tmin_sel.value, self.tmax_sel.value = labels[cur.imin], labels[cur.imax]
+                self.color_pick.value = s.color_of(cur.name)
             else:
                 if self.tmin_sel.value not in labels:
                     self.tmin_sel.value = labels[0]
                 if self.tmax_sel.value not in labels:
                     self.tmax_sel.value = labels[-1]
+            self.color_pick.disabled = cur is None
         finally:
             self._syncing = False
 
         fits = s.fits()
         rotation = s.rotation()
-        self.zij.update(spec, fits, coord, rotation, s.label_every, s.projection)
+        self.zij.update(spec, fits, coord, rotation, s.label_every, s.projection, current=cur)
         self.eq.update(spec, fits, coord)
         self.decay.update(spec, fits)
+        self.levels.redraw()
 
         dec_col, inc_col = dc.COORD_COLUMNS[coord]
         steps = spec.steps
@@ -435,37 +664,44 @@ class SpecimenView:
         df = pd.DataFrame(rows, columns=["fit", "type", "bounds", "dec", "inc", "MAD", "DANG", "α95", "n", "q"])
         comps = s.components()
         wanted = [comps.index(cur)] if cur in comps else []
-        # Rewrite the table only when its content (or colouring) changed: re-assigning
-        # the value from inside the table's own selection callback breaks Bokeh's write
-        # batch (and the current fit is shown by the selection style, not by the data).
+        # Tabulator sends a table's cell styles with its data, so the styles are set
+        # first and then the data (re-sent unchanged when only the selection moved).
+        # Only the selected fit is tinted (in its colour) and bold; the others are
+        # plain white rows, each keeping a stripe of its colour as its key to the plots
         colors = [color for _, _, color in fits]
         self._syncing = True
         try:
-            if not (df.equals(getattr(self, "_comp_df", None)) and colors == getattr(self, "_comp_colors", None)):
-                self._comp_df, self._comp_colors = df, colors
-                self.comp_table.value = df
+            new_data = not df.equals(getattr(self, "_comp_df", None))
+            look = (colors, wanted)
+            if new_data or look != getattr(self, "_comp_look", None):
+                self._comp_df, self._comp_look = df, look
                 self.comp_table.style.clear()
+                chosen = wanted[0] if wanted else None
 
-                def style_row(row, colors=colors):
-                    idx = row.name if isinstance(row.name, int) else 0
-                    c = colors[idx] if idx < len(colors) else "#ffffff"
-                    fill = f"background: {lighten(c, 0.85)}"
-                    return [f"border-left: 6px solid {c}; {fill}"] + [fill] * (len(row) - 1)
+                def style_rows(frame, colors=colors, chosen=chosen):
+                    # the whole frame at once, by position: a row's label need not be an int
+                    css = []
+                    for i in range(len(frame)):
+                        c = colors[i] if i < len(colors) else "#ffffff"
+                        if i == chosen:
+                            fill = f"background: {lighten(c, 0.72)}; font-weight: 700; color: #111"
+                        else:
+                            fill = "background: #ffffff; font-weight: 400"
+                        css.append([f"border-left: 6px solid {c}; {fill}"] + [fill] * (frame.shape[1] - 1))
+                    return pd.DataFrame(css, index=frame.index, columns=frame.columns)
                 if len(df):
-                    self.comp_table.style.apply(style_row, axis=1)
+                    self.comp_table.style.apply(style_rows, axis=None)
+                if new_data:
+                    self.comp_table.value = df
+                else:
+                    self.comp_table.param.trigger("value")
             if list(self.comp_table.selection) != wanted:
                 self.comp_table.selection = wanted
         finally:
             self._syncing = False
 
-        orient = spec.orientation
-        o = "no sample orientation"
-        if orient is not None and orient.has_geographic:
-            o = f"lab arrow: azimuth {orient.azimuth:g}°, dip {orient.dip:g}°"
-            if orient.has_tilt:
-                o += f" · bedding: dip direction {orient.bed_dip_direction:g}°, dip {orient.bed_dip:g}°"
-        self.info.object = kpi([f"<b>{spec.name}</b>", ("sample", spec.sample), ("site", spec.site), spec.location,
-                                f'<span style="{MUTED_STYLE}">{o}</span>'])
+        self.info.object = kpi([f"<b>{spec.name}</b>", ("sample", spec.sample), ("site", spec.site), spec.location])
+        self.orientation.object = orientation_html(spec.orientation)
 
     # --- layout -----------------------------------------------------------------
     def sidebar(self):
@@ -473,6 +709,7 @@ class SpecimenView:
             self.specimen_sel, pn.Row(self.prev_btn, self.next_btn,
                                       pn.pane.HTML(f'<span style="{MUTED_STYLE}">← → keys</span>', margin=(12, 0, 0, 4))),
             self.info,
+            section("Sample orientation"), self.orientation,
             pn.Row(pn.Column(section("Coordinates"), self.coord_sel, margin=0),
                    pn.Column(section("Step labels"), self.label_sel, width=110, margin=0)),
             section("Zijderveld projection · x axis"), self.proj_sel,
@@ -482,11 +719,16 @@ class SpecimenView:
 
     def main(self):
         return pn.Column(
-            pn.Row(pn.pane.Bokeh(self.zij.fig, margin=0), self.plot_col, margin=0),
+            pn.Row(pn.pane.HTML(f'<span style="{MUTED_STYLE}">drag a panel\'s title onto another panel: its middle '
+                                'swaps the two, its edge puts the panel on that side · drag the gaps between panels '
+                                'to resize them, the bar below for the height · the layout is remembered</span>',
+                                margin=(4, 0, 0, 5)),
+                   pn.layout.HSpacer(), self.reset_layout_btn, margin=0),
+            self.canvas,
             self.plot_size,
             # left margin as the table below: the heading lines up with what it labels
             pn.Row(section("Fits · click a row to select it"), self.hint, margin=(0, 0, 0, 5)),
-            pn.Row(self.comp_name, self.fit_type_sel, self.tmin_sel, self.tmax_sel,
+            pn.Row(self.comp_name, self.color_pick, self.fit_type_sel, self.tmin_sel, self.tmax_sel,
                    self.add_btn, self.del_btn),
             self.comp_table,
         )
@@ -691,18 +933,22 @@ class MeansView(LazyView):
                 and colors == getattr(self, cache, (None, None))[1]):
             return
         setattr(self, cache, (df, colors))
-        table.value = df
+        # the styles first: Tabulator sends them with the data
         table.style.clear()
         flags = [r.get("q", "g") for r in records]
 
-        def style_row(row, colors=colors, flags=flags):
-            i = row.name if isinstance(row.name, int) else 0
-            c = colors[i] if i < len(colors) else "#ffffff"
-            fill = f"background: {lighten(c, 0.85)}" + ("; color:#9aa1ab; text-decoration: line-through"
-                                                        if i < len(flags) and flags[i] == "b" else "")
-            return [f"border-left: 6px solid {c}; {fill}"] + [fill] * (len(row) - 1)
+        def style_rows(frame, colors=colors, flags=flags):
+            # the whole frame at once, by position: a row's label need not be an int
+            css = []
+            for i in range(len(frame)):
+                c = colors[i] if i < len(colors) else "#ffffff"
+                fill = f"background: {lighten(c, 0.85)}" + ("; color:#9aa1ab; text-decoration: line-through"
+                                                            if i < len(flags) and flags[i] == "b" else "")
+                css.append([f"border-left: 6px solid {c}; {fill}"] + [fill] * (frame.shape[1] - 1))
+            return pd.DataFrame(css, index=frame.index, columns=frame.columns)
         if len(df):
-            table.style.apply(style_row, axis=1)
+            table.style.apply(style_rows, axis=None)
+        table.value = df
 
     def redraw(self, *events):
         if self.s.data is None or not self.name.value:
@@ -1033,8 +1279,31 @@ class InterpretationsView(LazyView):
         self.plot = DirectionsPlot("Fits", size=SIDE_PLOT)
         self.plot_note = pn.pane.HTML("", sizing_mode="stretch_width")
         self.table.param.watch(self._on_table_change, ["selection", "filters"])
+        # the orthogonal plot of one fit -- the row last clicked, at first the fit
+        # selected on the Specimen tab -- so fits can be reviewed without leaving the table
+        self.focus = None
+        self.zij = ZijderveldPlot(frame=self.ZIJ_FRAME)
+        self.zij.fig.name = "fits_zijderveld"         # not the Specimen tab's diagram
+        self.zij_caption = pn.pane.HTML("", sizing_mode="stretch_width", margin=(0, 5))
+        self.table.on_click(self._on_row_click)
+        # batch editing of the ticked fits (the legacy Interpretation Editor)
+        same = dict(stylesheets=[INPUT_CSS])
+        self.batch_name = pn.widgets.TextInput(name="Name", placeholder="keep", width=110, **same)
+        self.batch_type = pn.widgets.Select(name="Fit type", options={"keep": "", **FIT_OPTIONS}, value="",
+                                            width=200, **same)
+        self.batch_lower = pn.widgets.Select(name="From step", options={"keep": ""}, value="", width=120, **same)
+        self.batch_upper = pn.widgets.Select(name="To step", options={"keep": ""}, value="", width=120, **same)
+        self.apply_btn = pn.widgets.Button(name="Apply to ticked fits", button_type="primary", width=170,
+                                           margin=(22, 5, 5, 5))
+        self.add_to_btn = pn.widgets.Button(name="Add fit to ticked specimens", button_type="success", width=210,
+                                            margin=(22, 5, 5, 5))
+        self.apply_btn.on_click(self._apply_batch)
+        self.add_to_btn.on_click(self._add_batch)
+        self.batch_note = pn.pane.HTML("", sizing_mode="stretch_width")
         session.param.watch(self._lazy_redraw, ["coord", "version"])
         self._start(active)
+
+    ZIJ_FRAME = SIDE_PLOT - 30
 
     def _on_table_change(self, *events):
         """A tick or a header filter changed what the table shows: redraw the side plot.
@@ -1120,10 +1389,76 @@ class InterpretationsView(LazyView):
         self.plot_note.object = f'<span style="{MUTED_STYLE}">{" · ".join(parts)}</span>'
 
     def _goto(self, event=None):
-        sel = self._selected()
+        sel = self._selected() or ([self.focus] if self.focus is not None else [])
         if sel:
             self.s.specimen = sel[0].specimen
             self.s.current = sel[0]
+
+    # --- the orthogonal plot of the clicked fit --------------------------------
+    def _on_row_click(self, event):
+        comps = self.s.data.components if self.s.data is not None else []
+        row = getattr(event, "row", None)
+        if row is not None and 0 <= row < len(comps):
+            comp = comps[row]
+            next_tick(lambda: self._show_focus(comp))
+
+    def _show_focus(self, comp=None):
+        """Draw the Zijderveld diagram of ``comp``'s specimen with that fit singled out."""
+        s = self.s
+        if comp is not None:
+            self.focus = comp
+        if self.focus is None or self.focus not in s.data.components:
+            self.focus = s.current if s.current in s.data.components else None
+        if self.focus is None:
+            self.zij_caption.object = f'<div style="{MUTED_STYLE}">click a row to see its fit here</div>'
+            return
+        comp = self.focus
+        spec = s.data.specimens[comp.specimen]
+        coord = s.data.best_coord(comp.specimen, s.coord)
+        fits = s.fits(comp.specimen, coord)
+        res = s.data.fit(comp, coord)
+        fit_dec = res.dir_dec if res is not None and res.direction_type == "l" else None
+        rotation = dc.projection_rotation(spec, coord, s.projection, fit_dec)
+        self.zij.update(spec, fits, coord, rotation, -1, s.projection, current=comp)
+        labels = spec.steps["label"]
+        stats = (f" · dec {_fmt(res.dir_dec)} inc {_fmt(res.dir_inc)} · MAD {_fmt(res.dir_mad_free)} · n "
+                 f"{res.dir_n_measurements}") if res is not None else ""
+        color = s.color_of(comp.name)
+        self.zij_caption.object = (f'<div style="font-size:0.9rem"><b>{html.escape(comp.specimen)}</b> · '
+                                   f'<span style="color:{color};font-weight:700">{html.escape(comp.name)}</span> '
+                                   f'{labels[comp.imin]} – {labels[comp.imax]}'
+                                   f'<span style="{MUTED_STYLE}">{stats} · {dc.COORD_NAMES[coord]}</span></div>')
+
+    # --- batch editing -----------------------------------------------------------
+    def _bound(self, widget):
+        label = widget.value
+        return self._steps.get(label) if label else None
+
+    def _report(self, verb, n, skipped):
+        parts = [f"{verb} {n} fit{'s' if n != 1 else ''}"]
+        if skipped:
+            shown = "; ".join(html.escape(x) for x in skipped[:6]) + (" …" if len(skipped) > 6 else "")
+            parts.append(f'<span style="color:#b45309">{len(skipped)} skipped: {shown}</span>')
+        self.batch_note.object = f'<div style="{MUTED_STYLE}">{" · ".join(parts)}</div>'
+
+    def _apply_batch(self, event=None):
+        sel = self._selected()
+        if not sel:
+            self.batch_note.object = f'<div style="color:#b45309">tick the fits to change first</div>'
+            return
+        n, skipped = self.s.edit_components(sel, name=self.batch_name.value, fit_type=self.batch_type.value or None,
+                                            lower=self._bound(self.batch_lower), upper=self._bound(self.batch_upper))
+        self._report("changed", n, skipped)
+
+    def _add_batch(self, event=None):
+        sel = self._selected()
+        if not sel:
+            self.batch_note.object = f'<div style="color:#b45309">tick a fit of each specimen to add to first</div>'
+            return
+        name = self.batch_name.value.strip() or self.s.next_fit_name(sel[0].specimen)
+        n, skipped = self.s.add_fit_to([c.specimen for c in sel], name, self.batch_type.value or "DE-BFL",
+                                       lower=self._bound(self.batch_lower), upper=self._bound(self.batch_upper))
+        self._report(f"added {self.s.known_name(name)} as", n, skipped)
 
     def _delete(self, event=None):
         self.s.delete_components(self._selected())
@@ -1165,16 +1500,34 @@ class InterpretationsView(LazyView):
                                    f'<b>{info["interpreted"]}</b> of {info["specimens"]} specimens interpreted',
                                    f'<b>{info["sites"]}</b> sites'])
         self._sync_pickers(info["components"])
+        self._steps = s.treatment_steps()
+        options = {"keep": "", **{label: label for label in self._steps}}
+        for w in (self.batch_lower, self.batch_upper):
+            if w.options != options:
+                value = w.value
+                w.options = options
+                w.value = value if value in options.values() else ""
         self._redraw_plot()
+        self._show_focus()
 
     def sidebar(self):
         return pn.Column(section("Fits plotted · tick rows or filter the table"),
-                         plot_box(self.plot.fig, SIDE_PLOT), self.plot_note)
+                         plot_box(self.plot.fig, SIDE_PLOT), self.plot_note,
+                         section("Orthogonal plot · click a row of the table"), self.zij_caption,
+                         pn.pane.Bokeh(self.zij.fig, margin=(0, 0, 0, 5)))
 
     def panel(self):
+        batch = pn.Column(
+            pn.Row(section("Batch edit · the ticked fits"),
+                   pn.pane.HTML(f'<span style="{MUTED_STYLE}">a field left at "keep" is not changed · each '
+                                "specimen takes the step of the chosen treatment, or the nearest one</span>",
+                                margin=(4, 0, 0, 10)), margin=(4, 0, 0, 5)),
+            pn.Row(self.batch_name, self.batch_type, self.batch_lower, self.batch_upper, self.apply_btn,
+                   self.add_to_btn),
+            self.batch_note, margin=0)
         return pn.Column(pn.Row(self.summary, self.colors_row),
                          pn.Row(self.goto_btn, self.delete_btn, self.flag_btn, self.copy_site_btn, self.copy_all_btn),
-                         self.table)
+                         batch, self.table)
 
 
 # ===========================================================================

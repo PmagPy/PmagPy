@@ -48,7 +48,14 @@ demagnetization step or a Thellier step *is*, it does not belong here.
   each application maps its `value` onto its own geometry and tells it how
   fast the block grows, `px_per_value` and optionally `width_per_value`),
   `LayoutHold` (lands a batch of layout changes in one pass; see the
-  pitfalls), `Hotkeys` (forwards key presses).
+  pitfalls), `Hotkeys` (forwards key presses), and `TileCanvas` (panels tiled
+  over a fixed area like a tiling window manager's windows: dropped on
+  another panel's middle they swap, on its edge they split it, dividers move
+  on release; it reports each panel's body size in pixels, `sizes`, so the
+  application fits its fixed-size figures to the panels, and `tree` /
+  `arrange()` save and restore a layout). The layout itself is
+  **`tiling.py`** — a binary split tree and its moves, pure Python and
+  tested without a browser.
 * **`ui_checks.py`** — browser checks shared by the applications' Playwright
   suites: `drag_plot_handle()` drags the plot handle and reports, frame by
   frame, whether the plots stood still during the drag, took their new size
@@ -289,6 +296,16 @@ Each of these was found the hard way in Directions; none is obvious.
   Batches nest (only the outermost brackets), and outside a server session
   they are no-ops, so views can be unit-tested without a browser.
   `Workspace` mounts the session's hold, so every page has one.
+* **Free placement is the wrong model for panels of figures.** Panel's
+  `GridStack` was tried first: cards dropped below the others spilled over
+  whatever followed the canvas (the canvas only learnt its new height after
+  the drop), and its row rules, inserted with `insertRule` into a `<style>`
+  inside a shadow root, vanished whenever Bokeh detached a hidden tab, so
+  every card collapsed. `TileCanvas` tiles a fixed area instead and
+  positions its panels itself. Relatedly, figures laid out in a hidden tab
+  have their axes and legends at the origin and are not measured again when
+  shown at the same size, so the canvas asks for a layout whenever it comes
+  into view.
 * **Bokeh measures its views with `getBoundingClientRect()`**, which includes
   CSS transforms, and measures again only when a view's box changes size —
   which adding or removing a transform does not do. A figure laid out while an
