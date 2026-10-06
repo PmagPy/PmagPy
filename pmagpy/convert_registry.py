@@ -672,8 +672,35 @@ OR_CON = Field("or_con", "choice", "Orientation convention", "How the file's azi
                default="3", choices=(("1", "azimuth; dip = −hade"), ("2", "strike; dip = −hade"),
                                      ("3", "azimuth; dip = 90 − hade"), ("4", "azimuth and dip as given"),
                                      ("5", "azimuth; dip = dip − 90"), ("6", "azimuth − 90; dip = 90 − hade")))
-GMETHS = Field("gmeths", "text", "Sampling method codes", "Colon-delimited: FS-FD, FS-H, SO-POM, SO-ASC, SO-MAG, SO-SUN …",
-               default="FS-FD:SO-POM")
+# MagIC's controlled vocabulary for how samples were taken (FS-) and oriented (SO-), as the
+# forms offer them to choose from rather than to type (method_codes.json has the full list)
+ORIENTATION_CODES = (
+    ("SO-MAG", "SO-MAG · magnetic compass"), ("SO-SUN", "SO-SUN · sun compass"),
+    ("SO-SM", "SO-SM · magnetic and/or sun compass"), ("SO-SIGHT", "SO-SIGHT · sighting"),
+    ("SO-SIGHT-AZ", "SO-SIGHT-AZ · sighting: azimuth"), ("SO-SIGHT-BACK", "SO-SIGHT-BACK · backsighting"),
+    ("SO-SIGHT-GF", "SO-SIGHT-GF · sighting: geographic feature"), ("SO-SIGHT-LM", "SO-SIGHT-LM · sighting: landmark"),
+    ("SO-GPS-DIFF", "SO-GPS-DIFF · differential GPS"), ("SO-POM", "SO-POM · Pomeroy orientation device"),
+    ("SO-CO", "SO-CO · cap-oriented (plaster or similar)"), ("SO-INCL", "SO-INCL · inclinometer"),
+    ("SO-V", "SO-V · vertical orientation only (e.g. drill core)"),
+    ("SO-CMD-NORTH", "SO-CMD-NORTH · declination corrected to true north"),
+    ("SO-CMD-ZERO", "SO-CMD-ZERO · declination correction of zero"),
+    ("SO-GT5", "SO-GT5 · orientation uncertainty over 5°"), ("SO-REC", "SO-REC · from corrected and uncorrected data"),
+    ("SO-ASO", "SO-ASO · acoustic scanning in drill holes"), ("SO-DML", "SO-DML · deep matter logging in drill holes"),
+    ("SO-TENSOR", "SO-TENSOR · tensor tool"), ("SO-NO", "SO-NO · unknown orientation method"),
+)
+SAMPLING_CODES = (
+    ("FS-FD", "FS-FD · field drilling (hand-held drill)"), ("FS-H", "FS-H · hand sample"),
+    ("FS-C", "FS-C · coring"), ("FS-C-DRILL", "FS-C-DRILL · coring: drilling"),
+    ("FS-C-PISTON", "FS-C-PISTON · coring: piston"), ("FS-C-GRAV", "FS-C-GRAV · coring: gravity"),
+    ("FS-C-BOX", "FS-C-BOX · coring: box"), ("FS-C-PUSH", "FS-C-PUSH · coring: push"),
+    ("FS-C-ROT", "FS-C-ROT · coring: rotary"), ("FS-C-VIBRA", "FS-C-VIBRA · coring: vibra"),
+    ("FS-D", "FS-D · dredging"), ("FS-AT", "FS-AT · adhesive tape"), ("FS-SS-C", "FS-SS-C · cubed subsample of core"),
+    ("FS-LOC-GPS", "FS-LOC-GPS · location by GPS"), ("FS-LOC-MAP", "FS-LOC-MAP · location from a map"),
+    ("FS-LOC-GOOGLE", "FS-LOC-GOOGLE · location from Google Maps/Earth"),
+    ("FS-LOC-GIS", "FS-LOC-GIS · location from GIS"), ("FS-LOC-UTM", "FS-LOC-UTM · location from UTM"),
+) + ORIENTATION_CODES
+GMETHS = Field("gmeths", "codes", "Sampling method codes", "How the samples were taken (FS-) and oriented (SO-).",
+               default="FS-FD:SO-POM", choices=SAMPLING_CODES)
 SAVELAST = Field("savelast", "bool", "Keep only the last replicate", "Instead of averaging repeated steps.", default=False)
 
 
@@ -722,9 +749,10 @@ _add(Format(
             # is a remeasurement worth keeping; Pmag GUI's CIT dialog also keeps them
             Field("noave", "bool", "Replicate measurements", NOAVE.help, default=True, choices=REPLICATES),
             USER,
-            Field("methods", "text", "Orientation method codes",
-                  "Colon-delimited, e.g. SO-MAG:SO-SUN. A specimen file whose first line says \"sun compass\" turns "
-                  "SO-MAG into SO-SUN; SO-CMD-NORTH is added when a declination correction applies.", default="SO-MAG"),
+            Field("methods", "codes", "Orientation method codes",
+                  "How the samples were oriented. A specimen file whose first line says \"sun compass\" turns "
+                  "SO-MAG into SO-SUN; SO-CMD-NORTH is added when a declination correction applies.", default="SO-MAG",
+                  choices=ORIENTATION_CODES),
             Field("meas_n_orient", "int", "Orientations per measurement", "Number of positions the specimen was measured in.",
                   default=8),
             Field("norm", "choice", "Normalization", "Units of the volume or mass in the specimen files "
@@ -1059,7 +1087,7 @@ def _azdip_naming(values: dict) -> dict:
 _add(Format(
     "orient", "Orientation file (field notebook)", Deferred("pmagpy.ipmag", "orientation_magic"),
     fields=(ORIENT_CON, DEC_CORRECTION_CON, DEC_CORRECTION, BED_CORRECTION, SAMP_CON, HOURS_FROM_GMT,
-            Field("gmeths", "text", "Sampling method codes", GMETHS.help, default="FS-FD:SO-POM"),
+            GMETHS,
             AVERAGE_BEDDING),
     kwargs={"gmeths": "method_codes"},
     file_kw="orient_file", output_dir_kw="output_dir_path",
@@ -1073,7 +1101,8 @@ _add(Format(
 
 _add(Format(
     "azdip", "AzDip file", Deferred("pmagpy.ipmag", "azdip_magic"),
-    fields=(LOCATION, SAMP_CON, Field("gmeths", "text", "Sampling method codes", GMETHS.help, default="FS-FD")),
+    fields=(LOCATION, SAMP_CON, Field("gmeths", "codes", "Sampling method codes", GMETHS.help, default="FS-FD",
+                                      choices=SAMPLING_CODES)),
     kwargs={"location": "location_name", "gmeths": "method_codes"},
     file_kw="orient_file", input_dir_kw="input_dir", output_dir_kw="output_dir",
     outputs={"samples": "samp_file"},

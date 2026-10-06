@@ -215,5 +215,7 @@ class ConvertView:
             self.form.panel(),
             pn.Row(self.run_btn, self.append, sizing_mode="stretch_width", margin=(8, 0, 0, 0)),
             self.message, self.log,
-            sizing_mode="stretch_width", max_width=1100, margin=(18, 40, 40, 40),
+            # room under the form for an open pick-list (protocols, orientation codes): the page
+            # would otherwise end just below it and cut the list off
+            sizing_mode="stretch_width", max_width=1100, min_height=720, margin=(18, 40, 40, 40),
         )

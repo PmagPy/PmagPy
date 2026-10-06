@@ -86,7 +86,12 @@ class Form:
         if f.kind == "codes":
             options = {label: value for value, label in f.choices}
             chosen = list(start) if isinstance(start, (list, tuple)) else ([c for c in str(start).split(":") if c] if start else [])
-            return pn.widgets.MultiChoice(options=options, value=chosen, placeholder="choose every protocol in the file", **kw)
+            # a code remembered from an earlier conversion that the list does not offer is offered too
+            for code in chosen:
+                if code not in options.values():
+                    options[code] = code
+            hint = "choose every protocol in the file" if f.name == "codelist" else "choose every code that applies"
+            return pn.widgets.MultiChoice(options=options, value=chosen, placeholder=hint, **kw)
         if f.kind == "naming":
             # the select shows the pattern; the full wording of every convention is the tooltip
             options = {f"{code} · {label.split(' — ')[0]}": code for code, label in NAMING_CONVENTIONS}

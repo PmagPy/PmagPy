@@ -482,7 +482,7 @@ class TestConvert:
         assert view.format.value == "orient" and view.fmt.label.startswith("Orientation file")
         assert view.files.options == ["notes.txt", "orient_example.txt"] and view.files.value == ["orient_example.txt"]
         assert {"or_con", "dec_correction_con", "samp_con", "gmeths"} <= set(view.form.widgets)
-        view.form.widgets["gmeths"].value = "FS-FD"
+        view.form.widgets["gmeths"].value = ["FS-FD"]                   # chosen from the list, not typed
         assert asyncio.run(view._convert()) is True
         assert "24 samples · 2 sites" in view.message.object
         counts = session.inventory.counts                              # unique names: 8 samples in 24 orientation rows
