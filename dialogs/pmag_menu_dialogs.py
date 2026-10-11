@@ -2175,6 +2175,7 @@ class Ani_depthplot(wx.Frame):
         pw.on_add_file_button(self.bSizer2, text)
 
     def on_sample_or_age(self, event):
+        self.bSizer2.file_path.SetValue('')  # Clear the previous
         if event.GetId() == self.bSizer2a.rb1.GetId():
             self.bSizer2.add_file_button.SetLabel('add samples file')
             self.check_and_add_file(os.path.join(self.WD, 'samples.txt'), self.bSizer2.file_path)
