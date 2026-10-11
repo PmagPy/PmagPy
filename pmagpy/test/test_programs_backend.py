@@ -168,7 +168,7 @@ class TestProgramEnvsFromCommandLine:
 
     programs/__init__.py reads the program name from sys.argv[0] and asks for
     the backend in prog_env before the module itself runs, so the module's
-    own request (e.g. WXAgg in ani_depthplot2 or tdt_magic) is not a no-op
+    own request (e.g. WXAgg in ani_depthplot or tdt_magic) is not a no-op
     behind an earlier TKAgg choice.
     """
 

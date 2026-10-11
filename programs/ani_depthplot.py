@@ -29,10 +29,10 @@ def main():
 
     OPTIONS
         -h prints help message and quits
-        -f FILE: specify input rmag_anisotropy format file from magic (MagIC 2 only)
+        -f FILE: ignored (formerly the MagIC 2 rmag_anisotropy file)
         -fb FILE: specify input measurements format file from magic
         -fsa FILE: specify input sample format file from magic
-        -fsp FILE: specify input specimen file (MagIC 3 only)
+        -fsp FILE: specify input specimen file
         -fsum FILE : specify input LIMS database (IODP) core summary csv file
                 to print the core names, set lab to 1
         -fa FILE: specify input ages format file from magic
@@ -40,6 +40,8 @@ def main():
         -ds [mcd,mbsf], specify depth scale, default is mbsf (core depth)
         -sav save plot without review
         -fmt specfiy format for figures - default is svg
+        -DM DATA_MODEL: MagIC Data Model 3 is the only supported model;
+            convert Data Model 2 files to Data Model 3 first
      DEFAULTS:
          Anisotropy file: specimens.txt
          Bulk susceptibility file: measurements.txt
@@ -51,9 +53,10 @@ def main():
     if '-h' in args:
         print(main.__doc__)
         sys.exit()
-    dataframe = extractor.command_line_dataframe([['f', False, 'rmag_anisotropy.txt'],
-                                                  ['fb', False, 'magic_measurements.txt'],
-                                                  ['fsa', False, 'er_samples.txt'],
+    # 'f' is required in the extractor's default table, so it stays listed as optional
+    dataframe = extractor.command_line_dataframe([['f', False, ''],
+                                                  ['fb', False, 'measurements.txt'],
+                                                  ['fsa', False, 'samples.txt'],
                                                   ['fa', False, None], ['fsum', False, None],
                                                   ['fmt', False, 'svg'], ['ds', False, 'mbsf'],
                                                   ['d', False, '-1 -1'], ['sav', False, False],
@@ -61,7 +64,13 @@ def main():
                                                   ['fsp', False, 'specimens.txt']])
         #args = sys.argv
     checked_args = extractor.extract_and_check_args(args, dataframe)
-    ani_file, meas_file, samp_file, age_file, sum_file, fmt, depth_scale, depth, save_quietly, dir_path, data_model, spec_file = extractor.get_vars(['f', 'fb', 'fsa', 'fa', 'fsum', 'fmt', 'ds', 'd', 'sav', 'WD', 'DM', 'fsp'], checked_args)
+    meas_file, samp_file, age_file, sum_file, fmt, depth_scale, depth, save_quietly, dir_path, data_model, spec_file = extractor.get_vars(['fb', 'fsa', 'fa', 'fsum', 'fmt', 'ds', 'd', 'sav', 'WD', 'DM', 'fsp'], checked_args)
+
+    if int(float(data_model)) != 3:
+        raise SystemExit(
+            "-E- ani_depthplot supports MagIC Data Model 3 only. "
+            "Convert Data Model 2 files to Data Model 3 before plotting."
+        )
 
     # format min/max depth
     try:
@@ -83,19 +92,9 @@ def main():
         elif 'mcd' in depth_scale:
             depth_scale = 'sample_composite_depth'
 
-    data_model = int(float(data_model))
-    # MagIC 2
-    if data_model == 2:
-        fig, figname = ipmag.ani_depthplot2(ani_file, meas_file, samp_file, age_file, sum_file, fmt, dmin, dmax, depth_scale, dir_path)
-    # MagIC 3
-    else:
-        if meas_file == "magic_measurements.txt":
-            meas_file = 'measurements.txt'
-        if samp_file in ['er_samples.txt', 'pmag_samples.txt']:
-            samp_file = "samples.txt"
-        site_file = 'sites.txt'
-        fig, fignames = ipmag.ani_depthplot(spec_file, samp_file, meas_file, site_file, age_file, sum_file, fmt, dmin, dmax, depth_scale, dir_path)
-        figname = fignames[0]
+    site_file = 'sites.txt'
+    fig, fignames = ipmag.ani_depthplot(spec_file, samp_file, meas_file, site_file, age_file, sum_file, fmt, dmin, dmax, depth_scale, dir_path)
+    figname = fignames[0]
     if save_quietly:
         if dir_path == '.':
             dir_path = os.getcwd()
