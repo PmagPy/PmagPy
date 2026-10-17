@@ -5641,9 +5641,10 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
         DataFrame with hysteresis results including 'specimen' and
         'experiment' columns, as output from rmag.process_hyst_loops.
         Has a numeric index (one row per experiment). The 'magn_unit'
-        column selects the MagIC columns that receive Ms and Mr:
-        Am²/kg -> hyst_ms_mass/hyst_mr_mass, A/m -> hyst_ms_volume/
-        hyst_mr_volume, Am² -> hyst_ms_moment/hyst_mr_moment. Results
+        column selects the MagIC columns that receive Ms, Mr and chi_HF:
+        Am²/kg -> hyst_ms_mass/hyst_mr_mass/hyst_xhf_mass (m³/kg),
+        A/m -> hyst_ms_volume/hyst_mr_volume/hyst_xhf_volume (SI),
+        Am² -> hyst_ms_moment/hyst_mr_moment/hyst_xhf (m³). Results
         without this column (written by earlier versions) are taken to be
         mass-normalized.
     overwrite : bool, optional
@@ -5677,13 +5678,11 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
 
     specimens_df = specimens_df.copy()
 
-    # the MagIC columns for Ms and Mr depend on the magnetization unit of
-    # each result row (see _MAGN_UNIT_MAGIC_SUFFIX); Bc is always in tesla.
-    # hyst_xhf is the only high-field slope column MagIC provides and is
-    # declared in m^3 (moment-based); there is no normalized alternative, so
-    # chi_HF is written to it in the susceptibility unit that matches the
-    # processed magnetization (m³/kg for mass-normalized data) and the unit
-    # is recorded alongside the other stats in the description payload.
+    # the MagIC columns for Ms, Mr and chi_HF depend on the magnetization
+    # unit of each result row (see _MAGN_UNIT_MAGIC_SUFFIX); Bc is always in
+    # tesla. The data model holds the high-field susceptibility in
+    # hyst_xhf_mass (m³/kg), hyst_xhf_volume (SI) and hyst_xhf (m³,
+    # moment-based), matching the units of _HYST_CHI_UNITS.
     hyst_results = hyst_results.copy()
     if 'magn_unit' not in hyst_results.columns:
         hyst_results['magn_unit'] = _DEFAULT_MAGN_UNIT
@@ -5698,7 +5697,9 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
 
     def magic_columns(magn_unit):
         suffix = _MAGN_UNIT_MAGIC_SUFFIX[magn_unit]
-        return [f'hyst_ms_{suffix}', f'hyst_mr_{suffix}', 'hyst_bc', 'hyst_xhf']
+        # the moment-based susceptibility column carries no suffix
+        xhf_col = 'hyst_xhf' if suffix == 'moment' else f'hyst_xhf_{suffix}'
+        return [f'hyst_ms_{suffix}', f'hyst_mr_{suffix}', 'hyst_bc', xhf_col]
 
     result_keys_MagIC = ['Ms', 'Mr', 'Bc', 'chi_HF']
     MagIC_columns = sorted({col for unit in set(hyst_results['magn_unit'])
