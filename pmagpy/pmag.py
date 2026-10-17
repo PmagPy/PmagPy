@@ -9801,7 +9801,7 @@ def doigrf(lon, lat, alt, date, **kwargs):
             incr = 50
         elif kwargs['mod'] == 'shawq2k' or kwargs['mod']=='shawqIA':
             incr = 25
-        elif kwargs['mod']=='ggk100k':
+        elif kwargs['mod']=='ggf100k':
             incr = 200
         else:
             incr = 10
