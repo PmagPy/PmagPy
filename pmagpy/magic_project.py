@@ -266,7 +266,17 @@ def data_model(offline: bool = True):
                 set_env.OFFLINE = True
             except ImportError:  # pragma: no cover
                 pass
-        _DATA_MODEL[offline] = data_model3.DataModel(offline=offline)
+        if offline and len(data_model3.DM):
+            # DataModel() hands back whichever model this process loaded first, and
+            # that may be EarthRef's current one (a converter, a notebook): build the
+            # bundled one here, whose column order and requirements the editors and
+            # writers are made for
+            model = data_model3.DataModel.__new__(data_model3.DataModel)
+            model.offline = True
+            model.dm, model.crit_map = model.parse_cache(model.get_dm_offline())
+            _DATA_MODEL[offline] = model
+        else:
+            _DATA_MODEL[offline] = data_model3.DataModel(offline=offline)
     return _DATA_MODEL[offline]
 
 

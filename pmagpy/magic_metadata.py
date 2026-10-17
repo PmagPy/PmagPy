@@ -34,6 +34,8 @@ from pmagpy import magic_project as mp
 TABLES = ("locations", "sites", "samples", "specimens", "ages", "criteria")
 #: the name column of each table (ages has none: a row names whichever level it dates)
 NAME_COLUMN = {"locations": "location", "sites": "site", "samples": "sample", "specimens": "specimen"}
+#: a criteria row reads as a sentence in this order: DE-SPEC  specimens.dir_mad_free  <=  5
+CRITERION_SENTENCE = ("criterion", "table_column", "criterion_operation", "criterion_value")
 #: the table above each, whose name a row carries
 PARENT = {"sites": "locations", "samples": "sites", "specimens": "samples"}
 #: the table below each, whose rows name this table's members
@@ -166,8 +168,10 @@ def order_columns(table: str, present: Iterable[str]) -> List[str]:
     every other column present, all in data-model order. Columns the model
     does not know (an application's own, a converter's leftover) come last so
     they are not lost on saving. The ages table leads with the four level
-    names; criteria follow the model's order, which already reads as a
-    sentence (criterion, table_column, operation, value).
+    names; criteria lead with the four columns that read as a sentence
+    (criterion, table_column, operation, value), whichever version of the
+    data model is loaded -- the bundled one lists them in that order,
+    EarthRef's current one does not.
     """
     present = list(present)
     model = columns(table)
@@ -176,6 +180,8 @@ def order_columns(table: str, present: Iterable[str]) -> List[str]:
         lead = [NAME_COLUMN[table]] + ([NAME_COLUMN[PARENT[table]]] if table in PARENT else [])
     elif table == "ages":
         lead = list(LEVELS)                      # a row names whichever level it dates
+    elif table == "criteria":
+        lead = list(CRITERION_SENTENCE)
     else:
         lead = []
     lead = [c for c in lead if c in model]

@@ -170,3 +170,16 @@ def test_live_the_smallest_group_contribution_downloads_and_unpacks(tmp_path):
     assert ref.id == 20549 and ref.doi == "10.1029/2025TC009333"
     assert os.path.exists(tmp_path / "measurements.txt")
     assert mp.find_contributions("10.1029/2025TC009333")[0].id == 20549
+
+
+def test_the_offline_data_model_is_the_bundled_one_whatever_was_loaded_first(monkeypatch):
+    """data_model3 keeps the first model a process loads; an online one loaded earlier
+    (a converter, contribution_builder) must not become the applications' offline model."""
+    from pmagpy import data_model3
+    bundled = mp.data_model(True)
+    other = {table: frame.iloc[::-1] for table, frame in bundled.dm.items()}       # a stand-in for EarthRef's model
+    monkeypatch.setattr(data_model3, "DM", other)
+    monkeypatch.setattr(mp, "_DATA_MODEL", {})
+    model = mp.data_model(True)
+    assert list(model.dm["criteria"].index) == list(bundled.dm["criteria"].index)
+    assert data_model3.DM is other                                                  # the shared one is left alone
