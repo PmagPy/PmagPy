@@ -324,7 +324,8 @@ def backup_once(directory: str, table: str) -> Optional[str]:
     return dst
 
 
-def save_table(directory: str, table: str, df: pd.DataFrame, backup: bool = True) -> str:
+def save_table(directory: str, table: str, df: pd.DataFrame, backup: bool = True,
+               warnings: Optional[list] = None) -> str:
     """Write the edited frame as ``<table>.txt``.
 
     Cells are written as typed; columns with nothing in them are left out of
@@ -358,7 +359,7 @@ def save_table(directory: str, table: str, df: pd.DataFrame, backup: bool = True
         if os.path.exists(path):
             os.remove(path)
         return path
-    mp.magic_write(path, out.reset_index(drop=True), table)
+    mp.magic_write(path, out.reset_index(drop=True), table, warnings)
     return path
 
 

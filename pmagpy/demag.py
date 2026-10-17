@@ -1908,7 +1908,7 @@ class DemagData:
         if len(df) == 0:
             return None
         return mp.magic_write(os.path.join(dir_path, os.path.basename(custom_name or "specimens.txt")), df,
-                              "specimens")
+                              "specimens", self.warnings)
 
     def write_measurements(self, dir_path: str, custom_name: str = "measurements.txt",
                            source: Optional[str] = None) -> Optional[str]:
@@ -1940,7 +1940,7 @@ class DemagData:
         col = df.columns.get_loc("quality")
         for spec in self.specimens.values():
             df.iloc[spec.steps["meas_pos"].values, col] = spec.steps["quality"].values
-        return mp.magic_write(target, df, "measurements")
+        return mp.magic_write(target, df, "measurements", self.warnings)
 
     def flags_written(self) -> None:
         """The study's own measurements.txt now has this session's flags (after an export into it)."""
@@ -2033,7 +2033,7 @@ class DemagData:
         if len(df) == 0:
             return None
         return mp.magic_write(os.path.join(dir_path, os.path.basename(custom_name or level + "s.txt")), df,
-                              level + "s")
+                              level + "s", self.warnings)
 
     def locations_table(self, coord: Optional[int] = None, over: str = "sites",
                         analysts: Optional[str] = None, common_polarity: bool = True,
@@ -2155,7 +2155,7 @@ class DemagData:
         if len(df) == 0:
             return None
         return mp.magic_write(os.path.join(dir_path, os.path.basename(custom_name or "locations.txt")), df,
-                              "locations")
+                              "locations", self.warnings)
 
     # ----- persistence of the interpretation state -------------------------
     SESSION_FORMAT = "pmagpy_directions_session"

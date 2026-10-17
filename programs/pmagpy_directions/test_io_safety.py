@@ -160,6 +160,20 @@ class TestRemeasuredSteps:
         assert not data.warnings
 
 
+class TestWhatTheWriterSays:
+    def test_a_value_with_a_line_break_is_named_in_the_exports_messages(self, tmp_path):
+        src = copy_study(tmp_path / "s")
+        s = Session(src)
+        table = s.data.merged_specimens_table
+        def with_a_break(*args, **kwargs):
+            df = table(*args, **kwargs)
+            df.loc[df.index[0], "description"] = "first line\nsecond line"
+            return df
+        s.data.merged_specimens_table = with_a_break
+        s.export_tables()
+        assert any("holds a tab or a line break" in w for w in s.data.warnings)
+
+
 class TestEditsOnDisk:
     def test_a_table_changed_on_disk_is_read_again(self, tmp_path):
         src = copy_study(tmp_path / "s")

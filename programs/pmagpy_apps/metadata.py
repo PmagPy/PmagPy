@@ -462,15 +462,16 @@ class MetadataView:
     def save(self) -> bool:
         """Write the table, reload the session so Home's gaps follow, and keep the grid as saved."""
         df = self.current()
+        notes = []
         try:
-            mm.save_table(self.s.directory, self.table, df)
+            mm.save_table(self.s.directory, self.table, df, warnings=notes)
         except (OSError, ValueError) as err:
             self._say(f"Not saved: {html.escape(str(err))}", FAIL_COLOR)
             return False
         self.s.load(self.s.directory)     # also calls refresh() through the watcher, which re-reads the table
         self.dirty = False
-        self._say(f"{self.table}.txt written" + (f" · original kept in {mm.BACKUP_DIR}/" if mm.backup_exists(self.s.directory, self.table) else ""),
-                  OK_COLOR)
+        self._say(f"{self.table}.txt written" + (f" · original kept in {mm.BACKUP_DIR}/" if mm.backup_exists(self.s.directory, self.table) else "")
+                  + "".join(f"<br>{html.escape(n)}" for n in notes), OK_COLOR)
         self.home_btn.button_type = "primary"
         return True
 

@@ -2279,7 +2279,7 @@ class PintData:
                 return written
             self.warnings.append(f"{os.path.basename(source)} no longer has the rows it had when the study was "
                                  "opened; the measurements table was written in full")
-        return mp.magic_write(target, self.measurements_table(), "measurements")
+        return mp.magic_write(target, self.measurements_table(), "measurements", self.project.warnings)
 
     def flags_written(self) -> None:
         """The study's own measurements.txt now has this session's flags (after an export into it)."""

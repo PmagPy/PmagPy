@@ -815,7 +815,7 @@ class MagicProject:
         name = custom_name or (table + ".txt")
         os.makedirs(dir_path, exist_ok=True)
         path = os.path.join(dir_path, name)
-        magic_write(path, df, table)
+        magic_write(path, df, table, self.warnings)
         return path
 
 
