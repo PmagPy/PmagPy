@@ -38,6 +38,8 @@ def main():
         Orientation convention:
              Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip
                 e.g. field_dip is degrees from horizontal of drill direction
+        Bedding convention:
+             strike and dip with the right-hand rule (bed_dip_direction = strike + 90)
 
          Magnetic declination convention:
              Az is already corrected in file

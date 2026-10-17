@@ -195,10 +195,10 @@ def specimen_figure(spec: dc.SpecimenData, fits: Iterable[FitTriple], coord: int
             p0 = np.array([seg["x"][0], seg[ycol][0]])
             p1 = np.array([seg["x"][1], seg[ycol][1]])
             # the arrow shows the component's direction: the vector removed between the
-            # bounds, which points *away* from the origin (a common student misconception
-            # is that the fitted line points in toward the origin)
-            if np.hypot(*p0) > np.hypot(*p1):
-                p0, p1 = p1, p0
+            # bounds (first step minus last step), which runs from row 0 to row 1 of the
+            # segment. It usually points away from the origin (a common student
+            # misconception is that the fitted line points in toward it), but not always
+            # in both projections, so it is never inferred from distances to the origin
             ax.plot([p0[0], p1[0]], [p0[1], p1[1]], color=color, lw=7, alpha=0.30, solid_capstyle="butt", zorder=2)
             ax.add_patch(FancyArrowPatch(p0, p1, arrowstyle="-|>", mutation_scale=13, color=color, lw=1.8,
                                          zorder=2.5, shrinkA=0, shrinkB=0))

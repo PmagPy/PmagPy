@@ -20,6 +20,7 @@ import numpy as np
 import panel as pn
 
 from .theme import MUTED_STYLE
+from .widgets import LayoutHold
 
 HEADER = "# written by {app} — the calls that made {what}"
 
@@ -111,7 +112,8 @@ class CodePane:
         self.visible = visible
 
     def _on_toggle(self, event) -> None:
-        self.code.visible = self.copy_note.visible = bool(event.new)
+        with LayoutHold.batch():
+            self.code.visible = self.copy_note.visible = bool(event.new)
 
     def set(self, lines: Iterable[str] | str) -> None:
         """Replace the script with `lines` (a string, or lines to join)."""

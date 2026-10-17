@@ -28,6 +28,7 @@ import panel as pn
 
 from pmagpy import magic_metadata as mm
 from pmagpy_panel.theme import MUTED_STYLE
+from pmagpy_panel.widgets import LayoutHold
 from .home import CSS, fmt, shorten_home
 
 FAIL_COLOR = "#c0392b"
@@ -231,34 +232,35 @@ class MetadataView:
 
     def show(self, table: str) -> None:
         """Read ``table`` into the grid."""
-        self.table = table
-        if self.tables.value != table:
-            self.tables.value = table
-        self.frame = mm.editor_frame(self.s.directory, table)
-        self.findings = []
-        self.dirty = False
-        self._load_grid(self.frame.df)
-        self._describe()
-        self.help.object = column_help_html(table, mm.NAME_COLUMN.get(table, "criterion" if table == "criteria" else "location"))
-        self.findings_pane.object = ""
-        self.message.object = ""
-        self.bounds_btn.visible = table == "locations"
-        self.ages_btn.visible = table in mm.AGED_TABLES
-        self.ages_btn.description = ("Undated sites take their row in ages.txt, else their location's age" if table == "sites"
-                                     else "Undated locations take their row in ages.txt, else the age span of their sites")
-        self.defaults_btn.visible = table == "criteria"
-        down = table in mm.PARENT
-        self.parent_fill.visible = self.parent_btn.visible = down
-        if down:
-            parent = mm.read_table(self.s.directory, mm.PARENT[table])
-            pkey = mm.NAME_COLUMN[mm.PARENT[table]]
-            self.parent_fill.options = [c for c in (parent.columns if parent is not None else [])
-                                        if c != pkey and c in mm.columns(table) and mm.column(table, c).group in
-                                        ("Geography", "Geology", "Age", "Result") and (parent[c].astype(str).str.strip() != "").any()]
-            self.parent_fill.value = []
-        shown = set(self.frame.df.columns)
-        self.add_cols.options = {f"{c.name} — {c.label}": c.name for c in mm.columns(table).values() if c.name not in shown}
-        self.add_cols.value = []
+        with LayoutHold.batch():        # grid, help, five button visibilities: one layout
+            self.table = table
+            if self.tables.value != table:
+                self.tables.value = table
+            self.frame = mm.editor_frame(self.s.directory, table)
+            self.findings = []
+            self.dirty = False
+            self._load_grid(self.frame.df)
+            self._describe()
+            self.help.object = column_help_html(table, mm.NAME_COLUMN.get(table, "criterion" if table == "criteria" else "location"))
+            self.findings_pane.object = ""
+            self.message.object = ""
+            self.bounds_btn.visible = table == "locations"
+            self.ages_btn.visible = table in mm.AGED_TABLES
+            self.ages_btn.description = ("Undated sites take their row in ages.txt, else their location's age" if table == "sites"
+                                         else "Undated locations take their row in ages.txt, else the age span of their sites")
+            self.defaults_btn.visible = table == "criteria"
+            down = table in mm.PARENT
+            self.parent_fill.visible = self.parent_btn.visible = down
+            if down:
+                parent = mm.read_table(self.s.directory, mm.PARENT[table])
+                pkey = mm.NAME_COLUMN[mm.PARENT[table]]
+                self.parent_fill.options = [c for c in (parent.columns if parent is not None else [])
+                                            if c != pkey and c in mm.columns(table) and mm.column(table, c).group in
+                                            ("Geography", "Geology", "Age", "Result") and (parent[c].astype(str).str.strip() != "").any()]
+                self.parent_fill.value = []
+            shown = set(self.frame.df.columns)
+            self.add_cols.options = {f"{c.name} — {c.label}": c.name for c in mm.columns(table).values() if c.name not in shown}
+            self.add_cols.value = []
 
     def _load_grid(self, df: pd.DataFrame) -> None:
         names = list(df.columns)

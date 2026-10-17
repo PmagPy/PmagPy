@@ -7781,6 +7781,9 @@ def azdip_magic(orient_file='orient.txt', samp_file="samples.txt", samp_con="1",
         Orientation convention:
              Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip
                 e.g. field_dip is degrees from horizontal of drill direction
+        Bedding convention:
+             strike and dip with the right-hand rule: the bed dips to the
+             right of the strike, so bed_dip_direction = strike + 90
         Magnetic declination convention:
              Az is already corrected in file
 
@@ -7840,11 +7843,9 @@ def azdip_magic(orient_file='orient.txt', samp_file="samples.txt", samp_con="1",
         if len(orec) > 2:
             labaz, labdip = pmag.orient(float(orec[1]), float(orec[2]), or_con)
             bed_dip = float(orec[4])
-            if bed_dip != 0:
-                bed_dip_dir = float(orec[3]) - \
-                    90.  # assume dip to right of strike
-            else:
-                bed_dip_dir = float(orec[3])  # assume dip to right of strike
+            # bedding is given as strike and dip; the dip direction follows
+            # the right-hand rule (dip to the right of the strike: strike + 90)
+            bed_dip_dir = (float(orec[3]) + 90.) % 360.
             MagRec = {}
             MagRec["er_location_name"] = location_name
             MagRec["er_citation_names"] = "This study"

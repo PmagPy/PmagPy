@@ -93,3 +93,24 @@ class TestWidgets:
             values = form.values()
             kwargs = build_kwargs(fmt, values, str(tmp_path / "in.dat"), str(tmp_path))
             assert fmt.output_dir_kw in kwargs, key
+
+
+class TestOrientationCodes:
+    def test_orientation_codes_are_chosen_not_typed(self):
+        """CIT's orientation methods are a pick-list of MagIC's SO- codes, joined with ':' for the converter."""
+        cit = FORMATS["cit"]
+        field = next(f for f in cit.fields if f.name == "methods")
+        form = Form(cit.fields)
+        w = form.widgets["methods"]
+        assert isinstance(w, pn.widgets.MultiChoice) and w.value == ["SO-MAG"]
+        assert all(v.startswith("SO-") for v in w.options.values()) and "SO-SUN" in w.options.values()
+        w.value = ["SO-SUN", "SO-CMD-NORTH"]
+        assert build_kwargs(cit, form.values(), "x.sam", ".", ".")["methods"] == "SO-SUN:SO-CMD-NORTH"
+        # a code remembered from an earlier conversion stays chosen even if the list lacks it
+        again = Form((field,), {"methods": "SO-MAG:SO-XYZ"})
+        assert again.widgets["methods"].value == ["SO-MAG", "SO-XYZ"]
+
+    def test_sampling_codes_are_chosen_not_typed(self):
+        for key in ("orient", "azdip", "2g_bin"):
+            w = Form(FORMATS[key].fields).widgets["gmeths"]
+            assert isinstance(w, pn.widgets.MultiChoice) and w.value and all(v[:3] in ("FS-", "SO-") for v in w.value)
