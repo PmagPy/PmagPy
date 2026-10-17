@@ -84,24 +84,42 @@ class TestDoigrfPaleoModels:
         x, y, z, f = pmag.doigrf(0, 45, 0, 500, mod='arch3k')
         assert 10000 < f < 100000
 
-    def test_ggf100k_epoch_and_last_epoch(self):
-        """ggf100k works on exact epochs, including the final one (1850)."""
-        for date in (-99950, 1650, 1850):
-            _, _, _, f = pmag.doigrf(0, 45, 0, date, mod='ggf100k')
-            assert 10000 < f < 100000
+    def test_ggf100k_coefficients_match_reference(self):
+        """ggf100k Gauss coefficients at year 0 match the reference output
+        (coefs.dat) of the Fortran program distributed with the model."""
+        gh = pmag.doigrf(0, 45, 0, 0, mod='ggf100k', coeffs=True)
+        # g10, g11, h11, g20, g21, h21, g22, h22
+        expected = [-36362.3984571547, -268.004040013219, 251.865983091505,
+                    -513.389974643557, -204.141435965939, 702.245895380846,
+                    19.8362032262578, 363.685173834419]
+        assert_allclose(gh[:8], expected, rtol=1e-9)
 
-    def test_ggf100k_interpolates_between_epochs(self):
-        """ggf100k interpolates between epochs and is continuous at the end."""
-        f_a = pmag.doigrf(0, 45, 0, 1650, mod='ggf100k')[3]
-        f_mid = pmag.doigrf(0, 45, 0, 1750, mod='ggf100k')[3]
-        f_b = pmag.doigrf(0, 45, 0, 1850, mod='ggf100k')[3]
-        assert min(f_a, f_b) <= f_mid <= max(f_a, f_b)
-        f_near_end = pmag.doigrf(0, 45, 0, 1849.99, mod='ggf100k')[3]
-        assert_allclose(f_near_end, f_b, rtol=1e-3)
+    @pytest.mark.parametrize("age_ka, adm", [(40.85, 2.44), (1.5, 9.89),
+                                             (0.0, 8.18)])
+    def test_ggf100k_axial_dipole_moment_matches_paper(self, age_ka, adm):
+        """Axial dipole moments (10^22 Am^2) stated by Panovska et al. (2018):
+        the Laschamp minimum, the maximum, and the value at 0 BP."""
+        date = 1950 - 1000 * age_ka
+        g10 = pmag.doigrf(0, 45, 0, date, mod='ggf100k', coeffs=True)[0]
+        radius = 6371.2e3  # m
+        moment = 1e7 * radius**3 * abs(g10) * 1e-9  # 4 pi a^3 g10 / mu0
+        assert_allclose(moment / 1e22, adm, atol=0.005)
 
-    @pytest.mark.parametrize("date", [-99951, -100000, 1851, 2050])
-    def test_ggf100k_outside_documented_range_raises(self, date):
-        """ggf100k is only defined from -99950 to 1850."""
+    def test_ggf100k_field_varies_smoothly_between_knots(self):
+        """The field is continuous between and across the 200 year knots."""
+        dates = np.arange(1440, 1660, 10)  # spans knots at 1450 and 1650
+        f = [pmag.doigrf(0, 45, 0, date, mod='ggf100k')[3] for date in dates]
+        assert np.max(np.abs(np.diff(f))) < 100  # nT per decade
+
+    @pytest.mark.parametrize("date", [-98050, 1990])
+    def test_ggf100k_range_endpoints_are_valid(self, date):
+        """ggf100k accepts both ends of its valid range."""
+        _, _, _, f = pmag.doigrf(0, 45, 0, date, mod='ggf100k')
+        assert 10000 < f < 100000
+
+    @pytest.mark.parametrize("date", [-98051, -100001, 1991, 2050])
+    def test_ggf100k_outside_valid_range_raises(self, date):
+        """ggf100k is only defined from -98050 to 1990."""
         with pytest.raises(ValueError):
             pmag.doigrf(0, 45, 0, date, mod='ggf100k')
 

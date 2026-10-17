@@ -9689,7 +9689,7 @@ def doigrf(lon, lat, alt, date, **kwargs):
         shadif14k (Pavon-Carrasco et al., 2014)
         shawq2k (Campuzano et al., 2019)
         shawqIA (Osete et al., 2020)
-        ggf100k (Panovska et al., 2018) [in 200 year increments from -99950 to 1850 only]
+        ggf100k (Panovska et al., 2018) [from -98050 to 1990 only]
           NB : the first four of these models, are constrained to agree
                with gufm1 (Jackson et al., 2000) for the past four centuries
     Returns
@@ -9766,23 +9766,29 @@ def doigrf(lon, lat, alt, date, **kwargs):
             return psvmodels, psvcoeffs
         else:
             return models, igrf14coeffs
+    if 'mod' in list(kwargs.keys()) and kwargs['mod'] == 'ggf100k':
+        # GGF100k is stored as cubic B-splines in time (Panovska et al., 2018):
+        # psvmodels holds the 606 knots and psvcoeffs the 602 spline
+        # coefficients, so the rows are not Gauss coefficients at epochs.
+        # The model is valid for the past 100 ka; the range below is the one
+        # given in the header of the distributed model file.
+        from scipy.interpolate import BSpline
+        start, end = -98050, 1990
+        if date < start or date > end:
+            raise ValueError("ggf100k is only valid from %s to %s"
+                             % (start, end))
+        spline = BSpline(np.array(psvmodels, dtype=float),
+                         np.array(psvcoeffs, dtype=float), 3)
+        gh = spline(date)
+        sv = spline.derivative()(date)
+        x, y, z, f = magsyn(gh, sv, date, date, itype, alt, colat, lon)
+        if 'coeffs' in list(kwargs.keys()):
+            return gh
+        return x, y, z, f
     if date < -100000:
         print('too old')
         return
-    if 'mod' in list(kwargs.keys()) and kwargs['mod'] == 'ggf100k':
-        from bisect import bisect_right
-        first_epoch = -99950  # documented start of the ggf100k range
-        last = len(psvcoeffs) - 1  # last epoch with coefficients (1850)
-        if date < first_epoch or date > psvmodels[last]:
-            raise ValueError("ggf100k is only valid from %s to %s"
-                             % (first_epoch, psvmodels[last]))
-        # epoch at or below date, clamped so a following epoch always exists
-        i = min(bisect_right(psvmodels, date) - 1, last - 1)
-        model = psvmodels[i]
-        gh = psvcoeffs[i]
-        sv = (psvcoeffs[i + 1] - gh) / float(psvmodels[i + 1] - model)
-        x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
-    elif 'mod' in list(kwargs.keys()) and kwargs['mod'] == 'shadif14k':
+    if 'mod' in list(kwargs.keys()) and kwargs['mod'] == 'shadif14k':
         if date < -10000:
             incr = 100
         else:
@@ -9802,8 +9808,6 @@ def doigrf(lon, lat, alt, date, **kwargs):
             incr = 50
         elif kwargs['mod'] == 'shawq2k' or kwargs['mod']=='shawqIA':
             incr = 25
-        elif kwargs['mod']=='ggf100k':
-            incr = 200
         else:
             incr = 10
         model = int(date - date % incr)
