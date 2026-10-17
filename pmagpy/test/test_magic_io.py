@@ -296,6 +296,24 @@ class TestStagedExport:
                                                                                   ".staging-recent"]
         assert open(os.path.join(out, "sites.txt")).read() == "v1"
 
+    @pytest.mark.skipif(os.name == "nt" or (hasattr(os, "geteuid") and os.geteuid() == 0),
+                        reason="needs a folder that POSIX permissions make read-only")
+    def test_a_read_only_folder_is_named_not_the_staging_folder(self, tmp_path):
+        out = str(tmp_path / "out")
+        os.makedirs(out)
+        with open(os.path.join(out, "sites.txt"), "w") as fh:
+            fh.write("v0")
+        os.chmod(out, 0o555)
+        try:
+            with pytest.raises(PermissionError) as info:
+                with mp.StagedExport(out) as stage:
+                    mp.atomic_write_text(os.path.join(stage.dir, "sites.txt"), "v1")
+        finally:
+            os.chmod(out, 0o755)
+        message = str(info.value)
+        assert out in message and "not writable" in message and ".staging" not in message
+        assert os.listdir(out) == ["sites.txt"] and open(os.path.join(out, "sites.txt")).read() == "v0"
+
     def test_a_separate_output_directory_is_a_complete_contribution(self, study, tmp_path):
         out = str(tmp_path / "out")
         with mp.StagedExport(out) as stage:

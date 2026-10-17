@@ -1178,10 +1178,18 @@ class StagedExport:
         self.removed_stale: list[str] = []
 
     def __enter__(self) -> "StagedExport":
+        import errno
         import tempfile
         os.makedirs(self.output_dir, exist_ok=True)
         self.removed_stale = remove_stale_staging(self.output_dir)
-        self.dir = tempfile.mkdtemp(prefix=".staging-", dir=self.output_dir)
+        try:
+            self.dir = tempfile.mkdtemp(prefix=".staging-", dir=self.output_dir)
+        except OSError as exc:
+            if exc.errno not in (errno.EACCES, errno.EPERM, errno.EROFS):
+                raise
+            err = type(exc)(f"The folder {self.output_dir} is not writable; choose another output folder")
+            err.errno = exc.errno
+            raise err from exc
         try:
             _write_staging_owner(self.dir)
         except BaseException:
