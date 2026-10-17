@@ -893,11 +893,14 @@ def read_table_file(path: str, expected: Optional[str] = None,
         return table, pd.DataFrame()
     header = rest[0].rstrip("\r").split("\t")
     dtypes = {c: str for c in header if c in NAME_COLUMNS}
+    width = {}
+    if any(line.count("\t") >= len(header) for line in rest[1:]) and _check_row_widths(text, len(header), name):
+        width = {"usecols": range(len(header)), "index_col": False}
     try:
         # round_trip: the fast parser can be a unit in the last place off, which turned every
         # rewritten table into a diff of thousands of lines
         df = pd.read_csv(io.StringIO(text), skiprows=1, sep="\t", dtype=dtypes, low_memory=False,
-                         float_precision="round_trip")
+                         float_precision="round_trip", **width)
     except (pd.errors.ParserError, ValueError) as exc:
         raise MagicReadError(f"{name} could not be read: {exc}") from exc
     df = df.dropna(how="all", axis=0)
@@ -907,6 +910,36 @@ def read_table_file(path: str, expected: Optional[str] = None,
         if col in df.columns:
             df[col] = df[col].where(df[col].isna(), df[col].astype(str).str.strip())
     return table, df
+
+
+def _check_row_widths(text: str, n_columns: int, name: str) -> bool:
+    """Whether some row of a table has empty cells past its last column; raises when one has values there.
+
+    A row with more fields than the header has columns cannot be read: its
+    values do not line up with the columns, and pandas then quietly takes the
+    leading columns for an index, so that every value lands one or more
+    columns over (or the table is refused for a column it seems to lack).
+
+    Raises:
+        MagicReadError: naming the line, how many fields it has and how many columns the header has.
+    """
+    import csv
+    import io
+    trailing = False
+    records = csv.reader(io.StringIO(text, newline=""), delimiter="\t")
+    seen_header = False
+    for number, fields in enumerate(records):
+        if number == 0 or not any(f.strip() for f in fields):
+            continue
+        if not seen_header:
+            seen_header = True
+            continue
+        if len(fields) > n_columns:
+            if any(f.strip() for f in fields[n_columns:]):
+                raise MagicReadError(f"line {records.line_num} of {name} has {len(fields)} fields, but its header "
+                                     f"has {n_columns} columns, so its values do not line up with the columns")
+            trailing = True
+    return trailing
 
 
 def _name_measurements(df: pd.DataFrame) -> pd.DataFrame:

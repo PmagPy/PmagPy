@@ -132,6 +132,31 @@ class TestBrokenTables:
         assert "samples" not in con.tables
         assert any(w.startswith("samples.txt was not read") and "'sites'" in w for w in warnings)
 
+    def test_a_row_longer_than_the_header_is_named_with_its_line_and_fields(self, study):
+        """Two extra values on a row shifted the columns, and the refusal named a missing
+        magnetization column instead ("measurements table needs one of ('magn_moment', ...)")."""
+        path = os.path.join(study, "measurements.txt")
+        lines = open(path).read().splitlines()
+        n_columns = len(lines[1].split("\t"))
+        lines[2] += "\textra\tvalues"
+        with open(path, "w") as fh:
+            fh.write("\n".join(lines) + "\n")
+        with pytest.raises(mp.MagicReadError) as info:
+            mp.read_contribution(study)
+        assert str(info.value) == (f"line 3 of measurements.txt has {n_columns + 2} fields, but its header has "
+                                   f"{n_columns} columns, so its values do not line up with the columns")
+
+    @pytest.mark.parametrize("rows", [["a\t1\t", "b\t2\t"], ["a\t1", "b\t2\t\t"]])
+    def test_empty_cells_past_the_last_column_are_not_values(self, tmp_path, rows):
+        """A trailing tab on the first row made pandas take the names for an index (every value one
+        column over); on a later row it refused the table."""
+        path = os.path.join(str(tmp_path), "sites.txt")
+        with open(path, "w") as fh:
+            fh.write("tab\tsites\nsite\tlat\n" + "\n".join(rows) + "\n")
+        _, df = mp.read_table_file(path)
+        assert list(df.columns) == ["site", "lat"]
+        assert list(df["site"]) == ["a", "b"] and list(df["lat"]) == [1, 2]
+
     def test_a_magic_2_5_study_says_so(self, tmp_path):
         d = str(tmp_path)
         write_table(os.path.join(d, "measurements.txt"), ["er_specimen_name"], [["a"]], "magic_measurements")
