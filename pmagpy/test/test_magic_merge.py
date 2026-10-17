@@ -55,6 +55,18 @@ class TestCarryAnnotations:
         out = mp.carry_annotations(new, existing, "site")
         assert list(out["description"]) == ["basalt flow, tilt", "basalt flow, geographic"]
 
+    def test_rows_that_cannot_be_told_apart_lend_what_they_all_say(self):
+        """A locations table has no component column: the first export carried the location's analysts
+        to its three means per system, and the second found three candidates each and blanked them."""
+        existing = pd.DataFrame({"location": ["L"] * 7, "dir_tilt_correction": [np.nan, 0, 0, 0, 100, 100, 100],
+                                 "dir_dec": [np.nan, 293.3, 290.8, 359.3, 286.5, 286.6, 8.5],
+                                 "analysts": ["J. Pierce"] * 7,
+                                 "description": [np.nan, "fit A", "fit B", "fit C", "fit A", np.nan, "fit A"]})
+        new = pd.DataFrame({"location": ["L"] * 6, "dir_tilt_correction": [0, 0, 0, 100, 100, 100]})
+        out = mp.carry_annotations(new, existing, "location")
+        assert list(out["analysts"]) == ["J. Pierce"] * 6
+        assert out["description"].isna().all()
+
 
 class TestMergeResults:
     def test_rows_in_a_system_the_export_did_not_recompute_are_kept(self):

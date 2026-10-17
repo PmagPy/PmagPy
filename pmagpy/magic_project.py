@@ -409,7 +409,8 @@ def carry_annotations(new: pd.DataFrame, existing: Optional[pd.DataFrame], key: 
 
     A new row inherits these from the existing row it replaces -- the same
     name, component (``dir_comp`` or ``dir_comp_name``) and coordinate system
-    -- wherever the new row leaves them empty.
+    -- wherever the new row leaves them empty. When several existing rows
+    match, a value is inherited only if every one of them has it.
     """
     if existing is None or len(new) == 0 or key not in existing.columns or key not in new.columns:
         return new
@@ -432,12 +433,13 @@ def carry_annotations(new: pd.DataFrame, existing: Optional[pd.DataFrame], key: 
     source.index = ids(existing).values
     # several existing rows with the same name, component and system (a table
     # without a component column): which one a new row replaces is not known,
-    # so none of them lends it anything
-    source = source[~source.index.duplicated(keep=False)]
+    # so they lend it a value only when every one of them gives that value
+    candidates = source.groupby(level=0, sort=False)
+    agreed = candidates.first().where(candidates.nunique(dropna=False) == 1)
     new = new.copy()
     new_ids = ids(new)
     for c in cols:
-        fill = new_ids.map(source[c])
+        fill = new_ids.map(agreed[c])
         if c not in new.columns:
             new[c] = fill
         else:
