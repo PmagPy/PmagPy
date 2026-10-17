@@ -790,7 +790,7 @@ class TestSpecimenSave:
         assert row["critical_temp"] == pytest.approx(expected) and row["critical_temp_type"] == "Curie"  # kelvin
         assert "'curie_branch': 'cooling'" in row["description"]
         lines = view.code.text.splitlines()
-        assert lines[-1] == ")" and any(l.startswith("contribution.tables['specimens'].write_magic_file(") for l in lines)
+        assert lines[-1] == f"contribution.tables['specimens'].write_magic_file(dir_path='{d}')"
         assert f"    '{CHI_T}'," in lines and "    branch='cooling'," in lines
         assert "1 row updated" in view.save.note.object
         # a branch switched off leaves the picker: the pick follows

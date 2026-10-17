@@ -20,6 +20,11 @@ class TestCall:
         assert eval(text, {"rmag": type("M", (), {"f": staticmethod(lambda *a, **k: (a, k))}), "df": "D"}) == \
             (("D", "sp 1", 3, 0.1, 2.5), {"deg": 3, "rng": (60, 250), "flags": [True, None]})
 
+    def test_a_single_long_argument_stays_on_one_line(self):
+        path = "/Users/someone/" + "a_long_folder_name/" * 6 + "McMurdo"
+        assert code.call("cb.Contribution", path) == f"cb.Contribution('{path}')"
+        assert code.call("cb.Contribution", path, width=20).count("\n") == 0
+
     def test_a_long_call_wraps_one_argument_per_line_and_keeps_keyword_order(self):
         text = code.call("rockmag.plot_mpms_dc", *(code.Name(n) for n in ("fc", "zfc", "cool", "warm")),
                          interactive=True, plot_derivative=True, drop_first=True, width=60)

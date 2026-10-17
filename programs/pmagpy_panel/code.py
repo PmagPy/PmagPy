@@ -59,12 +59,13 @@ class Name(str):
 def call(func: str, *args, width: int = 88, **kwargs) -> str:
     """One call as source, e.g. ``call("rockmag.f", Name("df"), "sp1", deg=3)`` → ``rockmag.f(df, 'sp1', deg=3)``.
 
-    Wraps one argument per line when the call would run past `width`.
-    Keyword arguments keep the order given.
+    Wraps one argument per line when the call would run past `width`; a call
+    with a single argument (a long directory path, say) stays on one line, which
+    wrapping could not shorten. Keyword arguments keep the order given.
     """
     parts = [literal(a) for a in args] + [f"{k}={literal(v)}" for k, v in kwargs.items()]
     one_line = f"{func}({', '.join(parts)})"
-    if len(one_line) <= width:
+    if len(one_line) <= width or len(parts) == 1:
         return one_line
     body = "".join(f"    {p},\n" for p in parts)
     return f"{func}(\n{body})"
