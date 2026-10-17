@@ -817,6 +817,14 @@ class TestInterpretationsView:
         assert comp.name == "mt" and comp.color == s.color_of("mt")
         assert "coloured as the 1 other mt fit" in s.status
 
+    def test_the_status_does_not_name_a_deleted_fit_as_current(self, tmp_path):
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        comp = s.add_component("zz-tmp", 0, 2)
+        assert s.rename_component(comp, "F1") and s.status.startswith("fit F1:")
+        s.delete_current()
+        assert s.status == f"deleted fit F1 on {s.specimen}"
+        assert all(c.name != "F1" for c in s.components())
+
 
 class TestSwitchingDatasets:
     def test_views_follow_a_dataset_switch(self, tmp_path):

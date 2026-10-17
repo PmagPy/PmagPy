@@ -425,9 +425,11 @@ class Session(param.Parameterized):
 
     def delete_current(self) -> None:
         if self.current is not None:
-            self.data.remove_component(self.current)
+            comp = self.current
+            self.data.remove_component(comp)
             self.current = None
             self._sync_current()
+            self.status = f"deleted fit {comp.name} on {comp.specimen}"
             self._changed()
 
     def delete_components(self, comps) -> None:
