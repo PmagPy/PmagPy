@@ -23,6 +23,7 @@ dependencies:
   - matplotlib
   - pandas
   - pytz
+  - requests
   # mapping (optional in the library, but conda-forge handles cartopy
   # and shapely cleanly across platforms)
   - cartopy
