@@ -200,6 +200,8 @@ class TestEveryApplicationWorksThere:
             assert load_recent()[0] == moved
         finally:
             sess.RECENT_FILE = old
+        # the copy is shown as itself, and says once, quietly, where its study used to be
         block = DirectoryChooser(d, recent_file=recent, count=lambda s: "").summary.object
-        assert recorded not in block and "working copy" not in block
-        assert recorded not in ref_html(take_inventory(moved))
+        assert "working copy, its study moved · " in block and block.count(recorded) == 1
+        ref = ref_html(take_inventory(moved))
+        assert ref.index(os.path.basename(moved)) < ref.index("not there any more") and ref.count(recorded) == 1

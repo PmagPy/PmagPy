@@ -254,6 +254,9 @@ def ref_html(inv: Inventory) -> str:
                  f'<div class="path" title="{_esc(tip)}">working copy · {_esc(shorten_home(inv.directory))}</div>']
     else:
         lines = [f'<div class="path">{_esc(shorten_home(inv.directory))}</div>']
+        note = datasets.working_copy_note(inv.directory)
+        if note:
+            lines.append(f'<div class="path">{_esc(note)}</div>')
     c = inv.contribution
     if inv.is_magic and c:
         bits = []

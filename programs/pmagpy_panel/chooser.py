@@ -135,6 +135,9 @@ class DirectoryChooser:
                    f"this copy of it, {directory}")
             where = (f'<span style="{MUTED_STYLE}" title="{html.escape(tip)}">working copy · '
                      f'{html.escape(shorten(datasets.shorten_home(directory)))}</span>')
+        elif directory and datasets.working_copy_note(directory):
+            where = (f'<span style="{MUTED_STYLE}" title="{html.escape(datasets.working_copy_note(directory))}">'
+                     f'working copy, its study moved · {html.escape(shorten(datasets.shorten_home(directory)))}</span>')
         else:
             where = (f'<span style="{MUTED_STYLE}" title="{html.escape(directory)}">'
                      f'{html.escape(shorten(datasets.shorten_home(directory)))}</span>')
