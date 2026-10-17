@@ -131,6 +131,28 @@ class TestSession:
         assert flag == "b"
         assert any("in-field half" in n for n in notes)
 
+    def test_a_flag_reports_what_it_changed_and_nothing_else(self, workdir):
+        # one flagged zero-field step read "200°C zero field: every measurement is flagged bad",
+        # and each later flag repeated the notes of every step flagged before it
+        src, out = workdir
+        session = Session(src, out)
+        session.autosave_enabled = False
+        arai = session.spec.arai
+        assert arai.rows[4]["i"] is not None and arai.rows[6]["i"] is not None
+        session.set_bounds(2, arai.n - 1)
+        label = {k: f"{arai.temps[k] - pint.KELVIN_OFFSET:.0f}°C" for k in (2, 4, 6)}
+        flag, notes = session.toggle_step(arai.rows[4]["z"])
+        assert notes == [f"{label[4]}: the zero-field half of the pair is flagged bad, "
+                         f"so the whole Arai point is left out"]
+        flag, notes = session.toggle_step(arai.rows[6]["z"])
+        assert len(notes) == 1 and notes[0].startswith(label[6] + ":")
+        flag, notes = session.toggle_step(arai.rows[2]["z"])
+        assert len(notes) == 2 and notes[0].startswith(label[2] + ":") and "set aside" in notes[1]
+        flag, notes = session.toggle_step(arai.rows[2]["z"])
+        assert notes == [n for n in notes if "restored" in n] and notes
+        assert not any("every measurement" in n for n in session.spec.arai.dropped)
+        assert len(session.spec.arai.dropped) == 2
+
     def test_changing_the_criteria_set_changes_the_verdicts(self, study):
         study.criteria_name = "CCRIT"
         strict = sum(1 for r in study.data.results() if r.passed)

@@ -642,8 +642,6 @@ def build_arai(steps: pd.DataFrame, warnings: Optional[list] = None) -> Optional
             return None
         good = [r for r in rows if r["quality"] != "b"]
         if not good:
-            notes.append(f"{temp - KELVIN_OFFSET:.0f}°C {STEP_LABELS[kind]}: every measurement "
-                         f"is flagged bad")
             return None
         if len(good) < len(rows):
             notes.append(f"{temp - KELVIN_OFFSET:.0f}°C {STEP_LABELS[kind]}: a flagged duplicate "
@@ -680,12 +678,21 @@ def build_arai(steps: pd.DataFrame, warnings: Optional[list] = None) -> Optional
             continue
         kind = STEP_NRM if temp in nrm_temps else STEP_Z
         z_row = pick(kind, temp)
+        has_infield = bool(by_kind_temp.get((STEP_I, float(temp))))
         if z_row is None and kind == STEP_NRM:
             z_row = pick(STEP_Z, temp)
+            if z_row is not None:
+                notes.append(f"{temp - KELVIN_OFFSET:.0f}°C: the NRM step is flagged bad, so the "
+                             f"zero-field step at this temperature takes its place")
         if z_row is None:
+            if kind == STEP_Z and has_infield:
+                notes.append(f"{temp - KELVIN_OFFSET:.0f}°C: the zero-field half of the pair is "
+                             f"flagged bad, so the whole Arai point is left out")
+            elif kind == STEP_Z:
+                notes.append(f"{temp - KELVIN_OFFSET:.0f}°C: the zero-field step is flagged bad, "
+                             f"so it is left out")
             continue
         i_row = pick(STEP_I, temp)
-        has_infield = bool(by_kind_temp.get((STEP_I, float(temp))))
         if has_infield and i_row is None:
             notes.append(f"{temp - KELVIN_OFFSET:.0f}°C: the in-field half of the pair is flagged "
                          f"bad, so the whole Arai point is left out")
@@ -1430,19 +1437,21 @@ class PintData:
         removing a point inside or outside the fit leaves Tmin and Tmax where
         the analyst put them (see :meth:`_rebuild_arai`).
 
-        Returns the notes the rebuild produced (which pairs were dropped and
-        why, and what happened to the fit), so that the caller can show the
-        consequence of the flag.
+        Returns the notes the rebuild produced that this flag brought about
+        (which pairs were dropped and why, and what happened to the fit), so
+        that the caller can show the consequence of the flag; the notes of
+        steps flagged earlier stay on the Arai plot's ``dropped``.
         """
         spec = self.specimens[specimen]
         idx = spec.steps.index[spec.steps["sequence"] == sequence]
         if len(idx) == 0:
             raise KeyError(f"{specimen} has no step {sequence}")
         spec.steps.loc[idx, "quality"] = quality
+        before = set(spec.arai.dropped) if spec.arai is not None else set()
         notes: List[str] = []
         self._rebuild_arai(specimen, notes)
         self.invalidate(specimen)
-        return notes
+        return [note for note in notes if note not in before]
 
     def _rebuild_arai(self, specimen: str, notes: List[str]) -> None:
         """Rebuild a specimen's Arai plot from its steps, keeping the fit on the same treatments.
