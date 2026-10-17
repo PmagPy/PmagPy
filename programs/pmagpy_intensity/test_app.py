@@ -854,6 +854,23 @@ class TestPublication:
         assert f"n = {stats['n'].rounded()}" in text and "e+0" not in text
         assert f"{ps.describe('B_anc').label} = {stats['B_anc'].rounded()}" in text
 
+    def test_the_corrections_follow_the_statistics_clear_of_the_legend(self):
+        # the corrections were written at a fixed height, over the legend of the plot symbols
+        data = pint.PintData.from_directory(MEGIDDO)
+        data.import_from_specimens_table()
+        result = data.result("hz05a1")
+        assert sum(c.applied for c in result.corrections.values()) >= 2
+        figure = pub.specimen_figure(data.specimens["hz05a1"], (result.imin, result.imax),
+                                     result.stats, result)
+        figure.canvas.draw()
+        renderer = figure.canvas.get_renderer()
+        column = figure.axes[-1]
+        corrections = next(t for t in column.texts if t.get_text().startswith("corrections"))
+        statistics = next(t for t in column.texts if "FRAC" in t.get_text())
+        box = corrections.get_window_extent(renderer)
+        assert not box.overlaps(column.get_legend().get_window_extent(renderer))
+        assert box.y1 <= statistics.get_window_extent(renderer).y0
+
     @pytest.mark.parametrize("fmt", ["pdf", "svg", "png"])
     def test_every_format_writes(self, study, tmp_path, fmt):
         study.specimen = "hz05a1"

@@ -156,22 +156,23 @@ def specimen_figure(spec: pint.PintSpecimen, bounds, stats: Optional[dict] = Non
             title += f"\n(uncorrected {result.b_anc_uncorrected:.1f} µT)"
     text_ax.text(0, 1.0, title, va="top", ha="left", fontsize=10, fontweight="bold",
                  transform=text_ax.transAxes)
-    text_ax.text(0, 0.86, f"{spec.arai.protocol} · B_lab {spec.blab_uT:.0f} µT",
-                 va="top", ha="left", fontsize=8, color=GREY, transform=text_ax.transAxes)
+    above = text_ax.text(0, 0.86, f"{spec.arai.protocol} · B_lab {spec.blab_uT:.0f} µT",
+                         va="top", ha="left", fontsize=8, color=GREY, transform=text_ax.transAxes)
     if stats:
-        text_ax.text(0, 0.80, _headline(stats), va="top", ha="left", fontsize=8,
-                     family="monospace", transform=text_ax.transAxes)
+        above = text_ax.text(0, 0.80, _headline(stats), va="top", ha="left", fontsize=8,
+                             family="monospace", transform=text_ax.transAxes)
     if result is not None and result.corrections:
         applied = [f"{k} ×{c.factor:.3f}" for k, c in result.corrections.items() if c.applied]
         if applied:
-            text_ax.text(0, 0.14, "corrections\n" + "\n".join(applied), va="top", ha="left",
-                         fontsize=8, color=GREY, transform=text_ax.transAxes)
+            text_ax.annotate("corrections\n" + "\n".join(applied), xy=(0, 0), xycoords=above,
+                             xytext=(0, -8), textcoords="offset points", va="top", ha="left",
+                             fontsize=8, color=GREY)
     handles = [Line2D([], [], marker="o", color="none", mfc=SEGMENT, mec=EDGE, label="selected"),
                Line2D([], [], marker="o", color="none", mfc="white", mec=EDGE, label="excluded"),
                Line2D([], [], marker="^", color="none", mfc=PTRM, mec=PTRM, label="pTRM check"),
                Line2D([], [], marker="s", color="none", mfc="white", mec=TAIL, label="tail check"),
                Line2D([], [], marker="D", color="none", mfc=ADD, mec=ADD, label="additivity")]
-    text_ax.legend(handles=handles, loc="lower left", fontsize=7, frameon=False,
+    text_ax.legend(handles=handles, loc="lower left", fontsize=7, frameon=False, ncol=2,
                    bbox_to_anchor=(0, -0.02))
     return fig
 
