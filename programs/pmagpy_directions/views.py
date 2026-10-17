@@ -770,8 +770,9 @@ class MeansView(LazyView):
                                                 value="fisher", button_type="primary", button_style="outline",
                                                 stylesheets=[BUTTON_GROUP_CSS])
         self.plot = DirectionsPlot("Directions")
-        self.stats = pn.pane.DataFrame(pd.DataFrame(), index=False, sizing_mode="stretch_width",
+        self.stats = pn.pane.DataFrame(pd.DataFrame(), index=False, sizing_mode="stretch_width", na_rep="–",
                                        stylesheets=[STATS_TABLE_CSS])
+        self.stats_note = pn.pane.HTML("", sizing_mode="stretch_width", margin=(2, 5))
         self.download = pn.widgets.FileDownload(callback=self._figure_bytes, filename="directions.pdf",
                                                 label="Download figure (PDF)", button_type="primary", width=220)
         # the side-column list of the fits (or lower-level means) that are plotted.
@@ -936,6 +937,17 @@ class MeansView(LazyView):
             return self._mean_list(means)
         return [(m, self.s.color_of(m["dir_comp_name"])) for m in self._alternative_means(dirs)]
 
+    @staticmethod
+    def _blank_statistics(means):
+        """Why a Fisher mean's statistics are blank: one line per mean of a single direction."""
+        notes = []
+        for _, m in means.iterrows():
+            lines, planes = (pd.to_numeric(m.get(k), errors="coerce") for k in ("dir_n_specimens_lines",
+                                                                                 "dir_n_specimens_planes"))
+            if lines == 1 and not planes:
+                notes.append(f"{m['dir_comp_name']}: one direction, so no α95, k or r (they need at least two)")
+        return notes
+
     def _fill_table(self, table, records, cache):
         """Fill one of the side tables, in the component colours, unless it is unchanged.
 
@@ -984,7 +996,9 @@ class MeansView(LazyView):
             self.plane_table.height = _table_height(len(plane_records), 220)
         listed = "Lines" if plane_records else "Plotted fits"
         self.table_head.object = f'<div style="{SECTION_STYLE}">{listed} · select a row</div>'
+        notes = []
         if self.stat.value == "fisher":
+            notes = self._blank_statistics(means)
             cols = [c for c in ["dir_comp_name"] + MEAN_COLUMNS if c in means.columns]
             table = means[cols].round(1) if len(means) else pd.DataFrame()
             # a count that is zero throughout says nothing (no planes among the fits,
@@ -1001,6 +1015,7 @@ class MeansView(LazyView):
             table = alt[[c for c in keep if c in alt.columns]].round(1) if len(alt) else pd.DataFrame()
         self.stats.object = table.rename(columns=lambda c: c.replace("dir_", "").replace("_specimens", "_spec")
                                          .replace("alpha95", "α95").replace("comp_name", "component"))
+        self.stats_note.object = "".join(f'<div style="{MUTED_STYLE}">{html.escape(n)}</div>' for n in notes)
         self.download.filename = f"{self.level.value}_{self.name.value}_{self.comp.value}.pdf"
 
     def _selected_record(self):
@@ -1075,8 +1090,8 @@ class MeansView(LazyView):
                          self.table_head, pn.Row(self.goto_btn, self.flag_btn), self.table, self.planes_box)
 
     def panel(self):
-        return pn.Column(pn.Row(plot_box(self.plot.fig, 460), pn.Column(section("Mean"), self.stats, self.download,
-                                                                        scroll=True)))
+        return pn.Column(pn.Row(plot_box(self.plot.fig, 460), pn.Column(section("Mean"), self.stats, self.stats_note,
+                                                                        self.download, scroll=True)))
 
 
 # ===========================================================================

@@ -969,6 +969,25 @@ class TestMeansView:
         means.stat.value = "fisher"
         assert len(means.plot.mean.data["x"]) == fisher_stars
 
+    def test_a_single_direction_shows_a_dash_and_the_reason(self, tmp_path):
+        """One direction has no α95, k or r: the table shows a dash, not NaN, and says why."""
+        import html as html_lib
+        from pmagpy_directions.views import MeansView
+        mcmurdo = os.path.join(_HERE, "..", "..", "data_files", "3_0", "McMurdo")
+        s = Session(mcmurdo, output_dir=str(tmp_path))
+        means = MeansView(s)
+        means.level.value, means.comp.value = "sample", "all"
+        means.name.value = "mc01f"                      # one line fit
+        table = means.stats.object
+        assert len(table) == 1 and table[["α95", "k", "r"]].isna().all(axis=None)
+        shown = html_lib.unescape(means.stats._transform_object(table)["object"])
+        assert "NaN" not in shown and "<td>–</td>" in shown
+        assert "one direction, so no α95, k or r" in means.stats_note.object
+
+        means.level.value = "site"
+        means.name.value = "mc01"                       # a mean of several: nothing to explain
+        assert not means.stats.object["α95"].isna().any() and means.stats_note.object == ""
+
 
 class TestAutosaveDebounce:
     """Every edit used to rewrite the whole .redo; edits now coalesce into one write."""
