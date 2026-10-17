@@ -99,10 +99,11 @@ class TestDoigrfPaleoModels:
         f_near_end = pmag.doigrf(0, 45, 0, 1849.99, mod='ggf100k')[3]
         assert_allclose(f_near_end, f_b, rtol=1e-3)
 
-    def test_ggf100k_after_last_epoch_raises(self):
-        """ggf100k has no coefficients after 1850."""
+    @pytest.mark.parametrize("date", [-99951, -100000, 1851, 2050])
+    def test_ggf100k_outside_documented_range_raises(self, date):
+        """ggf100k is only defined from -99950 to 1850."""
         with pytest.raises(ValueError):
-            pmag.doigrf(0, 45, 0, 1851, mod='ggf100k')
+            pmag.doigrf(0, 45, 0, date, mod='ggf100k')
 
     def test_model_total_field_is_vector_magnitude(self):
         """Total field is vector magnitude for paleo models too."""
