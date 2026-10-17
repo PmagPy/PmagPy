@@ -5478,7 +5478,7 @@ def irm(mag_file, output_dir_path="./", input_dir_path="./", citation="This stud
             SpecRecs['hyst_mr_mass']=info['Mr [Am/kg]']
             SpecRecs['hyst_bc']=[element*1e-3 for element in info['Bc [mT]']]
             SpecRecs['hyst_bcr']=[element*1e-3 for element in info['Bcr [mT]']]
-            SpecRecs['hyst_xhf']=info['Xhf [m3/kg]']
+            SpecRecs['hyst_xhf_mass']=info['Xhf [m3/kg]']
             SpecRecs['meas_temp']=info['T [K]']
             SpecRecs['hyst_bc_offset']=info['loop offset [Am/kg]']
             SpecRecs['instrument_codes']=info['Instrument']

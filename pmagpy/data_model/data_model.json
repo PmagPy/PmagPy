@@ -10571,7 +10571,7 @@
 					"position": 178,
 					"type": "Number",
 					"unit": "m^3",
-					"description": "High field slope",
+					"description": "High field susceptibility, Moment (mu_0 dM/dB)",
 					"previous_columns": [
 						{
 							"table": "rmag_hysteresis",
@@ -10579,10 +10579,25 @@
 						}
 					]
 				},
+				"hyst_xhf_volume": {
+					"label": "Hysteresis Xhf",
+					"group": "Hysteresis",
+					"position": 179,
+					"type": "Number",
+					"description": "High field susceptibility, Volume normalized"
+				},
+				"hyst_xhf_mass": {
+					"label": "Hysteresis Xhf",
+					"group": "Hysteresis",
+					"position": 180,
+					"type": "Number",
+					"unit": "m^3/kg",
+					"description": "High field susceptibility, Mass normalized"
+				},
 				"hyst_th": {
 					"label": "Hysteresis Transient Induction",
 					"group": "Hysteresis",
-					"position": 179,
+					"position": 181,
 					"type": "Number",
 					"unit": "T",
 					"description": "Transient energy dissipation related to domain state",
@@ -10596,7 +10611,7 @@
 				"rem_dfc_moment": {
 					"label": "Remanence Delta Field Cooled Moment",
 					"group": "Remanence",
-					"position": 180,
+					"position": 182,
 					"type": "Number",
 					"unit": "Am^2",
 					"description": "Fractional remanence loss at Tv (80K,130K) after field cooling, Moment",
@@ -10610,7 +10625,7 @@
 				"rem_dfc_volume": {
 					"label": "Remanence Delta Field Cooled Volume",
 					"group": "Remanence",
-					"position": 181,
+					"position": 183,
 					"type": "Number",
 					"unit": "A/m",
 					"description": "Fractional remanence loss at Tv (80K,130K) after field cooling, Volume normalized",
@@ -10624,7 +10639,7 @@
 				"rem_dfc_mass": {
 					"label": "Remanence Delta Field Cooled Mass",
 					"group": "Remanence",
-					"position": 182,
+					"position": 184,
 					"type": "Number",
 					"unit": "Am^2/kg",
 					"description": "Fractional remanence loss at Tv (80K,130K) after field cooling, Mass normalized",
@@ -10638,7 +10653,7 @@
 				"rem_dzfc_moment": {
 					"label": "Remanence Delta Zerofield Cooled Moment",
 					"group": "Remanence",
-					"position": 183,
+					"position": 185,
 					"type": "Number",
 					"unit": "Am^2",
 					"description": "Fractional remanence loss at Tv (80K,130K) after zero-field cooling, Moment",
@@ -10652,7 +10667,7 @@
 				"rem_dzfc_volume": {
 					"label": "Remanence Delta Zerofield Cooled Volume",
 					"group": "Remanence",
-					"position": 184,
+					"position": 186,
 					"type": "Number",
 					"unit": "A/m",
 					"description": "Fractional remanence loss at Tv (80K,130K) after zero-field cooling, Volume normalized",
@@ -10666,7 +10681,7 @@
 				"rem_dzfc_mass": {
 					"label": "Remanence Delta Zerofield Cooled Mass",
 					"group": "Remanence",
-					"position": 185,
+					"position": 187,
 					"type": "Number",
 					"unit": "Am^2/kg",
 					"description": "Fractional remanence loss at Tv (80K,130K) after zero-field cooling, Mass normalized",
@@ -10680,7 +10695,7 @@
 				"rem_delta_ratio": {
 					"label": "Remanence Delta FC/ZFC Ratio",
 					"group": "Remanence",
-					"position": 186,
+					"position": 188,
 					"type": "Number",
 					"unit": "Dimensionless",
 					"description": "Ratio (Delta FC/Delta ZFC)",
@@ -10694,7 +10709,7 @@
 				"rem_delta_temp_low": {
 					"label": "Remanence Delta Temperature Low",
 					"group": "Remanence",
-					"position": 187,
+					"position": 189,
 					"type": "Number",
 					"unit": "K",
 					"description": "Low Temperature of delta FC/ZFC calculation",
@@ -10708,7 +10723,7 @@
 				"rem_delta_temp_high": {
 					"label": "Remanence Delta Temperature High",
 					"group": "Remanence",
-					"position": 188,
+					"position": 190,
 					"type": "Number",
 					"unit": "K",
 					"description": "High Temperature of delta FC/ZFC calculation",
@@ -10722,7 +10737,7 @@
 				"rem_mr_moment": {
 					"label": "Remanence Mr Moment",
 					"group": "Remanence",
-					"position": 189,
+					"position": 191,
 					"type": "Number",
 					"unit": "Am^2",
 					"description": "Measured intensity of remanent moment, Moment",
@@ -10736,7 +10751,7 @@
 				"rem_mr_volume": {
 					"label": "Remanence Mr Volume",
 					"group": "Remanence",
-					"position": 190,
+					"position": 192,
 					"type": "Number",
 					"unit": "A/m",
 					"description": "Measured intensity of remanent moment, Volume normalized",
@@ -10750,7 +10765,7 @@
 				"rem_mr_mass": {
 					"label": "Remanence Mr Mass",
 					"group": "Remanence",
-					"position": 191,
+					"position": 193,
 					"type": "Number",
 					"unit": "Am^2/kg",
 					"description": "Measured intensity of remanent moment, Mass normalized",
@@ -10764,7 +10779,7 @@
 				"rem_bcr": {
 					"label": "Remanence Bcr",
 					"group": "Remanence",
-					"position": 192,
+					"position": 194,
 					"type": "Number",
 					"unit": "T",
 					"description": "Coercivity of remanence",
@@ -10778,7 +10793,7 @@
 				"rem_sratio": {
 					"label": "Remanence S Ratio",
 					"group": "Remanence",
-					"position": 193,
+					"position": 195,
 					"type": "Number",
 					"unit": "Dimensionless",
 					"description": "SIRM ratio S(X)",
@@ -10792,7 +10807,7 @@
 				"rem_sratio_forward": {
 					"label": "Remanence S Ratio Forward Field",
 					"group": "Remanence",
-					"position": 194,
+					"position": 196,
 					"type": "Number",
 					"unit": "T",
 					"description": "SIRM field used to calculate S Ratio",
@@ -10806,7 +10821,7 @@
 				"rem_sratio_back": {
 					"label": "Remanence S Ratio Back Field",
 					"group": "Remanence",
-					"position": 195,
+					"position": 197,
 					"type": "Number",
 					"unit": "T",
 					"description": "Backfield used to calculate S Ratio",
@@ -10820,7 +10835,7 @@
 				"rem_hirm_moment": {
 					"label": "Remanence HIRM Moment",
 					"group": "Remanence",
-					"position": 196,
+					"position": 198,
 					"type": "Number",
 					"unit": "Am^2",
 					"description": "Hard IRM factor, HIRM = SIRM - IRM(300 mT), Moment",
@@ -10834,7 +10849,7 @@
 				"rem_hirm_volume": {
 					"label": "Remanence HIRM Volume",
 					"group": "Remanence",
-					"position": 197,
+					"position": 199,
 					"type": "Number",
 					"unit": "A/m",
 					"description": "Hard IRM factor, HIRM = SIRM - IRM(300 mT), Volume normalized",
@@ -10848,7 +10863,7 @@
 				"rem_hirm_mass": {
 					"label": "Remanence HIRM Mass",
 					"group": "Remanence",
-					"position": 198,
+					"position": 200,
 					"type": "Number",
 					"unit": "Am^2/kg",
 					"description": "Hard IRM factor, HIRM = SIRM - IRM(300 mT), Mass normalized",
@@ -10862,7 +10877,7 @@
 				"rem_armx": {
 					"label": "Remanence ARMx",
 					"group": "Remanence",
-					"position": 199,
+					"position": 201,
 					"type": "Number",
 					"unit": "Dimensionless",
 					"description": "Anhysteretic susceptibility, Xarm = ARM / Hdc",
@@ -10876,7 +10891,7 @@
 				"rem_cross_over": {
 					"label": "Remanence Cross Over Point",
 					"group": "Remanence",
-					"position": 200,
+					"position": 202,
 					"type": "Number",
 					"unit": "T",
 					"description": "Field at which demagnetization moment equals acquisition moment",
@@ -10890,7 +10905,7 @@
 				"rem_mdf": {
 					"label": "Remanence MDF",
 					"group": "Remanence",
-					"position": 201,
+					"position": 203,
 					"type": "Number",
 					"unit": "T",
 					"description": "Median destructive field",
@@ -10904,7 +10919,7 @@
 				"rem_maf": {
 					"label": "Remanence MAF",
 					"group": "Remanence",
-					"position": 202,
+					"position": 204,
 					"type": "Number",
 					"unit": "T",
 					"description": "Median acquisition field",
@@ -10918,7 +10933,7 @@
 				"rem_mdt": {
 					"label": "Remanence MDT",
 					"group": "Remanence",
-					"position": 203,
+					"position": 205,
 					"type": "Number",
 					"unit": "K",
 					"description": "Median destructive temperature",
@@ -10932,7 +10947,7 @@
 				"rem_cmf": {
 					"label": "Remanence Component Median Field",
 					"group": "Remanence",
-					"position": 204,
+					"position": 206,
 					"type": "Number",
 					"unit": "T",
 					"description": "Median field of remanence component",
@@ -10946,7 +10961,7 @@
 				"rem_cd": {
 					"label": "Remanence Component Dispersion",
 					"group": "Remanence",
-					"position": 205,
+					"position": 207,
 					"type": "Number",
 					"unit": "Dimensionless",
 					"description": "Dispersion (standard deviation) of remanence components",
@@ -10960,7 +10975,7 @@
 				"rem_n_comp": {
 					"label": "Remanence N Components",
 					"group": "Remanence",
-					"position": 206,
+					"position": 208,
 					"type": "Integer",
 					"description": "Number of remanence components used",
 					"validations": [
@@ -10976,7 +10991,7 @@
 				"rem_sa": {
 					"label": "Remanence Sa",
 					"group": "Remanence",
-					"position": 207,
+					"position": 209,
 					"type": "Number",
 					"unit": "Am^2/log(s)",
 					"description": "Viscosity coefficient dM/d(log t) during the acquisition of viscous remanence",
@@ -10990,7 +11005,7 @@
 				"rem_sd": {
 					"label": "Remanence Sd",
 					"group": "Remanence",
-					"position": 208,
+					"position": 210,
 					"type": "Number",
 					"unit": "Am^2/log(s)",
 					"description": "Decay in the viscosity coefficient dM/d(log t) during the acquisition of viscous remanence",
@@ -11004,7 +11019,7 @@
 				"rem_q": {
 					"label": "Remanence Koenigsberger Ratio",
 					"group": "Remanence",
-					"position": 209,
+					"position": 211,
 					"type": "Number",
 					"unit": "Dimensionless",
 					"description": "Koenigsberger ratio",
@@ -11018,7 +11033,7 @@
 				"rem_ltd_perc": {
 					"label": "Remanence Low-T Demag %",
 					"group": "Remanence",
-					"position": 210,
+					"position": 212,
 					"type": "Number",
 					"unit": "%",
 					"urls": [
@@ -11033,7 +11048,7 @@
 				"susc_chi_volume": {
 					"label": "Susceptibility X Volume",
 					"group": "Susceptibility",
-					"position": 211,
+					"position": 213,
 					"type": "Number",
 					"unit": "SI Dimensionless",
 					"description": "Average magnetic susceptibility, Volume normalized",
@@ -11047,7 +11062,7 @@
 				"susc_chi_mass": {
 					"label": "Susceptibility X Mass",
 					"group": "Susceptibility",
-					"position": 212,
+					"position": 214,
 					"type": "Number",
 					"unit": "m^3/kg",
 					"description": "Average magnetic susceptibility, Mass normalized",
@@ -11061,7 +11076,7 @@
 				"susc_f": {
 					"label": "Susceptibility Xfd",
 					"group": "Susceptibility",
-					"position": 213,
+					"position": 215,
 					"type": "Number",
 					"unit": "Dimensionless",
 					"description": "Frequency dependence , Xfd calculation",
@@ -11075,7 +11090,7 @@
 				"susc_f_low": {
 					"label": "Susceptibility Xfd Low",
 					"group": "Susceptibility",
-					"position": 214,
+					"position": 216,
 					"type": "Number",
 					"unit": "Hz",
 					"description": "Xfd calculation, Low frequency",
@@ -11089,7 +11104,7 @@
 				"susc_f_high": {
 					"label": "Susceptibility Xfd High",
 					"group": "Susceptibility",
-					"position": 215,
+					"position": 217,
 					"type": "Number",
 					"unit": "Hz",
 					"description": "Xfd calculation, High frequency",
@@ -11103,7 +11118,7 @@
 				"susc_h": {
 					"label": "Susceptibility Xhd",
 					"group": "Susceptibility",
-					"position": 216,
+					"position": 218,
 					"type": "Number",
 					"unit": "Dimensionless",
 					"description": "Amplitude dependence, Xhd calculation",
@@ -11117,7 +11132,7 @@
 				"susc_h_low": {
 					"label": "Susceptibility Xhd Low",
 					"group": "Susceptibility",
-					"position": 217,
+					"position": 219,
 					"type": "Number",
 					"unit": "T",
 					"description": "Xhd calculation, Low amplitude",
@@ -11131,7 +11146,7 @@
 				"susc_h_high": {
 					"label": "Susceptibility Xhd High",
 					"group": "Susceptibility",
-					"position": 218,
+					"position": 220,
 					"type": "Number",
 					"unit": "T",
 					"description": "Xhd calculation, High amplitude",
@@ -11145,7 +11160,7 @@
 				"susc_loss_tangent": {
 					"label": "Susceptibility Loss Tangent",
 					"group": "Susceptibility",
-					"position": 219,
+					"position": 221,
 					"type": "Number",
 					"unit": "Dimensionless",
 					"description": "Loss tangent or X(quadrature) over X(inphase)",
@@ -11159,7 +11174,7 @@
 				"susc_lab_field_ac_high": {
 					"label": "Susceptibility Max Lab AC Field",
 					"group": "Susceptibility",
-					"position": 220,
+					"position": 222,
 					"type": "Number",
 					"unit": "T",
 					"description": "Maximum or peak lab AC field applied during measurement",
@@ -11178,7 +11193,7 @@
 				"description": {
 					"label": "Description",
 					"group": "Metadata",
-					"position": 221,
+					"position": 223,
 					"type": "String",
 					"description": "Specimen and result description and comments",
 					"previous_columns": [
@@ -11239,7 +11254,7 @@
 				"rotation_sequence": {
 					"label": "Sequence of Rotations",
 					"group": "Metadata",
-					"position": 222,
+					"position": 224,
 					"type": "Matrix",
 					"description": "N by M matrix with N sequential rotations and the length of each row defined by the first element: the rotation type",
 					"examples": [
@@ -11274,7 +11289,7 @@
 				"criteria": {
 					"label": "Criteria Names",
 					"group": "Metadata",
-					"position": 223,
+					"position": 225,
 					"type": "List",
 					"description": "Colon-delimited list of criteria names",
 					"examples": [
@@ -11318,7 +11333,7 @@
 				"instrument_codes": {
 					"label": "Instrument Codes",
 					"group": "Metadata",
-					"position": 224,
+					"position": 226,
 					"type": "List",
 					"description": "Colon-delimited list of instrument codes",
 					"validations": [
@@ -11354,7 +11369,7 @@
 				"software_packages": {
 					"label": "Software Packages",
 					"group": "Metadata",
-					"position": 225,
+					"position": 227,
 					"type": "List",
 					"description": "Colon-delimited list of software used for data reduction",
 					"examples": [
@@ -11395,7 +11410,7 @@
 				"external_database_ids": {
 					"label": "External Database IDs",
 					"group": "Metadata",
-					"position": 226,
+					"position": 228,
 					"type": "Dictionary",
 					"description": "Dictionary of external databases and IDs where data are used",
 					"examples": [
@@ -11468,7 +11483,7 @@
 				"scientists": {
 					"label": "Research Scientist Names",
 					"group": "Metadata",
-					"position": 227,
+					"position": 229,
 					"type": "List",
 					"description": "Colon-delimited list of EarthRef handles or ORCIDs or names and emails for scientists who described the specimen",
 					"examples": [
@@ -11499,7 +11514,7 @@
 				"analysts": {
 					"label": "Analyst Names",
 					"group": "Metadata",
-					"position": 228,
+					"position": 230,
 					"type": "List",
 					"description": "Colon-delimited list of EarthRef handles or ORCIDs or names and emails for analysts",
 					"examples": [

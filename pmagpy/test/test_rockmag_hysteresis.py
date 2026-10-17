@@ -1843,7 +1843,7 @@ class TestHystStatsDescriptionJSON:
         assert row_for(kept, 'spec2-HYS1')['hyst_ms_mass'] == 1.0
         row = row_for(withheld, 'spec2-HYS1')
         assert np.isnan(row['hyst_ms_mass']) and np.isnan(row['hyst_bc'])
-        assert np.isnan(row['hyst_xhf'])
+        assert np.isnan(row['hyst_xhf_mass'])
         _, data = rmag.parse_specimen_description(row['description'])
         assert data['closure_state'] == 'open'
         assert data['HF_Mrh_fraction'] == pytest.approx(0.25)
@@ -1899,7 +1899,10 @@ class TestHystStatsDescriptionJSON:
                                                      self._hyst_results())
         assert out.loc[0, 'hyst_ms_mass'] == pytest.approx(1.0)
         assert out.loc[0, 'hyst_mr_mass'] == pytest.approx(0.4)
+        assert out.loc[0, 'hyst_xhf_mass'] == pytest.approx(1e-7)
         assert 'hyst_ms_volume' not in out.columns
+        # m³/kg values must not land in the moment-based hyst_xhf (m³)
+        assert 'hyst_xhf' not in out.columns
         _, data = rmag.parse_specimen_description(out.loc[0, 'description'])
         assert data['magn_unit'] == 'Am²/kg'
 
@@ -1915,6 +1918,9 @@ class TestHystStatsDescriptionJSON:
         assert out.loc[0, 'hyst_ms_volume'] == pytest.approx(1.0)
         assert out.loc[0, 'hyst_mr_volume'] == pytest.approx(0.4)
         assert out.loc[0, 'hyst_bc'] == pytest.approx(0.05)
+        assert out.loc[0, 'hyst_xhf_volume'] == pytest.approx(1e-7)
+        assert 'hyst_xhf_mass' not in out.columns
+        assert 'hyst_xhf' not in out.columns
         # the pre-existing mass column is left untouched
         assert out.loc[0, 'hyst_ms_mass'] == pytest.approx(7.0)
 
@@ -1925,6 +1931,9 @@ class TestHystStatsDescriptionJSON:
                                    'experiments': 'spec1-HYS1'}])
         out = rmag.add_hyst_stats_to_specimens_table(specimens, results)
         assert out.loc[0, 'hyst_ms_moment'] == pytest.approx(1.0)
+        # moment-based chi_HF (m³) goes to the unsuffixed hyst_xhf
+        assert out.loc[0, 'hyst_xhf'] == pytest.approx(1e-7)
+        assert 'hyst_xhf_mass' not in out.columns
 
     def test_non_magic_unit_is_refused(self):
         # there is no MagIC column that can hold Ms in emu without
