@@ -948,6 +948,25 @@ class MeansView(LazyView):
                 notes.append(f"{m['dir_comp_name']}: one direction, so no α95, k or r (they need at least two)")
         return notes
 
+    def _alternative_shortfalls(self, dirs, planes, rows):
+        """Why the by-polarity or Bingham table leaves a component out or its statistics blank."""
+        polarity = self.stat.value == "polarity"
+        n_lines = {}
+        for _dec, _inc, _label, comp_name, _color in dirs:
+            n_lines[comp_name] = n_lines.get(comp_name, 0) + 1
+        notes = []
+        if polarity:
+            notes += [f"{m['dir_comp_name']} mode {m['mode']}: one direction, so no α95 or k "
+                      "(a mode needs at least two)" for m in rows if "dir_alpha95" not in m]
+        else:
+            notes += [f"{comp_name}: no Bingham mean, which needs at least two directions ({n} here)"
+                      for comp_name, n in n_lines.items() if n < 2]
+        if planes:
+            what = "means by polarity average" if polarity else "a Bingham mean averages"
+            fits = "1 plane fit takes" if len(planes) == 1 else f"{len(planes)} plane fits take"
+            notes.append(f"{fits} no part: {what} directions; only the Fisher mean combines lines and planes")
+        return notes
+
     def _fill_table(self, table, records, cache):
         """Fill one of the side tables, in the component colours, unless it is unchanged.
 
@@ -1009,12 +1028,16 @@ class MeansView(LazyView):
         else:
             # the alternative statistics are computed on what is plotted, so they
             # report only the columns they define (a Bingham ellipse has no α95)
-            alt = pd.DataFrame(self._alternative_means(dirs))
+            rows = self._alternative_means(dirs)
+            notes = self._alternative_shortfalls(dirs, planes, rows)
+            alt = pd.DataFrame(rows)
             keep = ["dir_comp_name", "mode", "dir_dec", "dir_inc", "dir_alpha95", "dir_k",
                     "dir_n_specimens", "eta", "zeta"]
             table = alt[[c for c in keep if c in alt.columns]].round(1) if len(alt) else pd.DataFrame()
         self.stats.object = table.rename(columns=lambda c: c.replace("dir_", "").replace("_specimens", "_spec")
                                          .replace("alpha95", "α95").replace("comp_name", "component"))
+        if not dirs and not planes:
+            notes.append(f"no good fits to average in this {self.level.value}")
         self.stats_note.object = "".join(f'<div style="{MUTED_STYLE}">{html.escape(n)}</div>' for n in notes)
         self.download.filename = f"{self.level.value}_{self.name.value}_{self.comp.value}.pdf"
 

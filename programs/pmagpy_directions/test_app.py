@@ -988,6 +988,30 @@ class TestMeansView:
         means.name.value = "mc01"                       # a mean of several: nothing to explain
         assert not means.stats.object["α95"].isna().any() and means.stats_note.object == ""
 
+    def test_by_polarity_and_bingham_say_why_a_mean_is_missing(self, tmp_path):
+        """Too few directions, or planes alone, leave these statistics empty: the reason is shown."""
+        from pmagpy_directions.views import MeansView
+        mcmurdo = os.path.join(_HERE, "..", "..", "data_files", "3_0", "McMurdo")
+        s = Session(mcmurdo, output_dir=str(tmp_path))
+        means = MeansView(s)
+        means.level.value, means.comp.value = "sample", "all"
+        means.name.value = "mc01f"                      # one line fit
+        means.stat.value = "polarity"
+        assert len(means.stats.object) == 1 and "α95" not in means.stats.object.columns
+        assert "A mode 1: one direction, so no α95 or k (a mode needs at least two)" in means.stats_note.object
+        means.stat.value = "bingham"
+        assert len(means.stats.object) == 0
+        assert "A: no Bingham mean, which needs at least two directions (1 here)" in means.stats_note.object
+
+        means.level.value = "site"
+        means.name.value = "mc42"                       # five plane fits and no line
+        for stat in ("polarity", "bingham"):
+            means.stat.value = stat
+            assert len(means.stats.object) == 0
+            assert "5 plane fits take no part" in means.stats_note.object
+        means.stat.value = "fisher"
+        assert len(means.stats.object) == 1 and "take no part" not in means.stats_note.object
+
 
 class TestAutosaveDebounce:
     """Every edit used to rewrite the whole .redo; edits now coalesce into one write."""
