@@ -98,8 +98,8 @@ def is_working_copy(directory: str, base: str = "") -> bool:
     return os.path.isfile(os.path.join(path, WORKING_COPY_MARKER))
 
 
-def working_copy_source(directory: str) -> str:
-    """The study a working copy was made from ("" when it is not one, or does not say)."""
+def _marked_source(directory: str) -> str:
+    """The study a working copy's marker names, whether or not it is still there."""
     try:
         with open(os.path.join(directory, WORKING_COPY_MARKER), encoding="utf-8") as fh:
             return str(json.load(fh).get("source", ""))
@@ -107,13 +107,35 @@ def working_copy_source(directory: str) -> str:
         return ""
 
 
+def working_copy_source(directory: str) -> str:
+    """The study a working copy was made from ("" when it is not one, does not say, or that study is gone).
+
+    A copy moved to another folder or computer, or one whose study was moved
+    or renamed since, names a folder that is not there: the copy is then its
+    own study, shown and remembered under its own path
+    (:func:`working_copy_note` says why).
+    """
+    source = _marked_source(directory)
+    return source if source and os.path.isdir(source) else ""
+
+
+def working_copy_note(directory: str) -> str:
+    """A sentence for a working copy whose study is not where its marker says, else ""."""
+    source = _marked_source(directory)
+    if not source or os.path.isdir(source):
+        return ""
+    return (f"This working copy was made from {source}, which is not there any more; "
+            "it is opened as a study of its own.")
+
+
 def study_name(directory: str) -> str:
     """The name to show for a study: its folder's name, also when `directory` is its working copy.
 
     A working copy's own folder carries a path fingerprint (``McMurdo-1a2b3c4d``),
-    which means nothing to the analyst; the study it was made from is ``McMurdo``.
+    which means nothing to the analyst; the study it was made from is ``McMurdo``,
+    also when that folder has since moved.
     """
-    path = working_copy_source(directory) or directory
+    path = _marked_source(directory) or directory
     return os.path.basename(os.path.abspath(path).rstrip(os.sep)) or path
 
 

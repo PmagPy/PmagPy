@@ -172,3 +172,34 @@ class TestEveryApplicationWorksThere:
             assert load_recent()[0] == os.path.abspath(study)
         finally:
             sess.RECENT_FILE = old
+
+    def test_a_copy_whose_study_is_gone_is_a_study_of_its_own(self, study, base, tmp_path):
+        """A copy handed on (or a study moved since) kept naming a folder that is not there: the
+        side block and Home showed it as the study, and the recent list remembered it."""
+        from pmagpy_directions.session import Session as Directions, load_recent
+        import pmagpy_directions.session as sess
+        from pmagpy_apps.home import ref_html
+        from pmagpy_apps.inventory import take_inventory
+        from pmagpy_panel.chooser import DirectoryChooser
+        copy = datasets.working_directory(study)
+        moved = str(tmp_path / "colleague" / os.path.basename(copy))
+        shutil.copytree(copy, moved)
+        gone = str(tmp_path / "studies" / "McMurdo-was-here")
+        os.rename(study, gone)
+        recorded = os.path.realpath(study)
+        assert datasets.working_copy_source(moved) == ""
+        assert recorded in datasets.working_copy_note(moved) and "not there any more" in datasets.working_copy_note(moved)
+        assert datasets.working_copy_note(datasets.working_directory(gone)) == ""
+        assert datasets.study_name(moved) == "McMurdo"
+        recent = str(tmp_path / "recent_list.json")
+        old = sess.RECENT_FILE
+        sess.RECENT_FILE = recent
+        try:
+            d = Directions(moved)
+            assert d.directory == moved and d.source_directory == moved
+            assert load_recent()[0] == moved
+        finally:
+            sess.RECENT_FILE = old
+        block = DirectoryChooser(d, recent_file=recent, count=lambda s: "").summary.object
+        assert recorded not in block and "working copy" not in block
+        assert recorded not in ref_html(take_inventory(moved))
