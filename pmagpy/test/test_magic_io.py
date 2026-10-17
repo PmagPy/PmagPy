@@ -405,6 +405,26 @@ class TestMeasurementFlagWriter:
         assert table == "measurements"
         assert list(df["measurement"]) == ["m1", "m2"] and list(df["quality"]) == ["g", "b"]
 
+    def test_a_cr_only_file_keeps_its_line_endings_and_its_short_rows(self, tmp_path):
+        """An old Mac file (\\r alone) was not split into lines, so it was written in full: every line
+        changed to \\n, and the short rows were padded with tabs."""
+        text = "tab\tmeasurements\rmeasurement\tquality\tdescription\rm1\tg\rm2\tg\tx\rm3\r"
+        path = self.lines(tmp_path, text)
+        out = os.path.join(str(tmp_path), "out.txt")
+        assert mp.write_measurement_flags(path, out, {}, names=["m1", "m2", "m3"]) == out
+        assert open(out, "rb").read() == text.encode()
+        assert mp.write_measurement_flags(path, out, {1: "b", 2: "b"}, names=["m1", "m2", "m3"]) == out
+        assert open(out, "rb").read() == b"tab\tmeasurements\rmeasurement\tquality\tdescription\rm1\tg\rm2\tb\tx\rm3\tb\r"
+
+    def test_short_rows_keep_their_shape_when_a_column_is_added(self, tmp_path):
+        path = self.lines(tmp_path, "tab\tmeasurements\nmeasurement\tdescription\tdir_dec\nm1\tx\nm2\ty\t1.5\t\n")
+        out = os.path.join(str(tmp_path), "out.txt")
+        assert mp.write_measurement_flags(path, out, {0: "b"}) == out
+        assert open(out).read() == ("tab\tmeasurements\nmeasurement\tdescription\tdir_dec\tquality\n"
+                                    "m1\tx\t\tb\nm2\ty\t1.5\tg\n")
+        _, df = mp.read_table_file(out)
+        assert list(df["quality"]) == ["b", "g"] and list(df["description"]) == ["x", "y"]
+
     def test_no_final_newline_stays_so(self, tmp_path):
         path = self.lines(tmp_path, "tab\tmeasurements\nmeasurement\tquality\nm1\tg")
         out = os.path.join(str(tmp_path), "out.txt")

@@ -1325,10 +1325,12 @@ def write_measurement_flags(source_path: str, target_path: str, changes: dict,
     """
     with open(source_path, "rb") as fh:
         text, _ = decode_table_text(fh.read())
-    # the file's own line ending (\r\n from Windows; stray \r\r\n is one ending, not a blank line)
-    newline = "\r\n" if "\r\n" in text else "\n"
+    # the file's own line ending (\r\n from Windows, \r from an old Mac; stray \r\r\n is one ending,
+    # not a blank line)
+    newline = "\r\n" if "\r\n" in text else ("\r" if "\r" in text and "\n" not in text else "\n")
     final = text.endswith(("\n", "\r"))
-    lines = [line.rstrip("\r") for line in text.replace("\r\n", "\n").split("\n")]
+    lines = text.split("\r") if newline == "\r" else \
+        [line.rstrip("\r") for line in text.replace("\r\n", "\n").split("\n")]
     if final and lines and lines[-1] == "":
         lines = lines[:-1]
     if len(lines) < 2 or not lines[0].lower().startswith("tab"):
@@ -1357,11 +1359,14 @@ def write_measurement_flags(source_path: str, target_path: str, changes: dict,
     position = {line_no: k for k, line_no in enumerate(kept)}
     for line_no, line in enumerate(lines[2:], start=2):
         k = position.get(line_no)
-        if k is None:
+        if k is None or not (add_names or add_quality or k in changes):
             out.append(line)
             continue
         fields = line.rstrip("\r").split("\t")
-        fields += [""] * (len(header) - len(fields))
+        if add_names or add_quality:
+            fields = fields[:len(header)] + [""] * (len(header) - len(fields))
+        else:
+            fields += [""] * (q_col + 1 - len(fields))
         if add_names:
             fields.append(str(names[k]))
         if add_quality:
