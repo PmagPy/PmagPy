@@ -388,7 +388,7 @@ class Session(param.Parameterized):
             os.makedirs(self.output_dir, exist_ok=True)
             self.data.save_session(self.autosave_path)
         except OSError as exc:                             # a read-only directory must not block work
-            self.status = f"could not auto-save: {exc}"
+            self.status = f"could not auto-save into {self.output_dir}: {exc.strerror or exc}"
 
     def request_autosave(self) -> None:
         """Auto-save soon: once, ``autosave_delay`` seconds after the last edit.

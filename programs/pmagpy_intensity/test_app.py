@@ -153,6 +153,21 @@ class TestSession:
         assert not any("every measurement" in n for n in session.spec.arai.dropped)
         assert len(session.spec.arai.dropped) == 2
 
+    @pytest.mark.skipif(sys.platform == "win32" or os.geteuid() == 0,
+                        reason="needs a folder this user cannot write")
+    def test_a_failed_autosave_names_the_folder_not_a_temporary_file(self, workdir):
+        # the header read "could not auto-save: [Errno 13] Permission denied: '<folder>/.<file>.<hex>.tmp'"
+        src, out = workdir
+        os.makedirs(out)
+        os.chmod(out, 0o555)
+        try:
+            session = Session(src, out)
+            session.set_bounds(1, 5)
+        finally:
+            os.chmod(out, 0o755)
+        assert session.status.startswith(f"could not auto-save into {session.output_dir}: ")
+        assert ".tmp" not in session.status and "Errno" not in session.status
+
     def test_changing_the_criteria_set_changes_the_verdicts(self, study):
         study.criteria_name = "CCRIT"
         strict = sum(1 for r in study.data.results() if r.passed)
