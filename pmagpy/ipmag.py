@@ -4047,7 +4047,7 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
         if cb.is_null(location):
             location = 'unknown'
             try:
-                location = con.tables['sites'].df['location'][0]
+                location = con.tables['sites'].df['location'].iloc[0]
             except KeyError:
                 pass
     else:
