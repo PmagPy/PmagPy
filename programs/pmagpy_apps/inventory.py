@@ -351,8 +351,9 @@ def take_inventory(directory: str) -> Inventory:
             inv.contribution["id"] = inv.contribution["id"].split(".")[0]      # pandas reads 13436 as 13436.0
 
     s, si = frames.get("specimens"), frames.get("sites")
+    interpreted = [c for c in ("dir_dec", "int_abs") if s is not None and c in s]
     inv.analysis = {
-        "specimens_interpreted": int(s.dropna(subset=["dir_dec"])["specimen"].nunique()) if s is not None and "dir_dec" in s else 0,
+        "specimens_interpreted": int(s[s[interpreted].notna().any(axis=1)]["specimen"].nunique()) if interpreted else 0,
         "specimen_intensities": int(s.dropna(subset=["int_abs"])["specimen"].nunique()) if s is not None and "int_abs" in s else 0,
         "site_means": int(si.dropna(subset=["dir_dec"])["site"].nunique()) if si is not None and "dir_dec" in si else 0,
         "site_intensities": int(si.dropna(subset=["int_abs"])["site"].nunique()) if si is not None and "int_abs" in si else 0,

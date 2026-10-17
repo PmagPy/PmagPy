@@ -48,6 +48,11 @@ class TestMagicDirectory:
         assert self.inv.analysis["specimens_interpreted"] == 1002
         assert self.inv.analysis["site_means"] == 133
 
+    def test_specimens_interpreted_counts_intensities_as_well_as_directions(self):
+        megiddo = take_inventory(os.path.join(DATA_FILES, "3_0", "Megiddo"))
+        assert megiddo.analysis["specimen_intensities"] == 359      # what Intensity reports
+        assert megiddo.analysis["specimens_interpreted"] == 410     # 51 directions and 359 intensities
+
     def test_gaps_are_ranked_largest_first(self):
         assert [g.label for g in self.inv.gaps][0] == "site ages"
         assert self.inv.gaps[0].n == 8
