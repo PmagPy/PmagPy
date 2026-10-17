@@ -73,7 +73,7 @@ def igrf(input_list, mod='', ghfile=""):
                 - shadif14 (Pavon-Carrasco et al., 2014)
                 - shawq2k (Campuzano et al., 2019)
                 - shawqIA (Osete et al., 2020)
-                - ggk100k (Panovska et al., 2018)[only models from -99950 in 200 year increments allowed)
+                - ggf100k (Panovska et al., 2018)[only models from -99950 in 200 year increments allowed)
                 - the first four of these models, are constrained to agree
                 - with gufm1 (Jackson et al., 2000) for the past four centuries
         gh : path to file with l m g h data
