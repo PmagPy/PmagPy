@@ -3984,7 +3984,7 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
 
 
     # propagate needed values
-    con.propagate_cols(['core_depth'], 'samples', 'sites')
+    con.propagate_cols(['core_depth', 'composite_depth'], 'samples', 'sites')
     con.propagate_location_to_specimens()
 
     # get data read in
@@ -4011,7 +4011,7 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
         con.add_magic_table(dtype='ages', fname=age_file)
         Samps = con.tables['ages'].convert_to_pmag_data_list()
         # get age unit
-        age_unit = con.tables['ages'].df['age_unit'][0]
+        age_unit = con.tables['ages'].df['age_unit'].iloc[0]
         # propagate ages down to sample level
 
     for s in Samps:
@@ -4047,7 +4047,7 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
         if cb.is_null(location):
             location = 'unknown'
             try:
-                location = con.tables['sites'].df['location'][0]
+                location = con.tables['sites'].df['location'].iloc[0]
             except KeyError:
                 pass
     else:
