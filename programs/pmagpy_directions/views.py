@@ -143,6 +143,10 @@ def orientation_html(orient) -> str:
     return "".join(out) + note.format(MUTED_STYLE, text)
 
 
+LONE_PLANE_NOTE = ("{}: one plane and no line, so dec/inc is the plane's pole, not a mean direction; "
+                   "it is not written to the tables")
+
+
 def _fmt(v, nd=1):
     if v is None or (isinstance(v, float) and np.isnan(v)):
         return "–"
@@ -260,9 +264,11 @@ class LevelMeansCard:
         bingham = self.stat.value == "bingham"
         head = ["", "dec", "inc", "η / ζ" if bingham else "α95", "" if bingham else "k", "n"]
         cell = 'style="padding:1px 5px;text-align:right"'
-        rows = []
+        rows, lone = [], []
         for m, color in means:
             comp = html.escape(str(m.get("dir_comp_name", "")))
+            if dc._is_lone_plane(m):
+                lone.append(LONE_PLANE_NOTE.format(m.get("dir_comp_name", "")))
             mode = m.get("mode")
             label = f'<span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:{color};' \
                     f'margin-right:4px"></span>{comp}' + (f" <small>{html.escape(str(mode))}</small>" if mode else "")
@@ -285,9 +291,10 @@ class LevelMeansCard:
             return caption + f'<div style="{MUTED_STYLE}">no mean: fewer than two good fits of a component</div>'
         header = "".join(f'<th style="padding:1px 5px;text-align:{"left" if i == 0 else "right"};'
                          f'font-weight:600;color:#5b6470">{h}</th>' for i, h in enumerate(head))
+        notes = "".join(f'<div style="{MUTED_STYLE};margin-top:2px">{html.escape(n)}</div>' for n in lone)
         return (caption + '<table style="border-collapse:collapse;font-size:0.82rem;width:100%">'
                 f'<thead><tr style="border-bottom:1px solid #e5e7eb">{header}</tr></thead>'
-                f'<tbody>{"".join(rows)}</tbody></table>')
+                f'<tbody>{"".join(rows)}</tbody></table>' + notes)
 
 
 # ===========================================================================
@@ -939,13 +946,15 @@ class MeansView(LazyView):
 
     @staticmethod
     def _blank_statistics(means):
-        """Why a Fisher mean's statistics are blank: one line per mean of a single direction."""
+        """Why a Fisher mean's statistics are blank: a mean of one direction, or of one plane (not written)."""
         notes = []
         for _, m in means.iterrows():
             lines, planes = (pd.to_numeric(m.get(k), errors="coerce") for k in ("dir_n_specimens_lines",
                                                                                  "dir_n_specimens_planes"))
             if lines == 1 and not planes:
                 notes.append(f"{m['dir_comp_name']}: one direction, so no α95, k or r (they need at least two)")
+            elif dc._is_lone_plane(m):
+                notes.append(LONE_PLANE_NOTE.format(m["dir_comp_name"]))
         return notes
 
     def _alternative_shortfalls(self, dirs, planes, rows):

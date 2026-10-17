@@ -1012,6 +1012,28 @@ class TestMeansView:
         means.stat.value = "fisher"
         assert len(means.stats.object) == 1 and "take no part" not in means.stats_note.object
 
+    def test_a_mean_on_one_plane_is_marked_as_not_written(self, tmp_path):
+        """A lone plane is listed with its pole, and both mean views say it is not written, as the export does."""
+        from pmagpy_directions.views import MeansView, SpecimenView
+        mcmurdo = os.path.join(_HERE, "..", "..", "data_files", "3_0", "McMurdo")
+        s = Session(mcmurdo, output_dir=str(tmp_path))
+        written = s.data.means_table("sample", s.coord).set_index("sample")
+        assert written.loc[["mc42f"], "dir_dec"].isna().all() and written.loc[["mc01f"], "dir_dec"].notna().any()
+        means = MeansView(s)
+        means.level.value, means.comp.value = "sample", "all"
+        means.name.value = "mc42f"                      # one plane fit and no line
+        assert len(means.stats.object) == 1
+        assert "A: one plane and no line" in means.stats_note.object
+        assert "not written to the tables" in means.stats_note.object
+        assert "one direction" not in means.stats_note.object
+
+        view = SpecimenView(s)
+        s.specimen = next(sp for sp in s.data.specimens_in("sample", "mc42f"))
+        view.levels.level.value = "sample"
+        assert "not written to the tables" in view.levels.stats.object
+        view.levels.level.value = "site"                # five planes: a mean direction, written
+        assert "not written" not in view.levels.stats.object
+
 
 class TestAutosaveDebounce:
     """Every edit used to rewrite the whole .redo; edits now coalesce into one write."""
