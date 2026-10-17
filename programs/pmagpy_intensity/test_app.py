@@ -268,6 +268,18 @@ class TestSpecimenView:
         view.tmax.value = list(view.tmax.options.values())[4]
         assert session.bounds() == (0, 4)
 
+    def test_a_new_specimen_opens_its_steps_at_the_top(self, workdir):
+        # the Tabulator puts its scroll position back when its rows are replaced, so the step table
+        # kept the last specimen's scroll; the browser now resets it when the specimen changes
+        import panel as pn
+        src, out = workdir
+        view = SpecimenView(Session(src, out))
+        root = pn.Row(view.chooser, view.steps).get_root()
+        chooser = view.chooser._models[root.ref["id"]][0]
+        steps = view.steps._models[root.ref["id"]][0]
+        callbacks = chooser.js_property_callbacks.get("change:value", [])
+        assert any(cb.args.get("steps") is steps and "scrollTop = 0" in cb.code for cb in callbacks)
+
     def test_the_view_draws_and_follows_the_specimen(self, workdir):
         src, out = workdir
         session = Session(src, out)

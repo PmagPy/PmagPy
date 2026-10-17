@@ -322,6 +322,18 @@ SCROLL_STEPS_JS = """(index) => {
   for (const h of found) if (h.querySelector("[tabulator-field='kind']")) h.scrollTop = Math.max(0, index * 28 - 80);
 }"""
 
+#: how far the step table is scrolled
+STEPS_SCROLL_TOP_JS = """() => {
+  const found = [];
+  const walk = (root) => root.querySelectorAll('*').forEach(el => {
+    if (el.shadowRoot) walk(el.shadowRoot);
+    if (el.classList && el.classList.contains('tabulator-tableholder')) found.push(el);
+  });
+  walk(document);
+  const holder = found.find(h => h.querySelector("[tabulator-field='kind']"));
+  return holder ? holder.scrollTop : null;
+}"""
+
 
 with sync_playwright() as playwright:
     browser = playwright.chromium.launch()
@@ -535,8 +547,14 @@ with sync_playwright() as playwright:
     # a flag on the fit's first step sets the fit aside, and flagging it good restores it
     names = page.get_by_label("Specimen", exact=True).first.evaluate("s => [...s.options].map(o => o.text)")
     second = names[1]
+    page.evaluate(SCROLL_STEPS_JS, 30)
+    time.sleep(1)
+    scrolled = page.evaluate(STEPS_SCROLL_TOP_JS)
     choose(page, "Specimen", second)
     before = wait_for_bounds(page, lambda b: all(b))
+    check(scrolled and page.evaluate(STEPS_SCROLL_TOP_JS) == 0,
+          f"a new specimen's steps open at the top of the table (was scrolled {scrolled} px, "
+          f"now {page.evaluate(STEPS_SCROLL_TOP_JS)} px)")
     rows = step_table(page)
     index_of = {label: i for i, label in enumerate(page.get_by_label("from", exact=True).first
                                                    .evaluate("s => [...s.options].map(o => o.text)"))}

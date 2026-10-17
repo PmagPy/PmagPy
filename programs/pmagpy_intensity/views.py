@@ -290,6 +290,15 @@ class SpecimenView:
 
     COMPANION_GAP = COMPANION_GAP
 
+    #: run in the browser when the specimen changes: the Tabulator puts its scroll position back
+    #: whenever its rows are replaced, so a new specimen's steps would open where the last were left
+    STEPS_TO_TOP_JS = """
+    for (const view of Bokeh.index.find(steps)) {
+      view._lastVerticalScrollbarTopPosition = 0
+      if (view.tabulator && view.tabulator.rowManager) view.tabulator.rowManager.element.scrollTop = 0
+    }
+    """
+
     def __init__(self, session: Session):
         self.s = session
         self.arai = AraiPlot()
@@ -340,6 +349,7 @@ class SpecimenView:
             titles={"step": "", "label": "step", "kind": "type", "moment": "moment",
                     "dec": "dec", "inc": "inc", "quality": ""})
         self.steps.on_click(self._on_step_click)
+        self.chooser.jscallback(value=self.STEPS_TO_TOP_JS, args={"steps": self.steps})
         self.step_help = pn.pane.HTML(
             f'<div style="{MUTED_STYLE}">Click a step\'s ● or ○ to move the nearer bound to it. '
             f'Click anywhere else in a row to select it, and flag it bad or good with the button '
