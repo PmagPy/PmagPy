@@ -9770,11 +9770,16 @@ def doigrf(lon, lat, alt, date, **kwargs):
         print('too old')
         return
     if 'mod' in list(kwargs.keys()) and kwargs['mod'] == 'ggf100k':
-        incr = 200
-        model = date - date % incr
-        model = date
-        gh = psvcoeffs[psvmodels.index(int(model))]
-        sv = (psvcoeffs[psvmodels.index(int(model + incr))] - gh)/ float(incr)
+        from bisect import bisect_right
+        last = len(psvcoeffs) - 1  # last epoch with coefficients (1850)
+        if date < psvmodels[0] or date > psvmodels[last]:
+            raise ValueError("ggf100k is only valid from %s to %s"
+                             % (psvmodels[0], psvmodels[last]))
+        # epoch at or below date, clamped so a following epoch always exists
+        i = min(bisect_right(psvmodels, date) - 1, last - 1)
+        model = psvmodels[i]
+        gh = psvcoeffs[i]
+        sv = (psvcoeffs[i + 1] - gh) / float(psvmodels[i + 1] - model)
         x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
     elif 'mod' in list(kwargs.keys()) and kwargs['mod'] == 'shadif14k':
         if date < -10000:
