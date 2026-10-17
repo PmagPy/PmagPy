@@ -68,7 +68,7 @@ def main():
         file = sys.argv[ind+1]
         data = numpy.loadtxt(file)
     else:
-        data = numpy.loadtxt(sys.stdin, dtype=numpy.float)  # read from S/I
+        data = numpy.loadtxt(sys.stdin, dtype=float)  # read from S/I
     if len(data.shape) > 1:  # 2-D array
         N = data.shape[0]
         if data.shape[1] == 4:   # only dec,inc,sitelat, site long -no alpha95

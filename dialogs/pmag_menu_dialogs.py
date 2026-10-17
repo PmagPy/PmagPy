@@ -2088,25 +2088,29 @@ class Ani_depthplot(wx.Frame):
 
     def InitUI(self):
         pnl = self.panel
-        TEXT = "Anisotropy data can be plotted versus depth.\nThe program ANI_depthplot.py uses MagIC formatted data tables of the rmag_anisotropy.txt and er_samples.txt types.\nrmag_anisotropy.txt stores the tensor elements and measurement meta-data while er_samples.txt stores the depths, location and other information.\nBulk susceptibility measurements can also be plotted if they are available in a magic_measurements.txt formatted file."
+        TEXT = "Anisotropy data can be plotted versus depth.\nThe program ANI_depthplot.py uses MagIC 3 data tables of the specimens.txt, samples.txt and sites.txt types.\nspecimens.txt stores the anisotropy tensors while samples.txt and sites.txt store the depths, location and other information.\nBulk susceptibility measurements can also be plotted if they are available in a measurements.txt formatted file."
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
         #---sizer 0 ----
-        self.bSizer0 = pw.choose_file(pnl, btn_text='add rmag_anisotropy file', method = self.on_add_rmag_button, remove_button='remove rmag_anisotropy file')
-        self.check_and_add_file(os.path.join(self.WD, 'rmag_anisotropy.txt'), self.bSizer0.file_path)
+        self.bSizer0 = pw.choose_file(pnl, btn_text='add specimens file', method = self.on_add_specimens_button)
+        self.check_and_add_file(os.path.join(self.WD, 'specimens.txt'), self.bSizer0.file_path)
 
         #---sizer 1 ----
-        self.bSizer1 = pw.choose_file(pnl, btn_text='add magic_measurements file', method = self.on_add_measurements_button, remove_button='remove magic_measurements file')
-        self.check_and_add_file(os.path.join(self.WD, 'magic_measurements.txt'), self.bSizer1.file_path)
+        self.bSizer1 = pw.choose_file(pnl, btn_text='add measurements file (optional)', method = self.on_add_measurements_button, remove_button='remove measurements file')
+        self.check_and_add_file(os.path.join(self.WD, 'measurements.txt'), self.bSizer1.file_path)
+
+        #---sizer 1b ----
+        self.bSizer_sites = pw.choose_file(pnl, btn_text='add sites file', method = self.on_add_sites_button)
+        self.check_and_add_file(os.path.join(self.WD, 'sites.txt'), self.bSizer_sites.file_path)
 
         #---sizer 2 ---
-        self.bSizer2a = pw.labeled_yes_or_no(pnl, "Choose file to provide sample data", "er_samples", "er_ages")
+        self.bSizer2a = pw.labeled_yes_or_no(pnl, "Choose file to provide sample data", "samples", "ages")
         self.Bind(wx.EVT_RADIOBUTTON, self.on_sample_or_age, self.bSizer2a.rb1)
         self.Bind(wx.EVT_RADIOBUTTON, self.on_sample_or_age, self.bSizer2a.rb2)
 
-        self.bSizer2 = pw.choose_file(pnl, btn_text='add er_samples file', method = self.on_add_samples_button)
-        sampfile = os.path.join(self.WD, 'er_samples.txt')
+        self.bSizer2 = pw.choose_file(pnl, btn_text='add samples file', method = self.on_add_samples_button)
+        sampfile = os.path.join(self.WD, 'samples.txt')
         self.check_and_add_file(sampfile, self.bSizer2.file_path)
 
         #---sizer 2b---
@@ -2131,6 +2135,7 @@ class Ani_depthplot(wx.Frame):
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer_sites, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2b, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -2153,25 +2158,30 @@ class Ani_depthplot(wx.Frame):
         self.Show()
         self.Centre()
 
-    def on_add_rmag_button(self,event):
-        text = "choose rmag_anisotropy file"
+    def on_add_specimens_button(self,event):
+        text = "choose specimens file"
         pw.on_add_file_button(self.bSizer0, text)
 
     def on_add_measurements_button(self,event):
-        text = "choose magic_measurements file"
+        text = "choose measurements file"
         pw.on_add_file_button(self.bSizer1, text)
 
+    def on_add_sites_button(self,event):
+        text = "choose sites file"
+        pw.on_add_file_button(self.bSizer_sites, text)
+
     def on_add_samples_button(self, event):
-        text = "provide er_samples/er_ages file"
+        text = "provide samples/ages file"
         pw.on_add_file_button(self.bSizer2, text)
 
     def on_sample_or_age(self, event):
+        self.bSizer2.file_path.SetValue('')  # Clear the previous
         if event.GetId() == self.bSizer2a.rb1.GetId():
-            self.bSizer2.add_file_button.SetLabel('add er_samples_file')
-            self.check_and_add_file(os.path.join(self.WD, 'er_samples.txt'), self.bSizer2.file_path)
+            self.bSizer2.add_file_button.SetLabel('add samples file')
+            self.check_and_add_file(os.path.join(self.WD, 'samples.txt'), self.bSizer2.file_path)
         else:
-            self.bSizer2.add_file_button.SetLabel('add er_ages_file')
-            self.check_and_add_file(os.path.join(self.WD, 'er_ages.txt'), self.bSizer2.file_path)
+            self.bSizer2.add_file_button.SetLabel('add ages file')
+            self.check_and_add_file(os.path.join(self.WD, 'ages.txt'), self.bSizer2.file_path)
 
     def on_add_summary_button(self, event):
         pw.on_add_file_button(self.bSizer2b, text="provide csv format core summary file")
@@ -2186,43 +2196,46 @@ class Ani_depthplot(wx.Frame):
         wx.SafeYield()
 
         os.chdir(self.WD)
-        ani_file = self.bSizer0.return_value()
+        spec_file = self.bSizer0.return_value()
         meas_file = self.bSizer1.return_value()
+        site_file = self.bSizer_sites.return_value()
         use_sampfile = self.bSizer2a.return_value()
-        samp_file, age_file = None, None
+        samp_file, age_file = '', ''
         if use_sampfile:
             samp_file = self.bSizer2.return_value()
         else:
             age_file = self.bSizer2.return_value()
 
+        if not (spec_file and site_file and (samp_file or age_file)):
+            del wait
+            pw.simple_warning("You must provide specimens, sites and samples (or ages) files")
+            return
+
         sum_file = self.bSizer2b.return_value()
-        if sum_file:
-            sum_file = os.path.split(sum_file)[1]
 
         fmt = self.bSizer3.return_value()
         depth_scale = self.bSizer4.return_value()
-        print('age_file', age_file)
         if age_file:
             depth_scale='age'
         elif depth_scale:
-            depth_scale = 'sample_core_depth' #'mbsf'
+            depth_scale = 'core_depth' #'mbsf'
         else:
-            depth_scale = 'sample_composite_depth' #'mcd'
+            depth_scale = 'composite_depth' #'mcd'
         dmin = self.bSizer5.return_value() or -1
         dmax = self.bSizer6.return_value() or -1
 
         # for use as module:
-        fig, figname = ipmag.ani_depthplot2(ani_file, meas_file, samp_file, age_file, sum_file, fmt, float(dmin), float(dmax), depth_scale)
+        fig, fignames = ipmag.ani_depthplot(spec_file, samp_file, meas_file, site_file, age_file, sum_file, fmt, float(dmin), float(dmax), depth_scale, self.WD)
         if fig:
             self.Destroy()
             dpi = fig.get_dpi()
             pixel_width = dpi * fig.get_figwidth()
             pixel_height = dpi * fig.get_figheight()
             del wait
-            plot_frame = PlotFrame((pixel_width, pixel_height + 50), fig, figname)
+            plot_frame = PlotFrame((pixel_width, pixel_height + 50), fig, fignames[0])
         else:
             del wait
-            pw.simple_warning("No data points met your criteria - try again\nError message: {}".format(figname))
+            pw.simple_warning("No data points met your criteria - try again\nError message: {}".format(fignames))
 
 
     def on_cancelButton(self,event):
@@ -2230,7 +2243,7 @@ class Ani_depthplot(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton(text=ipmag.ani_depthplot2.__doc__)
+        pw.on_helpButton(text=ipmag.ani_depthplot.__doc__)
 
 
 

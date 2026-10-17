@@ -40,8 +40,8 @@ def main():
     if '-F' in sys.argv:
         ind = sys.argv.index('-F')
         ofile= sys.argv[ind+1]
-        out = open(ofile, 'w + a')
-    DIIs=numpy.loadtxt(file,dtype=numpy.float) # read in the data
+        out = open(ofile, 'w')
+    DIIs=numpy.loadtxt(file,dtype=float) # read in the data
 #
     vpars,R=pmag.vector_mean(DIIs)
     outstring='%7.1f %7.1f   %10.3e %i'%(vpars[0],vpars[1],R,len(DIIs))

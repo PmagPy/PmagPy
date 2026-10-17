@@ -5,8 +5,7 @@ paleointensity data. This can be used to obtain intensities for Thermal and
 Microwave data. It allows export of figures and analysis results for upload
 to the MagIC database and/or publication. For more information on how to
 interpret or use the GUI's many functions see the Help menu in the open GUI.
-More documentation can be found on all of PmagPy's functionality at the
-PmagPy documentation, which can be found here:
+More documentation can be found at the PmagPy documentation site:
 https://pmagpy.github.io/PmagPy-docs/programs/thellier_gui.html
 
 SYNTAX
@@ -288,8 +287,7 @@ paleointensity data. This can be used to obtain intensities for Thermal and
 Microwave data. It allows export of figures and analysis results for upload
 to the MagIC database and/or publication. For more information on how to
 interpret or use the GUI's many functions see the Help menu in the open GUI.
-More documentation can be found on all of PmagPy's functionality at the
-PmagPy documentation, which can be found here:
+More documentation can be found at the PmagPy documentation site:
 https://pmagpy.github.io/PmagPy-docs/programs/thellier_gui.html
 
 SYNTAX
@@ -308,7 +306,7 @@ AUTHORS
 
 DESCRIPTION
     GUI for interpreting thellier-type paleointensity data.
-    For a tutorial see https://pmagpy.github.io/PmagPy-docs/programs/thellier_gui.html
+    For a tutorial see the PmagPy documentation: https://pmagpy.github.io/PmagPy-docs/programs/thellier_gui.html
 
         """
         args = sys.argv
@@ -1568,7 +1566,7 @@ else:
 
         menu_Help = wx.Menu()
 
-        m_cookbook = menu_Help.Append(-1, "&PmagPy documentation\tCtrl-Shift-W", "")
+        m_cookbook = menu_Help.Append(-1, "&PmagPy Documentation\tCtrl-Shift-W", "")
         self.Bind(wx.EVT_MENU, self.on_menu_cookbook, m_cookbook)
 
         m_docs = menu_Help.Append(-1, "&Open Docs\tCtrl-Shift-H", "")

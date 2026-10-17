@@ -1,11 +1,10 @@
 #!/usr/bin/env python
-from builtins import str
+
 import sys
 import pmagpy.pmag as pmag
 import pmagpy.command_line_extractor as extractor
 import pmagpy.ipmag as ipmag
-#
-#
+
 def main():
     """
     NAME

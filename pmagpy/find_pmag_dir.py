@@ -1,12 +1,5 @@
-from importlib import reload
 import os
 import sys
-
-try:
-    import importlib.resources as importlib_resources
-except ImportError:
-    import importlib_resources # if Python < 3.7
-import locator
 
 
 def get_data_files_dir():
@@ -21,57 +14,28 @@ def get_data_files_dir():
 
 def get_pmag_dir():
     """
-    Returns directory in which PmagPy is installed
+    Returns directory in which PmagPy is installed.
+
+    The directory is the one that contains the ``pmagpy`` package: the
+    cloned repository for a developer (editable) install, or
+    ``site-packages`` for a regular pip install. Running from inside the
+    repository, a py2app bundle and a PyInstaller bundle are handled first.
     """
     # this is correct for py2app
-    try:
+    if 'RESOURCEPATH' in os.environ:
         return os.environ['RESOURCEPATH']
-    # this works for everything else
-    except KeyError: 
-        pass
-    # new way if we're in the local PmagPy directory:
+    # running from the local PmagPy directory
     if os.path.isfile(os.path.join(os.getcwd(), 'pmagpy', 'pmag.py')):
-        lib_dir = os.path.join(os.getcwd(), 'pmagpy')
-    # if we're anywhere else:
-    elif getattr(sys, 'frozen', False): #pyinstaller datafile directory
+        return os.getcwd()
+    # pyinstaller datafile directory
+    if getattr(sys, 'frozen', False):
         return sys._MEIPASS
-    else:
-        # new way (as of 2025)
-        temp = os.getcwd()
-        os.chdir('..')
-        reload(locator)
-        ref = importlib_resources.files('locator') / 'resource.py'
-        with importlib_resources.as_file(ref) as path:
-            full_dir = os.path.split(str(path))[0]
-            ind = full_dir.rfind(os.sep)
-            lib_dir = full_dir[:ind+1]
-            lib_dir = os.path.realpath(os.path.join(lib_dir, 'pmagpy'))
-        os.chdir(temp)
-    if not os.path.isfile(os.path.join(lib_dir, 'pmag.py')):
-        lib_dir = os.getcwd()
-    fname = os.path.join(lib_dir, 'pmag.py')
-    if not os.path.isfile(fname):
-        pmag_dir = os.path.split(os.path.split(__file__)[0])[0]
-        if os.path.isfile(os.path.join(pmag_dir,'pmagpy','pmag.py')):
-            return pmag_dir
-        else:
-            print('-W- Can\'t find the data model!  Make sure you have installed pmagpy using pip: "pip install pmagpy --upgrade"')
-            return '.'
-    # strip "/" or "\" and "pmagpy" to return proper PmagPy directory
-    if lib_dir.endswith(os.sep):
-        lib_dir = lib_dir[:-1]
-    if lib_dir.endswith('pmagpy'):
-        pmag_dir = os.path.split(lib_dir)[0]
-    else:
-        pmag_dir = lib_dir
-    return pmag_dir
-    #if not os.path.isfile(os.path.join(pmag_dir, 'pmagpy', 'pmag.py')):
-    #    print '-W- Can\'t find the data model!  Make sure you have installed pmagpy using pip: "pip install pmagpy --upgrade"#'
-    #return
-    #return pmag_dir  # os.path.dirname(os.path.realpath(__file__))
-
-    ##except KeyError:
-    ##    return os.path.dirname(os.path.realpath(__file__))
+    # anywhere else: the directory that holds this pmagpy package
+    pmag_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    if os.path.isfile(os.path.join(pmag_dir, 'pmagpy', 'pmag.py')):
+        return pmag_dir
+    print('-W- Can\'t find the data model!  Make sure you have installed pmagpy using pip: "pip install pmagpy --upgrade"')
+    return '.'
 
 def is_frozen():
     """

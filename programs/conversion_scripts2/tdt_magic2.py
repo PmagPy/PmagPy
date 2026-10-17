@@ -1,13 +1,9 @@
 #!/usr/bin/env pythonw
 # -*- coding: utf-8 -*-
-from builtins import str
-from builtins import range
-import wx
-import sys
-import os
-import scipy
-from scipy import *
 
+import wx
+import os
+from scipy import *
 
 #------------------------------------------------------------------------
 #   def main():

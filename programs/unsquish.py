@@ -44,7 +44,7 @@ def main():
         file=sys.argv[ind+1]  
         input=numpy.loadtxt(file)
     else:
-        input=numpy.loadtxt(sys.stdin,dtype=numpy.float)
+        input=numpy.loadtxt(sys.stdin,dtype=float)
 # read in inclination data
     for line in input: 
         dec=float(line[0])

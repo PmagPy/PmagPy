@@ -1,5 +1,3 @@
-from builtins import map
-from builtins import range
 import numpy
 from scipy import optimize
 

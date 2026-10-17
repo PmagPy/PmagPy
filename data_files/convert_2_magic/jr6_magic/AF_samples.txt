@@ -1,19 +1,19 @@
 tab	samples
 sample	site	analysts	azimuth	dip	citations	method_codes
-BR14	BR1	Roi	342	-62.0	This study	LP-NO
-MF15	MF1	Roi	111	-13.0	This study	LP-NO
-BR29	BR2	Roi	280	-33.0	This study	LP-NO
-ST1	ST	Roi	57	-22.0	This study	LP-NO
-MF1	MF	Roi	123	-58.0	This study	LP-NO
-MF2	MF	Roi	354	-44.0	This study	LP-NO
-BR1	BR	Roi	337	-58.0	This study	LP-NO
-BR2	BR	Roi	287	-38.0	This study	LP-NO
-RQ1	RQ	Roi	36	-59.0	This study	LP-NO
-RQ3	RQ	Roi	94	-81.0	This study	LP-NO
-RQ2	RQ	Roi	41	-48.0	This study	LP-NO
-RQ4	RQ	Roi	134	-73.0	This study	LP-NO
-ST4	ST	Roi	263	-41.0	This study	LP-NO
-ST38	ST3	Roi	21	-4.0	This study	LP-NO
-ST23	ST2	Roi	27	-63.0	This study	LP-NO
-RQ37	RQ3	Roi	171	-52.0	This study	LP-NO
-ST2	ST	Roi	358	-54.0	This study	LP-NO
+BR14	BR1	Roi	342.0	-62.0	This study	LP-NO
+MF15	MF1	Roi	111.0	-13.0	This study	LP-NO
+BR29	BR2	Roi	280.0	-33.0	This study	LP-NO
+ST1	ST	Roi	57.0	-22.0	This study	LP-NO
+MF1	MF	Roi	123.0	-58.0	This study	LP-NO
+MF2	MF	Roi	354.0	-44.0	This study	LP-NO
+BR1	BR	Roi	337.0	-58.0	This study	LP-NO
+BR2	BR	Roi	287.0	-38.0	This study	LP-NO
+RQ1	RQ	Roi	36.0	-59.0	This study	LP-NO
+RQ3	RQ	Roi	94.0	-81.0	This study	LP-NO
+RQ2	RQ	Roi	41.0	-48.0	This study	LP-NO
+RQ4	RQ	Roi	134.0	-73.0	This study	LP-NO
+ST4	ST	Roi	263.0	-41.0	This study	LP-NO
+ST38	ST3	Roi	21.0	-4.0	This study	LP-NO
+ST23	ST2	Roi	27.0	-63.0	This study	LP-NO
+RQ37	RQ3	Roi	171.0	-52.0	This study	LP-NO
+ST2	ST	Roi	358.0	-54.0	This study	LP-NO

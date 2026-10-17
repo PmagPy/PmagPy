@@ -1,14 +1,11 @@
 #============================================================================================
-from builtins import input
-from builtins import range
-from builtins import object
+
 global CURRENT_VRSION
 CURRENT_VRSION = "v.2.03"
-#import matplotlib
+
 
 import numpy
 import sys
-import os
 import math
 #import pylab,scipy
 ##try:
@@ -19,12 +16,6 @@ try:
     import thellier_gui_preferences
 except Exception:
     pass
-#import copy
-#import stat
-#import subprocess
-#import time
-#import random
-#import copy
 
 #from pylab import *  # this stuff is being used, don't know all where
 

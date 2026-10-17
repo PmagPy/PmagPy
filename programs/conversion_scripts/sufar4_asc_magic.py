@@ -70,7 +70,7 @@ def main():
             lab arrow is as in [1] above.
             lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90
         [6] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip
-        [7] see http://earthref.org/PmagPy/cookbook/#field_info for more information.  You can customize other format yourself, or email ltauxe@ucsd.edu for help.
+        [7] see https://pmagpy.github.io/PmagPy-docs/programs/pmag_gui.html#field-and-sampling-information for more information.  You can customize other format yourself, or email ltauxe@ucsd.edu for help.
         [8] Lab arrow azimuth = mag_azimuth-180; Lab arrow dip = 90-field_dip
 
 

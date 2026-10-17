@@ -2,7 +2,6 @@
 
 import json
 import os
-from builtins import object
 
 import pandas as pd
 from pandas import Series

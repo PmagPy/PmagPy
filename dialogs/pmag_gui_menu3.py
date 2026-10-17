@@ -42,7 +42,7 @@ class MagICMenu(wx.MenuBar):
 
         ## Help
         help_menu = wx.Menu()
-        help_cookbook = help_menu.Append(wx.ID_ANY, '&PmagPy Cookbook\tCtrl-Shift-H',
+        help_cookbook = help_menu.Append(wx.ID_ANY, '&PmagPy Documentation\tCtrl-Shift-H',
                                          'Access the online documentation')
         help_git = help_menu.Append(wx.ID_ANY, '&Github Page\tCtrl-Shift-G',
                                     'Access the PmagPy repository')

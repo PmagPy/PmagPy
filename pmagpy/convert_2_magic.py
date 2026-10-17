@@ -1425,7 +1425,7 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
         site_file="sites.txt", loc_file="locations.txt", locname="unknown",
         sitename="", sampname="", methods=['SO-MAG'], specnum=0, samp_con='3',
         norm='cc', noave=False, meas_n_orient='8',
-        labfield=0, phi=0, theta=0):
+        labfield=0, phi=0, theta=0, oersted=True):
     """
     Converts CIT formatted Magnetometer data into MagIC format for Analysis and contribution to the MagIC database
 
@@ -1449,7 +1449,6 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
     specnum : number of terminal characters that identify a specimen
     norm : is volume or mass normalization using cgs or si units (options : cc,m3,g,kg) (default : cc)
         a volume/mass of exactly 1.0 is taken as "not normalized" (LP-NOMAG, no volume written)
-    oersted : demag step values are in Oersted
     noave : average measurement data or not. False is average, True is don't average. (default : False)
         CIT steps are already averaged over the measurement orientations, so repeated steps are
         usually worth keeping (noave=True, as Pmag GUI does)
@@ -1467,6 +1466,10 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
     labfield : DC_FIELD in microTesla (default : 0)
     phi : DC_PHI in degrees (default : 0)
     theta : DC_THETA in degrees (default : 0)
+    oersted : True if AF demag step values in the .sam file are recorded in cgs units
+        (Gauss; numerically equivalent to Oersted); False if they are recorded in
+        milliTesla (default : True, matching the standard CIT format convention where
+        e.g. an AF step of 10 means 10 G = 1 mT).
 
     Returns
     -----------
@@ -1657,7 +1660,8 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
             SpecRec['weight'] = ""
             SpecRec['volume'] = '%10.3e' % (volmass*1e-6)
         # the CIT sample line holds strikes: the core strike is 90 degrees clockwise of the
-        # core azimuth, and the bedding strike 90 degrees counterclockwise of the dip direction
+        # core azimuth, and the bedding strike 90 degrees counterclockwise of the dip direction;
+        # both are wrapped into [0, 360) so a strike under 90 does not give a negative azimuth
         dip = float(info[-2])
         dip_direction = (float(info[-3])+Cdec+90.) % 360.
         sample_dip = -float(info[-4])
@@ -1744,15 +1748,13 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
                 if treat.strip() == '':
                     MeasRec['treat_ac_field'] = '0'
                 else:
+                    scale = 1e-4 if oersted else 1e-3
                     try:
                         MeasRec['treat_ac_field'] = '%10.3e' % (
-                            float(treat)*1e-3)
+                            float(treat) * scale)
                     except ValueError as e:
                         print(os.path.join(input_dir_path, specimen))
                         raise e
-                if MeasRec['treat_ac_field'] != '0':
-                    MeasRec['treat_ac_field'] = '%10.3e' % (
-                        float(MeasRec['treat_ac_field'])/10)
             elif treat_type.startswith('ARM'):
                 MeasRec['method_codes'] = "LP-ARM"
                 MeasRec['meas_temp'] = '273'
@@ -3650,6 +3652,7 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
     measurements_df["treat_dc_field"] = '0'
     measurements_df["treat_dc_field_phi"] = '0'
     measurements_df["treat_dc_field_theta"] = '0'
+    measurements_df["treat_dc_field"] = measurements_df["treat_dc_field"].astype(object)
     measurements_df["treat_step_num"] = '1'
     measurements_df["standard"] = 'u'  # assume all data are "good"
     measurements_df["dir_csd"] = '0'  # assume all data are "good"
@@ -3831,6 +3834,8 @@ def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False
     measurements_df["treat_dc_field"] = '0'
     measurements_df["treat_dc_field_phi"] = '0'
     measurements_df["treat_dc_field_theta"] = '0'
+    for col in ("treat_temp", "treat_dc_field"):
+        measurements_df[col] = measurements_df[col].astype(object)
     measurements_df["treat_step_num"] = 1
     measurements_df['meas_n_orient'] = 3
     measurements_df["standard"] = 'u'  # assume all data are "good"
@@ -10443,7 +10448,7 @@ def sufar4(ascfile, meas_output='measurements.txt', spec_infile=None,
             lab arrow is as in [1] above.
             lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90
         [6] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip
-        [7] see http://earthref.org/PmagPy/cookbook/#field_info for more information.  You can customize other format yourself, or email ltauxe@ucsd.edu for help.
+        [7] see https://pmagpy.github.io/PmagPy-docs/programs/pmag_gui.html#field-and-sampling-information for more information.  You can customize other format yourself, or email ltauxe@ucsd.edu for help.
         [8] Lab arrow azimuth = mag_azimuth-180; Lab arrow dip = 90-field_dip
 
 
@@ -10834,7 +10839,7 @@ def sufar4_dm2(ascfile, meas_output='measurements.txt', aniso_output='rmag_aniso
             lab arrow is as in [1] above.
             lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90
         [6] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip
-        [7] see http://earthref.org/PmagPy/cookbook/#field_info for more information.  You can customize other format yourself, or email ltauxe@ucsd.edu for help.
+        [7] see https://pmagpy.github.io/PmagPy-docs/programs/pmag_gui.html#field-and-sampling-information for more information.  You can customize other format yourself, or email ltauxe@ucsd.edu for help.
         [8] Lab arrow azimuth = mag_azimuth-180; Lab arrow dip = 90-field_dip
 
 

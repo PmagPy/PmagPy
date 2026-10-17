@@ -14,7 +14,7 @@ def main():
          Original program ARMcrunch written to accomodate ARM anisotropy data
           collected from 6 axial directions (+X,+Y,+Z,-X,-Y,-Z) using the
           off-axis remanence terms to construct the tensor. A better way to
-          do the anisotropy of ARMs is to use 9,12 or 15 measurements in
+          do the anisotropy of ARMs is to use 9 or 15 measurements in
           the Hext rotational scheme.
 
     SYNTAX
@@ -23,12 +23,15 @@ def main():
     OPTIONS
         -h prints help message and quits
         -f FILE: specify input file, default is aarm_measurements.txt
-        -crd [s,g,t] specify coordinate system, requires samples file
-        -fsa  FILE: specify er_samples.txt file, default is er_samples.txt (2.5) or samples.txt (3.0)
-        -Fa FILE: specify anisotropy output file, default is arm_anisotropy.txt (MagIC 2.5 only)
-        -Fr FILE: specify results output file, default is aarm_results.txt (MagIC 2.5 only)
-        -Fsi FILE: specify output file, default is specimens.txt (MagIC 3 only)
+        -fsp FILE: specimen input file, default is specimens.txt (optional)
+        -Fsp FILE: specify output file, default is specimens.txt
+        -Fsi FILE: same as -Fsp (retained for backward compatibility)
+        -WD DIR: output directory, default is current directory
+        -ID DIR: input directory, default is the output directory
         -DM DATA_MODEL: specify MagIC 2 or MagIC 3, default is 3
+        MagIC 2 only (legacy):
+        -crd [s,g,t] specify coordinate system, requires samples file
+        -fsa FILE: specify er_samples.txt file, default is er_samples.txt
 
     INPUT
         Input for the present program is a series of baseline, ARM pairs.
@@ -36,9 +39,14 @@ def main():
       preferable) for the following ARM acquisition. The order of the
       measurements is:
 
+           +X, +Y, +Z, -X, -Y, -Z (for 6 positions)
            positions 1,2,3, 6,7,8, 11,12,13 (for 9 positions)
-           positions 1,2,3,4, 6,7,8,9, 11,12,13,14 (for 12 positions)
            positions 1-15 (for 15 positions)
+
+    OUTPUT
+        MagIC 3 tensors are written in specimen coordinates
+        (aniso_tilt_correction = -1) and merged into the specimen table:
+        other records in the input specimen file are retained.
     """
     # initialize some parameters
     args = sys.argv
@@ -47,32 +55,29 @@ def main():
         print(main.__doc__)
         sys.exit()
 
-    #meas_file = "aarm_measurements.txt"
-    #rmag_anis = "arm_anisotropy.txt"
-    #rmag_res = "aarm_results.txt"
-    #
-    # get name of file from command line
-    #
-    data_model_num = int(pmag.get_named_arg("-DM", 3))
-    spec_file = pmag.get_named_arg("-Fsi", "specimens.txt")
-    if data_model_num == 3:
-        samp_file = pmag.get_named_arg("-fsa", "samples.txt")
-    else:
-        samp_file = pmag.get_named_arg("-fsa", "er_samples.txt")
+    data_model_num = int(float(pmag.get_named_arg("-DM", 3)))
     dir_path = pmag.get_named_arg('-WD', '.')
     input_dir_path = pmag.get_named_arg('-ID', '')
-    infile = pmag.get_named_arg('-f', reqd=True)
-    coord = pmag.get_named_arg('-crd', '-1')
+    infile = pmag.get_named_arg('-f', 'aarm_measurements.txt')
 
-    #if "-Fa" in args:
-    #    ind = args.index("-Fa")
-    #    rmag_anis = args[ind + 1]
-    #if "-Fr" in args:
-    #    ind = args.index("-Fr")
-    #    rmag_res = args[ind + 1]
+    if data_model_num == 2:
+        spec_file = pmag.get_named_arg("-Fsi", "specimens.txt")
+        samp_file = pmag.get_named_arg("-fsa", "er_samples.txt")
+        coord = pmag.get_named_arg('-crd', '-1')
+        ipmag.aarm_magic_dm2(infile=infile, dir_path=dir_path,
+                             input_dir_path=input_dir_path, spec_file=spec_file,
+                             samp_file=samp_file, data_model_num=data_model_num,
+                             coord=coord)
+        return
+
+    if "-crd" in args or "-fsa" in args:
+        print("-W- -crd and -fsa apply to MagIC 2 only; MagIC 3 AARM "
+              "tensors are written in specimen coordinates")
+    spec_infile = pmag.get_named_arg("-fsp", "specimens.txt")
+    spec_outfile = pmag.get_named_arg(
+        "-Fsp", pmag.get_named_arg("-Fsi", "specimens.txt"))
     ipmag.aarm_magic(infile, dir_path, input_dir_path,
-            spec_file, samp_file, data_model_num,
-            coord)
+                     spec_infile, spec_outfile)
 
 
 if __name__ == "__main__":

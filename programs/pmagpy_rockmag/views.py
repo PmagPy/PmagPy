@@ -888,8 +888,9 @@ class HysteresisView:
     The loop is gridded, centred, drift-corrected and slope-corrected, with
     the raw and corrected loops and the Mrh/Mih/Me curves overlaid in the
     function's own figure. The controls are its arguments: the centering
-    protocol, forcing the non-linear approach-to-saturation fit, and the two
-    overrides of the decision tree's early exits (open and linear loops).
+    protocol, forcing the non-linear approach-to-saturation fit, and the
+    override of the decision tree's early exit for a linear loop (an open
+    loop is processed in full and reported as open).
     """
 
     TYPE = "hys"
@@ -900,7 +901,6 @@ class HysteresisView:
         self.centering = pn.widgets.RadioButtonGroup(name="Centering", options=CENTERING, value="legacy", width=150,
                                                      button_type="default", margin=(24, 5, 0, 10))
         self.nl_fit = pn.widgets.Checkbox(name="non-linear HF fit", value=False, width=130, margin=(28, 5, 0, 10))
-        self.fit_open = pn.widgets.Checkbox(name="fit open loop", value=False, width=110, margin=(28, 5, 0, 10))
         self.fit_linear = pn.widgets.Checkbox(name="fit linear loop", value=False, width=110, margin=(28, 5, 0, 10))
         self.result = pn.pane.HTML("", sizing_mode="stretch_width")
         self.quality = pn.pane.HTML("", width=330, margin=(10, 0, 0, 20))
@@ -911,7 +911,7 @@ class HysteresisView:
         self.results = None                       # the dict process_hyst_loop returned for what is plotted
 
         self.experiment.param.watch(self._on_experiment, "value")
-        for w in (self.centering, self.nl_fit, self.fit_open, self.fit_linear):
+        for w in (self.centering, self.nl_fit, self.fit_linear):
             w.param.watch(lambda e: self.refresh(), "value")
         self.s.param.watch(lambda e: self.reset(), "directory")
         self.s.param.watch(self._follow_session, "specimen")
@@ -944,14 +944,12 @@ class HysteresisView:
         if own and self.experiment.value not in own:
             self.experiment.value = own[0]
 
-    def set_parameters(self, centering_protocol=None, NL_fit=None, fit_open_loop=None, fit_linear_loop=None) -> None:
+    def set_parameters(self, centering_protocol=None, NL_fit=None, fit_linear_loop=None) -> None:
         """Set the controls from code (a notebook, a test) and refresh."""
         if centering_protocol is not None:
             self.centering.value = centering_protocol
         if NL_fit is not None:
             self.nl_fit.value = NL_fit
-        if fit_open_loop is not None:
-            self.fit_open.value = fit_open_loop
         if fit_linear_loop is not None:
             self.fit_linear.value = fit_linear_loop
         self.refresh()
@@ -965,8 +963,8 @@ class HysteresisView:
     def options(self) -> dict:
         """The keyword arguments the controls stand for; only those off their defaults, in signature order."""
         chosen = dict(NL_fit=bool(self.nl_fit.value), centering_protocol=self.centering.value,
-                      fit_open_loop=bool(self.fit_open.value), fit_linear_loop=bool(self.fit_linear.value))
-        defaults = dict(NL_fit=False, centering_protocol="legacy", fit_open_loop=False, fit_linear_loop=False)
+                      fit_linear_loop=bool(self.fit_linear.value))
+        defaults = dict(NL_fit=False, centering_protocol="legacy", fit_linear_loop=False)
         return {k: v for k, v in chosen.items() if v != defaults[k]}
 
     def refresh(self) -> None:
@@ -982,6 +980,8 @@ class HysteresisView:
             self.code.set(preamble(self.s))
             return
         options = self.options()
+        if column != "magn_mass":                 # labels the results, and decides their specimens columns
+            options["magn_unit"] = rockmag._MAGN_COL_UNITS[column]
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter("always")
             self.results = rockmag.process_hyst_loop(experiment[HYST_FIELD], experiment[column], self.s.specimen,
@@ -1006,14 +1006,14 @@ class HysteresisView:
 
         The parameters go to the row of this experiment; M<sub>s</sub> and
         M<sub>r</sub> land in the ``hyst_*_mass``, ``_volume`` or ``_moment``
-        columns according to the column the loop was recorded in.
+        columns according to the unit of the column the loop was recorded in,
+        which the results carry (``magn_unit``).
         """
         results = dict(self.results, specimen=self.s.specimen, experiment=self.experiment.value)
-        unit = {} if column == "magn_mass" else dict(magnetization=column)
-        self.save.offer(lambda specimens: rockmag.add_hyst_stats_to_specimens_table(specimens, results, **unit),
+        self.save.offer(lambda specimens: rockmag.add_hyst_stats_to_specimens_table(specimens, results),
                         [code.call("results.update", specimen=self.s.specimen, experiment=self.experiment.value),
                          code.assign("specimens", code.call("rmag.add_hyst_stats_to_specimens_table",
-                                                            code.Name("specimens"), code.Name("results"), **unit))],
+                                                            code.Name("specimens"), code.Name("results")))],
                         self.code.text.splitlines())
 
     # ----- the results --------------------------------------------------------
@@ -1039,10 +1039,9 @@ class HysteresisView:
             html += muted("the loop is statistically linear (paramagnetic or diamagnetic material dominates): only "
                           "χ<sub>HF</sub> from the whole-loop regression is reported — tick <i>fit linear loop</i> "
                           "to process it anyway")
-        elif r["loop_is_closed"] is False and not r["loop_is_linear"] and "Ms" in r and not np.isfinite(r["Ms"]):
-            html += muted("the loop remains open at the highest fields, so M<sub>s</sub> and χ<sub>HF</sub> cannot be "
-                          "separated: M<sub>r</sub>, B<sub>rh</sub> and the quality statistics are reported — tick "
-                          "<i>fit open loop</i> if the loop looks closed and drift is tripping the test")
+        elif r.get("closure_state") == "open":
+            html += muted("the loop remains open at the highest fields: M<sub>s</sub>, B<sub>c</sub> and "
+                          "χ<sub>HF</sub> come from a high-field fit biased by the unsaturated fraction")
         for w in caught:
             if issubclass(w.category, RuntimeWarning) and "remains open" not in str(w.message):
                 html += muted(str(w.message))
@@ -1071,7 +1070,7 @@ class HysteresisView:
 
     # ----- layout -------------------------------------------------------------
     def panel(self) -> pn.Column:
-        return pn.Column(pn.Row(self.experiment, self.centering, self.nl_fit, self.fit_open, self.fit_linear),
+        return pn.Column(pn.Row(self.experiment, self.centering, self.nl_fit, self.fit_linear),
                          self.result, pn.Row(self.plot, self.quality), self.save.panel(), self.code.panel(),
                          sizing_mode="stretch_width")
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-from builtins import input
-from builtins import range
+
 import numpy
 import sys
 import pmagpy.pmag as pmag
@@ -54,7 +53,7 @@ def main():
         file=sys.argv[ind+1]
         data=numpy.loadtxt(file)
     else:
-        data=numpy.loadtxt(sys.stdin,dtype=numpy.float) # read in the data from the datafile
+        data=numpy.loadtxt(sys.stdin,dtype=float) # read in the data from the datafile
     D,I=pmag.dogeo_V(data)
     for k in range(len(D)):
         if ofile=="":

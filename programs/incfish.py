@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from builtins import input
+
 import sys
 import numpy
 import pmagpy.pmag as pmag
@@ -46,12 +46,12 @@ def main():
         file=sys.argv[ind+1]
         inc=numpy.loadtxt(file)
     else:
-        inc = numpy.loadtxt(sys.stdin,dtype=numpy.float)
+        inc = numpy.loadtxt(sys.stdin,dtype=float)
     ofile=""
     if '-F' in sys.argv:
         ind = sys.argv.index('-F')
         ofile= sys.argv[ind+1]
-        out = open(ofile, 'w + a')
+        out = open(ofile, 'w')
     #
     #get doincfish to do the dirty work:
     fpars= pmag.doincfish(inc)

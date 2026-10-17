@@ -842,7 +842,7 @@ EXAMPLE
     pmag_gui.py -WD projects/my_project
 
 INFORMATION
-    See https://earthref.org/PmagPy/cookbook/#pmag_gui.py for a complete tutorial
+    See https://pmagpy.github.io/PmagPy-docs/programs/pmag_gui.html for a complete tutorial
 """
         print(help_msg)
         sys.exit()

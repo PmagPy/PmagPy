@@ -180,3 +180,55 @@ class TestFindEi:
         assert 0.45 < flat_f < 0.75, (
             f"Recovered f={flat_f} outside expected range for input f=0.6"
         )
+
+
+# ---------------------------------------------------------------------------
+# ipmag.find_ei_kent: E/I correction propagated to a Kent mean pole
+# ---------------------------------------------------------------------------
+
+class TestFindEiKent:
+    """Tests for ipmag.find_ei_kent."""
+
+    NB = 20
+    VGP_NB = 5
+
+    @staticmethod
+    def _flattened_tk03_directions():
+        """TK03 directions at 30 degrees latitude flattened with f = 0.6."""
+        dirs = ipmag.tk03(n=100, dec=0, lat=30, rev='no', random_seed=0)
+        decs = [d[0] for d in dirs]
+        incs = ipmag.squish([d[1] for d in dirs], 0.6)
+        return [list(pair) for pair in zip(decs, incs)]
+
+    def _run(self, **kwargs):
+        import matplotlib.pyplot as plt
+        result = ipmag.find_ei_kent(self._flattened_tk03_directions(), 30, 0,
+                                    nb=self.NB, vgp_nb=self.VGP_NB,
+                                    random_seed=1, **kwargs)
+        plt.close('all')
+        return result
+
+    def test_return_poles(self):
+        """return_poles gives the resampled mean poles the Kent mean is fit to."""
+        kent, lons, lats = self._run(return_poles=True)
+        assert len(lons) == len(lats) == self.NB * self.VGP_NB
+        refit = ipmag.kent_distribution_95(dec=lons, inc=lats)
+        for key in ['dec', 'inc', 'Zeta', 'Eta']:
+            assert_allclose(refit[key], kent[key])
+
+    def test_default_return_unchanged(self):
+        """Without return_poles the Kent statistics alone are returned, unchanged."""
+        kent = self._run()
+        assert isinstance(kent, dict)
+        kent_with_poles, _, _ = self._run(return_poles=True)
+        for key in ['dec', 'inc', 'Zeta', 'Eta']:
+            assert_allclose(kent[key], kent_with_poles[key])
+
+    def test_return_poles_follow_return_values(self):
+        """The poles are appended after the Kent statistics and bootstrap values."""
+        result = self._run(return_values=True, return_poles=True)
+        assert len(result) == 6
+        kent, I, E, F, lons, lats = result
+        assert isinstance(kent, dict)
+        assert len(I) == len(E) == len(F) == self.NB
+        assert len(lons) == self.NB * self.VGP_NB

@@ -1,7 +1,6 @@
-from builtins import range
-
 import math
 import sys
+
 from scipy import optimize
 
 # some functions required by non-linear TRM programs

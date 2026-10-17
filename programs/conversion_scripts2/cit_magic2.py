@@ -1,8 +1,5 @@
 #!/usr/bin/env python
-from builtins import map
-from builtins import input
-from builtins import str
-from builtins import range
+
 import os
 import sys
 import pmagpy.pmag as pmag

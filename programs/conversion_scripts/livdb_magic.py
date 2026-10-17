@@ -5,9 +5,10 @@ import sys
 import os
 import scipy
 from scipy import *
-# need to set matplotlib backend to WXAgg or else the program just hangs
-import matplotlib
-matplotlib.use('WXAgg')
+# wx needs the WXAgg backend when run from the command line (the program hung
+# without it); a backend chosen earlier, e.g. inline in a notebook, is kept
+from pmag_env import set_env
+set_env.set_backend_if_unset("WXAgg")
 from pmagpy import pmag
 from pmagpy import convert_2_magic as convert
 from pmagpy import contribution_builder as cb

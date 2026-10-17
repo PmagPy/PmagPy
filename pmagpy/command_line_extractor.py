@@ -2,7 +2,6 @@
 
 import sys
 
-from builtins import object
 import pandas as pd
 import pmagpy.pmag as pmag
 

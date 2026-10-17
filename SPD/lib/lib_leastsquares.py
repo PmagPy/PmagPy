@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
-from builtins import map
 from numpy import *
-from scipy      import optimize
+from scipy import optimize
 
 
 

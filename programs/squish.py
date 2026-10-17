@@ -46,7 +46,7 @@ def main():
         file=sys.argv[ind+1]  
         input=np.loadtxt(file)
     else:
-        input=np.loadtxt(sys.stdin,dtype=np.float)
+        input=np.loadtxt(sys.stdin,dtype=float)
 # read in inclination data
     di=input.transpose()
     decs,incs=di[0],di[1]

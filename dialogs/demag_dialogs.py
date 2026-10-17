@@ -49,7 +49,7 @@ class VGP_Dialog(wx.Frame):
 
     def __init__(self,parent,VGP_Data):
         if set_env.IS_FROZEN and not set_env.IS_WIN:
-            parent.user_warning("This feature is not available in the standalone executable.  If you need to look at VGPs, consider installing Python and PmagPy: https://earthref.org/PmagPy/cookbook/#getting_python");
+            parent.user_warning("This feature is not available in the standalone executable.  If you need to look at VGPs, consider installing Python and PmagPy: https://pmagpy.github.io/PmagPy-docs/installation/pip_install.html");
             self.failed_init=True
             return
         self.failed_init = False

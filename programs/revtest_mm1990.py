@@ -1,10 +1,7 @@
 #!/usr/bin/env python
-from builtins import input
-from builtins import range
+
 import sys
 import numpy
-
-
 import pmagpy.pmagplotlib as pmagplotlib
 import pmagpy.pmag as pmag
 #

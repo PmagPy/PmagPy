@@ -1,9 +1,8 @@
 #!/usr/bin/env python
-from builtins import range
+
 import sys
-import matplotlib
-if matplotlib.get_backend() != "TKAgg":
-  matplotlib.use("TKAgg")
+from pmag_env import set_env
+set_env.set_backend_if_unset("TKAgg")
 import numpy
 import pmagpy.pmag as pmag
 
@@ -40,7 +39,7 @@ def main():
         infile=sys.argv[ind+1]
         data=numpy.loadtxt(infile)
     else:
-        data=numpy.loadtxt(sys.stdin,dtype=numpy.float)
+        data=numpy.loadtxt(sys.stdin,dtype=float)
     if '-F' in sys.argv:
         ind=sys.argv.index('-F')
         outfile=sys.argv[ind+1]
@@ -53,7 +52,7 @@ def main():
         I=float(sys.argv[ind+1])
     if len(data.shape)>1: # 2-D array
         N=data.shape[0] 
-        DipDir,Dip=numpy.ones(N,dtype=numpy.float).transpose()*(D-180.),numpy.ones(N,dtype=numpy.float).transpose()*(90.-I)
+        DipDir,Dip=numpy.ones(N,dtype=float).transpose()*(D-180.),numpy.ones(N,dtype=float).transpose()*(90.-I)
         data=data.transpose()
         data=numpy.array([data[0],data[1],DipDir ,Dip]).transpose()
         drot,irot=pmag.dotilt_V(data)

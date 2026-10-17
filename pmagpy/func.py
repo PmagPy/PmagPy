@@ -12,11 +12,6 @@
 # some performance when the functions are used on scalar arguments,
 # but should give a big win on vectors.
 
-
-from builtins import range
-from builtins import object
-
-import math
 import operator
 from types import *
 

@@ -378,7 +378,7 @@ class TestHysteresisView:
         assert view.experiment.value == ECMB_LOOP and ecmb.specimen == "NED1-5c"
         r = view.results
         assert r["loop_is_closed"] and not r["loop_is_linear"] and np.isfinite(r["Ms"])
-        assert "M<sub>r</sub>/M<sub>s</sub> <b>0.168</b>" in view.result.object
+        assert "M<sub>r</sub>/M<sub>s</sub> <b>0.171</b>" in view.result.object
         assert "B<sub>c</sub> <b>14.3 mT</b>" in view.result.object
         assert "F<sub>NL</sub>" in view.quality.object and "non-linear high-field fit" in view.quality.object
         assert view.figure is r["plot"] and view.plot.object is view.figure
@@ -392,13 +392,13 @@ class TestHysteresisView:
     def test_the_controls_are_the_functions_arguments(self, ecmb):
         view = HysteresisView(ecmb)
         legacy_bc = view.results["Bc"]
-        view.set_parameters(centering_protocol="iterative", NL_fit=True, fit_open_loop=True, fit_linear_loop=True)
+        view.set_parameters(centering_protocol="iterative", NL_fit=True, fit_linear_loop=True)
         assert view.code.text.splitlines()[6:] == [
             "results = rmag.process_hyst_loop(", "    experiment['meas_field_dc'],", "    experiment['magn_mass'],",
-            "    'NED1-5c',", "    NL_fit=True,", "    centering_protocol='iterative',", "    fit_open_loop=True,",
+            "    'NED1-5c',", "    NL_fit=True,", "    centering_protocol='iterative',",
             "    fit_linear_loop=True,", ")"]
         assert view.results["Bc"] == pytest.approx(legacy_bc, rel=0.05)     # the centering protocols agree here
-        view.set_parameters(centering_protocol="legacy", NL_fit=False, fit_open_loop=False, fit_linear_loop=False)
+        view.set_parameters(centering_protocol="legacy", NL_fit=False, fit_linear_loop=False)
         assert view.code.text.splitlines()[-1].endswith("'NED1-5c')")
 
     def test_changing_experiment_follows_the_specimen_both_ways(self, ecmb):
@@ -416,6 +416,15 @@ class TestHysteresisView:
         assert r["Bc"] == pytest.approx(0.02, rel=0.05)
         assert r["chi_HF"] == pytest.approx(2e-7, rel=0.05)
         assert view.code.text.splitlines()[3] == "# measurements: the DataFrame this view was given"
+
+    def test_a_loop_in_volume_magnetization_is_labelled_and_saved_as_one(self):
+        loop = hysteresis_loop(ms=1.0, bc=0.02, chi_hf=2e-7).rename(columns={"magn_mass": "magn_volume"})
+        view = HysteresisView(loop)
+        assert view.results["magn_unit"] == "A/m" and "magn_unit='A/m'" in view.code.text
+        specimens = pd.DataFrame([{"specimen": "syn", "experiments": "syn_HYS"}])
+        results = dict(view.results, specimen="syn", experiment="syn_HYS")
+        out = rockmag.add_hyst_stats_to_specimens_table(specimens, results)
+        assert out.loc[0, "hyst_ms_volume"] == pytest.approx(view.results["Ms"]) and "hyst_ms_mass" not in out
 
     def test_a_linear_loop_takes_the_decision_trees_exit_and_says_so(self):
         loop = hysteresis_loop(ms=0.0, chi_hf=2e-7, noise=1e-4)

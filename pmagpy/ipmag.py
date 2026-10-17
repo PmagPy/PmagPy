@@ -33,7 +33,6 @@ from pmag_env import set_env
 from . import pmag
 from . import pmagplotlib
 from . import data_model3 as data_model
-#from .contribution_builder import Contribution appears redundant
 from . import validate_upload3 as val_up3
 from numpy.linalg import inv, eig
 try:
@@ -345,11 +344,11 @@ def kent_distribution_95(dec=None, inc=None, di_block=None):
     dictionary with the Kent mean and statistical parameters.
 
     Parameters:
-    dec: list of declinations
-    inc: list of inclinations
-    di_block: a nested list of [dec,inc,1.0]
-        A di_block can be provided instead of dec, inc lists in which case it will
-        be used. Either dec, inc lists or a di_block need to passed to the function.
+        dec: list of declinations
+        inc: list of inclinations
+        di_block: a nested list of [dec,inc,1.0]
+            A di_block can be provided instead of dec, inc lists in which case it will
+            be used. Either dec, inc lists or a di_block need to passed to the function.
 
     Returns:
         dictionary containing Kent mean and associated statistics.
@@ -367,6 +366,7 @@ def kent_distribution_95(dec=None, inc=None, di_block=None):
         'Einc': 64.23659892174429,
         'Zeta': 13.677129096579478,
         'Eta': 1.4597607031196376}
+
         Use a di_block to calculate a Kent mean (will give the same output as the
         example with the lists):
 
@@ -1889,7 +1889,7 @@ def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False,
     the data into two polarities using the pmag.flip() function and flipping
     the reverse direction to their antipode.
 
-     Parameters:
+    Parameters:
         dec (list, optional): List of declinations.
         inc (list, optional): List of inclinations.
         di_block (list of lists, optional): Nested list of [dec,inc]. If provided, it 
@@ -2212,7 +2212,7 @@ def lat_from_inc(inc, a95=None):
     """
     Calculate paleolatitude from inclination using the dipole equation.
 
-    Parameter:
+    Parameters:
         inc: (paleo)magnetic inclination in degrees
         a95: 95% confidence interval from Fisher mean
 
@@ -2266,7 +2266,7 @@ def inc_from_lat(lat):
     """
     Calculate inclination predicted from latitude using the dipole equation.
 
-    Parameter:
+    Parameters:
         lat : latitude in degrees
 
     Returns:
@@ -2274,6 +2274,7 @@ def inc_from_lat(lat):
 
     Examples:
         Calculate the inclination implied by an latitude of 45 degrees:
+
         >>> ipmag.inc_from_lat(45)
         63.434948822922
     """
@@ -2712,10 +2713,23 @@ def make_robinson_map(central_longitude=0, figsize=(8, 8),
     return ax
 
 
+def _pole_zorders(zorder, default_zorder):
+    """
+    Return the plotting order of a pole marker and of its confidence ellipse.
+
+    When zorder is None, the marker is plotted at default_zorder and the ellipse
+    at the matplotlib default for lines and patches. Otherwise the ellipse is
+    plotted just beneath the marker so that it does not cover it.
+    """
+    if zorder is None:
+        return default_zorder, None
+    return zorder, zorder - 0.5
+
+
 def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
               marker='o', markersize=20, legend='no',outline=True,
               filled_pole=False, fill_color='k', fill_alpha=1.0, 
-              mean_alpha = 1.0, A95_alpha=1.0, zorder=100):
+              mean_alpha = 1.0, A95_alpha=1.0, zorder=None):
     """
     This function plots a paleomagnetic pole and A95 error ellipse on a cartopy map axis.
 
@@ -2736,7 +2750,9 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
         fill_color : color of fill; the default is black.
         fill_alpha : transparency of filled ellipse (the default is 1.0; no transparency).
         mean_alpha : transparency of pole mean (the default is 1.0; no transparency).
-        zorder : plotting order (default is 100; higher will move to top of plot)
+        zorder : plotting order of the pole and its A95 ellipse (higher will move to top of plot).
+                The default is None, which plots the pole at 100 and the ellipse at the matplotlib
+                default. When set, the ellipse is plotted just beneath the pole (at zorder - 0.5).
 
     Examples:
         >>> plon = 200
@@ -2749,20 +2765,21 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
         print('-W- cartopy must be installed to run ipmag.plot_pole')
         return
     A95_km = A95 * 111.32
+    zorder, ellipse_zorder = _pole_zorders(zorder, 100)
     map_axis.scatter(plon, plat, marker=marker,
                      color=color, edgecolors=edgecolor, s=markersize,
                      label=label, zorder=zorder, transform=ccrs.PlateCarree(), alpha = mean_alpha)
     if not filled_pole:
-        equi(map_axis, plon, plat, A95_km, color, alpha=A95_alpha)
+        equi(map_axis, plon, plat, A95_km, color, alpha=A95_alpha, zorder=ellipse_zorder)
     elif filled_pole:
-        equi(map_axis, plon, plat, A95_km, fill_color, alpha=fill_alpha, outline=outline,fill=True)
+        equi(map_axis, plon, plat, A95_km, fill_color, alpha=fill_alpha, outline=outline,fill=True, zorder=ellipse_zorder)
     if legend == 'yes':
-        plt.legend(loc=2)
+        map_axis.legend(loc=2)
 
 
 def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
                marker='o', markersize=20, legend='no',outline=True,
-               filled_pole=False, fill_color='k', fill_alpha=1.0, alpha=1.0, zorder=101, lw=1):
+               filled_pole=False, fill_color='k', fill_alpha=1.0, alpha=1.0, zorder=None, lw=1):
     """
     This function plots paleomagnetic poles and A95 error ellipses on a cartopy map axis.
 
@@ -2785,7 +2802,10 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
         fill_color : color of fill; the default is black.
         fill_alpha : transparency of filled ellipse (the default is 1.0; no transparency).
         alpha : transparency of pole mean (the default is 1.0; no transparency).
-        zorder : plotting order (default is 100; higher will move to top of plot) 
+        zorder : plotting order of the poles and their A95 ellipses (higher will move to top of plot).
+                The default is None, which plots the poles at 101 and the ellipses at the matplotlib
+                default. When set, the ellipses are plotted just beneath the poles (at zorder - 0.5).
+        lw : line width of the A95 ellipses (default is 1)
 
     Examples:
         >>> plons = [200, 180, 210]
@@ -2805,6 +2825,7 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.plot_poles')
         return
+    zorder, ellipse_zorder = _pole_zorders(zorder, 101)
     map_axis.scatter(plon, plat, marker=marker,
                      color=color, edgecolors=edgecolor, s=markersize,
                      label=label, zorder=zorder, transform=ccrs.PlateCarree(), alpha=alpha)
@@ -2812,44 +2833,50 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
         if isinstance(color,str):
             for n in range(0,len(A95)):
                 A95_km = A95[n] * 111.32
-                equi(map_axis, plon[n], plat[n], A95_km, color, alpha=alpha, lw=lw)
+                equi(map_axis, plon[n], plat[n], A95_km, color, alpha=alpha, lw=lw, zorder=ellipse_zorder)
         else:
             for n in range(0,len(A95)):
                 A95_km = A95[n] * 111.32
-                equi(map_axis, plon[n], plat[n], A95_km, color[n], alpha=alpha, lw=lw)
+                equi(map_axis, plon[n], plat[n], A95_km, color[n], alpha=alpha, lw=lw, zorder=ellipse_zorder)
     elif filled_pole:
         if isinstance(fill_color,str):
             for n in range(0,len(A95)):
                 A95_km = A95[n] * 111.32
-                equi(map_axis, plon[n], plat[n], A95_km, fill_color, alpha=fill_alpha, outline=outline, fill=True, lw=lw)
+                equi(map_axis, plon[n], plat[n], A95_km, fill_color, alpha=fill_alpha, outline=outline, fill=True, lw=lw, zorder=ellipse_zorder)
         else:
             for n in range(0,len(A95)):
                 A95_km = A95[n] * 111.32
-                equi(map_axis, plon[n], plat[n], A95_km, fill_color[n], alpha=fill_alpha, outline=outline, fill=True, lw=lw)
+                equi(map_axis, plon[n], plat[n], A95_km, fill_color[n], alpha=fill_alpha, outline=outline, fill=True, lw=lw, zorder=ellipse_zorder)
 
     if legend == 'yes':
-        plt.legend(loc=2)
+        map_axis.legend(loc=2)
 
 
 def plot_pole_ellipse(map_axis, dictionary, 
                       color='k', edgecolor='k', marker='s', 
-                      markersize=20, label='', alpha=1.0, lw=1, lower=True, zorder=100):
+                      markersize=20, label='', alpha=1.0, lw=1, lower=False, zorder=None):
     """
     Plot a mean pole confidence ellipse associated with a Kent distribution
 
     Parameters:
         map_axis : the name of the current map axis that has been developed using cartopy
         dictionary : a dictionary generated by the pmag.dobingham or pmag.dokent functions
-        color : symbol color; the default color is black. Other colors can be chosen (e.g. 'r')
-        marker : the default marker is a circle. Other symbols can be chosen (e.g. 's')
+        color : color of both the mean symbol and the ellipse; the default color is black.
+            Other colors can be chosen (e.g. 'r')
+        edgecolor : edge color of the mean symbol; the default color is black.
+        marker : the default marker is a square. Other symbols can be chosen (e.g. 'o')
         markersize : the default is 20. Other size can be chosen
         label : the default is no label. Labels can be assigned.
-        legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
-        filled_pole : if True, the A95 ellipse will be filled with color
-        fill_color : color of fill; the default is black.
-        fill_alpha : transparency of filled ellipse (the default is 1.0; no transparency).
-        lower : hemisphere to plot the ellipse when calling function pmagplotlib.plot_ell (default is True)
-        zorder : plotting order (default is 100; higher will move to top of plot) 
+        alpha : transparency of the ellipse (the default is 1.0; no transparency). Note that this
+            applies to the ellipse only and not to the mean symbol.
+        lw : line width of the ellipse (default is 1)
+        lower : hemisphere passed through to pmagplotlib.plot_ell (default is False). When True,
+            an ellipse whose mean has a negative latitude is reflected to the antipode so that it
+            is drawn in the northern hemisphere while the mean symbol remains at the pole itself.
+            The name comes from plot_ell's origin in equal-area stereonet plotting of directions.
+        zorder : plotting order of the pole and its ellipse (higher will move to top of plot).
+                The default is None, which plots the pole and the ellipse at 100. When set,
+                the ellipse is plotted just beneath the pole (at zorder - 0.5).
 
     Examples:
         >>> kent_dict = {'dec': 287.53798364307437,
@@ -2879,6 +2906,10 @@ def plot_pole_ellipse(map_axis, dictionary,
     pars.append(dictionary['Edec'])
     pars.append(dictionary['Einc'])
 
+    if zorder is None:
+        zorder = ellipse_zorder = 100
+    else:
+        zorder, ellipse_zorder = _pole_zorders(zorder, 100)
     map_axis.scatter(dictionary['dec'], dictionary['inc'], marker=marker,
                      color=color, edgecolors=edgecolor, s=markersize,
                      label=label, transform=ccrs.PlateCarree(), zorder=zorder)
@@ -2887,7 +2918,7 @@ def plot_pole_ellipse(map_axis, dictionary,
     ellipse_points = np.array(pmagplotlib.plot_ell(fignum, pars, lower=lower, plot=False)).T
     map_axis.plot(ellipse_points[0], ellipse_points[1], color=color,
                  transform=ccrs.Geodetic(), alpha=alpha, lw=lw, 
-                     zorder=zorder)
+                     zorder=ellipse_zorder)
     
     return map_axis
 
@@ -2895,7 +2926,7 @@ def plot_pole_ellipse(map_axis, dictionary,
 def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole', site_label='site',
                     pole_color='k', pole_edgecolor='k', pole_marker='o',
                     site_color='r', site_edgecolor='r', site_marker='s',
-                    markersize=20, legend=True, transform="PlateCarree"):
+                    markersize=20, legend=True, transform="PlateCarree", zorder=None):
     """
     This function plots a paleomagnetic pole and a dp/dm confidence ellipse on a cartopy map axis.
 
@@ -2924,6 +2955,9 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
             (e.g., ccrs.PlateCarree()). If a string is provided, it will be
             internally mapped to the appropriate Cartopy transform. This parameter
             rarely needs to be changed, but "Geodetic" may help in certain projections.
+        zorder : plotting order of the pole, the site and the dp/dm ellipse (higher will move to top of plot).
+            The default is None, which plots the pole and site at 101 and the ellipse at the matplotlib
+            default. When set, the ellipse is plotted just beneath the pole (at zorder - 0.5).
 
     Examples:
         >>> dec = 280
@@ -2958,6 +2992,7 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
         
     dp_km = dp*111.32
     dm_km = dm*111.32
+    zorder, ellipse_zorder = _pole_zorders(zorder, 101)
     map_axis.scatter(
         plon,
         plat,
@@ -2966,7 +3001,7 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
         edgecolors=pole_edgecolor,
         s=markersize,
         label=pole_label,
-        zorder=101,
+        zorder=zorder,
         transform=transform_obj,
     )
     map_axis.scatter(
@@ -2977,7 +3012,7 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
         edgecolors=site_edgecolor,
         s=markersize,
         label=site_label,
-        zorder=101,
+        zorder=zorder,
         transform=transform_obj,
     )
     # the orientation of the ellipse needs to be determined using the
@@ -3022,16 +3057,17 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
             C_deg = np.abs(np.rad2deg(C_rad))
 
     # print(C_deg)
-    ellipse(map_axis, plon, plat, dp_km, dm_km, C_deg, color=pole_color, transform=transform_obj)
+    ellipse(map_axis, plon, plat, dp_km, dm_km, C_deg, color=pole_color, transform=transform_obj,
+            zorder=ellipse_zorder)
 
     if legend:
-        plt.legend(loc=2)
+        map_axis.legend(loc=2)
 
 
 def plot_poles_colorbar(map_axis, plons, plats, A95s, colorvalues, vmin, vmax,
                         colormap='viridis', edgecolor='k', marker='o', markersize=20,
                         alpha=1.0, colorbar=True, colorbar_label='pole age (Ma)',
-                        outline='True',filled_pole=False, fill_alpha=1.0, lw=1):
+                        outline='True',filled_pole=False, fill_alpha=1.0, lw=1, zorder=None):
     """
     This function plots multiple paleomagnetic pole and A95 error ellipse on a cartopy map axis.
     The poles are colored by the defined colormap.
@@ -3052,6 +3088,9 @@ def plot_poles_colorbar(map_axis, plons, plats, A95s, colorvalues, vmin, vmax,
         marker : the marker shape desired for the pole mean symbol (default is 'o' aka a circle)
         colorbar : the default is to include a colorbar (True). Putting False will make it so no legend is plotted.
         colorbar_label : label for the colorbar
+        zorder : plotting order of the poles and their A95 ellipses (higher will move to top of plot).
+                The default is None, which plots the poles at 101 and the ellipses at the matplotlib
+                default. When set, the ellipses are plotted just beneath the poles (at zorder - 0.5).
     
     Examples:
         >>> plons = [200, 180, 210]
@@ -3074,7 +3113,7 @@ def plot_poles_colorbar(map_axis, plons, plats, A95s, colorvalues, vmin, vmax,
     plot_poles(map_axis, plons, plats, A95s,
                label='', color=colors, edgecolor=edgecolor, marker=marker,
                markersize=markersize,filled_pole=filled_pole,outline=outline,
-               fill_color=colors, fill_alpha=fill_alpha, alpha=alpha, lw=lw)
+               fill_color=colors, fill_alpha=fill_alpha, alpha=alpha, lw=lw, zorder=zorder)
 
     if colorbar:
         sm = plt.cm.ScalarMappable(
@@ -3634,7 +3673,7 @@ def shoot(lon, lat, azimuth, maxdist=None):
     return (glon2, glat2, baz)
 
 
-def equi(map_axis, centerlon, centerlat, radius, color, alpha=1.0, outline=True, fill=False, lw=1):
+def equi(map_axis, centerlon, centerlat, radius, color, alpha=1.0, outline=True, fill=False, lw=1, zorder=None):
     """
     This function enables A95 error ellipses to be drawn in cartopy around
     paleomagnetic poles in conjunction with shoot
@@ -3651,6 +3690,9 @@ def equi(map_axis, centerlon, centerlat, radius, color, alpha=1.0, outline=True,
         outline : boolean specifying if the ellipse should be plotted as a filled polygon or
                 as a set of line segments
         fill : boolean specifying if the ellipse should be plotted as a filled polygon
+        lw : line width of the ellipse (of its outline, if filled)
+        zorder : plotting order of the ellipse (default is None, which uses the matplotlib
+                default for lines and patches)
     """
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.equi')
@@ -3670,21 +3712,22 @@ def equi(map_axis, centerlon, centerlat, radius, color, alpha=1.0, outline=True,
 
     # for non-filled ellipses
     if not fill:
-        plt.plot(X, Y, color=color,
-                 transform=ccrs.Geodetic(), alpha=alpha, lw=lw)
+        map_axis.plot(X, Y, color=color,
+                      transform=ccrs.Geodetic(), alpha=alpha, lw=lw, zorder=zorder)
 
     # for filled ellipses
     else:
         XY = np.stack([X,Y],axis=1)
-        if outline:
-            circle_edge = Polygon(XY,
-                                  edgecolor=color,facecolor='none',
-                                  transform=ccrs.Geodetic())
-            map_axis.add_patch(circle_edge)
         circle_face = Polygon(XY,
                               edgecolor='none',facecolor=color,alpha=alpha,
-                              transform=ccrs.Geodetic())
+                              transform=ccrs.Geodetic(), zorder=zorder)
         map_axis.add_patch(circle_face)
+        # the outline is added after the face so that the face does not cover it
+        if outline:
+            circle_edge = Polygon(XY,
+                                  edgecolor=color,facecolor='none',lw=lw,
+                                  transform=ccrs.Geodetic(), zorder=zorder)
+            map_axis.add_patch(circle_edge)
 
 def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360, filled=False,
             transform=None, **kwargs):
@@ -3836,250 +3879,6 @@ def combine_magic(filenames, outfile='measurements.txt', data_model=3, magic_tab
             return outfile
         print("No file could be created")
         return False
-
-
-def ani_depthplot2(ani_file='rmag_anisotropy.txt', meas_file='magic_measurements.txt', samp_file='er_samples.txt', age_file=None, sum_file=None, fmt='svg', dmin=-1, dmax=-1, depth_scale='sample_core_depth', dir_path='.'):
-    """
-    returns matplotlib figure with anisotropy data plotted against depth
-    available depth scales: 'sample_composite_depth', 'sample_core_depth', or 'age' (you must provide an age file to use this option)
-
-    """
-    pcol = 4
-    tint = 9
-    plots = 0
-
-    # format files to use full path
-    # os.path.join(dir_path, ani_file)
-    ani_file = pmag.resolve_file_name(ani_file, dir_path)
-    if not os.path.isfile(ani_file):
-        print("Could not find rmag_anisotropy type file: {}.\nPlease provide a valid file path and try again".format(ani_file))
-        return False, "Could not find rmag_anisotropy type file: {}.\nPlease provide a valid file path and try again".format(ani_file)
-
-    # os.path.join(dir_path, meas_file)
-    meas_file = pmag.resolve_file_name(meas_file, dir_path)
-
-    if age_file:
-        if not os.path.isfile(age_file):
-            print(
-                'Warning: you have provided an invalid age file.  Attempting to use sample file instead')
-            age_file = None
-            depth_scale = 'sample_core_depth'
-            # os.path.join(dir_path, samp_file)
-            samp_file = pmag.resolve_file_name(samp_file, dir_path)
-        else:
-            # os.path.join(dir_path, age_file)
-            samp_file = pmag.resolve_file_name(samp_file, dir_path)
-            depth_scale = 'age'
-            print(
-                'Warning: you have provided an er_ages format file, which will take precedence over er_samples')
-    else:
-        samp_file = pmag.resolve_file_name(samp_file, dir_path)
-
-    label = 1
-
-    if sum_file:
-        sum_file = os.path.join(dir_path, sum_file)
-
-    dmin, dmax = float(dmin), float(dmax)
-
-    # get data read in
-    isbulk = 0  # tests if there are bulk susceptibility measurements
-    AniData, file_type = pmag.magic_read(ani_file)  # read in tensor elements
-    if not age_file:
-        # read in sample depth info from er_sample.txt format file
-        Samps, file_type = pmag.magic_read(samp_file)
-    else:
-        # read in sample age info from er_ages.txt format file
-        Samps, file_type = pmag.magic_read(samp_file)
-        age_unit = Samps[0]['age_unit']
-    for s in Samps:
-        # change to upper case for every sample name
-        s['er_sample_name'] = s['er_sample_name'].upper()
-    Meas, file_type = pmag.magic_read(meas_file)
-    # print 'meas_file', meas_file
-    # print 'file_type', file_type
-    if file_type == 'magic_measurements':
-        isbulk = 1
-    Data = []
-    Bulks = []
-    BulkDepths = []
-    for rec in AniData:
-        # look for depth record for this sample
-        samprecs = pmag.get_dictitem(Samps, 'er_sample_name',
-                                     rec['er_sample_name'].upper(), 'T')
-        # see if there are non-blank depth data
-        sampdepths = pmag.get_dictitem(samprecs, depth_scale, '', 'F')
-        if dmax != -1:
-            # fishes out records within depth bounds
-            sampdepths = pmag.get_dictitem(
-                sampdepths, depth_scale, dmax, 'max')
-            sampdepths = pmag.get_dictitem(
-                sampdepths, depth_scale, dmin, 'min')
-        if len(sampdepths) > 0:  # if there are any....
-            # set the core depth of this record
-            rec['core_depth'] = sampdepths[0][depth_scale]
-            Data.append(rec)  # fish out data with core_depth
-            if isbulk:  # if there are bulk data
-                chis = pmag.get_dictitem(
-                    Meas, 'er_specimen_name', rec['er_specimen_name'], 'T')
-                # get the non-zero values for this specimen
-                chis = pmag.get_dictitem(
-                    chis, 'measurement_chi_volume', '', 'F')
-                if len(chis) > 0:  # if there are any....
-                    # put in microSI
-                    Bulks.append(
-                        1e6 * float(chis[0]['measurement_chi_volume']))
-                    BulkDepths.append(float(sampdepths[0][depth_scale]))
-    if len(Bulks) > 0:  # set min and max bulk values
-        bmin = min(Bulks)
-        bmax = max(Bulks)
-    xlab = "Depth (m)"
-    if len(Data) > 0:
-        location = Data[0]['er_location_name']
-    else:
-        return False, 'no data to plot'
-    # collect the data for plotting tau  V3_inc and V1_dec
-    Depths, Tau1, Tau2, Tau3, V3Incs, P, V1Decs = [], [], [], [], [], [], []
-    F23s = []
-    Axs = []  # collect the plot ids
-# START HERE
-    if len(Bulks) > 0:
-        pcol += 1
-    # get all the s1 values from Data as floats
-    s1 = pmag.get_dictkey(Data, 'anisotropy_s1', 'f')
-    s2 = pmag.get_dictkey(Data, 'anisotropy_s2', 'f')
-    s3 = pmag.get_dictkey(Data, 'anisotropy_s3', 'f')
-    s4 = pmag.get_dictkey(Data, 'anisotropy_s4', 'f')
-    s5 = pmag.get_dictkey(Data, 'anisotropy_s5', 'f')
-    s6 = pmag.get_dictkey(Data, 'anisotropy_s6', 'f')
-    nmeas = pmag.get_dictkey(Data, 'anisotropy_n', 'int')
-    sigma = pmag.get_dictkey(Data, 'anisotropy_sigma', 'f')
-    Depths = pmag.get_dictkey(Data, 'core_depth', 'f')
-    # Ss=np.array([s1,s4,s5,s4,s2,s6,s5,s6,s3]).transpose() # make an array
-    Ss = np.array([s1, s2, s3, s4, s5, s6]).transpose()  # make an array
-    # Ts=np.reshape(Ss,(len(Ss),3,-1)) # and re-shape to be n-length array of
-    # 3x3 sub-arrays
-    for k in range(len(Depths)):
-        # tau,Evecs= pmag.tauV(Ts[k]) # get the sorted eigenvalues and eigenvectors
-        # v3=pmag.cart2dir(Evecs[2])[1] # convert to inclination of the minimum
-        # eigenvector
-        fpars = pmag.dohext(nmeas[k] - 6, sigma[k], Ss[k])
-        V3Incs.append(fpars['v3_inc'])
-        V1Decs.append(fpars['v1_dec'])
-        Tau1.append(fpars['t1'])
-        Tau2.append(fpars['t2'])
-        Tau3.append(fpars['t3'])
-        P.append(Tau1[-1]/Tau3[-1])
-        F23s.append(fpars['F23'])
-    if len(Depths) > 0:
-        if dmax == -1:
-            dmax = max(Depths)
-            dmin = min(Depths)
-        tau_min = 1
-        for t in Tau3:
-            if t > 0 and t < tau_min:
-                tau_min = t
-        tau_max = max(Tau1)
-        # tau_min=min(Tau3)
-        P_max = max(P)
-        P_min = min(P)
-        # dmax=dmax+.05*dmax
-        # dmin=dmin-.05*dmax
-
-        main_plot = plt.figure(1, figsize=(10, 8))  # make the figure
-
-        version_num = pmag.get_version()
-        plt.figtext(.02, .01, version_num)  # attach the pmagpy version number
-        ax = plt.subplot(1, pcol, 1)  # make the first column
-        Axs.append(ax)
-        ax.plot(Tau1, Depths, 'rs')
-        ax.plot(Tau2, Depths, 'b^')
-        ax.plot(Tau3, Depths, 'ko')
-        if sum_file:
-            core_depth_key, core_label_key, Cores = read_core_csv_file(
-                sum_file)
-            for core in Cores:
-                depth = float(core[core_depth_key])
-                if depth > dmin and depth < dmax:
-                    plt.plot([0, 90], [depth, depth], 'b--')
-        ax.axis([tau_min, tau_max, dmax, dmin])
-        ax.set_xlabel('Eigenvalues')
-        if depth_scale == 'sample_core_depth':
-            ax.set_ylabel('Depth (mbsf)')
-        elif depth_scale == 'age':
-            ax.set_ylabel('Age (' + age_unit + ')')
-        else:
-            ax.set_ylabel('Depth (mcd)')
-        ax2 = plt.subplot(1, pcol, 2)  # make the second column
-        ax2.plot(P, Depths, 'rs')
-        ax2.axis([P_min, P_max, dmax, dmin])
-        ax2.set_xlabel('P')
-        ax2.set_title(location)
-        if sum_file:
-            for core in Cores:
-                depth = float(core[core_depth_key])
-                if depth > dmin and depth < dmax:
-                    plt.plot([0, 90], [depth, depth], 'b--')
-        Axs.append(ax2)
-        ax3 = plt.subplot(1, pcol, 3)
-        Axs.append(ax3)
-        ax3.plot(V3Incs, Depths, 'ko')
-        ax3.axis([0, 90, dmax, dmin])
-        ax3.set_xlabel('V3 Inclination')
-        if sum_file:
-            for core in Cores:
-                depth = float(core[core_depth_key])
-                if depth > dmin and depth < dmax:
-                    plt.plot([0, 90], [depth, depth], 'b--')
-        ax4 = plt.subplot(1, np.abs(pcol), 4)
-        Axs.append(ax4)
-        ax4.plot(V1Decs, Depths, 'rs')
-        ax4.axis([0, 360, dmax, dmin])
-        ax4.set_xlabel('V1 Declination')
-        if sum_file:
-            for core in Cores:
-                depth = float(core[core_depth_key])
-                if depth >= dmin and depth <= dmax:
-                    plt.plot([0, 360], [depth, depth], 'b--')
-                    if pcol == 4 and label == 1:
-                        plt.text(360, depth + tint, core[core_label_key])
-        # ax5=plt.subplot(1,np.abs(pcol),5)
-        # Axs.append(ax5)
-        # ax5.plot(F23s,Depths,'rs')
-        # bounds=ax5.axis()
-        # ax5.axis([bounds[0],bounds[1],dmax,dmin])
-        # ax5.set_xlabel('F_23')
-        # ax5.semilogx()
-        # if sum_file:
-        #    for core in Cores:
-        #         depth=float(core[core_depth_key])
-        #         if depth>=dmin and depth<=dmax:
-        #            plt.plot([bounds[0],bounds[1]],[depth,depth],'b--')
-        #            if pcol==5 and label==1:plt.text(bounds[1],depth+tint,core[core_label_key])
-        # if pcol==6:
-        if pcol == 5:
-            # ax6=plt.subplot(1,pcol,6)
-            ax6 = plt.subplot(1, pcol, 5)
-            Axs.append(ax6)
-            ax6.plot(Bulks, BulkDepths, 'bo')
-            ax6.axis([bmin - 1, 1.1 * bmax, dmax, dmin])
-            ax6.set_xlabel('Bulk Susc. (uSI)')
-            if sum_file:
-                for core in Cores:
-                    depth = float(core[core_depth_key])
-                    if depth >= dmin and depth <= dmax:
-                        plt.plot([0, bmax], [depth, depth], 'b--')
-                        if label == 1:
-                            plt.text(1.1 * bmax, depth + tint,
-                                     core[core_label_key])
-        for x in Axs:
-            # this makes the x-tick labels more reasonable - they were
-            # overcrowded using the defaults
-            pmagplotlib.delticks(x)
-        fig_name = location + '_ani_depthplot.' + fmt
-        return main_plot, fig_name
-    else:
-        return False, "No data to plot"
 
 
 def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
@@ -5592,212 +5391,6 @@ def validate_with_public_endpoint(contribution_file,verbose=False):
     return response
 
 
-def upload_magic2(concat=0, dir_path='.', data_model=None):
-    """
-    Finds all magic files in a given directory, and compiles them into an
-    upload.txt file which can be uploaded into the MagIC database. Returns a
-    tuple of either: (False, error_message, errors) if there was a problem
-    creating/validating the upload file or: (filename, '', None) if the upload
-    was fully successful.
-    """
-    SpecDone = []
-    locations = []
-    concat = int(concat)
-    files_list = ["er_expeditions.txt", "er_locations.txt", "er_samples.txt", "er_specimens.txt", "er_sites.txt", "er_ages.txt", "er_citations.txt", "er_mailinglist.txt", "magic_measurements.txt",
-                  "rmag_hysteresis.txt", "rmag_anisotropy.txt", "rmag_remanence.txt", "rmag_results.txt", "pmag_specimens.txt", "pmag_samples.txt", "pmag_sites.txt", "pmag_results.txt", "pmag_criteria.txt", "magic_instruments.txt"]
-    file_names = [os.path.join(dir_path, f) for f in files_list]
-
-    # begin the upload process
-    up = os.path.join(dir_path, "upload.txt")
-    if os.path.exists(up):
-        os.remove(up)
-    RmKeys = ['citation_label', 'compilation', 'calculation_type', 'average_n_lines', 'average_n_planes',
-              'specimen_grade', 'site_vgp_lat', 'site_vgp_lon', 'direction_type', 'specimen_Z',
-              'magic_instrument_codes', 'cooling_rate_corr', 'cooling_rate_mcd', 'anisotropy_atrm_alt',
-              'anisotropy_apar_perc', 'anisotropy_F', 'anisotropy_F_crit', 'specimen_scat',
-              'specimen_gmax', 'specimen_frac', 'site_vadm', 'site_lon', 'site_vdm', 'site_lat',
-              'measurement_chi', 'specimen_k_prime', 'specimen_k_prime_sse', 'external_database_names',
-              'external_database_ids', 'Further Notes', 'Typology', 'Notes (Year/Area/Locus/Level)',
-              'Site', 'Object Number', 'dir_n_specimens']
-    print("-I- Removing: ", RmKeys)
-    CheckDec = ['_dec', '_lon', '_azimuth', 'dip_direction']
-    CheckSign = ['specimen_b_beta']
-    last = file_names[-1]
-    methods, first_file = [], 1
-    for File in file_names:
-        # read in the data
-        Data, file_type = pmag.magic_read(File)
-        if (file_type != "bad_file") and (file_type != "empty_file"):
-            print("-I- file", File, " successfully read in")
-            if len(RmKeys) > 0:
-                for rec in Data:
-                    # remove unwanted keys
-                    for key in RmKeys:
-                        if key == 'specimen_Z' and key in list(rec.keys()):
-                            # change  # change this to lower case
-                            rec[key] = 'specimen_z'
-                        if key in list(rec.keys()):
-                            del rec[key]  # get rid of unwanted keys
-                    # make sure b_beta is positive
-                    # ignore blanks
-                    if 'specimen_b_beta' in list(rec.keys()) and rec['specimen_b_beta'] != "":
-                        if float(rec['specimen_b_beta']) < 0:
-                            # make sure value is positive
-                            rec['specimen_b_beta'] = str(
-                                -float(rec['specimen_b_beta']))
-                            print('-I- adjusted to positive: ',
-                                  'specimen_b_beta', rec['specimen_b_beta'])
-                    # make all declinations/azimuths/longitudes in range
-                    # 0=>360.
-                    rec = pmag.adjust_all_to_360(rec)
-            if file_type == 'er_locations':
-                for rec in Data:
-                    locations.append(rec['er_location_name'])
-            if file_type in ['pmag_samples', 'pmag_sites', 'pmag_specimens']:
-                # if there is NO pmag data for specimens (samples/sites),
-                # do not try to write it to file
-                # (this causes validation errors, elsewise)
-                ignore = True
-                for rec in Data:
-                    if not ignore:
-                        break
-                    keys = list(rec.keys())
-                    exclude_keys = ['er_citation_names', 'er_site_name', 'er_sample_name',
-                                    'er_location_name', 'er_specimen_names', 'er_sample_names']
-                    for key in exclude_keys:
-                        if key in keys:
-                            keys.remove(key)
-                    for key in keys:
-                        if rec[key]:
-                            ignore = False
-                            break
-                if ignore:
-                    continue
-
-            if file_type == 'er_samples':  # check to only upload top priority orientation record!
-                NewSamps, Done = [], []
-                for rec in Data:
-                    if rec['er_sample_name'] not in Done:
-                        orient, az_type = pmag.get_orient(
-                            Data, rec['er_sample_name'])
-                        NewSamps.append(orient)
-                        Done.append(rec['er_sample_name'])
-                Data = NewSamps
-                print(
-                    'only highest priority orientation record from er_samples.txt read in ')
-            if file_type == 'er_specimens':  # only specimens that have sample names
-                NewData, SpecDone = [], []
-                for rec in Data:
-                    if rec['er_sample_name'] in Done:
-                        NewData.append(rec)
-                        SpecDone.append(rec['er_specimen_name'])
-                    else:
-                        print('no valid sample record found for: ')
-                        print(rec)
-                Data = NewData
-                # print 'only measurements that have specimen/sample info'
-            if file_type == 'magic_measurements':  # only measurements that have specimen names
-                no_specs = []
-                NewData = []
-                for rec in Data:
-                    if rec['er_specimen_name'] in SpecDone:
-                        NewData.append(rec)
-                    else:
-                        print('no valid specimen record found for: ')
-                        print(rec)
-                        no_specs.append(rec)
-                # print set([record['er_specimen_name'] for record in
-                # no_specs])
-                Data = NewData
-    # write out the data
-            if len(Data) > 0:
-                if first_file == 1:
-                    keystring = pmag.first_rec(up, Data[0], file_type)
-                    first_file = 0
-                else:
-                    keystring = pmag.first_up(up, Data[0], file_type)
-                for rec in Data:
-                    # collect the method codes
-                    if "magic_method_codes" in list(rec.keys()):
-                        meths = rec["magic_method_codes"].split(':')
-                        for meth in meths:
-                            if meth.strip() not in methods:
-                                if meth.strip() != "LP-DIR-":
-                                    methods.append(meth.strip())
-                    try:
-                        pmag.putout(up, keystring, rec)
-                    except IOError:
-                        print('-W- File input error: slowing down')
-                        time.sleep(1)
-                        pmag.putout(up, keystring, rec)
-
-    # write out the file separator
-            f = open(up, 'a')
-            f.write('>>>>>>>>>>\n')
-            f.close()
-            print(file_type, 'written to ', up)
-        else:
-            print('File:', File)
-            print(file_type, 'is bad or non-existent - skipping ')
-
-    # write out the methods table
-    first_rec, MethRec = 1, {}
-    for meth in methods:
-        MethRec["magic_method_code"] = meth
-        if first_rec == 1:
-            meth_keys = pmag.first_up(up, MethRec, "magic_methods")
-        first_rec = 0
-        try:
-            pmag.putout(up, meth_keys, MethRec)
-        except IOError:
-            print('-W- File input error: slowing down')
-            time.sleep(1)
-            pmag.putout(up, meth_keys, MethRec)
-    if concat == 1:
-        f = open(up, 'a')
-        f.write('>>>>>>>>>>\n')
-        f.close()
-
-    if os.path.isfile(up):
-        from . import validate_upload2 as validate_upload
-        validated = False
-        validated, errors = validate_upload.read_upload(up, data_model)
-
-    else:
-        print("no data found, upload file not created")
-        return False, "no data found, upload file not created", None
-
-    # rename upload.txt according to location + timestamp
-    format_string = "%d.%b.%Y"
-    if locations:
-        location = locations[0].replace(' ', '_')
-        new_up = location + '_' + time.strftime(format_string) + '.txt'
-    else:
-        new_up = 'unknown_location_' + time.strftime(format_string) + '.txt'
-
-    new_up = os.path.join(dir_path, new_up)
-    if os.path.isfile(new_up):
-        fname, extension = os.path.splitext(new_up)
-        for i in range(1, 100):
-            if os.path.isfile(fname + "_" + str(i) + extension):
-                continue
-            else:
-                new_up = fname + "_" + str(i) + extension
-                break
-    os.rename(up, new_up)
-    print("Finished preparing upload file: {} ".format(new_up))
-    if not validated:
-        print("-W- validation of upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be published.".format(new_up))
-        return False, "Validation of your upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be published.".format(new_up), errors
-    return new_up, '', None
-
-
-def upload_magic3(concat=1, dir_path='.', dmodel=None, vocab="", contribution=None):
-    """Deprecated name for :func:`upload_magic`; ``dmodel``, ``vocab`` and ``contribution`` are ignored."""
-    print('-W- ipmag.upload_magic3 is deprecated, please switch to using ipmag.upload_magic')
-    return upload_magic(concat=concat, dir_path=dir_path, input_dir_path=dir_path)
-
-
 def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,verbose=True):
     """
     Finds all magic files in a given directory, and compiles them into an
@@ -7074,7 +6667,7 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
             lab arrow is as in [1] above.
             lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90
         [6] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip
-        [7] see http://earthref.org/PmagPy/cookbook/#field_info for more information.  You can customize other format yourself, or email ltauxe@ucsd.edu for help.
+        [7] see https://pmagpy.github.io/PmagPy-docs/programs/pmag_gui.html#field-and-sampling-information for more information.  You can customize other format yourself, or email ltauxe@ucsd.edu for help.
         [8] Lab arrow azimuth = mag_azimuth-180; Lab arrow dip = 90-field_dip
 
 
@@ -8140,6 +7733,11 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
     (Neel, 1955; plots after Tauxe et al., 2002); plots 'linear mixing'
     curve from Dunlop and Carter-Stiglitz (2006).
 
+    .. deprecated:: 4.6.0
+        ``ipmag.dayplot_magic`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.plot_day_magic`` (MagIC specimens table)
+        or ``pmagpy.rockmag.plot_day`` (arrays) instead.
+
     Parameters:
         path_to_file : path to directory that contains files (default is current directory, '.')
         the default input file is 'specimens.txt' (data_model=3
@@ -8152,6 +7750,12 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
         image_records (boolean): generate and return a record for each image in a list of dicts which can be ingested by pmag.magic_write, default is False
 
     """
+    warnings.warn(
+        "ipmag.dayplot_magic is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.plot_day_magic or pmagpy.rockmag.plot_day instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     hyst_path = os.path.join(path_to_file, hyst_file)
     if data_model == 2 and rem_file != '':
         rem_path = os.path.join(path_to_file, rem_file)
@@ -8254,7 +7858,10 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
         plt.figure(num=DSC['S-Bcr'], figsize=(5, 5))
         plt.figure(num=DSC['bcr1-bcr2'], figsize=(5, 5))
 
-        pmagplotlib.plot_day(DSC['day'], Bcr1Bc, S1, 'ro')
+        with warnings.catch_warnings():
+            # nested deprecated call; the caller has already warned
+            warnings.filterwarnings('ignore', message=r'^(ipmag|pmagplotlib)\.\w+ is deprecated', category=FutureWarning)
+            pmagplotlib.plot_day(DSC['day'], Bcr1Bc, S1, 'ro')
         pmagplotlib.plot_s_bcr(DSC['S-Bcr'], Bcr1, S1, 'ro')
         #pmagplotlib.plot_init(DSC['bcr1-bcr2'], 5, 5)
         pmagplotlib.plot_bcr(DSC['bcr1-bcr2'], Bcr1, Bcr2)
@@ -8290,7 +7897,10 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
         #plt.figure(num=DSC['bcr1-bcr2'], figsize=(5, 5))
         del DSC['bcr1-bcr2']
         # do other plots instead
-        pmagplotlib.plot_day(DSC['day'], BcrBc, S, 'bs')
+        with warnings.catch_warnings():
+            # nested deprecated call; the caller has already warned
+            warnings.filterwarnings('ignore', message=r'^(ipmag|pmagplotlib)\.\w+ is deprecated', category=FutureWarning)
+            pmagplotlib.plot_day(DSC['day'], BcrBc, S, 'bs')
         pmagplotlib.plot_s_bcr(DSC['S-Bcr'], Bcr, S, 'bs')
         pmagplotlib.plot_s_bc(DSC['S-Bc'], Bc, S, 'bs')
     if pmagplotlib.isServer:
@@ -8327,7 +7937,7 @@ def smooth(x, window_len, window='bartlett'):
     Smooth the data using a sliding window with requested size - meant to be
     used with the ipmag function curie().
 
-    .. deprecated::
+    .. deprecated:: 4.6.0
         ``ipmag.smooth`` is deprecated and will be removed in a future
         release. Use ``pmagpy.rockmag.smooth_moving_average`` instead.
 
@@ -8336,19 +7946,17 @@ def smooth(x, window_len, window='bartlett'):
     with average of the first (last) ten values of the signal, to evoid jumps
     at the beginning/end. Output is an array of the smoothed signal.
 
-    Required Parameters
+    Parameters
     ----------
     x : the input signal, equally spaced!
     window_len : the dimension of the smoothing window
-
-    Optional Parameters (defaults are used if not specified)
-    ----------
-    window : type of window from numpy library ['flat','hanning','hamming','bartlett','blackman']
+    window : optional, type of window from numpy library ['flat','hanning','hamming','bartlett','blackman']
         (default is Bartlett)
-        -flat window will produce a moving average smoothing.
-        -Bartlett window is very similar to triangular window,
-            but always ends with zeros at points 1 and n.
-        -hanning,hamming,blackman are used for smoothing the Fourier transform
+
+        - flat window will produce a moving average smoothing.
+        - Bartlett window is very similar to triangular window,
+          but always ends with zeros at points 1 and n.
+        - hanning,hamming,blackman are used for smoothing the Fourier transform
     """
     warnings.warn(
         "ipmag.smooth is deprecated and will be removed in a future release. "
@@ -8396,7 +8004,7 @@ def curie(path_to_file='.', file_name='', magic=False,
     The estimated curie temperation is the maximum of the 2nd derivative.
     Temperature steps should be in multiples of 1.0 degrees.
 
-    .. deprecated::
+    .. deprecated:: 4.6.0
         ``ipmag.curie`` is deprecated and will be removed in a future release.
         It reports a single Curie temperature from the maximum of the smoothed
         second derivative. Use the multi-method estimators in ``pmagpy.rockmag``
@@ -8584,132 +8192,6 @@ def curie(path_to_file='.', file_name='', magic=False,
                 print('could not save: ', PLT[key], files[key], ' because', e)
                 print("output file format not supported ")
     plt.show()
-
-
-def chi_magic2(path_to_file='.', file_name='magic_measurements.txt',
-              save=False, save_folder='.', fmt='svg'):
-    """
-    Generates plots that compare susceptibility to temperature at different
-    frequencies.
-
-    Parameters:
-        (defaults are used if not specified)
-        path_to_file : path to directory that contains file (default is current directory, '.')
-        file_name : name of file to be opened (default is 'magic_measurements.txt')
-        save : boolean argument to save plots (default is False)
-        save_folder : relative directory where plots will be saved (default is current directory, '.')
-    """
-    cont, FTinit, BTinit, k = "", 0, 0, 0
-    complete_path = os.path.join(path_to_file, file_name)
-    Tind, cont = 0, ""
-    EXP = ""
-    #
-    meas_data, file_type = pmag.magic_read(complete_path)
-    #
-    # get list of unique experiment names
-    #
-    # initialize some variables (a continuation flag, plot initialization
-    # flags and the experiment counter
-    experiment_names = []
-    for rec in meas_data:
-        if rec['magic_experiment_name'] not in experiment_names:
-            experiment_names.append(rec['magic_experiment_name'])
-    #
-    # hunt through by experiment name
-    if EXP != "":
-        try:
-            k = experiment_names.index(EXP)
-        except Exception as e:
-            print("Bad experiment name:", e)
-            sys.exit()
-    while k < len(experiment_names):
-        e = experiment_names[k]
-        if EXP == "":
-            print(e, k + 1, 'out of ', len(experiment_names))
-    #
-    # initialize lists of data, susceptibility, temperature, frequency and
-    # field
-        X, T, F, B = [], [], [], []
-        for rec in meas_data:
-            methcodes = rec['magic_method_codes']
-            meths = methcodes.strip().split(':')
-            if rec['magic_experiment_name'] == e and "LP-X" in meths:  # looking for chi measurement
-                if 'measurement_temp' not in list(rec.keys()):
-                    rec['measurement_temp'] = '300'  # set defaults
-                if 'measurement_freq' not in list(rec.keys()):
-                    rec['measurement_freq'] = '0'  # set defaults
-                if 'measurement_lab_field_ac' not in list(rec.keys()):
-                    rec['measurement_lab_field_ac'] = '0'  # set default
-                X.append(float(rec['measurement_x']))
-                T.append(float(rec['measurement_temp']))
-                F.append(float(rec['measurement_freq']))
-                B.append(float(rec['measurement_lab_field_ac']))
-    #
-    # get unique list of Ts,Fs, and Bs
-    #
-        Ts, Fs, Bs = [], [], []
-        for k in range(len(X)):   # hunt through all the measurements
-            if T[k] not in Ts:
-                Ts.append(T[k])  # append if not in list
-            if F[k] not in Fs:
-                Fs.append(F[k])
-            if B[k] not in Bs:
-                Bs.append(B[k])
-        Ts.sort()  # sort list of temperatures, frequencies and fields
-        Fs.sort()
-        Bs.sort()
-        if '-x' in sys.argv:
-            k = len(experiment_names) + 1  # just plot the one
-        else:
-            k += 1  # increment experiment number
-    #
-    # plot chi versus T and F holding B constant
-    #
-        plotnum = 1  # initialize plot number to 1
-        if len(X) > 2:  # if there are any data to plot, continue
-            b = Bs[-1]  # keeping field constant and at maximum
-            XTF = []  # initialize list of chi versus Temp and freq
-            for f in Fs:   # step through frequencies sequentially
-                XT = []  # initialize list of chi versus temp
-                for kk in range(len(X)):  # hunt through all the data
-                    if F[kk] == f and B[kk] == b:  # select data with given freq and field
-                        XT.append([X[kk], T[kk]])  # append to list
-                XTF.append(XT)  # append list to list of frequencies
-            if len(XT) > 1:  # if there are any temperature dependent data
-                plt.figure(num=plotnum, figsize=(5, 5))  # initialize plot
-                # call the plotting function
-                pmagplotlib.plot_xtf(plotnum, XTF, Fs, e, b)
-                pmagplotlib.show_fig(plotnum)
-                plotnum += 1  # increment plot number
-            f = Fs[0]  # set frequency to minimum
-            XTB = []  # initialize list if chi versus Temp and field
-            for b in Bs:  # step through field values
-                XT = []  # initial chi versus temp list for this field
-                for kk in range(len(X)):  # hunt through all the data
-                    if F[kk] == f and B[kk] == b:  # select data with given freq and field
-                        XT.append([X[kk], T[kk]])  # append to list
-                XTB.append(XT)
-            if len(XT) > 1:  # if there are any temperature dependent data
-                plt.figure(num=plotnum, figsize=(5, 5))  # set up plot
-                # call the plotting function
-                pmagplotlib.plot_xtb(plotnum, XTB, Bs, e, f)
-                pmagplotlib.show_fig(plotnum)
-                plotnum += 1  # increment plot number
-            if save:
-                files = {}
-                PLTS = {}
-                for p in range(1, plotnum):
-                    key = str(p)
-                    files[key] = e + '_' + key + '.' + fmt
-                    PLTS[key] = p
-                for key in list(PLTS.keys()):
-                    try:
-                        plt.figure(num=PLTS[key])
-                        plt.savefig(save_folder + '/' +
-                                    files[key].replace('/', '-'))
-                    except Exception as e:
-                        print('could not save: ', PLTS[key], files[key], ' because', e)
-                        print("output file format not supported ")
 
 
 def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file="",
@@ -9250,12 +8732,23 @@ def iplot_hys(fignum, B, M, s):
     This function has been adapted from pmagplotlib.iplot_hys for specific use
     within a Jupyter notebook.
 
+    .. deprecated:: 4.6.0
+        ``ipmag.iplot_hys`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.plot_hyst_loop`` and other
+        ``pmagpy.rockmag`` hysteresis functions instead.
+
     Parameters:
         fignum : reference number for matplotlib figure being created
         B : list of B (flux density) values of hysteresis experiment
         M : list of M (magnetization) values of hysteresis experiment
         s : specimen name
     """
+    warnings.warn(
+        "ipmag.iplot_hys is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.plot_hyst_loop instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     if fignum != 0:
         plt.figure(num=fignum)
         plt.clf()
@@ -9349,198 +8842,6 @@ def iplot_hys(fignum, B, M, s):
     return hpars, deltaM, Bdm, B, Mnorm, MadjN
 
 
-def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
-                      save=False, save_folder='.',
-                      fmt="svg", plots=True):
-    """
-    Calculates hysteresis parameters, saves them in rmag_hysteresis format file.
-    If selected, this function also plots hysteresis loops, delta M curves,
-    d (Delta M)/dB curves, and IRM backfield curves.
-
-    Parameters:
-        path_to_file : path to directory that contains files (default is current directory, '.')
-        hyst_file : hysteresis file (default is 'rmag_hysteresis.txt')
-        save : boolean argument to save plots (default is False)
-        save_folder : relative directory where plots will be saved (default is current directory, '.')
-        fmt : format of saved figures (default is 'pdf')
-        plots: whether or not to display the plots (default is true)
-    """
-    user, meas_file, rmag_out, rmag_file = "", "agm_measurements.txt", "rmag_hysteresis.txt", ""
-    pltspec = ""
-    dir_path = save_folder
-    verbose = pmagplotlib.verbose
-    version_num = pmag.get_version()
-    rmag_out = save_folder + '/' + rmag_out
-    meas_file = path_to_file + '/' + hyst_file
-    rmag_rem = save_folder + "/rmag_remanence.txt"
-    #
-    #
-    meas_data, file_type = pmag.magic_read(meas_file)
-    if file_type != 'magic_measurements':
-        print(hysteresis_magic.__doc__)
-        print('bad file')
-        return
-
-    # initialize some variables
-    # define figure numbers for hyst,deltaM,DdeltaM curves
-    HystRecs, RemRecs = [], []
-    HDD = {}
-    HDD['hyst'], HDD['deltaM'], HDD['DdeltaM'] = 1, 2, 3
-    experiment_names, sids = [], []
-    for rec in meas_data:
-        meths = rec['magic_method_codes'].split(':')
-        methods = []
-        for meth in meths:
-            methods.append(meth.strip())
-        if 'LP-HYS' in methods:
-            if 'er_synthetic_name' in list(rec.keys()) and rec['er_synthetic_name'] != "":
-                rec['er_specimen_name'] = rec['er_synthetic_name']
-            if rec['magic_experiment_name'] not in experiment_names:
-                experiment_names.append(rec['magic_experiment_name'])
-            if rec['er_specimen_name'] not in sids:
-                sids.append(rec['er_specimen_name'])
-    #
-    fignum = 1
-    sample_num = 0
-    # initialize variables to record some bulk info in first loop
-    first_dcd_rec, first_rec, first_imag_rec = 1, 1, 1
-    while sample_num < len(sids):
-        sample = sids[sample_num]
-        print(sample, sample_num + 1, 'out of ', len(sids))
-        # B,M for hysteresis, Bdcd,Mdcd for irm-dcd data
-        B, M, Bdcd, Mdcd = [], [], [], []
-        Bimag, Mimag = [], []  # Bimag,Mimag for initial magnetization curves
-        for rec in meas_data:
-            methcodes = rec['magic_method_codes'].split(':')
-            meths = []
-            for meth in methcodes:
-                meths.append(meth.strip())
-            if rec['er_specimen_name'] == sample and "LP-HYS" in meths:
-                B.append(float(rec['measurement_lab_field_dc']))
-                M.append(float(rec['measurement_magn_moment']))
-                if first_rec == 1:
-                    e = rec['magic_experiment_name']
-                    HystRec = {}
-                    first_rec = 0
-                    if "er_location_name" in list(rec.keys()):
-                        HystRec["er_location_name"] = rec["er_location_name"]
-                        locname = rec['er_location_name'].replace('/', '-')
-                    if "er_sample_name" in list(rec.keys()):
-                        HystRec["er_sample_name"] = rec["er_sample_name"]
-                    if "er_site_name" in list(rec.keys()):
-                        HystRec["er_site_name"] = rec["er_site_name"]
-                    if "er_synthetic_name" in list(rec.keys()) and rec['er_synthetic_name'] != "":
-                        HystRec["er_synthetic_name"] = rec["er_synthetic_name"]
-                    else:
-                        HystRec["er_specimen_name"] = rec["er_specimen_name"]
-            if rec['er_specimen_name'] == sample and "LP-IRM-DCD" in meths:
-                Bdcd.append(float(rec['treatment_dc_field']))
-                Mdcd.append(float(rec['measurement_magn_moment']))
-                if first_dcd_rec == 1:
-                    RemRec = {}
-                    irm_exp = rec['magic_experiment_name']
-                    first_dcd_rec = 0
-                    if "er_location_name" in list(rec.keys()):
-                        RemRec["er_location_name"] = rec["er_location_name"]
-                    if "er_sample_name" in list(rec.keys()):
-                        RemRec["er_sample_name"] = rec["er_sample_name"]
-                    if "er_site_name" in list(rec.keys()):
-                        RemRec["er_site_name"] = rec["er_site_name"]
-                    if "er_synthetic_name" in list(rec.keys()) and rec['er_synthetic_name'] != "":
-                        RemRec["er_synthetic_name"] = rec["er_synthetic_name"]
-                    else:
-                        RemRec["er_specimen_name"] = rec["er_specimen_name"]
-            if rec['er_specimen_name'] == sample and "LP-IMAG" in meths:
-                if first_imag_rec == 1:
-                    imag_exp = rec['magic_experiment_name']
-                    first_imag_rec = 0
-                Bimag.append(float(rec['measurement_lab_field_dc']))
-                Mimag.append(float(rec['measurement_magn_moment']))
-        if len(B) > 0:
-            hmeths = []
-            for meth in meths:
-                hmeths.append(meth)
-    #         fignum = 1
-            fig = plt.figure(figsize=(8, 8))
-            hpars, deltaM, Bdm, B, Mnorm, MadjN = iplot_hys(1, B, M, sample)
-            ax1 = fig.add_subplot(2, 2, 1)
-            ax1.axhline(0, color='k')
-            ax1.axvline(0, color='k')
-            ax1.plot(B, Mnorm, 'r')
-            ax1.plot(B, MadjN, 'b')
-            ax1.set_xlabel('B (T)')
-            ax1.set_ylabel("M/Msat")
-    #         ax1.set_title(sample)
-            ax1.set_xlim(-1, 1)
-            ax1.set_ylim(-1, 1)
-            bounds = ax1.axis()
-            n4 = 'Ms: ' + \
-                '%8.2e' % (float(hpars['hysteresis_ms_moment'])) + ' Am^2'
-            ax1.text(bounds[1] - .9 * bounds[1], -.9, n4, fontsize=9)
-            n1 = 'Mr: ' + \
-                '%8.2e' % (float(hpars['hysteresis_mr_moment'])) + ' Am^2'
-            ax1.text(bounds[1] - .9 * bounds[1], -.7, n1, fontsize=9)
-            n2 = 'Bc: ' + '%8.2e' % (float(hpars['hysteresis_bc'])) + ' T'
-            ax1.text(bounds[1] - .9 * bounds[1], -.5, n2, fontsize=9)
-            if 'hysteresis_xhf' in list(hpars.keys()):
-                n3 = r'Xhf: ' + \
-                    '%8.2e' % (float(hpars['hysteresis_xhf'])) + ' m^3'
-                ax1.text(bounds[1] - .9 * bounds[1], -.3, n3, fontsize=9)
-    #         plt.subplot(1,2,2)
-    #         plt.subplot(1,3,3)
-        DdeltaM = []
-        Mhalf = ""
-        for k in range(2, len(Bdm)):
-            # differnential
-            DdeltaM.append(
-                abs(deltaM[k] - deltaM[k - 2])/(Bdm[k] - Bdm[k - 2]))
-        for k in range(len(deltaM)):
-            if deltaM[k]/deltaM[0] < 0.5:
-                Mhalf = k
-                break
-        try:
-            Bhf = Bdm[Mhalf - 1:Mhalf + 1]
-            Mhf = deltaM[Mhalf - 1:Mhalf + 1]
-            # best fit line through two bounding points
-            poly = polyfit(Bhf, Mhf, 1)
-            Bcr = (.5 * deltaM[0] - poly[1])/poly[0]
-            hpars['hysteresis_bcr'] = '%8.3e' % (Bcr)
-            hpars['magic_method_codes'] = "LP-BCR-HDM"
-            if HDD['deltaM'] != 0:
-                ax2 = fig.add_subplot(2, 2, 2)
-                ax2.plot(Bdm, deltaM, 'b')
-                ax2.set_xlabel('B (T)')
-                ax2.set_ylabel('Delta M')
-                linex = [0, Bcr, Bcr]
-                liney = [deltaM[0]/2.0, deltaM[0]/2.0, 0]
-                ax2.plot(linex, liney, 'r')
-    #             ax2.set_title(sample)
-                ax3 = fig.add_subplot(2, 2, 3)
-                ax3.plot(Bdm[(len(Bdm) - len(DdeltaM)):], DdeltaM, 'b')
-                ax3.set_xlabel('B (T)')
-                ax3.set_ylabel('d (Delta M)/dB')
-    #             ax3.set_title(sample)
-
-                ax4 = fig.add_subplot(2, 2, 4)
-                ax4.plot(Bdcd, Mdcd)
-                ax4.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.2e'))
-                ax4.axhline(0, color='k')
-                ax4.axvline(0, color='k')
-                ax4.set_xlabel('B (T)')
-                ax4.set_ylabel('M/Mr')
-        except Exception as e:
-            print("Processing skipped because:", e)
-            hpars['hysteresis_bcr'] = '0'
-            hpars['magic_method_codes'] = ""
-        plt.gcf()
-        plt.gca()
-        plt.tight_layout()
-        if save:
-            plt.savefig(save_folder + '/' + sample + '_hysteresis.' + fmt)
-        plt.show()
-        sample_num += 1
-
-
 def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
             site_correction=False, return_new_dirs=False, figprefix='EI',
             return_values=False, num_resample_to_plot=1000, data_color='k', EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05, tight_axes=False,
@@ -9598,8 +8899,8 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     sys.stdout.flush()
 
     E, I = [], []
-    plt.figure(num=1, figsize=(4, 4))
-    plot_net(1)
+    plt.figure(figsize=(4, 4))
+    plot_net()
     plot_di(di_block=data, color=data_color)
     plt.title('Original')
 
@@ -9614,7 +8915,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
         Inc, Elong = Is[-1], Es[-1]
         flat_f = Fs[-1]
 
-    plt.figure(num=2, figsize=(4, 4))
+    plt.figure(figsize=(4, 4))
     plt.plot(Is, Es, EI_color, zorder = nb+1, lw=3)
     plt.xlabel(r"inclination ($^\circ$)", fontsize=12)
     plt.ylabel("elongation", fontsize=12)
@@ -9656,8 +8957,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     if save:
         plt.savefig(save_folder+'/'+figprefix+'_EI_bootstraps'+'.'+fmt, bbox_inches='tight', dpi=300)
 
-    cdf_fig_num = 3
-    plt.figure(num=cdf_fig_num, figsize=(4, 4))
+    cdf_fig_num = plt.figure(figsize=(4, 4)).number
     pmagplotlib.plot_cdf(cdf_fig_num, I, r'inclination ($^\circ$)', 'r', title)
     pmagplotlib.plot_vs(cdf_fig_num, [i_lo, i_hi], 'b', '--')
     pmagplotlib.plot_vs(cdf_fig_num, [Inc], 'g', '-')
@@ -9674,15 +8974,12 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
         decs, incs = di_lists
     if flat_f:
         unsquished_incs = unsquish(incs, flat_f)
-        plt.figure(num=4, figsize=(4, 4))
-        plot_net(4)
-        plot_di(decs, unsquished_incs, color=data_color)
-        plt.title('Corrected for flattening')
     else:
-        plt.figure(num=4, figsize=(4, 4))
-        plot_net(4)
-        plot_di(decs, incs, color=data_color)
-        plt.title('Corrected for flattening')
+        unsquished_incs = incs
+    plt.figure(figsize=(4, 4))
+    plot_net()
+    plot_di(decs, unsquished_incs, color=data_color)
+    plt.title('Corrected for flattening')
     if save:
         plt.savefig(save_folder+'/'+figprefix+'_corrected_directions'+'.'+fmt, bbox_inches='tight', dpi=300)
 
@@ -9717,7 +9014,7 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
                 return_new_dirs=False, return_values=False, figprefix='EI',
                 num_resample_to_plot=1000, EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05,
                  vgp_nb=100, cmap='viridis_r', central_longitude=0, central_latitude=0,
-                 random_seed=None):
+                 random_seed=None, return_poles=False):
     """
     Applies series of assumed flattening factor and "unsquishes" inclinations assuming tangent function.
     Finds flattening factor that gives elongation/inclination pair consistent with TK03
@@ -9753,15 +9050,38 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
         EI_color: the color of the EI curve associated with the most frequent f value (rounded to 2 decimal points, default is red)
         resample_EI_color: the color of the EI curves for all f values except for the most frequent f (default is grey)
         resample_EI_alpha: the transparency of the EI curves for all f values except for the most frequent f (default is grey)
+        random_seed : None, int, or numpy.random.Generator, optional
+            Seed for reproducible resampling (default None).
+        return_poles : if True, also return the nb*vgp_nb resampled mean pole longitudes and latitudes
+            from which the Kent distribution is calculated, appended after the other returned values
+            (default is False)
 
     Returns:
-        four plots :  
-            1) equal area plot of original directions
-            2) Elongation/inclination pairs as a function of f,  data plus 25 bootstrap samples
-            3) Cumulative distribution of bootstrapped optimal inclinations plus uncertainties. Estimate from original data set plotted as solid line
-            4) Orientation of principle direction through unflattening
-     
-    NOTE: 
+        kent_stats : dictionary of Kent distribution statistics (as returned by
+            kent_distribution_95) for the resampled mean poles, returned on its
+            own by default
+        di_block : nested list of dec/inc pairs unflattened with the best-fit f,
+            returned instead of (return_new_dirs=True) or before
+            (return_new_dirs=True and return_values=True) kent_stats
+        I, E, F : lists of the bootstrap inclinations, elongations, and
+            flattening factors, appended when return_values=True
+        mean_lons, mean_lats : lists of the nb*vgp_nb resampled mean pole
+            longitudes and latitudes, appended when return_poles=True
+        A single object is returned bare; otherwise the outputs are returned
+        as a tuple in the order above, e.g. (kent_stats, I, E, F, mean_lons,
+        mean_lats) for return_values=True and return_poles=True.
+
+        five plots :
+            1) Elongation/inclination pairs as a function of f, data plus
+               num_resample_to_plot bootstrap samples
+            2) Cumulative distribution of bootstrapped optimal inclinations plus
+               uncertainties. Estimate from original data set plotted as solid line
+            3) Equal area plot of directions unflattened with each bootstrap f,
+               color-coded by f
+            4) Histogram of bootstrap paleolatitudes with a normal fit
+            5) Orthographic map of the resampled mean poles with the Kent ellipse
+
+    NOTE:
         If distribution does not have a solution, plot labeled: Pathological.  Some bootstrap samples may have
         valid solutions and those are plotted in the CDFs and E/I plot.
     """
@@ -9781,7 +9101,7 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     Inc, Elong = Is[-1], Es[-1]
     flat_f = Fs[-1]
     # plot E/I figure
-    plt.figure(num=1, figsize=(4, 4))
+    plt.figure(figsize=(4, 4))
     plt.plot(Is, Es, EI_color, zorder = nb+1, lw=3)
     plt.xlabel(r"inclination ($^\circ$)", fontsize=12)
     plt.ylabel("elongation", fontsize=12)
@@ -9819,11 +9139,11 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     if save:
         plt.savefig(save_folder+'/'+figprefix+'_bootstraps'+'.'+fmt, bbox_inches='tight', dpi=300)
 
-    plt.figure(figsize=(4, 4))
-    pmagplotlib.plot_cdf(2, I, r'inclination ($^\circ$)', 'r', title)
-    pmagplotlib.plot_vs(2, [i_lo, i_hi], 'b', '--')
-    pmagplotlib.plot_vs(2, [Inc], 'g', '-')
-    pmagplotlib.plot_vs(2, [Io], 'k', '-')
+    cdf_fig_num = plt.figure(figsize=(4, 4)).number
+    pmagplotlib.plot_cdf(cdf_fig_num, I, r'inclination ($^\circ$)', 'r', title)
+    pmagplotlib.plot_vs(cdf_fig_num, [i_lo, i_hi], 'b', '--')
+    pmagplotlib.plot_vs(cdf_fig_num, [Inc], 'g', '-')
+    pmagplotlib.plot_vs(cdf_fig_num, [Io], 'k', '-')
     if save:
         plt.savefig(save_folder+'/'+figprefix+'_inc_CDF'+'.'+fmt, bbox_inches='tight', dpi=300)
 
@@ -9851,7 +9171,8 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
         unsquish_lons, unsquish_lats = unsquish_VGPs[0], unsquish_VGPs[1]
         unsquish_VGPs_mean = fisher_mean(unsquish_lons, unsquish_lats)
         resampled_lons, resampled_lats = fisher_mean_resample(alpha95=unsquish_VGPs_mean['alpha95'], n=vgp_nb, 
-                                                       dec=unsquish_VGPs_mean['dec'], inc=unsquish_VGPs_mean['inc'], di_block=0)
+                                                       dec=unsquish_VGPs_mean['dec'], inc=unsquish_VGPs_mean['inc'], di_block=0,
+                                                       random_seed=rng)
         mean_lons.extend(resampled_lons)
         mean_lats.extend(resampled_lats)
         
@@ -9919,19 +9240,38 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
 
     if return_new_dirs and return_values :
         unsquished_incs = unsquish(incs, flat_f)
-        return make_di_block(decs, unsquished_incs), kent_stats, I, E, F
-    
+        results = [make_di_block(decs, unsquished_incs), kent_stats, I, E, F]
     elif return_new_dirs:
         unsquished_incs = unsquish(incs, flat_f)
-        return make_di_block(decs, unsquished_incs)
+        results = [make_di_block(decs, unsquished_incs)]
     elif return_values:
-        return kent_stats, I, E, F
+        results = [kent_stats, I, E, F]
     else:
-        return kent_stats
+        results = [kent_stats]
+    if return_poles:
+        results.extend([mean_lons, mean_lats])
+    if len(results) == 1:
+        return results[0]
+    return tuple(results)
+
+
+# Measured flattening factors compiled by Pierce et al. (2022, Table S1,
+# doi:10.1029/2022GC010682) from studies that quantified inclination shallowing
+# in clastic sedimentary rocks. This is the distribution find_compilation_kent
+# uses by default when another is not supplied.
+PIERCE2022_F_COMPILATION = [
+    0.49, 0.77, 0.63, 0.59, 0.57, 0.4, 0.63, 0.66, 0.63, 0.49, 0.49,
+    0.58, 0.54, 0.73, 0.97, 0.59, 0.84, 0.9, 0.78, 0.83, 0.58, 0.94,
+    0.78, 0.9, 0.68, 0.48, 0.67, 0.66, 0.7, 0.43, 0.45, 0.58, 0.58,
+    0.53, 0.42, 0.51, 0.61, 0.52, 0.62, 0.73, 0.66, 0.55, 0.47, 0.77,
+    0.62, 0.54, 0.46, 0.56, 0.64, 0.47, 0.48, 0.44, 0.52, 0.65, 0.81,
+    0.64, 0.71, 0.79, 0.65, 0.56, 0.69, 0.43, 0.7, 0.67, 0.65, 0.49,
+    0.54, 0.64, 0.83, 0.68
+]
 
 
 def find_compilation_kent(plon, plat, A95, slon, slat,
-                          f_from_compilation=None, n=10000, n_fish=100,
+                          f_from_compilation=None, n=1000, n_fish=100,
                           return_poles=False, return_kent_stats=True,
                           return_paleolats=False, map_central_longitude=0,
                           map_central_latitude=0, random_seed=None):
@@ -9942,7 +9282,8 @@ def find_compilation_kent(plon, plat, A95, slon, slat,
 
     First, calculate the paleomagnetic direction at the site of the mean pole using plon, plat via
     pmag.vgp_di. Then draw n resamples from the compiled f values in the compilation. The default
-    compilation of Pierce et al., 2022 can be used or the user can provide their own compilation.
+    compilation of Pierce et al., 2022 (available as ipmag.PIERCE2022_F_COMPILATION) can be used or
+    the user can provide their own compilation.
 
     Unsquish the directions with the resampled f factors, then convert the mean directions back to pole
     space. Making the simplifying assumption that A95 is the same as the directions are unflattened.
@@ -9956,9 +9297,10 @@ def find_compilation_kent(plon, plat, A95, slon, slat,
         A95: legacy mean pole A95
         slon: site longitude
         slat: site latitude
-        f_from_compilation: list of f factors (default is None in which case the compilation of
-            Pierce et al., 2022 Table S1 will be used)
-        n: number of resamples from compilation (default is 10000)
+        f_from_compilation: list of f factors (default is None in which case
+            ipmag.PIERCE2022_F_COMPILATION, the compilation of Pierce et al., 2022 Table S1,
+            will be used)
+        n: number of resamples from compilation (default is 1000)
         n_fish: number of resamples from each Fisher mean pole position (default is 100)
         return_poles: whether or not to return the resampled mean pole positions (default is False)
         return_kent_stats: whether or not to return the calculated Kent distribution statistics of
@@ -9980,18 +9322,7 @@ def find_compilation_kent(plon, plat, A95, slon, slat,
     original_dec, original_inc = pmag.vgp_di(plat, plon, slat, slon)
 
     if f_from_compilation is None:
-        # compilation f value list
-        f_from_compilation = pd.Series(
-            [
-                0.49, 0.77, 0.63, 0.59, 0.57, 0.4, 0.63, 0.66, 0.63, 0.49, 0.49,
-                0.58, 0.54, 0.73, 0.97, 0.59, 0.84, 0.9, 0.78, 0.83, 0.58, 0.94,
-                0.78, 0.9, 0.68, 0.48, 0.67, 0.66, 0.7, 0.43, 0.45, 0.58, 0.58,
-                0.53, 0.42, 0.51, 0.61, 0.52, 0.62, 0.73, 0.66, 0.55, 0.47, 0.77,
-                0.62, 0.54, 0.46, 0.56, 0.64, 0.47, 0.48, 0.44, 0.52, 0.65, 0.81,
-                0.64, 0.71, 0.79, 0.65, 0.56, 0.69, 0.43, 0.7, 0.67, 0.65, 0.49,
-                0.54, 0.64, 0.83, 0.68
-            ]
-        )
+        f_from_compilation = pd.Series(PIERCE2022_F_COMPILATION)
     else:
         f_from_compilation = pd.Series(f_from_compilation)
 
@@ -10021,7 +9352,7 @@ def find_compilation_kent(plon, plat, A95, slon, slat,
     compilation_mean_lons = []
     compilation_mean_lats = []
 
-    for i in range(len(f_from_compilation)):
+    for i in range(n):
         unsquish_plon, unsquish_plats, _, _ = pmag.dia_vgp(
             original_dec, compilation_incs[i], A95, slat, slon)
         resampled_lons, resampled_lats = fisher_mean_resample(
@@ -10048,7 +9379,8 @@ def find_compilation_kent(plon, plat, A95, slon, slat,
         dec=compilation_mean_lons, inc=compilation_mean_lats)
     print_kent_mean(f_compilation_kent_distribution_95)
     plot_pole_ellipse(
-        m, f_compilation_kent_distribution_95, color="darkred", label="Kent mean pole")
+        m, f_compilation_kent_distribution_95, color="darkred",
+        label="Kent mean pole")
     plot_pole(
         m, plon, plat, A95, label="uncorrected pole position", color="C0")
     plt.legend(loc=8, fontsize=14)
@@ -10511,34 +9843,39 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
 def zeq(path_to_file='.', file='', data="", units='U', calculation_type="DE-BFL",
         save=False, save_folder='.', fmt='svg', begin_pca="", end_pca="", angle=0,make_plots=True,show_data=True):
     """
-    NAME
-       zeq.py
+    Plots demagnetization data for a single specimen as a Zijderveld diagram,
+    an equal area projection and a demagnetization diagram. Data are read from
+    a file or taken from a pandas DataFrame with specimen, treatment, intensity,
+    declination and inclination as columns.
 
-    DESCRIPTION
-       plots demagnetization data for a single specimen:
-          - The solid (open) symbols in the Zijderveld diagram are X,Y (X,Z) pairs.  The demagnetization diagram plots the
-          fractional remanence remaining after each step. The green line is the fraction of the total remaence removed
-          between each step.  If the principle direction is desired, specify begin_pca and end_pca steps as bounds for calculation.
+    - The solid (open) symbols in the Zijderveld diagram are X,Y (X,Z) pairs.
+      If the principal direction is desired, specify begin_pca and end_pca steps
+      as bounds for calculation.
+    - The equal area projection has the X direction (usually North in geographic
+      coordinates) to the top. The red line is the X axis of the Zijderveld diagram.
+      Solid symbols are lower hemisphere.
+    - The demagnetization diagram plots the fractional remanence remaining after
+      each step (red dots and blue line). The green line is the fraction of the
+      total remanence removed between each step.
 
-          -The equal area projection has the X direction (usually North in geographic coordinates)
-          to the top.  The red line is the X axis of the Zijderveld diagram.  Solid symbols are lower hemisphere.
-
-          - red dots and blue line is the remanence remaining after each step.  The green line is the partial TRM removed in each interval
-
-    INPUT FORMAT
-       reads from  file_name or takes a  Pandas DataFrame data with specimen treatment intensity declination inclination   as columns
-
-    Keywords:
-        file= FILE   a space or tab delimited file with
-            specimen  treatment  declination inclination intensity
-        units= [mT,C] specify units of mT OR C, default is unscaled
-        save=[True,False]  save figure and quit, default is False
-        fmt [svg,jpg,png,pdf] set figure format [default is svg]
-        begin_pca [step number] treatment step for beginning of PCA calculation, default
-        end_pca [step number] treatment step for end of PCA calculation, last step is default
-        calculation_type [DE-BFL,DE-BFP,DE-FM] Calculation Type: best-fit line,  plane or fisher mean; line is default
-        angle=[0-360]: angle to subtract from declination to rotate in horizontal plane, default is 0
-
+    Parameters:
+        path_to_file : path to the directory containing file, default is "."
+        file : name of a space or tab delimited file with columns
+            specimen treatment intensity declination inclination
+        data : pandas DataFrame with the columns specimen, treatment, intensity,
+            declination, inclination (used if file is not provided)
+        units : units of the treatment steps, 'mT' or 'C', default is 'U' (unscaled)
+        calculation_type : 'DE-BFL', 'DE-BFP' or 'DE-FM' for best-fit line,
+            plane or Fisher mean, default is 'DE-BFL'
+        save : if True, save the figures, default is False
+        save_folder : not currently used, figures are saved to the current directory
+        fmt : format of saved figures ('svg', 'jpg', 'png', 'pdf'), default is 'svg'
+        begin_pca : index of the treatment step for the beginning of the PCA calculation
+        end_pca : index of the treatment step for the end of the PCA calculation
+        angle : angle (0-360) to subtract from declination to rotate in
+            horizontal plane, default is 0
+        make_plots : if True, make the plots, default is True
+        show_data : if True, print the data for the specimen, default is True
     """
     if units == "C":
         SIunits = "K"
@@ -11318,7 +10655,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
             g : geographic coordinates, aniso_tile_correction = 0
             t : tilt corrected coordinates, aniso_tile_correction = 100
         num_bootstraps : how many bootstraps to do, default 1000
-        dir_path : directory path
+        dir_path : directory with the input files, in which the plots are also saved
         fignum : matplotlib figure number, default 1
         save_plots : bool, default True
             if True, create and save all requested plots
@@ -11385,6 +10722,21 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
     else:
         con = contribution
         dir_path = con.directory
+    # the specimens table with the anisotropy tensors is required
+    problem = ""
+    if 'specimens' not in con.tables:
+        if contribution is None:
+            problem = "could not read a specimens table from {}".format(
+                os.path.join(input_dir_path, infile))
+        else:
+            problem = "the contribution has no specimens table"
+    elif 'aniso_s' not in con.tables['specimens'].df.columns:
+        problem = "the specimens table has no aniso_s column, so there are no anisotropy data to plot"
+    if problem:
+        print("-E- aniso_magic: " + problem)
+        if image_records:
+            return False, [], []
+        return False, []
     # get contribution id if available
     con_id = ""
     if 'contribution' in con.tables:
@@ -11484,12 +10836,12 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                     image_recs.append(image_rec)
 
             if save_plots:
-                saved.extend(pmagplotlib.save_plots(figs, files))
+                saved.extend(pmagplotlib.save_plots(figs, files, dir_path=dir_path))
             elif interactive:
                 pmagplotlib.draw_figs(figs)
                 ans = pmagplotlib.save_or_quit()
                 if ans == 'a':
-                    saved.extend(pmagplotlib.save_plots(figs, files))
+                    saved.extend(pmagplotlib.save_plots(figs, files, dir_path=dir_path))
                 else:
                     continue
             else:
@@ -11538,12 +10890,12 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
 
 
         if save_plots:
-            saved.extend(pmagplotlib.save_plots(figs, files))
+            saved.extend(pmagplotlib.save_plots(figs, files, dir_path=dir_path))
         elif interactive:
             pmagplotlib.draw_figs(figs)
             ans = pmagplotlib.save_or_quit()
             if ans == 'a':
-                saved.extend(pmagplotlib.save_plots(figs, files))
+                saved.extend(pmagplotlib.save_plots(figs, files, dir_path=dir_path))
     if image_records:
         return True, saved, image_recs
     return True, saved
@@ -12414,7 +11766,7 @@ def aarm_magic(meas_file, dir_path=".", input_dir_path="",
     if file_type != 'measurements':
             print(
                 "-E- {} is not a valid measurements file, {}".format(meas_file, file_type))
-            print ('for data model 2.0 please use atrm_magic_dm2')
+            print ('if you are using data model 2.0 please upgrade to data model 3.0')
             return False
     old_specs=False
     old_spec_recs, file_type = pmag.magic_read(input_spec_file)
@@ -12505,387 +11857,6 @@ def aarm_magic(meas_file, dir_path=".", input_dir_path="",
     spec_dicts=old_spec_df.to_dict('records')
     pmag.magic_write(output_spec_file,spec_dicts,'specimens')
 
-
-
-
-def atrm_magic_dm2(meas_file, dir_path=".", input_dir_path="",
-               input_spec_file='specimens.txt', output_spec_file='specimens.txt',
-               data_model_num=2):
-    """
-    Converts ATRM  data to best-fit tensor (6 elements plus sigma)
-
-    Parameters
-    ----------
-    meas_file : str
-        input measurement file
-    dir_path : str
-        output directory, default "."
-    input_dir_path : str
-        input file directory IF different from dir_path, default ""
-    input_spec_file : str
-        input specimen file name, default "specimens.txt"
-    output_spec_file : str
-        output specimen file name, default "specimens.txt"
-    data_model_num : number
-        MagIC data model [2, 3], default 3
-
-    Returns
-    ---------
-    Tuple : (True or False indicating if conversion was successful, output file name written)
-
-    """
-    # fix up file names
-    input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
-    meas_file = pmag.resolve_file_name(meas_file, input_dir_path)
-    rmag_anis = os.path.join(dir_path, 'rmag_anisotropy.txt')
-    rmag_res = os.path.join(dir_path, 'rmag_results.txt')
-    input_spec_file = pmag.resolve_file_name(input_spec_file, input_dir_path)
-    output_spec_file = pmag.resolve_file_name(output_spec_file, dir_path)
-
-    # read in data
-    if data_model_num == 3:
-        meas_data = []
-        meas_data3, file_type = pmag.magic_read(meas_file)
-        if file_type != 'measurements':
-            print(
-                "-E- {} is not a valid measurements file, {}".format(meas_file, file_type))
-            return False
-        # convert meas_data to 2.5
-        for rec in meas_data3:
-            meas_map = map_magic.meas_magic3_2_magic2_map
-            meas_data.append(map_magic.mapping(rec, meas_map))
-        old_spec_recs, file_type = pmag.magic_read(input_spec_file)
-        if file_type != 'specimens':
-            print("-W- {} is not a valid specimens file ".format(input_spec_file))
-            old_spec_recs = []
-        spec_recs = []
-        for rec in old_spec_recs:
-            spec_map = map_magic.spec_magic3_2_magic2_map
-            spec_recs.append(map_magic.mapping(rec, spec_map))
-
-    else:
-        meas_data, file_type = pmag.magic_read(meas_file)
-        if file_type != 'magic_measurements':
-            print("-E- {} is is not a valid magic_measurements file ".format(file_type))
-            return False, "{} is not a valid magic_measurements file, {}".format(meas_file, file_type)
-
-    meas_data = pmag.get_dictitem(
-        meas_data, 'magic_method_codes', 'LP-AN-TRM', 'has')
-    if not len(meas_data):
-        print("-E- No measurement records found with code LP-AN-TRM")
-        return False, "No measurement records found with code LP-AN-TRM"
-    #
-    #
-    # get sorted list of unique specimen names
-    ssort = []
-    for rec in meas_data:
-        spec = rec["er_specimen_name"]
-        if spec not in ssort:
-            ssort.append(spec)
-    sids = sorted(ssort)
-    #
-    #
-    # work on each specimen
-    #
-    specimen, npos = 0, 6
-    RmagSpecRecs, RmagResRecs = [], []
-    SpecRecs, SpecRecs3 = [], []
-    while specimen < len(sids):
-        nmeas = 0
-        s = sids[specimen]
-        RmagSpecRec = {}
-        RmagResRec = {}
-        # get old specrec here if applicable
-        if data_model_num == 3:
-            if spec_recs:
-                try:
-                    RmagResRec = pmag.get_dictitem(
-                        spec_recs, 'er_specimen_name', s, 'T')[0]
-                    RmagSpecRec = pmag.get_dictitem(
-                        spec_recs, 'er_specimen_name', s, 'T')[0]
-                except IndexError:
-                    pass
-
-        BX, X = [], []
-        method_codes = []
-        Spec0 = ""
-    #
-    # find the data from the meas_data file for this sample
-        # and get dec, inc, int and convert to x,y,z
-        #
-        # fish out data for this specimen name
-        data = pmag.get_dictitem(meas_data, 'er_specimen_name', s, 'T')
-        if len(data) > 5:
-            RmagSpecRec["rmag_anisotropy_name"] = data[0]["er_specimen_name"]
-            RmagSpecRec["er_location_name"] = data[0].get(
-                "er_location_name", "")
-            RmagSpecRec["er_specimen_name"] = data[0]["er_specimen_name"]
-            if "er_sample_name" not in RmagSpecRec:
-                RmagSpecRec["er_sample_name"] = data[0].get(
-                    "er_sample_name", "")
-            RmagSpecRec["er_site_name"] = data[0].get("er_site_name", "")
-            RmagSpecRec["magic_experiment_names"] = RmagSpecRec["rmag_anisotropy_name"] + ":ATRM"
-            RmagSpecRec["er_citation_names"] = "This study"
-            RmagResRec["rmag_result_name"] = data[0]["er_specimen_name"] + ":ATRM"
-            RmagResRec["er_location_names"] = data[0].get(
-                "er_location_names", "")
-            RmagResRec["er_specimen_names"] = data[0]["er_specimen_name"]
-            if data_model_num == 2:
-                RmagResRec["er_sample_names"] = data[0].get(
-                    "er_sample_name", "")
-            RmagResRec["er_site_names"] = data[0].get("er_site_name", "")
-            RmagResRec["magic_experiment_names"] = RmagSpecRec["rmag_anisotropy_name"] + ":ATRM"
-            RmagResRec["er_citation_names"] = "This study"
-            RmagSpecRec["anisotropy_type"] = "ATRM"
-            if "magic_instrument_codes" in list(data[0].keys()):
-                RmagSpecRec["magic_instrument_codes"] = data[0]["magic_instrument_codes"]
-            else:
-                RmagSpecRec["magic_instrument_codes"] = ""
-                RmagSpecRec["anisotropy_description"] = "Hext statistics adapted to ATRM"
-            for rec in data:
-                meths = rec['magic_method_codes'].strip().split(':')
-                Dir = []
-                Dir.append(float(rec["measurement_dec"]))
-                Dir.append(float(rec["measurement_inc"]))
-                Dir.append(float(rec["measurement_magn_moment"]))
-                if "LT-T-Z" in meths:
-                    BX.append(pmag.dir2cart(Dir))  # append baseline steps
-                elif "LT-T-I" in meths:
-                    X.append(pmag.dir2cart(Dir))
-                    nmeas += 1
-    #
-        if len(BX) == 1:
-            for i in range(len(X) - 1):
-                BX.append(BX[0])  # assume first 0 field step as baseline
-        elif len(BX) == 0:  # assume baseline is zero
-            for i in range(len(X)):
-                BX.append([0., 0., 0.])  # assume baseline of 0
-        elif len(BX) != len(X):  # if BX isn't just one measurement or one in between every infield step, just assume it is zero
-            print('something odd about the baselines - just assuming zero')
-            for i in range(len(X)):
-                BX.append([0., 0., 0.])  # assume baseline of 0
-        if nmeas < 6:  # must have at least 6 measurements right now -
-            print('skipping specimen ', s, ' too few measurements')
-            specimen += 1
-        else:
-            # B matrix made from design matrix for positions
-            B, H, tmpH = pmag.designATRM(npos)
-        #
-        # subtract optional baseline and put in a work array
-        #
-            work = np.zeros((nmeas, 3), 'f')
-            for i in range(nmeas):
-                for j in range(3):
-                    # subtract baseline, if available
-                    work[i][j] = X[i][j] - BX[i][j]
-        #
-        # calculate tensor elements
-        # first put ARM components in w vector
-        #
-            w = np.zeros((npos * 3), 'f')
-            index = 0
-            for i in range(npos):
-                for j in range(3):
-                    w[index] = work[i][j]
-                    index += 1
-            s = np.zeros((6), 'f')  # initialize the s matrix
-            for i in range(6):
-                for j in range(len(w)):
-                    s[i] += B[i][j] * w[j]
-            trace = s[0] + s[1] + s[2]   # normalize by the trace
-            for i in range(6):
-                s[i] = s[i] / trace
-            a = pmag.s2a(s)
-
-        # ------------------------------------------------------------
-        #  Calculating dels is different than in the Kappabridge
-        #  routine. Use trace normalized tensor (a) and the applied
-        #  unit field directions (tmpH) to generate model X,Y,Z
-        #  components. Then compare these with the measured values.
-        # ------------------------------------------------------------
-            S = 0.
-            comp = np.zeros((npos * 3), 'f')
-            for i in range(npos):
-                for j in range(3):
-                    index = i * 3 + j
-                    compare = a[j][0] * tmpH[i][0] + a[j][1] * \
-                        tmpH[i][1] + a[j][2] * tmpH[i][2]
-                    comp[index] = compare
-            for i in range(npos * 3):
-                d = (w[i] / trace) - comp[i]  # del values
-                S += d * d
-            nf = float(npos * 3. - 6.)  # number of degrees of freedom
-            if S > 0:
-                sigma = np.sqrt(S / nf)
-            else:
-                sigma = 0
-            hpars = pmag.dohext(nf, sigma, s)
-        #
-        # prepare for output
-        #
-            RmagSpecRec["anisotropy_s1"] = '%8.6f' % (s[0])
-            RmagSpecRec["anisotropy_s2"] = '%8.6f' % (s[1])
-            RmagSpecRec["anisotropy_s3"] = '%8.6f' % (s[2])
-            RmagSpecRec["anisotropy_s4"] = '%8.6f' % (s[3])
-            RmagSpecRec["anisotropy_s5"] = '%8.6f' % (s[4])
-            RmagSpecRec["anisotropy_s6"] = '%8.6f' % (s[5])
-            RmagSpecRec["anisotropy_mean"] = '%8.3e' % (trace / 3)
-            RmagSpecRec["anisotropy_sigma"] = '%8.6f' % (sigma)
-            RmagSpecRec["anisotropy_unit"] = "Am^2"
-            RmagSpecRec["anisotropy_n"] = '%i' % (npos)
-            RmagSpecRec["anisotropy_tilt_correction"] = '-1'
-            # used by thellier_gui - must be taken out for uploading
-            RmagSpecRec["anisotropy_F"] = '%7.1f ' % (hpars["F"])
-            # used by thellier_gui - must be taken out for uploading
-            RmagSpecRec["anisotropy_F_crit"] = hpars["F_crit"]
-            RmagResRec["anisotropy_t1"] = '%8.6f ' % (hpars["t1"])
-            RmagResRec["anisotropy_t2"] = '%8.6f ' % (hpars["t2"])
-            RmagResRec["anisotropy_t3"] = '%8.6f ' % (hpars["t3"])
-            RmagResRec["anisotropy_v1_dec"] = '%7.1f ' % (hpars["v1_dec"])
-            RmagResRec["anisotropy_v2_dec"] = '%7.1f ' % (hpars["v2_dec"])
-            RmagResRec["anisotropy_v3_dec"] = '%7.1f ' % (hpars["v3_dec"])
-            RmagResRec["anisotropy_v1_inc"] = '%7.1f ' % (hpars["v1_inc"])
-            RmagResRec["anisotropy_v2_inc"] = '%7.1f ' % (hpars["v2_inc"])
-            RmagResRec["anisotropy_v3_inc"] = '%7.1f ' % (hpars["v3_inc"])
-            RmagResRec["anisotropy_ftest"] = '%7.1f ' % (hpars["F"])
-            RmagResRec["anisotropy_ftest12"] = '%7.1f ' % (hpars["F12"])
-            RmagResRec["anisotropy_ftest23"] = '%7.1f ' % (hpars["F23"])
-            RmagResRec["result_description"] = 'Critical F: ' + \
-                hpars["F_crit"] + ';Critical F12/F13: ' + hpars["F12_crit"]
-            if hpars["e12"] > hpars["e13"]:
-                RmagResRec["anisotropy_v1_zeta_semi_angle"] = '%7.1f ' % (
-                    hpars['e12'])
-                RmagResRec["anisotropy_v1_zeta_dec"] = '%7.1f ' % (
-                    hpars['v2_dec'])
-                RmagResRec["anisotropy_v1_zeta_inc"] = '%7.1f ' % (
-                    hpars['v2_inc'])
-                RmagResRec["anisotropy_v2_zeta_semi_angle"] = '%7.1f ' % (
-                    hpars['e12'])
-                RmagResRec["anisotropy_v2_zeta_dec"] = '%7.1f ' % (
-                    hpars['v1_dec'])
-                RmagResRec["anisotropy_v2_zeta_inc"] = '%7.1f ' % (
-                    hpars['v1_inc'])
-                RmagResRec["anisotropy_v1_eta_semi_angle"] = '%7.1f ' % (
-                    hpars['e13'])
-                RmagResRec["anisotropy_v1_eta_dec"] = '%7.1f ' % (
-                    hpars['v3_dec'])
-                RmagResRec["anisotropy_v1_eta_inc"] = '%7.1f ' % (
-                    hpars['v3_inc'])
-                RmagResRec["anisotropy_v3_eta_semi_angle"] = '%7.1f ' % (
-                    hpars['e13'])
-                RmagResRec["anisotropy_v3_eta_dec"] = '%7.1f ' % (
-                    hpars['v1_dec'])
-                RmagResRec["anisotropy_v3_eta_inc"] = '%7.1f ' % (
-                    hpars['v1_inc'])
-            else:
-                RmagResRec["anisotropy_v1_zeta_semi_angle"] = '%7.1f ' % (
-                    hpars['e13'])
-                RmagResRec["anisotropy_v1_zeta_dec"] = '%7.1f ' % (
-                    hpars['v3_dec'])
-                RmagResRec["anisotropy_v1_zeta_inc"] = '%7.1f ' % (
-                    hpars['v3_inc'])
-                RmagResRec["anisotropy_v3_zeta_semi_angle"] = '%7.1f ' % (
-                    hpars['e13'])
-                RmagResRec["anisotropy_v3_zeta_dec"] = '%7.1f ' % (
-                    hpars['v1_dec'])
-                RmagResRec["anisotropy_v3_zeta_inc"] = '%7.1f ' % (
-                    hpars['v1_inc'])
-                RmagResRec["anisotropy_v1_eta_semi_angle"] = '%7.1f ' % (
-                    hpars['e12'])
-                RmagResRec["anisotropy_v1_eta_dec"] = '%7.1f ' % (
-                    hpars['v2_dec'])
-                RmagResRec["anisotropy_v1_eta_inc"] = '%7.1f ' % (
-                    hpars['v2_inc'])
-                RmagResRec["anisotropy_v2_eta_semi_angle"] = '%7.1f ' % (
-                    hpars['e12'])
-                RmagResRec["anisotropy_v2_eta_dec"] = '%7.1f ' % (
-                    hpars['v1_dec'])
-                RmagResRec["anisotropy_v2_eta_inc"] = '%7.1f ' % (
-                    hpars['v1_inc'])
-            if hpars["e23"] > hpars['e12']:
-                RmagResRec["anisotropy_v2_zeta_semi_angle"] = '%7.1f ' % (
-                    hpars['e23'])
-                RmagResRec["anisotropy_v2_zeta_dec"] = '%7.1f ' % (
-                    hpars['v3_dec'])
-                RmagResRec["anisotropy_v2_zeta_inc"] = '%7.1f ' % (
-                    hpars['v3_inc'])
-                RmagResRec["anisotropy_v3_zeta_semi_angle"] = '%7.1f ' % (
-                    hpars['e23'])
-                RmagResRec["anisotropy_v3_zeta_dec"] = '%7.1f ' % (
-                    hpars['v2_dec'])
-                RmagResRec["anisotropy_v3_zeta_inc"] = '%7.1f ' % (
-                    hpars['v2_inc'])
-                RmagResRec["anisotropy_v3_eta_semi_angle"] = '%7.1f ' % (
-                    hpars['e13'])
-                RmagResRec["anisotropy_v3_eta_dec"] = '%7.1f ' % (
-                    hpars['v1_dec'])
-                RmagResRec["anisotropy_v3_eta_inc"] = '%7.1f ' % (
-                    hpars['v1_inc'])
-                RmagResRec["anisotropy_v2_eta_semi_angle"] = '%7.1f ' % (
-                    hpars['e12'])
-                RmagResRec["anisotropy_v2_eta_dec"] = '%7.1f ' % (
-                    hpars['v1_dec'])
-                RmagResRec["anisotropy_v2_eta_inc"] = '%7.1f ' % (
-                    hpars['v1_inc'])
-            else:
-                RmagResRec["anisotropy_v2_zeta_semi_angle"] = '%7.1f ' % (
-                    hpars['e12'])
-                RmagResRec["anisotropy_v2_zeta_dec"] = '%7.1f ' % (
-                    hpars['v1_dec'])
-                RmagResRec["anisotropy_v2_zeta_inc"] = '%7.1f ' % (
-                    hpars['v1_inc'])
-                RmagResRec["anisotropy_v3_eta_semi_angle"] = '%7.1f ' % (
-                    hpars['e23'])
-                RmagResRec["anisotropy_v3_eta_dec"] = '%7.1f ' % (
-                    hpars['v2_dec'])
-                RmagResRec["anisotropy_v3_eta_inc"] = '%7.1f ' % (
-                    hpars['v2_inc'])
-                RmagResRec["anisotropy_v3_zeta_semi_angle"] = '%7.1f ' % (
-                    hpars['e13'])
-                RmagResRec["anisotropy_v3_zeta_dec"] = '%7.1f ' % (
-                    hpars['v1_dec'])
-                RmagResRec["anisotropy_v3_zeta_inc"] = '%7.1f ' % (
-                    hpars['v1_inc'])
-                RmagResRec["anisotropy_v2_eta_semi_angle"] = '%7.1f ' % (
-                    hpars['e23'])
-                RmagResRec["anisotropy_v2_eta_dec"] = '%7.1f ' % (
-                    hpars['v3_dec'])
-                RmagResRec["anisotropy_v2_eta_inc"] = '%7.1f ' % (
-                    hpars['v3_inc'])
-            RmagResRec["tilt_correction"] = '-1'
-            RmagResRec["anisotropy_type"] = 'ATRM'
-            RmagResRec["magic_method_codes"] = 'LP-AN-TRM:AE-H'
-            RmagSpecRec["magic_method_codes"] = 'LP-AN-TRM:AE-H'
-            RmagResRec["magic_software_packages"] = pmag.get_version()
-            RmagSpecRec["magic_software_packages"] = pmag.get_version()
-            RmagSpecRecs.append(RmagSpecRec)
-            RmagResRecs.append(RmagResRec)
-            specimen += 1
-        if data_model_num == 3:
-            SpecRec = RmagResRec.copy()
-            SpecRec.update(RmagSpecRec)
-            SpecRecs.append(SpecRec)
-
-    # finished iterating through specimens,
-    # now we need to write out the data to files
-    if data_model_num == 3:
-        # translate records
-        for rec in SpecRecs:
-            rec3 = map_magic.convert_aniso('magic3', rec)
-            SpecRecs3.append(rec3)
-
-        # write output to 3.0 specimens file
-        pmag.magic_write(output_spec_file, SpecRecs3, 'specimens')
-        print("specimen data stored in {}".format(output_spec_file))
-        return True, output_spec_file
-
-    else:
-        # write output to 2.5 rmag_ files
-        pmag.magic_write(rmag_anis, RmagSpecRecs, 'rmag_anisotropy')
-        print("specimen tensor elements stored in ", rmag_anis)
-        pmag.magic_write(rmag_res, RmagResRecs, 'rmag_results')
-        print("specimen statistics and eigenparameters stored in ", rmag_res)
-        return True, rmag_anis
 
 def calculate_aniso_parameters(K,n_pos=6):
     """
@@ -13011,7 +11982,7 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
     if file_type != 'measurements':
             print(
                 "-E- {} is not a valid measurements file, {}".format(meas_file, file_type))
-            print ('for data model 2.0 please use atrm_magic_dm2')
+            print ('if you are using data model 2.0 please upgrade to data model 3.0')
             return False
     old_specs=False
     old_spec_recs, file_type = pmag.magic_read(input_spec_file)
@@ -13120,6 +12091,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
               samp_file='samples.txt', contribution=None,fignum=1, image_records=False):
     """
     eeq_magic makes zijderveld and equal area plots for magic formatted measurements files.
+
     Parameters
     ----------
     meas_file : str
@@ -13160,7 +12132,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
         bool, default False
 
     Returns
-    ---------
+    -------
     if image_records == False:
         Tuple : (True or False indicating if conversion was successful, output file name written)
     if image_records == True:
@@ -13749,6 +12721,11 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
     Plotting may be called interactively with save_plots==False,
     or be suppressed entirely with make_plots==False.
 
+    .. deprecated:: 4.6.0
+        ``ipmag.hysteresis_magic`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.process_hyst_loops`` and other
+        ``pmagpy.rockmag`` hysteresis functions instead.
+
     Parameters:
         output_dir_path : str, default "."
             Note: if using Windows, all figures will be saved to working directly
@@ -13779,6 +12756,12 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
         Tuple 
             (True or False indicating if conversion was successful, output file names written)
     """
+    warnings.warn(
+        "ipmag.hysteresis_magic is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.process_hyst_loops instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     # put plots in output_dir_path, unless isServer
     incl_directory = True
     if pmagplotlib.isServer or set_env.IS_WIN:
@@ -13912,7 +12895,10 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
             for meth in meths:
                 hmeths.append(meth)
 
-            hpars = pmagplotlib.plot_hdd(HDD, B, M, e)
+            with warnings.catch_warnings():
+                # nested deprecated call; the caller has already warned
+                warnings.filterwarnings('ignore', message=r'^(ipmag|pmagplotlib)\.\w+ is deprecated', category=FutureWarning)
+                hpars = pmagplotlib.plot_hdd(HDD, B, M, e)
             if interactive:
                 if not set_env.IS_WIN:
                     pmagplotlib.draw_figs(HDD)
@@ -13946,7 +12932,10 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
                 if make_plots and (not save_plots):
                     pmagplotlib.plot_init(HDD['irm'], 5, 5)
                 irm_init = 1
-            rpars = pmagplotlib.plot_irm(HDD['irm'], Bdcd, Mdcd, irm_exp)
+            with warnings.catch_warnings():
+                # nested deprecated call; the caller has already warned
+                warnings.filterwarnings('ignore', message=r'^(ipmag|pmagplotlib)\.\w+ is deprecated', category=FutureWarning)
+                rpars = pmagplotlib.plot_irm(HDD['irm'], Bdcd, Mdcd, irm_exp)
             HystRec['rem_mr_moment'] = rpars['remanence_mr_moment']
             HystRec['rem_bcr'] = rpars['remanence_bcr']
             HystRec['experiments'] = specimen+':'+irm_exp
@@ -14322,10 +13311,10 @@ def criteria_extract(crit_file='criteria.txt', output_file='criteria.xlsx',
         latex : boolean, default False
             if True, output file should be latex formatted table with a .tex ending
 
-    Returns :
+    Returns:
         [True,False],  data table error type : True if successful
 
-    Effects :
+    Notes:
         writes xls or latex formatted tables for use in publications
     """
     input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, output_dir_path)
@@ -15989,6 +14978,48 @@ def histplot(infile="", data=(), outfile="",
         return True, [outfile]
 
 
+def select_demag_records(data_container, LT, XLP=None):
+    """
+    Select the demagnetization measurements for one lab treatment.
+
+    Parameters:
+        data_container (MagicDataFrame):
+            measurements table (e.g. contribution.tables['measurements'])
+        LT (str):
+            lab-treatment method code, one of "LT-AF-Z", "LT-T-Z", "LT-M-Z"
+        XLP (str or list, optional):
+            method-code strings to exclude, e.g. "LP-PI", ["LP-PI", "LP-AN"]
+            or the colon-delimited "LP-PI:LP-AN". Matching is by substring,
+            so "LP-PI" excludes every LP-PI-* protocol.
+
+    Returns:
+        pandas.DataFrame:
+            the records with method code LT. If any of them carry an
+            LP-DIR-* experiment code, only those are returned; zero-field
+            steps that belong to other protocols (for example the 180 mT
+            ARM steps of an LP-AN-ARM experiment, or the zero-field steps of
+            a Thellier-type LP-PI-* experiment) are dropped. If none carry an
+            LP-DIR-* code (older converters wrote only LT codes), all records
+            with LT are returned. Records matching any XLP string are
+            removed in either case.
+    """
+    data = data_container.get_records_for_code(LT)
+    if 'method_codes' in data.columns:
+        has_dir = data['method_codes'].str.contains('LP-DIR', na=False)
+        if has_dir.any():
+            data = data[has_dir]
+    if XLP:
+        if isinstance(XLP, str):
+            XLP = XLP.split(':')
+        for code in XLP:
+            code = code.strip()
+            if code:
+                data = data_container.get_records_for_code(
+                    code, incl=False, use_slice=True, sli=data,
+                    strict_match=False)
+    return data
+
+
 def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
                spec_file="specimens.txt", samp_file="samples.txt",
                site_file="sites.txt", loc_file="locations.txt",
@@ -16018,9 +15049,11 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
             lab treatment [T, AF, M], default AF
         norm (bool): 
             normalize by NRM magnetization, default True
-        XLP (str):
-            exclude specific  lab protocols, (for example, method codes like LP-PI)
-            default ""
+        XLP (str or list):
+            exclude records whose method codes contain any of these strings
+            (for example "LP-PI" or ["LP-PI", "LP-AN"]); a single string may
+            also be colon-delimited ("LP-PI:LP-AN"). Default "" (nothing
+            excluded beyond the LP-DIR rule described in the notes).
         save_plots (bool): 
             plot and save non-interactively, default True
         fmt (str): str
@@ -16034,6 +15067,15 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
         contribution : cb.Contribution, default None
             if provided, use Contribution object instead of reading in
             data from files
+
+    Notes:
+        Records are selected by lab treatment (LT-AF-Z, LT-T-Z or LT-M-Z).
+        When any of the selected records carry an LP-DIR-* experiment code,
+        only those records are plotted, so that zero-field steps belonging to
+        other protocols (ARM anisotropy, Thellier-type paleointensity, ...)
+        do not contaminate the demagnetization curves. Data whose method
+        codes carry no LP-DIR-* code at all are plotted unchanged. Use XLP to
+        exclude further protocols. See select_demag_records.
 
     Returns:
         True or False indicating if conversion was successful, file name(s) written
@@ -16088,12 +15130,8 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
         #contribution.propagate_name_down(plot_key, 'measurements')
         contribution.propagate_location_to_measurements()
     data_container = contribution.tables[file_type]
-    # pare down to only records with useful data
-    # grab records that have the requested code
-    data_slice = data_container.get_records_for_code(LT)
-    # and don't have the offending code
-    data = data_container.get_records_for_code(XLP, incl=False, use_slice=True,
-                                               sli=data_slice, strict_match=False)
+    # pare down to the demagnetization records for this lab treatment
+    data = select_demag_records(data_container, LT, XLP)
 
     # make sure quality is in the dataframe
     if 'quality' not in data.columns:
@@ -16234,8 +15272,9 @@ def df_depthplot(df,d_key='core_depth',fmt='png',location='unknown',save=False):
 def validate_magic(top_dir,doi=False,private_key=False,contribution_id=False):
     """
     download and validate a magic contribution
+
     Parameters
-    -----------
+    ----------
     top_dir: str
         name of project
     doi: str
@@ -16339,14 +15378,14 @@ def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_re
     field. Original written in Python by S. Bogue, translated to PmagPy functionality by AFP.
 
     Parameters:
-    sec_var: kappa estimate of regional secular variation (probably 30 or 40)
-    alpha: angle between paleomagnetic directions (or poles)
-    delta1: distance of direction 1 from mean direction
-    delta2: distance of direction 2 from mean direction
-    trials: the number of simulations, default=10,000
-    print_result: the probability value printed as a sentence, default=False
-    random_seed: None, int, or numpy.random.Generator, optional
-        Seed for reproducible Monte Carlo sampling (default None).
+        sec_var: kappa estimate of regional secular variation (probably 30 or 40)
+        alpha: angle between paleomagnetic directions (or poles)
+        delta1: distance of direction 1 from mean direction
+        delta2: distance of direction 2 from mean direction
+        trials: the number of simulations, default=10,000
+        print_result: the probability value printed as a sentence, default=False
+        random_seed: None, int, or numpy.random.Generator, optional
+            Seed for reproducible Monte Carlo sampling (default None).
 
     Returns:
         float

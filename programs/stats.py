@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-from builtins import input
-from builtins import str
+
 import sys
 import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -46,7 +46,7 @@ def main():
     if '-F' in sys.argv:
         ind = sys.argv.index('-F')
         ofile= sys.argv[ind+1]
-        out = open(ofile, 'w + a')
+        out = open(ofile, 'w')
     data=f.readlines()
     dat=[]
     sum=0

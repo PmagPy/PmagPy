@@ -348,6 +348,47 @@ class TestCitMagic(unittest.TestCase):
         expected_file = os.path.join('measurements.txt')
         self.assertEqual(outfile, expected_file)
 
+    def test_cit_magic_oersted_default(self):
+        """Default oersted=True interprets .sam AF steps as Gauss (Tesla = G * 1e-4)."""
+        options = {
+            'input_dir_path': os.path.join(WD, 'data_files', 'convert_2_magic',
+                                           'cit_magic', 'USGS', 'bl9-1'),
+            'magfile': 'bl9-1.sam',
+            'sitename': 'BL9001',
+            'methods': ['FS-FD', 'SO-SM', 'LT-AF-Z'],
+            'noave': True,
+        }
+        program_ran, outfile = convert.cit(**options)
+        self.assertTrue(program_ran)
+        meas_df = cb.MagicDataFrame(outfile)
+        af_steps_T = sorted(meas_df.df['treat_ac_field'].astype(float).unique())
+        # bl9-1.sam records AF demag at 0, 100, 200, 300, 450, 600, 800 G
+        expected_T = [0.0, 0.01, 0.02, 0.03, 0.045, 0.06, 0.08]
+        self.assertEqual(len(af_steps_T), len(expected_T))
+        for got, exp in zip(af_steps_T, expected_T):
+            self.assertAlmostEqual(got, exp, places=6)
+
+    def test_cit_magic_oersted_false(self):
+        """oersted=False interprets .sam AF steps as milliTesla (Tesla = mT * 1e-3)."""
+        options = {
+            'input_dir_path': os.path.join(WD, 'data_files', 'convert_2_magic',
+                                           'cit_magic', 'USGS', 'bl9-1'),
+            'magfile': 'bl9-1.sam',
+            'sitename': 'BL9001',
+            'methods': ['FS-FD', 'SO-SM', 'LT-AF-Z'],
+            'noave': True,
+            'oersted': False,
+        }
+        program_ran, outfile = convert.cit(**options)
+        self.assertTrue(program_ran)
+        meas_df = cb.MagicDataFrame(outfile)
+        af_steps_T = sorted(meas_df.df['treat_ac_field'].astype(float).unique())
+        # Same raw .sam values reinterpreted as mT → 10x the Gauss interpretation
+        expected_T = [0.0, 0.1, 0.2, 0.3, 0.45, 0.6, 0.8]
+        self.assertEqual(len(af_steps_T), len(expected_T))
+        for got, exp in zip(af_steps_T, expected_T):
+            self.assertAlmostEqual(got, exp, places=6)
+
 
 class TestGenericMagic(unittest.TestCase):
 

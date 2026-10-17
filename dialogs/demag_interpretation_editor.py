@@ -348,7 +348,7 @@ class InterpretationEditorFrame(wx.Frame):
         m_help = menu_Help.Append(-1, "&Usage and Tips\tCtrl-H", "")
         self.Bind(wx.EVT_MENU, self.on_menu_help, m_help)
 
-        m_cookbook = menu_Help.Append(-1, "&PmagPy Cookbook\tCtrl-Shift-W", "")
+        m_cookbook = menu_Help.Append(-1, "&PmagPy Documentation\tCtrl-Shift-W", "")
         self.Bind(wx.EVT_MENU, self.parent.on_menu_cookbook, m_cookbook)
 
         m_docs = menu_Help.Append(-1, "&Open Docs\tCtrl-Shift-H", "")

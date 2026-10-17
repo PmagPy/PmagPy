@@ -17,7 +17,15 @@ Good code must be readable.  To that end, we request that contributors try to wr
 
 ## Testing guidelines
 
-For information about writing and running tests, see the [testing README](https://github.com/PmagPy/PmagPy/blob/master/pmagpy_tests/README.md).
+The active test suite lives in `pmagpy/test/` and uses pytest. Run it from the repository root with:
+
+```
+pytest pmagpy/test
+```
+
+This is the suite that GitHub Actions runs on every pull request (Python 3.10 and 3.12). New tests belong here: one file per module or topic (for example `test_pmag_directions.py`, `test_rockmag_hysteresis.py`), plain pytest classes and functions, and analytical or reference values where the science allows. Tests that need cartopy or Bokeh should skip cleanly when those optional packages are missing (`pytest.importorskip`).
+
+`pmagpy_tests/` is the legacy unittest suite. It is not run in CI, needs the unlisted `scripttest` dependency to import, and is kept only until its remaining useful cases (mainly the converter tests in `test_imports3.py`) are ported to `pmagpy/test/`. Do not add tests there.
 
 
 ## Directory structure
@@ -34,7 +42,7 @@ The `pmagpy` directory contains all the low-level functionality that the PmagPy 
 
 To see a notebook with examples of how to use pmag.py and ipmag.py, see the [PmagPy notebook](http://pmagpy.github.io/PmagPy.html).
 
-To actually _run_ that notebook, see this [Cookbook section](https://earthref.org/PmagPy/cookbook/#notebook_quickstart) on how to get the notebook up and running.
+To actually _run_ that notebook, see the [Jupyter notebook setup guide](https://pmagpy.github.io/PmagPy-docs/documentation_notebooks/Jupyter.html) for how to get the notebook up and running.
 
 
 #### SPD
@@ -45,19 +53,16 @@ The `programs` directory contains executable programs that are installed as part
 
 To see a notebook with examples of how to run most of the command-line programs, see the [PmagPy notebook](http://pmagpy.github.io/PmagPy.html).
 
-To actually run these notebooks, see this [Cookbook section](https://earthref.org/PmagPy/cookbook/#notebook_quickstart) on how to get notebooks up and running.
+To actually run these notebooks, see the [Jupyter notebook setup guide](https://pmagpy.github.io/PmagPy-docs/documentation_notebooks/Jupyter.html) for how to get notebooks up and running.
 
 #### dialogs
 The `dialogs` directory contains GUI components that are used to build the graphical elements of the PmagPy GUIs.
 
 #### data_files
-`data_files` contains example files used in testing and in [Cookbook](https://earthref.org/PmagPy/cookbook/) examples.
+`data_files` contains example files used in testing and in the [PmagPy documentation notebooks](https://pmagpy.github.io/PmagPy-docs/documentation_notebooks/PmagPy_introduction.html).
 
 #### pmag_env
 `pmag_env` is a module that sets the backend for plotting as either TKAgg (for non-wxPython programs) or WXAgg (for wxPython programs).
-
-#### locator
-`locator` is a module that finds the directory where PmagPy is installed.  __Please__ use caution in modifying this module!  You can break a lot of things.
 
 
 ### Less key directories
@@ -83,7 +88,6 @@ Here is a visual representation of the directory structure:
 ├── dialogs
 │   └── help_files
 ├── help_files
-├── locator
 ├── pmag_env
 ├── pmagpy
 │   ├── data_model
@@ -128,7 +132,7 @@ PmagPy ships in two forms, released on different cadences:
 
 ### PmagPy-specific resources
 
-Detailed information about installing and running all of the [PmagPy programs](https://earthref.org/PmagPy/cookbook/)
+Detailed information about installing and running [PmagPy command-line programs](https://pmagpy.github.io/PmagPy-docs/programs/command_line_programs.html), and the rest of the [PmagPy documentation](https://pmagpy.github.io/PmagPy-docs/).
 
 ### The larger world of MagIC and paleomagnetism
 

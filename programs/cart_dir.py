@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from builtins import input
+
 import numpy
 import sys
 import pmagpy.pmag as pmag
@@ -57,7 +57,7 @@ def main():
         file=sys.argv[ind+1]
         inp=numpy.loadtxt(file) # read from a file
     else:
-        inp = numpy.loadtxt(sys.stdin,dtype=numpy.float)  # read from standard input
+        inp = numpy.loadtxt(sys.stdin,dtype=float)  # read from standard input
     dir=pmag.cart2dir(inp)
     if len(dir.shape)==1:
         line=dir 

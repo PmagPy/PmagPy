@@ -24,55 +24,55 @@ Tauxe, L., R. Shaar, L. Jonestrask, N. L. Swanson-Hysell, R. Minnett, A. A. P. K
 ## Main features
 
 PmagPy is comprised of:
-  - GUI programs for getting data into MagIC database format (pmag\_gui), analyzing demagnetization data (demag\_gui) and analyzing paleointensity data (thellier\_gui). These GUIs are available as part of the python package pmagpy-cli.  Alternatively, these GUIs are availible for download as [executable programs](#stand-alone-applications) outside of this repository.
+  - GUI programs for getting data into MagIC database format (pmag\_gui), analyzing demagnetization data (demag\_gui) and analyzing paleointensity data (thellier\_gui). These GUIs are available as part of the python package pmagpy-cli.  Alternatively, these GUIs are available for download as standalone applications for [macOS](https://github.com/PmagPy/PmagPy-Standalone-OSX/releases/latest) and [Windows](https://github.com/PmagPy/PmagPy-Standalone-Windows/releases/latest).
   - Command line programs for all sorts of paleomagnetic data analysis and wrangling (contained within the programs folder of the repository and pip installed as pmagpy-cli).
-  - The pmagpy function modules for paleomagnetic data analysis (pmagpy.pmag) and plotting (pmagpy.pmagplotlib) as well as a function module that further enables paleomagnetic data analysis within interactive computing environments such as the Jupyter notebook (pmagpy.ipmag). The functions within these modules are at the heart of the GUI and command line programs. With pmagpy installed ([described below](#full-pmagpy-install)), these modules are can be imported (e.g. ```from pmagpy import ipmag```).
-  - Example data files that are used in the examples provided in the [PmagPy cookbook](http://earthref.org/PmagPy/cookbook)
+  - The pmagpy function modules for paleomagnetic data analysis (pmagpy.pmag) and plotting (pmagpy.pmagplotlib) as well as a function module that further enables paleomagnetic data analysis within interactive computing environments such as the Jupyter notebook (pmagpy.ipmag). The functions within these modules are at the heart of the GUI and command line programs. With pmagpy installed ([described below](#how-to-get-it)), these modules can be imported (e.g. `from pmagpy import ipmag`).
+  - A rock magnetism module (pmagpy.rockmag) for processing and interpreting hysteresis, backfield, FORC, low-temperature, thermomagnetic, and anisotropy experiments, demonstrated in the [RockmagPy notebooks](https://pmagpy.github.io/RockmagPy-notebooks).
+  - Example data files that are used in the examples provided in the [PmagPy documentation notebooks](https://pmagpy.github.io/PmagPy-docs/documentation_notebooks/PmagPy_introduction.html)
 
-Use of all these features is described in the [Cookbook](http://earthref.org/PmagPy/cookbook) and the underlying science behind the data and code can be explored in the book [Essentials of Paleomagnetism: Third Web Edition](http://earthref.org/MagIC/books/Tauxe/Essentials/). Example Jupyter notebooks using PmagPy can be found in this [repository](https://github.com/PmagPy/2016_Tauxe-et-al_PmagPy_Notebooks)
+Use of all these features is described in the [PmagPy documentation](https://pmagpy.github.io/PmagPy-docs/) and the underlying science behind the data and code can be explored in the book [Essentials of Paleomagnetism: Third Web Edition](http://earthref.org/MagIC/books/Tauxe/Essentials/). Example Jupyter notebooks using PmagPy can be found in this [repository](https://github.com/PmagPy/2016_Tauxe-et-al_PmagPy_Notebooks)
 
 ## How to get it
 
-There are several different ways to install PmagPy.  Complete documentation for PmagPy installation and use is available in the [PmagPy cookbook](http://earthref.org/PmagPy/cookbook).
+Full instructions for installing and using PmagPy are in the [PmagPy documentation](https://pmagpy.github.io/PmagPy-docs/installation/PmagPy_install.html). You don't need a programming background to follow them. In brief:
 
-You can try a preview of PmagPy here:
+| I want to... | Do this |
+|---|---|
+| Use Pmag GUI, Demag GUI, or Thellier GUI, and nothing else | Download the standalone application for [macOS](https://github.com/PmagPy/PmagPy-Standalone-OSX/releases/latest) or [Windows](https://github.com/PmagPy/PmagPy-Standalone-Windows/releases/latest) (no Python needed) |
+| Try PmagPy without installing anything | Use the [EarthRef JupyterHub](https://pmagpy.github.io/PmagPy-docs/installation/PmagPy_install.html#using-pmagpy-online), or run `%pip install pmagpy` in a Google Colab notebook |
+| Use PmagPy in Jupyter notebooks, run the command-line programs, or run the GUIs on Linux | [Install PmagPy on your computer](https://pmagpy.github.io/PmagPy-docs/installation/pip_install.html) with conda and pip |
+| Contribute to PmagPy, or use changes before they are released | Do a [developer install](https://pmagpy.github.io/PmagPy-docs/installation/developer_install.html) |
 
-[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/PmagPy/PmagPy-notebooks/master?filepath=PmagPy.ipynb)
+### Install on your computer
 
-Please be patient, the preview will take a few minutes to launch.
+The recommended approach uses [Miniforge](https://github.com/conda-forge/miniforge) to create a conda environment with the scientific Python packages, and then pip to install PmagPy. With Miniforge installed, run these commands in a terminal (on Windows, in Miniforge Prompt):
 
-### Stand alone applications
-If you do not need the full PmagPy functionality, and you only want to use Pmag GUI, MagIC GUI, Thellier GUI, and Demag GUI, there a standalone download for which Python does not need to be installed. Once downloaded, the GUIs should run when you double click on their icon, but they will take time to start up (anywhere from 5 to 30 seconds) please be patient.
+```
+conda create -n pmagpy -c conda-forge python=3.12 numpy scipy matplotlib pandas cartopy shapely wxpython pyqt jupyterlab pip
+conda activate pmagpy
+pip install --upgrade pmagpy pmagpy-cli
+```
 
-#### OSX Standalone download
+`pmagpy` contains the function modules used in Jupyter notebooks and your own code; `pmagpy-cli` adds the command-line programs and the GUIs. To update later, activate the environment and rerun the last command. The [installation guide](https://pmagpy.github.io/PmagPy-docs/installation/pip_install.html) explains each step, and the [troubleshooting page](https://pmagpy.github.io/PmagPy-docs/installation/troubleshooting.html) covers common problems.
 
-You’ll find the latest stable release here: [Mac PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-OSX/releases/latest)
+### Developer install
 
-####  Windows Standalone download
+To work from the source code (the master branch or your own fork) rather than a release, clone the repository, create an environment from its `environment.yml`, and install it in editable mode:
 
-You’ll find the latest stable release here: [Windows PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-Windows/releases/latest)
+```
+git clone https://github.com/PmagPy/PmagPy.git
+cd PmagPy
+conda env create -f environment.yml -n pmagpy-dev
+conda activate pmagpy-dev
+pip install -e ".[maps]"
+```
 
-Note: standalone GUI binaries are available only for macOS and Windows. Linux users should use the [pip install](https://pmagpy.github.io/PmagPy-docs/installation/pip_install.html) instead — it works smoothly on Linux when combined with conda for the GUI dependencies.
+Edits to the code, and `git pull`, take effect immediately without reinstalling. The command-line programs and GUIs can be run from the `programs` directory (for example, `python pmag_gui.py`), or installed from the released `pmagpy-cli` package alongside the editable library. Full details are in the [developer install instructions](https://pmagpy.github.io/PmagPy-docs/installation/developer_install.html).
 
-### Full PmagPy install
-
-To get the full use of PmagPy functionality, you will first have to have a Python installation with some standard scientific modules. You can follow instructions to do so [here](https://earthref.org/PmagPy/cookbook/#x1-60001.2). Once you have Python installed:
-
-- Find and open your command line (for help finding your command prompt, see the [documentation](http://earthref.org/PmagPy/#command_line))
-- Update pip: type on the command line: ```pip install --upgrade pip```
-- Install or update pmagpy: use the command: ```pip install --upgrade pmagpy```
-- Install or update pmagpy-cli, use the command: ```pip install --upgrade pmagpy-cli```
-- If you want to make maps, install with the optional `[maps]` extra to pull in cartopy and shapely: ```pip install --upgrade pmagpy[maps]``` (or ```pip install --upgrade pmagpy-cli[maps]``` for the cli).  These dependencies are optional because they require system libraries (GEOS, PROJ) that pip can't always install cleanly across platforms; if the install fails, conda-forge handles them well.
-- To uninstall, use the commands: ```pip uninstall pmagpy``` and ```pip uninstall pmagpy-cli```
-- If you run into trouble, use pip to uninstall both pmagpy and pmagpy-cli, then try again to install first pmagpy and then pmagpy-cli
-
-If you want access to the master branch rather than the latest release, see the [developer install instructions](https://earthref.org/PmagPy/cookbook/#developer_install).
-
-<!-- Alternatively if you want simply to install the latest under development version without messing with environment variables you can download or clone the repository and run `python setup.py install` and it will use setup tools to install PmagPy somewhere where it is accessible to python and in your path. This, however, does not update your in path version of the library when you update using `git pull origin master` but rather you must update using setup tools manually.-->
 
 ## Background and support
 
-The code base for the PmagPy project has been built up over many years by Lisa Tauxe (Distinguished Professor of Geophysics at the Scripps Institution of Oceanography) supported by grants from the National Science Foundation. Substantial contributions to the project have been made by Nick Swanson-Hysell (Assistant Professor at UC Berkeley), Ron Shaar (Senior Lecturer at the Hebrew University of Jerusalem), Lori Jonestrask and Kevin Gaastra as well as others.
+The code base for the PmagPy project has been built up over many years by Lisa Tauxe (Professor Emerita at the Scripps Institution of Oceanography) supported by grants from the National Science Foundation. Substantial contributions to the project have been made by Nick Swanson-Hysell (Associate Professor at the University of Minnesota), Ron Shaar (Associate Professor at the Hebrew University of Jerusalem), Lori Jonestrask and Kevin Gaastra as well as others.
 
 ## Contributing
 
@@ -80,7 +80,7 @@ If you want to get involved with the project - whether that means reporting a bu
 
 ## More information
 
-This code and the PmagPy cookbook (http://earthref.org/PmagPy/cookbook) are companions to the the book Essentials of Paleomagnetism: Third Web Edition (http://earthref.org/MagIC/books/Tauxe/Essentials/) written by Lisa Tauxe with contributions from Subir K. Banerjee, Robert F. Butler and Rob van der Voo. The printed version of the book came out in January, 2010 from University of California Press (http://www.ucpress.edu/book.php?isbn=9780520260313).
+This code and the [PmagPy documentation](https://pmagpy.github.io/PmagPy-docs/) are companions to the the book Essentials of Paleomagnetism: Third Web Edition (http://earthref.org/MagIC/books/Tauxe/Essentials/) written by Lisa Tauxe with contributions from Subir K. Banerjee, Robert F. Butler and Rob van der Voo. The printed version of the book came out in January, 2010 from University of California Press (http://www.ucpress.edu/book.php?isbn=9780520260313).
 
 ## Licensing
 
