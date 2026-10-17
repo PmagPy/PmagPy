@@ -7,6 +7,7 @@ the lower-level pmag functions with property-based checks across multiple
 dates, locations, and models.
 """
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
 from pmagpy import pmag
@@ -82,6 +83,26 @@ class TestDoigrfPaleoModels:
         """ARCH3k model returns valid field for historical date."""
         x, y, z, f = pmag.doigrf(0, 45, 0, 500, mod='arch3k')
         assert 10000 < f < 100000
+
+    def test_ggf100k_epoch_and_last_epoch(self):
+        """ggf100k works on exact epochs, including the final one (1850)."""
+        for date in (-99950, 1650, 1850):
+            _, _, _, f = pmag.doigrf(0, 45, 0, date, mod='ggf100k')
+            assert 10000 < f < 100000
+
+    def test_ggf100k_interpolates_between_epochs(self):
+        """ggf100k interpolates between epochs and is continuous at the end."""
+        f_a = pmag.doigrf(0, 45, 0, 1650, mod='ggf100k')[3]
+        f_mid = pmag.doigrf(0, 45, 0, 1750, mod='ggf100k')[3]
+        f_b = pmag.doigrf(0, 45, 0, 1850, mod='ggf100k')[3]
+        assert min(f_a, f_b) <= f_mid <= max(f_a, f_b)
+        f_near_end = pmag.doigrf(0, 45, 0, 1849.99, mod='ggf100k')[3]
+        assert_allclose(f_near_end, f_b, rtol=1e-3)
+
+    def test_ggf100k_after_last_epoch_raises(self):
+        """ggf100k has no coefficients after 1850."""
+        with pytest.raises(ValueError):
+            pmag.doigrf(0, 45, 0, 1851, mod='ggf100k')
 
     def test_model_total_field_is_vector_magnitude(self):
         """Total field is vector magnitude for paleo models too."""
