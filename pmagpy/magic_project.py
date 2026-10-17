@@ -1077,6 +1077,76 @@ def _copy_whole(source: str, target: str) -> None:
         raise
 
 
+#: a staging folder that no export has written to for this long was left by a crash: an export
+#: takes minutes at most, even for the largest studies
+STALE_STAGING_SECONDS = 24 * 3600
+#: written into each staging folder: the process and computer exporting through it
+STAGING_OWNER = ".owner.json"
+
+
+def _write_staging_owner(staging: str) -> None:
+    import json
+    import socket
+    import time
+    atomic_write_text(os.path.join(staging, STAGING_OWNER),
+                      json.dumps({"pid": os.getpid(), "host": socket.gethostname(), "started": time.time()}))
+
+
+def _process_alive(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except OSError:
+        return True
+    return True
+
+
+def staging_is_stale(staging: str, now: Optional[float] = None) -> bool:
+    """True for a staging folder that no export is using any more.
+
+    That is one whose owner (:data:`STAGING_OWNER`) is a process of this
+    computer that has ended, or one nothing has been written to for
+    :data:`STALE_STAGING_SECONDS` -- a folder from an older build, which names
+    no owner, or from another computer sharing the folder. A live export,
+    in this process or another, is never taken for a stale one.
+    """
+    import json
+    import socket
+    import time
+    now = time.time() if now is None else now
+    try:
+        with open(os.path.join(staging, STAGING_OWNER), encoding="utf-8") as fh:
+            owner = json.load(fh)
+    except (OSError, ValueError):
+        owner = None
+    if isinstance(owner, dict) and owner.get("host") == socket.gethostname() and os.name != "nt":
+        pid = owner.get("pid")
+        if isinstance(pid, int) and pid > 0 and not _process_alive(pid):
+            return True
+    try:
+        newest = max([os.stat(staging).st_mtime] +
+                     [entry.stat().st_mtime for entry in os.scandir(staging) if entry.is_file()])
+    except OSError:
+        return False
+    return now - newest > STALE_STAGING_SECONDS
+
+
+def remove_stale_staging(output_dir: str) -> list[str]:
+    """Remove the ``.staging-*`` folders that killed exports left in ``output_dir`` (see :func:`staging_is_stale`)."""
+    removed = []
+    try:
+        entries = list(os.scandir(output_dir))
+    except OSError:
+        return removed
+    for entry in entries:
+        if entry.name.startswith(".staging-") and entry.is_dir(follow_symlinks=False) and staging_is_stale(entry.path):
+            shutil.rmtree(entry.path, ignore_errors=True)
+            if not os.path.exists(entry.path):
+                removed.append(entry.path)
+    return removed
+
+
 class StagedExport:
     """Write a set of files into a directory all or nothing, keeping what they replace.
 
@@ -1087,7 +1157,9 @@ class StagedExport:
     copied to ``<backup>/previous/`` (so the last export can be undone), and,
     when ``originals`` is true, to ``<backup>/`` the first time it is
     replaced (so the contribution as it was before the application first
-    wrote to it can always be recovered)::
+    wrote to it can always be recovered). A staging folder left by an export
+    that was killed part way is removed by the next export into the folder
+    (:func:`remove_stale_staging`)::
 
         with StagedExport(output_dir, backup) as stage:
             data.write_specimens(stage.dir)          # writers write into stage.dir
@@ -1103,11 +1175,18 @@ class StagedExport:
         self.dir = ""
         self.written: list[str] = []
         self.backed_up: list[str] = []
+        self.removed_stale: list[str] = []
 
     def __enter__(self) -> "StagedExport":
         import tempfile
         os.makedirs(self.output_dir, exist_ok=True)
+        self.removed_stale = remove_stale_staging(self.output_dir)
         self.dir = tempfile.mkdtemp(prefix=".staging-", dir=self.output_dir)
+        try:
+            _write_staging_owner(self.dir)
+        except BaseException:
+            shutil.rmtree(self.dir, ignore_errors=True)
+            raise
         return self
 
     def __exit__(self, exc_type, exc, tb) -> bool:

@@ -258,6 +258,44 @@ class TestStagedExport:
             mp.atomic_write_text(os.path.join(stage.dir, "measurements.txt"), "v1")
         assert open(os.path.join(backup, "measurements.txt")).read() == "v0" * 1000
 
+    def test_staging_folders_left_by_a_killed_export_are_removed_and_live_ones_kept(self, tmp_path):
+        """A kill -9 during an export left its .staging-* folder (a full set of tables) for good."""
+        import json
+        import socket
+        import subprocess
+        import sys
+        import time
+        out = str(tmp_path / "out")
+        os.makedirs(out)
+        ended = subprocess.Popen([sys.executable, "-c", "pass"])
+        ended.wait()
+
+        def staging(name, owner=None, age=0.0):
+            path = os.path.join(out, name)
+            os.makedirs(path)
+            with open(os.path.join(path, "specimens.txt"), "w") as fh:
+                fh.write("tab\tspecimens\n")
+            if owner is not None:
+                with open(os.path.join(path, mp.STAGING_OWNER), "w") as fh:
+                    json.dump({"pid": owner, "host": socket.gethostname(), "started": time.time()}, fh)
+            if age:
+                then = time.time() - age
+                for entry in [path] + [os.path.join(path, n) for n in os.listdir(path)]:
+                    os.utime(entry, (then, then))
+            return path
+
+        killed = staging(".staging-killed", owner=ended.pid)
+        live = staging(".staging-live", owner=os.getpid())
+        old = staging(".staging-old", age=2 * mp.STALE_STAGING_SECONDS)
+        recent = staging(".staging-recent")
+        with mp.StagedExport(out) as stage:
+            mp.atomic_write_text(os.path.join(stage.dir, "sites.txt"), "v1")
+        assert sorted(stage.removed_stale) == sorted([killed, old])
+        assert os.path.isdir(live) and os.path.isdir(recent)
+        assert sorted(n for n in os.listdir(out) if n.startswith(".staging")) == [".staging-live",
+                                                                                  ".staging-recent"]
+        assert open(os.path.join(out, "sites.txt")).read() == "v1"
+
     def test_a_separate_output_directory_is_a_complete_contribution(self, study, tmp_path):
         out = str(tmp_path / "out")
         with mp.StagedExport(out) as stage:
