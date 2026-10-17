@@ -9689,7 +9689,7 @@ def doigrf(lon, lat, alt, date, **kwargs):
         shadif14k (Pavon-Carrasco et al., 2014)
         shawq2k (Campuzano et al., 2019)
         shawqIA (Osete et al., 2020)
-        ggf100k (Panofska et al., 2018) [in 200 year increments from -99950 to 1850 only]
+        ggf100k (Panovska et al., 2018) [in 200 year increments from -99950 to 1850 only]
           NB : the first four of these models, are constrained to agree
                with gufm1 (Jackson et al., 2000) for the past four centuries
     Returns
