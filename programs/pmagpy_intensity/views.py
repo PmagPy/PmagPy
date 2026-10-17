@@ -402,9 +402,8 @@ class SpecimenView:
             return
         lo, hi = self.tmin.value, self.tmax.value
         if lo is None or hi is None or lo == hi:
-            # equal bounds are no interpretation: they are what the two selectors hold when a
-            # specimen without one is shown (each defaults to its first option, and the browser
-            # sends that back), and they would otherwise create a one-point fit on opening
+            # a specimen without an interpretation shows NO_BOUND in both selectors, and one is
+            # made only once both name a step; equal bounds would be a one-point fit
             return
         self.s.set_bounds(min(lo, hi), max(lo, hi))
 
@@ -546,20 +545,24 @@ class SpecimenView:
         self.steps.value = frame
         self.steps.hidden_columns = ["_sequence", "_arai"]
 
+    #: what the bound selectors show for a specimen with no interpretation (or one set aside)
+    NO_BOUND = "—"
+
     def _fill_bound_widgets(self, spec, bounds):
         options = {f"{t - pint.KELVIN_OFFSET:.0f}°C": i for i, t in enumerate(spec.arai.temps)}
         if spec.arai.steps and spec.arai.steps[0] == "NRM":
             options = {("NRM" if i == 0 else k): i for i, (k, v) in enumerate(options.items())}
+        if not bounds:
+            options = {self.NO_BOUND: None, **options}
         self._updating = True
         try:
             self.tmin.options = options
             self.tmax.options = options
-            if bounds:
-                self.tmin.value, self.tmax.value = bounds
-                # sent even when unchanged: replacing the options picks the first one in Python while
-                # the browser's selector stays blank, so a bound at the first point was never shown
-                self.tmin.param.trigger("value")
-                self.tmax.param.trigger("value")
+            self.tmin.value, self.tmax.value = bounds if bounds else (None, None)
+            # sent even when unchanged: replacing the options picks the first one in Python while
+            # the browser's selector stays blank, so a bound at the first point was never shown
+            self.tmin.param.trigger("value")
+            self.tmax.param.trigger("value")
         finally:
             self._updating = False
 

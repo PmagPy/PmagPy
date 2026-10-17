@@ -280,6 +280,36 @@ class TestSpecimenView:
         callbacks = chooser.js_property_callbacks.get("change:value", [])
         assert any(cb.args.get("steps") is steps and "scrollTop = 0" in cb.code for cb in callbacks)
 
+    def test_a_specimen_without_an_interpretation_shows_none_in_the_bound_selectors(self, workdir):
+        # the selectors kept the last specimen's bounds ("from 475 °C to NRM"); they now show
+        # NO_BOUND, which makes no interpretation when the browser sends it back, and one is made
+        # only once both selectors name a step
+        src, out = workdir
+        session = Session(src, out)
+        session.autosave_enabled = False
+        view = SpecimenView(session)
+        model = view.tmin.get_root()
+        first = session.specimen
+        session.set_bounds(2, 6)
+        session.step_specimen(1)
+        assert session.interpretation is None
+        assert (view.tmin.value, view.tmax.value) == (None, None)
+        assert dict(model.options)[model.value] == view.NO_BOUND
+        view.tmin.value = view.tmax.value = None
+        view.tmin.value = view.tmin.options["NRM"] if "NRM" in view.tmin.options else 0
+        assert session.interpretation is None
+        view.tmax.value = list(view.tmax.options.values())[5]
+        assert session.bounds() == (0, 4)
+        assert view.NO_BOUND not in view.tmin.options
+        session.go_to(first)
+        assert (view.tmin.value, view.tmax.value) == (2, 6)
+        # a fit set aside by a flag on its first step shows none either, and comes back as it was
+        sequence = session.spec.arai.rows[2]["z"]
+        session.toggle_step(sequence)
+        assert session.interpretation is None and (view.tmin.value, view.tmax.value) == (None, None)
+        session.toggle_step(sequence)
+        assert (view.tmin.value, view.tmax.value) == (2, 6)
+
     def test_the_view_draws_and_follows_the_specimen(self, workdir):
         src, out = workdir
         session = Session(src, out)

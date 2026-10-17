@@ -222,8 +222,13 @@ def selected(page, label):
         "s => s.selectedIndex >= 0 ? s.options[s.selectedIndex].text : ''")
 
 
+#: what the bound selectors show for a specimen with no interpretation (SpecimenView.NO_BOUND)
+NO_BOUND = "—"
+
+
 def bounds_shown(page):
-    return selected(page, "from"), selected(page, "to")
+    """The bounds the two selectors show, "" for none (blank, or NO_BOUND)."""
+    return tuple("" if shown == NO_BOUND else shown for shown in (selected(page, "from"), selected(page, "to")))
 
 
 def wait_for_bounds(page, condition, timeout=30):
@@ -563,6 +568,8 @@ with sync_playwright() as playwright:
         click_button(page, "Flag the selected step bad/good")
         check(wait_for_text(page, r"so it was set aside", 30) is not None,
               "flagging the fit's first step sets the fit aside, and says so")
+        shown = (selected(page, "from"), selected(page, "to"))
+        check(shown == (NO_BOUND, NO_BOUND), f"a fit set aside leaves no bound in the selectors ({shown})")
         click_step(page, edge[0])
         click_button(page, "Flag the selected step bad/good")
         again = wait_for_bounds(page, lambda b: b == before)
@@ -577,6 +584,13 @@ with sync_playwright() as playwright:
     open_tab(page, "Specimen", "Flag the selected step bad/good")
     if fresh:
         choose(page, "Specimen", fresh)
+        shown = (selected(page, "from"), selected(page, "to"))
+        check(shown == (NO_BOUND, NO_BOUND),
+              f"a specimen with no interpretation shows none in the bound selectors ({shown})")
+        open_tab(page, "Interpretations", "Auto-interpret all")
+        check(fresh not in set(page.evaluate(TABLES_JS, "verdict")[0]["specimen"]),
+              f"showing {fresh} made no interpretation")
+        open_tab(page, "Specimen", "Flag the selected step bad/good")
         click_button(page, "Auto")
         shown = wait_for_bounds(page, lambda b: all(b))
         check(all(shown), f"after Auto on {fresh}, both bounds are shown ({shown})")
