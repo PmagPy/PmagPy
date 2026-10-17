@@ -452,3 +452,37 @@ class TestWholeNumbers:
         rows = [dict(zip(lines[1].split("\t"), line.split("\t"))) for line in lines[2:]]
         assert [r["lat_n"] for r in rows] == ["49.0", "1", "1106"]
         assert [r["lon_e"] for r in rows] == ["272.0", "2", ""]
+
+
+class TestTextAsRead:
+    """MagIC tables are tab-delimited and unquoted: a value read as ``a "b"`` was written quoted, CSV style."""
+
+    VALUES = ['VGP Site: jm002, "Site VGP, coord system = g component:"', 'x"', '"q" r', '"']
+
+    def test_a_double_quote_is_written_as_it_was_read(self, tmp_path):
+        path = os.path.join(str(tmp_path), "sites.txt")
+        mp.magic_write(path, pd.DataFrame({"site": ["a", "b", "c", "d"], "description": self.VALUES}), "sites")
+        lines = open(path).read().splitlines()
+        assert lines[2].split("\t")[-1] == self.VALUES[0] and lines[3].split("\t")[-1] == 'x"'
+
+    def test_pmagpy_reads_it_back_unchanged(self, tmp_path):
+        import pmagpy.contribution_builder as cb
+        path = os.path.join(str(tmp_path), "sites.txt")
+        mp.magic_write(path, pd.DataFrame({"site": ["a", "b", "c", "d"], "description": self.VALUES}), "sites")
+        _, df = mp.read_table_file(path)
+        assert list(df["description"]) == self.VALUES
+        mdf = cb.MagicDataFrame(path, dmodel=mp.data_model())
+        assert list(mdf.df["description"]) == self.VALUES
+
+    @pytest.mark.parametrize("value", ["two\tcells", "two\nlines", "a\rb", '"quoted"\tand a tab'])
+    def test_a_tab_or_line_break_cannot_split_the_row(self, tmp_path, value):
+        path = os.path.join(str(tmp_path), "sites.txt")
+        warnings = []
+        mp.magic_write(path, pd.DataFrame({"site": ["a", "b", "c"], "description": ["fine", value, 'x "y"'],
+                                           "lat": [1.5, 2.5, 3.5]}), "sites", warnings=warnings)
+        _, df = mp.read_table_file(path)
+        assert list(df["site"]) == ["a", "b", "c"] and list(df["lat"]) == [1.5, 2.5, 3.5]
+        assert list(df["description"]) == ["fine", value, 'x "y"']
+        assert warnings == ["sites: the description of site b holds a tab or a line break; it is written quoted, "
+                            "which PmagPy reads back, but a reader that splits on tabs alone would split the row "
+                            "there"]

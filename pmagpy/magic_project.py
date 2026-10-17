@@ -19,6 +19,7 @@ names are used from input through export.
 """
 from __future__ import annotations
 
+import csv
 import os
 import re
 import shutil
@@ -923,7 +924,6 @@ def _check_row_widths(text: str, n_columns: int, name: str) -> bool:
     Raises:
         MagicReadError: naming the line, how many fields it has and how many columns the header has.
     """
-    import csv
     import io
     trailing = False
     records = csv.reader(io.StringIO(text, newline=""), delimiter="\t")
@@ -1406,8 +1406,12 @@ def mark_flags_written(baseline: np.ndarray, steps_by_specimen) -> None:
             baseline[pos] = "b" if quality == "b" else "g"
 
 
-def magic_table_text(df: pd.DataFrame, table: str) -> str:
-    """A DataFrame as the text of a MagIC 3 table file (columns in data-model order)."""
+def magic_table_text(df: pd.DataFrame, table: str, warnings: Optional[list] = None) -> str:
+    """A DataFrame as the text of a MagIC 3 table file (columns in data-model order).
+
+    Text is written as it was read, unquoted, as MagIC tables are; see
+    :func:`_text_as_read` for the few values that must be quoted.
+    """
     if table == "measurements" and "measurement" not in df.columns:
         df = _name_measurements(df)
     mdf = cb.MagicDataFrame(dtype=table, df=df.copy())
@@ -1418,7 +1422,63 @@ def magic_table_text(df: pd.DataFrame, table: str) -> str:
     if name in out.columns:
         out[name] = out[name].astype(str)
     out = _integers_as_integers(out, table)
-    return f"tab\t{table}\n" + out.to_csv(sep="\t", index=False, lineterminator="\n")
+    out, held = _text_as_read(out, table, warnings)
+    text = out.to_csv(sep="\t", index=False, lineterminator="\n", quoting=csv.QUOTE_NONE, quotechar="\0")
+    for placeholder, value in held.items():
+        text = text.replace(placeholder, value)
+    return f"tab\t{table}\n" + text
+
+
+def _text_as_read(df: pd.DataFrame, table: str, warnings: Optional[list] = None) -> tuple[pd.DataFrame, dict]:
+    """Text cells ready to be written unquoted, as MagIC tables are: ``a "b"`` is written ``a "b"``.
+
+    Quoting every value that holds a double quote, as CSV does, changed text
+    that was read as it stands. Only two kinds of value are still quoted (the
+    quote doubled inside), so that a reader that honours quotes -- pandas, and
+    so this module and contribution_builder -- reads them back unchanged: one
+    that begins with ``"``, which would otherwise be taken for the start of a
+    quoted field, and one that holds a tab or a line break, which would
+    otherwise split the row. The second is reported in ``warnings``: a reader
+    that splits on tabs alone still splits it.
+
+    Returns:
+        the frame, and ``{placeholder: quoted text}`` for the cells holding a
+        tab or line break, which the csv writer cannot pass through unquoted;
+        the caller puts the quoted text in place of each placeholder.
+    """
+    name = table[:-1]
+    replaced, held = {}, {}
+    for col in df.columns:
+        if pd.api.types.is_numeric_dtype(df[col]) or pd.api.types.is_bool_dtype(df[col]):
+            continue
+        cells = df[col].reset_index(drop=True)
+        text = cells[cells.map(lambda v: isinstance(v, str))]
+        if not len(text):
+            continue
+        leading = text.str.startswith('"')
+        broken = text.str.contains(r"[\t\n\r]", regex=True)
+        if not (leading.any() or broken.any()):
+            continue
+        cells = cells.astype(object)
+        for row, value in text[leading | broken].items():
+            quoted = '"' + value.replace('"', '""') + '"'
+            if broken[row]:
+                placeholder = f"\x1e{len(held)}\x1e"
+                held[placeholder] = quoted
+                cells[row] = placeholder
+                if warnings is not None:
+                    where = f"{name} {df[name].iloc[row]}" if name in df.columns else f"row {row + 1}"
+                    warnings.append(f"{table}: the {col} of {where} holds a tab or a line break; it is written "
+                                    "quoted, which PmagPy reads back, but a reader that splits on tabs alone "
+                                    "would split the row there")
+            else:
+                cells[row] = quoted
+        replaced[col] = cells.to_numpy()
+    if replaced:
+        df = df.copy()
+        for col, cells in replaced.items():
+            df[col] = cells
+    return df, held
 
 
 def _integers_as_integers(df: pd.DataFrame, table: str) -> pd.DataFrame:
@@ -1449,9 +1509,9 @@ def _integers_as_integers(df: pd.DataFrame, table: str) -> pd.DataFrame:
     return df
 
 
-def magic_write(path: str, df: pd.DataFrame, table: str) -> str:
-    """Write a MagIC 3 tab-delimited table (UTF-8, atomically)."""
-    return atomic_write_text(path, magic_table_text(df, table))
+def magic_write(path: str, df: pd.DataFrame, table: str, warnings: Optional[list] = None) -> str:
+    """Write a MagIC 3 tab-delimited table (UTF-8, atomically); see :func:`magic_table_text`."""
+    return atomic_write_text(path, magic_table_text(df, table, warnings))
 
 
 def table_rows(path: str) -> int:
