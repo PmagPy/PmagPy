@@ -9771,10 +9771,11 @@ def doigrf(lon, lat, alt, date, **kwargs):
         return
     if 'mod' in list(kwargs.keys()) and kwargs['mod'] == 'ggf100k':
         from bisect import bisect_right
+        first_epoch = -99950  # documented start of the ggf100k range
         last = len(psvcoeffs) - 1  # last epoch with coefficients (1850)
-        if date < psvmodels[0] or date > psvmodels[last]:
+        if date < first_epoch or date > psvmodels[last]:
             raise ValueError("ggf100k is only valid from %s to %s"
-                             % (psvmodels[0], psvmodels[last]))
+                             % (first_epoch, psvmodels[last]))
         # epoch at or below date, clamped so a following epoch always exists
         i = min(bisect_right(psvmodels, date) - 1, last - 1)
         model = psvmodels[i]
