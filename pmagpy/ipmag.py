@@ -35,10 +35,7 @@ from . import pmagplotlib
 from . import data_model3 as data_model
 from . import validate_upload3 as val_up3
 from numpy.linalg import inv, eig
-try:
-    import requests
-except ImportError:
-    requests = None
+import requests
 encoding = "ISO-8859-1"
 has_cartopy, cartopy = pmag.import_cartopy()
 ccrs = None
@@ -5286,6 +5283,78 @@ def download_magic_from_id(magic_id, directory='.', share_key=""):
         error_message = "Failed to download: " + (response.reason if response.status_code != 200 else "The file is empty.")
         print("Download failed with error:", error_message)
         return False, error_message
+
+
+def load_magic_contribution(magic_id, dir_path='.', share_key='',
+                            overwrite=False, print_progress=False):
+    """
+    Load a MagIC contribution by its id, downloading and unpacking it only
+    when needed.
+
+    The contribution file (magic_contribution_<magic_id>.txt) is downloaded
+    from earthref.org/MagIC with download_magic_from_id unless it is already
+    in dir_path, and it is unpacked into its tables (measurements.txt,
+    specimens.txt, ...) with unpack_magic unless the tables of this
+    contribution are already there. Notebooks and scripts can therefore call
+    this function every time they run: the database is contacted only on the
+    first call, and later calls read the local copy. Using one directory per
+    contribution keeps the unpacked tables of different contributions apart.
+
+    Parameters:
+        magic_id : str or int
+            Unique id of the MagIC contribution.
+        dir_path : str, optional
+            Directory for the contribution file and its unpacked tables,
+            created if it does not exist. Default is the current directory.
+        share_key : str, optional
+            Share key for downloading a private contribution; default is ""
+            for a public contribution.
+        overwrite : bool, optional
+            If True, download and unpack the contribution again even if a
+            local copy exists (e.g. to pick up a new version). Default is
+            False.
+        print_progress : bool, optional
+            Whether unpack_magic prints the records written to each table.
+            Default is False.
+
+    Returns:
+        Contribution
+            pmagpy.contribution_builder.Contribution holding the tables of
+            the contribution.
+
+    Raises:
+        RuntimeError
+            If the contribution cannot be downloaded.
+
+    Examples:
+        >>> contribution = ipmag.load_magic_contribution(
+        ...     20213, dir_path='data/ECMB')
+        >>> measurements = contribution.tables['measurements'].df
+    """
+    magic_id = str(magic_id)
+    os.makedirs(dir_path, exist_ok=True)
+    file_name = f'magic_contribution_{magic_id}.txt'
+    contribution_table = os.path.join(dir_path, 'contribution.txt')
+
+    if overwrite or not os.path.exists(os.path.join(dir_path, file_name)):
+        success, message = download_magic_from_id(magic_id, directory=dir_path,
+                                                  share_key=share_key)
+        if not success:
+            raise RuntimeError(f'MagIC contribution {magic_id} could not be '
+                               f'downloaded: {message}')
+        unpack = True
+    else:
+        # unpack unless the tables in dir_path are those of this contribution
+        unpacked_ids = []
+        if os.path.exists(contribution_table):
+            records, _ = pmag.magic_read(contribution_table)
+            unpacked_ids = [str(record.get('id', '')) for record in records]
+        unpack = magic_id not in unpacked_ids
+
+    if unpack:
+        unpack_magic(file_name, dir_path=dir_path, input_dir_path=dir_path,
+                     print_progress=print_progress)
+    return cb.Contribution(dir_path)
 
 
 def download_magic_from_doi(doi):
