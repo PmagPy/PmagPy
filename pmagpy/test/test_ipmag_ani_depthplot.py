@@ -1,6 +1,7 @@
 """Baseline tests for ipmag.ani_depthplot (MagIC data model 3)."""
 
 import os
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pytest
@@ -90,6 +91,17 @@ def test_age_file_switches_to_age_axis():
 
     assert names == ["U1361A_ani_depthplot.svg"]
     assert plot.axes[0].get_ylabel().startswith("Age (")
+
+
+def test_custom_age_file_is_used(tmp_path):
+    custom_age_file = tmp_path / "custom_ages.txt"
+    age_data = Path(ANISO_DIR, "ages.txt").read_text()
+    custom_age_file.write_text(age_data.replace("\tMa\t", "\tka\t"))
+
+    plot, _ = ipmag.ani_depthplot(age_file=str(custom_age_file),
+                                  dir_path=ANISO_DIR)
+
+    assert plot.axes[0].get_ylabel() == "Age (ka)"
 
 
 def test_missing_age_file_falls_back_to_core_depth():
