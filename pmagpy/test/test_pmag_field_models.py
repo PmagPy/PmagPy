@@ -84,6 +84,13 @@ class TestDoigrf:
 class TestDoigrfPaleoModels:
     """Tests for pmag.doigrf with alternative field models."""
 
+    @pytest.mark.parametrize("model", ["cals10k", "cals10k.1b"])
+    @pytest.mark.parametrize("date", [-4955, -500, 500])
+    def test_cals10k_1b_names_use_50_year_epochs(self, model, date):
+        """Both CALS10k.1b names work with 50-year epochs across date branches."""
+        _, _, _, f = pmag.doigrf(0, 45, 0, date, mod=model)
+        assert 10000 < f < 100000
+
     def test_cals10k_returns_valid_field(self):
         """CALS10k.2 model returns valid field for Holocene date."""
         x, y, z, f = pmag.doigrf(0, 45, 0, 0, mod='cals10k.2')
