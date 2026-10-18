@@ -91,6 +91,12 @@ class TestDoigrfPaleoModels:
         _, _, _, f = pmag.doigrf(0, 45, 0, date, mod=model)
         assert 10000 < f < 100000
 
+    @pytest.mark.parametrize("date", [-500, 500])
+    def test_shadif14k_returns_valid_pre_1900_field(self, date):
+        """SHADIF14k returns a valid field for pre-1900 dates."""
+        _, _, _, f = pmag.doigrf(0, 45, 0, date, mod='shadif14k')
+        assert 10000 < f < 100000
+
     def test_cals10k_returns_valid_field(self):
         """CALS10k.2 model returns valid field for Holocene date."""
         x, y, z, f = pmag.doigrf(0, 45, 0, 0, mod='cals10k.2')
