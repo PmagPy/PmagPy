@@ -9692,6 +9692,10 @@ def doigrf(lon, lat, alt, date, **kwargs):
         ggf100k (Panovska et al., 2018) [from -98050 to 1990 only]
           NB : the first four of these models, are constrained to agree
                with gufm1 (Jackson et al., 2000) for the past four centuries
+    Raises
+    ------
+    ValueError
+        If mod is not a supported field model.
     Returns
     -------
     x : north component of the magnetic field in nT
@@ -9729,44 +9733,34 @@ def doigrf(lon, lat, alt, date, **kwargs):
         lon = lon + 360.
 # ensure all positive east longitudes
     itype = 1
+    model_name = kwargs.get('mod')
+    model_loaders = {
+        'arch3k': cf.get_arch3k,
+        'cals3k': cf.get_cals3k,
+        'pfm9k': cf.get_pfm9k,
+        'hfm10k': cf.get_hfm10k,
+        'cals10k.2': cf.get_cals10k_2,
+        'cals10k': cf.get_cals10k,
+        'shadif14k': cf.get_shadif14k,
+        'shawq2k': cf.get_shawq2k,
+        'shawqIA': cf.get_shawqIA,
+        'ggf100k': cf.get_ggf100k,
+    }
+    if model_name is not None:
+        if not isinstance(model_name, str) or model_name not in model_loaders:
+            valid_models = ', '.join(model_loaders)
+            raise ValueError(
+                "Unknown field model {!r}. Valid models are: {}".format(
+                    model_name, valid_models))
+        psvmodels, psvcoeffs = model_loaders[model_name]()
     models, igrf14coeffs = cf.get_igrf14()
-    if 'mod' in list(kwargs.keys()):
-        if kwargs['mod'] == 'arch3k':
-            psvmodels, psvcoeffs = cf.get_arch3k()  # use ARCH3k coefficients
-        elif kwargs['mod'] == 'cals3k':
-            # use CALS3K_4b coefficients between -1000,1940
-            psvmodels, psvcoeffs = cf.get_cals3k()
-        elif kwargs['mod'] == 'pfm9k':
-            # use PFM9k (Nilsson et al., 2014), coefficients from -7000 to 1900
-            psvmodels, psvcoeffs = cf.get_pfm9k()
-        elif kwargs['mod'] == 'hfm10k':
-            # use HFM.OL1.A1 (Constable et al., 2016), coefficients from -8000
-            # to 1900
-            psvmodels, psvcoeffs = cf.get_hfm10k()
-        elif kwargs['mod'] == 'cals10k.2':
-            # use CALS10k.2 (Constable et al., 2016), coefficients from -8000
-            # to 1900
-            psvmodels, psvcoeffs = cf.get_cals10k_2()
-        elif kwargs['mod'] == 'shadif14k':
-            # use CALS10k.2 (Constable et al., 2016), coefficients from -8000
-            # to 1900
-            psvmodels, psvcoeffs = cf.get_shadif14k()
-        elif kwargs['mod'] == 'shawq2k':
-            psvmodels, psvcoeffs = cf.get_shawq2k()
-        elif kwargs['mod'] == 'shawqIA':
-            psvmodels, psvcoeffs = cf.get_shawqIA()
-        elif kwargs['mod'] == 'ggf100k':
-            psvmodels, psvcoeffs = cf.get_ggf100k()
-        else:
-            # Korte and Constable, 2011;  use prior to -1000, back to -8000
-            psvmodels, psvcoeffs = cf.get_cals10k()
 # use geodetic coordinates
     if 'models' in kwargs:
-        if 'mod' in list(kwargs.keys()):
+        if model_name is not None:
             return psvmodels, psvcoeffs
         else:
             return models, igrf14coeffs
-    if 'mod' in list(kwargs.keys()) and kwargs['mod'] == 'ggf100k':
+    if model_name == 'ggf100k':
         # GGF100k is stored as cubic B-splines in time (Panovska et al., 2018):
         # psvmodels holds the 606 knots and psvcoeffs the 602 spline
         # coefficients, so the rows are not Gauss coefficients at epochs.
@@ -9788,7 +9782,7 @@ def doigrf(lon, lat, alt, date, **kwargs):
     if date < -100000:
         print('too old')
         return
-    if 'mod' in list(kwargs.keys()) and kwargs['mod'] == 'shadif14k':
+    if model_name == 'shadif14k':
         if date < -10000:
             incr = 100
         else:
@@ -9804,21 +9798,21 @@ def doigrf(lon, lat, alt, date, **kwargs):
         sv = (psvcoeffs[psvmodels.index(int(model + incr))] - gh)/float(incr)
         x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
     elif date < 1900:
-        if kwargs['mod'] == 'cals10k':
+        if model_name == 'cals10k':
             incr = 50
-        elif kwargs['mod'] == 'shawq2k' or kwargs['mod']=='shawqIA':
+        elif model_name == 'shawq2k' or model_name == 'shawqIA':
             incr = 25
         else:
             incr = 10
-        model = int(date - date % incr)
-        gh = psvcoeffs[psvmodels.index(model)]
-        if model + incr < 1900:
-            sv = (psvcoeffs[psvmodels.index(model + incr)] - gh)/float(incr)
+        epoch = int(date - date % incr)
+        gh = psvcoeffs[psvmodels.index(epoch)]
+        if epoch + incr < 1900:
+            sv = (psvcoeffs[psvmodels.index(epoch + incr)] - gh)/float(incr)
          
         else:
             field2 = igrf14coeffs[models.index(1940)][0:120]
-            sv = (field2 - gh)/float(1940 - model)
-        x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
+            sv = (field2 - gh)/float(1940 - epoch)
+        x, y, z, f = magsyn(gh, sv, epoch, date, itype, alt, colat, lon)
     else:
         model = date - date % 5
         if date <=2030:
