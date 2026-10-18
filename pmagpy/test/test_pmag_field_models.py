@@ -65,6 +65,17 @@ class TestDoigrf:
         assert isinstance(result, np.ndarray)
         assert len(result) > 0
 
+    @pytest.mark.parametrize("date", [-500, 1950])
+    def test_unknown_model_raises(self, date):
+        """Unknown model names fail explicitly for paleo and IGRF dates."""
+        with pytest.raises(ValueError, match="Unknown field model 'nonsense'"):
+            pmag.doigrf(0, 45, 0, date, mod='nonsense')
+
+    def test_unknown_model_raises_when_returning_models(self):
+        """Unknown model names are validated before returning model tables."""
+        with pytest.raises(ValueError, match="Unknown field model 'nonsense'"):
+            pmag.doigrf(0, 45, 0, 1950, mod='nonsense', models=True)
+
 
 # ---------------------------------------------------------------------------
 # doigrf with paleomagnetic field models
