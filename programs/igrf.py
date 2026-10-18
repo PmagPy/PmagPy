@@ -35,7 +35,7 @@ def main():
        -plt; make a plot of the time series
        -sav, saves plot and quits
        -fmt [pdf,jpg,eps,svg]  specify format for output figure  (default is svg)
-       -mod [arch3k,cals3k,pfm9k,hfm10k,cals10k.2,cals10k.1b,cals10k,shadif14k,shawq2k,shawqIA] specify model for 3ka to 1900 AD; cals10k is a legacy alias for cals10k.1b and the default
+       -mod [arch3k,cals3k,pfm9k,hfm10k,cals10k.2,cals10k.1b,cals10k,shadif14k,shawq2k,shawqIA,ggf100k] specify model for 3ka to 1900 AD; cals10k is a legacy alias for cals10k.1b and the default
              NB:  program uses IGRF13 for dates 1900 to 2019.
 
     INPUT FORMAT

@@ -9679,7 +9679,7 @@ def doigrf(lon, lat, alt, date, **kwargs):
     Optional Parameters
     -------------------
     coeffs : if True, then return the gh coefficients
-    mod  : model to use ('arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b','cals10k','shadif14k','shawq2k','shawqIA')
+    mod  : model to use ('arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b','cals10k','shadif14k','shawq2k','shawqIA','ggf100k')
         arch3k (Korte et al., 2009)
         cals3k (Korte and Constable, 2011)
         cals10k.1b (Korte et al., 2011)
