@@ -9679,10 +9679,11 @@ def doigrf(lon, lat, alt, date, **kwargs):
     Optional Parameters
     -------------------
     coeffs : if True, then return the gh coefficients
-    mod  : model to use ('arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b','shadif14k','shawq2k','shawqIA')
+    mod  : model to use ('arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b','cals10k','shadif14k','shawq2k','shawqIA')
         arch3k (Korte et al., 2009)
         cals3k (Korte and Constable, 2011)
         cals10k.1b (Korte et al., 2011)
+        cals10k (legacy alias for cals10k.1b)
         pfm9k  (Nilsson et al., 2014)
         hfm.OL1.A1 (Constable et al., 2016)
         cals10k.2 (Constable et al., 2016)
@@ -9740,6 +9741,7 @@ def doigrf(lon, lat, alt, date, **kwargs):
         'pfm9k': cf.get_pfm9k,
         'hfm10k': cf.get_hfm10k,
         'cals10k.2': cf.get_cals10k_2,
+        'cals10k.1b': cf.get_cals10k,
         'cals10k': cf.get_cals10k,
         'shadif14k': cf.get_shadif14k,
         'shawq2k': cf.get_shawq2k,
@@ -9792,13 +9794,16 @@ def doigrf(lon, lat, alt, date, **kwargs):
         sv = (psvcoeffs[psvmodels.index(int(model + incr))] - gh)/ float(incr)
         x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
     elif date < -1000:
-        incr = 10
+        if model_name in ('cals10k', 'cals10k.1b'):
+            incr = 50
+        else:
+            incr = 10
         model = date - date % incr
         gh = psvcoeffs[psvmodels.index(int(model))]
         sv = (psvcoeffs[psvmodels.index(int(model + incr))] - gh)/float(incr)
         x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
     elif date < 1900:
-        if model_name == 'cals10k':
+        if model_name in ('cals10k', 'cals10k.1b'):
             incr = 50
         elif model_name == 'shawq2k' or model_name == 'shawqIA':
             incr = 25
@@ -13137,7 +13142,8 @@ def do_mag_map(date, lon_0=0, alt=0, file="", mod="cals10k",resolution='low'):
 
     Optional Parameters
     -------------------
-    mod  = model to use ('arch3k','cals3k','pfm9k','hfm10k','cals10k.2','shadif14k','cals10k.1b','custom')
+    mod  = model to use ('arch3k','cals3k','pfm9k','hfm10k','cals10k.2','shadif14k','cals10k.1b','cals10k','custom')
+           cals10k is a legacy alias for cals10k.1b
     file = l m g h formatted filefor custom model
     lon_0 : central longitude for Hammer projection
     alt  = altitude

@@ -67,6 +67,7 @@ def igrf(input_list, mod='', ghfile=""):
                 - arch3k (Korte et al., 2009)
                 - cals3k (Korte and Constable, 2011)
                 - cals10k.1b (Korte et al., 2011)
+                - cals10k (legacy alias for cals10k.1b)
                 - pfm9k  (Nilsson et al., 2014)
                 - hfm10k is the hfm.OL1.A1 of Constable et al. (2016)
                 - cals10k.2 (Constable et al., 2016)
