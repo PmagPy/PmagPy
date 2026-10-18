@@ -62,7 +62,7 @@ def igrf(input_list, mod='', ghfile=""):
             "" : Use the IGRF14 model by default
             'custom' : use values supplied in ghfile
             or choose from this list
-            ['arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b','shadif14','shawq2k','shawqIA','ggf100k']
+            ['arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b','shadif14k','shawq2k','shawqIA','ggf100k']
             where:
                 - arch3k (Korte et al., 2009)
                 - cals3k (Korte and Constable, 2011)
@@ -70,7 +70,7 @@ def igrf(input_list, mod='', ghfile=""):
                 - pfm9k  (Nilsson et al., 2014)
                 - hfm10k is the hfm.OL1.A1 of Constable et al. (2016)
                 - cals10k.2 (Constable et al., 2016)
-                - shadif14 (Pavon-Carrasco et al., 2014)
+                - shadif14k (Pavon-Carrasco et al., 2014)
                 - shawq2k (Campuzano et al., 2019)
                 - shawqIA (Osete et al., 2020)
                 - ggf100k (Panovska et al., 2018) [only dates from -98050 to 1990 allowed]
