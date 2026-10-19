@@ -9796,6 +9796,8 @@ def doigrf(lon, lat, alt, date, **kwargs):
     elif date < -1000:
         if model_name in ('cals10k', 'cals10k.1b'):
             incr = 50
+        elif model_name == 'shawqIA':
+            incr = 25
         else:
             incr = 10
         model = date - date % incr
