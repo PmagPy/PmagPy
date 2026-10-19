@@ -10,6 +10,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 
+from pmagpy import coefficients as cf
 from pmagpy import pmag
 
 
@@ -65,6 +66,17 @@ class TestDoigrf:
         assert isinstance(result, np.ndarray)
         assert len(result) > 0
 
+    @pytest.mark.parametrize("date", [-500, 1950])
+    def test_unknown_model_raises(self, date):
+        """Unknown model names fail explicitly for paleo and IGRF dates."""
+        with pytest.raises(ValueError, match="Unknown field model 'nonsense'"):
+            pmag.doigrf(0, 45, 0, date, mod='nonsense')
+
+    def test_unknown_model_raises_when_returning_models(self):
+        """Unknown model names are validated before returning model tables."""
+        with pytest.raises(ValueError, match="Unknown field model 'nonsense'"):
+            pmag.doigrf(0, 45, 0, 1950, mod='nonsense', models=True)
+
 
 # ---------------------------------------------------------------------------
 # doigrf with paleomagnetic field models
@@ -72,6 +84,51 @@ class TestDoigrf:
 
 class TestDoigrfPaleoModels:
     """Tests for pmag.doigrf with alternative field models."""
+
+    @pytest.mark.parametrize("model", ["cals10k", "cals10k.1b"])
+    @pytest.mark.parametrize("date", [-4955, -500, 500])
+    def test_cals10k_1b_names_use_50_year_epochs(self, model, date):
+        """Both CALS10k.1b names work with 50-year epochs across date branches."""
+        _, _, _, f = pmag.doigrf(0, 45, 0, date, mod=model)
+        assert 10000 < f < 100000
+
+    @pytest.mark.parametrize("date", [-500, 500])
+    def test_shadif14k_returns_valid_pre_1900_field(self, date):
+        """SHADIF14k returns a valid field for pre-1900 dates."""
+        _, _, _, f = pmag.doigrf(0, 45, 0, date, mod='shadif14k')
+        assert 10000 < f < 100000
+
+    @pytest.mark.parametrize("model, loader, date, epoch", [
+        # Dates fall between epochs, so the expected row also checks the step.
+        ("cals3k", "get_cals3k", -497, -500),
+        ("cals3k", "get_cals3k", 1317, 1310),
+        ("arch3k", "get_arch3k", -497, -500),
+        ("arch3k", "get_arch3k", 1317, 1310),
+        ("pfm9k", "get_pfm9k", -3003, -3010),
+        ("pfm9k", "get_pfm9k", 517, 510),
+        ("hfm10k", "get_hfm10k", -3003, -3010),
+        ("hfm10k", "get_hfm10k", 517, 510),
+        ("cals10k.2", "get_cals10k_2", -3003, -3010),
+        ("cals10k.2", "get_cals10k_2", 517, 510),
+        ("cals10k.1b", "get_cals10k", -3003, -3050),
+        ("cals10k.1b", "get_cals10k", 517, 500),
+        ("cals10k", "get_cals10k", -3003, -3050),
+        ("cals10k", "get_cals10k", 517, 500),
+        ("shadif14k", "get_shadif14k", -3003, -3050),
+        ("shadif14k", "get_shadif14k", 517, 500),
+        ("shawq2k", "get_shawq2k", 512, 500),
+        ("shawq2k", "get_shawq2k", 1837, 1825),
+        ("shawqIA", "get_shawqIA", -1112, -1125),
+        ("shawqIA", "get_shawqIA", -512, -525),
+    ])
+    def test_documented_models_use_own_coefficients_and_epoch_spacing(
+            self, model, loader, date, epoch):
+        """Each documented name routes to its own loader and epoch spacing."""
+        epochs, coeffs = getattr(cf, loader)()
+        gh = pmag.doigrf(0, 45, 0, date, mod=model, coeffs=True)
+        assert_allclose(gh, coeffs[epochs.index(epoch)])
+        _, _, _, f = pmag.doigrf(0, 45, 0, date, mod=model)
+        assert 10000 < f < 100000
 
     def test_cals10k_returns_valid_field(self):
         """CALS10k.2 model returns valid field for Holocene date."""
