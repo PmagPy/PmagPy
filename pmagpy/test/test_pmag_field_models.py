@@ -10,6 +10,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 
+from pmagpy import coefficients as cf
 from pmagpy import pmag
 
 
@@ -95,6 +96,38 @@ class TestDoigrfPaleoModels:
     def test_shadif14k_returns_valid_pre_1900_field(self, date):
         """SHADIF14k returns a valid field for pre-1900 dates."""
         _, _, _, f = pmag.doigrf(0, 45, 0, date, mod='shadif14k')
+        assert 10000 < f < 100000
+
+    @pytest.mark.parametrize("model, loader, date, epoch", [
+        # Dates fall between epochs, so the expected row also checks the step.
+        ("cals3k", "get_cals3k", -497, -500),
+        ("cals3k", "get_cals3k", 1317, 1310),
+        ("arch3k", "get_arch3k", -497, -500),
+        ("arch3k", "get_arch3k", 1317, 1310),
+        ("pfm9k", "get_pfm9k", -3003, -3010),
+        ("pfm9k", "get_pfm9k", 517, 510),
+        ("hfm10k", "get_hfm10k", -3003, -3010),
+        ("hfm10k", "get_hfm10k", 517, 510),
+        ("cals10k.2", "get_cals10k_2", -3003, -3010),
+        ("cals10k.2", "get_cals10k_2", 517, 510),
+        ("cals10k.1b", "get_cals10k", -3003, -3050),
+        ("cals10k.1b", "get_cals10k", 517, 500),
+        ("cals10k", "get_cals10k", -3003, -3050),
+        ("cals10k", "get_cals10k", 517, 500),
+        ("shadif14k", "get_shadif14k", -3003, -3050),
+        ("shadif14k", "get_shadif14k", 517, 500),
+        ("shawq2k", "get_shawq2k", 512, 500),
+        ("shawq2k", "get_shawq2k", 1837, 1825),
+        ("shawqIA", "get_shawqIA", -1112, -1125),
+        ("shawqIA", "get_shawqIA", -512, -525),
+    ])
+    def test_documented_models_use_own_coefficients_and_epoch_spacing(
+            self, model, loader, date, epoch):
+        """Each documented name routes to its own loader and epoch spacing."""
+        epochs, coeffs = getattr(cf, loader)()
+        gh = pmag.doigrf(0, 45, 0, date, mod=model, coeffs=True)
+        assert_allclose(gh, coeffs[epochs.index(epoch)])
+        _, _, _, f = pmag.doigrf(0, 45, 0, date, mod=model)
         assert 10000 < f < 100000
 
     def test_cals10k_returns_valid_field(self):
