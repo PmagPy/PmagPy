@@ -9748,7 +9748,7 @@ def doigrf(lon, lat, alt, date, **kwargs):
         'shawqIA': cf.get_shawqIA,
         'ggf100k': cf.get_ggf100k,
     }
-    if model_name is not None:
+    if 'mod' in kwargs:
         if not isinstance(model_name, str) or model_name not in model_loaders:
             valid_models = ', '.join(model_loaders)
             raise ValueError(
@@ -13142,7 +13142,7 @@ def do_mag_map(date, lon_0=0, alt=0, file="", mod="cals10k",resolution='low'):
 
     Optional Parameters
     -------------------
-    mod  = model to use ('arch3k','cals3k','pfm9k','hfm10k','cals10k.2','shadif14k','cals10k.1b','cals10k','custom')
+    mod  = model to use ('arch3k','cals3k','pfm9k','hfm10k','cals10k.2','shadif14k','cals10k.1b','cals10k','shawq2k','shawqIA','ggf100k','custom')
            cals10k is a legacy alias for cals10k.1b
     file = l m g h formatted filefor custom model
     lon_0 : central longitude for Hammer projection
