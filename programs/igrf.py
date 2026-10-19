@@ -48,7 +48,7 @@ def main():
            space delimited string: date  alt   lat long
     OUTPUT  FORMAT
         Declination Inclination Intensity (nT) date alt lat long
-    MODELS: ARCH3K (Korte et al., 2009); CALS3K (Korte & Constable, 2011); CALS10k.1b (Korte et al., 2011; cals10k is a legacy alias); PFM9K (Nilsson et al., 2014); HFM10k (HFM.OL1.A1 of Constable et al., 2016); CALS10k.2 (Constable et al., 2016); SHADIF14k (SHA.DIF.14K of Pavon-Carrasco et al., 2014); SHAWQ2k (Campuzano et al., 2019); SHAWQIA (Osete et al., 2020).
+    MODELS: ARCH3K (Korte et al., 2009); CALS3K (Korte & Constable, 2011); CALS10k.1b (Korte et al., 2011; cals10k is a legacy alias); PFM9K (Nilsson et al., 2014); HFM10k (HFM.OL1.A1 of Constable et al., 2016); CALS10k.2 (Constable et al., 2016); SHADIF14k (SHA.DIF.14K of Pavon-Carrasco et al., 2014); SHAWQ2k (Campuzano et al., 2019); SHAWQIA (Osete et al., 2020); GGF100k (Panovska et al., 2018).
     """
     plot, fmt = 0, 'svg'
     mod, alt, make_plot, lat, lon = 'cals10k', 0, 0, 0, 0

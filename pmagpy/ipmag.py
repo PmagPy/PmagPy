@@ -62,7 +62,7 @@ def igrf(input_list, mod='', ghfile=""):
             "" : Use the IGRF14 model by default
             'custom' : use values supplied in ghfile
             or choose from this list
-            ['arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b','shadif14k','shawq2k','shawqIA','ggf100k']
+            ['arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k','cals10k.1b','shadif14k','shawq2k','shawqIA','ggf100k']
             where:
                 - arch3k (Korte et al., 2009)
                 - cals3k (Korte and Constable, 2011)
