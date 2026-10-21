@@ -316,15 +316,19 @@ def _normalise(result) -> Tuple[bool, str]:
 
 def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: str,
                   append: bool = False, report: Optional[Callable[[str], None]] = None,
-                  record: bool = True) -> ConversionResult:
+                  record: bool = True, magic_dir: str = "", backup: Optional[str] = None) -> ConversionResult:
     """Convert files (or one directory) with one converter and write the MagIC tables into ``dir_path``.
 
     Each input is converted on its own in a scratch directory; the tables are then
     combined (rows concatenated, exact duplicates dropped) into ``dir_path``'s
     ``measurements.txt``, ``specimens.txt`` … — replacing what is there, or adding
-    to it when ``append`` is set. A conversion that wrote tables is added to
+    to it when ``append`` is set. The tables are written all or nothing
+    (:class:`~pmagpy.magic_project.StagedExport`): a failure part way leaves the
+    directory as it was. A conversion that wrote tables is added to
     ``dir_path``'s :data:`CONVERSION_LOG` (:func:`record_conversion`), so the
-    directory remembers which files its tables came from.
+    directory remembers which files its tables came from (and their size,
+    modification time and checksum, so :func:`already_converted` can tell a
+    file converted before from one that has changed since).
 
     Args:
         fmt: the format.
@@ -335,13 +339,20 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
         append: add to the tables already in ``dir_path`` instead of replacing them.
         report: called with a line per file for a status bar.
         record: keep the conversion in the directory's log.
+        magic_dir: where the tables a format ``needs`` are read from (``dir_path``
+            when not given): the lab folder, when the tables go to a new folder of
+            their own inside it.
+        backup: a folder to keep the tables that are replaced in, as the
+            applications' exports do: each one the first time it is replaced, and
+            the last version every time in ``<backup>/previous/``.
     """
     say = report or (lambda text: None)
     dir_path = os.path.abspath(os.path.expanduser(dir_path))
+    magic_dir = os.path.abspath(os.path.expanduser(magic_dir)) if magic_dir else dir_path
     inputs = [p if os.path.isabs(p) else os.path.join(dir_path, p) for p in inputs]
     if not inputs:
         return ConversionResult(False, "No files chosen.")
-    missing = [t for t in fmt.needs if not os.path.exists(os.path.join(dir_path, f"{t}.txt"))]
+    missing = [t for t in fmt.needs if not os.path.exists(os.path.join(magic_dir, f"{t}.txt"))]
     if missing:
         return ConversionResult(False, f"{fmt.label} needs {', '.join(missing)}.txt in the directory first"
                                        f"{' — ' + fmt.notes if fmt.notes else '.'}")
@@ -353,7 +364,7 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
             say(f"Converting {name} ({i + 1} of {len(inputs)}) …")
             out = os.path.join(scratch, f"{i:03d}")
             os.makedirs(out)
-            ok, message, log = run_one(fmt, path, values, out, dir_path)
+            ok, message, log = run_one(fmt, path, values, out, magic_dir)
             # the scratch directory is nobody's business; macOS prints it through /private, so the
             # longer spelling goes first or its tail would survive
             for prefix in sorted({out, os.path.realpath(out)}, key=len, reverse=True):
@@ -370,14 +381,18 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
             for written in produced:
                 per_table[os.path.basename(written)[:-4]].append(written)
         if append:
+            # only the tables this conversion adds to: the others (ages, criteria, a contribution's own
+            # tables) are not rewritten
             for table in MAGIC_TABLES:
                 existing = os.path.join(dir_path, f"{table}.txt")
-                if os.path.exists(existing):
+                if per_table[table] and os.path.exists(existing):
                     per_table[table].insert(0, existing)
         tables = {}
         if any(per_table.values()):
+            from pmagpy.magic_project import StagedExport
             say("Combining the tables …")
-            tables = combine_tables(per_table, dir_path, replaces=fmt.replaces)
+            with StagedExport(dir_path, backup=backup, originals=True) as stage:
+                tables = combine_tables(per_table, stage.dir, replaces=fmt.replaces)
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
     n_ok = len(inputs) - len(failed)
@@ -389,9 +404,10 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
     result = ConversionResult(True, message, "\n".join(logs), tables, failed)
     if record and tables:
         if fmt.takes_directory:
-            names = directory_inputs(fmt, inputs[0])
+            names = [n if not os.path.isfile(os.path.join(inputs[0], n)) else os.path.join(inputs[0], n)
+                     for n in directory_inputs(fmt, inputs[0])]
         else:
-            names = [os.path.basename(p) for p in inputs if os.path.basename(p) not in {f for f, _ in failed}]
+            names = [p for p in inputs if os.path.basename(p) not in {f for f, _ in failed}]
         record_conversion(dir_path, fmt.key, names, values, append=append, tables=tables,
                           failed=[f for f, _ in failed], label=fmt.label)
     return result
@@ -425,17 +441,31 @@ def record_conversion(dir_path: str, format_key: str, files: Sequence[str], valu
     The log is a JSON list, oldest first; each entry has ``when`` (local time,
     ISO 8601 to the second), ``format`` (a registry key, or ``"magic"`` for an
     unpacked contribution file), ``label``, ``files`` (names relative to the
-    directory), ``values`` (the fields the converter was given, blanks left
-    out), ``append``, ``tables`` (rows written per table) and ``failed`` (the
-    files that did not convert). A conversion that replaced the tables makes
-    the earlier entries history rather than provenance; readers look at
-    ``append`` to tell which (see :func:`conversion_sources`).
+    directory; the file's own name for one kept elsewhere), ``stamps`` (per
+    file that could be read: its ``size``, ``mtime`` and ``sha1``), ``values``
+    (the fields the converter was given, blanks left out), ``append``,
+    ``tables`` (rows written per table) and ``failed`` (the files that did
+    not convert). A conversion that replaced the tables makes the earlier
+    entries history rather than provenance; readers look at ``append`` to
+    tell which (see :func:`conversion_sources`).
+
+    ``files`` may be paths (absolute, or relative to ``dir_path``) or names; a
+    file that is there is stamped.
     """
+    names, stamps = [], {}
+    for item in files:
+        path = item if os.path.isabs(item) else os.path.join(dir_path, item)
+        name = log_name(path, dir_path) if os.path.isabs(item) else item
+        names.append(name)
+        stamp = file_stamp(path)
+        if stamp:
+            stamps[name] = stamp
     entry = {
         "when": datetime.now().replace(microsecond=0).isoformat(),
         "format": format_key,
         "label": label or (FORMATS[format_key].label if format_key in FORMATS else format_key),
-        "files": list(files),
+        "files": names,
+        "stamps": stamps,
         "values": {k: v for k, v in (values or {}).items() if not (v is None or v is False or v == "" or v == [])},
         "append": bool(append),
         "tables": dict(tables or {}),
@@ -461,6 +491,60 @@ def read_conversions(dir_path: str) -> List[dict]:
     except (OSError, ValueError):
         return []
     return [e for e in entries if isinstance(e, dict)] if isinstance(entries, list) else []
+
+
+def log_name(path: str, dir_path: str) -> str:
+    """How the log names a file: relative to the directory, or by its own name when it is kept elsewhere."""
+    path, dir_path = os.path.realpath(path), os.path.realpath(dir_path)
+    if path.startswith(dir_path + os.sep):
+        return os.path.relpath(path, dir_path)
+    return os.path.basename(path.rstrip(os.sep))
+
+
+def file_stamp(path: str) -> dict:
+    """``{"size", "mtime", "sha1"}`` of a file, or {} when it is not a readable file."""
+    import hashlib
+    try:
+        st = os.stat(path)
+        digest = hashlib.sha1()
+        with open(path, "rb") as fh:
+            for block in iter(lambda: fh.read(1 << 20), b""):
+                digest.update(block)
+    except OSError:
+        return {}
+    return {"size": st.st_size, "mtime": datetime.fromtimestamp(st.st_mtime).isoformat(), "sha1": digest.hexdigest()}
+
+
+def already_converted(dir_path: str, paths: Sequence[str]) -> List[str]:
+    """The files among ``paths`` that the tables in ``dir_path`` already hold, by its :data:`CONVERSION_LOG`.
+
+    A file counts when a conversion that still accounts for the tables
+    (:func:`conversion_sources`) lists it under the same name (relative to the
+    directory) -- and, when the log stamped it, only while it is the same file:
+    the same checksum, or for a stamp without one the same size and
+    modification time. A file that has changed since is a new one to convert.
+    Returns the names as the log writes them, in the order of ``paths``.
+    """
+    entries = conversion_sources(read_conversions(dir_path))
+    hits = []
+    for path in paths:
+        path = path if os.path.isabs(path) else os.path.join(dir_path, path)
+        name = log_name(path, dir_path)
+        for entry in entries:
+            if name not in entry.get("files", []):
+                continue
+            stamp = (entry.get("stamps") or {}).get(name)
+            if stamp:
+                now = file_stamp(path)
+                if stamp.get("sha1"):
+                    same = now.get("sha1") == stamp["sha1"]
+                else:
+                    same = (now.get("size"), now.get("mtime")) == (stamp.get("size"), stamp.get("mtime"))
+                if not same:
+                    continue
+            hits.append(name)
+            break
+    return hits
 
 
 def conversion_sources(entries: Sequence[dict]) -> List[dict]:

@@ -401,6 +401,87 @@ class TestConversionLog:
         assert entry["label"] == "magic" and entry["values"] == {} and entry["tables"] == {"measurements": 10}
 
 
+    def test_each_file_is_stamped_and_known_again_until_it_changes(self, tmp_path):
+        d = str(tmp_path)
+        for name in ("AF.jr6", "TRM.jr6"):
+            shutil.copy(example_path(f"jr6_magic/{name}"), d)
+        jr6 = reg.FORMATS["jr6_jr6"]
+        reg.convert_files(jr6, ["AF.jr6"], {}, d)
+        (entry,) = reg.read_conversions(d)
+        assert entry["files"] == ["AF.jr6"] and set(entry["stamps"]) == {"AF.jr6"}
+        stamp = entry["stamps"]["AF.jr6"]
+        assert stamp["size"] == os.path.getsize(tmp_path / "AF.jr6") and len(stamp["sha1"]) == 40
+        assert reg.already_converted(d, ["AF.jr6", "TRM.jr6"]) == ["AF.jr6"]
+        assert reg.already_converted(d, [str(tmp_path / "AF.jr6")]) == ["AF.jr6"]     # a path names the same file
+        # a file edited since it was converted is a new one to convert
+        with open(tmp_path / "AF.jr6", "a") as fh:
+            fh.write("\n")
+        assert reg.already_converted(d, ["AF.jr6"]) == []
+
+    def test_a_log_without_stamps_knows_its_files_by_name_and_a_replace_forgets_them(self, tmp_path):
+        d = str(tmp_path)
+        (tmp_path / "mc01.dat").write_text("x\n")
+        reg.record_conversion(d, "sio", ["mc01.dat"], tables={"measurements": 5})
+        entries = reg.read_conversions(d)
+        assert entries[0]["stamps"]["mc01.dat"]["size"] == 2
+        del entries[0]["stamps"]                                   # as an earlier build wrote it
+        (tmp_path / reg.CONVERSION_LOG).write_text(__import__("json").dumps(entries))
+        (tmp_path / "mc01.dat").write_text("changed, but the log cannot tell\n")
+        assert reg.already_converted(d, ["mc01.dat"]) == ["mc01.dat"]
+        reg.record_conversion(d, "sio", ["mc02.dat"], tables={"measurements": 5})      # replaced the tables
+        assert reg.already_converted(d, ["mc01.dat"]) == []
+
+    def test_replaced_tables_are_kept_and_written_all_or_nothing(self, tmp_path, monkeypatch):
+        d = str(tmp_path)
+        shutil.copy(example_path("jr6_magic/AF.jr6"), d)
+        shutil.copy(example_path("jr6_magic/TRM.jr6"), d)
+        jr6 = reg.FORMATS["jr6_jr6"]
+        reg.convert_files(jr6, ["AF.jr6"], {}, d)
+        first = open(tmp_path / "measurements.txt").read()
+        backup = str(tmp_path / "backup_before_pmagpy_apps")
+        reg.convert_files(jr6, ["TRM.jr6"], {}, d, backup=backup)
+        second = open(tmp_path / "measurements.txt").read()
+        assert second != first
+        assert open(os.path.join(backup, "measurements.txt")).read() == first            # the original, once
+        assert open(os.path.join(backup, "previous", "measurements.txt")).read() == first
+        reg.convert_files(jr6, ["AF.jr6"], {}, d, backup=backup)
+        assert open(os.path.join(backup, "measurements.txt")).read() == first
+        assert open(os.path.join(backup, "previous", "measurements.txt")).read() == second
+        # a failure while the tables are combined writes none of them
+        before = {n: open(tmp_path / n).read() for n in os.listdir(d) if n.endswith(".txt")}
+        real = reg.combine_tables
+
+        def half(per_table, dir_path, replaces=()):
+            real({"measurements": per_table["measurements"]}, dir_path, replaces)
+            raise OSError("disk full")
+        monkeypatch.setattr(reg, "combine_tables", half)
+        with pytest.raises(OSError):
+            reg.convert_files(jr6, ["TRM.jr6"], {}, d, backup=backup)
+        assert {n: open(tmp_path / n).read() for n in os.listdir(d) if n.endswith(".txt")} == before
+        assert not [n for n in os.listdir(d) if n.startswith(".staging-")]
+
+    def test_adding_rewrites_only_the_tables_the_conversion_adds_to(self, tmp_path):
+        d = str(tmp_path)
+        shutil.copy(example_path("jr6_magic/AF.jr6"), d)
+        (tmp_path / "ages.txt").write_text("tab\tages\nsite\tage\tage_unit\nZ1\t1.10\tMa\n")
+        (tmp_path / "criteria.txt").write_text("tab\tcriteria\ntable_column\tcriterion_value\n")
+        before = {n: (tmp_path / n).read_text() for n in ("ages.txt", "criteria.txt")}
+        assert reg.convert_files(reg.FORMATS["jr6_jr6"], ["AF.jr6"], {}, d, append=True).ok
+        assert {n: (tmp_path / n).read_text() for n in before} == before
+        assert (tmp_path / "measurements.txt").exists()
+
+    def test_the_tables_a_format_needs_can_come_from_the_lab_folder(self, tmp_path):
+        lab = tmp_path / "lab"
+        new = lab / "MagIC_2026-10-20"
+        new.mkdir(parents=True)
+        (lab / "data.csv").write_text("x\n")
+        fmt = reg.FORMATS["iodp_dscr"]
+        assert "needs specimens.txt" in reg.convert_files(fmt, [str(lab / "data.csv")], {}, str(new)).message
+        (lab / "specimens.txt").write_text("tab\tspecimens\nspecimen\n")
+        result = reg.convert_files(fmt, [str(lab / "data.csv")], {}, str(new), magic_dir=str(lab))
+        assert "needs specimens.txt" not in result.message
+
+
 # ----- guessing ------------------------------------------------------------------------------
 
 class TestGuessFormat:
