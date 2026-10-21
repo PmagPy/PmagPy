@@ -36,7 +36,9 @@ intended. Rock magnetism and Anisotropy join by adding them to the edition
   files (`pmagpy_apps/convert.py`). The fingerprint is a short hash of the study's full
   path (`pmagpy_panel.datasets.default_output_dir`), so studies kept in
   folders of the same name (`MagIC`, `data`) get copies of their own; the copy
-  records where it came from (`.pmagpy_working_copy.json`). Every page names
+  records where it came from (`.pmagpy_working_copy.json`), and only a folder
+  holding that marker is taken for a copy -- a study the analyst keeps under
+  `~/PmagPy` gets a copy of its own like any other. Every page names
   the study (McMurdo, not its fingerprinted folder); the dataset block in the
   side column adds "working copy · ~/PmagPy/McMurdo-…", and hovering over it
   says which study is never written and where the copy is. A copy is made once: files the study gains later are added to it,

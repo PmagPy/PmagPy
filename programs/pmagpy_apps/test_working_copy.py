@@ -311,3 +311,26 @@ class TestStudiesPmagPyMadeAreWorkedOnInPlace:
         assert entry["files"] == ["SP1.tdt"] and entry["stamps"]["SP1.tdt"]["sha1"]
         assert entry["tables"]["measurements"] == 11 and entry["values"]["moment_units"] == "Am^2"
         assert session.directory == out and "SP1" in session.data.specimens
+
+
+class TestOnlyMarkedFoldersAreCopies:
+    def test_a_study_kept_under_the_base_gets_a_copy_of_its_own(self, base):
+        kept = os.path.join(base, "MyStudy")
+        os.makedirs(kept)
+        shutil.copy(os.path.join(MCMURDO, "measurements.txt"), kept)
+        assert not datasets.is_working_copy(kept, base)
+        copy = datasets.working_directory(kept)
+        assert copy != kept and os.path.basename(copy).startswith("MyStudy-")
+        assert datasets.is_working_copy(copy, base) and datasets.working_directory(copy) == copy
+
+    def test_a_converted_study_under_the_base_is_worked_on_in_place(self, base):
+        kept = os.path.join(base, "MyLab")
+        os.makedirs(kept)
+        shutil.copy(os.path.join(MCMURDO, "measurements.txt"), kept)
+        converted(kept)
+        assert datasets.working_directory(kept) == kept
+
+    def test_a_marked_folder_anywhere_is_a_copy(self, study, tmp_path):
+        moved = str(tmp_path / "elsewhere")
+        shutil.copytree(datasets.working_directory(study, base=str(tmp_path / "b")), moved)
+        assert datasets.is_working_copy(moved) and datasets.working_directory(moved, base=str(tmp_path / "b")) == moved

@@ -94,11 +94,13 @@ def output_base() -> str:
 
 
 def is_working_copy(directory: str, base: str = "") -> bool:
-    """True for a directory that is itself a working copy (inside ``base``, or marked as one)."""
-    path = os.path.realpath(directory)
-    if base and (path + os.sep).startswith(os.path.realpath(base) + os.sep):
-        return True
-    return os.path.isfile(os.path.join(path, WORKING_COPY_MARKER))
+    """True for a directory that is itself a working copy: one that holds :data:`WORKING_COPY_MARKER`.
+
+    Where it is does not count (``base`` is accepted for the callers that pass
+    it): a study the analyst keeps under the output base gets a copy of its own
+    like any other.
+    """
+    return os.path.isfile(os.path.join(os.path.realpath(directory), WORKING_COPY_MARKER))
 
 
 def shipped_roots() -> list:
