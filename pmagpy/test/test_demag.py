@@ -732,8 +732,9 @@ class TestPolarity:
         assert loc_f["dir_dec"].iloc[0] == pytest.approx((loc["dir_dec"].iloc[0] + 180) % 360)
         assert loc_f["dir_inc"].iloc[0] == pytest.approx(-loc["dir_inc"].iloc[0])
         table = study.locations_table(coord=COORD_GEOGRAPHIC, flip=True)
-        row = table[table["pole_comp_name"] == "A"].iloc[0]
-        assert row["pole_lat"] == pytest.approx(round(flipped["plat"], 1))
+        for _, row in table[table["pole_comp_name"] == "A"].iterrows():        # Jan Mayen and Spitsbergen
+            own = study.mean_pole(COORD_GEOGRAPHIC, "A", "site", location=row["location"], flip=True)
+            assert row["pole_lat"] == pytest.approx(round(own["plat"], 1))
         # flip without unification inverts everything
         raw = study.mean_pole(COORD_GEOGRAPHIC, "A", "site", common_polarity=False, flip=True)
         assert raw["vgps"]["flipped"].all() and raw["reversed_perc"] == 100
@@ -893,7 +894,8 @@ def criteria_frame(*rows):
 
 @pytest.fixture(scope="class")
 def judged():
-    """dmag_magic with its published fits: 165 components (37 planes), 23 site means, MADs 0.7-6.9."""
+    """dmag_magic with its published fits: 165 components (37 planes), 23 site means, MADs 0.7-6.9,
+    and the 14 Spitsbergen sites formed from the interpretations stored for specimens it cannot re-fit."""
     data = DemagData.from_directory(DMAG_DIR)
     data.load_components_from_specimens_table()
     return data
@@ -930,7 +932,15 @@ class TestCriteria:
             assert set(zip(bad["specimen"], bad["dir_comp"])) == failing      # flagged in every coordinate system
             assert len(bad) == 2 * len(failing)
             after = judged.mean_directions("site", COORD_GEOGRAPHIC)
-            assert after["dir_n_specimens"].sum() == len(rows) - len(failing) == before["dir_n_specimens"].sum() - len(failing)
+            measured = lambda df: df[df["site"].isin(judged.names_at("site"))]      # noqa: E731
+            assert measured(after)["dir_n_specimens"].sum() == len(rows) - len(failing) \
+                == measured(before)["dir_n_specimens"].sum() - len(failing)
+            # the stored-only interpretations (Spitsbergen) are judged by the same criterion
+            stored = judged.stored_only_interpretations()
+            stored = stored[stored["dir_tilt_correction"] == COORD_GEOGRAPHIC]
+            stored_failing = int(((stored["dir_mad_free"] > 2.0) | (stored["dir_n_measurements"] < 5)).sum())
+            assert 0 < stored_failing < len(stored) == 125
+            assert after["dir_n_specimens"].sum() == before["dir_n_specimens"].sum() - len(failing) - stored_failing
             lenient = judged.mean_directions("site", COORD_GEOGRAPHIC, include_bad=True)
             assert lenient["dir_n_specimens"].sum() == before["dir_n_specimens"].sum()
             # a plane left in the mean is still pinned down only by the accepted lines
@@ -954,11 +964,12 @@ class TestCriteria:
             pole = judged.mean_pole(COORD_GEOGRAPHIC, "A", "site")
             assert pole["N"] == pole_before["N"] - len(weak)
             loc = judged.mean_directions("location", COORD_GEOGRAPHIC)
-            assert loc["dir_n_specimens"].iloc[0] == sites["dir_n_specimens"].sum() - weak["dir_n_specimens"].sum()
+            assert len(loc) == 2                                           # Jan Mayen and Spitsbergen
+            assert loc["dir_n_specimens"].sum() == sites["dir_n_specimens"].sum() - weak["dir_n_specimens"].sum()
             over_sites = judged.mean_directions("location", COORD_GEOGRAPHIC, over="sites")
-            assert over_sites["dir_n_sites"].iloc[0] == len(sites) - len(weak)
+            assert over_sites["dir_n_sites"].sum() == len(sites) - len(weak)
             locs = judged.locations_table(coords=(COORD_GEOGRAPHIC,))
-            assert locs["pole_n_sites"].dropna().tolist() == [pole["N"]]      # the row this export wrote
+            assert locs["pole_n_sites"].dropna().sum() == pole["N"]           # the rows this export wrote
         finally:
             judged.set_criteria(None)
 
@@ -989,3 +1000,157 @@ class TestCriteria:
         bad_sites = data.failing_groups("site", COORD_GEOGRAPHIC)
         assert len(bad_sites) == 7 and ("mc136", "A") in bad_sites
         assert data.mean_pole(COORD_GEOGRAPHIC, "A", "site")["N"] == n_sites - len(bad_sites) == 128
+
+
+# --------------------------------------------------------------------------
+# Interpretations stored for specimens the application cannot re-fit
+# --------------------------------------------------------------------------
+SP102 = ["sp102a1", "sp102a2", "sp102b1", "sp102c1", "sp102c2", "sp102d1b", "sp102e2", "sp102f1", "sp102g1",
+         "sp102i1b", "sp102j1a", "sp102k1", "sp102l1"]
+
+
+def _copy_study(src, dst):
+    import shutil
+    shutil.copytree(src, dst)
+    return str(dst)
+
+
+def _edit_specimens(directory, edit):
+    """Rewrite a copy's specimens.txt after ``edit(frame)`` (all text, as read)."""
+    path = os.path.join(directory, "specimens.txt")
+    df = pd.read_csv(path, sep="\t", header=1, dtype=str, keep_default_na=False)
+    edit(df)
+    with open(path, "w") as fh:
+        fh.write("tab\tspecimens\n" + df.to_csv(sep="\t", index=False, lineterminator="\n"))
+
+
+def _independent_lnp(directory, specimens, tilt):
+    """pmag.dolnp of the stored rows of ``specimens`` in one coordinate system, read straight from the file."""
+    df = pd.read_csv(os.path.join(directory, "specimens.txt"), sep="\t", header=1, dtype=str)
+    rows = df[df["specimen"].isin(specimens) & df["dir_dec"].notna() & (df["dir_tilt_correction"] == str(tilt))]
+    recs = [{"dir_dec": float(d), "dir_inc": float(i), "dir_type": "p" if "DE-BFP" in codes.split(":") else "l"}
+            for d, i, codes in zip(rows["dir_dec"], rows["dir_inc"], rows["method_codes"])]
+    return pmag.dolnp(recs, "dir_type"), len(recs)
+
+
+class TestStoredOnlyInterpretations:
+    """dmag_magic's Spitsbergen specimens (sp100-sp113) are interpreted in specimens.txt, but their
+    measurement rows cannot be read (method codes in the quality column): their interpretations
+    take part in the means as stored."""
+
+    def test_a_stored_plane_is_its_pole(self):
+        """The dec/inc a DE-BFP row stores is the pole to the plane, as a re-fitted plane's is."""
+        data = DemagData.from_directory(MCMURDO_DIR)
+        data.load_components_from_specimens_table()
+        stored = data._table("specimens")
+        stored = stored[stored["method_codes"].fillna("").str.contains("DE-BFP")]
+        fits = {(r.specimen, r.dir_comp, r.dir_tilt_correction): r
+                for coord in (COORD_SPECIMEN, COORD_GEOGRAPHIC) for r in data.fit_all(coord)}
+        n = 0
+        for _, row in stored.iterrows():
+            r = fits.get((row["specimen"], row["dir_comp"], int(float(row["dir_tilt_correction"]))))
+            if r is None:
+                continue
+            n += 1
+            assert r.direction_type == "p"
+            assert pmag.angle([r.dir_dec, r.dir_inc], [float(row["dir_dec"]), float(row["dir_inc"])])[0] < 0.1
+        assert n == 102
+
+    def test_sp102_site_mean_rests_on_all_thirteen_stored_interpretations(self, study):
+        stored = study.stored_only_interpretations()
+        assert len(stored) == 252 and stored["specimen"].nunique() == 127
+        assert set(stored["dir_type"]) == {"l", "p"} and not stored["specimen"].isin(study.specimens).any()
+        assert set(study.mean_group_names("site")) - set(study.names_at("site")) == {f"sp1{n:02d}" for n in range(14)}
+        for tilt, expect in ((COORD_GEOGRAPHIC, (214.1, -51.5, 3.2)), (COORD_SPECIMEN, (34.4, -47.8, 12.4))):
+            lnp, n = _independent_lnp(DMAG_DIR, SP102, tilt)
+            assert n == 13 and (int(lnp["n_lines"]), int(lnp["n_planes"])) == (8, 5)
+            mean = study.mean_directions("site", tilt, group="sp102").iloc[0]
+            assert (round(mean["dir_dec"], 1), round(mean["dir_inc"], 1), round(mean["dir_alpha95"], 1)) == expect
+            assert mean["dir_dec"] == pytest.approx(float(lnp["dec"]), abs=0.05)
+            assert mean["dir_inc"] == pytest.approx(float(lnp["inc"]), abs=0.05)
+            assert mean["dir_alpha95"] == pytest.approx(float(lnp["alpha95"]), abs=0.05)
+            assert (mean["dir_n_specimens"], mean["dir_n_specimens_lines"], mean["dir_n_specimens_planes"]) == (13, 8, 5)
+            assert mean["specimens"].split(":") == SP102 and mean["stored_specimens"].split(":") == SP102
+            assert mean["dir_n_samples"] == 11 and mean["samples"].split(":")[:3] == ["sp102a", "sp102b", "sp102c"]
+        # a re-fitted site has no stored members
+        assert study.mean_directions("site", COORD_GEOGRAPHIC, group="jm002").iloc[0]["stored_specimens"] == ""
+
+    def test_stored_interpretations_follow_the_selection_rules(self, tmp_path):
+        directory = _copy_study(DMAG_DIR, tmp_path / "dmag")
+
+        def edit(df):
+            df.loc[df["specimen"] == "sp102l1", "result_quality"] = "b"
+            df.loc[df["specimen"] == "sp102k1", "dir_comp"] = "B"
+            df.loc[df["specimen"] == "sp102j1a", "dir_comp"] = ""
+        _edit_specimens(directory, edit)
+        data = DemagData.from_directory(directory)
+        data.load_components_from_specimens_table()
+        mean = data.mean_directions("site", COORD_GEOGRAPHIC, "A", group="sp102").iloc[0]
+        kept = [s for s in SP102 if s not in ("sp102l1", "sp102k1", "sp102j1a")]
+        assert mean["specimens"].split(":") == kept
+        lnp, _ = _independent_lnp(directory, kept, COORD_GEOGRAPHIC)
+        assert mean["dir_dec"] == pytest.approx(float(lnp["dec"]), abs=0.05)
+        lenient = data.mean_directions("site", COORD_GEOGRAPHIC, "A", include_bad=True, group="sp102").iloc[0]
+        assert lenient["dir_n_specimens"] == 11
+        b = data.mean_directions("site", COORD_GEOGRAPHIC, "B", group="sp102").iloc[0]
+        assert b["specimens"] == "sp102k1" and (b["dir_dec"], b["dir_inc"]) == (211.7, -51.0)
+        assert any("no component name (dir_comp)" in w and "sp102j1a" in w for w in data.warnings)
+        assert data.mean_directions("site", COORD_TILT, group="sp102").empty      # stored in -1 and 0 only
+
+        data.set_criteria(criteria_frame(("DE-SPEC", "specimens.dir_n_measurements", ">=", "5")))
+        judged = data.mean_directions("site", COORD_GEOGRAPHIC, "A", group="sp102").iloc[0]
+        assert judged["specimens"].split(":") == [s for s in kept if s != "sp102e2"]          # e2: 4 steps
+
+    def test_a_mixed_site_keeps_its_mean_when_measurements_are_missing(self, tmp_path):
+        """dmag_magic jm004 with three specimens' measurements removed: their stored fits stand in for the re-fits."""
+        directory = _copy_study(DMAG_DIR, tmp_path / "dmag")
+        before = DemagData.from_directory(directory)
+        before.load_components_from_specimens_table()
+        planes = [c.specimen for c in before.components if c.fit_type == "DE-BFP"]
+        site = before.specimens[planes[0]].site
+        members = [m for m in before.specimens_in("site", site) if before.components_for(m)]
+        gone = [planes[0]] + [m for m in members if m not in planes][:2]
+        planes_gone = {planes[0]}
+        ref = before.mean_directions("site", COORD_GEOGRAPHIC, group=site).iloc[0]
+        assert ref["dir_n_specimens_planes"] >= 1 and ref["dir_n_specimens_lines"] >= 3
+        path = os.path.join(directory, "measurements.txt")
+        meas = pd.read_csv(path, sep="\t", header=1, dtype=str, keep_default_na=False)
+        with open(path, "w") as fh:
+            fh.write("tab\tmeasurements\n" + meas[~meas["specimen"].isin(gone)].to_csv(sep="\t", index=False,
+                                                                                       lineterminator="\n"))
+        after = DemagData.from_directory(directory)
+        after.load_components_from_specimens_table()
+        assert not set(gone) & set(after.specimens)
+        mean = after.mean_directions("site", COORD_GEOGRAPHIC, group=site).iloc[0]
+        assert set(mean["specimens"].split(":")) == set(ref["specimens"].split(":"))
+        assert set(mean["stored_specimens"].split(":")) == set(gone)
+        assert pmag.angle([mean["dir_dec"], mean["dir_inc"]], [ref["dir_dec"], ref["dir_inc"]])[0] < 0.15
+        assert mean["dir_alpha95"] == pytest.approx(ref["dir_alpha95"], abs=0.1)
+        assert (mean["dir_n_specimens_lines"], mean["dir_n_specimens_planes"]) == \
+            (ref["dir_n_specimens_lines"], ref["dir_n_specimens_planes"])
+        # the planes that are still re-fitted are placed by the stored lines as well
+        assert set(after.best_fit_vectors(COORD_GEOGRAPHIC)) == \
+            {k for k in before.best_fit_vectors(COORD_GEOGRAPHIC) if k[0] not in planes_gone}
+
+    def test_the_written_means_include_and_name_them(self, tmp_path):
+        directory = _copy_study(DMAG_DIR, tmp_path / "dmag")
+        data = DemagData.from_directory(directory)
+        data.load_components_from_specimens_table()
+        out = tmp_path / "out"
+        out.mkdir()
+        data.write_means("site", str(out), coords=(COORD_GEOGRAPHIC, COORD_TILT))
+        data.write_means("location", str(out), coords=(COORD_GEOGRAPHIC, COORD_TILT))
+        sites = pd.read_csv(out / "sites.txt", sep="\t", header=1, dtype=str)
+        rows = sites[(sites["site"] == "sp102") & sites["dir_dec"].notna()]
+        assert len(rows) == 1                     # pmagpy-2.92's two rows (7 specimens, 211.2/-51.0) replaced
+        row = rows.iloc[0]
+        assert (row["dir_dec"], row["dir_inc"], row["dir_n_specimens"]) == ("214.1", "-51.5", "13")
+        assert row["specimens"].split(":") == SP102 and "pmagpy_directions" in row["software_packages"]
+        assert sites["site"].nunique() == 37 and "stored_specimens" not in sites.columns
+        assert any(w.startswith("sites: 14 written means include 125 stored interpretations of 125 specimens "
+                                "with no measurements here") for w in data.warnings)
+        locations = pd.read_csv(out / "locations.txt", sep="\t", header=1, dtype=str)
+        spitsbergen = locations[(locations["location"] == "Spitsbergen") & locations["dir_dec"].notna()]
+        assert len(spitsbergen) == 1 and spitsbergen.iloc[0]["sites"].split(":")[0] == "sp100"
+        assert any(w.startswith("locations: 1 written mean includes 125 stored interpretations") for w in data.warnings)
+        assert not any("dropped non-MagIC columns ['stored_specimens']" in w for w in data.warnings)

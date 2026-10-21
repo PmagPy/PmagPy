@@ -144,6 +144,46 @@ def orientation_html(orient) -> str:
 
 
 PLANE_FITS = ("plane fit", "plane fits")
+STORED_NOTE = "stored, no measurements here"
+
+
+def stored_records(session, level, name, coord, comp=None):
+    """The side-table rows of a group's stored-only interpretations, with whether each is plotted.
+
+    These are interpretations specimens.txt keeps for specimens without
+    measurements here: listed as stored, with their stored direction in
+    ``coord`` (a plane's pole), and plotted when that direction exists and
+    the interpretation is good -- as a re-fitted fit is.
+    """
+    out = []
+    stored = session.data.stored_interpretations_in(level, name)
+    if not len(stored):
+        return out
+    for (spec_name, comp_name), grp in stored.groupby(["specimen", "dir_comp"], sort=False):
+        if comp and comp_name != comp:
+            continue
+        here = grp[grp["dir_tilt_correction"] == int(coord)]
+        row = (here if len(here) else grp).iloc[0]
+        is_plane = row["dir_type"] == "p"
+        quality = row["result_quality"]
+        color = session.color_of(comp_name)
+        if is_plane:
+            rec = dict(specimen=spec_name, fit=comp_name, **{"pole dec": "–", "pole inc": "–"}, MAD="–",
+                       **{"bfv dec": "–", "bfv inc": "–"}, n="–", q=quality)
+        else:
+            rec = dict(specimen=spec_name, fit=comp_name, dec="–", inc="–", MAD="–", n="–", q=quality)
+        rec.update(_comp=None, _color=color, _stored=True, _plane=is_plane)
+        plotted = False
+        if len(here):
+            key = ("pole dec", "pole inc") if is_plane else ("dec", "inc")
+            n = row["dir_n_measurements"]
+            rec.update({key[0]: _fmt(row["dir_dec"]), key[1]: _fmt(row["dir_inc"]),
+                        "MAD": _fmt(row["dir_mad_free"]), "n": "–" if pd.isna(n) else int(n)})
+            if quality == "g":
+                rec.update(_dec=float(row["dir_dec"]), _inc=float(row["dir_inc"]))
+                plotted = True
+        out.append((rec, plotted))
+    return out
 LONE_PLANE_NOTE = ("{}: one plane and no line, so dec/inc is the plane's pole, not a mean direction; "
                    "it is not written to the tables")
 
@@ -217,6 +257,18 @@ class LevelMeansCard:
                                                        "color": color})
                 if cur is not None and c.key() == cur.key():
                     mark = (res.dir_dec, res.dir_inc, res.direction_type == "p")
+        self._n_stored = 0
+        for rec, plotted in stored_records(s, level, name, coord):
+            self._n_stored += 1
+            if not plotted:
+                continue
+            if rec["_plane"]:
+                planes.append((rec["_dec"], rec["_inc"], rec["_color"]))
+            else:
+                dirs.append((rec["_dec"], rec["_inc"], rec["specimen"], rec["fit"], rec["_color"]))
+            by_comp.setdefault(rec["fit"], []).append({"dir_dec": rec["_dec"], "dir_inc": rec["_inc"],
+                                                       "dir_type": "p" if rec["_plane"] else "l",
+                                                       "specimen": rec["specimen"], "color": rec["_color"]})
         vectors = []
         for comp_name, recs in by_comp.items():
             on_planes = [r for r in recs if r["dir_type"] == "p"]
@@ -284,8 +336,11 @@ class LevelMeansCard:
                         f'<td {cell}>{_fmt(m.get("dir_dec"))}</td><td {cell}>{_fmt(m.get("dir_inc"))}</td>'
                         f'<td {cell}>{spread}</td><td {cell}>{"" if bingham else _fmt(m.get("dir_k"))}</td>'
                         f'<td {cell}>{n}</td></tr>')
-        caption = (f'<div style="{MUTED_STYLE};margin:2px 0 4px 0">{n_spec} specimen{"s" if n_spec != 1 else ""} · '
-                   f'{n_lines} line{"s" if n_lines != 1 else ""}'
+        n_stored = getattr(self, "_n_stored", 0)
+        stored = (f' · {n_stored} stored interpretation{"s" if n_stored != 1 else ""} ({STORED_NOTE})'
+                  if n_stored else "")
+        caption = (f'<div style="{MUTED_STYLE};margin:2px 0 4px 0">{n_spec} specimen{"s" if n_spec != 1 else ""}'
+                   f'{stored} · {n_lines} line{"s" if n_lines != 1 else ""}'
                    + (f' · {n_planes} plane{"s" if n_planes != 1 else ""}' if n_planes else "")
                    + ' · the current fit is ringed</div>')
         if not rows:
@@ -823,11 +878,13 @@ class MeansView(LazyView):
     def _on_level(self, *events):
         s = self.s
         level = self.level.value
-        names = s.data.names_at(level)
+        names = s.data.mean_group_names(level)
         self.name.options = names
         if self.name.value not in names:
             self.name.value = names[0] if names else None
         comps = ["all"] + s.data.component_names()
+        stored = s.data.stored_only_interpretations()
+        comps += [c for c in dict.fromkeys(stored["dir_comp"]) if c not in comps] if len(stored) else []
         self.comp.options = comps
         if self.comp.value not in comps:
             self.comp.value = "all"
@@ -883,10 +940,26 @@ class MeansView(LazyView):
                                 {"dir_dec": res.dir_dec, "dir_inc": res.dir_inc,
                                  "dir_type": res.direction_type, "specimen": spec_name, "color": color})
                     (plane_records if is_plane else records).append(rec)
+            stored_items = []
+            for rec, plotted in stored_records(s, level, name, coord, comp):
+                (plane_records if rec["_plane"] else records).append(rec)
+                if plotted:
+                    if rec["_plane"]:
+                        planes.append((rec["_dec"], rec["_inc"], rec["_color"]))
+                    else:
+                        dirs.append((rec["_dec"], rec["_inc"], rec["specimen"], rec["fit"], rec["_color"]))
+                    by_comp.setdefault(rec["fit"], []).append(
+                        {"dir_dec": rec["_dec"], "dir_inc": rec["_inc"], "dir_type": "p" if rec["_plane"] else "l",
+                         "specimen": rec["specimen"], "color": rec["_color"]})
+                    stored_items.append((rec["fit"], rec["_plane"], [rec["specimen"]]))
+            if any(r.get("_stored") for r in records + plane_records):
+                for rec in records + plane_records:
+                    rec["note"] = STORED_NOTE if rec.get("_stored") else ""
         else:
             lower = over[:-1]
             lower_means = s.data.mean_directions(lower, coord, comp)
-            parent_of = {getattr(sp, lower): getattr(sp, level) for sp in s.data.specimens.values()}
+            parent_of = s.data.parent_names(lower, level)
+            stored_items = []
             for _, m in lower_means.iterrows():
                 if parent_of.get(m[lower]) != name:
                     continue
@@ -911,6 +984,10 @@ class MeansView(LazyView):
                 by_comp.setdefault(comp_name, []).append(
                     {"dir_dec": m["dir_dec"], "dir_inc": m["dir_inc"], "dir_type": "p" if lone else "l",
                      "specimen": m[lower], "color": color})
+                stored = [n for n in str(m.get("stored_specimens") or "").split(":") if n]
+                if stored:
+                    stored_items.append((comp_name, lone, stored))
+        self._stored_items = stored_items
         self._plane_unit = PLANE_FITS if over == "specimens" else (f"{over[:-1]} mean resting on a single plane",
                                                                     f"{over[:-1]} means resting on a single plane")
         # only the group on show is averaged (the polarity axis of a location's mean
@@ -972,6 +1049,31 @@ class MeansView(LazyView):
                 notes.append(f"{m['dir_comp_name']}: one direction, so no α95, k or r (they need at least two)")
             elif dc._is_lone_plane(m):
                 notes.append(LONE_PLANE_NOTE.format(m["dir_comp_name"]))
+        return notes
+
+    def _stored_notes(self, means):
+        """Per mean: how many of the interpretations it rests on are stored ones, and which.
+
+        ``means`` is the Fisher table (whose rows name the stored interpretations
+        they include); None for the by-polarity and Bingham means, which average
+        the plotted directions and take no plane.
+        """
+        by_comp: dict = {}
+        if means is not None:
+            if len(means) and "stored_specimens" in means.columns:
+                for comp_name, names in zip(means["dir_comp_name"], means["stored_specimens"].fillna("")):
+                    by_comp.setdefault(comp_name, []).extend(n for n in str(names).split(":") if n)
+        else:
+            for comp_name, is_plane, names in getattr(self, "_stored_items", []):
+                if not is_plane:
+                    by_comp.setdefault(comp_name, []).extend(names)
+        notes = []
+        for comp_name, names in by_comp.items():
+            names = list(dict.fromkeys(names))
+            if names:
+                notes.append(f"{comp_name}: {len(names)} stored interpretation{'s' if len(names) != 1 else ''}, "
+                             f"no measurements here (as specimens.txt has them, not re-fitted): "
+                             + ", ".join(names[:20]) + (" ..." if len(names) > 20 else ""))
         return notes
 
     def _alternative_shortfalls(self, dirs, planes, rows, plane_unit=PLANE_FITS):
@@ -1050,7 +1152,7 @@ class MeansView(LazyView):
         self.table_head.object = f'<div style="{SECTION_STYLE}">{listed} · select a row</div>'
         notes = []
         if self.stat.value == "fisher":
-            notes = self._blank_statistics(means)
+            notes = self._blank_statistics(means) + self._stored_notes(means)
             cols = [c for c in ["dir_comp_name"] + MEAN_COLUMNS if c in means.columns]
             table = means[cols].round(1) if len(means) else pd.DataFrame()
             # a count that is zero throughout says nothing (no planes among the fits,
@@ -1063,6 +1165,7 @@ class MeansView(LazyView):
             # report only the columns they define (a Bingham ellipse has no α95)
             rows = self._alternative_means(dirs)
             notes = self._alternative_shortfalls(dirs, planes, rows, getattr(self, "_plane_unit", PLANE_FITS))
+            notes += self._stored_notes(None)
             alt = pd.DataFrame(rows)
             keep = ["dir_comp_name", "mode", "dir_dec", "dir_inc", "dir_alpha95", "dir_k",
                     "dir_n_specimens", "eta", "zeta"]
@@ -1212,7 +1315,7 @@ class PolesView(LazyView):
                       for _, v in vgps.iterrows()]
 
     def _sites(self):
-        used = set(self.s.data.names_at("site"))
+        used = set(self.s.data.mean_group_names("site"))
         return [(lon, lat, name) for name, (lat, lon) in self.s.data.site_coords.items() if name in used]
 
     def _centre(self, pole, rows, sites):
@@ -1954,7 +2057,7 @@ class ExportView:
 
     def _save_vgp_maps(self, event=None):
         coord = self.fig_coord.value
-        used = set(self.s.data.names_at("site"))
+        used = set(self.s.data.mean_group_names("site"))
         sites = [(lon, lat, name) for name, (lat, lon) in self.s.data.site_coords.items() if name in used]
         saved = []
         for comp in self.s.data.component_names():

@@ -1055,6 +1055,66 @@ class TestMeansView:
         dirs, planes, _fisher, lines, plane_rows, _vectors = means._collect()
         assert len(dirs) == len(lines) > 0 and all(not r["_plane"] for r in lines)
 
+    def test_stored_interpretations_are_listed_and_counted(self, tmp_path):
+        """dmag_magic sp102: 13 interpretations stored for specimens without readable measurements.
+
+        The site is offered, its mean (214.1/−51.5, 8 lines and 5 planes) rests on
+        all of them, every one is listed as stored, and the export says how many
+        stored interpretations went into the written means.
+        """
+        from pmagpy_directions.views import MeansView, STORED_NOTE
+        src = os.path.join(_HERE, "..", "..", "data_files", "dmag_magic")
+        study = str(tmp_path / "dmag_magic")
+        shutil.copytree(src, study)
+        s = Session(study, output_dir=str(tmp_path / "work"))
+        s.coord = dc.COORD_GEOGRAPHIC
+        means = MeansView(s)
+        means.level.value = "site"
+        assert "sp102" in means.name.options and "sp102" not in s.data.names_at("site")
+        means.name.value = "sp102"
+        row = means.stats.object.iloc[0]
+        assert (row["dec"], row["inc"], row["α95"], row["n_spec"]) == (214.1, -51.5, 3.2, 13)
+        lines, planes = means.table.value, means.plane_table.value
+        assert len(lines) == 8 and len(planes) == 5 and (lines["note"] == STORED_NOTE).all()
+        assert (planes["note"] == STORED_NOTE).all() and (planes["bfv dec"] != "–").all()
+        assert len(means.plot.src.data["x"]) == 8 and len(means.plot.circles.data["xs"]) == 5
+        assert ("A: 13 stored interpretations, no measurements here (as specimens.txt has them, not re-fitted): "
+                "sp102a1, sp102a2, sp102b1") in means.stats_note.object
+        means.stat.value = "bingham"                     # the 8 lines only
+        assert means.stats.object.iloc[0]["n_spec"] == 8
+        assert "A: 8 stored interpretations" in means.stats_note.object
+        means.stat.value = "fisher"
+        means.name.value = "jm002"                       # re-fitted: nothing stored, no note column
+        assert "note" not in means.table.value.columns and "stored" not in means.stats_note.object
+
+        written = s.export_tables(output_dir=str(tmp_path / "out"))
+        assert any(p.endswith("sites.txt") for p in written)
+        assert any(w.startswith("sites: 14 written means include 125 stored interpretations of 125 specimens")
+                   for w in s.data.warnings)
+        assert any(w.startswith("samples: ") and "stored interpretations" in w for w in s.data.warnings)
+
+    def test_the_specimen_tab_card_draws_stored_interpretations(self, tmp_path):
+        """jm002 with jm002a1's measurements removed: its stored line is drawn and counted in the card."""
+        from pmagpy_directions.views import SpecimenView
+        src = os.path.join(_HERE, "..", "..", "data_files", "dmag_magic")
+        study = str(tmp_path / "dmag_magic")
+        shutil.copytree(src, study)
+        path = os.path.join(study, "measurements.txt")
+        meas = pd.read_csv(path, sep="\t", header=1, dtype=str, keep_default_na=False)
+        with open(path, "w") as fh:
+            fh.write("tab\tmeasurements\n" + meas[meas["specimen"] != "jm002a1"].to_csv(sep="\t", index=False,
+                                                                                        lineterminator="\n"))
+        s = Session(study, output_dir=str(tmp_path / "work"))
+        s.coord = dc.COORD_GEOGRAPHIC
+        view = SpecimenView(s)
+        s.specimen = "jm002c1"
+        view.levels.level.value = "site"
+        dirs, planes, _vectors, _mark = view.levels._collect("site", "jm002", dc.COORD_GEOGRAPHIC)
+        assert "jm002a1" in [d[2] for d in dirs]
+        assert "1 stored interpretation (stored, no measurements here)" in view.levels.stats.object
+        fisher = s.data.mean_directions("site", dc.COORD_GEOGRAPHIC, group="jm002").iloc[0]
+        assert fisher["dir_n_specimens"] == len(dirs) + len(planes)
+
     def test_a_mean_on_one_plane_is_marked_as_not_written(self, tmp_path):
         """A lone plane is listed with its pole, and both mean views say it is not written, as the export does."""
         from pmagpy_directions.views import MeansView, SpecimenView

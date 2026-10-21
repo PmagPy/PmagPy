@@ -1271,6 +1271,131 @@ class DemagData:
         comp = rows["dir_comp"].fillna("").astype(str) if "dir_comp" in rows.columns else pd.Series("", index=rows.index)
         return int(pd.DataFrame({"s": rows["specimen"].astype(str), "c": comp}).drop_duplicates().shape[0])
 
+    STORED_STAT_COLUMNS = ("dir_mad_free", "dir_dang", "dir_alpha95", "dir_n_measurements")
+
+    def stored_only_interpretations(self) -> pd.DataFrame:
+        """The directional interpretations specimens.txt holds for specimens this study cannot re-fit.
+
+        A specimen with no measurements here (or none that can be read as a
+        demagnetization) cannot be interpreted again, and an export keeps its
+        rows in specimens.txt as they are. Those interpretations take part in
+        the sample, site and location means as stored: the row's dir_dec and
+        dir_inc in the row's coordinate system, a plane when its method codes
+        hold DE-BFP and a line otherwise. The stored direction of a DE-BFP row
+        is the pole to the plane -- what ``pmag.domean`` reports, what the
+        legacy Demag GUI wrote and averaged as a plane, and what a re-fitted
+        plane carries here -- while ``dir_bfv_dec``/``dir_bfv_inc`` hold the
+        vector on the plane.
+
+        Rows are left out (and counted in ``warnings``) when they have no
+        component name or no coordinate system; rows without a fit code
+        (DE-BFL, DE-BFL-A, DE-BFL-O, DE-BFP, DE-FM), paleointensity results and
+        a repeat of a (specimen, component, coordinate system) already taken
+        are passed over, as the import of re-fittable interpretations does.
+
+        Returns:
+            one row per (specimen, component, coordinate system) with
+            ``specimen``, ``sample``, ``site``, ``location``, ``dir_comp``,
+            ``dir_tilt_correction`` (int), ``dir_dec``, ``dir_inc``,
+            ``dir_type`` ('l' or 'p'), ``method_codes``, ``result_quality``
+            and the statistics a criterion judges; empty when there are none.
+        """
+        tables = tuple(self.contribution.tables.get(n) for n in ("specimens", "samples", "sites"))
+        frames = tuple(getattr(t, "df", None) for t in tables)
+        cached = getattr(self, "_stored_cache", None)
+        if cached is not None and len(cached[0]) == len(frames) and all(a is b for a, b in zip(cached[0], frames)):
+            return cached[1]
+        out = self._read_stored_only()
+        self._stored_cache = (frames, out)
+        return out
+
+    def _read_stored_only(self) -> pd.DataFrame:
+        columns = ["specimen", "sample", "site", "location", "dir_comp", "dir_tilt_correction", "dir_dec", "dir_inc",
+                   "dir_type", "method_codes", "result_quality", *self.STORED_STAT_COLUMNS]
+        empty = pd.DataFrame(columns=columns)
+        spec_df = self._table("specimens")
+        if spec_df is None or not {"specimen", "dir_dec", "dir_inc", "method_codes"} <= set(spec_df.columns):
+            return empty
+        rows = spec_df[~spec_df["specimen"].astype(str).isin(self.specimens)].copy()
+        rows["dir_dec"] = pd.to_numeric(rows["dir_dec"], errors="coerce")
+        rows["dir_inc"] = pd.to_numeric(rows["dir_inc"], errors="coerce")
+        rows = rows[rows["dir_dec"].notna() & rows["dir_inc"].notna()]
+        codes = rows["method_codes"].map(_codes)
+        fit = codes.map(lambda cs: next((c for c in cs if c in FIT_TYPES), None))
+        intensity = codes.map(lambda cs: "DE-BLANKET" in cs or any(c.startswith("LP-PI") for c in cs))
+        rows = rows[fit.notna() & ~intensity]
+        if len(rows) == 0:
+            return empty
+        tilt = pd.to_numeric(rows["dir_tilt_correction"], errors="coerce") if "dir_tilt_correction" in rows.columns \
+            else pd.Series(np.nan, index=rows.index)
+        comp = rows["dir_comp"].fillna("").astype(str).str.strip() if "dir_comp" in rows.columns \
+            else pd.Series("", index=rows.index)
+        unplaced = (comp == "") | tilt.isna()
+        if unplaced.any():
+            names = sorted(set(rows.loc[unplaced, "specimen"].astype(str)), key=_natural_key)
+            self._warn_once(f"specimens.txt: {int(unplaced.sum())} stored interpretations of specimens without "
+                            "measurements here have no component name (dir_comp) or no coordinate system "
+                            "(dir_tilt_correction), so no mean includes them: " + ", ".join(names[:5])
+                            + (" ..." if len(names) > 5 else ""))
+        rows = rows[~unplaced].assign(dir_comp=comp[~unplaced], dir_tilt_correction=tilt[~unplaced].astype(int))
+        rows = rows.drop_duplicates(subset=["specimen", "dir_comp", "dir_tilt_correction"], keep="first")
+        names = list(dict.fromkeys(rows["specimen"].astype(str)))
+        known = [n for n in names if n in self.hierarchy.index]
+        hier = mp.build_hierarchy(pd.DataFrame({"specimen": [n for n in names if n not in self.hierarchy.index]}),
+                                  spec_df, self._table("samples"), self._table("sites"))
+        hier = pd.concat([self.hierarchy.loc[known, ["sample", "site", "location"]], hier])
+        out = pd.DataFrame({"specimen": rows["specimen"].astype(str).values})
+        for level in ("sample", "site", "location"):
+            out[level] = [str(v) if not _is_null(v) else "" for v in hier.loc[out["specimen"], level]]
+        out["dir_comp"] = rows["dir_comp"].values
+        out["dir_tilt_correction"] = rows["dir_tilt_correction"].values
+        out["dir_dec"] = rows["dir_dec"].astype(float).values
+        out["dir_inc"] = rows["dir_inc"].astype(float).values
+        out["dir_type"] = ["p" if c == "DE-BFP" else "l" for c in fit[rows.index]]
+        out["method_codes"] = rows["method_codes"].values
+        quality = rows["result_quality"] if "result_quality" in rows.columns else pd.Series("g", index=rows.index)
+        out["result_quality"] = ["b" if str(q).strip() == "b" else "g" for q in quality]
+        for col in self.STORED_STAT_COLUMNS:
+            out[col] = pd.to_numeric(rows[col], errors="coerce").values if col in rows.columns else np.nan
+        return out
+
+    def _stored_for_means(self, coord: int, component: Optional[str] = None,
+                          include_bad: bool = False) -> pd.DataFrame:
+        """The stored-only interpretations a mean in ``coord`` takes: the selection re-fitted fits get."""
+        stored = self.stored_only_interpretations()
+        if len(stored) == 0:
+            return stored
+        stored = stored[stored["dir_tilt_correction"] == int(coord)]
+        if component is not None:
+            stored = stored[stored["dir_comp"] == str(component)]
+        if not include_bad and len(stored):
+            stored = stored[stored["result_quality"] != "b"]
+            stored = stored[~self._fails(stored, "specimen")]
+        return stored
+
+    def stored_interpretations_in(self, level: str, name: str) -> pd.DataFrame:
+        """The stored-only interpretations of one sample, site or location (every coordinate system and quality)."""
+        stored = self.stored_only_interpretations()
+        return stored[stored[level] == str(name)] if len(stored) else stored
+
+    def mean_group_names(self, level: str) -> list[str]:
+        """The samples, sites or locations a mean can be formed for: those with demag data here,
+        then those whose only interpretations are stored ones (see :meth:`stored_only_interpretations`)."""
+        names = self.names_at(level)
+        stored = self.stored_only_interpretations()
+        if len(stored):
+            seen = set(names)
+            names += [n for n in dict.fromkeys(stored[level]) if n and n not in seen]
+        return names
+
+    def parent_names(self, lower: str, level: str) -> dict:
+        """``{lower name: parent name}`` over the specimens with data and the stored-only interpretations."""
+        parent_of = {getattr(spec, lower): getattr(spec, level) for spec in self.specimens.values()}
+        stored = self.stored_only_interpretations()
+        for child, parent in zip(stored[lower], stored[level]) if len(stored) else ():
+            parent_of.setdefault(child, parent)
+        return parent_of
+
     def load_components_from_specimens_table(self, coord: Optional[int] = None) -> int:
         """Import prior interpretations stored in the contribution's specimens table.
 
@@ -1575,11 +1700,19 @@ class DemagData:
                 continue
             if not getattr(spec, level):                # no sample/site/location to average into
                 continue
-            rows.append({"group": getattr(spec, level), "site": spec.site,
+            rows.append({"group": getattr(spec, level), "sample": spec.sample, "site": spec.site,
                          "location": spec.location, "dir_comp": r.dir_comp,
                          "dir_dec": r.dir_dec, "dir_inc": r.dir_inc,
                          "dir_tilt_correction": coord, "method_codes": r.method_codes,
-                         "dir_type": r.direction_type, "specimen": r.specimen})
+                         "dir_type": r.direction_type, "specimen": r.specimen, "stored": False})
+        # the interpretations of specimens without measurements here, as specimens.txt stores them
+        for r in self._stored_for_means(coord, component, include_bad).to_dict("records"):
+            if not r[level] or (r["site"], r["dir_comp"]) in failing_sites:
+                continue
+            rows.append({"group": r[level], "sample": r["sample"], "site": r["site"], "location": r["location"],
+                         "dir_comp": r["dir_comp"], "dir_dec": r["dir_dec"], "dir_inc": r["dir_inc"],
+                         "dir_tilt_correction": coord, "method_codes": r["method_codes"],
+                         "dir_type": r["dir_type"], "specimen": r["specimen"], "stored": True})
         if not rows:
             return pd.DataFrame()
         df = pd.DataFrame(rows)
@@ -1608,10 +1741,11 @@ class DemagData:
                    "dir_n_specimens_lines": int(_to_float(lnp.get("n_lines"), 0)),
                    "dir_n_specimens_planes": int(_to_float(lnp.get("n_planes"), 0)),
                    "specimens": ":".join(grp["specimen"]),
-                   "dir_n_samples": len({self.specimens[sp].sample for sp in grp["specimen"]}),
+                   "dir_n_samples": len(set(grp["sample"])),
+                   "stored_specimens": ":".join(grp.loc[grp["stored"], "specimen"]),
                    "site": grp["site"].iloc[0], "location": grp["location"].iloc[0]}
             if level == "site":
-                rec["samples"] = ":".join(dict.fromkeys(self.specimens[sp].sample for sp in grp["specimen"]))
+                rec["samples"] = ":".join(dict.fromkeys(grp["sample"]))
             elif level == "location":
                 rec["sites"] = ":".join(dict.fromkeys(grp["site"].astype(str)))
             codes = set()
@@ -1668,14 +1802,23 @@ class DemagData:
             groups.setdefault(key, []).append(
                 {"dir_dec": r.dir_dec, "dir_inc": r.dir_inc, "dir_type": r.direction_type,
                  "dir_tilt_correction": coord, "method_codes": r.method_codes, "specimen": r.specimen})
+        # stored-only interpretations take part in the group's mean, so they place its planes as well;
+        # their own rows are kept as stored, so only the re-fitted planes are returned
+        for r in self._stored_for_means(coord, None, include_bad).to_dict("records"):
+            if r[level]:
+                groups.setdefault((r[level], r["dir_comp"]), []).append(
+                    {"dir_dec": r["dir_dec"], "dir_inc": r["dir_inc"], "dir_type": r["dir_type"],
+                     "dir_tilt_correction": coord, "method_codes": r["method_codes"], "specimen": r["specimen"],
+                     "stored": True})
         out = {}
         for (_, comp_name), recs in groups.items():
             planes = [rec for rec in recs if rec["dir_type"] == "p"]
-            if not planes:
+            if not any(not rec.get("stored") for rec in planes):
                 continue
             vectors = plane_best_fit_vectors(recs)
             for rec, (dec, inc) in zip(planes, vectors):
-                out[(rec["specimen"], comp_name)] = (dec, inc)
+                if not rec.get("stored"):
+                    out[(rec["specimen"], comp_name)] = (dec, inc)
         return out
 
     def _mean_of_means(self, level, coord, component, include_bad, over, common_polarity=True,
@@ -1688,9 +1831,7 @@ class DemagData:
             lower_means = lower_means[~self._fails(lower_means, lower)]
         if len(lower_means) == 0:
             return lower_means
-        parent_of = {}
-        for spec in self.specimens.values():
-            parent_of[getattr(spec, lower)] = getattr(spec, level)
+        parent_of = self.parent_names(lower, level)
         lower_means = lower_means.copy()
         lower_means["group"] = lower_means[lower].map(parent_of)
         # a lower mean without a parent (a site with no location) is averaged into nothing
@@ -1723,6 +1864,9 @@ class DemagData:
                    "dir_n_specimens_planes": int(_to_float(lnp.get("n_planes"), 0)),
                    "dir_n_specimens": int(grp["dir_n_specimens"].sum()),
                    lower + "s": ":".join(grp[lower].astype(str)),
+                   "stored_specimens": ":".join(dict.fromkeys(
+                       name for names in grp["stored_specimens"].fillna("").astype(str)
+                       for name in names.split(":") if name)),
                    "location": grp["location"].iloc[0] if "location" in grp else group,
                    "method_codes": _join_codes(set(c for mc in grp["method_codes"] for c in _codes(mc))
                                                | {"DE-FM-LP" if any(r["dir_type"] == "p" for r in recs) else "DE-FM"})}
@@ -1807,7 +1951,8 @@ class DemagData:
         """``{name: coordinate systems}`` an export in ``coords`` recomputes for each entity at ``level``.
 
         A specimen yields a coordinate system its orientation allows; a sample,
-        site or location every system one of its specimens yields. Rows of an
+        site or location every system one of its specimens yields, and every
+        system one of its stored-only interpretations is stored in. Rows of an
         entity in any other system are the application's to keep, not to replace.
         """
         wanted = {int(c) for c in coords}
@@ -1817,11 +1962,35 @@ class DemagData:
             if not name:
                 continue
             out.setdefault(str(name), set()).update(c for c in spec.available_coords() if c in wanted)
+        if level != "specimen":
+            # a mean resting on stored-only interpretations is recomputed in their coordinate systems
+            stored = self.stored_only_interpretations()
+            for name, coord in zip(stored[level], stored["dir_tilt_correction"]) if len(stored) else ():
+                if name and int(coord) in wanted:
+                    out.setdefault(str(name), set()).add(int(coord))
         return out
 
     def _warn_once(self, text: str) -> None:
         if text not in self.warnings:
             self.warnings.append(text)
+
+    def _report_stored(self, table: str, means: pd.DataFrame) -> None:
+        """Say how many stored-only interpretations the written means of ``table`` rest on."""
+        if len(means) == 0 or "stored_specimens" not in means.columns:
+            return
+        pairs, used = set(), 0
+        for names, comp in zip(means["stored_specimens"].fillna("").astype(str), means["dir_comp_name"]):
+            found = [n for n in names.split(":") if n]
+            pairs.update((n, str(comp)) for n in found)
+            used += bool(found)
+        if not pairs:
+            return
+        specimens = sorted({n for n, _ in pairs}, key=_natural_key)
+        means_text = "1 written mean includes" if used == 1 else f"{used} written means include"
+        self._warn_once(f"{table}: {means_text} {len(pairs)} stored interpretation{'s' if len(pairs) != 1 else ''} "
+                        f"of {len(specimens)} specimen{'s' if len(specimens) != 1 else ''} with no measurements "
+                        "here, as specimens.txt has them (not re-fitted): " + ", ".join(specimens[:8])
+                        + (" ..." if len(specimens) > 8 else ""))
 
     def _stamp(self, df: pd.DataFrame, analysts: Optional[str] = None) -> pd.DataFrame:
         if len(df) == 0:
@@ -1985,6 +2154,7 @@ class DemagData:
             means = means[~lone_plane].reset_index(drop=True)
         if len(means) == 0:
             return pd.DataFrame()
+        self._report_stored(level + "s", means)
         means["result_type"] = "a"
         means["result_quality"] = "g"
         means.loc[self._fails(means, level), "result_quality"] = "b"
@@ -2000,7 +2170,7 @@ class DemagData:
                 means[col] = pd.to_numeric(means[col], errors="coerce").round(4 if col == "dir_r" else 1)
         if "dir_k" in means.columns:
             means["dir_k"] = means["dir_k"].replace([np.inf], np.nan)
-        internal = ["reversed_perc"]                 # helper columns of mean_directions, not MagIC columns
+        internal = ["reversed_perc", "stored_specimens"]     # helper columns of mean_directions, not MagIC columns
         if level == "sample":           # sample coordinates and VGPs belong to sites, never to sample rows
             internal += ["lat", "lon", "location", "vgp_lat", "vgp_lon", "vgp_dp", "vgp_dm"]
         means = means.drop(columns=[c for c in internal if c in means.columns])
@@ -2016,7 +2186,7 @@ class DemagData:
             new.loc[has, ["lat", "lon"]] = np.nan
         new = mp.carry_annotations(new, existing, level)
         new = carry_metadata(new, existing, level)
-        merged = merge_results(existing, new, level, owned=self.names_at(level),
+        merged = merge_results(existing, new, level, owned=self.mean_group_names(level),
                                produced=self.produced_coords(level, self._coords_arg(coord, coords)),
                                warnings=self.warnings)
         return trim_to_model(merged, table, self.warnings)
@@ -2061,6 +2231,7 @@ class DemagData:
         if not parts:
             return pd.DataFrame()
         means = pd.concat(parts, ignore_index=True, sort=False)
+        self._report_stored("locations", means)
         rows = []
         for _, m in means.iterrows():
             loc, comp, coord = m["location"], m["dir_comp_name"], int(m["dir_tilt_correction"])
@@ -2093,7 +2264,7 @@ class DemagData:
         new = carry_metadata(new, existing, "location")
         new = self._fill_location_extent(new)
         new = self._aggregate_site_geology(new)
-        merged = merge_results(existing, new, "location", owned=self.names_at("location"),
+        merged = merge_results(existing, new, "location", owned=self.mean_group_names("location"),
                                produced=self.produced_coords("location", self._coords_arg(coord, coords)),
                                warnings=self.warnings)
         return trim_to_model(merged, "locations", self.warnings)
@@ -2113,9 +2284,12 @@ class DemagData:
                 locations[c] = np.nan
             locations[c] = locations[c].astype(object)
         by_location: dict = {}
-        for spec in self.specimens.values():
-            if spec.location and spec.site in self.site_coords:
-                by_location.setdefault(spec.location, {})[spec.site] = self.site_coords[spec.site]
+        stored = self.stored_only_interpretations()
+        members = [(spec.location, spec.site) for spec in self.specimens.values()] + \
+            (list(zip(stored["location"], stored["site"])) if len(stored) else [])
+        for location, site in members:
+            if location and site in self.site_coords:
+                by_location.setdefault(location, {})[site] = self.site_coords[site]
         for i, row in locations.iterrows():
             if not all(_is_null(row[c]) for c in ("lat_s", "lat_n", "lon_w", "lon_e")):
                 continue
