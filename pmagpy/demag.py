@@ -808,6 +808,29 @@ def _is_lone_plane(mean) -> bool:
     return lines == 0 and planes == 1
 
 
+def _tilt_codes_as_integers(df: pd.DataFrame) -> pd.DataFrame:
+    """``dir_tilt_correction`` as the integer codes MagIC defines (-1, 0, 100), not -1.0, 0.0, 100.0.
+
+    The rows Directions builds carry the codes as integers, but the rows kept
+    from the existing table are read as numbers (floats), and pandas makes a
+    column holding both -- or one with a blank cell -- a float column, which
+    was written -1.0 / 0.0 / 100.0. Every whole number is written as an
+    integer again; a partial correction that is not a whole number, and any
+    text, are left as they are.
+    """
+    col = "dir_tilt_correction"
+    if col not in df.columns or len(df) == 0:
+        return df
+    cells = df[col]
+    whole = [isinstance(v, (int, float, np.number)) and not isinstance(v, bool) and bool(np.isfinite(v))
+             and float(v).is_integer() for v in cells]
+    if not any(whole):
+        return df
+    df = df.copy()
+    df[col] = pd.Series([int(v) if w else v for v, w in zip(cells, whole)], index=df.index, dtype=object)
+    return df
+
+
 def _has_direction(mean) -> bool:
     return not _is_lone_plane(mean) and not np.isnan(_to_float(mean.get("dir_dec"))) \
         and not np.isnan(_to_float(mean.get("dir_inc")))
@@ -2068,7 +2091,7 @@ class DemagData:
             self._warn_once(f"{len(unplaced)} specimens have no sample (in specimens.txt or measurements.txt), "
                             f"so no sample, site or location means include them: {', '.join(unplaced[:5])}"
                             + (" ..." if len(unplaced) > 5 else ""))
-        return trim_to_model(merged, "specimens", self.warnings)
+        return trim_to_model(_tilt_codes_as_integers(merged), "specimens", self.warnings)
 
     def write_specimens(self, dir_path: str, coords=(COORD_SPECIMEN, COORD_GEOGRAPHIC, COORD_TILT),
                         custom_name: Optional[str] = None, analysts: Optional[str] = None) -> Optional[str]:
@@ -2189,7 +2212,7 @@ class DemagData:
         merged = merge_results(existing, new, level, owned=self.mean_group_names(level),
                                produced=self.produced_coords(level, self._coords_arg(coord, coords)),
                                warnings=self.warnings)
-        return trim_to_model(merged, table, self.warnings)
+        return trim_to_model(_tilt_codes_as_integers(merged), table, self.warnings)
 
     def write_means(self, level: str, dir_path: str, coord: Optional[int] = None,
                     custom_name: Optional[str] = None, over: str = "specimens",
@@ -2267,7 +2290,7 @@ class DemagData:
         merged = merge_results(existing, new, "location", owned=self.mean_group_names("location"),
                                produced=self.produced_coords("location", self._coords_arg(coord, coords)),
                                warnings=self.warnings)
-        return trim_to_model(merged, "locations", self.warnings)
+        return trim_to_model(_tilt_codes_as_integers(merged), "locations", self.warnings)
 
     def _fill_location_extent(self, locations: pd.DataFrame) -> pd.DataFrame:
         """Fill a location's lat_s/lat_n/lon_w/lon_e from its sites where the table does not give them.

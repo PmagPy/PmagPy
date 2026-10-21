@@ -1154,3 +1154,34 @@ class TestStoredOnlyInterpretations:
         assert len(spitsbergen) == 1 and spitsbergen.iloc[0]["sites"].split(":")[0] == "sp100"
         assert any(w.startswith("locations: 1 written mean includes 125 stored interpretations") for w in data.warnings)
         assert not any("dropped non-MagIC columns ['stored_specimens']" in w for w in data.warnings)
+
+
+class TestTiltCodesWritten:
+    """dir_tilt_correction is written -1 / 0 / 100, as MagIC defines the codes, not -1.0 / 0.0 / 100.0."""
+
+    def test_every_table_directions_writes_has_integer_codes(self, tmp_path):
+        directory = _copy_study(DMAG_DIR, tmp_path / "dmag")
+        data = DemagData.from_directory(directory)
+        data.load_components_from_specimens_table()
+        out = tmp_path / "out"
+        out.mkdir()
+        coords = (COORD_GEOGRAPHIC, COORD_TILT)
+        data.write_specimens(str(out))
+        for level in ("sample", "site", "location"):
+            data.write_means(level, str(out), coords=coords)
+        for table, expect in (("specimens", {"-1", "0", "100"}), ("samples", {"0", "100"}),
+                              ("sites", {"0", "100"}), ("locations", {"0", "100"})):
+            written = pd.read_csv(out / f"{table}.txt", sep="\t", header=1, dtype=str, keep_default_na=False)
+            assert set(written["dir_tilt_correction"]) - {""} == expect, table
+
+    def test_only_whole_numbers_change(self):
+        from pmagpy.demag import _tilt_codes_as_integers
+        df = pd.DataFrame({"dir_tilt_correction": [-1.0, 0.0, 100.0, np.nan, 33.3, 50.0], "x": range(6)})
+        out = _tilt_codes_as_integers(df)
+        assert out["dir_tilt_correction"].tolist()[:3] == [-1, 0, 100]
+        assert all(type(v) is int for v in out["dir_tilt_correction"].tolist()[:3])
+        assert np.isnan(out["dir_tilt_correction"].iloc[3]) and out["dir_tilt_correction"].iloc[4] == 33.3
+        assert out["dir_tilt_correction"].iloc[5] == 50 and type(out["dir_tilt_correction"].iloc[5]) is int
+        text = pd.DataFrame({"dir_tilt_correction": ["-1.0", "0"]})              # text is written as read
+        assert _tilt_codes_as_integers(text)["dir_tilt_correction"].tolist() == ["-1.0", "0"]
+        assert _tilt_codes_as_integers(pd.DataFrame({"x": [1.0]}))["x"].tolist() == [1.0]
