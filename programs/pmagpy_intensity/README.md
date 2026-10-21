@@ -239,7 +239,7 @@ was made before it had the log.
 | `criteria.txt` | on export | the criteria set the results were produced under; only the intensity rows it tests are replaced, every other criterion (directional, sample, pole) is kept |
 | `measurements.txt` | on export, optional | the measurements with the quality flags |
 | `backup_before_pmagpy_intensity/` | before the first in-place export | the original tables, copied once |
-| `backup_before_pmagpy_intensity/previous/` | before every export | each table the export replaces |
+| `backup_before_pmagpy_intensity/previous/` | before every export | each table the export replaces (an export into the study's own tables asks for a second click first; one into a working copy writes at once and says so) |
 
 On opening a directory it restores, in this order: the autosave if there is
 one (an unreadable one is renamed `*.unreadable-<time>` and set aside, an

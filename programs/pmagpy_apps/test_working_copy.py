@@ -458,3 +458,22 @@ class TestAStaleCopy:
         view = HomeView(session)
         assert session.directory == copy and view.fresh_btn.name == "Work on the study itself"
         assert view.start_fresh() is True and session.directory == study
+
+
+class TestOneClickInAWorkingCopy:
+    def test_a_converted_study_worked_on_in_place_still_asks_first(self, study, base):
+        from pmagpy_directions.session import Session as Directions
+        from pmagpy_directions.views import ExportView
+        from pmagpy_intensity.session import Session as Intensity
+        from pmagpy_intensity.views import ExportView as IntensityExport
+        converted(study)
+        before = digest(study)
+        view = ExportView(Directions(study))
+        view._write()
+        assert "data directory itself" in view.status.object and view.write_btn.name.startswith("Confirm")
+        pint = Intensity(study)
+        pint.autosave_enabled = False
+        iview = IntensityExport(pint)
+        iview._export()
+        assert "data directory itself" in iview.message.object and iview.export_btn.name.startswith("Confirm")
+        assert digest(study) == before

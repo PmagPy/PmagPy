@@ -347,7 +347,10 @@ Writing the MagIC tables is the explicit, deliberate step. Opening a study
 never writes to it (a `measurements.txt` without measurement names is named
 in memory only). An export is all or nothing: the tables are written to a
 staging folder and moved into place only when every one of them is complete,
-always as UTF-8. Every table an export replaces is kept in
+always as UTF-8. An export that replaces the study's own tables (in place: a
+checkout without an output base, or a study PmagPy converted) asks first -- the
+button turns into "Confirm: replace the tables" -- while one into a working copy
+writes on the first click and says it wrote into the working copy. Every table an export replaces is kept in
 `backup_before_pmagpy_directions/previous/`, and when the output directory
 is the data directory itself (the MagIC workflow of building the
 contribution in place) the tables as they were before this application first

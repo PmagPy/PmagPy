@@ -786,9 +786,9 @@ class TestExportView:
         assert "thellier_gui.redo" in view.message.object.lower(), view.message.object
         assert name in session.data.interpretations
 
-    def test_the_confirmation_names_the_working_copy_not_the_study(self, workdir, tmp_path, monkeypatch):
+    def test_a_working_copy_is_written_on_one_click_and_says_so(self, workdir, tmp_path, monkeypatch):
         # with an output base the export replaces the working copy's tables, and the study is untouched:
-        # the second click is still asked for, but the warning says where the tables are written
+        # no second click, and the message says where the tables went
         from pmagpy_panel import datasets
         for var in datasets.OUTPUT_BASE_VARS:
             monkeypatch.setenv(var, "placeholder")
@@ -801,8 +801,10 @@ class TestExportView:
         session.set_bounds(0, 6)
         view = ExportView(session)
         view._export()
-        assert "working copy" in view.message.object and "data directory itself" not in view.message.object
-        assert view.export_btn.name.startswith("Confirm")
+        assert "wrote" in view.message.object and "the working copy of" in view.message.object
+        assert "data directory itself" not in view.message.object and not view.export_btn.name.startswith("Confirm")
+        assert os.path.exists(os.path.join(session.directory, "specimens.txt"))
+        assert "kept in" in view.message.object                     # the copy's measurements.txt, in previous/
         assert os.listdir(src) == ["measurements.txt"]
 
     def test_another_study_can_be_opened_with_the_export_pane_there(self, workdir, tmp_path):

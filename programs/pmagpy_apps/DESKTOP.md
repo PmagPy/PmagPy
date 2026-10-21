@@ -30,7 +30,9 @@ intended. Rock magnetism and Anisotropy join by adding them to the edition
   Rock Magnetism, Anisotropy and the hub's Metadata page all read and write
   that folder -- so a flag set in Directions, an interpretation exported from
   Intensity and a metadata edit on the hub are one set of tables, ready to
-  upload. The applications never write to the study itself (nor to the
+  upload. An export into the copy writes on one click (the tables it replaces
+  are kept in its `backup_before_…/previous/`); where the study itself is
+  written, the export asks for a second click. The applications never write to the study itself (nor to the
   read-only bundle, where the example lives); only Convert does, when the
   analyst converts lab files: their tables go into the lab folder, beside the
   files (`pmagpy_apps/convert.py`). The fingerprint is a short hash of the study's full

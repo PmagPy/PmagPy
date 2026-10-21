@@ -1752,18 +1752,17 @@ class ExportView:
 
     def _write(self, event=None, confirmed: bool = False):
         target = self._target()
-        if self.s.writes_in_place(target) and not (confirmed or self._confirm_in_place):
+        source = self.s.source_directory
+        # a working copy is written at once (its tables are kept in the backup all the same); the study's own
+        # tables are replaced only on a second click
+        in_copy = self.s.writes_in_place(target) and bool(source) and os.path.realpath(source) != os.path.realpath(target)
+        if self.s.writes_in_place(target) and not in_copy and not (confirmed or self._confirm_in_place):
             # the study's own tables are about to be replaced: say so once, and ask
             present = [n for n in ("specimens.txt", "samples.txt", "sites.txt", "locations.txt", "measurements.txt")
                        if os.path.exists(os.path.join(target, n))]
             self._confirm_in_place = True
             self.write_btn.name, self.write_btn.button_type = "Confirm: replace the tables", "danger"
-            source = self.s.source_directory
-            if source and os.path.realpath(source) != os.path.realpath(target):
-                where = (f"**This writes into the working copy of `{source}`** that every application shares "
-                         "(the study itself is not changed) and replaces ")
-            else:
-                where = "**This writes into the data directory itself** and replaces "
+            where = "**This writes into the data directory itself** and replaces "
             self.status.object = (where +
                                   f"{', '.join(f'`{n}`' for n in present) or 'its tables'}. Each is kept in "
                                   f"`{self.s.BACKUP_DIR}/previous/` (and the originals, once, in "
@@ -1792,7 +1791,9 @@ class ExportView:
         news = self.s.data.warnings[n_before:]
         for text in dict.fromkeys(news):
             lines.append(f"- {text}")
-        self.status.object = "Wrote:\n" + "\n".join(lines)
+        head = (f"Wrote into the working copy of `{source}` that every application shares (the study itself "
+                "is not changed):" if in_copy else "Wrote:")
+        self.status.object = head + "\n" + "\n".join(lines)
         self._show_messages()
         self._validate()
 

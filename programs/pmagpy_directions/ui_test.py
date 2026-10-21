@@ -508,20 +508,24 @@ with sync_playwright() as p:
     check(step_is_bad(page, k), f"step {k} of {spec_now} flagged for the export")
     meas_before = read_table(workdir, "measurements")
     n_bad_before = int(((meas_before["specimen"] == spec_now) & (meas_before["quality"] == "b")).sum())
-    # export in place: the first click asks, the second writes
+    # export in place: the first click asks, the second writes; into a working copy one click writes
     open_tab(page, "Export")
     spec_path = os.path.join(workdir, "specimens.txt")
     stamp = os.path.getmtime(spec_path) if os.path.exists(spec_path) else None
     pol_box = page.locator("div.bk-Checkbox").filter(has_text="write dir_polarity").locator("input")
     check(not pol_box.is_checked(), "dir_polarity is not asked for by default")
     page.get_by_role("button", name="Write MagIC tables").click()
-    confirm = page.get_by_role("button", name="Confirm: replace the tables")
-    confirm.wait_for(timeout=30000)
-    asked = page.get_by_text(re.compile("This writes into")).count() > 0
-    check((os.path.getmtime(spec_path) if stamp else None) == stamp and asked,
-          "export in place: the first click asks and writes nothing")
-    confirm.click()
-    check(wait_text(re.escape(spec_path)), "export in place: the second click writes the tables")
+    if wc_base:
+        check(wait_text("Wrote into the working copy of") and wait_text(re.escape(spec_path)),
+              "export into the working copy: one click writes the tables, and says where")
+    else:
+        confirm = page.get_by_role("button", name="Confirm: replace the tables")
+        confirm.wait_for(timeout=30000)
+        asked = page.get_by_text(re.compile("This writes into")).count() > 0
+        check((os.path.getmtime(spec_path) if stamp else None) == stamp and asked,
+              "export in place: the first click asks and writes nothing")
+        confirm.click()
+        check(wait_text(re.escape(spec_path)), "export in place: the second click writes the tables")
     check(os.path.getmtime(spec_path) != stamp and os.path.isdir(os.path.join(workdir, "backup_before_pmagpy_directions")),
           "specimens.txt replaced, the originals kept in backup_before_pmagpy_directions/")
     meas = read_table(workdir, "measurements")

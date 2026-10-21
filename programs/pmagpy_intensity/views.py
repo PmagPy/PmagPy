@@ -1699,19 +1699,19 @@ directory copies the original tables to a backup folder.
     def _export(self, event=None, confirmed: bool = False):
         if self.s.data is None:
             return
-        if self.s.writes_in_place() and not (confirmed or self._confirm_in_place):
+        source = self.s.source_directory
+        # a working copy is written at once (its tables are kept in the backup all the same); the study's own
+        # tables are replaced only on a second click
+        in_copy = (self.s.writes_in_place() and bool(source)
+                   and os.path.realpath(source) != os.path.realpath(self.s.directory))
+        if self.s.writes_in_place() and not in_copy and not (confirmed or self._confirm_in_place):
             # the study's own tables are about to be replaced: say so once, and ask
             present = [n for n in ("specimens.txt", "samples.txt", "sites.txt", "measurements.txt",
                                    "criteria.txt") if os.path.exists(os.path.join(self.s.output_dir, n))]
             self._confirm_in_place = True
             self.export_btn.name, self.export_btn.button_type = "Confirm: replace the tables", "danger"
             backup = self.s.data.project.backup_dir_name()
-            source = self.s.source_directory
-            if source and os.path.realpath(source) != os.path.realpath(self.s.directory):
-                where = (f'<b>This writes into the working copy of {html.escape(source)}</b> that every '
-                         f'application shares (the study itself is not changed)')
-            else:
-                where = '<b>This writes into the data directory itself</b>'
+            where = '<b>This writes into the data directory itself</b>'
             self.message.object = (
                 f'<div style="color:{FAIL_COLOR}">{where} '
                 f'and replaces {", ".join(present) or "its tables"}. Each is kept in {backup}/previous/ '
@@ -1739,9 +1739,16 @@ directory copies the original tables to a backup folder.
             script = code.write_beside(tables[0].rsplit(".", 1)[0] + "_export.txt",
                                        self._export_code())
         news = list(dict.fromkeys(self.s.data.warnings[n_before:]))
+        where = html.escape(self.s.output_dir)
+        if in_copy:
+            backup = os.path.join(self.s.output_dir, self.s.data.project.backup_dir_name(), "previous")
+            where = (f'the working copy of {html.escape(source)} that every application shares (the study itself '
+                     f'is not changed), {where}')
+            if os.path.isdir(backup):
+                news.insert(0, f"the tables this replaced are kept in {backup}")
         self.message.object = (
             f'<div style="color:{PASS_COLOR}">wrote {len(written)} files to '
-            f'{self.s.output_dir}</div><div style="{MUTED_STYLE}">{listed}'
+            f'{where}</div><div style="{MUTED_STYLE}">{listed}'
             + (f'<br>{os.path.basename(script)}, which writes the same tables again from the '
                f'session saved with them' if script else "")
             + "".join(f"<br>{html.escape(w)}" for w in news) + "</div>")

@@ -229,7 +229,7 @@ class TestExportPane:
         assert "Wrote:" in view.status.object
         assert os.path.exists(os.path.join(src, Session.BACKUP_DIR, "specimens.txt"))
 
-    def test_the_question_names_the_working_copy_when_there_is_one(self, tmp_path, monkeypatch):
+    def test_a_working_copy_is_written_on_one_click_and_says_so(self, tmp_path, monkeypatch):
         from pmagpy_directions.views import ExportView
         for var in datasets.OUTPUT_BASE_VARS:
             monkeypatch.setenv(var, "placeholder")
@@ -239,11 +239,15 @@ class TestExportPane:
         before = digest(src)
         s = Session(src)
         view = ExportView(s)
+        before_copy = digest(s.directory)
         view._write()
-        assert "writes into the working copy of" in view.status.object and src in view.status.object
-        assert "data directory itself" not in view.status.object
-        view._write()
-        assert "Wrote:" in view.status.object and os.path.exists(os.path.join(s.directory, "specimens.txt"))
+        assert "Wrote into the working copy of" in view.status.object and src in view.status.object
+        assert "Confirm" not in view.write_btn.name and "data directory itself" not in view.status.object
+        assert os.path.exists(os.path.join(s.directory, "specimens.txt"))
+        previous = os.path.join(s.directory, Session.BACKUP_DIR, "previous")
+        for name in ("measurements.txt", "sites.txt"):                       # the copy's tables are kept all the same
+            if name in before_copy:
+                assert digest(previous)[name] == before_copy[name]
         assert digest(src) == before
 
     def test_a_study_with_read_only_tables_exports_more_than_once(self, tmp_path):

@@ -271,15 +271,48 @@ def choose(page, label, option):
     time.sleep(2)
 
 
+WROTE = (r"wrote \d+ files to (the working copy of .+? that every application shares "
+         r"\(the study itself is not changed\), )?(\S+)")
+
+
 def export_in_place(page):
-    """Write MagIC tables (two clicks when it replaces the study's own); the folder written to, or None."""
+    """Write MagIC tables: two clicks when it replaces the study's own, one into a working copy.
+
+    Returns (asked for a second click, wrote into a working copy, the folder written to or None).
+    """
     open_tab(page, "Export", "Merge policy")
+    started = time.time()
+
+    def fresh(match):
+        """The message names a folder whose tables were written after the click (not the last export's)."""
+        try:
+            return os.path.getmtime(os.path.join(match.group(2), "specimens.txt")) >= started - 1
+        except OSError:
+            return False
     click_button(page, "Write MagIC tables")
-    confirm = wait_for_text(page, r"Confirm: replace the tables", 30) is not None
-    if confirm:
+    # the last export's message stays up until this click is answered: the question, or new tables
+    asked, written = False, None
+    deadline = time.time() + 300
+    while time.time() < deadline:
+        text = page.evaluate(ALL_TEXT_JS)
+        if "Confirm: replace the tables" in text:
+            asked = True
+            break
+        found = re.search(WROTE, text)
+        if found and fresh(found):
+            written = found
+            break
+        time.sleep(0.5)
+    if asked:
         click_button(page, "Confirm: replace the tables")
-    written = wait_for_text(page, r"wrote \d+ files to (\S+)", 300)
-    return confirm, (written.group(1) if written else None)
+        deadline = time.time() + 300
+        while time.time() < deadline:
+            found = wait_for_text(page, WROTE, 300)
+            if found and fresh(found):
+                written = found
+                break
+            time.sleep(0.5)
+    return asked, bool(written and written.group(1)), (written.group(2) if written else None)
 
 
 def read_table(directory, name):
@@ -620,12 +653,13 @@ with sync_playwright() as playwright:
         check(selected(page, "anisotropy") == "always",
               f"the anisotropy switch shows the specimen's own choice ({selected(page, 'anisotropy')!r})")
 
-    # export into the study: two clicks, and the files say what the panes say
+    # export: two clicks into the study, one into a working copy, and the files say what the panes say
     open_tab(page, "Specimen", "Flag the selected step bad/good")
     shown_bounds = bounds_shown(page)
     b_shown = wait_for_text(page, r"([\d.]+) ± [\d.]+ µT")
-    confirm, output_dir = export_in_place(page)
-    check(confirm, "an export into the study asks for a second click")
+    confirm, in_copy, output_dir = export_in_place(page)
+    check(confirm != in_copy, "an export into the study asks for a second click; one into a working copy "
+                              f"writes at once and says so (asked {confirm}, working copy {in_copy})")
     check(output_dir is not None, f"the export writes the tables ({output_dir})")
     if output_dir:
         specimens = read_table(output_dir, "specimens.txt")
