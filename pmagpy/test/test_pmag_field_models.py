@@ -7,8 +7,10 @@ the lower-level pmag functions with property-based checks across multiple
 dates, locations, and models.
 """
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
+from pmagpy import coefficients as cf
 from pmagpy import pmag
 
 
@@ -64,6 +66,17 @@ class TestDoigrf:
         assert isinstance(result, np.ndarray)
         assert len(result) > 0
 
+    @pytest.mark.parametrize("date", [-500, 1950])
+    def test_unknown_model_raises(self, date):
+        """Unknown model names fail explicitly for paleo and IGRF dates."""
+        with pytest.raises(ValueError, match="Unknown field model 'nonsense'"):
+            pmag.doigrf(0, 45, 0, date, mod='nonsense')
+
+    def test_unknown_model_raises_when_returning_models(self):
+        """Unknown model names are validated before returning model tables."""
+        with pytest.raises(ValueError, match="Unknown field model 'nonsense'"):
+            pmag.doigrf(0, 45, 0, 1950, mod='nonsense', models=True)
+
 
 # ---------------------------------------------------------------------------
 # doigrf with paleomagnetic field models
@@ -71,6 +84,51 @@ class TestDoigrf:
 
 class TestDoigrfPaleoModels:
     """Tests for pmag.doigrf with alternative field models."""
+
+    @pytest.mark.parametrize("model", ["cals10k", "cals10k.1b"])
+    @pytest.mark.parametrize("date", [-4955, -500, 500])
+    def test_cals10k_1b_names_use_50_year_epochs(self, model, date):
+        """Both CALS10k.1b names work with 50-year epochs across date branches."""
+        _, _, _, f = pmag.doigrf(0, 45, 0, date, mod=model)
+        assert 10000 < f < 100000
+
+    @pytest.mark.parametrize("date", [-500, 500])
+    def test_shadif14k_returns_valid_pre_1900_field(self, date):
+        """SHADIF14k returns a valid field for pre-1900 dates."""
+        _, _, _, f = pmag.doigrf(0, 45, 0, date, mod='shadif14k')
+        assert 10000 < f < 100000
+
+    @pytest.mark.parametrize("model, loader, date, epoch", [
+        # Dates fall between epochs, so the expected row also checks the step.
+        ("cals3k", "get_cals3k", -497, -500),
+        ("cals3k", "get_cals3k", 1317, 1310),
+        ("arch3k", "get_arch3k", -497, -500),
+        ("arch3k", "get_arch3k", 1317, 1310),
+        ("pfm9k", "get_pfm9k", -3003, -3010),
+        ("pfm9k", "get_pfm9k", 517, 510),
+        ("hfm10k", "get_hfm10k", -3003, -3010),
+        ("hfm10k", "get_hfm10k", 517, 510),
+        ("cals10k.2", "get_cals10k_2", -3003, -3010),
+        ("cals10k.2", "get_cals10k_2", 517, 510),
+        ("cals10k.1b", "get_cals10k", -3003, -3050),
+        ("cals10k.1b", "get_cals10k", 517, 500),
+        ("cals10k", "get_cals10k", -3003, -3050),
+        ("cals10k", "get_cals10k", 517, 500),
+        ("shadif14k", "get_shadif14k", -3003, -3050),
+        ("shadif14k", "get_shadif14k", 517, 500),
+        ("shawq2k", "get_shawq2k", 512, 500),
+        ("shawq2k", "get_shawq2k", 1837, 1825),
+        ("shawqIA", "get_shawqIA", -1112, -1125),
+        ("shawqIA", "get_shawqIA", -512, -525),
+    ])
+    def test_documented_models_use_own_coefficients_and_epoch_spacing(
+            self, model, loader, date, epoch):
+        """Each documented name routes to its own loader and epoch spacing."""
+        epochs, coeffs = getattr(cf, loader)()
+        gh = pmag.doigrf(0, 45, 0, date, mod=model, coeffs=True)
+        assert_allclose(gh, coeffs[epochs.index(epoch)])
+        _, _, _, f = pmag.doigrf(0, 45, 0, date, mod=model)
+        assert 10000 < f < 100000
 
     def test_cals10k_returns_valid_field(self):
         """CALS10k.2 model returns valid field for Holocene date."""
@@ -82,6 +140,45 @@ class TestDoigrfPaleoModels:
         """ARCH3k model returns valid field for historical date."""
         x, y, z, f = pmag.doigrf(0, 45, 0, 500, mod='arch3k')
         assert 10000 < f < 100000
+
+    def test_ggf100k_coefficients_match_reference(self):
+        """ggf100k Gauss coefficients at year 0 match the reference output
+        (coefs.dat) of the Fortran program distributed with the model."""
+        gh = pmag.doigrf(0, 45, 0, 0, mod='ggf100k', coeffs=True)
+        # g10, g11, h11, g20, g21, h21, g22, h22
+        expected = [-36362.3984571547, -268.004040013219, 251.865983091505,
+                    -513.389974643557, -204.141435965939, 702.245895380846,
+                    19.8362032262578, 363.685173834419]
+        assert_allclose(gh[:8], expected, rtol=1e-9)
+
+    @pytest.mark.parametrize("age_ka, adm", [(40.85, 2.44), (1.5, 9.89),
+                                             (0.0, 8.18)])
+    def test_ggf100k_axial_dipole_moment_matches_paper(self, age_ka, adm):
+        """Axial dipole moments (10^22 Am^2) stated by Panovska et al. (2018):
+        the Laschamp minimum, the maximum, and the value at 0 BP."""
+        date = 1950 - 1000 * age_ka
+        g10 = pmag.doigrf(0, 45, 0, date, mod='ggf100k', coeffs=True)[0]
+        radius = 6371.2e3  # m
+        moment = 1e7 * radius**3 * abs(g10) * 1e-9  # 4 pi a^3 g10 / mu0
+        assert_allclose(moment / 1e22, adm, atol=0.005)
+
+    def test_ggf100k_field_varies_smoothly_between_knots(self):
+        """The field is continuous between and across the 200 year knots."""
+        dates = np.arange(1440, 1660, 10)  # spans knots at 1450 and 1650
+        f = [pmag.doigrf(0, 45, 0, date, mod='ggf100k')[3] for date in dates]
+        assert np.max(np.abs(np.diff(f))) < 100  # nT per decade
+
+    @pytest.mark.parametrize("date", [-98050, 1990])
+    def test_ggf100k_range_endpoints_are_valid(self, date):
+        """ggf100k accepts both ends of its valid range."""
+        _, _, _, f = pmag.doigrf(0, 45, 0, date, mod='ggf100k')
+        assert 10000 < f < 100000
+
+    @pytest.mark.parametrize("date", [-98051, -100001, 1991, 2050])
+    def test_ggf100k_outside_valid_range_raises(self, date):
+        """ggf100k is only defined from -98050 to 1990."""
+        with pytest.raises(ValueError):
+            pmag.doigrf(0, 45, 0, date, mod='ggf100k')
 
     def test_model_total_field_is_vector_magnitude(self):
         """Total field is vector magnitude for paleo models too."""

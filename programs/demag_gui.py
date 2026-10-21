@@ -4537,13 +4537,25 @@ class Demag_GUI(wx.Frame):
             self.spec_data["dir_tilt_correction"] = ""
         fdict = self.spec_data[['specimen', fnames, 'meas_step_min', 'meas_step_max', 'meas_step_unit',
                                 'dir_tilt_correction', 'method_codes', 'result_quality']].to_dict("records")
+        unnamed_fits = []
         for i in range(len(fdict)):
             spec = fdict[i]['specimen']
             if spec not in self.specimens:
                 print(("-E- specimen %s does not exist in measurement data" % (spec)))
                 continue
             fname = fdict[i][fnames]
-            if fname is None or (spec in list(self.pmag_results_data['specimens'].keys()) and fname in [x.name for x in self.pmag_results_data['specimens'][spec]]):
+            # rows with no component name are not demagnetization fits (e.g.
+            # paleointensity or anisotropy results for the same specimen);
+            # a blank cell is NaN rather than None with current pandas (#587).
+            # Paleointensity rows also carry DE-BFL, so only rows with a DE-
+            # code and no LP-PI code are reported as skipped fits
+            if pd.isnull(fname):
+                codes = [x.strip() for x in str(fdict[i]['method_codes']).split(':')]
+                if any(x.startswith('DE-') for x in codes) and \
+                   not any(x.startswith('LP-PI') for x in codes):
+                    unnamed_fits.append(str(spec))
+                continue
+            if spec in list(self.pmag_results_data['specimens'].keys()) and fname in [x.name for x in self.pmag_results_data['specimens'][spec]]:
                 continue
             if fdict[i]['meas_step_unit'] == "K":
                 fmin = int(float(fdict[i]['meas_step_min'])-273)
@@ -4583,6 +4595,10 @@ class Demag_GUI(wx.Frame):
 
             if fdict[i]['result_quality'] == 'b':
                 self.bad_fits.append(fit)
+
+        if unnamed_fits:
+            print(("-W- skipped %i directional fit(s) with no component name in specimens.txt, for specimens: %s"
+                   % (len(unnamed_fits), ", ".join(sorted(set(unnamed_fits))))))
 
     def get_data_info(self):
         """
@@ -4673,8 +4689,25 @@ class Demag_GUI(wx.Frame):
                     self.loc_data['location'] = self.loc_data.index
                 loc2_data = self.loc_data.rename(
                     columns=map_magic.loc_magic3_2_magic2_map)
-     # there were problems with this command in some contributions:
-                #data_er_locations = loc2_data.to_dict('index') #TRY
+                # a location can have several rows (e.g. one per result), so
+                # loc2_data.to_dict('index') fails on the repeated names (#587);
+                # keep the first value that is not null in each column, except
+                # that the coordinates all come from the first row with both a
+                # latitude and a longitude, so they describe a single box
+                lat_keys = ['location_begin_lat', 'location_end_lat']
+                lon_keys = ['location_begin_lon', 'location_end_lon']
+                for loc_rec in loc2_data.to_dict('records'):
+                    er_location = data_er_locations.setdefault(
+                        loc_rec['er_location_name'], {})
+                    take_coords = \
+                        not any(key in er_location for key in lat_keys + lon_keys) and \
+                        any(cb.not_null(loc_rec.get(key), False) for key in lat_keys) and \
+                        any(cb.not_null(loc_rec.get(key), False) for key in lon_keys)
+                    for key, value in loc_rec.items():
+                        if key in lat_keys + lon_keys and not take_coords:
+                            continue
+                        if key not in er_location and cb.not_null(value, False):
+                            er_location[key] = value
             else:
                 self.con.add_empty_magic_table('locations')
                 self.loc_data = self.con.tables['locations'].df

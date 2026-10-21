@@ -145,13 +145,13 @@ class Contribution(object):
                 else:
                     self.tables[dtype] = data_container
                     return dtype, data_container
-            # if providing a data type, use the canonical filename
+            # if providing a data type, use the requested or canonical filename
             elif dtype not in self.filenames:
                 print('-W- "{}" is not a valid MagIC table type'.format(dtype))
                 print("-I- Available table types are: {}".format(", ".join(self.table_names)))
                 return False, False
-            #filename = os.path.join(self.directory, self.filenames[dtype])
-            filename = pmag.resolve_file_name(self.filenames[dtype], self.directory)
+            filename = pmag.resolve_file_name(
+                fname or self.filenames[dtype], self.directory)
             if os.path.exists(filename):
                 data_container = MagicDataFrame(filename, dtype=dtype,
                                                 dmodel=self.data_model)

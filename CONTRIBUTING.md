@@ -4,9 +4,9 @@
 
 As an open-source, community project, we welcome improvements and feedback!  There are two main ways to contribute to the PmagPy project.
 
-1. If you want to report a bug or request a new feature, you can click here to create a [Github issue](https://github.com/PmagPy/PmagPy/issues).  If you are reporting a bug, please provide as much detail as possible about how you discovered the bug.  For a full explanation of how to create a new issue, and what information to include, see [Github documentation](https://guides.github.com/activities/contributing-to-open-source/#contributing).
+1. If you want to report a bug or request a new feature, you can click here to create a [Github issue](https://github.com/PmagPy/PmagPy/issues).  If you are reporting a bug, please provide as much detail as possible about how you discovered the bug.  For a full explanation of how to create a new issue, and what information to include, see [Github documentation](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-an-issue).
 
-2. If you want to add a new feature yourself or fix a bug yourself, that's great too.  The process for adding a feature looks like this: fork the PmagPy repository, create a branch for your feature or bugfix, make some changes, and then submit a pull request.  Don't worry if you don't know how to do all of those steps!  If you aren't familiar with git, Github, or the details of this process, you will find this short [tutorial](https://guides.github.com/activities/forking/) helpful.  If you're still stuck after that but want to contribute, you can create a [Github issue](https://github.com/PmagPy/PmagPy/issues) and we will help get you sorted.  Depending on what kind of contribution you are making, you may also want to add some tests.  See our [testing README](https://github.com/PmagPy/PmagPy/blob/master/pmagpy_tests/README.md) for details on making and running PmagPy tests.
+2. If you want to add a new feature yourself or fix a bug yourself, that's great too.  The process for adding a feature looks like this: fork the PmagPy repository, create a branch for your feature or bugfix, make some changes, and then submit a pull request.  Don't worry if you don't know how to do all of those steps!  If you aren't familiar with git, Github, or the details of this process, you will find this short [tutorial](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project) helpful.  If you're still stuck after that but want to contribute, you can create a [Github issue](https://github.com/PmagPy/PmagPy/issues) and we will help get you sorted.  Depending on what kind of contribution you are making, you may also want to add some tests.  See our [testing README](https://github.com/PmagPy/PmagPy/blob/master/pmagpy_tests/README.md) for details on making and running PmagPy tests.
 
 If you will be making significant contributions via git, we have some additional guidelines for [good git protocols](#git-protocols).
 
@@ -116,7 +116,7 @@ For an open source project with multiple contributors, it is especially importan
 
 - If you are making a large change that will take multiple commits to implement, it is best to start a feature/fix branch.  Once the feature or fix is done, the changes can be merged into master without breaking core functionality in the meantime.
 
-- Here is a nifty article with some fun [Github keyboard shortcuts](https://help.github.com/articles/using-keyboard-shortcuts/) to let you navigate around Github quickly and easily.
+- Here is a nifty article with some fun [Github keyboard shortcuts](https://docs.github.com/en/get-started/accessibility/keyboard-shortcuts) to let you navigate around Github quickly and easily.
 
 If you are left with any questions about git and Github best practices, go ahead and make a new [Github issue](https://github.com/PmagPy/PmagPy/issues) and we will try to get it worked out!
 
@@ -148,4 +148,4 @@ Learn the basics of [Python](http://cscircles.cemc.uwaterloo.ca/).
 
 Learn wxPython, which is the basis of our [GUIs here](http://zetcode.com/wxpython/)
 
-Learn more about [git here](https://www.codeschool.com/courses/try-git).
+Learn more about git with the Software Carpentry [Version Control with Git](https://swcarpentry.github.io/git-novice/) lesson, the free [Pro Git book](https://git-scm.com/book/en/v2), or the interactive [Learn Git Branching](https://learngitbranching.js.org/).

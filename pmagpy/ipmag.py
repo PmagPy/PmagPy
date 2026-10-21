@@ -62,18 +62,19 @@ def igrf(input_list, mod='', ghfile=""):
             "" : Use the IGRF14 model by default
             'custom' : use values supplied in ghfile
             or choose from this list
-            ['arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b','shadif14','shawq2k','shawqIA','ggf100k']
+            ['arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k','cals10k.1b','shadif14k','shawq2k','shawqIA','ggf100k']
             where:
                 - arch3k (Korte et al., 2009)
                 - cals3k (Korte and Constable, 2011)
                 - cals10k.1b (Korte et al., 2011)
+                - cals10k (legacy alias for cals10k.1b)
                 - pfm9k  (Nilsson et al., 2014)
                 - hfm10k is the hfm.OL1.A1 of Constable et al. (2016)
                 - cals10k.2 (Constable et al., 2016)
-                - shadif14 (Pavon-Carrasco et al., 2014)
+                - shadif14k (Pavon-Carrasco et al., 2014)
                 - shawq2k (Campuzano et al., 2019)
                 - shawqIA (Osete et al., 2020)
-                - ggk100k (Panovska et al., 2018)[only models from -99950 in 200 year increments allowed)
+                - ggf100k (Panovska et al., 2018) [only dates from -98050 to 1990 allowed]
                 - the first four of these models, are constrained to agree
                 - with gufm1 (Jackson et al., 2000) for the past four centuries
         gh : path to file with l m g h data
@@ -3984,7 +3985,7 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
 
 
     # propagate needed values
-    con.propagate_cols(['core_depth'], 'samples', 'sites')
+    con.propagate_cols(['core_depth', 'composite_depth'], 'samples', 'sites')
     con.propagate_location_to_specimens()
 
     # get data read in
@@ -4011,7 +4012,7 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
         con.add_magic_table(dtype='ages', fname=age_file)
         Samps = con.tables['ages'].convert_to_pmag_data_list()
         # get age unit
-        age_unit = con.tables['ages'].df['age_unit'][0]
+        age_unit = con.tables['ages'].df['age_unit'].iloc[0]
         # propagate ages down to sample level
 
     for s in Samps:
@@ -4047,8 +4048,8 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
         if cb.is_null(location):
             location = 'unknown'
             try:
-                location = con.tables['sites'].df['location'][0]
-            except KeyError:
+                location = con.tables['sites'].df['location'].iloc[0]
+            except (KeyError, IndexError):
                 pass
     else:
         return False, 'no data to plot'

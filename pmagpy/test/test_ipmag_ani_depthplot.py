@@ -1,9 +1,9 @@
 """Baseline tests for ipmag.ani_depthplot (MagIC data model 3)."""
 
 import os
+from pathlib import Path
 
 import matplotlib.pyplot as plt
-import pandas as pd
 import pytest
 from matplotlib.figure import Figure
 
@@ -16,12 +16,6 @@ DATA_DIR = os.path.join(
 ANISO_DIR = os.path.join(DATA_DIR, "ani_depthplot")
 UTESTA_DIR = os.path.join(DATA_DIR, "UTESTA", "UTESTA_MagIC3")
 SUMMARY_FILE = "CoreSummary_XXX_UTESTA.csv"
-
-# only core_depth is propagated from sites to samples, so composite_depth is never found
-composite_depth_bug = pytest.mark.xfail(
-    raises=KeyError, strict=True,
-    reason="ani_depthplot cannot use composite_depth held in sites.txt")
-
 
 @pytest.fixture(autouse=True)
 def close_figures():
@@ -78,7 +72,6 @@ def test_depth_range_limits_plotted_data():
     assert ax.get_ylim() == (40, 20)
 
 
-@composite_depth_bug
 def test_composite_depth_scale_is_labelled():
     plot, _ = ipmag.ani_depthplot(depth_scale="composite_depth", dir_path=ANISO_DIR)
 
@@ -93,14 +86,22 @@ def test_legacy_depth_scale_name_is_accepted():
     assert plot.axes[0].get_ylabel() == "Depth (mbsf)"
 
 
-@pytest.mark.xfail(
-    int(pd.__version__.split(".")[0]) >= 3, raises=KeyError, strict=True,
-    reason="ani_depthplot reads age_unit with df['age_unit'][0], removed in pandas 3")
 def test_age_file_switches_to_age_axis():
     plot, names = ipmag.ani_depthplot(age_file="ages.txt", dir_path=ANISO_DIR)
 
     assert names == ["U1361A_ani_depthplot.svg"]
     assert plot.axes[0].get_ylabel().startswith("Age (")
+
+
+def test_custom_age_file_is_used(tmp_path):
+    custom_age_file = tmp_path / "custom_ages.txt"
+    age_data = Path(ANISO_DIR, "ages.txt").read_text()
+    custom_age_file.write_text(age_data.replace("\tMa\t", "\tka\t"))
+
+    plot, _ = ipmag.ani_depthplot(age_file=str(custom_age_file),
+                                  dir_path=ANISO_DIR)
+
+    assert plot.axes[0].get_ylabel() == "Age (ka)"
 
 
 def test_missing_age_file_falls_back_to_core_depth():
