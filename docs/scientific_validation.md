@@ -198,11 +198,12 @@ SPD v1.2.0 Table 2, the averages of the twenty:
 | m | 49.4 µT | 49.41 |
 | s | 24.2 µT | 24.17 |
 | δB(%) | 48.9 | 48.91 |
-| δB_N(%) | 66.3 | 66.06 |
+| δB_N(%) | 66.3 | 66.18 |
 
-δB_N requires the noncentral-t quantile; the implementation here is a Lenth
-(1989) series with an incomplete-beta continued fraction, and it reproduces
-SPD's own worked value (−1.193 for ν = 1, δ = 1 at the 5 % level) to 0.02.
+δB_N requires the noncentral-t quantile, which is taken from SciPy
+(`scipy.stats.nct`); it reproduces SPD's own worked value (−1.193 for ν = 1,
+δ = 1 at the 5 % level). An earlier series implementation here failed for
+tight groups (mean·√N/s above about 33).
 
 ---
 

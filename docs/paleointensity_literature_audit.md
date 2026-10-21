@@ -117,11 +117,11 @@ anisotropy-and-non-linearity correction of §9.2,
 
 ### §10 Multiple estimates — complete
 
-`N`, `m`, `s`, `m_w`, `s_w`, `δB(%)`, `δB_N(%)`, `pδB`, `p_s`. The noncentral-t
-and χ² distributions are implemented directly (Lenth, 1989 series; continued
-fractions) so the core has no SciPy dependency for them; verified against the
-value SPD's own numerical tip quotes (−1.193) and against the published
-`δB_N = 66.3 %` for the 20-specimen set.
+`N`, `m`, `s`, `m_w`, `s_w`, `δB(%)`, `δB_N(%)`, `pδB`, `p_s`. The χ²
+distribution is implemented directly (continued fractions); the noncentral t
+behind `δB_N` and `pδB` is `scipy.stats.nct`, imported only when they are
+computed. Verified against the value SPD's own numerical tip quotes (−1.193)
+and against the published `δB_N = 66.3 %` for the 20-specimen set.
 
 ### §11 Calibration data set — shipped
 

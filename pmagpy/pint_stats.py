@@ -1590,44 +1590,24 @@ def _chi2_cdf(stat: float, dof: int) -> float:
     return 1.0 - _chi2_sf(stat, dof)
 
 
-def _noncentral_t_cdf(t: float, dof: int, ncp: float, terms: int = 600) -> float:
-    """CDF of the noncentral t distribution (Lenth, 1989, Applied Statistics 38).
+def _noncentral_t_cdf(t: float, dof: int, ncp: float) -> float:
+    """CDF of the noncentral t distribution, from ``scipy.stats.nct``.
 
-    ``P(T <= t) = Phi(-d) + 1/2 sum_j [p_j I_x(j+1/2, v/2) + q_j I_x(j+1, v/2)]``
-    for ``t >= 0``, with ``x = t^2/(t^2+v)``; a negative ``t`` is handled by
-    ``P(T <= t; d) = 1 - P(T <= -t; -d)``, which needs the ``q_j`` term to keep
-    the sign of ``d``.
+    SciPy is imported here rather than with the module, so that the
+    statistics that do not need it import without it.
     """
     if dof <= 0 or not np.isfinite(t):
         return np.nan
-    if t < 0:
-        return 1.0 - _noncentral_t_cdf(-t, dof, -ncp, terms)
-    x = t * t / (t * t + dof)
-    half_ncp2 = ncp * ncp / 2.0
-    log_norm = -half_ncp2
-    total = 0.0
-    for j in range(terms):
-        if half_ncp2 > 0:
-            log_pj = log_norm + j * math.log(half_ncp2) - math.lgamma(j + 1)
-            log_qj = log_norm + j * math.log(half_ncp2) - math.lgamma(j + 1.5) \
-                + math.log(abs(ncp) / math.sqrt(2.0)) if ncp != 0 else -np.inf
-        else:
-            log_pj = log_norm if j == 0 else -np.inf
-            log_qj = -np.inf
-        pj = math.exp(log_pj) if log_pj > -700 else 0.0
-        qj = math.copysign(math.exp(log_qj), ncp) if log_qj > -700 else 0.0
-        if pj == 0.0 and qj == 0.0 and j > 5:
-            break
-        if 2.0 * (pj + abs(qj)) < math.ulp(total) / 4:
-            # the term (at most pj + |qj|, as I_x <= 1) is under half the spacing of
-            # floats at ``total``: adding it would leave ``total`` exactly as it is.
-            # Past the peak of the weights every later term is smaller still.
-            if j > half_ncp2 + 1:
-                break
-            continue
-        total += pj * _betainc(j + 0.5, dof / 2.0, x) + qj * _betainc(j + 1.0, dof / 2.0, x)
-    phi = 0.5 * (1.0 + math.erf(-ncp / math.sqrt(2.0)))
-    return min(1.0, max(0.0, phi + 0.5 * total))
+    from scipy.stats import nct
+    return float(nct.cdf(t, dof, ncp))
+
+
+def _noncentral_t_ppf(q: float, dof: int, ncp: float) -> float:
+    """Quantile ``q`` of the noncentral t distribution, from ``scipy.stats.nct``."""
+    if dof <= 0:
+        return np.nan
+    from scipy.stats import nct
+    return float(nct.ppf(q, dof, ncp))
 
 
 def _betainc(a: float, b: float, x: float) -> float:
@@ -1690,29 +1670,18 @@ def _p_scatter(n: int, mean: float, sd: float, b_max: float) -> Stat:
 def _scatter_upper_bound(n: int, mean: float, sd: float, alpha: float = 0.05) -> Stat:
     """dBN(%) (Paterson et al., 2010a): the 95% upper bound on the scatter.
 
-    ``dBN = 100 sqrt(N) / t_nc(1-alpha; N-1; mean sqrt(N)/s)``. The noncentral
-    t critical value is found by bisection on the CDF, which avoids a SciPy
-    dependency in this module.
+    ``dBN = 100 sqrt(N) / t_nc(1-alpha; N-1; mean sqrt(N)/s)``, with the
+    noncentral t critical value from ``scipy.stats.nct``.
     """
     if sd <= 0 or n < 2:
         return undefined("dBN_percent", "the scatter is zero" if sd <= 0 else "N = 1")
     ncp = mean * math.sqrt(n) / sd
     # SPD warns that packages differ over which tail 1 - alpha means here; its
     # own worked value (N - 1 = 1, ncp = 1, critical value -1.193) is the alpha
-    # quantile, which is what is solved for
-    target = alpha
-    lo, hi = -50.0, max(50.0, 5 * abs(ncp) + 50.0)
-    for _ in range(200):
-        mid = (lo + hi) / 2
-        if _noncentral_t_cdf(mid, n - 1, ncp) < target:
-            lo = mid
-        else:
-            hi = mid
-        if (lo + hi) / 2 == mid:
-            # lo and hi are adjacent (or equal) floats: every further step would
-            # evaluate this same point again and leave them where they are
-            break
-    tnc = (lo + hi) / 2
+    # quantile, which is what is used
+    tnc = _noncentral_t_ppf(alpha, n - 1, ncp)
+    if not np.isfinite(tnc):
+        return undefined("dBN_percent", "the critical value could not be computed")
     if tnc == 0:
         return undefined("dBN_percent", "the critical value is zero")
     return ok("dBN_percent", 100.0 * math.sqrt(n) / tnc)
@@ -1960,11 +1929,11 @@ CATALOG: Dict[str, StatSpec] = dict([
     _spec("dBN_percent", "dBN(%)", "Group",
           "Upper 95% confidence bound on the scatter, corrected for small N.",
           "dBN = 100 sqrt(N) / t_nc(1-a; N-1; m sqrt(N)/s)", "%", "Paterson et al. (2010a)",
-          "10.1029/2009JB006678", "", "low", 1),
+          "10.1029/2010GC003071", "", "low", 1),
     _spec("p_dB", "p dB", "Group", "Probability that the scatter is at or below dB_max.", "", "",
-          "Paterson et al. (2010a)", "10.1029/2009JB006678", "", "", 3),
+          "Paterson et al. (2010a)", "10.1029/2010GC003071", "", "", 3),
     _spec("p_s", "p s", "Group", "Probability that the standard deviation is at or below s_max.", "", "",
-          "Paterson et al. (2010a)", "10.1029/2009JB006678", "", "", 3),
+          "Paterson et al. (2010a)", "10.1029/2010GC003071", "", "", 3),
 ])
 
 
