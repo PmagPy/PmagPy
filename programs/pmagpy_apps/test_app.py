@@ -52,6 +52,14 @@ def shorten_home_in(text: str, path: str) -> bool:
     return datasets.shorten_home(path) in text
 
 
+def choose(view, key: str, hint: str = "") -> None:
+    """The analyst's step: the page never picks the format itself; its guess is a hint under the selector."""
+    assert view.format.value == convert.CHOOSE and view.files.disabled is True
+    if hint:
+        assert hint in view.notes.object, view.notes.object
+    view.format.value = key
+
+
 def cit_only(tmp_path) -> str:
     d = tmp_path / "PI47"
     d.mkdir()
@@ -379,7 +387,8 @@ class TestConvert:
         d = cit_only(tmp_path)
         session = home.HubSession(d)
         view = convert.ConvertView(session)
-        assert view.format.value == "cit" and view.fmt.label == "CIT"
+        choose(view, "cit", hint="suggest CIT")
+        assert view.fmt.label == "CIT"
         assert view.files.value == ["PI47-.sam"]                     # the .sam index is the file the converter takes
         assert "sitename" in view.form.widgets and "lat" not in view.form.widgets    # CIT reads lat/lon from the .sam
         assert view.append.visible is False
@@ -429,7 +438,7 @@ class TestConvert:
         (d / "junk.jr6").write_text("not a JR6 file\n")
         session = home.HubSession(str(d))
         view = convert.ConvertView(session)
-        assert view.format.value == "jr6_jr6"
+        choose(view, "jr6_jr6", hint="JR6")
         assert sorted(view.files.value) == ["AF.jr6", "SML07.JR6", "TRM.jr6", "junk.jr6"]
         assert asyncio.run(view._convert()) is True
         assert "3 of 4 files converted" in view.message.object and "junk.jr6" in view.message.object
@@ -438,6 +447,9 @@ class TestConvert:
     def test_nothing_chosen_and_a_required_blank_are_refused_in_place(self, tmp_path):
         session = home.HubSession(cit_only(tmp_path))
         view = convert.ConvertView(session)
+        assert asyncio.run(view._convert()) is False
+        assert "Choose the format" in view.message.object
+        view.format.value = "cit"
         view.files.value = []
         assert asyncio.run(view._convert()) is False
         assert "Choose the files" in view.message.object
@@ -461,7 +473,8 @@ class TestConvert:
         shutil.copy(livdb, tmp_path / "ATPI_Thellier.livdb")
         session = home.HubSession(str(tmp_path))
         view = convert.ConvertView(session)
-        assert view.format.value == "livdb" and view.files.disabled is True
+        choose(view, "livdb", hint="Livdb (Liverpool)")
+        assert view.files.disabled is True
         assert view.form.widgets["samp_name_con"].value == "sample=specimen"
         view.form.widgets["location"].value = "ATPI"
         assert asyncio.run(view._convert()) is True
@@ -474,7 +487,8 @@ class TestConvert:
         (tmp_path / "magic_contribution_20549.txt").write_text(AS_SERVED)
         session = home.HubSession(str(tmp_path))
         view = convert.ConvertView(session)
-        assert view.format.value == convert.MAGIC_FILE and view.files.value == ["magic_contribution_20549.txt"]
+        choose(view, convert.MAGIC_FILE, hint="MagIC contribution file?")
+        assert view.files.value == ["magic_contribution_20549.txt"]
         assert len(view.form.widgets) == 0
         assert asyncio.run(view._convert()) is True
         assert session.inventory.is_magic and "unpacked" in view.message.object
@@ -485,7 +499,8 @@ class TestConvert:
         (tmp_path / "notes.txt").write_text("field notes, not a notebook file\n")
         session = home.HubSession(str(tmp_path))
         view = convert.ConvertView(session)
-        assert view.format.value == "orient" and view.fmt.label.startswith("Orientation file")
+        choose(view, "orient", hint="Orientation file")
+        assert view.fmt.label.startswith("Orientation file")
         assert view.files.options == ["notes.txt", "orient_example.txt"] and view.files.value == ["orient_example.txt"]
         assert {"or_con", "dec_correction_con", "samp_con", "gmeths"} <= set(view.form.widgets)
         view.form.widgets["gmeths"].value = ["FS-FD"]                   # chosen from the list, not typed
@@ -580,7 +595,7 @@ class TestConvertAgain:
         d = jr6_lab(tmp_path)
         session = home.HubSession(d)
         view = convert.ConvertView(session)
-        assert view.format.value == "jr6_jr6"
+        choose(view, "jr6_jr6")
         view.files.value = list(files)
         assert asyncio.run(view._convert()) is True
         return d, session, view
@@ -637,6 +652,7 @@ class TestConvertAgain:
         assert reg.read_conversions(target)[0]["files"] == ["TRM.jr6"] and datasets.made_by_pmagpy(target)
         # a second one the same day: -2
         session.load(d)
+        choose(view, "jr6_jr6")                                      # another folder again: chosen afresh
         view.append.value = False
         view.files.value = ["AF.jr6"]
         asyncio.run(view._convert())
@@ -683,7 +699,8 @@ class TestConvertAgain:
         view = convert.ConvertView(session)
         assert view.folder == os.path.realpath(study)
         assert "AF.jr6" in view.files.options and shorten_home_in(view.heading.object, copy)
-        assert view.format.value == "jr6_jr6" and view.append.value is True
+        choose(view, "jr6_jr6")
+        assert view.append.value is True
         copied = open(os.path.join(copy, "measurements.txt")).read()
         n = rows(study / "measurements.txt")
         assert asyncio.run(view._convert()) is True
@@ -728,7 +745,8 @@ class TestConvertAgain:
         assert "MagIC 2.5 tables" in home.facts_html(inv) and "upgrade to 3.0 tables beside them" in home.facts_html(inv)
         assert "MagIC 2.5 tables (upgrade)?" in home.stages(inv)[0][2]
         view = convert.ConvertView(session)
-        assert view.format.value == "legacy" and view.files.disabled is True
+        choose(view, "legacy")
+        assert view.files.disabled is True
         assert len(view.form.widgets) == 0 and "earthref.org/MagIC/upgrade" in view.notes.object
         # the example carries a stray 3.0 ages.txt: converting afresh asks first, and replacing keeps it backed up
         assert asyncio.run(view._convert()) is False and "MagIC tables already (ages.txt)" in view.message.object
@@ -755,6 +773,7 @@ class TestConvertAgain:
         d = cit_only(tmp_path)
         session = home.HubSession(d)
         view = convert.ConvertView(session)
+        choose(view, "cit")
         assert asyncio.run(view._convert()) is True
         before = session.inventory.counts["measurements"]
         view.refresh()

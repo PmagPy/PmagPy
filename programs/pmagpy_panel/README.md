@@ -143,8 +143,10 @@ mp.download_contribution("10.1130/G53450.1", "~/MagIC/Ordovician_Eastern_Laurent
 ```
 
 "Convert files…" turns the page over to Convert (`pmagpy_apps/convert.py`):
-the format the inventory guessed is preselected, the files that format takes
-are chosen, and the form is generated from the registry's `fields`. The run
+the analyst chooses the format (the page never chooses it: file names alone
+mislead -- every `.dat` looks like Utrecht -- so the inventory's guess is only a
+hint under the selector), the files that format takes are chosen, and the form
+is generated from the registry's `fields`. The run
 happens off the event loop; the converters' output sits under the result, and
 Home fills in when the tables are written. Every converter is described once in
 `pmagpy/convert_registry.py` — the function, its keywords, what to ask, an

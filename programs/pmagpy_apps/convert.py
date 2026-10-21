@@ -47,6 +47,7 @@ FAIL_COLOR = "#c0392b"
 OK_COLOR = "#1a7f5a"
 WARN_COLOR = "#b45309"
 MAGIC_FILE = "magic"       # the pseudo-format for a contribution file
+CHOOSE = ""                # no format chosen yet: the page never chooses one for the analyst
 NEW_FOLDER, REPLACE = "folder", "replace"
 
 
@@ -66,8 +67,10 @@ def has_tables(directory: str) -> bool:
 
 
 def format_options() -> dict:
-    """Select options: label → key, the registry's formats alphabetically, the contribution file last."""
-    labels = {fmt.label: key for key, fmt in sorted(FORMATS.items(), key=lambda kv: kv[1].label.lower())}
+    """Select options: label → key; "Choose a format…" first, the registry's formats alphabetically, the
+    contribution file last."""
+    labels = {"Choose a format…": CHOOSE}
+    labels.update({fmt.label: key for key, fmt in sorted(FORMATS.items(), key=lambda kv: kv[1].label.lower())})
     labels["MagIC contribution file (unpack)"] = MAGIC_FILE
     return labels
 
@@ -102,6 +105,7 @@ class ConvertView:
         self.message = pn.pane.HTML("", sizing_mode="stretch_width", min_height=24)
         self.log = pn.pane.HTML("", sizing_mode="stretch_width", visible=False)
         self._confirming = False
+        self._chosen_for = None                 # the folder the format selector was last reset for
         self.run_btn.on_click(self._convert)
         self.format.param.watch(lambda e: self._format_changed(), "value")
         self.files.param.watch(lambda e: self._choice_changed(), "value")
@@ -133,8 +137,12 @@ class ConvertView:
                           f'applications work on the copy {html.escape(shorten_home(self.s.directory))}.</div>')
             self.heading.object = (f'<div class="home"><div class="section">Convert</div><h1>{html.escape(inv.name)}</h1>'
                                    f'{lines}</div>')
-            if inv.format_key in self.format.options.values():
-                self.format.value = inv.format_key
+            # the format is the analyst's to choose: file names alone mislead (every .dat looks like
+            # Utrecht), so the guess is only a hint under the selector; their choice stays while the
+            # page is on the same folder (a second batch), and a new folder starts unchosen
+            if folder != self._chosen_for:
+                self.format.value = CHOOSE
+                self._chosen_for = folder
             # any table already here is worth keeping — the samples and sites from a field notebook as much as measurements
             self.append.visible = inv.is_magic or inv.has_level_tables
             self.append.value = inv.is_magic or inv.has_level_tables
@@ -156,6 +164,15 @@ class ConvertView:
         inv = self.inv
         fmt = self.fmt
         names = [f.name for f in inv.files]
+        if self.format.value == CHOOSE:
+            self._offer(names, [])
+            self.files.disabled = True
+            self.form.set_fields(())
+            guess = FORMATS.get(inv.format_key)
+            hint = (f"The files' names suggest {guess.label}; " if guess else
+                    "MagIC contribution file? " if inv.format_key == MAGIC_FILE else "")
+            self._note(hint + "choose the format the instrument wrote, then the files to convert.")
+            return
         if fmt is None:                                   # the contribution file
             self._offer(names, [f.name for f in inv.files if f.role == "MagIC contribution file"])
             self.files.disabled = False
@@ -257,6 +274,9 @@ class ConvertView:
         """Run the converter on the chosen files and reload the directory."""
         fmt = self.fmt
         folder = self.folder
+        if self.format.value == CHOOSE:
+            self._say("Choose the format of the files first.", FAIL_COLOR)
+            return False
         if fmt is None:
             return await self._unpack(folder)
         if not fmt.takes_directory and not self.files.value:
