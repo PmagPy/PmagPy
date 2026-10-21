@@ -1797,8 +1797,11 @@ directory copies the original tables to a backup folder.
         #: what reading the data and the last export reported (skipped steps, units, kept rows ...)
         self.messages = pn.pane.HTML("", sizing_mode="stretch_width")
         self._confirm_in_place = False
-        self.session_path = pn.widgets.TextInput(name="session file", value=SESSION_NAME,
+        self.session_path = pn.widgets.TextInput(name="save the session as", value="",
+                                                 placeholder="pmagpy_intensity_session_<date>.json",
                                                  sizing_mode="stretch_width")
+        self.session_choice = pn.widgets.Select(name="session to load", options={},
+                                                sizing_mode="stretch_width")
         self.save_session_btn = pn.widgets.Button(name="Save session", width=140)
         self.load_session_btn = pn.widgets.Button(name="Load session", width=140)
         self.save_redo_btn = pn.widgets.Button(name="Save .redo", width=120)
@@ -1833,6 +1836,7 @@ directory copies the original tables to a backup folder.
         self._preview()
         self.citations.object = self._citations()
         self._show_messages()
+        self._refresh_sessions()
 
     def _show_messages(self):
         """What reading the data (and the last export) reported, so that nothing is said only to a log."""
@@ -1993,18 +1997,60 @@ directory copies the original tables to a backup folder.
         self.report.object = "".join(rows) or (
             f'<div style="{MUTED_STYLE}">nothing to check yet: write the tables first</div>')
 
+    def _session_options(self) -> dict:
+        """What *Load session* offers: the export's session and every saved one, newest first."""
+        import datetime
+        options = {}
+        for name in self.s.session_files() if self.s.output_dir else []:
+            try:
+                when = datetime.datetime.fromtimestamp(os.path.getmtime(os.path.join(self.s.output_dir, name)))
+            except OSError:
+                continue
+            what = "saved with the last export" if name == SESSION_NAME else "saved"
+            options[f"{name} ({what}, {when:%Y-%m-%d %H:%M})"] = name
+        return options
+
+    def _refresh_sessions(self):
+        options = self._session_options()
+        if options != self.session_choice.options:
+            chosen = self.session_choice.value
+            self.session_choice.options = options
+            if chosen in options.values():
+                self.session_choice.value = chosen
+
     def _session(self, save: bool):
-        path = self.session_path.value.strip() or SESSION_NAME
-        if not os.path.isabs(path):
-            path = os.path.join(self.s.output_dir, path)
         try:
             if save:
+                name = self.session_path.value.strip() or self.s.default_session_name()
+                if not os.path.splitext(name)[1]:
+                    name += ".json"
+                if os.path.basename(name) in (SESSION_NAME, AUTOSAVE_NAME):
+                    # specimens_export.py restores the export's session: a later save must not change
+                    # what that script reproduces
+                    self.message.object = (
+                        f'<div style="color:{FAIL_COLOR}">{os.path.basename(name)} is '
+                        f'{"the session written with the last export, which specimens_export.py restores" if os.path.basename(name) == SESSION_NAME else "the autosave"}'
+                        f'; save under another name</div>')
+                    return
+                path = name if os.path.isabs(name) else os.path.join(self.s.output_dir, name)
+                replaced = os.path.exists(path)
                 self.s.save_session(path)
-                self.message.object = f'<div style="color:{PASS_COLOR}">saved {path}</div>'
+                self.session_path.value = ""
+                self.message.object = (f'<div style="color:{PASS_COLOR}">saved {path}'
+                                       + (" (replacing the file of that name)" if replaced else "") + "</div>")
+                self._refresh_sessions()
+                if os.path.basename(path) in self.session_choice.options.values():
+                    self.session_choice.value = os.path.basename(path)
             else:
-                n = self.s.load_session(path)
+                self._refresh_sessions()
+                name = self.session_choice.value
+                if not name:
+                    self.message.object = (f'<div style="{MUTED_STYLE}">no saved session in '
+                                           f'{html.escape(self.s.output_dir)} yet</div>')
+                    return
+                n = self.s.load_session(os.path.join(self.s.output_dir, name))
                 self.message.object = (f'<div style="color:{PASS_COLOR}">restored {n} '
-                                       f'interpretations</div>')
+                                       f'interpretations from {html.escape(name)}</div>')
         except (OSError, ValueError) as exc:
             self.message.object = f'<div style="color:{FAIL_COLOR}">{exc}</div>'
 
@@ -2161,12 +2207,15 @@ directory copies the original tables to a backup folder.
                             self.which, self.preview, sizing_mode="stretch_width")
         persistence = pn.Column(
             pn.pane.HTML(f'<div style="{SECTION_STYLE}">Session</div>'),
-            self.session_path,
-            pn.Row(self.save_session_btn, self.load_session_btn, self.save_redo_btn,
-                   self.load_redo_btn, self.import_btn, stylesheets=[BUTTON_GROUP_CSS]),
+            pn.Row(self.session_path, self.save_session_btn, sizing_mode="stretch_width"),
+            pn.Row(self.session_choice, self.load_session_btn, sizing_mode="stretch_width"),
+            pn.Row(self.save_redo_btn, self.load_redo_btn, self.import_btn, stylesheets=[BUTTON_GROUP_CSS]),
             pn.pane.HTML(f'<div style="{MUTED_STYLE}">The session is auto-saved to '
                          f'{AUTOSAVE_NAME} after every change and restored the next time this '
-                         f'directory is opened.</div>'), sizing_mode="stretch_width")
+                         f'directory is opened. <i>Save session</i> writes a dated copy '
+                         f'(pmagpy_intensity_session_&lt;date&gt;.json) or the name given; only an export '
+                         f'writes {SESSION_NAME}, the session its specimens_export.py restores.</div>'),
+            sizing_mode="stretch_width")
         figures = pn.Column(
             pn.pane.HTML(f'<div style="{SECTION_STYLE}">Publication figures</div>'),
             pn.Row(self.figure_kind, self.figure_format, self.figure_btn),

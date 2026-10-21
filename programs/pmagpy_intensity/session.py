@@ -27,7 +27,11 @@ def env(name: str, default: str = "") -> str:
 
 
 AUTOSAVE_NAME = f"{pint.APP_ID}_autosave.json"
+#: the session an export writes beside its tables, which its specimens_export.py restores; only the
+#: export writes it
 SESSION_NAME = f"{pint.APP_ID}_session.json"
+#: what *Save session* writes by default: SESSION_SAVE_PREFIX + the date (+ -2, -3 ... when taken)
+SESSION_SAVE_PREFIX = f"{pint.APP_ID}_session_"
 REDO_NAME = f"{pint.APP_ID}.redo"
 LEGACY_REDO_NAMES = ("thellier_gui.redo", "thellier_GUI.redo")
 # the recent list is shared by every PmagPy application; the per-application file
@@ -461,6 +465,36 @@ class Session(param.Parameterized):
 
     def save_session(self, path: str) -> str:
         return self.data.save_session(path)
+
+    def default_session_name(self, today=None) -> str:
+        """The file *Save session* writes unless given a name: ``pmagpy_intensity_session_<date>.json``,
+        with ``-2``, ``-3`` ... added when that is taken. Never the export's own session file."""
+        import datetime
+        stem = SESSION_SAVE_PREFIX + (today or datetime.date.today()).isoformat()
+        name, k = f"{stem}.json", 1
+        while os.path.exists(os.path.join(self.output_dir, name)):
+            k += 1
+            name = f"{stem}-{k}.json"
+        return name
+
+    def session_files(self) -> list:
+        """The sessions in the output directory that *Load session* offers, newest first: the export's
+        own and every saved one (other applications' files, BiCEP draws and the autosave are not)."""
+        try:
+            names = os.listdir(self.output_dir)
+        except OSError:
+            return []
+        found = []
+        for name in names:
+            if not name.endswith(".json") or name.startswith(".") or name == AUTOSAVE_NAME:
+                continue
+            if name.startswith(f"{pint.APP_ID}_session") or not name.startswith(("pmagpy_", "bicep_")):
+                path = os.path.join(self.output_dir, name)
+                try:
+                    found.append((os.path.getmtime(path), name))
+                except OSError:
+                    continue
+        return [name for _, name in sorted(found, reverse=True)]
 
     def load_session(self, path: str) -> int:
         n = self.data.load_session(path)

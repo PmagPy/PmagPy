@@ -25,7 +25,7 @@ from pmagpy import bicep as bicep_core        # noqa: E402
 from pmagpy import pint_stats as ps           # noqa: E402
 from pmagpy import tdt as tdt_reader          # noqa: E402
 from pmagpy_intensity import publication as pub                       # noqa: E402
-from pmagpy_intensity.session import AUTOSAVE_NAME, REDO_NAME, Session  # noqa: E402
+from pmagpy_intensity.session import AUTOSAVE_NAME, REDO_NAME, SESSION_NAME, Session  # noqa: E402
 from pmagpy_intensity.views import (BicepView, CorrectionsView, CriteriaView, DataView,  # noqa: E402
                                     ExportView, GroupView, InterpretationsView, SpecimenView)
 
@@ -870,6 +870,58 @@ class TestExportView:
         view._export()
         assert "wrote" in view.message.object
         assert "✓" in view.report.object or "✗" in view.report.object
+
+    def test_save_session_never_changes_what_the_export_script_reproduces(self, workdir):
+        import datetime
+        src, out = workdir
+        session = Session(src, out)
+        session.autosave_enabled = False
+        session.set_bounds(0, 6)
+        view = ExportView(session)
+        view._export(confirmed=True)
+        exported = os.path.join(out, SESSION_NAME)
+        before = open(exported).read()
+        session.set_bounds(1, 7)
+        today = datetime.date.today().isoformat()
+        view._session(True)
+        first = os.path.join(out, f"pmagpy_intensity_session_{today}.json")
+        assert os.path.exists(first) and open(exported).read() == before
+        view._session(True)                              # a second save the same day
+        assert os.path.exists(os.path.join(out, f"pmagpy_intensity_session_{today}-2.json"))
+        # a name of the analyst's own, and not the export's
+        view.session_path.value = "before_flagging"
+        view._session(True)
+        assert os.path.exists(os.path.join(out, "before_flagging.json"))
+        view.session_path.value = SESSION_NAME
+        view._session(True)
+        assert "specimens_export.py restores" in view.message.object and open(exported).read() == before
+        # loading offers both kinds, newest first, and the export's says what it is
+        offered = view.session_choice.options
+        assert set(offered.values()) == {SESSION_NAME, "before_flagging.json",
+                                         f"pmagpy_intensity_session_{today}.json",
+                                         f"pmagpy_intensity_session_{today}-2.json"}
+        assert any(label.startswith(SESSION_NAME) and "saved with the last export" in label for label in offered)
+        view.session_choice.value = SESSION_NAME
+        view._session(False)
+        assert (session.interpretation.imin, session.interpretation.imax) == (0, 6)
+        view.session_choice.value = f"pmagpy_intensity_session_{today}.json"
+        view._session(False)
+        assert (session.interpretation.imin, session.interpretation.imax) == (1, 7)
+
+    def test_the_default_session_name_is_dated_and_free(self, workdir):
+        import datetime
+        src, out = workdir
+        session = Session(src, out)
+        day = datetime.date(2026, 10, 20)
+        assert session.default_session_name(day) == "pmagpy_intensity_session_2026-10-20.json"
+        os.makedirs(out, exist_ok=True)
+        for name in ("pmagpy_intensity_session_2026-10-20.json", "pmagpy_intensity_session_2026-10-20-2.json"):
+            open(os.path.join(out, name), "w").close()
+        assert session.default_session_name(day) == "pmagpy_intensity_session_2026-10-20-3.json"
+        for name in ("pmagpy_directions_session.json", "bicep_s1.json", AUTOSAVE_NAME, "notes.txt"):
+            open(os.path.join(out, name), "w").close()
+        assert set(session.session_files()) == {"pmagpy_intensity_session_2026-10-20.json",
+                                               "pmagpy_intensity_session_2026-10-20-2.json"}
 
     def test_load_redo_reads_the_legacy_redo_the_status_names(self, workdir, tmp_path):
         # the status says a legacy thellier_GUI.redo "was not used ... (Export -> Load .redo reads it)":

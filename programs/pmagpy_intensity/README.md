@@ -245,8 +245,9 @@ was made before it had the log.
 | file | when | what |
 |---|---|---|
 | `pmagpy_intensity_autosave.json` | after every change | the interpretations and the step flags, so a reload or a crash loses nothing |
-| `pmagpy_intensity_session.json` | on *Save session* and on export | the whole session: interpretations, flags, criteria, correction switches — human-readable JSON |
-| `specimens_export.py` | on export | a script that restores that session file and writes the same tables again, into a folder of its own |
+| `pmagpy_intensity_session.json` | on export, and only then | the whole session the tables were written from: interpretations, flags, criteria, correction switches (per specimen and study-wide) — human-readable JSON |
+| `specimens_export.py` | on export | a script that restores that session file and writes the same tables again, into a folder of its own; since nothing else writes that file, it always reproduces the last export |
+| `pmagpy_intensity_session_<YYYY-MM-DD>.json` | on *Save session* | the same, saved by hand: dated, with `-2`, `-3` … added when the name is taken, or under the name given (not the export's). *Load session* offers these and the export's session |
 | `<figure>.py`, and for a site or study figure `<figure>_session.json` | on *Save figure* | the calls that draw the figure; a specimen figure's script sets that specimen's flags, correction switches and bounds, a site or study figure's starts from the session saved beside it |
 | `pmagpy_intensity.redo` | on *Save .redo* and on export | the legacy bounds format, so the old GUI can read the interpretations back |
 | `specimens.txt` | on export | interpretations merged into the existing rows |
