@@ -31,7 +31,7 @@ from __future__ import annotations
 import json
 import math
 import os
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field, asdict, fields as dataclass_fields
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import numpy as np
@@ -166,6 +166,10 @@ class Interpretation:
     #: the anisotropy tensor to use when the specimen has more than one
     #: ('ATRM' or 'AARM'); ``None`` takes the default (AARM, as the legacy GUI)
     anisotropy_type: Optional[str] = None
+    #: where the interpretation came from: "specimens.txt" (imported, published), "auto"
+    #: (auto-interpretation), "analyst" (bounds chosen or copied by hand), a .redo file's name,
+    #: or "" (a session written before this was recorded)
+    source: str = ""
 
     def key(self) -> tuple:
         return (self.specimen, self.name)
@@ -1586,6 +1590,7 @@ class PintData:
             self.interpretations[specimen] = interp
         self._set_aside.pop(specimen, None)      # a new choice replaces one set aside
         interp.imin, interp.imax = imin, imax
+        kwargs.setdefault("source", "analyst")   # bounds set without saying otherwise are the analyst's
         for key, value in kwargs.items():
             setattr(interp, key, value)
         self.invalidate(specimen)
@@ -1634,6 +1639,21 @@ class PintData:
             choices = {getattr(interp, f"use_{kind}") for interp in self.interpretations.values()}
             self.correction_settings[kind] = (None if not choices else choices.pop() if len(choices) == 1
                                               else MIXED)
+
+    def has_interpretation(self, specimen: str) -> bool:
+        """True when the specimen has an interpretation, or one set aside by a bad-step flag."""
+        return specimen in self.interpretations or specimen in self._set_aside
+
+    def interpretation_sources(self, specimens: Iterable[str]) -> Dict[str, int]:
+        """How many of ``specimens``' interpretations (or fits set aside) came from where: source -> count."""
+        counts: Dict[str, int] = {}
+        for name in specimens:
+            interp = self.interpretations.get(name)
+            if interp is None and name in self._set_aside:
+                interp = self._set_aside[name][0]
+            if interp is not None:
+                counts[interp.source] = counts.get(interp.source, 0) + 1
+        return counts
 
     def remove_interpretation(self, specimen: str) -> None:
         self.interpretations.pop(specimen, None)
@@ -1889,14 +1909,21 @@ class PintData:
         if best is None:
             return None
         _, start, end, verdict = best
-        interp = self.set_interpretation(specimen, start, end)
+        interp = self.set_interpretation(specimen, start, end, source="auto")
         interp.notes = ("auto-interpreted; passes " + self.criteria.name) if verdict["passed"] else \
             ("auto-interpreted; best available, fails: " + "; ".join(verdict["failures"]))
         return interp
 
     def auto_interpret_all(self, min_n: int = 4, specimens: Optional[Iterable[str]] = None,
-                           progress=None) -> Dict[str, Optional[Interpretation]]:
+                           progress=None, replace: bool = True) -> Dict[str, Optional[Interpretation]]:
+        """Auto-interpret every specimen (or ``specimens``); returns specimen -> interpretation or None.
+
+        ``replace`` False leaves alone every specimen that has an interpretation, or one set aside by
+        a flag (:meth:`has_interpretation`), and interprets only the others.
+        """
         names = list(specimens) if specimens is not None else self.specimen_names
+        if not replace:
+            names = [name for name in names if not self.has_interpretation(name)]
         out = {}
         for k, name in enumerate(names):
             out[name] = self.auto_interpret(name, min_n=min_n)
@@ -2467,7 +2494,9 @@ class PintData:
                        float(self.specimens[name].arai.temps[i.imax])]
                 for name, i in self.interpretations.items() if self.specimens.get(name)},
             # fits whose end step is flagged bad, kept to come back when it is flagged good
-            "set_aside": [{"interpretation": asdict(i), "bounds_in_kelvin": list(bounds)}
+            # (the source beside the interpretation, which earlier readers rebuild field by field)
+            "set_aside": [{"interpretation": {k: v for k, v in asdict(i).items() if k != "source"},
+                           "source": i.source, "bounds_in_kelvin": list(bounds)}
                           for i, bounds in self._set_aside.values()],
         }
         if writer:
@@ -2555,15 +2584,17 @@ class PintData:
                 imax = int(np.argmin(np.abs(spec.arai.temps - tmax)))
             else:
                 imin, imax = int(item.get("imin", 0)), int(item.get("imax", 0))
-            interp = self.set_interpretation(name, imin, imax)
+            interp = self.set_interpretation(name, imin, imax, source=str(item.get("source") or ""))
             for key in ("quality", "name", "notes", "use_anisotropy", "use_nlt", "use_cooling_rate",
                         "anisotropy_type"):
                 if key in item:
                     setattr(interp, key, item[key])
             count += 1
+        known = {f.name for f in dataclass_fields(Interpretation)}
         for held in payload.get("set_aside", []) or []:
             try:
-                interp = Interpretation(**held["interpretation"])
+                interp = Interpretation(**{k: v for k, v in held["interpretation"].items() if k in known})
+                interp.source = str(held.get("source") or held["interpretation"].get("source") or "")
                 bounds = (float(held["bounds_in_kelvin"][0]), float(held["bounds_in_kelvin"][1]))
             except (KeyError, TypeError, ValueError, IndexError):
                 continue
@@ -2681,7 +2712,7 @@ class PintData:
             self.interpretations.clear()
             self._set_aside.clear()
         for name, imin, imax in planned:
-            self.set_interpretation(name, imin, imax)
+            self.set_interpretation(name, imin, imax, source=os.path.basename(path))
         self.invalidate()
         return len(planned), problems
 
@@ -2722,7 +2753,7 @@ class PintData:
             imax = int(np.argmin(np.abs(spec.arai.temps - tmax)))
             if abs(spec.arai.temps[imin] - tmin) > 1 or abs(spec.arai.temps[imax] - tmax) > 1:
                 problems.append(f"{name}: stored bounds {tmin:.0f}-{tmax:.0f} K do not match a step")
-            interp = self.set_interpretation(name, imin, imax)
+            interp = self.set_interpretation(name, imin, imax, source="specimens.txt")
             quality = row.get("result_quality")
             interp.quality = "b" if (not is_null(quality) and str(quality).strip() == "b") else "g"
             problems.extend(self._import_corrections(interp, row))

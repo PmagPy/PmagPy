@@ -508,6 +508,67 @@ class TestInterpretationsView:
         assert seen and all(seen)
         assert "interpreted" in view.message.object and session.data.interpretations
 
+    def test_auto_interpret_all_leaves_existing_interpretations_alone(self, workdir):
+        src, out = workdir
+        session = Session(src, out)
+        session.autosave_enabled = False
+        session.set_bounds(0, 5)
+        mine = session.specimen
+        view = InterpretationsView(session)
+        view.set_active(True)
+        view._auto(None)
+        assert _wait(lambda: "interpreted" in view.message.object, 120)
+        assert (session.data.interpretations[mine].imin, session.data.interpretations[mine].imax) == (0, 5)
+        assert session.data.interpretations[mine].source == "analyst"
+        assert len(session.data.interpretations) > 1
+        assert "1 already interpreted were kept" in view.message.object
+        # nothing left to interpret: it says so, and how to redo them
+        view._auto(None)
+        assert "already has an interpretation" in view.message.object
+
+    def test_replacing_existing_interpretations_asks_first_and_names_them(self, tmp_path):
+        src = tmp_path / "Megiddo"
+        shutil.copytree(MEGIDDO, src)
+        session = Session(str(src))
+        session.autosave_enabled = False
+        session.specimen = "hz05a1"
+        session.set_bounds(1, 8)                         # one made by hand among the published ones
+        view = InterpretationsView(session)
+        view.set_active(True)
+        n = len(session.data.interpretations)
+        view.replace_existing.value = True
+        view._auto(None)
+        assert view.auto_btn.name == f"Confirm: replace {n}"
+        assert f"replaces {n} existing interpretations: {n - 1} published (imported from specimens.txt), " \
+               f"1 made by hand" in view.message.object
+        # unticking the option takes the question back
+        view.replace_existing.value = False
+        assert view.auto_btn.name == "Auto-interpret all" and view.message.object == ""
+        # the selected ones: asked, then replaced on the second click, and nothing else
+        view.replace_existing.value = True
+        frame = view.table.value
+        rows = [i for i, name in enumerate(frame["specimen"]) if name in ("hz05a2", "hz05a3")]
+        view.table.selection = rows
+        before = {name: (i.imin, i.imax, i.source) for name, i in session.data.interpretations.items()}
+        view._auto(view._selected())
+        assert view.auto_selected.name == "Confirm: replace 2"
+        assert "2 published (imported from specimens.txt), 0 made by hand" in view.message.object
+        assert {name: (i.imin, i.imax, i.source) for name, i in session.data.interpretations.items()} == before
+        view._auto(view._selected())
+        assert _wait(lambda: "interpreted" in view.message.object, 60)
+        after = {name: (i.imin, i.imax, i.source) for name, i in session.data.interpretations.items()}
+        assert {name for name in after if after[name] != before.get(name)} <= {"hz05a2", "hz05a3"}
+        assert after["hz05a2"][2] == after["hz05a3"][2] == "auto"
+        assert view.auto_selected.name == "Auto-interpret selected"
+
+    def test_auto_interpret_selected_without_a_selection_does_nothing(self, workdir):
+        src, out = workdir
+        session = Session(src, out)
+        session.autosave_enabled = False
+        view = InterpretationsView(session)
+        view._auto([])
+        assert "tick the specimens" in view.message.object and not session.data.interpretations
+
     def test_bulk_flagging_and_deleting(self, workdir):
         src, out = workdir
         session = Session(src, out)

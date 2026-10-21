@@ -665,3 +665,64 @@ class TestStudyWideCorrections:
         name = small.specimen_names[0]
         interp = small.set_interpretation(name, 0, 4)
         assert (interp.use_anisotropy, interp.use_nlt, interp.use_cooling_rate) == (None, None, None)
+
+
+class TestWhereInterpretationsCameFrom:
+    """Each interpretation says where it came from, so a bulk replacement can say what it replaces."""
+
+    def test_sources(self, small, tmp_path):
+        names = small.specimen_names
+        small.set_interpretation(names[0], 0, 4)
+        small.auto_interpret(names[1])
+        redo = tmp_path / "old.redo"
+        spec = small.specimens[names[2]]
+        redo.write_text(f"{names[2]}\t{spec.arai.temps[0]:.0f}\t{spec.arai.temps[4]:.0f}\n")
+        small.read_redo(str(redo), replace=False)
+        assert [small.interpretations[n].source for n in names[:3]] == ["analyst", "auto", "old.redo"]
+        assert small.interpretation_sources(names) == {"analyst": 1, "auto": 1, "old.redo": 1}
+        # moving a bound of any of them makes it the analyst's
+        small.set_interpretation(names[1], 1, 5)
+        assert small.interpretations[names[1]].source == "analyst"
+
+    def test_imported_interpretations_are_published(self, megiddo):
+        assert set(megiddo.interpretation_sources(megiddo.interpretations).items()) == \
+            {("specimens.txt", len(megiddo.interpretations))}
+
+    def test_the_session_keeps_the_sources_and_earlier_sessions_read_as_not_recorded(self, small):
+        names = small.specimen_names
+        small.set_interpretation(names[0], 0, 4)
+        small.auto_interpret(names[1])
+        payload = json.loads(small.to_json())
+        small.from_json(json.dumps(payload))
+        assert [small.interpretations[n].source for n in names[:2]] == ["analyst", "auto"]
+        for item in payload["interpretations"]:
+            del item["source"]
+        small.from_json(json.dumps(payload))
+        assert [small.interpretations[n].source for n in names[:2]] == ["", ""]
+
+    def test_a_fit_set_aside_keeps_its_source_and_earlier_readers_can_rebuild_it(self, small):
+        name = small.specimen_names[0]
+        interp = small.set_interpretation(name, 2, 6, source="specimens.txt")
+        temps = small.specimens[name].arai.temps
+        small._set_aside[name] = (interp, (float(temps[2]), float(temps[6])))
+        del small.interpretations[name]
+        payload = json.loads(small.to_json())
+        held = payload["set_aside"][0]
+        assert held["source"] == "specimens.txt" and "source" not in held["interpretation"]
+        # what an earlier reader does with it: Interpretation(**held["interpretation"]) of the old fields
+        old_fields = {"specimen", "imin", "imax", "quality", "name", "notes", "use_anisotropy", "use_nlt",
+                      "use_cooling_rate", "anisotropy_type"}
+        assert set(held["interpretation"]) == old_fields
+        small.from_json(json.dumps(payload))
+        assert small.has_interpretation(name) and name not in small.interpretations
+        assert small.interpretation_sources([name]) == {"specimens.txt": 1}
+
+    def test_auto_interpret_all_can_leave_existing_interpretations_alone(self, small):
+        names = small.specimen_names[:6]
+        small.set_interpretation(names[0], 0, 4)
+        out = small.auto_interpret_all(specimens=names, replace=False)
+        assert names[0] not in out and set(out) == set(names[1:])
+        assert (small.interpretations[names[0]].imin, small.interpretations[names[0]].imax) == (0, 4)
+        out = small.auto_interpret_all(specimens=names)
+        assert set(out) == set(names)
+        assert small.interpretations[names[0]].source == "auto"

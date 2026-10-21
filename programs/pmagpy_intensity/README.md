@@ -122,6 +122,13 @@ the NRM over the most steps. Where nothing passes it offers the segment with
 the fewest failures and says which they are. It reports progress while it runs,
 and the interface stays responsive.
 
+Auto-interpretation leaves existing interpretations alone: it interprets only
+the specimens that have none. To redo them as well, tick *replace existing
+interpretations too*; the first click then says how many would be replaced and
+where they came from (published, i.e. imported from `specimens.txt`, made by
+hand, or by an earlier auto-interpretation), and a second click replaces them.
+The same holds for *Auto-interpret selected*.
+
 ### Criteria & statistics
 
 Every statistic the current specimen has, as **one sortable table** — statistic,

@@ -678,9 +678,10 @@ class InterpretationsView(LazyView):
         self.goto_btn = pn.widgets.Button(name="Go to specimen", button_type="primary", width=150)
         self.flag_btn = pn.widgets.Button(name="Flag good/bad", button_type="warning", width=140)
         self.delete_btn = pn.widgets.Button(name="Delete", button_type="danger", width=110)
-        self.auto_btn = pn.widgets.Button(name="Auto-interpret all", button_type="primary",
-                                          width=180)
-        self.auto_selected = pn.widgets.Button(name="Auto-interpret selected", width=200)
+        self.auto_btn = pn.widgets.Button(name=self.AUTO_ALL, button_type="primary", width=180)
+        self.auto_selected = pn.widgets.Button(name=self.AUTO_SELECTED, width=200)
+        self.replace_existing = pn.widgets.Checkbox(name="replace existing interpretations too", value=False)
+        self._awaiting_confirm = None            # (button, specimens) awaiting the second click that replaces
         self.progress = pn.indicators.Progress(value=0, max=100, sizing_mode="stretch_width",
                                                visible=False)
         self.message = pn.pane.HTML("", sizing_mode="stretch_width")
@@ -690,6 +691,9 @@ class InterpretationsView(LazyView):
         self.delete_btn.on_click(self._delete)
         self.auto_btn.on_click(lambda e: self._auto(None))
         self.auto_selected.on_click(lambda e: self._auto(self._selected()))
+        self.replace_existing.param.watch(lambda e: self._reset_confirm(), "value")
+        self.table.param.watch(lambda e: self._reset_confirm(), "selection")
+        session.param.watch(lambda *e: self._reset_confirm(), ["version", "directory"])
         session.param.watch(self._lazy_redraw, ["version", "directory", "criteria_name",
                                                 "add_ziggie"])
 
@@ -712,8 +716,64 @@ class InterpretationsView(LazyView):
         for name in self._selected():
             self.s.delete_interpretation(name)
 
+    AUTO_ALL, AUTO_SELECTED = "Auto-interpret all", "Auto-interpret selected"
+    #: how the confirmation names where the interpretations it would replace came from
+    SOURCES = (("specimens.txt", "published (imported from specimens.txt)"), ("analyst", "made by hand"),
+               ("auto", "made by auto-interpretation"))
+
+    def _reset_confirm(self):
+        if self._awaiting_confirm is None:
+            return
+        self._awaiting_confirm = None
+        self.message.object = ""                    # the question no longer stands
+        self.auto_btn.name, self.auto_btn.button_type = self.AUTO_ALL, "primary"
+        self.auto_selected.name, self.auto_selected.button_type = self.AUTO_SELECTED, "default"
+
+    def _describe_replaced(self, names) -> str:
+        counts = dict(self.s.data.interpretation_sources(names))
+        parts = [f"{counts.pop(key, 0)} {label}" for key, label in self.SOURCES[:2]]
+        auto = counts.pop("auto", 0)
+        if auto:
+            parts.append(f"{auto} {self.SOURCES[2][1]}")
+        unknown = counts.pop("", 0)
+        parts += [f"{n} loaded from {html.escape(source)}" for source, n in sorted(counts.items())]
+        if unknown:
+            parts.append(f"{unknown} restored from a session that did not record where they came from")
+        return ", ".join(parts)
+
     def _auto(self, names):
-        targets = names if names else self.s.data.specimen_names
+        """Auto-interpret the specimens without an interpretation; replacing the others asks first."""
+        if self.s.data is None:
+            return
+        if names is not None and not names:
+            self.message.object = f'<div style="{MUTED_STYLE}">tick the specimens to interpret first</div>'
+            return
+        button = self.auto_selected if names else self.auto_btn
+        candidates = list(names) if names else list(self.s.data.specimen_names)
+        existing = [n for n in candidates if self.s.data.has_interpretation(n)]
+        replace = bool(self.replace_existing.value)
+        targets = candidates if replace else [n for n in candidates if n not in existing]
+        if not targets:
+            self.message.object = (
+                f'<div style="{MUTED_STYLE}">{"every" if not names else "each selected"} specimen already '
+                f'has an interpretation; tick <i>replace existing interpretations too</i> to redo '
+                f'{"them" if len(existing) > 1 else "it"}</div>')
+            return
+        if replace and existing and self._awaiting_confirm != (button, tuple(targets)):
+            # replacing what is there (published results among it) is asked once, with the count
+            self._reset_confirm()
+            self._awaiting_confirm = (button, tuple(targets))
+            button.name = f"Confirm: replace {len(existing)}"
+            button.button_type = "danger"
+            self.message.object = (
+                f'<div style="color:{FAIL_COLOR}">This replaces {len(existing)} existing '
+                f'interpretation{"s" if len(existing) > 1 else ""}: {self._describe_replaced(existing)}. '
+                f'Click <i>Confirm: replace {len(existing)}</i> to go on, or untick the option to '
+                + (f'interpret only the {len(targets) - len(existing)} without one.</div>'
+                   if len(targets) > len(existing) else 'keep them.</div>'))
+            return
+        self._reset_confirm()
+        kept = 0 if replace else len(existing)
         self.progress.visible = True
         self.message.object = f'<div style="{MUTED_STYLE}">interpreting {len(targets)} specimens…</div>'
         doc = pn.state.curdoc
@@ -729,16 +789,18 @@ class InterpretationsView(LazyView):
             # only the computation runs here: the views follow the session under the document
             # lock, so the change is announced in done() (a change from this thread raised
             # "_pending_writes should be non-None", and the run never finished on the page)
-            out = self.s.data.auto_interpret_all(specimens=targets, progress=report)
+            out = self.s.data.auto_interpret_all(specimens=targets, progress=report, replace=replace)
 
             def done():
                 self.s._changed()
                 self.progress.visible = False
-                passed = sum(1 for n in out if self.s.data.result(n) is not None
+                made = [n for n, interp in out.items() if interp is not None]
+                passed = sum(1 for n in made if self.s.data.result(n) is not None
                              and self.s.data.result(n).passed)
-                self.message.object = (f'<div style="{MUTED_STYLE}">interpreted {len(out)} '
-                                       f'specimens; {passed} pass '
-                                       f'{self.s.data.criteria.name}</div>')
+                self.message.object = (
+                    f'<div style="{MUTED_STYLE}">interpreted {len(made)} of {len(out)} specimens; '
+                    f'{passed} pass {self.s.data.criteria.name}'
+                    + (f"; {kept} already interpreted were kept" if kept else "") + "</div>")
                 self.redraw()
             if doc is not None and getattr(doc, "session_context", None) is not None:
                 doc.add_next_tick_callback(done)
@@ -784,6 +846,11 @@ class InterpretationsView(LazyView):
                          pn.Row(self.goto_btn, self.flag_btn, self.delete_btn,
                                 self.auto_selected, self.auto_btn,
                                 stylesheets=[BUTTON_GROUP_CSS]),
+                         pn.Row(self.replace_existing,
+                                pn.pane.HTML(f'<div style="{MUTED_STYLE}">Without it, auto-interpretation '
+                                             f'leaves every existing interpretation as it is and '
+                                             f'interprets only the specimens that have none.</div>'),
+                                stylesheets=[CHECKBOX_CSS]),
                          self.progress, self.message, self.table,
                          sizing_mode="stretch_width")
 

@@ -350,8 +350,9 @@ class Session(param.Parameterized):
         self._changed()
         return changed
 
-    def auto_interpret(self, specimens: Optional[Iterable[str]] = None, progress=None) -> dict:
-        out = self.data.auto_interpret_all(specimens=specimens, progress=progress)
+    def auto_interpret(self, specimens: Optional[Iterable[str]] = None, progress=None,
+                       replace: bool = True) -> dict:
+        out = self.data.auto_interpret_all(specimens=specimens, progress=progress, replace=replace)
         self._changed()
         return out
 
