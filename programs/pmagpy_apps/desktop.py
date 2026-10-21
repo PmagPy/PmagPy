@@ -124,8 +124,26 @@ def start_server(edition: Edition, port: int, report=lambda text: None):
     return server
 
 
+def _inside_bundle(path: str) -> bool:
+    """True for a folder inside the frozen application (the .app, or the folder PyInstaller unpacked into)."""
+    root = bundle_root()
+    if not root or not path:
+        return False
+    roots = [os.path.realpath(root)]
+    parts = roots[0].split(os.sep)
+    apps = [i for i, part in enumerate(parts) if part.endswith(".app")]
+    if apps:
+        roots.append(os.sep.join(parts[:apps[-1] + 1]))
+    path = os.path.realpath(path)
+    return any(path == r or path.startswith(r + os.sep) for r in roots)
+
+
 def _folder_dialog_for(window):
-    """pywebview's folder dialog as the runtime's ``(start, prompt) -> path`` callable."""
+    """pywebview's folder dialog as the runtime's ``(start, prompt) -> path`` callable.
+
+    It never opens inside the application itself (where the bundled example lives):
+    a start there becomes the last folder the analyst chose outside it, or home.
+    """
     import webview
     # pywebview 5 named the dialog types FileDialog.FOLDER; the module-level FOLDER_DIALOG
     # still answers in 6 but logs a deprecation warning on every use and is to be removed
@@ -133,13 +151,18 @@ def _folder_dialog_for(window):
     if folder is None:
         folder = webview.FOLDER_DIALOG
 
+    last = {"outside": ""}
+
     def choose(start: Optional[str], prompt: str) -> Optional[str]:
-        start = start if start and os.path.isdir(start) else os.path.expanduser("~")
+        if not start or not os.path.isdir(start) or _inside_bundle(start):
+            start = last["outside"] if os.path.isdir(last["outside"]) else os.path.expanduser("~")
         chosen = window.create_file_dialog(folder, directory=start)
         if not chosen:
             return None
-        first = chosen[0] if isinstance(chosen, (list, tuple)) else chosen
-        return str(first) or None
+        first = str(chosen[0] if isinstance(chosen, (list, tuple)) else chosen) or None
+        if first and not _inside_bundle(first):
+            last["outside"] = first
+        return first
     return choose
 
 

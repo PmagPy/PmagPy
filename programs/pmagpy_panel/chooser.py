@@ -283,7 +283,9 @@ class DirectoryChooser:
     def modal(self, *extra, width: int = 760) -> pn.Column:
         """The dialog, with anything the application wants to add underneath; ``[0][0]`` is the heading pane."""
         fallback = pn.Card(self.browser, collapsed=True, sizing_mode="stretch_width",
-                           title="In-page browser (for sessions served from another machine)")
+                           title="In-page browser (for sessions served from another machine)",
+                           # a host with its own folder dialog (the desktop build) is never served elsewhere
+                           visible=runtime.folder_dialog() is None)
         block = pn.Column(
             pn.pane.HTML(self.heading_html(self.title, self.note)),
             pn.Row(self.native_btn, self.message),

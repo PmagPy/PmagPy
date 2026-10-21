@@ -218,6 +218,39 @@ class TestDesktop:
         assert desktop._folder_dialog_for(window)(str(tmp_path), "Choose") == str(tmp_path / "two")
         assert calls[-1][0] == 20
 
+    def test_the_folder_dialog_never_opens_inside_the_application(self, monkeypatch, tmp_path):
+        """After the bundled example, Browse with Finder started in the .app; it starts where the analyst was."""
+        import sys
+        import types
+        app = tmp_path / "PmagPy Apps.app"
+        example = app / "Contents" / "Resources" / "data_files" / "3_0" / "McMurdo"
+        example.mkdir(parents=True)
+        (app / "Contents" / "Frameworks").mkdir()
+        monkeypatch.setattr(sys, "frozen", True, raising=False)
+        monkeypatch.setattr(sys, "_MEIPASS", str(app / "Contents" / "Frameworks"), raising=False)
+        studies = tmp_path / "studies"
+        studies.mkdir()
+        calls = []
+
+        class FakeWindow:
+            answer = [str(studies)]
+
+            def create_file_dialog(self, dialog_type, directory=""):
+                calls.append(directory)
+                return self.answer
+        fake = types.ModuleType("webview")
+        fake.FileDialog = type("FileDialog", (), {"FOLDER": 20})
+        monkeypatch.setitem(sys.modules, "webview", fake)
+        monkeypatch.setattr(desktop.os.path, "expanduser", lambda p: str(tmp_path) if p == "~" else p)
+        choose = desktop._folder_dialog_for(FakeWindow())
+        assert desktop._inside_bundle(str(example)) and not desktop._inside_bundle(str(studies))
+        choose(str(example), "Choose")
+        assert calls[-1] == str(tmp_path)                                   # first time: home
+        choose(str(example), "Choose")
+        assert calls[-1] == str(studies)                                    # then: the last folder chosen outside
+        choose(str(tmp_path), "Choose")
+        assert calls[-1] == str(tmp_path)                                   # a start outside is kept
+
     def test_headless_main_serves_and_stops(self, monkeypatch, tmp_path):
         """--no-window: the mode the packaged build is checked in."""
         monkeypatch.setattr(datasets, "SHARED_RECENT_FILE", str(tmp_path / "recent.json"))

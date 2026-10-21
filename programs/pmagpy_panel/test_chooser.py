@@ -170,6 +170,26 @@ def test_the_modal_takes_whatever_the_application_adds(chooser):
     assert len(extended) > len(plain)
 
 
+def test_a_host_with_its_own_folder_dialog_shows_no_in_page_browser(chooser):
+    from pmagpy_panel import runtime
+    session, view = chooser
+
+    def cards(modal):
+        found, todo = [], [modal]
+        while todo:
+            obj = todo.pop()
+            if isinstance(obj, pn.Card):
+                found.append(obj)
+            todo.extend(getattr(obj, "objects", []))
+        return found
+    assert [c.visible for c in cards(view.modal())] == [True]          # a server another machine may reach
+    runtime.set_folder_dialog(lambda start, prompt: None)
+    try:
+        assert [c.visible for c in cards(view.modal())] == [False]     # the desktop build: the system dialog
+    finally:
+        runtime.set_folder_dialog(None)
+
+
 def test_the_summary_follows_a_directory_change(chooser, tmp_path):
     session, view = chooser
     other = tmp_path / "renamed"
