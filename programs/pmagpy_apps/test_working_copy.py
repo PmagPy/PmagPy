@@ -366,3 +366,95 @@ class TestTheBundledExampleIsKeyedByName:
             assert datasets.working_copy_source(copy) == os.path.realpath(bundled) and datasets.working_copy_note(copy) == ""
             assert digest(copy)["sites.txt"] == edited                       # existing files kept
             assert os.path.exists(os.path.join(copy, "new_in_this_version.txt"))   # an updated example's new files added
+
+
+class TestAStaleCopy:
+    def test_the_copy_records_what_it_was_made_from(self, study, base):
+        import json
+        copy = datasets.working_directory(study)
+        marker = json.load(open(os.path.join(copy, datasets.WORKING_COPY_MARKER)))
+        stamp = marker["files"]["measurements.txt"]
+        assert stamp["size"] == os.path.getsize(os.path.join(study, "measurements.txt")) and len(stamp["sha1"]) == 40
+        assert datasets.copy_changes(copy) == [] and datasets.stale_copy_note(copy) == ""
+        # a file the study gains later is added, and recorded
+        shutil.copy(os.path.join(study, "sites.txt"), os.path.join(study, "extra.txt"))
+        datasets.working_directory(study)
+        assert "extra.txt" in json.load(open(os.path.join(copy, datasets.WORKING_COPY_MARKER)))["files"]
+
+    def test_a_study_that_changed_says_so_and_only_its_contents_count(self, study, base):
+        copy = datasets.working_directory(study)
+        os.utime(os.path.join(study, "sites.txt"), (1, 1))             # touched (moved, unpacked again): same contents
+        assert datasets.copy_changes(copy) == []
+        with open(os.path.join(study, "measurements.txt"), "a") as fh:
+            fh.write("\n")
+        os.remove(os.path.join(study, "ages.txt")) if os.path.exists(os.path.join(study, "ages.txt")) else None
+        changed = datasets.copy_changes(copy)
+        assert "measurements.txt" in changed and "sites.txt" not in changed
+        note = datasets.stale_copy_note(copy)
+        assert "has changed since this working copy was made on " in note and "measurements.txt" in note
+
+    def test_a_copy_made_before_copies_recorded_their_files_is_unknown_not_stale(self, study, base):
+        import json
+        copy = datasets.working_directory(study)
+        path = os.path.join(copy, datasets.WORKING_COPY_MARKER)
+        marker = json.load(open(path))
+        del marker["files"]
+        open(path, "w").write(json.dumps(marker))
+        with open(os.path.join(study, "measurements.txt"), "a") as fh:
+            fh.write("\n")
+        shutil.copy(os.path.join(study, "sites.txt"), os.path.join(study, "extra.txt"))
+        datasets.working_directory(study)                               # adds extra.txt, and stays unknown
+        assert datasets.copy_changes(copy) is None and datasets.stale_copy_note(copy) == ""
+        assert "files" not in json.load(open(path))
+
+    def test_starting_afresh_keeps_the_old_copy_and_makes_a_new_one(self, study, base, tmp_path):
+        from datetime import date
+        from pmagpy_directions.session import Session as Directions
+        from pmagpy_panel.chooser import DirectoryChooser
+        d = Directions(study)
+        copy = d.directory
+        with open(os.path.join(copy, "specimens.txt"), "a") as fh:
+            fh.write("\n")                                              # interpretations exported into the copy
+        work = digest(copy)
+        with open(os.path.join(study, "measurements.txt"), "a") as fh:
+            fh.write("\n")
+        chooser = DirectoryChooser(d, recent_file=str(tmp_path / "r.json"), count=lambda s: "")
+        assert chooser.stale.visible and "measurements.txt" in chooser.stale.object
+        assert chooser.fresh_btn.visible and chooser.fresh_btn.name == "Start a fresh copy"
+        assert chooser.start_fresh() is True
+        aside = f"{os.path.realpath(copy)}-{date.today().isoformat()}"
+        assert digest(aside) == work                                    # the old copy, whole and untouched
+        assert d.directory == copy and digest(copy)["measurements.txt"] == digest(study)["measurements.txt"]
+        assert datasets.copy_changes(copy) == [] and not chooser.stale.visible and not chooser.fresh_btn.visible
+        # a set-aside copy is not offered a fresh start of its own, and a second one the same day gets -2
+        assert datasets.stale_copy_note(aside) and not datasets.can_start_fresh(aside)
+        with open(os.path.join(study, "measurements.txt"), "a") as fh:
+            fh.write("\n")
+        datasets.set_copy_aside(copy)
+        assert os.path.isdir(aside + "-2") and not os.path.exists(copy)
+
+    def test_home_says_so_and_starts_afresh(self, study, base, tmp_path):
+        from pmagpy_apps.home import HubSession, HomeView
+        session = HubSession(study, recent_file=str(tmp_path / "hub_recent.json"))
+        view = HomeView(session)
+        copy = session.directory
+        assert not view.fresh_btn.visible
+        with open(os.path.join(study, "measurements.txt"), "a") as fh:
+            fh.write("\n")
+        session.load(study)
+        assert view.fresh_btn.visible and "has changed since" in view.ref.object
+        assert view.start_fresh() is True
+        assert session.directory == copy and not view.fresh_btn.visible
+        assert any(n.startswith(os.path.basename(copy) + "-") for n in os.listdir(base))
+
+    def test_a_kept_copy_of_a_converted_study_starts_afresh_in_place(self, study, base, tmp_path):
+        from pmagpy_apps.home import HubSession, HomeView
+        session = HubSession(study, recent_file=str(tmp_path / "hub_recent.json"))
+        copy = session.directory
+        with open(os.path.join(study, "measurements.txt"), "a") as fh:
+            fh.write("\n")
+        converted(study)                                  # lab files converted into the study since
+        session.load(study)
+        view = HomeView(session)
+        assert session.directory == copy and view.fresh_btn.name == "Work on the study itself"
+        assert view.start_fresh() is True and session.directory == study

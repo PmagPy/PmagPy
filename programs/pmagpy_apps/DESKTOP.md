@@ -50,6 +50,16 @@ intended. Rock magnetism and Anisotropy join by adding them to the edition
   files it already has are not overwritten. `PMAGPY_APPS_OUTPUT` (or `--output`)
   names another base; without one -- a checkout or a pip install -- every
   application works in the study's own folder, as before.
+* A copy records what it was made from: each file's size, modification time
+  and checksum, in its `.pmagpy_working_copy.json`. When the study's tables
+  have changed since (new lab files converted into it, a corrected table), the
+  side column and Home say so and offer **Start a fresh copy**: the old copy,
+  with its interpretations, is set aside under its name and the date
+  (`McMurdo-1a2b3c4d-2026-10-20`, then `-2` …; nothing in it is overwritten)
+  and a new copy is made from the study as it is now. For a study PmagPy made
+  the button reads **Work on the study itself**, since such a study has no copy
+  once its old one is set aside. A copy made before copies recorded their
+  files cannot tell, and says nothing.
 * Studies PmagPy made are worked on in place. A folder whose tables came from
   Convert or Intensity's .tdt import holds the conversion log
   `pmagpy_conversions.json`, and every application and the hub open that folder

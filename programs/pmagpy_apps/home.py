@@ -256,6 +256,9 @@ def ref_html(inv: Inventory) -> str:
         kept = datasets.kept_copy_note(inv.directory)
         if kept:
             lines.append(f'<div class="path">{_esc(kept)}</div>')
+        stale = datasets.stale_copy_note(inv.directory)
+        if stale:
+            lines.append(f'<div class="ref" style="color:var(--warn)">{_esc(stale)}</div>')
     else:
         lines = [f'<div class="path">{_esc(shorten_home(inv.directory))}</div>']
         note = datasets.working_copy_note(inv.directory)
@@ -583,12 +586,15 @@ class HomeView:
                                             margin=(30, 10, 0, 0))
         self.start_btn = pn.widgets.Button(name="Start page", button_type="light", width=100, margin=(30, 0, 0, 10))
         self.start_btn.on_click(lambda e: self.go_start())
+        self.fresh_btn = pn.widgets.Button(name="Start a fresh copy", button_type="warning", width=200,
+                                           margin=(4, 10, 0, 10), visible=False)
+        self.fresh_btn.on_click(lambda e: self.start_fresh())
         self.start = pn.Column(self.start_heading, pn.GridBox(*shown, ncols=2, sizing_mode="stretch_width"),
                                self.recent_pane, sizing_mode="stretch_width")
         self.work = pn.Column(
             pn.Row(self.heading, self.convert_btn, self.metadata_btn, self.upload_btn, self.download_btn, self.change_btn,
                    self.start_btn, sizing_mode="stretch_width"),
-            self.ref, self.facts, self.strip,
+            self.ref, self.fresh_btn, self.facts, self.strip,
             pn.Row(self.bars, self.spacer, self.aside, sizing_mode="stretch_width", margin=(28, 0, 0, 0)),
             sizing_mode="stretch_width")
         session.param.watch(lambda e: self.refresh(), "directory")
@@ -609,6 +615,19 @@ class HomeView:
         self.s.start()
         _set_url("")
 
+    def start_fresh(self) -> bool:
+        """Set the working copy aside (renamed with today's date, nothing in it lost) and open its study
+        again, which makes a new copy of the study as it is now."""
+        try:
+            source = datasets.set_copy_aside(self.s.directory)
+        except OSError as exc:
+            self.s.status = f"Could not set the working copy aside: {exc}"
+            return False
+        if self.s.load(source):
+            _set_url(source)
+            return True
+        return False
+
     def refresh(self) -> None:
         with LayoutHold.batch():        # visibility, button styles, texts: one layout of the page
             self.start.visible = self.s.landing
@@ -619,6 +638,9 @@ class HomeView:
             inv = self.s.inventory
             self.heading.object = title_html(inv)
             self.ref.object = ref_html(inv)
+            self.fresh_btn.visible = bool(datasets.stale_copy_note(inv.directory)) and datasets.can_start_fresh(inv.directory)
+            if self.fresh_btn.visible:
+                self.fresh_btn.name = datasets.start_fresh_label(inv.directory)
             self.facts.object = facts_html(inv)
             self.strip.object = strip_html(inv, self.edition)
             self.bars.object = bars_html(inv, self.applications)

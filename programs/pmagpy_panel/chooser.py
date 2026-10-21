@@ -39,6 +39,7 @@ from .theme import MUTED_STYLE, SECTION_STYLE, kpi
 
 FAIL_COLOR = "#c0392b"
 OK_COLOR = "#1a7f5a"
+WARN_COLOR = "#b45309"
 
 
 def shorten(path: str, width: int = 52) -> str:
@@ -98,6 +99,10 @@ class DirectoryChooser:
         directory = getattr(session, "directory", "") or ""
         self.summary = pn.pane.HTML("", sizing_mode="stretch_width")
         self.change_btn = pn.widgets.Button(name="Change data…", button_type="primary", width=140)
+        # a working copy whose study has changed since: say so, and offer to start afresh (the copy is kept)
+        self.stale = pn.pane.HTML("", sizing_mode="stretch_width", visible=False)
+        self.fresh_btn = pn.widgets.Button(name="Start a fresh copy", button_type="warning", width=180, visible=False)
+        self.fresh_btn.on_click(self.start_fresh)
         app = {"darwin": "Finder", "win32": "Explorer"}.get(sys.platform, "the system dialog")
         self.native_btn = pn.widgets.Button(name=f"Browse with {app}…", button_type="primary",
                                             width=220, disabled=not self.chooser_available)
@@ -143,6 +148,12 @@ class DirectoryChooser:
         else:
             where = (f'<span style="{MUTED_STYLE}" title="{html.escape(directory)}">'
                      f'{html.escape(shorten(datasets.shorten_home(directory)))}</span>')
+        stale = datasets.stale_copy_note(directory) if directory else ""
+        self.stale.object = f'<div style="color:{WARN_COLOR};font-size:.85rem">{html.escape(stale)}</div>' if stale else ""
+        self.stale.visible = bool(stale)
+        self.fresh_btn.visible = bool(stale) and datasets.can_start_fresh(directory)
+        if self.fresh_btn.visible:
+            self.fresh_btn.name = datasets.start_fresh_label(directory)
         self.summary.object = kpi([f"<b>{name}</b>", f'<span style="{MUTED_STYLE}">{self._count(self.s)}</span>',
                                    where])
         self.recent.options = {shorten(d, 70): d for d in self.recent_directories()}
@@ -230,6 +241,23 @@ class DirectoryChooser:
 
     _load = load          # the name the intensity branch's callers use
 
+    def start_fresh(self, event=None) -> bool:
+        """Set the stale working copy aside (renamed with today's date, nothing in it lost) and open the
+        study again, which makes a new copy of it as it is now."""
+        directory = getattr(self.s, "directory", "") or ""
+        flush = getattr(self.s, "flush_autosave", None)
+        if flush is not None:
+            flush()                        # the last edits land in the copy being set aside
+        try:
+            source = datasets.set_copy_aside(directory)
+        except OSError as exc:
+            self.stale.object = f'<div style="color:{FAIL_COLOR}">Could not set the copy aside: {html.escape(str(exc))}</div>'
+            return False
+        self.path.value = source
+        ok = self._finish_load(source)
+        self.refresh()                     # the new copy has the old one's path: the session's directory did not change
+        return ok
+
     def failure_page(self, directory: str, reason: str) -> pn.Column:
         """The page for a directory that could not be opened: why, and the dialog to choose another.
 
@@ -244,7 +272,8 @@ class DirectoryChooser:
     # ----- layout -----------------------------------------------------------
     def sidebar(self) -> pn.Column:
         return pn.Column(pn.pane.HTML(f'<div style="{SECTION_STYLE}">Data</div>'),
-                         pn.Row(self.summary, self.change_btn), sizing_mode="stretch_width")
+                         pn.Row(self.summary, self.change_btn), self.stale, self.fresh_btn,
+                         sizing_mode="stretch_width")
 
     @staticmethod
     def heading_html(title: str, note: str = "") -> str:

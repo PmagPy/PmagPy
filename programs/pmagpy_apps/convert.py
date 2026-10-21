@@ -328,7 +328,8 @@ class ConvertView:
         copy = self.s.directory if datasets.working_copy_source(self.s.directory) else ""
         if copy:
             lines.append(f"the tables are in {html.escape(shorten_home(target))}; the working copy the applications "
-                         f"use, {html.escape(shorten_home(copy))}, was made before and does not have them")
+                         f"use, {html.escape(shorten_home(copy))}, was made before and does not have them "
+                         f"(Home offers to start afresh)")
         self._say(" · ".join(lines), OK_COLOR if not (result.failed or copy) else WARN_COLOR)
         self.home_btn.button_type = "primary"
         return True

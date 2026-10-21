@@ -257,13 +257,15 @@ def working_directory(directory: str, base: Optional[str] = None) -> str:
              if n.endswith(WORKING_COPY_SUFFIXES) and not n.startswith(".")
              and os.path.isfile(os.path.join(directory, n))]
     if os.path.isdir(target):
-        import shutil
+        added = {}
         for name in files:
             if not os.path.exists(os.path.join(target, name)):
+                added[name] = _file_stamp(os.path.join(directory, name))
                 _copy_writable(os.path.join(directory, name), os.path.join(target, name))
-        if not os.path.exists(os.path.join(target, WORKING_COPY_MARKER)) or (
-                is_bundled_example(directory) and _marked_source(target) != os.path.realpath(directory)):
-            _write_marker(target, directory)           # the example's copy follows the application it came with
+        marker = _read_marker(target)
+        if not marker or added or (is_bundled_example(directory) and _marked_source(target) != os.path.realpath(directory)):
+            # the example's copy follows the application it came with
+            _write_marker(target, directory, added)
         return target
     import shutil
     import uuid
@@ -271,9 +273,11 @@ def working_directory(directory: str, base: Optional[str] = None) -> str:
     staging = os.path.join(base, f".copying-{uuid.uuid4().hex[:12]}")
     os.mkdir(staging, 0o777)
     try:
+        stamps = {}
         for name in files:
+            stamps[name] = _file_stamp(os.path.join(directory, name))
             _copy_writable(os.path.join(directory, name), os.path.join(staging, name))
-        _write_marker(staging, directory)
+        _write_marker(staging, directory, stamps, fresh=True)
         try:
             os.rename(staging, target)
         except OSError:
@@ -297,12 +301,128 @@ def _copy_writable(src: str, dst: str) -> None:
         os.chmod(dst, stat.S_IMODE(mode) | stat.S_IWUSR)
 
 
-def _write_marker(target: str, source: str) -> None:
+def _file_stamp(path: str) -> dict:
+    """``{"size", "mtime_ns", "sha1"}`` of a study's file as it is copied (empty when it cannot be read)."""
+    try:
+        st = os.stat(path)
+        return {"size": st.st_size, "mtime_ns": st.st_mtime_ns, "sha1": _sha1(path)}
+    except OSError:
+        return {}
+
+
+def _sha1(path: str) -> str:
+    import hashlib
+    digest = hashlib.sha1()
+    with open(path, "rb") as fh:
+        for block in iter(lambda: fh.read(1 << 20), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _read_marker(directory: str) -> dict:
+    try:
+        with open(os.path.join(directory, WORKING_COPY_MARKER), encoding="utf-8") as fh:
+            marker = json.load(fh)
+    except (OSError, ValueError):
+        return {}
+    return marker if isinstance(marker, dict) else {}
+
+
+def _write_marker(target: str, source: str, stamps: Optional[dict] = None, fresh: bool = False) -> None:
+    """Write the marker: the study, when the copy was made, and what each file copied from it was.
+
+    ``files`` (name → size, modification time and checksum of the study's file
+    when it was copied) is what :func:`copy_changes` compares the study with.
+    A new copy records every file; an existing one adds the files copied now
+    to its record -- but a marker that never had one (a copy made before
+    copies recorded their files) stays without, so that it reads as unknown.
+    """
     import time
     from pmagpy.magic_project import atomic_write_text
-    atomic_write_text(os.path.join(target, WORKING_COPY_MARKER),
-                      json.dumps({"source": os.path.realpath(source),
-                                  "copied": time.strftime("%Y-%m-%dT%H:%M:%S")}, indent=1))
+    old = {} if fresh else _read_marker(target)
+    marker = {"source": os.path.realpath(source),
+              "copied": old.get("copied") or time.strftime("%Y-%m-%dT%H:%M:%S")}
+    if fresh:
+        marker["files"] = dict(stamps or {})
+    elif isinstance(old.get("files"), dict):
+        marker["files"] = {**old["files"], **(stamps or {})}
+    atomic_write_text(os.path.join(target, WORKING_COPY_MARKER), json.dumps(marker, indent=1))
+
+
+def copy_changes(directory: str) -> Optional[list]:
+    """The study's files that have changed since this working copy was made from it, by name (sorted).
+
+    None when that cannot be told: `directory` is not a copy, its study is not
+    there, or the copy was made before copies recorded their files. A file
+    counts as changed when it is gone, its size differs, or its modification
+    time differs and so does its checksum (a study moved or unpacked again
+    keeps its contents and loses its times).
+    """
+    recorded = _read_marker(directory).get("files")
+    source = working_copy_source(directory)
+    if not source or not isinstance(recorded, dict) or os.path.realpath(source) == os.path.realpath(directory):
+        return None
+    changed = []
+    for name, stamp in recorded.items():
+        path = os.path.join(source, name)
+        try:
+            st = os.stat(path)
+            if st.st_size != stamp.get("size") or (st.st_mtime_ns != stamp.get("mtime_ns")
+                                                   and _sha1(path) != stamp.get("sha1")):
+                changed.append(name)
+        except OSError:
+            changed.append(name)
+    return sorted(changed)
+
+
+def stale_copy_note(directory: str) -> str:
+    """A sentence for a working copy whose study has changed since it was made, else ""."""
+    changed = copy_changes(directory)
+    if not changed:
+        return ""
+    names = ", ".join(changed[:4]) + (f" and {len(changed) - 4} more" if len(changed) > 4 else "")
+    when = str(_read_marker(directory).get("copied", ""))[:10]
+    return (f"The study has changed since this working copy was made{' on ' + when if when else ''} ({names}): "
+            "the applications show it as it was then.")
+
+
+def can_start_fresh(directory: str) -> bool:
+    """True for the working copy its study's applications open (not one set aside by :func:`set_copy_aside`)."""
+    source = working_copy_source(directory)
+    if not source:
+        return False
+    return os.path.realpath(default_output_dir(source, os.path.dirname(os.path.realpath(directory)))) == \
+        os.path.realpath(directory)
+
+
+def start_fresh_label(directory: str) -> str:
+    """What starting afresh does: a new copy, or -- for a study PmagPy made -- the study itself."""
+    source = working_copy_source(directory)
+    return "Work on the study itself" if source and made_by_pmagpy(source) else "Start a fresh copy"
+
+
+def set_copy_aside(directory: str, today=None) -> str:
+    """Rename a working copy to ``<its name>-<YYYY-MM-DD>`` (``-2``, ``-3`` … when taken) and return its study.
+
+    Its tables, interpretations and session files are kept as they are, never
+    overwritten; opening the study next makes a new copy from it (or, for a
+    study PmagPy made, opens it in place, :func:`working_directory`).
+
+    Raises:
+        OSError: the copy's study is not there, or the copy cannot be renamed.
+    """
+    from datetime import date
+    source = working_copy_source(directory)
+    if not source:
+        raise OSError(f"{directory} is not a working copy of a study that is there")
+    path = os.path.realpath(directory)
+    stem = f"{path}-{(today or date.today()).isoformat()}"
+    aside, n = stem, 1
+    while os.path.lexists(aside):
+        n += 1
+        aside = f"{stem}-{n}"
+    os.rename(path, aside)
+    return source
 
 
 #: the tables whose files decide whether a dataset read earlier is still current
