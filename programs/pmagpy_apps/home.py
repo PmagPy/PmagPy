@@ -429,6 +429,9 @@ def bars_html(inv: Inventory, applications=APPLICATIONS) -> str:
             bars.append(_bar(app, app.absent, None))
         elif not app.built:
             bars.append(_bar(app, f"{_qualifier(present)} · not built yet", None, "Not yet"))
+        elif all(k.key in inv.unsupported for k in present):
+            reasons = "; ".join(dict.fromkeys(inv.unsupported[k.key] for k in present))
+            bars.append(_bar(app, f"{_qualifier(present)} · {reasons}", None, "Not yet"))
         else:
             bars.append(_bar(app, _qualifier(present), app_link(app.app_id, inv.directory)))
     return f'<div class="home"><div class="section">Analyze</div><div class="bars">{"".join(bars)}</div></div>'

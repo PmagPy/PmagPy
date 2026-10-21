@@ -124,7 +124,12 @@ which describes a directory with no UI attached — counts, experiment kinds fro
 the LP- method codes, the contribution's id and DOI, what has been interpreted,
 metadata gaps, and a guess at the format of lab files awaiting conversion. To
 list a new application on Home add an `Application` to `home.APPLICATIONS` with
-the experiment kinds it opens; the door opens once its package imports.
+the experiment kinds it opens; the door opens once its package imports. A kind
+an application cannot read yet stays shut with the reason: the Intensity door of
+a study whose only paleointensity experiments are microwave Thellier or
+ARM-based (`Inventory.unsupported`, from `pmagpy.paleointensity.unsupported_reason`,
+the selection PmagPy Intensity itself refuses such a study by); a study that
+also has thermal Thellier experiments keeps it.
 
 "Download from MagIC…" (`pmagpy_apps/download.py`) fills a folder with a public
 contribution given its ID or the paper's DOI and reopens Home on it. The

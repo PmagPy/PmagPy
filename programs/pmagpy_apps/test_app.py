@@ -539,6 +539,39 @@ def rows(path) -> int:
     return mp.table_rows(str(path))
 
 
+class TestDoorsForWhatTheApplicationsRead:
+    """No Intensity door for a study Intensity would refuse: microwave-only or ARM-based paleointensity."""
+
+    def door(self, directory, name="Intensity"):
+        import re
+        bars = home.bars_html(take_inventory(directory))
+        return re.search(rf'<(a|div) class="bar[^"]*"[^>]*><h3>{name}</h3><div class="fact">([^<]*)</div>', bars).groups()
+
+    @pytest.mark.parametrize("example", ["MW_P", "MW_IZZI+andC++"])
+    def test_a_microwave_study_gets_no_intensity_door(self, tmp_path, example):
+        src = os.path.join(os.path.dirname(CIT), "..", "livdb_magic", example)
+        d = tmp_path / "mw"
+        shutil.copytree(src, d)
+        tag, fact = self.door(str(d))
+        assert tag == "div" and "microwave Thellier is not supported yet" in fact
+
+    def test_an_arm_study_gets_none_and_a_thellier_one_keeps_it(self, tmp_path):
+        import pandas as pd
+        from pmagpy import magic_project as mp
+        meas = pd.read_csv(os.path.join(MCMURDO, "measurements.txt"), sep="\t", header=1, dtype=str,
+                           keep_default_na=False)
+        d = tmp_path / "arm"
+        d.mkdir()
+        mp.magic_write(str(d / "measurements.txt"), meas[meas["method_codes"].str.contains("LP-PI-ARM")], "measurements")
+        tag, fact = self.door(str(d))
+        assert tag == "div" and "ARM-based paleointensity is not supported yet" in fact
+        tag, fact = self.door(MCMURDO)                              # Thellier experiments beside its one ARM specimen
+        assert tag == "a" and "not supported" not in fact
+        th = tmp_path / "th"
+        shutil.copytree(os.path.join(os.path.dirname(CIT), "..", "livdb_magic", "TH_IZZI+"), th)
+        assert self.door(str(th))[0] == "a"
+
+
 class TestConvertAgain:
     """A folder that has tables: a second batch is added, a file already in them is not added twice,
     and a fresh conversion asks first whether its tables go to a dated folder or replace the old ones."""

@@ -476,6 +476,45 @@ def _is_microwave(spec_meas: pd.DataFrame) -> bool:
     return bool(codes & {"LT-M-Z", "LT-M-I"}) and not (codes & {"LT-T-Z", "LT-T-I"})
 
 
+def paleointensity_rows(meas: pd.DataFrame) -> pd.DataFrame:
+    """The measurement rows of the Thellier-type experiments this core reads (:data:`PI_PROTOCOLS`)."""
+    codes = meas["method_codes"].fillna("").astype(str)
+    return meas[codes.str.contains("|".join(PI_PROTOCOLS), regex=True)]
+
+
+#: paleointensity protocols the core does not read, and how to say so
+UNSUPPORTED_PROTOCOLS = {"LP-PI-ARM": "ARM-based paleointensity", "LP-PI-MULT": "multispecimen paleointensity",
+                         "LP-PI-REL": "relative paleointensity"}
+
+
+def unsupported_reason(meas: pd.DataFrame) -> str:
+    """Why the paleointensity experiments in a measurements table cannot be opened, or "" when they can.
+
+    The selection :class:`PintData` makes (:func:`paleointensity_rows`, and
+    the step codes :func:`_step_kind` reads): a study can be opened when at
+    least one specimen has thermal Thellier steps -- a microwave specimen
+    (:func:`_is_microwave`) is set aside, and one with no step codes gives no
+    steps. Otherwise the reason names what is there -- microwave Thellier
+    experiments, ARM-based paleointensity -- as "… is not supported yet". Only
+    ``specimen`` and ``method_codes`` are read.
+    """
+    if meas is None or "method_codes" not in meas.columns or "specimen" not in meas.columns:
+        return ""
+    thermal = {c for c in CODES_Z + CODES_I if c.startswith("LT-T-")}
+    microwave = False
+    for _, spec_meas in paleointensity_rows(meas).groupby("specimen", sort=False):
+        codes = {c for v in spec_meas["method_codes"].fillna("") for c in split_codes(v)}
+        if codes & thermal:
+            return ""
+        microwave = microwave or _is_microwave(spec_meas)
+    codes = {c for v in meas["method_codes"].fillna("").astype(str) for c in split_codes(v)}
+    found = (["microwave Thellier"] if microwave else []) + \
+        [label for code, label in UNSUPPORTED_PROTOCOLS.items() if any(c.startswith(code) for c in codes)]
+    if not found:
+        return ""
+    return f"{' and '.join(found)} {'is' if len(found) == 1 else 'are'} not supported yet"
+
+
 STEP_SOURCE_COLUMNS = ("method_codes", "dir_dec", "dir_inc", "treat_temp", "treat_dc_field", "treat_dc_field_phi",
                        "treat_dc_field_theta", "quality", "measurement", "description", "specimen", "sequence")
 
@@ -1296,8 +1335,7 @@ class PintData:
         self.site_coords = mp.build_site_coords(site_df, samp_df, self.warnings)
         self.sample_cooling_rate = self._sample_cooling_rates(samp_df)
 
-        codes = meas["method_codes"].fillna("").astype(str)
-        pi_rows = meas[codes.str.contains("|".join(PI_PROTOCOLS), regex=True)]
+        pi_rows = paleointensity_rows(meas)
         microwave_only = []
         no_direction, bad_unit = [], []
         for name, spec_meas in pi_rows.groupby("specimen", sort=False):

@@ -1048,3 +1048,34 @@ class TestDerived:
         assert len(temps) == spec.arai.n
         zij = pi.zijderveld_xy(spec)
         assert len(zij["h_x"]) == spec.arai.n
+
+
+LIVDB = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+                     "data_files", "convert_2_magic", "livdb_magic")
+
+
+@pytest.mark.parametrize("example, opens", [("MW_P", False), ("MW_IZZI+andC++", False), ("MW_C+", False),
+                                            ("TH_IZZI+", True)])
+def test_the_reason_a_study_cannot_be_opened_agrees_with_the_reader(example, opens):
+    """Home greys the Intensity door by unsupported_reason: it must say no exactly when PintData does."""
+    directory = os.path.join(LIVDB, example)
+    meas = pd.read_csv(os.path.join(directory, "measurements.txt"), sep="\t", header=1, dtype=str,
+                       keep_default_na=False)
+    reason = pi.unsupported_reason(meas[["specimen", "method_codes"]])
+    if opens:
+        assert reason == "" and pi.PintData.from_directory(directory).specimens
+    else:
+        assert reason == "microwave Thellier is not supported yet"
+        with pytest.raises(ValueError, match="microwave"):
+            pi.PintData.from_directory(directory)
+
+
+def test_arm_paleointensity_alone_is_not_supported_but_beside_thellier_it_is(tmp_path):
+    mcmurdo = os.path.join(os.path.dirname(LIVDB), "..", "3_0", "McMurdo", "measurements.txt")
+    meas = pd.read_csv(mcmurdo, sep="\t", header=1, dtype=str, keep_default_na=False)
+    assert pi.unsupported_reason(meas) == ""                         # McMurdo: Thellier and one ARM specimen
+    arm = meas[meas["method_codes"].str.contains("LP-PI-ARM")]
+    assert pi.unsupported_reason(arm) == "ARM-based paleointensity is not supported yet"
+    mp.magic_write(str(tmp_path / "measurements.txt"), arm, "measurements")
+    with pytest.raises(ValueError):
+        pi.PintData.from_directory(str(tmp_path))

@@ -102,6 +102,7 @@ class Inventory:
     files: List[FileRole] = field(default_factory=list)           # everything that is not a MagIC table
     uploads: List[str] = field(default_factory=list)              # upload files built from the tables, newest first
     conversions: List[dict] = field(default_factory=list)         # the log entries that account for the tables, oldest first
+    unsupported: Dict[str, str] = field(default_factory=dict)     # kind key -> why no application can open it yet
     folders: int = 0
     format_key: str = ""                                          # a convert_registry key, "magic", or ""
     format_guess: str = ""                                        # its label: "CIT", "JR6 (.jr6)", "MagIC contribution file", or ""
@@ -337,6 +338,12 @@ def take_inventory(directory: str) -> Inventory:
     }
     if m is not None:
         inv.kinds = experiment_kinds(m)
+        if any(k.key == "pi" for k in inv.kinds):
+            # the test PmagPy Intensity refuses a study by: microwave-only, or ARM-based, paleointensity
+            from pmagpy.paleointensity import unsupported_reason
+            reason = unsupported_reason(m)
+            if reason:
+                inv.unsupported["pi"] = reason
     tensors = tensor_kind(frames.get("specimens"))
     if tensors is not None:                      # tensors in specimens.txt count whether or not measurements announce them
         inv.kinds = [k for k in inv.kinds if k.key != "aniso"] + [tensors]
