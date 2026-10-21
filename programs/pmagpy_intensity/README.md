@@ -223,7 +223,10 @@ as PDF, SVG or PNG.
 Everything goes to the directory the study is worked on: the data directory
 itself, or, with an output base (`PMAGPY_APPS_OUTPUT` or `PMAGPY_INTENSITY_OUTPUT`;
 the desktop build's `~/PmagPy/`), the working copy of the study that every
-application shares.
+application shares. A study PmagPy converted -- Convert's tables, or the .tdt
+importer's `magic3/` folder, both of which leave a `pmagpy_conversions.json` log
+-- is worked on in place even with an output base, unless a working copy of it
+was made before it had the log.
 
 | file | when | what |
 |---|---|---|

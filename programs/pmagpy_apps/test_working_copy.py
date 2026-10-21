@@ -205,3 +205,109 @@ class TestEveryApplicationWorksThere:
         assert "working copy, its study moved · " in block and block.count(recorded) == 1
         ref = ref_html(take_inventory(moved))
         assert ref.index(os.path.basename(moved)) < ref.index("not there any more") and ref.count(recorded) == 1
+
+
+def converted(directory, name="lab.dat"):
+    """Mark a study as PmagPy's own work: a conversion log beside its tables, as Convert writes."""
+    from pmagpy import convert_registry as reg
+    reg.record_conversion(directory, "sio", [name], tables={"measurements": 1})
+    return directory
+
+
+class TestStudiesPmagPyMadeAreWorkedOnInPlace:
+    def test_the_log_is_the_registry_s(self):
+        from pmagpy import convert_registry as reg
+        assert datasets.CONVERSION_LOG == reg.CONVERSION_LOG
+
+    def test_every_application_opens_a_converted_study_itself(self, study, base, tmp_path):
+        from pmagpy_directions.session import Session as Directions
+        from pmagpy_intensity.session import Session as Intensity
+        from pmagpy_rockmag.session import Session as RockMag
+        from pmagpy_apps.home import HubSession, ref_html
+        from pmagpy_apps.inventory import take_inventory
+        from pmagpy_panel.chooser import DirectoryChooser
+        converted(study)
+        assert datasets.made_by_pmagpy(study) and datasets.working_directory(study) == study
+        d = Directions(study)
+        assert d.directory == study and d.source_directory == study
+        assert Intensity(study).directory == study and RockMag(study).directory == study
+        assert HubSession(study, recent_file=str(tmp_path / "hub_recent.json")).directory == study
+        assert not os.path.exists(base) or os.listdir(base) == []                 # no copy was made
+        block = DirectoryChooser(d, recent_file=str(tmp_path / "r.json"), count=lambda s: "").summary.object
+        assert "working copy" not in block and "<b>McMurdo</b>" in block
+        assert "working copy" not in ref_html(take_inventory(study))
+        assert d.writes_in_place()                                     # so an export asks first, as in a checkout
+
+    def test_a_study_without_a_log_still_gets_its_copy(self, study, base):
+        assert not datasets.made_by_pmagpy(study)
+        assert datasets.working_directory(study) != study
+        assert not os.path.exists(os.path.join(MCMURDO, datasets.CONVERSION_LOG))    # the example has no log
+
+    def test_a_copy_made_before_the_study_had_a_log_is_kept_and_says_so(self, study, base, tmp_path):
+        from pmagpy_directions.session import Session as Directions
+        from pmagpy_apps.home import ref_html
+        from pmagpy_apps.inventory import take_inventory
+        from pmagpy_panel.chooser import DirectoryChooser
+        copy = datasets.working_directory(study)
+        assert datasets.kept_copy_note(copy) == ""
+        converted(study)                      # lab files converted into the downloaded study's folder
+        assert datasets.working_directory(study) == copy
+        note = datasets.kept_copy_note(copy)
+        assert os.path.realpath(study) in note and "made before" in note
+        d = Directions(study)
+        assert d.directory == copy
+        block = DirectoryChooser(d, recent_file=str(tmp_path / "r.json"), count=lambda s: "").summary.object
+        assert "earlier working copy · " in block and "made before" in block
+        assert "made before" in ref_html(take_inventory(copy))
+        assert datasets.made_by_pmagpy(copy) is False             # the copy holds the log too, and is still a copy
+
+    def test_nothing_shipped_or_read_only_is_in_place(self, study, base, monkeypatch, tmp_path):
+        import sys
+        converted(study)
+        monkeypatch.setattr(datasets, "shipped_roots", lambda: [os.path.realpath(os.path.dirname(study))])
+        assert not datasets.made_by_pmagpy(study) and datasets.working_directory(study) != study
+        monkeypatch.undo()
+        app = tmp_path / "PmagPy Apps.app"
+        (app / "Contents" / "MacOS").mkdir(parents=True)
+        monkeypatch.setattr(sys, "frozen", True, raising=False)
+        monkeypatch.setattr(sys, "_MEIPASS", str(app / "Contents" / "Frameworks"), raising=False)
+        monkeypatch.setattr(sys, "executable", str(app / "Contents" / "MacOS" / "PmagPy Apps"))
+        assert os.path.realpath(str(app)) in datasets.shipped_roots()
+        inside = app / "Contents" / "Resources" / "data_files" / "study"
+        shutil.copytree(study, inside)
+        assert not datasets.made_by_pmagpy(str(inside))
+        assert datasets.made_by_pmagpy(study)
+
+    @pytest.mark.skipif(os.name == "nt" or (hasattr(os, "geteuid") and os.geteuid() == 0),
+                        reason="needs a folder that POSIX permissions make read-only")
+    def test_a_read_only_converted_study_gets_a_copy(self, study, base):
+        converted(study)
+        os.chmod(study, 0o555)
+        try:
+            assert not datasets.made_by_pmagpy(study)
+            assert datasets.working_directory(study) != study
+        finally:
+            os.chmod(study, 0o755)
+
+    def test_the_tdt_importer_logs_what_it_wrote_and_opens_it_in_place(self, study, base, tmp_path):
+        from pmagpy_intensity.session import Session as Intensity
+        from pmagpy_intensity.views import DataView
+        from pmagpy import convert_registry as reg
+        session = Intensity(study)
+        view = DataView(session, chooser_available=False)
+        lab = tmp_path / "tdt_lab"
+        lab.mkdir()
+        rows = ["Thellier-tdt", "45\t0\t0\t0\t0", "SP1\t0.0\t100\t10\t30"]
+        for i, temp in enumerate((100, 200, 300, 400, 500)):
+            rows.append(f"SP1\t{temp}.0\t{95 - 15 * i}\t10\t30")
+            rows.append(f"SP1\t{temp}.1\t{97 - 10 * i}\t12\t45")
+        (lab / "SP1.tdt").write_text("\n".join(rows) + "\n")
+        view.tdt_path.value = str(lab)
+        view.tdt_units.value = "Am^2"
+        view._check_tdt()
+        view._convert_tdt()
+        out = str(lab / "magic3")
+        (entry,) = reg.read_conversions(out)
+        assert entry["files"] == ["SP1.tdt"] and entry["stamps"]["SP1.tdt"]["sha1"]
+        assert entry["tables"]["measurements"] == 11 and entry["values"]["moment_units"] == "Am^2"
+        assert session.directory == out and "SP1" in session.data.specimens

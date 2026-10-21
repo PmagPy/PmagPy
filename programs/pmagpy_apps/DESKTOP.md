@@ -41,6 +41,20 @@ intended. Rock magnetism and Anisotropy join by adding them to the edition
   files it already has are not overwritten. `PMAGPY_APPS_OUTPUT` (or `--output`)
   names another base; without one -- a checkout or a pip install -- every
   application works in the study's own folder, as before.
+* Studies PmagPy made are worked on in place. A folder whose tables came from
+  Convert or Intensity's .tdt import holds the conversion log
+  `pmagpy_conversions.json`, and every application and the hub open that folder
+  itself, with or without a base (`pmagpy_panel.datasets.made_by_pmagpy`): the
+  tables sit with the lab files, where the analyst builds the MagIC upload from,
+  and the side column shows the folder's path with no "working copy". A study
+  without a log -- a contribution downloaded from MagIC, a colleague's study, the
+  bundled example -- still gets its copy, and nothing inside the application
+  bundle or an install's `data_files` (or a folder that cannot be written) is
+  ever worked on in place. A study that already had a working copy before it
+  gained its log (converted by an earlier build, or lab files converted into a
+  downloaded contribution's folder) keeps using that copy, so the work in it is
+  not left behind; the side column then says "earlier working copy", and Home
+  says why under the path.
 * Closing the window ends the process; nothing keeps running.
 
 ## How it is built

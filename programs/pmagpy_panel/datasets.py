@@ -74,6 +74,9 @@ OUTPUT_BASE_VARS = ("PMAGPY_APPS_OUTPUT", "PMAGPY_DIRECTIONS_OUTPUT", "PMAGPY_IN
 WORKING_COPY_MARKER = ".pmagpy_working_copy.json"
 #: the files of a study a working copy takes (MagIC tables, legacy .redo files, session files)
 WORKING_COPY_SUFFIXES = (".txt", ".redo", ".json")
+#: the log PmagPy writes beside the tables it converted (``pmagpy.convert_registry.CONVERSION_LOG``):
+#: a study that has one is PmagPy's own work, and is worked on in place
+CONVERSION_LOG = "pmagpy_conversions.json"
 
 
 def output_base() -> str:
@@ -96,6 +99,44 @@ def is_working_copy(directory: str, base: str = "") -> bool:
     if base and (path + os.sep).startswith(os.path.realpath(base) + os.sep):
         return True
     return os.path.isfile(os.path.join(path, WORKING_COPY_MARKER))
+
+
+def shipped_roots() -> list:
+    """The folders that come with PmagPy itself: the packaged application, and the ``data_files`` of a
+    checkout or an install. Nothing under them is ever worked on in place."""
+    roots = []
+    if getattr(sys, "frozen", False):
+        roots.append(getattr(sys, "_MEIPASS", ""))
+        executable = os.path.realpath(sys.executable)
+        bundle = executable
+        while bundle != os.path.dirname(bundle) and not bundle.endswith(".app"):
+            bundle = os.path.dirname(bundle)
+        roots.append(bundle if bundle.endswith(".app") else os.path.dirname(executable))
+    repo = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    roots += [os.path.join(repo, "data_files"), os.path.join(sys.prefix, "data_files")]
+    return [os.path.realpath(r) for r in roots if r]
+
+
+def _under(path: str, roots) -> bool:
+    return any(path == root or path.startswith(root + os.sep) for root in roots)
+
+
+def made_by_pmagpy(directory: str) -> bool:
+    """True for a study whose tables PmagPy wrote (Convert, the .tdt import, ``convert_cli``).
+
+    That is a folder holding :data:`CONVERSION_LOG` that is the analyst's own:
+    writable, not a working copy, and not one that ships with PmagPy
+    (:func:`shipped_roots`). Such a study is worked on in place by every
+    application, also when there is an output base (:func:`working_directory`):
+    its tables sit with the lab files they came from, where the analyst builds
+    the upload from.
+    """
+    path = os.path.realpath(os.path.abspath(os.path.expanduser(directory)))
+    if not os.path.isfile(os.path.join(path, CONVERSION_LOG)) or not os.access(path, os.W_OK):
+        return False
+    if os.path.isfile(os.path.join(path, WORKING_COPY_MARKER)):
+        return False
+    return not _under(path, shipped_roots())
 
 
 def _marked_source(directory: str) -> str:
@@ -128,6 +169,20 @@ def working_copy_note(directory: str) -> str:
             "it is opened as a study of its own.")
 
 
+def kept_copy_note(directory: str) -> str:
+    """A sentence for a working copy of a study that is otherwise worked on in place, else "".
+
+    A study converted by an earlier build, or one that gained a conversion log
+    after its copy was made, keeps that copy (:func:`working_directory`): the
+    flags, interpretations and metadata in it are not left behind.
+    """
+    source = working_copy_source(directory)
+    if not source or os.path.realpath(source) == os.path.realpath(directory) or not made_by_pmagpy(source):
+        return ""
+    return (f"{source} holds tables PmagPy converted, which are worked on in place; this working copy of it "
+            "was made before, and is still the one every application uses, so that nothing done in it is left behind.")
+
+
 def study_name(directory: str) -> str:
     """The name to show for a study: its folder's name, also when `directory` is its working copy.
 
@@ -158,6 +213,11 @@ def working_directory(directory: str, base: Optional[str] = None) -> str:
     never overwritten. Two applications opening the same study at once make
     one copy: it is assembled beside the target and moved into place whole.
 
+    A study PmagPy made (:func:`made_by_pmagpy`: its tables came from Convert
+    or the .tdt import) is worked on in place, base or not -- unless a working
+    copy of it exists already (made by an earlier build, or before the study
+    gained its conversion log), which is then kept (:func:`kept_copy_note`).
+
     Raises:
         OSError: the copy cannot be made (the base is not writable, the disk is full).
     """
@@ -166,6 +226,8 @@ def working_directory(directory: str, base: Optional[str] = None) -> str:
     if not base or is_working_copy(directory, base):
         return directory
     target = default_output_dir(directory, base)
+    if not os.path.isdir(target) and made_by_pmagpy(directory):
+        return directory
     files = [n for n in sorted(os.listdir(directory))
              if n.endswith(WORKING_COPY_SUFFIXES) and not n.startswith(".")
              and os.path.isfile(os.path.join(directory, n))]

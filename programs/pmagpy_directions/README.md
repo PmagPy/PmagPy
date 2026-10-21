@@ -95,7 +95,9 @@ the study itself untouched instead: the first application to open it copies its
 tables to `<base>/<dataset>-<path fingerprint>/`, and every application --
 Directions, Intensity, Rock Magnetism, Anisotropy, the hub -- then works on that
 one copy, so they all see the same tables (the desktop build does this under
-`~/PmagPy/`). Recently opened
+`~/PmagPy/`). A study PmagPy converted (one with a `pmagpy_conversions.json`
+log beside its tables) is the exception: it is worked on in place, unless a
+working copy of it was made before it had the log. Recently opened
 directories are remembered in `~/.pmagpy_directions_recent.json` (override with
 `PMAGPY_DIRECTIONS_RECENT`; the older `DEMAG_*` variable names are still
 honoured). The launcher's default port is `PMAGPY_DIRECTIONS_PORT` (5100).
@@ -354,7 +356,8 @@ an output base (`PMAGPY_APPS_OUTPUT`, the desktop build's `~/PmagPy/`) the
 applications share one working copy of the study, named after the dataset and a
 fingerprint of its path, so studies in folders of the same name never share
 one; the pages name the study, and the dataset block in the side column says
-"working copy · <folder>" (the whole story on hover). An export to another folder, chosen in the Export pane, receives the
+"working copy · <folder>" (the whole story on hover); a study PmagPy converted is
+worked on in place and shows its own path. An export to another folder, chosen in the Export pane, receives the
 source's other tables so that it is a complete contribution.
 
 ### Publication figures

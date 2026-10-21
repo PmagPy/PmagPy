@@ -131,9 +131,11 @@ class DirectoryChooser:
                   or directory) if directory else ""
         name = html.escape(datasets.study_name(directory)) if directory else "(none)"
         if directory and os.path.realpath(source) != os.path.realpath(directory):
-            tip = (f"{source} is never written: every application reads and writes "
-                   f"this copy of it, {directory}")
-            where = (f'<span style="{MUTED_STYLE}" title="{html.escape(tip)}">working copy · '
+            kept = datasets.kept_copy_note(directory)
+            tip = (kept or f"{source} is never written by the analysis: every application reads and writes this copy "
+                           f"of it, {directory} (only Convert writes into the study, where the lab files are)")
+            label = "earlier working copy" if kept else "working copy"
+            where = (f'<span style="{MUTED_STYLE}" title="{html.escape(tip)}">{label} · '
                      f'{html.escape(shorten(datasets.shorten_home(directory)))}</span>')
         elif directory and datasets.working_copy_note(directory):
             where = (f'<span style="{MUTED_STYLE}" title="{html.escape(datasets.working_copy_note(directory))}">'

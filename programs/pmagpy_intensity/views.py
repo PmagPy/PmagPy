@@ -266,6 +266,14 @@ class DataView(DirectoryChooser):
             self.tdt_report.object = (f'<div style="color:{FAIL_COLOR}">conversion refused; '
                                       f'fix the errors above</div>')
             return
+        from pmagpy import magic_project as mp
+        from pmagpy.convert_registry import record_conversion
+        # the log makes the tables PmagPy's own: every application works on them in place
+        record_conversion(out, "tdt_import", files, label="ThellierTool .tdt",
+                          values={"volume": self.tdt_volume.value, "moment_units": self.tdt_units.value,
+                                  "lab_dec": self.tdt_dec.value, "lab_inc": self.tdt_inc.value,
+                                  "import_anisotropy": self.tdt_aniso.value},
+                          tables={os.path.basename(p)[:-4]: mp.table_rows(p) for p in result["files"]})
         self.path.value = out
         self.load()
 

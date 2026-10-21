@@ -249,9 +249,13 @@ def ref_html(inv: Inventory) -> str:
     """Under the title, at full width: the path, then contribution · DOI · contributor or what the directory lacks."""
     source = datasets.working_copy_source(inv.directory)
     if source and os.path.realpath(source) != os.path.realpath(inv.directory):
-        tip = f"{source} is never written: every application reads and writes this copy of it"
+        tip = (f"{source} is never written by the analysis: every application reads and writes this copy of it "
+               "(only Convert writes into the study, where the lab files are)")
         lines = [f'<div class="path">{_esc(shorten_home(source))}</div>',
                  f'<div class="path" title="{_esc(tip)}">working copy · {_esc(shorten_home(inv.directory))}</div>']
+        kept = datasets.kept_copy_note(inv.directory)
+        if kept:
+            lines.append(f'<div class="path">{_esc(kept)}</div>')
     else:
         lines = [f'<div class="path">{_esc(shorten_home(inv.directory))}</div>']
         note = datasets.working_copy_note(inv.directory)
