@@ -12118,7 +12118,7 @@ def utrecht(mag_file, dir_path=".",  input_dir_path="", meas_file="measurements.
     line = data.readline()
     while line != "END" and line != '"END"':
         SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}
-        line_items = line.split(',')
+        line_items = line.rstrip("\r\n").split(',')
         spec_name = line_items[0]
         spec_name = spec_name.replace("\"", "")
 #        print("spec_name=", spec_name)
