@@ -29,6 +29,7 @@ import numpy as np
 import matplotlib
 from matplotlib import pyplot as plt
 from matplotlib.lines import Line2D
+from matplotlib.transforms import blended_transform_factory
 
 import pmagpy.paleointensity as pint
 from pmagpy import pint_stats as ps
@@ -118,6 +119,19 @@ def arai_axes(ax, spec: pint.PintSpecimen, bounds, stats=None, normalize: bool =
     _style(ax)
 
 
+def zijderveld_axis_labels(ax, labels=pint.ZIJDERVELD_AXES) -> None:
+    """Name the ends of a Zijderveld inset's axes, where the axes through the origin meet the box."""
+    along_x = blended_transform_factory(ax.transAxes, ax.transData)
+    along_y = blended_transform_factory(ax.transData, ax.transAxes)
+    style = dict(fontsize=6.5, color=GREY, clip_on=False,
+                 bbox=dict(boxstyle="square,pad=0.1", fc="white", ec="none", alpha=0.75))
+    ax.text(1.0, 0.0, labels["right"], ha="right", va="bottom", transform=along_x, **style)
+    ax.text(0.0, 0.0, labels["left"], ha="left", va="bottom", transform=along_x, **style)
+    ax.text(0.0, 1.0, f' {labels["top_h"]}, {labels["top_v"]}', ha="left", va="top", transform=along_y, **style)
+    ax.text(0.0, 0.0, f' {labels["bottom_h"]}, {labels["bottom_v"]}', ha="left", va="bottom",
+            transform=along_y, **style)
+
+
 def specimen_figure(spec: pint.PintSpecimen, bounds, stats: Optional[dict] = None,
                     result=None, with_checks: bool = True, figsize=(9.0, 5.4)):
     """An Arai plot with the Zijderveld diagram, the decay curve and the statistics."""
@@ -135,11 +149,12 @@ def specimen_figure(spec: pint.PintSpecimen, bounds, stats: Optional[dict] = Non
     zij_ax.axhline(0, color=EDGE, lw=0.6)
     zij_ax.axvline(0, color=EDGE, lw=0.6)
     zij_ax.set_aspect("equal", adjustable="datalim")
-    zij_ax.set_title("Zijderveld", fontsize=8)
+    zij_ax.set_title("Zijderveld (specimen coordinates)", fontsize=8)
     zij_ax.set_xticks([])
     zij_ax.set_yticks([])
     for side in ("top", "right", "bottom", "left"):
         zij_ax.spines[side].set_visible(False)
+    zijderveld_axis_labels(zij_ax)
 
     decay_ax = fig.add_subplot(grid[1, 1])
     temps, decay = pint.decay_curve(spec)

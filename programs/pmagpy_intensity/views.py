@@ -86,14 +86,17 @@ def block_px_per_frame(frame: int, step: int = 20) -> tuple:
     return tall, wide
 
 
-def captioned(caption: str, fig, width: int = TILE) -> pn.Column:
-    """A figure under a small heading.
+def captioned(caption: str, fig, width: int = TILE, note: str = "") -> pn.Column:
+    """A figure under a small heading, with an optional note beside it in plain type.
 
     Outside the figure rather than as a Bokeh title, because ``net_figure``
     keeps a net circular by having no title row at all -- see the toolkit's
     note there. Doing it the same way for all four keeps the block aligned.
     """
-    label = pn.pane.HTML(f'<div style="{SECTION_STYLE};margin:0">{caption}</div>',
+    extra = (f' <span style="text-transform:none;font-weight:400;letter-spacing:0;color:#6b7280">'
+             f'{note}</span>' if note else "")
+    label = pn.pane.HTML(f'<div style="{SECTION_STYLE};margin:0;white-space:nowrap;overflow:hidden;'
+                         f'text-overflow:ellipsis">{caption}{extra}</div>',
                          width=width, height=16, margin=(0, 0, 1, 2))
     return pn.Column(label, fig, width=width, margin=(0, 0, 6, 0))
 
@@ -316,7 +319,7 @@ class SpecimenView:
         self.decay = DecayPlot(*frames["decay"])
         self.checks = ChecksPlot(*frames["checks"])
         # one block, built here so that it exists before main() is asked for it
-        self.tiles = [captioned("Zijderveld", self.zij.fig),
+        self.tiles = [captioned("Zijderveld", self.zij.fig, note="specimen coordinates"),
                       captioned("Equal area", self.net.fig),
                       captioned("NRM and pTRM", self.decay.fig),
                       captioned("Alteration checks", self.checks.fig)]

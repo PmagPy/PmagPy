@@ -2730,6 +2730,13 @@ def arai_xy(spec: PintSpecimen, normalize: bool = True) -> Tuple[np.ndarray, np.
     return a.x / scale, a.y / scale
 
 
+#: the ends of the axes of :func:`zijderveld_xy`'s diagram: y across, x (horizontal projection)
+#: and -z (vertical projection) up. measurements.txt holds directions in specimen coordinates,
+#: so these are PmagPy Directions' labels for this projection in specimen coordinates
+#: (``pmagpy.demag.axis_labels(COORD_SPECIMEN, "ew")``)
+ZIJDERVELD_AXES = dict(right="y", left="−y", top_h="x", bottom_h="−x", top_v="−z (up)", bottom_v="z (down)")
+
+
 def zijderveld_xy(spec: PintSpecimen, rotation: float = 0.0) -> dict:
     """Horizontal and vertical projections of the zero-field steps."""
     a = spec.arai

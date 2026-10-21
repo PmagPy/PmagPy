@@ -272,11 +272,28 @@ class SpecimenZijderveldPlot:
         self.fig.scatter("x", "y_v", source=self.sel, marker="square", size=12, fill_color=None,
                          line_color=SEGMENT_COLOR, line_width=2)
         self.fig.add_tools(HoverTool(renderers=[h, v], tooltips=[("step", "@label")]))
+        # the ends of the axes, at the frame's edges in screen pixels and on the axes themselves
+        # (data 0), as PmagPy Directions labels them; measurements.txt holds specimen coordinates
+        axes = pint.ZIJDERVELD_AXES
+        backing = dict(background_fill_color="white", background_fill_alpha=0.75, text_font_size="8pt",
+                       text_color="#6b7280")
+        self.lbl_right = Label(x=size - 4, y=0, x_units="screen", text=axes["right"], y_offset=3,
+                               text_align="right", text_baseline="bottom", **backing)
+        self.lbl_left = Label(x=4, y=0, x_units="screen", text=axes["left"], y_offset=3,
+                              text_align="left", text_baseline="bottom", **backing)
+        self.lbl_top = Label(x=0, y=size - 4, y_units="screen", text=f'{axes["top_h"]}, {axes["top_v"]}',
+                             x_offset=4, text_align="left", text_baseline="top", **backing)
+        self.lbl_bottom = Label(x=0, y=4, y_units="screen", text=f'{axes["bottom_h"]}, {axes["bottom_v"]}',
+                                x_offset=4, text_align="left", text_baseline="bottom", **backing)
+        for lbl in (self.lbl_right, self.lbl_left, self.lbl_top, self.lbl_bottom):
+            self.fig.add_layout(lbl)
 
     def set_size(self, size: int) -> None:
         self.size = size
         self.fig.frame_width = self.fig.frame_height = size
         self.fig.width, self.fig.height = size + self.CHROME_W, size + self.CHROME_H
+        self.lbl_right.x = size - 4
+        self.lbl_top.y = size - 4
 
     def update(self, spec, bounds) -> None:
         if spec is None or spec.arai is None:

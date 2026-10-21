@@ -290,6 +290,16 @@ class TestSpecimenView:
         assert any(len(src.data["x"]) for src in plot.sources.values())
         assert len(plot.anchor.data["x"]) == 0
 
+    def test_the_zijderveld_names_its_axes_in_specimen_coordinates(self):
+        from pmagpy_intensity.plots import SpecimenZijderveldPlot
+        plot = SpecimenZijderveldPlot(200)
+        axes = pint.ZIJDERVELD_AXES
+        assert (plot.lbl_right.text, plot.lbl_left.text) == (axes["right"], axes["left"])
+        assert plot.lbl_top.text == f'{axes["top_h"]}, {axes["top_v"]}'
+        assert plot.lbl_bottom.text == f'{axes["bottom_h"]}, {axes["bottom_v"]}'
+        plot.set_size(260)
+        assert (plot.lbl_right.x, plot.lbl_top.y) == (256, 256)
+
     def test_a_bound_at_the_first_point_is_shown_in_the_selector(self, workdir):
         # an interpretation that starts at the first Arai point, made on a specimen that had none
         # (Auto on a fresh specimen), must show that point in "from", not a blank selector
@@ -899,6 +909,28 @@ class TestPublication:
         box = corrections.get_window_extent(renderer)
         assert not box.overlaps(column.get_legend().get_window_extent(renderer))
         assert box.y1 <= statistics.get_window_extent(renderer).y0
+
+    def test_the_zijderveld_inset_names_its_axes_in_specimen_coordinates(self, study):
+        # measurements.txt holds specimen coordinates: the inset says so and names its axis ends
+        # as PmagPy Directions does for that projection
+        from pmagpy import demag
+        study.specimen = "hz05a1"
+        figure = pub.specimen_figure(study.spec, study.bounds(), study.statistics(), study.result)
+        zij = next(ax for ax in figure.axes if ax.get_title().startswith("Zijderveld"))
+        assert zij.get_title() == "Zijderveld (specimen coordinates)"
+        labels = demag.axis_labels(demag.COORD_SPECIMEN, "ew")
+        assert pint.ZIJDERVELD_AXES == labels
+        texts = {t.get_text().strip() for t in zij.texts}
+        assert {labels["right"], labels["left"], f'{labels["top_h"]}, {labels["top_v"]}',
+                f'{labels["bottom_h"]}, {labels["bottom_v"]}'} <= texts
+
+    def test_the_zijderveld_inset_plots_what_its_labels_say(self, study):
+        # across: specimen y; up: specimen x (horizontal projection) and -z (vertical projection)
+        spec = study.data.specimens["hz05a1"]
+        z = pint.zijderveld_xy(spec)
+        v = np.asarray(spec.arai.nrm_vectors, dtype=float) / spec.arai.y[0]
+        assert np.allclose(z["h_x"], v[:, 1]) and np.allclose(z["h_y"], v[:, 0])
+        assert np.allclose(z["v_y"], -v[:, 2])
 
     @pytest.mark.parametrize("fmt", ["pdf", "svg", "png"])
     def test_every_format_writes(self, study, tmp_path, fmt):

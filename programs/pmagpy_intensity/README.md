@@ -83,7 +83,9 @@ resize the plots themselves.
 Where an interpretation is made. The Arai plot on the left, at the size you set;
 beside it a 2 × 2 block of the four companions — **Zijderveld**, **equal area**,
 **NRM and pTRM** decay, **alteration checks** — each captioned, all four the
-same width so the block reads as one thing. The step table is in the side
+same width so the block reads as one thing. The Zijderveld diagram is in
+specimen coordinates, the system `measurements.txt` holds, with its axis ends
+named as PmagPy Directions names them there (y across; x and −z up). The step table is in the side
 column and the current result runs along the bottom.
 
 The whole tab fits a 1440-wide window without scrolling. Narrower than that and
