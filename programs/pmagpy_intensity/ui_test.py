@@ -266,6 +266,33 @@ def click_step(page, index, field="label", timeout=60):
     return False
 
 
+#: tick or untick the Panel checkbox labelled `label` (its input sits in a shadow root beside the
+#: label's text, so clicking the text does not toggle it)
+SET_CHECKBOX_JS = """([label, value]) => {
+  let done = false;
+  const walk = (root) => root.querySelectorAll('*').forEach(el => {
+    if (done) return;
+    if (el.shadowRoot) {
+      const input = el.shadowRoot.querySelector("input[type='checkbox']");
+      if (input && el.classList.contains('bk-Checkbox') && el.shadowRoot.textContent.includes(label)) {
+        if (input.checked !== value) input.click();
+        done = true;
+        return;
+      }
+      walk(el.shadowRoot);
+    }
+  });
+  walk(document);
+  return done;
+}"""
+
+
+def set_checkbox(page, label, value):
+    found = page.evaluate(SET_CHECKBOX_JS, [label, value])
+    time.sleep(2)
+    return found
+
+
 def choose(page, label, option):
     page.get_by_label(label, exact=True).first.select_option(label=option)
     time.sleep(2)
@@ -514,7 +541,8 @@ with sync_playwright() as playwright:
       const inputs = [];
       const walk = (root) => root.querySelectorAll('*').forEach(el => {
         if (el.shadowRoot) walk(el.shadowRoot);
-        if (el.tagName === 'INPUT' && el.type === 'number') inputs.push(el);
+        // (not a table's header filter: the Corrections table has number filters too)
+        if (el.tagName === 'INPUT' && el.type === 'number' && !el.closest('.tabulator')) inputs.push(el);
       });
       walk(document);
       if (inputs.length >= 2) {
@@ -652,6 +680,46 @@ with sync_playwright() as playwright:
     if wait_for_text(page, r"anisotropy: applied", 20):
         check(selected(page, "anisotropy") == "always",
               f"the anisotropy switch shows the specimen's own choice ({selected(page, 'anisotropy')!r})")
+
+    # a correction for the whole study: imported choices that differ read "mixed"; setting it sets
+    # every specimen, and a specimen set on its own afterwards is listed as differing
+    check(selected(page, "anisotropy (whole study)") == "mixed",
+          f"after the import the study-wide anisotropy reads mixed ({selected(page, 'anisotropy (whole study)')!r})")
+    choose(page, "anisotropy (whole study)", "never")
+    check(wait_for_text(page, r"anisotropy: never for the whole study \(\d+ specimens? changed\)", 60) is not None,
+          "setting anisotropy to never for the whole study says how many specimens changed")
+    check(selected(page, "anisotropy") == "never", f"the specimen's own switch follows ({selected(page, 'anisotropy')!r})")
+    choose(page, "anisotropy", "always")
+    check(wait_for_text(page, r"1 specimen differs from the study-wide\s+never", 60) is not None,
+          "a specimen set on its own is listed as differing from the study")
+    check(selected(page, "anisotropy (whole study)") == "never", "... and the study-wide setting stays")
+    page.screenshot(path=f"{prefix}_corrections_study.png")
+
+    # auto-interpretation leaves the existing interpretations alone, and asks before replacing them
+    open_tab(page, "Specimen", "Flag the selected step bad/good")
+    kept_bounds = bounds_shown(page)
+    open_tab(page, "Interpretations", "Auto-interpret all")
+    n_before = len(page.evaluate(TABLES_JS, "verdict")[0]["specimen"])
+    click_button(page, "Auto-interpret all")
+    done = wait_for_text(page, r"interpreted (\d+) of (\d+) specimens; \d+ pass [^;]+; (\d+) already interpreted "
+                               r"were kept", 600)
+    check(done is not None and int(done.group(3)) == n_before,
+          f"Auto-interpret all interprets only the specimens without an interpretation "
+          f"({done.group(0) if done else 'no message'}; {n_before} before)")
+    open_tab(page, "Specimen", "Flag the selected step bad/good")
+    check(bounds_shown(page) == kept_bounds, f"... and leaves an existing one as it was ({kept_bounds})")
+    open_tab(page, "Interpretations", "Auto-interpret all")
+    check(set_checkbox(page, "replace existing interpretations too", True),
+          "the Interpretations tab offers to replace existing interpretations too")
+    click_button(page, "Auto-interpret all")
+    asked = wait_for_text(page, r"This replaces (\d+) existing interpretations: (\d+) published \(imported from "
+                                r"specimens.txt\), (\d+) made by hand", 60)
+    check(asked is not None and wait_for_text(page, r"Confirm: replace \d+", 10) is not None,
+          f"replacing them asks first, naming the published and hand-made ones "
+          f"({asked.group(0) if asked else 'no question'})")
+    page.screenshot(path=f"{prefix}_auto_confirm.png")
+    set_checkbox(page, "replace existing interpretations too", False)
+    check(wait_for_text(page, r"Confirm: replace \d+", 3) is None, "unticking the option takes the question back")
 
     # export: two clicks into the study, one into a working copy, and the files say what the panes say
     open_tab(page, "Specimen", "Flag the selected step bad/good")
