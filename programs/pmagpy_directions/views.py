@@ -143,6 +143,7 @@ def orientation_html(orient) -> str:
     return "".join(out) + note.format(MUTED_STYLE, text)
 
 
+PLANE_FITS = ("plane fit", "plane fits")
 LONE_PLANE_NOTE = ("{}: one plane and no line, so dec/inc is the plane's pole, not a mean direction; "
                    "it is not written to the tables")
 
@@ -889,13 +890,29 @@ class MeansView(LazyView):
             for _, m in lower_means.iterrows():
                 if parent_of.get(m[lower]) != name:
                     continue
-                color = s.color_of(m["dir_comp_name"])
-                dirs.append((m["dir_dec"], m["dir_inc"], m[lower], m["dir_comp_name"], color))
-                records.append({lower: m[lower], "fit": m["dir_comp_name"], "dec": _fmt(m["dir_dec"]),
-                                "inc": _fmt(m["dir_inc"]), "α95": _fmt(m.get("dir_alpha95")),
-                                "n": int(m.get("dir_n_specimens", 0)), "_comp": None, "_color": color,
-                                "_specimens": m.get("specimens", ""),
-                                "_dec": m["dir_dec"], "_inc": m["dir_inc"], "_plane": False})
+                comp_name = m["dir_comp_name"]
+                color = s.color_of(comp_name)
+                # a lower mean resting on one plane is that plane (its dec/inc is the pole):
+                # drawn as its great circle, listed with the planes, and averaged as a plane
+                lone = dc._is_lone_plane(m)
+                rec = {lower: m[lower], "fit": comp_name}
+                if lone:
+                    planes.append((m["dir_dec"], m["dir_inc"], color))
+                    rec.update({"pole dec": _fmt(m["dir_dec"]), "pole inc": _fmt(m["dir_inc"]),
+                                "bfv dec": "–", "bfv inc": "–"})
+                else:
+                    dirs.append((m["dir_dec"], m["dir_inc"], m[lower], comp_name, color))
+                    rec.update({"dec": _fmt(m["dir_dec"]), "inc": _fmt(m["dir_inc"]),
+                                "α95": _fmt(m.get("dir_alpha95"))})
+                rec.update({"n": int(m.get("dir_n_specimens", 0)), "_comp": None, "_color": color,
+                            "_specimens": m.get("specimens", ""), "_label": m[lower],
+                            "_dec": m["dir_dec"], "_inc": m["dir_inc"], "_plane": lone})
+                (plane_records if lone else records).append(rec)
+                by_comp.setdefault(comp_name, []).append(
+                    {"dir_dec": m["dir_dec"], "dir_inc": m["dir_inc"], "dir_type": "p" if lone else "l",
+                     "specimen": m[lower], "color": color})
+        self._plane_unit = PLANE_FITS if over == "specimens" else (f"{over[:-1]} mean resting on a single plane",
+                                                                    f"{over[:-1]} means resting on a single plane")
         # only the group on show is averaged (the polarity axis of a location's mean
         # is still the whole study's, so the row is the one the full table would hold)
         means = s.data.mean_directions(level, coord, comp, over=over, common_polarity=s.unify_polarity,
@@ -909,7 +926,7 @@ class MeansView(LazyView):
                 vectors.append((vdec, vinc, rec["specimen"], comp_name, rec["color"]))
         resolved = {(v[2], v[3]): (v[0], v[1]) for v in vectors}
         for rec in plane_records:
-            vec = resolved.get((rec["specimen"], rec["fit"]))
+            vec = resolved.get((rec.get("specimen", rec.get("_label")), rec["fit"]))
             if vec is not None:
                 rec["bfv dec"], rec["bfv inc"] = _fmt(vec[0]), _fmt(vec[1])
         return dirs, planes, means, records, plane_records, vectors
@@ -957,8 +974,12 @@ class MeansView(LazyView):
                 notes.append(LONE_PLANE_NOTE.format(m["dir_comp_name"]))
         return notes
 
-    def _alternative_shortfalls(self, dirs, planes, rows):
-        """Why the by-polarity or Bingham table leaves a component out or its statistics blank."""
+    def _alternative_shortfalls(self, dirs, planes, rows, plane_unit=PLANE_FITS):
+        """Why the by-polarity or Bingham table leaves a component out or its statistics blank.
+
+        ``plane_unit`` names what the planes are (singular, plural): plane
+        fits, or lower-level means that rest on a single plane.
+        """
         polarity = self.stat.value == "polarity"
         n_lines = {}
         for _dec, _inc, _label, comp_name, _color in dirs:
@@ -972,8 +993,11 @@ class MeansView(LazyView):
                       for comp_name, n in n_lines.items() if n < 2]
         if planes:
             what = "means by polarity average" if polarity else "a Bingham mean averages"
-            fits = "1 plane fit takes" if len(planes) == 1 else f"{len(planes)} plane fits take"
+            fits = f"1 {plane_unit[0]} takes" if len(planes) == 1 else f"{len(planes)} {plane_unit[1]} take"
             notes.append(f"{fits} no part: {what} directions; only the Fisher mean combines lines and planes")
+            if not dirs:
+                missing = "no means by polarity" if polarity else "no Bingham mean"
+                notes.append(f"{missing}: there are no directions to average, only planes")
         return notes
 
     def _fill_table(self, table, records, cache):
@@ -1038,7 +1062,7 @@ class MeansView(LazyView):
             # the alternative statistics are computed on what is plotted, so they
             # report only the columns they define (a Bingham ellipse has no α95)
             rows = self._alternative_means(dirs)
-            notes = self._alternative_shortfalls(dirs, planes, rows)
+            notes = self._alternative_shortfalls(dirs, planes, rows, getattr(self, "_plane_unit", PLANE_FITS))
             alt = pd.DataFrame(rows)
             keep = ["dir_comp_name", "mode", "dir_dec", "dir_inc", "dir_alpha95", "dir_k",
                     "dir_n_specimens", "eta", "zeta"]

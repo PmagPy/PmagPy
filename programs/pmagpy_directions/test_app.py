@@ -1020,6 +1020,41 @@ class TestMeansView:
         means.stat.value = "fisher"
         assert len(means.stats.object) == 1 and "take no part" not in means.stats_note.object
 
+    def test_one_plane_sample_means_are_planes_in_the_site_view(self, tmp_path):
+        """McMurdo mc42: five samples of one plane each are great circles, not points at their poles.
+
+        The Fisher mean combines them as planes (330.0/−68.5, as before); Bingham
+        and by polarity average directions, and have none here: they say so
+        instead of averaging the poles (261.0/8.1 and 264.8/9.3 before).
+        """
+        from pmagpy_directions.views import MeansView
+        mcmurdo = os.path.join(_HERE, "..", "..", "data_files", "3_0", "McMurdo")
+        s = Session(mcmurdo, output_dir=str(tmp_path))
+        s.coord = dc.COORD_GEOGRAPHIC
+        means = MeansView(s)
+        means.level.value, means.comp.value, means.name.value = "site", "all", "mc42"
+        means.show.value = "samples"
+        dirs, planes, fisher, lines, plane_rows, vectors = means._collect()
+        assert dirs == [] and lines == [] and len(planes) == 5 and len(plane_rows) == 5
+        assert sorted(r["sample"] for r in plane_rows) == ["mc42b", "mc42c", "mc42d", "mc42f", "mc42h"]
+        assert len(means.plot.circles.data["xs"]) == 5 and len(means.plot.src.data["x"]) == 0
+        assert len(vectors) == 5 and all(r["bfv dec"] != "–" for r in plane_rows)
+        row = fisher.iloc[0]
+        assert (round(row["dir_dec"], 1), round(row["dir_inc"], 1)) == (330.0, -68.5)
+        assert len(means.stats.object) == 1
+        for stat in ("polarity", "bingham"):
+            means.stat.value = stat
+            assert len(means.stats.object) == 0
+            assert "5 sample means resting on a single plane take no part" in means.stats_note.object
+            assert "there are no directions to average, only planes" in means.stats_note.object
+        means.stat.value = "fisher"
+        assert means.stats.object.iloc[0]["dec"] == 330.0 and means.stats.object.iloc[0]["inc"] == -68.5
+
+        means.level.value, means.name.value = "site", "mc01"     # sample means that are directions stay points
+        means.show.value = "samples"
+        dirs, planes, _fisher, lines, plane_rows, _vectors = means._collect()
+        assert len(dirs) == len(lines) > 0 and all(not r["_plane"] for r in lines)
+
     def test_a_mean_on_one_plane_is_marked_as_not_written(self, tmp_path):
         """A lone plane is listed with its pole, and both mean views say it is not written, as the export does."""
         from pmagpy_directions.views import MeansView, SpecimenView
