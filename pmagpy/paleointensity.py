@@ -2426,6 +2426,13 @@ class PintData:
                                     "meas_pos": int(pos), "quality": str(q)})
         return changes
 
+    def specimen_flag_changes(self, specimen: str) -> List[Tuple[int, str]]:
+        """One specimen's steps whose flag differs from the file on disk: (sequence, flag) in step order."""
+        steps = self.specimens[specimen].steps
+        now = np.where(steps["quality"].to_numpy(dtype=object) == "b", "b", "g")
+        return [(int(seq), str(q)) for seq, pos, q in zip(steps["sequence"], steps["meas_pos"], now)
+                if q != self._flag_base[pos]]
+
     def write_criteria(self, dir_path: str) -> Optional[str]:
         # not trimmed to the data model: the rows kept are written as they were read
         return self.project.write_table(self.merged_criteria_table(), "criteria", dir_path)

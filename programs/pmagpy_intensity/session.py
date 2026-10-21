@@ -121,6 +121,7 @@ class Session(param.Parameterized):
         self._autosave_pending = None
         self.cache = cache
         self.bicep_results: dict = {}
+        self._opening = False           # True while load() shows the opened study's own settings
         if directory:
             self.load(directory, output_dir)
 
@@ -192,11 +193,15 @@ class Session(param.Parameterized):
         ziggie = (preset is not None and restored is not preset
                   and any(c.key == "Ziggie" for c in restored.specimen)
                   and not any(c.key == "Ziggie" for c in preset.specimen))
-        self.param.update(
-            specimen=(interpreted or names)[0], directory=directory, source_directory=source,
-            criteria_name=restored.name, add_ziggie=ziggie,
-            status=(f"{len(names)} specimens from {datasets.study_name(directory)}; {message}"),
-            version=self.version + 1)
+        self._opening = True
+        try:
+            self.param.update(
+                specimen=(interpreted or names)[0], directory=directory, source_directory=source,
+                criteria_name=restored.name, add_ziggie=ziggie,
+                status=(f"{len(names)} specimens from {datasets.study_name(directory)}; {message}"),
+                version=self.version + 1)
+        finally:
+            self._opening = False
         if data.criteria is not restored:
             # the criteria the session was saved under win over the preset of that name
             data.set_criteria(restored)
@@ -382,8 +387,12 @@ class Session(param.Parameterized):
             return
         if self.add_ziggie:
             criteria = criteria.with_criterion("Ziggie", "<=", ps.ZIGGIE_CRITERION)
+        changed = criteria is not self.data.criteria
         self.data.set_criteria(criteria)
         self.version += 1
+        if changed and not self._opening:
+            # the analyst's choice is part of the session, as an edit is (opening a study writes nothing)
+            self.request_autosave()
 
     # ------------------------------------------------------------------ persistence
     @property

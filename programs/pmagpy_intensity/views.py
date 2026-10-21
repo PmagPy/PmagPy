@@ -142,6 +142,40 @@ def preamble(session: Session) -> list:
     return lines
 
 
+def session_preamble(session: Session, session_file: str, what: str) -> list:
+    """The lines that bring back a saved session: the interpretations, flags, criteria and correction
+    choices exactly as they were, rather than re-deriving any of them."""
+    return ["import pmagpy.paleointensity as pint", "from pmagpy import pint_stats as ps", "",
+            code.assign("data", code.call("pint.PintData.from_directory", session.directory)),
+            f"# {what}",
+            code.call("data.load_session", session_file)]
+
+
+def specimen_lines(session: Session, name: str) -> list:
+    """The calls behind one specimen's result: its flags, the anisotropy policy, its correction
+    switches and its bounds (bounds are Arai indices, so the flags come first)."""
+    data = session.data
+    interp = data.interpretations.get(name)
+    lines = []
+    flags = data.specimen_flag_changes(name)
+    if flags:
+        lines.append("# the steps flagged here, where measurements.txt says otherwise")
+        lines += [code.call("data.set_step_quality", name, seq, quality) for seq, quality in flags]
+    if data.anisotropy_alteration_limit != pint.PintData.anisotropy_alteration_limit:
+        lines.append(f"data.anisotropy_alteration_limit = {code.literal(data.anisotropy_alteration_limit)}")
+    if data.anisotropy_require_ftest:
+        lines.append("data.anisotropy_require_ftest = True")
+    if interp is None:
+        return lines + [f"# {name}: no interpretation yet"]
+    switches = {f"use_{kind}": getattr(interp, f"use_{kind}") for kind in pint.CORRECTION_KINDS}
+    if interp.anisotropy_type:
+        switches["anisotropy_type"] = interp.anisotropy_type
+    lines.append("# the segment, and which corrections it uses (None: if available)")
+    lines.append(code.assign("interp", code.call("data.set_interpretation", name, interp.imin, interp.imax,
+                                                 **switches)))
+    return lines
+
+
 def _clip(text: str, width: int) -> str:
     """A message short enough for one line, keeping the start that names the problem."""
     return text if len(text) <= width else text[:width - 1] + "…"
@@ -519,15 +553,11 @@ class SpecimenView:
 
     def _fill_code(self, spec, bounds):
         """The calls behind this specimen: the segment, its statistics, its intensity."""
-        lines = preamble(self.s)
+        lines = preamble(self.s) + [""] + specimen_lines(self.s, spec.name)
         if bounds is None:
-            lines.append(f"# {spec.name}: no interpretation yet")
             self.code.set(lines)
             return
-        lines += ["",
-                  code.assign("interp", code.call("data.set_interpretation", spec.name,
-                                                  bounds[0], bounds[1])),
-                  code.assign("result", code.call("data.result", spec.name)),
+        lines += [code.assign("result", code.call("data.result", spec.name)),
                   "print(result.b_anc, result.passed, result.failures)",
                   "",
                   "# every statistic of that segment, on its own",
@@ -1144,14 +1174,19 @@ class CorrectionsView(LazyView):
                          f"({changed} specimen{'' if changed == 1 else 's'} changed)")
 
     def _on_limit(self, event):
-        self.s.data.anisotropy_alteration_limit = float(event.new) if event.new else None
+        limit = float(event.new) if event.new else None
+        if self.s.data is None or limit == self.s.data.anisotropy_alteration_limit:
+            return                                  # the widget showing the policy in force
+        self.s.data.anisotropy_alteration_limit = limit
         self.s.data.invalidate()
-        self.s.version += 1
+        self.s._changed()
 
     def _on_ftest(self, event):
+        if self.s.data is None or bool(event.new) == bool(self.s.data.anisotropy_require_ftest):
+            return
         self.s.data.anisotropy_require_ftest = bool(event.new)
         self.s.data.invalidate()
-        self.s.version += 1
+        self.s._changed()
 
     def redraw(self, *events):
         if self.s.data is None:
@@ -1386,9 +1421,9 @@ class GroupView(LazyView):
             f"<b>{len(frame)}</b> {level}s", verdict,
             f'<span style="{MUTED_STYLE}">{int(frame["n"].sum()) if len(frame) else 0} specimens '
             f'averaged</span>'])
-        self.code.set(preamble(self.s) + [
-            "", "# the interpretations these means average",
-            code.call("data.auto_interpret_all"),
+        self.code.set(session_preamble(self.s, self.s.autosave_path,
+                                       "the interpretations these means average: the session as it is now "
+                                       "(saved after every change)") + [
             "",
             code.assign("means", code.call("data.group_results", level=level,
                                            only_accepted=self.only_accepted.value,
@@ -1646,10 +1681,10 @@ class BicepView(LazyView):
         """The calls behind this posterior: a seed and these draws reproduce it exactly."""
         site = self.site.value
         excluded = [p.name for p in prepared if not p.included]
-        lines = preamble(self.s) + [
+        lines = session_preamble(self.s, self.s.autosave_path,
+                                 "the segments this site's specimens were interpreted over: the session "
+                                 "as it is now (saved after every change)") + [
             "from pmagpy import bicep", "",
-            "# the segments this site's specimens were interpreted over",
-            code.call("data.auto_interpret_all"), "",
             "# BiCEP is fed the selected part of each Arai plot, and the lab field",
             f"rows = [(name, spec.arai.x[r.imin:r.imax + 1], spec.arai.y[r.imin:r.imax + 1],",
             "         spec.blab_uT)",
@@ -2025,13 +2060,23 @@ directory copies the original tables to a backup folder.
             return _pub().study_figure(self.s.data)
         return None
 
-    def _figure_code(self) -> str:
-        """The lines that draw the figure being saved, as a script beside it."""
+    def _figure_code(self, session_file: Optional[str] = None) -> str:
+        """The lines that draw the figure being saved, as a script beside it.
+
+        A specimen figure sets that specimen's flags, correction switches and bounds; a site or
+        study figure, which draws every interpretation in it, starts from ``session_file``, the
+        session saved beside the figure.
+        """
         kind, name = self.figure_kind.value, self.s.specimen
-        lines = preamble(self.s) + ["from pmagpy_intensity import publication as pub", ""]
+        if kind in ("arai", "arai_checks"):
+            lines = preamble(self.s) + ["from pmagpy_intensity import publication as pub", ""]
+        else:
+            lines = session_preamble(self.s, session_file or self.s.autosave_path,
+                                     "the interpretations this figure draws: the session saved with it") \
+                + ["from pmagpy_intensity import publication as pub", ""]
         if kind in ("arai", "arai_checks"):
             bounds = self.s.bounds()
-            lines += [code.call("data.set_interpretation", name, *(bounds or (0, 1))),
+            lines += specimen_lines(self.s, name) + [
                       code.assign("figure", code.call(
                           "pub.specimen_figure",
                           code.Name(f"data.specimens[{name!r}]"),
@@ -2041,13 +2086,12 @@ directory copies the original tables to a backup folder.
                           with_checks=(kind == "arai_checks")))]
         elif kind == "site":
             site = self.s.spec.site if self.s.ready else ""
-            lines += [code.call("data.auto_interpret_all"),
-                      f"results = [data.result(n) for n in data.specimens_in('site', {site!r})]",
-                      code.assign("figure", code.call("pub.site_figure", site,
-                                                      code.Name("[r for r in results if r]")))]
+            lines += [f"results = [r for r in (data.result(n) for n in data.specimens_in('site', {site!r})) if r]",
+                      code.assign("figure", code.call(
+                          "pub.site_figure", site, code.Name("results"),
+                          accepted=code.Name("{r.specimen for r in results if data.is_accepted(r)}")))]
         else:
-            lines += [code.call("data.auto_interpret_all"),
-                      code.assign("figure", code.call("pub.study_figure", code.Name("data")))]
+            lines += [code.assign("figure", code.call("pub.study_figure", code.Name("data")))]
         lines.append(code.call("figure.savefig", f"{kind}.{self.figure_format.value}",
                                bbox_inches="tight"))
         return code.script(lines, app=APP_NAME, what="this figure")
@@ -2063,11 +2107,17 @@ directory copies the original tables to a backup folder.
         try:
             os.makedirs(self.s.output_dir, exist_ok=True)
             figure.savefig(path, format=self.figure_format.value, bbox_inches="tight")
-            # the family's rule: an export comes with the lines that made it
-            script = code.write_beside(path, self._figure_code())
+            # the family's rule: an export comes with the lines that made it. A site or study figure
+            # draws every interpretation in it, so the session they are in is saved beside it
+            session_file = None
+            if self.figure_kind.value in ("site", "study"):
+                session_file = self.s.save_session(os.path.splitext(path)[0] + "_session.json")
+            script = code.write_beside(path, self._figure_code(session_file))
             self.message.object = (f'<div style="color:{PASS_COLOR}">saved {path}</div>'
                                    f'<div style="{MUTED_STYLE}">and '
-                                   f'{os.path.basename(script)}, the calls that drew it</div>')
+                                   f'{os.path.basename(script)}, the calls that drew it'
+                                   + (f', from {os.path.basename(session_file)}' if session_file else "")
+                                   + '</div>')
         except OSError as exc:
             self.message.object = f'<div style="color:{FAIL_COLOR}">{exc}</div>'
 

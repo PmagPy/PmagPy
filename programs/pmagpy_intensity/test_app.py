@@ -1095,6 +1095,96 @@ class TestShowCode:
         shown = float(out.stdout.rsplit("B=", 1)[1].split()[0])
         assert abs(shown - study.result.b_anc) < 1e-4      # the four places it prints
 
+    @pytest.fixture(scope="class")
+    def edited(self, tmp_path_factory):
+        """A copy of Megiddo with what auto-interpretation and bare bounds cannot reproduce: a step
+        flagged inside a fit, corrections switched per specimen and for the study, another
+        criteria set and alteration limit."""
+        src = tmp_path_factory.mktemp("showcode") / "Megiddo"
+        shutil.copytree(MEGIDDO, src)
+        session = Session(str(src))
+        session.autosave_delay = 0                       # outside a server: written at every change
+        session.specimen = "hz05a1"
+        session.toggle_step(9)                           # 250 °C zero field, inside the fit
+        session.set_correction("anisotropy", False)
+        session.set_study_correction("cooling_rate", False)
+        corrections = CorrectionsView(session)
+        corrections.set_active(True)
+        corrections.alt_limit.value = 10.0
+        session.criteria_name = "TTA"                    # the last change: it is saved too
+        saved = json.loads((src / AUTOSAVE_NAME).read_text())
+        assert saved["criteria"] == "TTA" and saved["anisotropy_policy"]["alteration_limit"] == 10.0
+        return session
+
+    @staticmethod
+    def _run(text, where):
+        import runpy
+        path = where / "shown.py"
+        path.write_text(text)
+        cwd = os.getcwd()
+        os.chdir(where)
+        try:
+            return runpy.run_path(str(path))
+        finally:
+            os.chdir(cwd)
+            pub.plt.close("all")
+
+    def test_the_group_results_code_reproduces_the_means_shown(self, edited, tmp_path):
+        view = GroupView(edited)
+        view.set_active(True)
+        assert "auto_interpret_all" not in view.code.text and "load_session" in view.code.text
+        ns = self._run(view.code.text, tmp_path)
+        shown = view.table.value
+        means = ns["means"].set_index("site")
+        assert len(means) == len(shown) > 5
+        for _, row in shown.iterrows():
+            assert means.loc[row["site"], "int_abs"] == pytest.approx(row["B (µT)"], abs=0.051)
+        expected = edited.data.group_results(level="site").set_index("site")
+        assert np.allclose(means["int_abs"], expected.loc[means.index, "int_abs"], rtol=0, atol=1e-9)
+
+    def test_the_specimen_code_and_the_arai_figure_script_carry_flags_and_switches(self, edited, tmp_path):
+        edited.specimen = "hz05a1"
+        result = edited.result
+        specimen = SpecimenView(edited)
+        specimen.redraw()
+        assert "data.set_step_quality('hz05a1', 9, 'b')" in specimen.code.text
+        assert "use_anisotropy=False" in specimen.code.text
+        ns = self._run(specimen.code.text, tmp_path)
+        assert ns["result"].b_anc == pytest.approx(result.b_anc, rel=1e-12)
+        view = ExportView(edited)
+        view.figure_kind.value = "arai"
+        view._save_figure()
+        script = os.path.join(edited.output_dir, "arai_hz05a1.py")
+        ns = self._run(open(script).read(), tmp_path)
+        again = ns["data"].result("hz05a1")
+        assert (again.imin, again.imax, again.b_anc) == (result.imin, result.imax, pytest.approx(result.b_anc))
+        assert {k: c.applied for k, c in again.corrections.items()} == \
+            {k: c.applied for k, c in result.corrections.items()}
+        assert ns["data"].statistics("hz05a1")["n"].value == edited.statistics()["n"].value
+
+    def test_the_site_and_study_figure_scripts_start_from_the_session_saved_with_them(self, edited, tmp_path):
+        edited.specimen = "hz05a1"
+        site = edited.spec.site
+        view = ExportView(edited)
+        view.figure_kind.value = "site"
+        view._save_figure()
+        script = os.path.join(edited.output_dir, f"site_hz05a1.py")
+        text = open(script).read()
+        assert "auto_interpret_all" not in text
+        assert os.path.exists(os.path.join(edited.output_dir, "site_hz05a1_session.json"))
+        ns = self._run(text, tmp_path)
+        shown = [r for r in (edited.data.result(n) for n in edited.data.specimens_in("site", site)) if r]
+        assert [(r.specimen, r.b_anc) for r in ns["results"]] == [(r.specimen, r.b_anc) for r in shown]
+        assert {r.specimen for r in ns["results"] if ns["data"].is_accepted(r)} == \
+            {r.specimen for r in shown if edited.data.is_accepted(r)}
+        view.figure_kind.value = "study"
+        view._save_figure()
+        text = open(os.path.join(edited.output_dir, "study_hz05a1.py")).read()
+        ns = self._run(text, tmp_path)
+        frame, expected = ns["data"].group_results(level="site"), edited.data.group_results(level="site")
+        assert list(frame["site"]) == list(expected["site"])
+        assert np.allclose(frame["int_abs"], expected["int_abs"], rtol=0, atol=1e-9)
+
     def test_a_saved_figure_comes_with_the_calls_that_drew_it(self, workdir):
         src, out = workdir
         session = Session(src, out)

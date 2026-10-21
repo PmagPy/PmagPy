@@ -247,6 +247,7 @@ was made before it had the log.
 | `pmagpy_intensity_autosave.json` | after every change | the interpretations and the step flags, so a reload or a crash loses nothing |
 | `pmagpy_intensity_session.json` | on *Save session* and on export | the whole session: interpretations, flags, criteria, correction switches — human-readable JSON |
 | `specimens_export.py` | on export | a script that restores that session file and writes the same tables again, into a folder of its own |
+| `<figure>.py`, and for a site or study figure `<figure>_session.json` | on *Save figure* | the calls that draw the figure; a specimen figure's script sets that specimen's flags, correction switches and bounds, a site or study figure's starts from the session saved beside it |
 | `pmagpy_intensity.redo` | on *Save .redo* and on export | the legacy bounds format, so the old GUI can read the interpretations back |
 | `specimens.txt` | on export | interpretations merged into the existing rows |
 | `sites.txt`, `samples.txt` | on export | the group means: one row for every site with an interpreted specimen; a mean that fails the site criteria, or has no accepted specimen, has `result_quality` b |
@@ -368,7 +369,10 @@ file operations live in the Export tab and the data dialog.
   script or a notebook.
 * **Show code** — every analysis tab can print the Python that reproduces what
   it is showing, from the core functions, with your specimen and your
-  parameters in it. Paste it into a notebook and it runs. Every figure and
+  parameters in it. Paste it into a notebook and it runs. A specimen's code sets
+  its flags, correction switches and bounds; the views of the whole study
+  (Group results, BiCEP) start from the session as it is now — the autosave —
+  rather than re-interpreting anything. Every figure and
   every exported table is written with that script beside it, so a result you
   find in a folder six months later comes with the calls that made it.
 
