@@ -159,7 +159,28 @@ tables came from (`reg.read_conversions(dir_path)`; `record=False` leaves no
 entry). Home reads it: the Import line says "converted from 10 CIT files ·
 2 Sep 2026" rather than counting the files beside the tables, and the aside
 marks the files that were converted. Unpacking a contribution file on the
-Convert page is recorded the same way (format `magic`).
+Convert page is recorded the same way (format `magic`). Each file is stamped in
+its entry (size, modification time, SHA-1), so `reg.already_converted(dir_path,
+files)` can tell a file that is in the tables already from one remeasured
+under the same name; `convert_files(..., backup=...)` keeps the tables it
+replaces (once as the originals, and the last version in `previous/`), and
+every conversion writes its tables all or nothing.
+
+The tables go into the lab folder the analyst chose, where they will be looked
+for when the upload is built -- also when the session is on a working copy of
+the study (an output base, the desktop build): the Convert page then lists the
+study's own folder and converts into it, and the copy is left as it is. In a
+folder that has tables already:
+
+* "Add to the tables already here" (ticked by default once there are tables)
+  leaves out the chosen files the folder's `pmagpy_conversions.json` lists, and
+  names them; "Convert them again anyway" adds them a second time. A file that
+  has changed since it was converted (its checksum differs) is converted.
+* Unticked, the first click asks where the new tables go: into a new folder
+  `MagIC_<YYYY-MM-DD>/` inside the lab folder (the default; `-2`, `-3` when it
+  exists; nothing is overwritten, and Home opens that folder), or replacing the
+  tables, the old ones kept in `backup_before_pmagpy_apps/`. The second click
+  converts; changing the files, the format or "add" withdraws the question.
 
 The same registry is a command. `pmagpy-convert` (installed by `setup.py`; or
 `python -m pmagpy.convert_cli`) lists the formats, `pmagpy-convert sio --help`

@@ -30,8 +30,10 @@ intended. Rock magnetism and Anisotropy join by adding them to the edition
   Rock Magnetism, Anisotropy and the hub's Metadata page all read and write
   that folder -- so a flag set in Directions, an interpretation exported from
   Intensity and a metadata edit on the hub are one set of tables, ready to
-  upload. The study itself (and the read-only bundle, where the example lives)
-  is never written to. The fingerprint is a short hash of the study's full
+  upload. The applications never write to the study itself (nor to the
+  read-only bundle, where the example lives); only Convert does, when the
+  analyst converts lab files: their tables go into the lab folder, beside the
+  files (`pmagpy_apps/convert.py`). The fingerprint is a short hash of the study's full
   path (`pmagpy_panel.datasets.default_output_dir`), so studies kept in
   folders of the same name (`MagIC`, `data`) get copies of their own; the copy
   records where it came from (`.pmagpy_working_copy.json`). Every page names

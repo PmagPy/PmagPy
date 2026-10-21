@@ -48,6 +48,10 @@ def small_study(tmp_path) -> str:
     return str(d)
 
 
+def shorten_home_in(text: str, path: str) -> bool:
+    return datasets.shorten_home(path) in text
+
+
 def cit_only(tmp_path) -> str:
     d = tmp_path / "PI47"
     d.mkdir()
@@ -512,6 +516,149 @@ class TestConvert:
         assert session.inventory.is_magic
         samples = open(tmp_path / "samples.txt").read()
         assert "FS-FD:SO-SUN" in samples and "PI47-1" in samples
+
+    def test_a_dated_folder_never_takes_an_existing_name(self, tmp_path):
+        from datetime import date
+        day = date(2026, 10, 20)
+        assert convert.dated_folder(str(tmp_path), day) == str(tmp_path / "MagIC_2026-10-20")
+        (tmp_path / "MagIC_2026-10-20").mkdir()
+        (tmp_path / "MagIC_2026-10-20-2").write_text("a file of that name counts too")
+        assert convert.dated_folder(str(tmp_path), day) == str(tmp_path / "MagIC_2026-10-20-3")
+
+
+def jr6_lab(tmp_path) -> str:
+    d = tmp_path / "jr6_lab"
+    d.mkdir()
+    for name in ("AF.jr6", "TRM.jr6"):
+        shutil.copy(os.path.join(os.path.dirname(CIT), "..", "jr6_magic", name), d)
+    return str(d)
+
+
+def rows(path) -> int:
+    from pmagpy import magic_project as mp
+    return mp.table_rows(str(path))
+
+
+class TestConvertAgain:
+    """A folder that has tables: a second batch is added, a file already in them is not added twice,
+    and a fresh conversion asks first whether its tables go to a dated folder or replace the old ones."""
+
+    def first(self, tmp_path, files=("AF.jr6",)):
+        d = jr6_lab(tmp_path)
+        session = home.HubSession(d)
+        view = convert.ConvertView(session)
+        assert view.format.value == "jr6_jr6"
+        view.files.value = list(files)
+        assert asyncio.run(view._convert()) is True
+        return d, session, view
+
+    def test_a_second_batch_is_added_and_a_file_already_in_is_left_out_unless_asked(self, tmp_path):
+        d, session, view = self.first(tmp_path)
+        af = rows(os.path.join(d, "measurements.txt"))
+        assert view.append.visible and view.append.value                   # "add" is the default once there are tables
+        view.files.value = ["AF.jr6", "TRM.jr6"]
+        assert view.done_note.visible and "AF.jr6" in view.done_note.object and "TRM.jr6" not in view.done_note.object
+        assert view.again.visible and view.again.value is False
+        assert asyncio.run(view._convert()) is True
+        assert "left out, in these tables already: AF.jr6" in view.message.object
+        both = rows(os.path.join(d, "measurements.txt"))
+        assert both > af
+        from pmagpy import convert_registry as reg
+        assert [e["files"] for e in reg.read_conversions(d)] == [["AF.jr6"], ["TRM.jr6"]]
+        # the same files again: refused, nothing written
+        view.files.value = ["AF.jr6", "TRM.jr6"]
+        assert asyncio.run(view._convert()) is False
+        assert "Nothing new to convert" in view.message.object and "Convert them again anyway" in view.message.object
+        assert rows(os.path.join(d, "measurements.txt")) == both and len(reg.read_conversions(d)) == 2
+        # unless the analyst asks for them
+        view.files.value = ["TRM.jr6"]
+        view.again.value = True
+        assert asyncio.run(view._convert()) is True
+        assert rows(os.path.join(d, "measurements.txt")) > both
+        assert [e["files"] for e in reg.read_conversions(d)][-1] == ["TRM.jr6"]
+
+    def test_a_file_changed_since_it_was_converted_is_converted(self, tmp_path):
+        d, session, view = self.first(tmp_path)
+        shutil.copy(os.path.join(d, "TRM.jr6"), os.path.join(d, "AF.jr6"))      # remeasured, same name
+        view.files.value = ["AF.jr6"]
+        assert not view.done_note.visible
+        assert asyncio.run(view._convert()) is True, view.message.object
+
+    def test_a_fresh_conversion_asks_and_then_writes_a_dated_folder(self, tmp_path):
+        from datetime import date
+        d, session, view = self.first(tmp_path)
+        before = open(os.path.join(d, "measurements.txt")).read()
+        view.append.value = False
+        view.files.value = ["TRM.jr6"]
+        assert asyncio.run(view._convert()) is False                       # the first click asks
+        new = f"MagIC_{date.today().isoformat()}"
+        assert view.where.visible and view.where.value == convert.NEW_FOLDER
+        assert view.run_btn.name == f"Confirm: write into {new}/" and "already" in view.message.object
+        assert open(os.path.join(d, "measurements.txt")).read() == before and not os.path.exists(os.path.join(d, new))
+        assert asyncio.run(view._convert()) is True
+        target = os.path.join(d, new)
+        assert session.directory == target and session.inventory.is_magic
+        assert f"written into {new}/" in view.message.object and view.run_btn.name == "Convert"
+        assert open(os.path.join(d, "measurements.txt")).read() == before          # nothing overwritten
+        from pmagpy import convert_registry as reg
+        assert reg.read_conversions(target)[0]["files"] == ["TRM.jr6"] and datasets.made_by_pmagpy(target)
+        # a second one the same day: -2
+        session.load(d)
+        view.append.value = False
+        view.files.value = ["AF.jr6"]
+        asyncio.run(view._convert())
+        assert view.run_btn.name == f"Confirm: write into {new}-2/"
+        assert asyncio.run(view._convert()) is True and session.directory == target + "-2"
+
+    def test_replacing_keeps_the_old_tables_in_the_backup(self, tmp_path):
+        d, session, view = self.first(tmp_path)
+        before = open(os.path.join(d, "measurements.txt")).read()
+        view.append.value = False
+        view.files.value = ["TRM.jr6"]
+        asyncio.run(view._convert())
+        view.where.value = convert.REPLACE
+        assert view.run_btn.name == "Confirm: replace the tables" and view.run_btn.button_type == "danger"
+        assert asyncio.run(view._convert()) is True
+        assert session.directory == d and "kept in backup_before_pmagpy_apps/" in view.message.object
+        backup = os.path.join(d, "backup_before_pmagpy_apps")
+        assert open(os.path.join(backup, "measurements.txt")).read() == before
+        assert open(os.path.join(backup, "previous", "measurements.txt")).read() == before
+        assert open(os.path.join(d, "measurements.txt")).read() != before
+        assert not [n for n in os.listdir(d) if n.startswith("MagIC_")]
+
+    def test_changing_the_choice_cancels_the_question(self, tmp_path):
+        d, session, view = self.first(tmp_path)
+        view.append.value = False
+        asyncio.run(view._convert())
+        assert view.where.visible
+        view.files.value = ["TRM.jr6"]
+        assert not view.where.visible and view.run_btn.name == "Convert" and view.run_btn.button_type == "success"
+
+    def test_on_a_working_copy_the_page_lists_and_converts_into_the_study(self, tmp_path, monkeypatch):
+        for var in datasets.OUTPUT_BASE_VARS:
+            monkeypatch.delenv(var, raising=False)
+        monkeypatch.setenv("PMAGPY_APPS_OUTPUT", str(tmp_path / "PmagPy"))
+        study = tmp_path / "Downloaded"            # a contribution from MagIC: no conversion log, so a working copy
+        study.mkdir()
+        for name in ("measurements", "specimens", "samples", "sites", "locations"):
+            shutil.copy(os.path.join(MCMURDO, f"{name}.txt"), study)
+        session = home.HubSession(str(study))
+        copy = session.directory
+        assert copy != str(study) and datasets.working_copy_source(copy) == os.path.realpath(study)
+        for name in ("AF.jr6", "TRM.jr6"):                 # the analyst's own lab files arrive in the study's folder
+            shutil.copy(os.path.join(os.path.dirname(CIT), "..", "jr6_magic", name), study)
+        view = convert.ConvertView(session)
+        assert view.folder == os.path.realpath(study)
+        assert "AF.jr6" in view.files.options and shorten_home_in(view.heading.object, copy)
+        assert view.format.value == "jr6_jr6" and view.append.value is True
+        copied = open(os.path.join(copy, "measurements.txt")).read()
+        n = rows(study / "measurements.txt")
+        assert asyncio.run(view._convert()) is True
+        assert rows(study / "measurements.txt") > n                     # into the study, beside its lab files
+        assert open(os.path.join(copy, "measurements.txt")).read() == copied
+        assert datasets.made_by_pmagpy(str(study))
+        assert session.directory == copy                          # the copy made before is kept, and the page says so
+        assert "was made before and does not have them" in view.message.object
 
     @pytest.mark.parametrize("key, example", [
         ("k15", "k15_magic/k15_example.dat"),
