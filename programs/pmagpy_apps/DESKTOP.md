@@ -35,7 +35,12 @@ intended. Rock magnetism and Anisotropy join by adding them to the edition
   analyst converts lab files: their tables go into the lab folder, beside the
   files (`pmagpy_apps/convert.py`). The fingerprint is a short hash of the study's full
   path (`pmagpy_panel.datasets.default_output_dir`), so studies kept in
-  folders of the same name (`MagIC`, `data`) get copies of their own; the copy
+  folders of the same name (`MagIC`, `data`) get copies of their own. The
+  bundled example is the exception: its copy is `~/PmagPy/McMurdo-example/`,
+  whatever the application's location or version (moving it to Applications,
+  installing a newer build or macOS's App Translocation would otherwise each
+  give it a new path and a new, empty copy); a newer example's new files are
+  added to that copy and the files in it are kept, as for any copy; the copy
   records where it came from (`.pmagpy_working_copy.json`), and only a folder
   holding that marker is taken for a copy -- a study the analyst keeps under
   `~/PmagPy` gets a copy of its own like any other. Every page names

@@ -334,3 +334,35 @@ class TestOnlyMarkedFoldersAreCopies:
         moved = str(tmp_path / "elsewhere")
         shutil.copytree(datasets.working_directory(study, base=str(tmp_path / "b")), moved)
         assert datasets.is_working_copy(moved) and datasets.working_directory(moved, base=str(tmp_path / "b")) == moved
+
+
+class TestTheBundledExampleIsKeyedByName:
+    def test_the_example_s_copy_is_named_after_it_alone(self, base):
+        assert datasets.is_bundled_example(MCMURDO)
+        copy = datasets.working_directory(MCMURDO)
+        assert copy == os.path.join(base, "McMurdo-example")
+        assert datasets.working_copy_source(copy) == os.path.realpath(MCMURDO) and datasets.study_name(copy) == "McMurdo"
+
+    def test_a_study_called_mcmurdo_is_not_the_example(self, study, base):
+        assert not datasets.is_bundled_example(study)
+        assert os.path.basename(datasets.working_directory(study)) != "McMurdo-example"
+
+    def test_the_example_in_a_moved_or_updated_application_keeps_its_copy(self, base, tmp_path, monkeypatch):
+        import sys
+        copy = datasets.working_directory(MCMURDO)
+        with open(os.path.join(copy, "sites.txt"), "a") as fh:
+            fh.write("\n")                                  # work done on the example
+        edited = digest(copy)["sites.txt"]
+        for where in ("Downloads", "Applications"):        # the .app moved, or a newer version installed
+            app = tmp_path / where / "PmagPy Apps.app"
+            bundled = app / "Contents" / "Resources" / "data_files" / "3_0" / "McMurdo"
+            shutil.copytree(MCMURDO, bundled)
+            (bundled / "new_in_this_version.txt").write_text("x\n")
+            monkeypatch.setattr(sys, "frozen", True, raising=False)
+            monkeypatch.setattr(sys, "_MEIPASS", str(app / "Contents" / "Resources"), raising=False)
+            monkeypatch.setattr(sys, "executable", str(app / "Contents" / "MacOS" / "PmagPy Apps"))
+            assert datasets.is_bundled_example(str(bundled))
+            assert datasets.working_directory(str(bundled)) == copy
+            assert datasets.working_copy_source(copy) == os.path.realpath(bundled) and datasets.working_copy_note(copy) == ""
+            assert digest(copy)["sites.txt"] == edited                       # existing files kept
+            assert os.path.exists(os.path.join(copy, "new_in_this_version.txt"))   # an updated example's new files added

@@ -55,10 +55,17 @@ def default_output_dir(directory: str, base: str = "") -> str:
     path (``MagIC-3f2a91c0``): studies are often kept in folders with the same
     name (``MagIC``, ``data``), and two of them sharing one output folder would
     share -- and overwrite -- one autosave and one set of exported tables.
+
+    An example dataset that ships with PmagPy (:func:`is_bundled_example`) is
+    keyed by its name instead (``McMurdo-example``): its path changes whenever
+    the application is moved, updated or run translocated, and the work done
+    on the example should not be left behind each time.
     """
     if base:
         import hashlib
         path = os.path.realpath(os.path.abspath(os.path.expanduser(directory)).rstrip("/"))
+        if is_bundled_example(path):
+            return os.path.join(base, f"{os.path.basename(path)}-example")
         tag = hashlib.sha1(path.encode("utf-8")).hexdigest()[:8]
         # a folder name is at most 255 bytes: a long study name is shortened (the fingerprint keeps it unique)
         name = os.path.basename(path).encode("utf-8")[:200].decode("utf-8", "ignore")
@@ -121,6 +128,22 @@ def shipped_roots() -> list:
 
 def _under(path: str, roots) -> bool:
     return any(path == root or path.startswith(root + os.sep) for root in roots)
+
+
+def is_bundled_example(directory: str) -> bool:
+    """True for an example dataset that ships with PmagPy: ``data_files/3_0/<name>`` of the packaged
+    application, an install or a checkout -- where :func:`example_dir` finds it, or anywhere under
+    :func:`shipped_roots` laid out that way."""
+    path = os.path.realpath(os.path.abspath(os.path.expanduser(directory)).rstrip(os.sep))
+    name = os.path.basename(path)
+    if not name or not os.path.isdir(path):
+        return False
+    found = example_dir(name)
+    if found and os.path.realpath(found) == path:
+        return True
+    parent = os.path.dirname(path)
+    return (os.path.basename(parent) == "3_0" and os.path.basename(os.path.dirname(parent)) == "data_files"
+            and _under(path, shipped_roots()))
 
 
 def made_by_pmagpy(directory: str) -> bool:
@@ -238,8 +261,9 @@ def working_directory(directory: str, base: Optional[str] = None) -> str:
         for name in files:
             if not os.path.exists(os.path.join(target, name)):
                 _copy_writable(os.path.join(directory, name), os.path.join(target, name))
-        if not os.path.exists(os.path.join(target, WORKING_COPY_MARKER)):
-            _write_marker(target, directory)
+        if not os.path.exists(os.path.join(target, WORKING_COPY_MARKER)) or (
+                is_bundled_example(directory) and _marked_source(target) != os.path.realpath(directory)):
+            _write_marker(target, directory)           # the example's copy follows the application it came with
         return target
     import shutil
     import uuid
