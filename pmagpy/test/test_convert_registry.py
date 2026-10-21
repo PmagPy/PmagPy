@@ -51,6 +51,28 @@ def test_example_converts(key, rel, values, tmp_path):
         assert "measurements" in result.message
 
 
+def test_utrecht_bedding_is_a_number_not_the_end_of_its_line(tmp_path):
+    # the last field of a specimen's line, bed_dip, kept the line's newline ("15\n")
+    rel, values = reg.FORMATS["utrecht"].examples[0]
+    result = reg.convert_files(reg.FORMATS["utrecht"], [example_path(rel)], values, str(tmp_path))
+    assert result.ok, result.log
+    dips = read_table(tmp_path / "samples.txt")["bed_dip"]
+    assert len(dips) and all(float(d) == float(d.strip()) and d == d.strip() for d in dips)
+    assert "line break" not in result.log                         # the writer had nothing to clean up
+
+
+def test_what_the_writer_cleans_up_is_in_the_conversion_log(tmp_path):
+    a = tmp_path / "a"
+    a.mkdir()
+    magic_write(str(a / "sites.txt"), pd.DataFrame({"site": ["s1"], "location": ["L"]}), "sites")
+    text = (a / "sites.txt").read_text().replace("\tL\n", "\t\"L\r\n\"\n")       # a quoted value with a line break
+    (a / "sites.txt").write_text(text)
+    notes = []
+    reg.combine_tables({"sites": [str(a / "sites.txt")]}, str(tmp_path), warnings=notes)
+    assert read_table(tmp_path / "sites.txt")["location"].tolist() == ["L"]
+    assert notes == ["sites: the location of site s1 held a tab or a line break, written as a space"]
+
+
 def test_a_conversion_that_writes_no_tables_is_not_reported_as_one(tmp_path):
     # tdt on a folder with no .tdt files: the converter returns without writing anything, which is a
     # failure -- also when appending, where the tables already there are not "converted" again
@@ -451,7 +473,7 @@ class TestConversionLog:
         before = {n: open(tmp_path / n).read() for n in os.listdir(d) if n.endswith(".txt")}
         real = reg.combine_tables
 
-        def half(per_table, dir_path, replaces=()):
+        def half(per_table, dir_path, replaces=(), warnings=None):
             real({"measurements": per_table["measurements"]}, dir_path, replaces)
             raise OSError("disk full")
         monkeypatch.setattr(reg, "combine_tables", half)

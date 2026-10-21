@@ -528,15 +528,16 @@ class TestTextAsRead:
         mdf = cb.MagicDataFrame(path, dmodel=mp.data_model())
         assert list(mdf.df["description"]) == self.VALUES
 
-    @pytest.mark.parametrize("value", ["two\tcells", "two\nlines", "a\rb", '"quoted"\tand a tab'])
-    def test_a_tab_or_line_break_cannot_split_the_row(self, tmp_path, value):
+    @pytest.mark.parametrize("value, written", [("two\tcells", "two cells"), ("two\nlines", "two lines"),
+                                                ("a\rb", "a b"), ('"quoted"\tand a tab', '"quoted" and a tab'),
+                                                ("15\n", "15"), ("pasted \r\n  line", "pasted line")])
+    def test_a_tab_or_line_break_becomes_a_space_and_is_named(self, tmp_path, value, written):
         path = os.path.join(str(tmp_path), "sites.txt")
         warnings = []
         mp.magic_write(path, pd.DataFrame({"site": ["a", "b", "c"], "description": ["fine", value, 'x "y"'],
                                            "lat": [1.5, 2.5, 3.5]}), "sites", warnings=warnings)
         _, df = mp.read_table_file(path)
         assert list(df["site"]) == ["a", "b", "c"] and list(df["lat"]) == [1.5, 2.5, 3.5]
-        assert list(df["description"]) == ["fine", value, 'x "y"']
-        assert warnings == ["sites: the description of site b holds a tab or a line break; it is written quoted, "
-                            "which PmagPy reads back, but a reader that splits on tabs alone would split the row "
-                            "there"]
+        assert list(df["description"]) == ["fine", written, 'x "y"']
+        assert open(path).read().count("\n") == 5 and "\r" not in open(path).read()
+        assert warnings == ["sites: the description of site b held a tab or a line break, written as a space"]

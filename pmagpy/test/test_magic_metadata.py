@@ -146,7 +146,7 @@ class TestSaveTable:
         assert "lithologies" in back.columns                           # one value keeps the column
         assert back.loc[back.site == "Z13", "location"].iloc[0] == "Zavkhan"
 
-    def test_a_pasted_line_break_is_kept_and_reported(self, study):
+    def test_a_pasted_line_break_becomes_a_space_and_is_reported(self, study):
         frame = mm.editor_frame(study, "sites")
         df = frame.df.copy()
         df.loc[df.site == "Z12", "description"] = "pasted from a notebook\nsecond line"
@@ -154,7 +154,7 @@ class TestSaveTable:
         mm.save_table(study, "sites", df, warnings=notes)
         assert len(notes) == 1 and "Z12" in notes[0] and "line break" in notes[0]
         back = mm.read_table(study, "sites")
-        assert back.loc[back.site == "Z12", "description"].iloc[0] == "pasted from a notebook\nsecond line"
+        assert back.loc[back.site == "Z12", "description"].iloc[0] == "pasted from a notebook second line"
 
     def test_the_original_is_backed_up_once(self, study):
         original = open(os.path.join(study, "sites.txt")).read()

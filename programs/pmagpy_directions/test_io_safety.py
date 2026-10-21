@@ -172,7 +172,7 @@ class TestWhatTheWriterSays:
             return df
         s.data.merged_specimens_table = with_a_break
         s.export_tables()
-        assert any("holds a tab or a line break" in w for w in s.data.warnings)
+        assert any("held a tab or a line break, written as a space" in w for w in s.data.warnings)
 
 
 class TestEditsOnDisk:

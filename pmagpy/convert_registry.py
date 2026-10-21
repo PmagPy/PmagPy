@@ -391,8 +391,12 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
         if any(per_table.values()):
             from pmagpy.magic_project import StagedExport
             say("Combining the tables …")
+            notes: List[str] = []
             with StagedExport(dir_path, backup=backup, originals=True) as stage:
-                tables = combine_tables(per_table, stage.dir, replaces=fmt.replaces)
+                tables = combine_tables(per_table, stage.dir, replaces=fmt.replaces, warnings=notes)
+            for note in notes:
+                say(note)
+                logs.append(note)
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
     n_ok = len(inputs) - len(failed)
@@ -564,13 +568,15 @@ def describe_tables(tables: Dict[str, int]) -> str:
     return " · ".join(f"{n:,} {t}" for t, n in tables.items()) or "no tables"
 
 
-def combine_tables(per_table: Dict[str, List[str]], dir_path: str, replaces: Sequence[str] = ()) -> Dict[str, int]:
+def combine_tables(per_table: Dict[str, List[str]], dir_path: str, replaces: Sequence[str] = (),
+                   warnings: Optional[list] = None) -> Dict[str, int]:
     """Concatenate each table's files into ``dir_path/<table>.txt``; returns rows per table written.
 
     Exact duplicate rows are dropped and a row that only names something yields to a
     fuller row naming it. In the tables named by ``replaces`` (see
     :attr:`Format.replaces`) the last file naming a sample or site replaces the rows
-    earlier files wrote for it.
+    earlier files wrote for it. What the writer had to change (a tab or a line break
+    inside a value) is added to ``warnings``.
     """
     from pmagpy.magic_project import magic_write
     written = {}
@@ -589,7 +595,7 @@ def combine_tables(per_table: Dict[str, List[str]], dir_path: str, replaces: Seq
         if table == "measurements" and "sequence" in df:
             df["sequence"] = range(1, len(df) + 1)
         with contextlib.redirect_stdout(io.StringIO()):
-            magic_write(os.path.join(dir_path, f"{table}.txt"), df, table)
+            magic_write(os.path.join(dir_path, f"{table}.txt"), df, table, warnings)
         written[table] = len(df)
     return written
 
