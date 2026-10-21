@@ -148,4 +148,4 @@ Learn the basics of [Python](http://cscircles.cemc.uwaterloo.ca/).
 
 Learn wxPython, which is the basis of our [GUIs here](http://zetcode.com/wxpython/)
 
-Learn more about [git here](https://www.codeschool.com/courses/try-git).
+Learn more about [git here](https://coddy.tech/playground/git).
