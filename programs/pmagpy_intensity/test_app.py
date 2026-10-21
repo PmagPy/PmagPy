@@ -869,7 +869,19 @@ class TestPublication:
         stats = study.statistics()
         text = pub._headline(stats)
         assert f"n = {stats['n'].rounded()}" in text and "e+0" not in text
-        assert f"{ps.describe('B_anc').label} = {stats['B_anc'].rounded()}" in text
+        assert f"B_anc (uncorrected) = {stats['B_anc'].rounded()}" in text
+
+    def test_the_spd_b_anc_is_labelled_uncorrected(self):
+        # the title gives the corrected intensity; SPD's B_anc (b·B_lab) in the statistics is the uncorrected one
+        data = pint.PintData.from_directory(MEGIDDO)
+        data.import_from_specimens_table()
+        result = data.result("hz05a1")
+        assert result.corrected
+        figure = pub.specimen_figure(data.specimens["hz05a1"], (result.imin, result.imax), result.stats, result)
+        statistics = next(t for t in figure.axes[-1].texts if "FRAC" in t.get_text()).get_text()
+        assert f"B_anc (uncorrected) = {result.stats['B_anc'].rounded()}" in statistics.splitlines()
+        assert result.stats["B_anc"].value == pytest.approx(result.b_anc_uncorrected)
+        assert f"{result.b_anc:.1f} ± {result.sigma:.1f} µT" in figure.axes[-1].texts[0].get_text()
 
     def test_the_corrections_follow_the_statistics_clear_of_the_legend(self):
         # the corrections were written at a fixed height, over the legend of the plot symbols

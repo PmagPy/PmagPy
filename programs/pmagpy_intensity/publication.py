@@ -46,6 +46,10 @@ GREY = "#6b7280"
 HEADLINE = ("n", "B_anc", "beta", "FRAC", "f_vds", "g", "q", "k_prime", "MAD_Free", "DANG",
             "SCAT", "DRAT", "dTR", "Ziggie")
 
+#: labels that differ on the figure from the catalogue's: SPD's B_anc is b·B_lab, before any
+#: correction, while the figure's title gives the corrected intensity
+HEADLINE_LABELS = {"B_anc": "B_anc (uncorrected)"}
+
 
 def _style(ax) -> None:
     ax.spines["top"].set_visible(False)
@@ -61,8 +65,8 @@ def _headline(stats: Dict[str, ps.Stat], keys=HEADLINE) -> str:
         stat = stats.get(key)
         if stat is None:
             continue
-        spec = ps.describe(key)
-        parts.append(f"{spec.label} = {stat.rounded()}")
+        label = HEADLINE_LABELS.get(key) or ps.describe(key).label
+        parts.append(f"{label} = {stat.rounded()}")
     return "\n".join(parts)
 
 
