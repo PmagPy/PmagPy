@@ -101,6 +101,26 @@ def test_leftover_tables_of_another_contribution_are_not_loaded(
             contribution.tables['contribution'].df['id']] == [MAGIC_ID]
 
 
+def test_file_of_another_contribution_raises(tmp_path, fake_download):
+    # a renamed file: the requested id is not the id in the file
+    shutil.copy(CONTRIBUTION_FILE, tmp_path / 'magic_contribution_12345.txt')
+    with pytest.raises(ValueError, match="gives id '19340'"):
+        ipmag.load_magic_contribution('12345', dir_path=str(tmp_path))
+    assert fake_download == []
+
+
+def test_empty_contribution_table_is_replaced(tmp_path, fake_download,
+                                              unpack_calls):
+    ipmag.load_magic_contribution(MAGIC_ID, dir_path=str(tmp_path))
+    # an interrupt during the first table write leaves an empty file
+    (tmp_path / 'contribution.txt').write_text('')
+    contribution = ipmag.load_magic_contribution(MAGIC_ID, dir_path=str(tmp_path))
+    assert fake_download == [MAGIC_ID]
+    assert len(unpack_calls) == 2
+    assert [str(magic_id) for magic_id in
+            contribution.tables['contribution'].df['id']] == [MAGIC_ID]
+
+
 def test_interrupted_unpack_is_completed(tmp_path, fake_download, unpack_calls):
     ipmag.load_magic_contribution(MAGIC_ID, dir_path=str(tmp_path))
     # an interrupted unpack leaves contribution.txt, the first table written,

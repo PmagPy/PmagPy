@@ -5320,11 +5320,13 @@ def load_magic_contribution(magic_id, dir_path='.', share_key='',
             for a public contribution.
         overwrite : bool, optional
             If True, download and unpack the contribution again even if a
-            local copy exists (e.g. to pick up a new version). Default is
-            False.
+            local copy exists (e.g. to pick up a new version). If that
+            download fails, RuntimeError is raised although the local copy
+            is still in dir_path. Default is False.
         print_progress : bool, optional
-            Whether unpack_magic prints the records written to each table.
-            Default is False.
+            Whether unpack_magic reports the table it is working on and
+            where it is written. pmag.magic_write prints the number of
+            records written to each table either way. Default is False.
 
     Returns:
         Contribution
@@ -5334,6 +5336,9 @@ def load_magic_contribution(magic_id, dir_path='.', share_key='',
     Raises:
         RuntimeError
             If the contribution cannot be downloaded.
+        ValueError
+            If the contribution file in dir_path holds a different
+            contribution than magic_id (e.g. a renamed file).
 
     Examples:
         >>> contribution = ipmag.load_magic_contribution(
@@ -5354,17 +5359,23 @@ def load_magic_contribution(magic_id, dir_path='.', share_key='',
             raise RuntimeError(f'MagIC contribution {magic_id} could not be '
                                f'downloaded: {message}')
     tables, contribution_record = _magic_file_tables(file_path)
+    file_id = str(contribution_record.get('id', ''))
+    if file_id != magic_id:
+        raise ValueError(f'{file_path} does not hold MagIC contribution '
+                         f'{magic_id}: its contribution table gives id '
+                         f'{file_id!r}. Remove or rename the file.')
 
     if overwrite or not os.path.exists(contribution_table):
         unpack = True
     else:
         # unpack unless the tables in dir_path are this version of this
         # contribution and none is missing (e.g. after an interrupted unpack,
-        # which leaves contribution.txt, the first table written)
+        # which leaves contribution.txt, the first table written). An empty
+        # or unreadable contribution.txt gives no records, so it is unpacked.
         records, _ = pmag.magic_read(contribution_table)
         unpacked = [(str(record.get('id', '')), str(record.get('version', '')))
                     for record in records]
-        this_version = (magic_id, contribution_record.get('version', ''))
+        this_version = (file_id, str(contribution_record.get('version', '')))
         missing = [table for table in tables if not
                    os.path.exists(os.path.join(dir_path, table + '.txt'))]
         unpack = this_version not in unpacked or len(missing) > 0
@@ -5388,6 +5399,8 @@ def _magic_file_tables(file_path):
     The file is split into tables the way download_magic splits it: each
     table starts with a 'tab delimited<TAB>table name' line and ends at a
     '>>>>' line, and only tables with at least one record are written out.
+    Keep the two in step: a table counted here that download_magic does not
+    write would make load_magic_contribution unpack on every call.
 
     Parameters:
         file_path : str
