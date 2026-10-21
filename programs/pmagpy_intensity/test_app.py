@@ -663,6 +663,38 @@ class TestCorrectionsView:
                 study.data.interpretations[name].use_anisotropy = use
             study.data.invalidate()
 
+    def test_the_study_wide_switch_sets_every_specimen_and_lists_the_exceptions(self, tmp_path):
+        src = tmp_path / "Megiddo"
+        shutil.copytree(MEGIDDO, src)
+        session = Session(str(src))
+        session.autosave_delay = 0
+        view = CorrectionsView(session)
+        view.set_active(True)
+        study_aniso = dict((kind, w) for w, kind in view.study_switches)["anisotropy"]
+        # imported from specimens.txt: each keeps its published choice, and they differ
+        assert study_aniso.value == pint.MIXED and study_aniso.options[0] == pint.MIXED
+        assert "mixed" in view.exceptions.object
+        study_aniso.value = "never"
+        assert all(i.use_anisotropy is False for i in session.data.interpretations.values())
+        assert study_aniso.options == ["use if available", "always", "never"]
+        assert "anisotropy: never for the whole study" in session.status
+        assert "anisotropy</b>:" not in view.exceptions.object
+        # one specimen set on its own is listed as differing
+        session.specimen = "hz05a1"
+        view.aniso.value = "always"
+        assert session.data.interpretations["hz05a1"].use_anisotropy is True
+        assert study_aniso.value == "never"
+        assert "1 specimen differs" in view.exceptions.object and "hz05a1" in view.exceptions.object
+        # the autosave carries the study-wide setting, and a reopened study shows it
+        saved = json.loads((src / AUTOSAVE_NAME).read_text())
+        assert saved["correction_settings"]["anisotropy"] is False
+        again = Session(str(src))
+        assert again.data.correction_settings["anisotropy"] is False
+        assert again.data.correction_exceptions("anisotropy") == {"hz05a1": True}
+        reopened = CorrectionsView(again)
+        reopened.set_active(True)
+        assert dict((kind, w) for w, kind in reopened.study_switches)["anisotropy"].value == "never"
+
     def test_switching_a_correction_off_is_reflected(self, study):
         study.specimen = "hz05a1"
         view = CorrectionsView(study)

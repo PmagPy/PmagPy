@@ -570,3 +570,98 @@ class TestDeltaPalRemovesTheAlteration:
         b_ideal = ps.york_regression(ideal, y)["b"]
         got = float(ps.ptrm_check_statistics(exp, 0, n - 1)["delta_pal"])
         assert got == pytest.approx(abs(100 * (b - b_ideal) / b), rel=1e-9)
+
+
+class TestStudyWideCorrections:
+    """Each correction has a study-wide setting; a specimen can still be set on its own."""
+
+    @staticmethod
+    def _imported():
+        data = pi.PintData.from_directory(MEGIDDO)
+        data.import_from_specimens_table()
+        return data
+
+    @staticmethod
+    def _values(data):
+        return {name: (r.b_anc, r.b_anc_uncorrected, tuple((k, c.applied, c.factor)
+                                                            for k, c in sorted(r.corrections.items())))
+                for name, r in ((n, data.result(n)) for n in data.interpretations)}
+
+    def test_an_import_keeps_each_choice_and_reads_mixed_where_they_differ(self, megiddo, megiddo_published):
+        assert megiddo.correction_settings["anisotropy"] is pi.MIXED
+        uses = {i.use_anisotropy for i in megiddo.interpretations.values()}
+        assert uses == {True, False}
+        # every interpretation that differs is listed: with no study-wide setting, all of them
+        assert len(megiddo.correction_exceptions("anisotropy")) == len(megiddo.interpretations)
+
+    def test_setting_the_study_sets_every_specimen_and_later_interpretations(self):
+        data = self._imported()
+        changed = data.set_study_correction("anisotropy", False)
+        assert changed == sum(1 for _ in data.interpretations) - 67
+        assert all(i.use_anisotropy is False for i in data.interpretations.values())
+        assert not any(c.applied for c in (data.result(n).corrections.get("anisotropy")
+                                            for n in data.interpretations) if c is not None)
+        assert data.correction_exceptions("anisotropy") == {}
+        # one specimen set on its own is an exception, and the only one
+        data.interpretations["hz05a1"].use_anisotropy = True
+        data.invalidate("hz05a1")
+        assert data.correction_exceptions("anisotropy") == {"hz05a1": True}
+        assert data.result("hz05a1").corrections["anisotropy"].applied
+        # a specimen interpreted afresh takes the study-wide choice
+        name = next(n for n in data.specimen_names if n not in data.interpretations)
+        data.set_interpretation(name, 0, 3)
+        assert data.interpretations[name].use_anisotropy is False
+        # mixed settings give a new interpretation "use if available", as before
+        data.correction_settings["nlt"] = pi.MIXED
+        other = next(n for n in data.specimen_names if n not in data.interpretations)
+        assert data.set_interpretation(other, 0, 3).use_nlt is None
+
+    def test_the_setting_rejects_what_is_not_a_choice(self, small):
+        with pytest.raises(KeyError):
+            small.set_study_correction("magnetism", True)
+        with pytest.raises(ValueError):
+            small.set_study_correction("nlt", "always")
+
+    def test_the_session_carries_the_settings(self, tmp_path):
+        data = self._imported()
+        data.set_study_correction("cooling_rate", True)
+        data.interpretations["hz05a1"].use_cooling_rate = False
+        payload = json.loads(data.to_json())
+        assert payload["version"] == 4
+        assert payload["correction_settings"] == {"anisotropy": "mixed", "nlt": "mixed", "cooling_rate": True}
+        data.invalidate()
+        before = self._values(data)
+        again = pi.PintData.from_directory(MEGIDDO)
+        again.from_json(json.dumps(payload))
+        assert again.correction_settings == {"anisotropy": pi.MIXED, "nlt": pi.MIXED, "cooling_rate": True}
+        assert again.correction_exceptions("cooling_rate") == {"hz05a1": False}
+        assert self._values(again) == before
+
+    def test_an_earlier_session_loads_with_every_value_unchanged(self):
+        data = self._imported()
+        data.interpretations["hz05a2"].use_anisotropy = None
+        data.invalidate()
+        before = self._values(data)
+        payload = json.loads(data.to_json())
+        del payload["correction_settings"]
+        payload["version"] = 3
+        again = pi.PintData.from_directory(MEGIDDO)
+        again.from_json(json.dumps(payload))
+        assert self._values(again) == before
+        assert {n: (i.use_anisotropy, i.use_nlt, i.use_cooling_rate) for n, i in again.interpretations.items()} \
+            == {n: (i.use_anisotropy, i.use_nlt, i.use_cooling_rate) for n, i in data.interpretations.items()}
+        assert again.correction_settings["anisotropy"] is pi.MIXED
+
+    def test_an_earlier_session_whose_specimens_agree_takes_their_choice(self, small):
+        name = small.specimen_names[0]
+        small.set_interpretation(name, 0, 4).use_nlt = False
+        payload = json.loads(small.to_json())
+        del payload["correction_settings"]
+        small.from_json(json.dumps(payload))
+        assert small.correction_settings == {"anisotropy": None, "nlt": False, "cooling_rate": None}
+
+    def test_a_study_without_interpretations_uses_what_is_available(self, small):
+        assert small.correction_settings == {kind: None for kind in pi.CORRECTION_KINDS}
+        name = small.specimen_names[0]
+        interp = small.set_interpretation(name, 0, 4)
+        assert (interp.use_anisotropy, interp.use_nlt, interp.use_cooling_rate) == (None, None, None)

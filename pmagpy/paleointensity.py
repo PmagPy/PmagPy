@@ -171,6 +171,12 @@ class Interpretation:
         return (self.specimen, self.name)
 
 
+#: the three corrections, by the name each ``Interpretation.use_<kind>`` switch carries
+CORRECTION_KINDS = ("anisotropy", "nlt", "cooling_rate")
+#: a study-wide correction setting that is not one choice: the specimens' own choices differ
+MIXED = "mixed"
+
+
 @dataclass
 class Correction:
     """One applied correction, with the factor and where it came from."""
@@ -1284,6 +1290,10 @@ class PintData:
         self._result_cache: Dict[tuple, PintResult] = {}
         #: interpretations whose bound step was flagged away, with their bounds in kelvin
         self._set_aside: Dict[str, Tuple[Interpretation, Tuple[float, float]]] = {}
+        #: the study-wide choice for each correction (see :meth:`set_study_correction`): None (use if
+        #: available), True (always), False (never), or :data:`MIXED` where the specimens differ and
+        #: none has been chosen for the whole study
+        self.correction_settings: Dict[str, object] = {kind: None for kind in CORRECTION_KINDS}
         self._build()
 
     # ----- construction ----------------------------------------------------
@@ -1569,7 +1579,10 @@ class PintData:
         imin, imax = max(0, min(imin, last)), max(0, min(imax, last))
         interp = self.interpretations.get(specimen)
         if interp is None:
-            interp = Interpretation(specimen=specimen, imin=imin, imax=imax)
+            # a new interpretation takes the study-wide correction choices (none where they are mixed)
+            interp = Interpretation(specimen=specimen, imin=imin, imax=imax,
+                                    **{f"use_{kind}": use for kind, use in self.correction_settings.items()
+                                       if use is not MIXED})
             self.interpretations[specimen] = interp
         self._set_aside.pop(specimen, None)      # a new choice replaces one set aside
         interp.imin, interp.imax = imin, imax
@@ -1577,6 +1590,50 @@ class PintData:
             setattr(interp, key, value)
         self.invalidate(specimen)
         return interp
+
+    def set_study_correction(self, kind: str, use: Optional[bool]) -> int:
+        """Choose a correction for the whole study: every interpretation, and every one made from now on.
+
+        ``use`` is what each ``Interpretation.use_<kind>`` switch takes: None (use if available), True
+        (always) or False (never). A specimen can still be switched on its own afterwards
+        (:meth:`correction_exceptions` lists those that differ). Returns how many interpretations
+        changed.
+        """
+        if kind not in CORRECTION_KINDS:
+            raise KeyError(f"no correction {kind!r}; the corrections are {', '.join(CORRECTION_KINDS)}")
+        if use not in (None, True, False):
+            raise ValueError(f"a correction is used if available (None), always (True) or never (False), "
+                             f"not {use!r}")
+        self.correction_settings[kind] = use
+        changed = 0
+        held = [interp for interp, _ in self._set_aside.values()]
+        for interp in list(self.interpretations.values()) + held:
+            if getattr(interp, f"use_{kind}") is not use:
+                setattr(interp, f"use_{kind}", use)
+                changed += 1
+        self.invalidate()
+        return changed
+
+    def correction_exceptions(self, kind: str) -> Dict[str, Optional[bool]]:
+        """Interpretations whose choice for ``kind`` differs from the study-wide one: specimen -> choice.
+
+        Where the study-wide setting is :data:`MIXED` every interpretation is listed.
+        """
+        setting = self.correction_settings.get(kind)
+        return {name: getattr(interp, f"use_{kind}") for name, interp in self.interpretations.items()
+                if setting is MIXED or getattr(interp, f"use_{kind}") is not setting}
+
+    def _settle_correction_settings(self) -> None:
+        """The study-wide settings the interpretations imply: their one common choice, else MIXED.
+
+        Used where interpretations arrive with choices of their own and no study-wide setting (an
+        import from specimens.txt, a session written before the setting existed); a study with no
+        interpretations keeps "use if available".
+        """
+        for kind in CORRECTION_KINDS:
+            choices = {getattr(interp, f"use_{kind}") for interp in self.interpretations.values()}
+            self.correction_settings[kind] = (None if not choices else choices.pop() if len(choices) == 1
+                                              else MIXED)
 
     def remove_interpretation(self, specimen: str) -> None:
         self.interpretations.pop(specimen, None)
@@ -2383,7 +2440,7 @@ class PintData:
                                       "occurrence": occurrence, "meas_pos": int(pos)})
         payload = {
             "format": "pmagpy_intensity_session",
-            "version": 3,
+            "version": 4,
             "software": SOFTWARE_TAG,
             "directory": self.directory,
             "criteria": self.criteria.name,
@@ -2395,6 +2452,9 @@ class PintData:
                              "site": [[c.key, c.operation, c.value] for c in self.criteria.site]},
             "anisotropy_policy": {"alteration_limit": self.anisotropy_alteration_limit,
                                   "require_ftest": bool(self.anisotropy_require_ftest)},
+            # version 4: the study-wide correction choices (null: use if available, true: always,
+            # false: never, "mixed"); each interpretation still carries its own use_* switches
+            "correction_settings": dict(self.correction_settings),
             "interpretations": [asdict(i) for i in self.interpretations.values()],
             # version 3: the flags that differ from the measurements table on disk, and only
             # those, so that a flag another application set there is not undone on reopening
@@ -2478,8 +2538,10 @@ class PintData:
             if quality is not None and (quality != spec.steps["quality"].to_numpy(dtype=object)).any():
                 spec.steps["quality"] = quality
                 spec.arai = build_arai(spec.steps, spec.warnings)
+        stored_settings = self._correction_settings_from_json(payload)
         self.interpretations.clear()
         self._set_aside.clear()
+        self.correction_settings = dict(stored_settings or {kind: None for kind in CORRECTION_KINDS})
         count = 0
         bounds = payload.get("bounds_in_kelvin", {})
         for item in payload.get("interpretations", []):
@@ -2507,6 +2569,8 @@ class PintData:
                 continue
             if interp.specimen in self.specimens and interp.specimen not in self.interpretations:
                 self._set_aside[interp.specimen] = (interp, bounds)
+        if stored_settings is None:
+            self._settle_correction_settings()
         if criteria is not None:
             self.criteria = criteria
         policy = payload.get("anisotropy_policy")
@@ -2516,6 +2580,20 @@ class PintData:
             self.anisotropy_require_ftest = bool(policy.get("require_ftest", False))
         self.invalidate()
         return count
+
+    @staticmethod
+    def _correction_settings_from_json(payload: dict) -> Optional[Dict[str, object]]:
+        """A version 4 session's study-wide correction choices; None for an earlier session."""
+        stored = payload.get("correction_settings")
+        if not isinstance(stored, dict):
+            return None
+        settings = {}
+        for kind in CORRECTION_KINDS:
+            value = stored.get(kind)
+            if value not in (None, True, False, MIXED):
+                raise ValueError(f"the session's {kind} setting cannot be read ({value!r})")
+            settings[kind] = MIXED if value == MIXED else value
+        return settings
 
     @staticmethod
     def _criteria_from_json(payload: dict) -> Optional[CriteriaSet]:
@@ -2617,8 +2695,10 @@ class PintData:
         (cooling rate), DA-NL (non-linear TRM). A row that says which
         corrections were applied -- it has ``int_corr`` ('c' or 'u') or any
         DA- code -- switches each correction on or off as it records; a row
-        that says nothing leaves the defaults (use what is available). A
-        stored correction this study cannot recompute is reported.
+        that says nothing leaves the study-wide setting (use what is
+        available, unless the analyst chose otherwise). The study-wide setting
+        then becomes the choice the interpretations share, or MIXED where they
+        differ. A stored correction this study cannot recompute is reported.
         """
         table = self._table("specimens")
         if table is None or "meas_step_min" not in table.columns:
@@ -2647,6 +2727,9 @@ class PintData:
             interp.quality = "b" if (not is_null(quality) and str(quality).strip() == "b") else "g"
             problems.extend(self._import_corrections(interp, row))
             count += 1
+        if count:
+            # each specimen keeps the choice its row records; the study-wide setting is what they share
+            self._settle_correction_settings()
         self.invalidate()
         return count, problems
 

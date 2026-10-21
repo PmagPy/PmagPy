@@ -1050,12 +1050,31 @@ class CorrectionsView(LazyView):
         for widget, kind in self._switches:
             widget.param.watch(lambda e, k=kind: None if self._showing
                                else self.s.set_correction(k, self.USE[e.new]), "value")
+        # the same three choices for the whole study; "mixed" is offered only to show that the
+        # specimens' own choices differ and none has been set for the study
+        self.study_switches = tuple(
+            (pn.widgets.Select(name=f"{label} (whole study)", width=170, options=choices, value=choices[0]), kind)
+            for label, kind in (("anisotropy", "anisotropy"), ("non-linear TRM", "nlt"),
+                                ("cooling rate", "cooling_rate")))
+        for widget, kind in self.study_switches:
+            widget.param.watch(lambda e, k=kind: self._on_study_switch(k, e.new), "value")
+        self.exceptions = pn.pane.HTML("", sizing_mode="stretch_width")
         self.alt_limit = pn.widgets.FloatInput(name="anisotropy alteration limit (%)",
                                                value=5.0, width=220)
         self.alt_limit.param.watch(self._on_limit, "value")
         self.ftest = pn.widgets.Checkbox(name="require Hext's F-test", value=False)
         self.ftest.param.watch(self._on_ftest, "value")
         session.param.watch(self._lazy_redraw, ["specimen", "version", "directory"])
+
+    LABELS = {"anisotropy": "anisotropy", "nlt": "non-linear TRM", "cooling_rate": "cooling rate"}
+
+    def _on_study_switch(self, kind: str, label: str) -> None:
+        if self._showing or label == pint.MIXED or self.s.data is None:
+            return
+        use = self.USE[label]
+        changed = self.s.set_study_correction(kind, use)
+        self.s.status = (f"{self.LABELS[kind]}: {label} for the whole study "
+                         f"({changed} specimen{'' if changed == 1 else 's'} changed)")
 
     def _on_limit(self, event):
         self.s.data.anisotropy_alteration_limit = float(event.new) if event.new else None
@@ -1077,6 +1096,7 @@ class CorrectionsView(LazyView):
         if bool(self.s.data.anisotropy_require_ftest) != bool(self.ftest.value):
             self.ftest.value = bool(self.s.data.anisotropy_require_ftest)
         self._show_switches()
+        self._show_study_switches()
         self._fill_detail()
         rows = []
         for res in self.s.data.results():
@@ -1109,6 +1129,46 @@ class CorrectionsView(LazyView):
                 widget.disabled = interp is None
         finally:
             self._showing = False
+
+    def _show_study_switches(self):
+        """Set the study-wide selectors to the study's settings, and list the specimens that differ."""
+        settings = self.s.data.correction_settings
+        labels = {use: label for label, use in self.USE.items()}
+        choices = list(self.USE)
+        self._showing = True
+        try:
+            for widget, kind in self.study_switches:
+                setting = settings.get(kind)
+                options = ([pint.MIXED] if setting is pint.MIXED else []) + choices
+                if widget.options != options:
+                    widget.options = options
+                widget.value = pint.MIXED if setting is pint.MIXED else labels.get(setting, choices[0])
+        finally:
+            self._showing = False
+        blocks = []
+        for kind in pint.CORRECTION_KINDS:
+            setting = settings.get(kind)
+            differ = self.s.data.correction_exceptions(kind)
+            if not differ:
+                continue
+            groups = {}
+            for name, use in differ.items():
+                groups.setdefault(labels.get(use, "use if available"), []).append(name)
+            if setting is pint.MIXED:
+                head = (f"<b>{self.LABELS[kind]}</b>: mixed, no study-wide setting; "
+                        + ", ".join(f"{label} {len(names)}" for label, names in groups.items()))
+            else:
+                head = (f"<b>{self.LABELS[kind]}</b>: {len(differ)} specimen{'' if len(differ) == 1 else 's'} "
+                        f"differ{'s' if len(differ) == 1 else ''} from the study-wide "
+                        f"<i>{labels.get(setting, 'use if available')}</i>")
+            lists = "".join(f"<div>{label}: {html.escape(', '.join(names))}</div>"
+                            for label, names in groups.items())
+            blocks.append(f"<details><summary>{head}</summary>"
+                          f'<div style="{MUTED_STYLE};margin:2px 0 6px 14px">{lists}</div></details>')
+        self.exceptions.object = (
+            f'<div style="{SECTION_STYLE}">Specimens set differently from the whole study</div>'
+            + ("".join(blocks) or f'<div style="{MUTED_STYLE}">none: every specimen follows the '
+                                  f'study-wide settings</div>'))
 
     def _fill_detail(self):
         if not self.s.ready:
@@ -1165,7 +1225,11 @@ class CorrectionsView(LazyView):
     def sidebar(self):
         return pn.Column(
             pn.pane.HTML(f'<div style="{SECTION_STYLE}">This specimen</div>'), self.detail,
-            pn.pane.HTML(f'<div style="{SECTION_STYLE}">Apply</div>'),
+            pn.pane.HTML(f'<div style="{SECTION_STYLE}">Apply to the whole study</div>'),
+            *(widget for widget, _ in self.study_switches),
+            pn.pane.HTML(f'<div style="{MUTED_STYLE}">Sets every specimen, and every interpretation '
+                         f'made later. A specimen can still be set on its own below.</div>'),
+            pn.pane.HTML(f'<div style="{SECTION_STYLE}">Apply to this specimen</div>'),
             self.aniso, self.nlt, self.cooling,
             pn.pane.HTML(f'<div style="{SECTION_STYLE}">Anisotropy policy</div>'),
             self.alt_limit, self.ftest,
@@ -1175,7 +1239,7 @@ class CorrectionsView(LazyView):
             sizing_mode="stretch_width")
 
     def panel(self):
-        return pn.Column(self.table, sizing_mode="stretch_width")
+        return pn.Column(self.exceptions, self.table, sizing_mode="stretch_width")
 
 
 # ---------------------------------------------------------------------------

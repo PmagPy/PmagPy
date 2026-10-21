@@ -158,7 +158,12 @@ tensor's eigenvalues, its Hext statistics, the alteration check and the
 positions it was measured in.
 
 Each correction can be set to *use if available*, *always* (fail the specimen
-where it is missing) or *never*. The anisotropy alteration limit defaults to
+where it is missing) or *never*, for the whole study and for one specimen. The
+study-wide setting sets every specimen, and every interpretation made later; a
+specimen can then still be set on its own, and the tab lists the specimens set
+differently from the study. Interpretations imported from `specimens.txt` keep
+the corrections their rows record, so after an import the study-wide control
+reads *mixed* where those differ. The anisotropy alteration limit defaults to
 5%, and Hext's F-test can be required.
 
 ### Group results

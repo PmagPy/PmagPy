@@ -342,6 +342,14 @@ class Session(param.Parameterized):
         self.data.invalidate(self.specimen)
         self._changed()
 
+    def set_study_correction(self, kind: str, use: Optional[bool]) -> int:
+        """Set a correction for every specimen (and every interpretation made later); returns how many changed."""
+        if self.data is None:
+            return 0
+        changed = self.data.set_study_correction(kind, use)
+        self._changed()
+        return changed
+
     def auto_interpret(self, specimens: Optional[Iterable[str]] = None, progress=None) -> dict:
         out = self.data.auto_interpret_all(specimens=specimens, progress=progress)
         self._changed()
