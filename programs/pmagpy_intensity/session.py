@@ -473,17 +473,18 @@ class Session(param.Parameterized):
             self.data.write_specimens(stage.dir, analysts=analysts, only_accepted=only_accepted)
             for level in levels:
                 self.data.write_group(stage.dir, level=level, analysts=analysts, weighted=weighted)
-            if write_measurements:
-                self.data.write_measurements(stage.dir)
+            measurements = self.data.write_measurements(stage.dir) if write_measurements else None
             self.data.write_criteria(stage.dir)
             self.data.save_session(os.path.join(stage.dir, SESSION_NAME))
             self.data.write_redo(os.path.join(stage.dir, REDO_NAME))
         written = list(stage.written)
-        if in_place and write_measurements:
+        refused = write_measurements and measurements is None
+        if in_place and write_measurements and not refused:
             self.data.flags_written()        # the study's file now has these flags: later changes count from them
-        if in_place:
+        if in_place and not refused:
             self._share_after_export()
-        written += mp.copy_companion_tables(self.directory, self.output_dir, skip=written)
+        skip = written + (["measurements.txt"] if refused else [])
+        written += mp.copy_companion_tables(self.directory, self.output_dir, skip=skip)
         self.last_backup = stage.backed_up
         return written
 

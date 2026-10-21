@@ -675,19 +675,20 @@ class Session(param.Parameterized):
                                 originals=self._originals() if in_place else False)
         with stage:
             self.data.write_specimens(stage.dir, coords=coords, analysts=analysts)
-            if write_measurements:
-                self.data.write_measurements(stage.dir)
+            measurements = self.data.write_measurements(stage.dir) if write_measurements else None
             for level in levels:
                 over = {"site": site_over, "location": "sites"}.get(level, "specimens")
                 self.data.write_means(level, stage.dir, coords=tuple(mean_coords), over=over, analysts=analysts,
                                       common_polarity=common_polarity, flip=flip, polarity_pole=polarity_pole)
             self.data.write_redo(os.path.join(stage.dir, REDO_NAME), current_specimen=self.specimen)
         written = list(stage.written)
-        if in_place and write_measurements:
+        refused = write_measurements and measurements is None
+        if in_place and write_measurements and not refused:
             self.data.flags_written()        # the study's file now has these flags: later changes count from them
-        if in_place:
+        if in_place and not refused:
             self._share_after_export()
-        written += mp.copy_companion_tables(self.directory, target, skip=written)
+        skip = written + (["measurements.txt"] if refused else [])
+        written += mp.copy_companion_tables(self.directory, target, skip=skip)
         self.last_backup = stage.backed_up
         return written
 

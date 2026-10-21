@@ -1300,6 +1300,84 @@ def copy_companion_tables(source_dir: str, output_dir: str, skip: Iterable[str] 
     return copied
 
 
+def _table_lines(text: str) -> tuple[list[str], str, bool]:
+    """A table's text as (lines, the file's own line ending, whether the text ends with one).
+
+    The ending is CR LF from Windows, CR alone from an old Mac, else LF; a stray
+    CR CR LF is one ending, not a blank line.
+    """
+    newline = "\r\n" if "\r\n" in text else ("\r" if "\r" in text and "\n" not in text else "\n")
+    final = text.endswith(("\n", "\r"))
+    lines = text.split("\r") if newline == "\r" else \
+        [line.rstrip("\r") for line in text.replace("\r\n", "\n").split("\n")]
+    if final and lines and lines[-1] == "":
+        lines = lines[:-1]
+    return lines, newline, final
+
+
+def _occurrences(names) -> list[tuple]:
+    seen: dict = {}
+    keys = []
+    for name in names:
+        keys.append((name, seen.get(name, 0)))
+        seen[name] = seen.get(name, 0) + 1
+    return keys
+
+
+def measurement_rows_changed(source_path: str, names: Optional[Iterable[str]], n_rows: int) -> str:
+    """How the measurements file on disk differs from the rows a session read; "" when it does not.
+
+    A session keeps its step flags by the position of each row in the table
+    it read. When rows have been added to or removed from the file since
+    (another program, a converter appending a new experiment), or it has been
+    re-sorted, those positions name other measurements, and writing the
+    flags onto the file -- or the rows read at opening back over it -- would
+    drop or resurrect measurements, or flag the wrong ones.
+
+    Args:
+        source_path: the measurements file as it is on disk now.
+        names: the measurement names of the rows read, in order (None when the
+            table had no names and none were given to it).
+        n_rows: how many rows were read.
+
+    Returns:
+        "" when the file still has those rows; otherwise what changed:
+        "3 rows added, 1 removed", "its rows were reordered", or why it could not be compared.
+    """
+    try:
+        with open(source_path, "rb") as fh:
+            text, _ = decode_table_text(fh.read())
+    except OSError as exc:
+        return f"it could not be read ({exc.strerror or exc})"
+    lines, _, _ = _table_lines(text)
+    if len(lines) < 2 or not lines[0].lower().startswith("tab"):
+        return "it is no longer a MagIC table"
+    header = lines[1].rstrip("\r").split("\t")
+    rows = [line.rstrip("\r").split("\t") for line in lines[2:] if any(f.strip() for f in line.split("\t"))]
+    names = list(names) if names is not None else None
+    if names is not None and "measurement" in header:
+        col = header.index("measurement")
+        on_disk = [fields[col].strip() if col < len(fields) else "" for fields in rows]
+        read = ["" if is_null(n) else str(n).strip() for n in names]
+        if on_disk == read:
+            return ""
+        before, now = set(_occurrences(read)), set(_occurrences(on_disk))
+        added, removed = len(now - before), len(before - now)
+        if not added and not removed:
+            return "its rows were reordered"
+    else:
+        if len(rows) == n_rows:
+            return ""
+        added, removed = max(0, len(rows) - n_rows), max(0, n_rows - len(rows))
+    return f"{added} row{'s' if added != 1 else ''} added, {removed} removed"
+
+
+def measurements_changed_message(name: str, what: str) -> str:
+    """What an export says when it leaves the measurements table alone (:func:`measurement_rows_changed`)."""
+    return (f"{name} was not written: it changed on disk since the study was opened ({what}). Reopen the study "
+            "-- its flags are kept in the autosave -- and export again; the other tables were written.")
+
+
 def write_measurement_flags(source_path: str, target_path: str, changes: dict,
                             names: Optional[Iterable[str]] = None) -> Optional[str]:
     """Write a measurements table with some ``quality`` flags changed and nothing else.
@@ -1325,14 +1403,7 @@ def write_measurement_flags(source_path: str, target_path: str, changes: dict,
     """
     with open(source_path, "rb") as fh:
         text, _ = decode_table_text(fh.read())
-    # the file's own line ending (\r\n from Windows, \r from an old Mac; stray \r\r\n is one ending,
-    # not a blank line)
-    newline = "\r\n" if "\r\n" in text else ("\r" if "\r" in text and "\n" not in text else "\n")
-    final = text.endswith(("\n", "\r"))
-    lines = text.split("\r") if newline == "\r" else \
-        [line.rstrip("\r") for line in text.replace("\r\n", "\n").split("\n")]
-    if final and lines and lines[-1] == "":
-        lines = lines[:-1]
+    lines, newline, final = _table_lines(text)
     if len(lines) < 2 or not lines[0].lower().startswith("tab"):
         return None
     header = lines[1].rstrip("\r").split("\t")

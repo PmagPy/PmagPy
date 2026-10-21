@@ -8,6 +8,7 @@ another study that wiped the fits, step flags lost on restart, re-measured
 steps resolved to the bad measurement, and datasets with the same folder name
 sharing one output folder.
 """
+import io
 import os
 import shutil
 
@@ -421,6 +422,78 @@ class TestMeasurementsAsWritten:
         s.export_tables()
         now = pd.read_csv(path, sep="\t", skiprows=1, dtype=str, keep_default_na=False)
         assert now.loc[other, "quality"] == "b"
+
+
+class TestMeasurementsChangedOnDisk:
+    """Rows added to or removed from measurements.txt while the study is open: that file is left alone."""
+
+    def rows_added(self, path, specimen="jm013d1"):
+        """A converter appends a new experiment's rows to the open study's measurements.txt."""
+        lines = open(path).read().splitlines()
+        header = lines[1].split("\t")
+        extra = [line.split("\t") for line in lines[2:] if line.split("\t")[header.index("specimen")] == specimen][:2]
+        for k, fields in enumerate(extra):
+            fields[header.index("measurement")] = f"new-{k}"
+        with open(path, "a") as fh:
+            fh.write("".join("\t".join(fields) + "\n" for fields in extra))
+
+    def rows_removed(self, path, specimen="jm013d1", n=3):
+        lines = open(path).read().splitlines()
+        header = lines[1].split("\t")
+        theirs = [i for i, line in enumerate(lines) if i > 1 and line.split("\t")[header.index("specimen")] == specimen]
+        with open(path, "w") as fh:
+            fh.write("\n".join(line for i, line in enumerate(lines) if i not in theirs[:n]) + "\n")
+
+    @pytest.mark.parametrize("change, said", [("rows_added", "2 rows added, 0 removed"),
+                                              ("rows_removed", "0 rows added, 3 removed")])
+    def test_the_export_leaves_measurements_alone_and_a_reopen_writes_the_flags(self, tmp_path, change, said):
+        """The rows read at opening were written back over the file: appended rows were dropped and
+        deleted ones resurrected, with one vague message."""
+        src = copy_study(tmp_path / "s")
+        path = os.path.join(src, "measurements.txt")
+        s = Session(src, cache=True)
+        s.specimen = "jm002a1"
+        flagged = str(s.spec.steps["measurement"].iloc[3])
+        s.toggle_step(3)
+        getattr(self, change)(path)
+        on_disk = open(path, "rb").read()
+        written = s.export_tables()
+        assert open(path, "rb").read() == on_disk
+        assert os.path.join(src, "specimens.txt") in written and path not in written
+        message = [w for w in s.data.warnings if w.startswith("measurements.txt was not written")]
+        assert len(message) == 1 and f"({said})" in message[0] and "Reopen the study" in message[0]
+        assert "kept in the autosave" in message[0]
+        again = Session(src, cache=True)                       # the reopen reads the file again
+        assert again.data is not s.data
+        steps = again.data.specimens["jm002a1"].steps
+        assert steps.loc[steps["measurement"] == flagged, "quality"].iloc[0] == "b"
+        again.export_tables()
+        now = pd.read_csv(path, sep="\t", skiprows=1, dtype=str, keep_default_na=False)
+        mine = now[(now["specimen"] == "jm002a1") & (now["measurement"] == flagged)]
+        assert list(mine["quality"]) == ["b"]
+        assert len(now) == len(pd.read_csv(io.BytesIO(on_disk), sep="\t", skiprows=1, dtype=str))
+        assert not [w for w in again.data.warnings if "was not written" in w]
+
+    def test_an_export_elsewhere_does_not_copy_the_changed_file_without_the_flags(self, tmp_path):
+        src = copy_study(tmp_path / "s")
+        out = str(tmp_path / "out")
+        s = Session(src)
+        s.specimen = "jm002a1"
+        s.toggle_step(3)
+        self.rows_added(os.path.join(src, "measurements.txt"))
+        written = s.export_tables(output_dir=out)
+        assert not os.path.exists(os.path.join(out, "measurements.txt"))
+        assert os.path.join(out, "specimens.txt") in written
+
+    def test_the_export_pane_says_why_and_what_to_do(self, tmp_path):
+        from pmagpy_directions.views import ExportView
+        src = copy_study(tmp_path / "s")
+        s = Session(src)
+        view = ExportView(s)
+        self.rows_added(os.path.join(src, "measurements.txt"))
+        view._write(confirmed=True)
+        assert "measurements.txt was not written: it changed on disk since the study was opened " \
+               "(2 rows added, 0 removed)" in view.status.object
 
 
 class TestPolarityControls:

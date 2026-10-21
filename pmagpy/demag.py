@@ -1919,6 +1919,9 @@ class DemagData:
         ``source`` is the file to start from (default: the study's own). The
         table read when the study was opened is left as it was, so the flags
         remain changes relative to it (and the autosave keeps carrying them).
+        Nothing is written, and None returned with the reason in ``warnings``,
+        when the file's rows are no longer the rows read
+        (:func:`pmagpy.magic_project.measurement_rows_changed`).
         """
         table = self.contribution.tables.get("measurements")
         if table is None:
@@ -1929,6 +1932,10 @@ class DemagData:
         changes = mp.flag_changes(self._flag_base, (spec.steps for spec in self.specimens.values()))
         names = table.df["measurement"].tolist() if "measurement" in table.df.columns else None
         if os.path.isfile(source):
+            changed = mp.measurement_rows_changed(source, names, len(table.df))
+            if changed:
+                self.warnings.append(mp.measurements_changed_message(os.path.basename(source), changed))
+                return None
             written = mp.write_measurement_flags(source, target, changes, names)
             if written:
                 return written

@@ -446,6 +446,21 @@ class TestMeasurementFlagWriter:
         out = os.path.join(str(tmp_path), "out.txt")
         assert mp.write_measurement_flags(path, out, {1: "b"}, names=["m1", None]) == out
 
+    def test_rows_added_removed_or_reordered_on_disk_are_told_apart_from_an_unchanged_file(self, tmp_path):
+        """An export wrote the rows read at opening back over a file that had gained or lost rows since."""
+        path = self.lines(tmp_path, "tab\tmeasurements\nmeasurement\tquality\nm1\tg\nm2\tg\nm2\tg\nm3\tb\n")
+        assert mp.measurement_rows_changed(path, ["m1", "m2", "m2", "m3"], 4) == ""
+        assert mp.measurement_rows_changed(path, ["m1", "m2", "m3"], 3) == "1 row added, 0 removed"
+        assert mp.measurement_rows_changed(path, ["m1", "m2", "m2", "m3", "m4", "m5"], 6) == "0 rows added, 2 removed"
+        assert mp.measurement_rows_changed(path, ["m1", "m2", "m3", "m2"], 4) == "its rows were reordered"
+        assert mp.measurement_rows_changed(path, ["m1", "m2", "m2", "m9"], 4) == "1 row added, 1 removed"
+        unnamed = self.lines(tmp_path, "tab\tmeasurements\nspecimen\tquality\ns1\tg\ns1\tg\n")
+        assert mp.measurement_rows_changed(unnamed, ["s1-1", "s1-2"], 2) == ""
+        assert mp.measurement_rows_changed(unnamed, ["s1-1", "s1-2", "s1-3"], 3) == "0 rows added, 1 removed"
+        with open(path, "w") as fh:
+            fh.write("not a table\n")
+        assert mp.measurement_rows_changed(path, ["m1"], 1) == "it is no longer a MagIC table"
+
 class TestRequiredParentColumn:
     def test_an_empty_parent_column_is_kept(self):
         existing = pd.DataFrame({"specimen": ["a"], "sample": [np.nan], "method_codes": ["LP-DIR-AF"],
