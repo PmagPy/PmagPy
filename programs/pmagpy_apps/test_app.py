@@ -813,6 +813,34 @@ class TestMetadata:
         assert view.home_btn.button_type == "primary"
         assert "geologic_classes" not in open(os.path.join(d, "sites.txt")).readline()   # the empty column is not written
 
+    def test_a_position_typed_into_one_row_of_a_site_reaches_all_its_rows(self, tmp_path):
+        """15143 sr01 has three rows: the edited row's latitude, and only it, used to change, and PmagPy
+        Directions then put the VGP at the rows' mean latitude."""
+        from types import SimpleNamespace
+        import pandas as pd
+        d = small_study(tmp_path)
+        metadata.mm.mp.magic_write(os.path.join(d, "sites.txt"), pd.DataFrame([
+            {"site": "Z11", "location": "Zavkhan", "lat": "47.05", "lon": "96.2", "method_codes": "LP-DIR-T"},
+            {"site": "Z11", "location": "Zavkhan", "lat": "47.0501", "lon": "96.2", "method_codes": "LP-PI-TRM"},
+            {"site": "Z12", "location": "Zavkhan", "lat": "47.1", "lon": "96.3"}]), "sites")
+        session = home.HubSession(d)
+        view = metadata.MetadataView(session)
+        df = view.current()
+        df.loc[1, "lat"] = "12.3456"
+        view.grid.value = df
+        view._edited(SimpleNamespace(row=1, column="lat", value="12.3456", old="47.0501"))
+        assert list(view.grid.value.lat[:3]) == ["12.3456", "12.3456", "47.1"]
+        assert "Site Z11 has 2 rows" in view.message.object and "1 other row changed" in view.message.object
+        assert "disagreed before this edit (lat 47.05, 47.0501)" in view.message.object
+        assert view.save() is True
+        back = metadata.mm.read_table(d, "sites")
+        assert list(back.lat[:3]) == ["12.3456", "12.3456", "47.1"]
+        df = view.current()
+        df.loc[2, "lithologies"] = "Basalt"
+        view.grid.value = df
+        view._edited(SimpleNamespace(row=2, column="lithologies", value="Basalt", old=""))
+        assert view.message.object.endswith("Unsaved changes.</div>")             # nothing shared, nothing said
+
     def test_check_names_the_bad_cell_and_the_missing_columns(self, tmp_path):
         session = home.HubSession(small_study(tmp_path))
         view = metadata.MetadataView(session)

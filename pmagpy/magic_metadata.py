@@ -285,6 +285,83 @@ def editor_frame(directory: str, table: str) -> EditorFrame:
     return EditorFrame(table=table, df=df.reset_index(drop=True), stubs=stubs, exists=exists)
 
 
+#: the tables in which several rows of one name describe one thing: a site (or sample) has one place
+SHARED_TABLES = ("sites", "samples")
+#: the columns such rows share, each group edited together: the position, and the age with its unit and range
+SHARED_GROUPS = (("lat", "lon"), ("age", "age_sigma", "age_low", "age_high", "age_unit"))
+
+
+@dataclass
+class SharedEdit:
+    """An edit of a shared column applied to every row of the name (see :func:`share_edit`).
+
+    Attributes:
+        name: the site (or sample).
+        columns: the group of columns copied from the edited row.
+        rows: how many rows have that name.
+        changed: how many of the other rows took new values.
+        disagreed: column -> the distinct values the rows had before the edit, for the
+            columns in which they differed (blank cells are not counted as a value).
+    """
+    name: str
+    columns: List[str]
+    rows: int
+    changed: int
+    disagreed: Dict[str, List[str]] = field(default_factory=dict)
+
+
+def share_edit(table: str, df: pd.DataFrame, row: int, column: str,
+               before: Optional[str] = None) -> Tuple[pd.DataFrame, Optional[SharedEdit]]:
+    """Give every row of a site (or sample) the position or age just typed into one of its rows.
+
+    MagIC tables often hold several rows for one site (one per experiment or
+    result), and PmagPy Directions places a site at the mean position of its
+    rows: an edit of one row's latitude would move the site's VGP to a place
+    no row names. When ``column`` belongs to one of :data:`SHARED_GROUPS`, the
+    whole group (lat with lon; age with its sigma, range and unit) is copied
+    from the edited row (position ``row``) onto the other rows of that name.
+
+    Args:
+        table: the table the frame holds.
+        df: the frame, with the edit already in it.
+        row: the edited row's position.
+        column: the edited column.
+        before: the edited cell's value before the edit, to tell whether the
+            rows agreed before it.
+
+    Returns:
+        (frame, what was shared): the frame unchanged and None when the table,
+        the column or a single-row name leaves nothing to share.
+    """
+    key = NAME_COLUMN.get(table)
+    group = next((g for g in SHARED_GROUPS if column in g), None)
+    if table not in SHARED_TABLES or group is None or key not in df.columns:
+        return df, None
+    names = df[key].astype(str).str.strip()
+    name = names.iloc[row]
+    same = [i for i, n in enumerate(names) if n == name]
+    if not name or len(same) < 2:
+        return df, None
+    cols = [c for c in group if c in df.columns]
+    earlier = df.iloc[same][cols].astype(str).copy()
+    if before is not None:
+        earlier.iloc[same.index(row), cols.index(column)] = str(before)
+    disagreed = {}
+    for c in cols:
+        values = [v for v in dict.fromkeys(earlier[c].str.strip()) if v]
+        if len(values) > 1:
+            disagreed[c] = values
+    out = df.copy()
+    source = [str(v) for v in df.iloc[row][cols]]
+    changed = 0
+    for i in same:
+        if i != row and [str(v) for v in out.iloc[i][cols]] != source:
+            for c, value in zip(cols, source):
+                out.iat[i, out.columns.get_loc(c)] = value
+            changed += 1
+    return out, SharedEdit(name=name, columns=cols, rows=len(same), changed=changed, disagreed=disagreed)
+
+
 def blank_row(table: str, frame_columns: Iterable[str]) -> dict:
     """A new row for the editor: Pmag GUI's defaults in the columns that take them, "" elsewhere."""
     return {c: DEFAULTS.get(c, "") for c in frame_columns}

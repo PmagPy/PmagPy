@@ -326,7 +326,39 @@ class MetadataView:
             self.grid.patch({event.column: [(event.row, "")]})
         self.dirty = True
         self.save_btn.button_type = "success"
-        self._say("Unsaved changes.")
+        shared = self._share(event)
+        if shared is None:
+            self._say("Unsaved changes.")
+            return
+        what = {"sites": "Site", "samples": "Sample"}[self.table]
+        cols = " and ".join(shared.columns) if len(shared.columns) == 2 else ", ".join(shared.columns)
+        text = (f"Unsaved changes. {what} {html.escape(shared.name)} has {shared.rows} rows: this row's "
+                f"{html.escape(cols)} now in every one of them ({shared.changed} other "
+                f"row{'s' if shared.changed != 1 else ''} changed).")
+        if shared.disagreed:
+            differ = "; ".join(f"{html.escape(c)} {html.escape(', '.join(v))}" for c, v in shared.disagreed.items())
+            self._say(text + f" Its rows disagreed before this edit ({differ}); all now take this row's values.",
+                      WARN_COLOR)
+        else:
+            self._say(text)
+
+    def _share(self, event) -> Optional[mm.SharedEdit]:
+        """A site's (or sample's) position or age typed into one of its rows reaches all of its rows."""
+        df = self.current()
+        if not 0 <= event.row < len(df):
+            return None
+        before = getattr(event, "old", None)
+        out, shared = mm.share_edit(self.table, df, event.row, event.column,
+                                    before=None if before is None else str(before))
+        if shared is None:
+            return None
+        patch = {c: [(i, out.iat[i, out.columns.get_loc(c)]) for i in range(len(out))
+                     if out.iat[i, out.columns.get_loc(c)] != df.iat[i, df.columns.get_loc(c)]]
+                 for c in shared.columns}
+        patch = {c: cells for c, cells in patch.items() if cells}
+        if patch:
+            self.grid.patch(patch)
+        return shared
 
     def _clicked(self, event) -> None:
         if getattr(event, "column", None):

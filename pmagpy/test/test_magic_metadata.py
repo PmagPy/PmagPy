@@ -193,6 +193,58 @@ class TestSaveTable:
         assert list(con.tables["sites"].df.index) == ["Z11", "Z12", "Z13"]
 
 
+class TestSharedEdit:
+    """A site has one position and one age: an edit of one of its rows reaches all of them."""
+
+    def frame(self):
+        return pd.DataFrame([
+            {"site": "sr01", "lat": "42.60264", "lon": "245.602", "age": "3.4", "age_unit": "Ma", "age_sigma": "0.03"},
+            {"site": "sr02", "lat": "42.7", "lon": "245.5", "age": "1", "age_unit": "Ma", "age_sigma": ""},
+            {"site": "sr01", "lat": "42.60264", "lon": "245.602", "age": "3.4", "age_unit": "Ma", "age_sigma": "0.03"},
+            {"site": "sr01", "lat": "42.6026", "lon": "245.602", "age": "3400", "age_unit": "ka", "age_sigma": "30"},
+        ])
+
+    def test_a_latitude_typed_into_one_row_reaches_every_row_of_the_site_with_its_longitude(self):
+        """15143 sr01 has three rows; an edit of one moved the VGP to the rows' mean latitude."""
+        df = self.frame()
+        df.loc[3, "lon"] = "245.61"
+        df.loc[2, "lat"] = "12.3456"
+        out, shared = mm.share_edit("sites", df, 2, "lat", before="42.60264")
+        assert list(out.loc[out.site == "sr01", "lat"]) == ["12.3456"] * 3
+        assert list(out.loc[out.site == "sr01", "lon"]) == ["245.602"] * 3
+        assert out.loc[1].tolist() == df.loc[1].tolist()                       # another site is untouched
+        assert list(out.loc[out.site == "sr01", "age"]) == ["3.4", "3.4", "3400"]   # the age is another group
+        assert shared.rows == 3 and shared.changed == 2 and shared.columns == ["lat", "lon"]
+        assert shared.disagreed == {"lat": ["42.60264", "42.6026"], "lon": ["245.602", "245.61"]}
+
+    def test_an_age_travels_with_its_unit_sigma_and_range(self):
+        df = self.frame()
+        df.loc[0, "age"] = "3.5"
+        out, shared = mm.share_edit("sites", df, 0, "age", before="3.4")
+        assert out.loc[3, ["age", "age_unit", "age_sigma"]].tolist() == ["3.5", "Ma", "0.03"]   # not 3.5 ka
+        assert shared.disagreed == {"age": ["3.4", "3400"], "age_unit": ["Ma", "ka"], "age_sigma": ["0.03", "30"]}
+
+    def test_rows_that_agreed_are_not_reported_as_disagreeing(self):
+        df = self.frame().iloc[:3].reset_index(drop=True)
+        df.loc[0, "lon"] = "245.7"
+        out, shared = mm.share_edit("sites", df, 0, "lon", before="245.602")
+        assert out.loc[2, "lon"] == "245.7" and shared.changed == 1 and shared.disagreed == {}
+
+    def test_nothing_is_shared_for_other_columns_tables_or_a_single_row(self):
+        df = self.frame()
+        assert mm.share_edit("sites", df, 0, "lithologies")[1] is None
+        assert mm.share_edit("sites", df, 1, "lat")[1] is None                 # sr02 has one row
+        assert mm.share_edit("locations", df.rename(columns={"site": "location"}), 0, "lat")[1] is None
+
+    def test_a_sample_with_several_rows_shares_its_position(self):
+        """Samples tables repeat a sample once per result (15143 sr01a: four rows, the position on the first)."""
+        df = pd.DataFrame([{"sample": "sr01a", "site": "sr01", "lat": "42.6", "lon": "245.6"},
+                           {"sample": "sr01a", "site": "sr01", "lat": "", "lon": ""}])
+        df.loc[0, "lat"] = "42.61"
+        out, shared = mm.share_edit("samples", df, 0, "lat", before="42.6")
+        assert out.loc[1, ["lat", "lon"]].tolist() == ["42.61", "245.6"] and shared.disagreed == {}
+
+
 # ---------------------------------------------------------------------------
 # Filling in what the other tables know
 # ---------------------------------------------------------------------------
