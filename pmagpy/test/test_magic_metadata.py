@@ -193,6 +193,92 @@ class TestSaveTable:
         assert list(con.tables["sites"].df.index) == ["Z11", "Z12", "Z13"]
 
 
+class TestMergeEdits:
+    """A save applies the cells changed on the page onto the table as it is on disk now."""
+
+    def export_meanwhile(self, study, rows):
+        """Another application (PmagPy Directions exporting site means) rewrites sites.txt."""
+        write(study, "sites", rows)
+
+    def test_rows_an_application_exported_meanwhile_survive_the_save(self, study):
+        """The page wrote back the grid it read, undoing the site means exported since it was shown."""
+        frame = mm.editor_frame(study, "sites")
+        self.export_meanwhile(study, [
+            {"site": "Z11", "location": "Zavkhan", "lat": "47.05", "lon": "96.20", "lithologies": "Basalt",
+             "description": "exported"},
+            {"site": "Z12", "location": "Zavkhan", "lat": "47.10", "lon": "96.30", "lithologies": ""},
+            {"site": "Z11", "location": "Zavkhan", "lat": "47.05", "lon": "96.20", "dir_dec": "12.5"}])
+        df = frame.df.copy()
+        df.loc[df.site == "Z12", "lithologies"] = "Basalt"
+        merged, report = mm.merge_edits(study, "sites", frame, df)
+        assert list(merged.site) == ["Z11", "Z12", "Z11", "Z13"]                 # the stub row is appended
+        assert merged.loc[1, "lithologies"] == "Basalt"
+        assert merged.loc[0, "description"] == "exported" and merged.loc[2, "dir_dec"] == "12.5"
+        assert report.disk_changed and report.disk_added == 1 and report.disk_cells == 1
+        assert report.cells == 1 and report.added == 1 and not report.conflicts
+        mm.save_table(study, "sites", merged)
+        assert list(mm.read_table(study, "sites").dir_dec) == ["", "", "12.5", ""]
+
+    def test_a_cell_changed_on_disk_and_on_the_page_keeps_the_disk_value_and_is_named(self, study):
+        frame = mm.editor_frame(study, "sites")
+        self.export_meanwhile(study, [
+            {"site": "Z11", "location": "Zavkhan", "lat": "47.06", "lon": "96.20", "lithologies": "Basalt"},
+            {"site": "Z12", "location": "Zavkhan", "lat": "47.10", "lon": "96.31", "lithologies": ""}])
+        df = frame.df.copy()
+        df.loc[0, "lat"] = "47.5"                    # changed on disk to 47.06 as well: a conflict
+        df.loc[1, "lon"] = "96.31"                   # the same value on both sides: no conflict
+        df.loc[1, "lat"] = "47.2"                    # changed here only
+        merged, report = mm.merge_edits(study, "sites", frame, df)
+        assert report.conflicts == [("Z11", "lat", "47.5", "47.06")]
+        assert merged.loc[0, "lat"] == "47.06" and merged.loc[1, ["lat", "lon"]].tolist() == ["47.2", "96.31"]
+        assert report.cells == 2
+
+    def test_added_rows_are_appended_and_a_deleted_row_goes_only_if_unchanged_on_disk(self, study):
+        write(study, "sites", [{"site": s, "location": "Zavkhan", "lat": "47"} for s in ("Z11", "Z12", "Z14")])
+        frame = mm.editor_frame(study, "sites")
+        self.export_meanwhile(study, [{"site": "Z11", "location": "Zavkhan", "lat": "47"},
+                                      {"site": "Z12", "location": "Zavkhan", "lat": "47", "dir_dec": "3"},
+                                      {"site": "Z14", "location": "Zavkhan", "lat": "47"}])
+        df = frame.df.copy()
+        keep = [k for k in range(len(df)) if df.loc[k, "site"] not in ("Z12", "Z14")]
+        origin = keep + [None]
+        df = pd.concat([df.loc[keep], pd.DataFrame([{"site": "Z15", "location": "Zavkhan"}])], ignore_index=True).fillna("")
+        merged, report = mm.merge_edits(study, "sites", frame, df, origin)
+        assert list(merged.site) == ["Z11", "Z12", "Z13", "Z15"]                 # Z12 changed on disk: kept
+        assert report.deleted == 1 and report.kept == ["Z12"] and report.added == 2
+
+    def test_rows_of_one_name_are_told_apart_by_their_place_among_them(self, study):
+        """15143's sites table has three rows for sr01: the edit lands on the row it was made on."""
+        write(study, "sites", [{"site": "sr01", "lat": "42.60264", "description": "a"},
+                               {"site": "sr01", "lat": "42.6026", "description": "b"}])
+        frame = mm.editor_frame(study, "sites")
+        write(study, "sites", [{"site": "sr01", "lat": "42.60264", "description": "a, re-exported"},
+                               {"site": "sr01", "lat": "42.6026", "description": "b"}])
+        df = frame.df.copy()
+        df.loc[1, "description"] = "b, edited"
+        merged, report = mm.merge_edits(study, "sites", frame, df)
+        assert list(merged.description[:2]) == ["a, re-exported", "b, edited"] and not report.conflicts
+        assert mm.row_label((("sr01",), 1)) == "sr01 (row 2 of that name)"
+
+    def test_edits_to_a_row_removed_on_disk_are_reported_and_a_stub_found_on_disk_is_filled(self, study):
+        frame = mm.editor_frame(study, "sites")
+        self.export_meanwhile(study, [{"site": "Z11", "location": "Zavkhan", "lat": "47.05"},
+                                      {"site": "Z13", "location": "", "lat": "48"}])    # Z12 gone, Z13 exported
+        df = frame.df.copy()
+        df.loc[df.site == "Z12", "lithologies"] = "Basalt"
+        df.loc[df.site == "Z13", "location"] = "Zavkhan"
+        merged, report = mm.merge_edits(study, "sites", frame, df)
+        assert list(merged.site) == ["Z11", "Z13"] and report.gone == ["Z12"]
+        assert merged.loc[1, ["location", "lat"]].tolist() == ["Zavkhan", "48"] and report.added == 0
+
+    def test_an_unchanged_file_is_written_as_the_grid_was(self, study):
+        frame = mm.editor_frame(study, "sites")
+        df = frame.df.copy()
+        df.loc[0, "lat"] = "1"
+        merged, report = mm.merge_edits(study, "sites", frame, df)
+        assert not report.disk_changed and merged.equals(df[merged.columns])
+
+
 class TestSharedEdit:
     """A site has one position and one age: an edit of one of its rows reaches all of them."""
 

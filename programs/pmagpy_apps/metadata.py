@@ -167,6 +167,7 @@ class MetadataView:
         self.s = session
         self.table = "sites"
         self.frame: Optional[mm.EditorFrame] = None
+        self.origin: List[Optional[int]] = []     # each grid row's position in the frame as shown, None when added
         self.findings: List[mm.Finding] = []
         self.checks: List[mm.CriterionCheck] = []
         self.dirty = False
@@ -237,6 +238,7 @@ class MetadataView:
             if self.tables.value != table:
                 self.tables.value = table
             self.frame = mm.editor_frame(self.s.directory, table)
+            self.origin = list(range(len(self.frame.df)))
             self.findings = []
             self.dirty = False
             self._load_grid(self.frame.df)
@@ -382,6 +384,7 @@ class MetadataView:
             self._say("Tick the rows to delete first.", WARN_COLOR)
             return
         df = self.current().drop(index=chosen).reset_index(drop=True)
+        self.origin = [o for k, o in enumerate(self.origin) if k not in set(chosen)]
         self._replace(df)
         self._say(f"{len(chosen)} row{'s' if len(chosen) != 1 else ''} removed — not yet saved.")
 
@@ -454,6 +457,7 @@ class MetadataView:
                   else "Nothing copied: those cells are already filled, or the parent rows have no value.")
 
     def _replace(self, df: pd.DataFrame) -> None:
+        self.origin = self.origin[:len(df)] + [None] * (len(df) - len(self.origin))
         self._load_grid(df)
         self.dirty = True
 
@@ -492,20 +496,55 @@ class MetadataView:
         return self.findings
 
     def save(self) -> bool:
-        """Write the table, reload the session so Home's gaps follow, and keep the grid as saved."""
-        df = self.current()
+        """Write the cells changed here onto the table as it is on disk, reload the session so Home's gaps
+        follow, and show the table as saved.
+
+        PmagPy Directions and PmagPy Intensity may have exported into the table since it was shown: only
+        what was changed on this page is written (:func:`pmagpy.magic_metadata.merge_edits`), and the page
+        says what was merged and which cells, changed on disk as well, were left as they are there.
+        """
         notes = []
         try:
+            if self.frame is not None:
+                df, report = mm.merge_edits(self.s.directory, self.table, self.frame, self.current(), self.origin)
+            else:
+                df, report = self.current(), mm.MergeReport()
             mm.save_table(self.s.directory, self.table, df, warnings=notes)
         except (OSError, ValueError) as err:
             self._say(f"Not saved: {html.escape(str(err))}", FAIL_COLOR)
             return False
         self.s.load(self.s.directory)     # also calls refresh() through the watcher, which re-reads the table
         self.dirty = False
-        self._say(f"{self.table}.txt written" + (f" · original kept in {mm.BACKUP_DIR}/" if mm.backup_exists(self.s.directory, self.table) else "")
-                  + "".join(f"<br>{html.escape(n)}" for n in notes), OK_COLOR)
+        text = (f"{self.table}.txt written" + (f" · original kept in {mm.BACKUP_DIR}/" if mm.backup_exists(self.s.directory, self.table) else "")
+                + self._merge_note(report) + "".join(f"<br>{html.escape(n)}" for n in notes))
+        self._say(text, WARN_COLOR if (report.conflicts or report.kept or report.gone) else OK_COLOR)
         self.home_btn.button_type = "primary"
         return True
+
+    def _merge_note(self, report: mm.MergeReport) -> str:
+        """What a save merged, when the table had changed on disk, and what it left as it is there."""
+        def n(count, word):
+            return f"{count} {word}{'s' if count != 1 else ''}"
+        bits = []
+        if report.disk_changed:
+            there = [n(report.disk_added, "row") + " added", n(report.disk_removed, "row") + " removed",
+                     n(report.disk_cells, "cell") + " changed"]
+            mine = [n(report.cells, "cell")] + ([n(report.added, "row") + " added"] if report.added else []) + \
+                   ([n(report.deleted, "row") + " deleted"] if report.deleted else [])
+            bits.append(f"{self.table}.txt had changed on disk since it was shown here (an export from PmagPy "
+                        f"Directions or PmagPy Intensity, or another program: {', '.join(there)}). Your edits "
+                        f"({', '.join(mine)}) were merged into it and its other changes kept.")
+        if report.conflicts:
+            cells = "; ".join(f"{html.escape(row)} {html.escape(col)} (yours {html.escape(mine) or 'blank'}, on disk "
+                              f"{html.escape(disk) or 'blank'})" for row, col, mine, disk in report.conflicts[:10])
+            more = f" and {len(report.conflicts) - 10} more" if len(report.conflicts) > 10 else ""
+            bits.append(f"Not saved, as they were changed on disk too: {cells}{more}. The grid shows the values on "
+                        "disk; type yours again to replace them.")
+        if report.kept:
+            bits.append("Not deleted, as they were changed on disk since: " + html.escape(", ".join(report.kept)) + ".")
+        if report.gone:
+            bits.append("Not saved, as these rows are no longer on disk: " + html.escape(", ".join(report.gone)) + ".")
+        return "".join(f"<br>{b}" for b in bits)
 
     def _say(self, text: str, color: str = "") -> None:
         style = f"color:{color}" if color else MUTED_STYLE

@@ -841,6 +841,32 @@ class TestMetadata:
         view._edited(SimpleNamespace(row=2, column="lithologies", value="Basalt", old=""))
         assert view.message.object.endswith("Unsaved changes.</div>")             # nothing shared, nothing said
 
+    def test_a_save_keeps_what_an_application_wrote_since_the_table_was_shown(self, tmp_path):
+        """The page wrote back the grid it read when the table was shown, undoing the site means PmagPy
+        Directions (or Intensity) had exported into sites.txt in the meantime."""
+        import pandas as pd
+        d = small_study(tmp_path)
+        session = home.HubSession(d)
+        view = metadata.MetadataView(session)                      # sites.txt is read into the grid
+        metadata.mm.mp.magic_write(os.path.join(d, "sites.txt"), pd.DataFrame([      # an export into it
+            {"site": "Z11", "location": "Zavkhan", "lat": "47.05", "lon": "96.2", "lithologies": "Basalt",
+             "dir_dec": "10.0"},
+            {"site": "Z12", "location": "Zavkhan", "lat": "45", "lon": "96.3"},
+            {"site": "Z14", "location": "Zavkhan", "lat": "47.3", "lon": "96.4", "dir_dec": "11.0"}]), "sites")
+        df = view.current()
+        df.loc[df.site == "Z12", "lithologies"] = "Basalt"
+        df.loc[df.site == "Z12", "lat"] = "47.1"
+        view.grid.value = df
+        view.dirty = True
+        assert view.save() is True
+        back = metadata.mm.read_table(d, "sites")
+        assert list(back.site) == ["Z11", "Z12", "Z14", "Z13"]
+        assert list(back.dir_dec) == ["10.0", "", "11.0", ""] and back.lithologies[1] == "Basalt"
+        assert back.lat[1] == "45"                                  # changed on disk too: the disk's value
+        said = view.message.object
+        assert "had changed on disk since it was shown" in said and "1 row added" in said
+        assert "Z12 lat (yours 47.1, on disk 45)" in said and metadata.WARN_COLOR in said
+
     def test_check_names_the_bad_cell_and_the_missing_columns(self, tmp_path):
         session = home.HubSession(small_study(tmp_path))
         view = metadata.MetadataView(session)

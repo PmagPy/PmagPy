@@ -230,11 +230,25 @@ class EditorFrame:
         stubs: names that had no row in the file and were given one from the
             table below (or from measurements).
         exists: the file was there (False for a table built from names alone).
+        original: the frame as it was shown, kept apart from ``df`` so that a save
+            can tell the cells the analyst changed (:func:`merge_edits`).
+        stamp: the file's (size, modification time) when it was read, None when absent.
     """
     table: str
     df: pd.DataFrame
     stubs: List[str] = field(default_factory=list)
     exists: bool = True
+    original: Optional[pd.DataFrame] = None
+    stamp: Optional[tuple] = None
+
+    @property
+    def file_rows(self) -> int:
+        """How many of the rows came from the file (the stub rows follow them)."""
+        return len(self.shown) - len(self.stubs)
+
+    @property
+    def shown(self) -> pd.DataFrame:
+        return self.original if self.original is not None else self.df
 
     @property
     def key(self) -> str:
@@ -281,8 +295,185 @@ def editor_frame(directory: str, table: str) -> EditorFrame:
     for c in order_columns(table, df.columns):
         if c not in df.columns:
             df[c] = ""
-    df = df[order_columns(table, df.columns)].fillna("").astype(str)
-    return EditorFrame(table=table, df=df.reset_index(drop=True), stubs=stubs, exists=exists)
+    df = df[order_columns(table, df.columns)].fillna("").astype(str).reset_index(drop=True)
+    return EditorFrame(table=table, df=df, stubs=stubs, exists=exists, original=df.copy(),
+                       stamp=file_stamp(directory, table))
+
+
+def file_stamp(directory: str, table: str) -> Optional[tuple]:
+    """``(size, modification time)`` of ``<table>.txt``, or None when there is no such file."""
+    try:
+        st = os.stat(table_path(directory, table))
+    except OSError:
+        return None
+    return (st.st_size, st.st_mtime_ns)
+
+
+def _identity_columns(table: str) -> List[str]:
+    if table in NAME_COLUMN:
+        return [NAME_COLUMN[table]]
+    if table == "ages":
+        return list(LEVELS)
+    if table == "criteria":
+        return ["criterion", "table_column"]
+    return []
+
+
+def _cell(df: pd.DataFrame, i: int, column: str) -> str:
+    return str(df.iat[i, df.columns.get_loc(column)]).strip() if column in df.columns else ""
+
+
+def row_keys(table: str, df: pd.DataFrame) -> List[tuple]:
+    """What identifies each row of a table across a re-read: its name and which row of that name it is.
+
+    The name is the table's name column (for ages the level names, for
+    criteria the criterion and the column it judges); the second element
+    counts the rows of that name above, so the second sr01 of a sites table
+    is ``(("sr01",), 1)`` wherever it has moved to.
+    """
+    cols = _identity_columns(table)
+    seen: Dict[tuple, int] = {}
+    keys = []
+    for i in range(len(df)):
+        name = tuple(_cell(df, i, c) for c in cols)
+        keys.append((name, seen.get(name, 0)))
+        seen[name] = seen.get(name, 0) + 1
+    return keys
+
+
+def row_label(key: tuple, keys: Iterable[tuple] = ()) -> str:
+    """A row's identity as the analyst reads it: "sr01", or "sr01 (row 2 of that name)" when it repeats."""
+    name, k = key
+    text = " ".join(n for n in name if n) or "a row without a name"
+    repeated = k > 0 or any(other[0] == name and other[1] > 0 for other in keys)
+    return f"{text} (row {k + 1} of that name)" if repeated else text
+
+
+@dataclass
+class MergeReport:
+    """What :func:`merge_edits` did.
+
+    Attributes:
+        disk_changed: the file was changed on disk after the table was shown.
+        disk_added, disk_removed, disk_cells: rows added and removed on disk since, and
+            cells changed there in the rows the analyst saw.
+        cells: cells the analyst changed that were written.
+        added: rows the analyst added (or stub rows) appended to the table.
+        deleted: rows the analyst deleted that were deleted.
+        conflicts: (row, column, the analyst's value, the value on disk) for the cells
+            changed both on the page and on disk: those keep the value on disk.
+        kept: rows the analyst deleted that were changed on disk since: kept.
+        gone: rows the analyst edited that are no longer on disk: their edits are not written.
+    """
+    disk_changed: bool = False
+    disk_added: int = 0
+    disk_removed: int = 0
+    disk_cells: int = 0
+    cells: int = 0
+    added: int = 0
+    deleted: int = 0
+    conflicts: List[Tuple[str, str, str, str]] = field(default_factory=list)
+    kept: List[str] = field(default_factory=list)
+    gone: List[str] = field(default_factory=list)
+
+
+def merge_edits(directory: str, table: str, frame: EditorFrame, edited: pd.DataFrame,
+                origin: Optional[List[Optional[int]]] = None) -> Tuple[pd.DataFrame, MergeReport]:
+    """The table as it is on disk now, with the analyst's changes to the frame applied onto it.
+
+    The Metadata page shows a table and the analyst edits it, while PmagPy
+    Directions or PmagPy Intensity may export into the same file (site means,
+    site intensities). Writing the grid back whole would undo those exports,
+    so only what the analyst changed is applied, to the file as it is now:
+
+    - a cell the analyst changed is written onto the same row of the file
+      (the same name and row of that name, :func:`row_keys`), unless that cell
+      was changed on disk too, to another value: it then keeps the value on
+      disk and is reported as a conflict;
+    - rows the analyst added, and stub rows the file still lacks, are appended;
+      a stub row the file has gained since takes the analyst's changed cells;
+    - a row the analyst deleted is deleted if it is unchanged on disk, kept otherwise;
+    - everything else -- rows, columns and cells the analyst did not touch -- is
+      taken from the file.
+
+    Args:
+        directory: the MagIC directory.
+        table: which table.
+        frame: the table as it was shown (:func:`editor_frame`).
+        edited: the grid as it stands, every cell a string.
+        origin: for each row of ``edited``, the position in ``frame`` of the row
+            it was shown as, or None for a row added since. When not given (or not
+            one per row), rows are matched to the frame by :func:`row_keys`.
+
+    Returns:
+        (the frame to write, what was done).
+    """
+    shown = frame.shown.fillna("").astype(str).reset_index(drop=True)
+    edited = edited.fillna("").astype(str).reset_index(drop=True)
+    n_file = frame.file_rows
+    shown_keys = row_keys(table, shown)
+    if origin is None or len(origin) != len(edited):
+        position = {k: i for i, k in enumerate(shown_keys)}
+        origin = [position.get(k) for k in row_keys(table, edited)]
+    now = read_table(directory, table)
+    if now is None:
+        now = pd.DataFrame(columns=list(shown.columns))
+    now = now.fillna("").astype(str).reset_index(drop=True)
+    now_keys = row_keys(table, now)
+    at = {k: i for i, k in enumerate(now_keys)}
+    report = MergeReport(disk_changed=file_stamp(directory, table) != frame.stamp)
+    file_keys = set(shown_keys[:n_file])
+    report.disk_added = sum(1 for k in now_keys if k not in file_keys)
+    report.disk_removed = sum(1 for k in shown_keys[:n_file] if k not in at)
+    for o in range(n_file):
+        r = at.get(shown_keys[o])
+        if r is not None:
+            report.disk_cells += sum(_cell(now, r, c) != _cell(shown, o, c)
+                                     for c in set(shown.columns) | set(now.columns))
+    merged = now.copy()
+    for c in edited.columns:
+        if c not in merged.columns:
+            merged[c] = ""
+    appended = []
+    for j, o in enumerate(origin):
+        if o is None or (o >= n_file and shown_keys[o] not in at):
+            appended.append(edited.iloc[j])
+            report.added += 1
+            continue
+        changed = [c for c in edited.columns if _cell(edited, j, c) != _cell(shown, o, c)]
+        r = at.get(shown_keys[o])
+        if r is None:
+            if changed:
+                report.gone.append(row_label(shown_keys[o], shown_keys))
+            continue
+        for c in changed:
+            mine, base, disk = _cell(edited, j, c), _cell(shown, o, c), _cell(now, r, c)
+            if disk in (base, mine):
+                merged.iat[r, merged.columns.get_loc(c)] = edited.iat[j, edited.columns.get_loc(c)]
+                report.cells += 1
+            else:
+                report.conflicts.append((row_label(shown_keys[o], shown_keys), c, mine, disk))
+    drop = []
+    kept_origins = {o for o in origin if o is not None}
+    for o in range(n_file):
+        if o in kept_origins:
+            continue
+        r = at.get(shown_keys[o])
+        if r is None:
+            continue
+        if all(_cell(now, r, c) == _cell(shown, o, c) for c in set(shown.columns) | set(now.columns)):
+            drop.append(r)
+            report.deleted += 1
+        else:
+            report.kept.append(row_label(shown_keys[o], shown_keys))
+    merged = merged.drop(index=drop)
+    if appended:
+        merged = pd.concat([merged, pd.DataFrame(appended)], ignore_index=True, sort=False)
+    merged = merged.fillna("").astype(str).reset_index(drop=True)
+    for c in order_columns(table, merged.columns):
+        if c not in merged.columns:
+            merged[c] = ""
+    return merged[order_columns(table, merged.columns)], report
 
 
 #: the tables in which several rows of one name describe one thing: a site (or sample) has one place
