@@ -730,7 +730,11 @@ class TestConvertAgain:
         view = convert.ConvertView(session)
         assert view.format.value == "legacy" and view.files.disabled is True
         assert len(view.form.widgets) == 0 and "earthref.org/MagIC/upgrade" in view.notes.object
+        # the example carries a stray 3.0 ages.txt: converting afresh asks first, and replacing keeps it backed up
+        assert asyncio.run(view._convert()) is False and "MagIC tables already (ages.txt)" in view.message.object
+        view.where.value = convert.REPLACE
         assert asyncio.run(view._convert()) is True
+        assert (tmp_path / "backup_before_pmagpy_apps" / "ages.txt").exists()
         assert "25,470 measurements" in view.message.object and "left as 2.5" in view.log.object
         inv = session.inventory
         assert inv.is_magic and inv.has("demag") and inv.has("pi")
