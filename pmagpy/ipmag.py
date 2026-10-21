@@ -5252,6 +5252,7 @@ def download_magic_from_id(magic_id, directory='.', share_key=""):
         str: Relative file path if successful or error message if failed.
     """
     magic_id = str(magic_id)  # Ensure magic_id is a string to avoid errors in API request
+    directory = os.fspath(directory)  # accept pathlib.Path as well as str
 
     # Normalize the directory path to ensure consistent directory formatting
     if not directory.endswith('/'):
@@ -5269,8 +5270,13 @@ def download_magic_from_id(magic_id, directory='.', share_key=""):
     api = 'https://api.earthref.org/v1/MagIC/data'
     params = {'id': magic_id, 'key': share_key} if share_key else {'id': magic_id}
 
-    # Perform the request
-    response = requests.get(api, params=params)
+    # Perform the request; give up if the server sends nothing for 60 s
+    try:
+        response = requests.get(api, params=params, timeout=60)
+    except requests.exceptions.RequestException as ex:
+        error_message = f"Failed to download: {ex}"
+        print("Download failed with error:", error_message)
+        return False, error_message
 
     if response.status_code == 200 and response.text:
         # Write the content to the file only if the request was successful and the content is not empty
@@ -5294,16 +5300,19 @@ def load_magic_contribution(magic_id, dir_path='.', share_key='',
     The contribution file (magic_contribution_<magic_id>.txt) is downloaded
     from earthref.org/MagIC with download_magic_from_id unless it is already
     in dir_path, and it is unpacked into its tables (measurements.txt,
-    specimens.txt, ...) with unpack_magic unless the tables of this
-    contribution are already there. Notebooks and scripts can therefore call
-    this function every time they run: the database is contacted only on the
-    first call, and later calls read the local copy. Using one directory per
-    contribution keeps the unpacked tables of different contributions apart.
+    specimens.txt, ...) with unpack_magic unless all of its tables are
+    already there and contribution.txt has the id and version of the file.
+    Notebooks and scripts can therefore call this function every time they
+    run: the database is contacted only on the first call, and later calls
+    read the local copy. Only the tables in the contribution file are
+    loaded, so tables of another contribution left in dir_path are not
+    mixed in; still, using one directory per contribution keeps their
+    unpacked tables apart.
 
     Parameters:
         magic_id : str or int
             Unique id of the MagIC contribution.
-        dir_path : str, optional
+        dir_path : str or path-like, optional
             Directory for the contribution file and its unpacked tables,
             created if it does not exist. Default is the current directory.
         share_key : str, optional
@@ -5332,29 +5341,95 @@ def load_magic_contribution(magic_id, dir_path='.', share_key='',
         >>> measurements = contribution.tables['measurements'].df
     """
     magic_id = str(magic_id)
+    dir_path = os.fspath(dir_path)
     os.makedirs(dir_path, exist_ok=True)
     file_name = f'magic_contribution_{magic_id}.txt'
+    file_path = os.path.join(dir_path, file_name)
     contribution_table = os.path.join(dir_path, 'contribution.txt')
 
-    if overwrite or not os.path.exists(os.path.join(dir_path, file_name)):
+    if overwrite or not os.path.exists(file_path):
         success, message = download_magic_from_id(magic_id, directory=dir_path,
                                                   share_key=share_key)
         if not success:
             raise RuntimeError(f'MagIC contribution {magic_id} could not be '
                                f'downloaded: {message}')
+    tables, contribution_record = _magic_file_tables(file_path)
+
+    if overwrite or not os.path.exists(contribution_table):
         unpack = True
     else:
-        # unpack unless the tables in dir_path are those of this contribution
-        unpacked_ids = []
-        if os.path.exists(contribution_table):
-            records, _ = pmag.magic_read(contribution_table)
-            unpacked_ids = [str(record.get('id', '')) for record in records]
-        unpack = magic_id not in unpacked_ids
+        # unpack unless the tables in dir_path are this version of this
+        # contribution and none is missing (e.g. after an interrupted unpack,
+        # which leaves contribution.txt, the first table written)
+        records, _ = pmag.magic_read(contribution_table)
+        unpacked = [(str(record.get('id', '')), str(record.get('version', '')))
+                    for record in records]
+        this_version = (magic_id, contribution_record.get('version', ''))
+        missing = [table for table in tables if not
+                   os.path.exists(os.path.join(dir_path, table + '.txt'))]
+        unpack = this_version not in unpacked or len(missing) > 0
 
     if unpack:
         unpack_magic(file_name, dir_path=dir_path, input_dir_path=dir_path,
                      print_progress=print_progress)
-    return cb.Contribution(dir_path)
+    # read only the tables of this contribution, not tables of another
+    # contribution that may be left in dir_path
+    magic_tables = ['measurements', 'specimens', 'samples', 'sites',
+                    'locations', 'contribution', 'criteria', 'ages', 'images']
+    return cb.Contribution(dir_path, read_tables=[table for table in tables
+                                                  if table in magic_tables])
+
+
+def _magic_file_tables(file_path):
+    """
+    Find the tables that a MagIC contribution file holds records for, and
+    its contribution record.
+
+    The file is split into tables the way download_magic splits it: each
+    table starts with a 'tab delimited<TAB>table name' line and ends at a
+    '>>>>' line, and only tables with at least one record are written out.
+
+    Parameters:
+        file_path : str
+            Path to a MagIC contribution file, e.g. one downloaded with
+            download_magic_from_id.
+
+    Returns:
+        tables : list of str
+            Names of the tables with at least one record, in file order.
+        contribution_record : dict
+            First record of the contribution table ({} if there is none).
+    """
+    try:
+        with codecs.open(file_path, 'r', "utf-8") as f:
+            lines = f.readlines()
+    except UnicodeDecodeError:
+        with codecs.open(file_path, 'r', "Latin-1") as f:
+            lines = f.readlines()
+    blocks, block = [], []
+    for line in lines:
+        line = line.rstrip('\r\n')
+        if line.startswith('>>>>'):
+            blocks.append(block)
+            block = []
+        elif len(line.strip()) > 0:
+            block.append(line)
+    blocks.append(block)
+
+    tables, contribution_record = [], {}
+    for block in blocks:
+        # the header line is followed by the column names and the records;
+        # lines starting with '*' are shared values (MagIC compact format)
+        rows = [line for line in block[1:] if not line.startswith('*')]
+        if len(rows) < 2 or '\t' not in block[0]:
+            continue
+        table = block[0].split('\t')[1].strip().lower()
+        if table not in tables:
+            tables.append(table)
+        if table == 'contribution' and not contribution_record:
+            contribution_record = dict(zip(rows[0].split('\t'),
+                                           rows[1].split('\t')))
+    return tables, contribution_record
 
 
 def download_magic_from_doi(doi):
