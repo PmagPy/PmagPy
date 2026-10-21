@@ -867,6 +867,21 @@ class TestMetadata:
         assert "had changed on disk since it was shown" in said and "1 row added" in said
         assert "Z12 lat (yours 47.1, on disk 45)" in said and metadata.WARN_COLOR in said
 
+    def test_a_table_its_owner_made_read_only_is_not_saved_over(self, tmp_path):
+        d = small_study(tmp_path)
+        path = os.path.join(d, "sites.txt")
+        os.chmod(path, 0o444)
+        before = open(path).read()
+        view = metadata.MetadataView(home.HubSession(d))
+        df = view.current()
+        df.loc[df.site == "Z12", "lithologies"] = "Basalt"
+        view.grid.value = df
+        view.dirty = True
+        assert view.save() is False
+        assert open(path).read() == before
+        assert "Not saved: sites.txt was left as it is: it is write-protected" in view.message.object
+        assert "save again" in view.message.object
+
     def test_check_names_the_bad_cell_and_the_missing_columns(self, tmp_path):
         session = home.HubSession(small_study(tmp_path))
         view = metadata.MetadataView(session)

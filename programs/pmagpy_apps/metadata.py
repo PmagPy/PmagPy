@@ -27,6 +27,7 @@ import pandas as pd
 import panel as pn
 
 from pmagpy import magic_metadata as mm
+from pmagpy_panel import datasets
 from pmagpy_panel.theme import MUTED_STYLE
 from pmagpy_panel.widgets import LayoutHold
 from .home import CSS, fmt, shorten_home
@@ -509,7 +510,8 @@ class MetadataView:
                 df, report = mm.merge_edits(self.s.directory, self.table, self.frame, self.current(), self.origin)
             else:
                 df, report = self.current(), mm.MergeReport()
-            mm.save_table(self.s.directory, self.table, df, warnings=notes)
+            mm.save_table(self.s.directory, self.table, df, warnings=notes,
+                          keep_protected=not datasets.working_copy_source(self.s.directory))
         except (OSError, ValueError) as err:
             self._say(f"Not saved: {html.escape(str(err))}", FAIL_COLOR)
             return False

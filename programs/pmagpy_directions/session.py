@@ -690,7 +690,8 @@ class Session(param.Parameterized):
         mp.refresh_tables(self.data.contribution, target,
                           ("specimens", "samples", "sites", "locations"), self.data.warnings)
         stage = mp.StagedExport(target, backup=os.path.join(target, self.BACKUP_DIR),
-                                originals=self._originals() if in_place else False)
+                                originals=self._originals() if in_place else False,
+                                keep_protected=in_place and not self._in_working_copy())
         with stage:
             self.data.write_specimens(stage.dir, coords=coords, analysts=analysts)
             measurements = self.data.write_measurements(stage.dir) if write_measurements else None
@@ -700,7 +701,10 @@ class Session(param.Parameterized):
                                       common_polarity=common_polarity, flip=flip, polarity_pole=polarity_pole)
             self.data.write_redo(os.path.join(stage.dir, REDO_NAME), current_specimen=self.specimen)
         written = list(stage.written)
-        refused = write_measurements and measurements is None
+        if stage.protected:
+            self.data.warnings.append(mp.protected_message(stage.protected))
+        refused = write_measurements and (measurements is None or os.path.basename(measurements)
+                                          not in {os.path.basename(p) for p in written})
         if in_place and write_measurements and not refused:
             self.data.flags_written()        # the study's file now has these flags: later changes count from them
         if in_place and not refused:
@@ -709,6 +713,11 @@ class Session(param.Parameterized):
         written += mp.copy_companion_tables(self.directory, target, skip=skip)
         self.last_backup = stage.backed_up
         return written
+
+    def _in_working_copy(self) -> bool:
+        """True when the study is worked on in a working copy, whose tables are the applications' own."""
+        return bool(self.source_directory) and \
+            os.path.realpath(self.source_directory) != os.path.realpath(self.directory)
 
     def _originals(self) -> set:
         """The study's own tables as it was opened (not this application's .redo or session files)."""

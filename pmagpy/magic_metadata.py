@@ -592,8 +592,12 @@ def backup_once(directory: str, table: str) -> Optional[str]:
     return dst
 
 
+class ProtectedTableError(ValueError):
+    """The table's file is write-protected, and was left as it is."""
+
+
 def save_table(directory: str, table: str, df: pd.DataFrame, backup: bool = True,
-               warnings: Optional[list] = None) -> str:
+               warnings: Optional[list] = None, keep_protected: bool = False) -> str:
     """Write the edited frame as ``<table>.txt``.
 
     Cells are written as typed; columns with nothing in them are left out of
@@ -601,8 +605,13 @@ def save_table(directory: str, table: str, df: pd.DataFrame, backup: bool = True
     a column of empty tabs). Rows with no name are dropped -- they are the
     editor's blank rows that were never filled in (for criteria, a row with
     none of its four required cells). The original file is copied into
-    ``backup_before_pmagpy_apps/`` the first time it is rewritten.
+    ``backup_before_pmagpy_apps/`` the first time it is rewritten. With
+    ``keep_protected``, a write-protected file
+    (:func:`pmagpy.magic_project.is_write_protected`) is not replaced:
+    :class:`ProtectedTableError` says so and nothing is written.
     """
+    if keep_protected and mp.is_write_protected(table_path(directory, table)):
+        raise ProtectedTableError(mp.protected_message([table_path(directory, table)], again="save again"))
     out = df.copy().fillna("").astype(str)
     for c in out.columns:
         out[c] = out[c].str.strip()

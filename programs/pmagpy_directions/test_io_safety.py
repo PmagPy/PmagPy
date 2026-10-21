@@ -328,15 +328,38 @@ class TestExportPane:
                 assert digest(previous)[name] == before_copy[name]
         assert digest(src) == before
 
-    def test_a_study_with_read_only_tables_exports_more_than_once(self, tmp_path):
+    def test_a_table_its_owner_made_read_only_is_left_as_it_is(self, tmp_path):
+        """A write-protected table in a writable folder was replaced by an in-place export (and kept its mode)."""
         src = copy_study(tmp_path / "s")
-        for name in os.listdir(src):
-            if name.endswith(".txt"):
-                os.chmod(os.path.join(src, name), 0o444)
+        for name in ("sites.txt", "measurements.txt"):
+            os.chmod(os.path.join(src, name), 0o444)
+        protected = {n: open(os.path.join(src, n), "rb").read() for n in ("sites.txt", "measurements.txt")}
         s = Session(src)
-        for _ in range(3):
-            s.export_tables()
-        assert os.path.exists(os.path.join(src, Session.BACKUP_DIR, "previous", "specimens.txt"))
+        s.specimen = "jm002a1"
+        s.toggle_step(3)
+        for _ in range(2):                                           # export after export
+            written = s.export_tables()
+            assert {n: open(os.path.join(src, n), "rb").read() for n in protected} == protected
+            assert os.path.join(src, "samples.txt") in written and os.path.join(src, "sites.txt") not in written
+        said = [w for w in s.data.warnings if "write-protected" in w]
+        assert said and said[-1].startswith(("sites.txt, measurements.txt were left as they are",
+                                             "measurements.txt, sites.txt were left as they are"))
+        os.chmod(os.path.join(src, "measurements.txt"), 0o644)        # made writable: the flag is still to write
+        s.export_tables()
+        now = pd.read_csv(os.path.join(src, "measurements.txt"), sep="\t", skiprows=1, dtype=str, keep_default_na=False)
+        assert now.loc[int(s.spec.steps["meas_pos"].iloc[3]), "quality"] == "b"
+
+    def test_in_a_working_copy_a_read_only_table_is_replaced(self, tmp_path, monkeypatch):
+        for var in datasets.OUTPUT_BASE_VARS:
+            monkeypatch.setenv(var, "placeholder")
+            monkeypatch.delenv(var)
+        monkeypatch.setenv("PMAGPY_APPS_OUTPUT", str(tmp_path / "base"))
+        src = copy_study(tmp_path / "s")
+        s = Session(src)
+        os.chmod(os.path.join(s.directory, "sites.txt"), 0o444)
+        written = s.export_tables()
+        assert os.path.join(s.directory, "sites.txt") in written
+        assert not [w for w in s.data.warnings if "write-protected" in w]
 
     def test_the_output_field_does_not_move_the_autosave(self, tmp_path):
         from pmagpy_directions.views import ExportView

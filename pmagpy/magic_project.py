@@ -1182,6 +1182,32 @@ def remove_stale_staging(output_dir: str) -> list[str]:
     return removed
 
 
+def is_write_protected(path: str) -> bool:
+    """True for a file its owner may not write (``r--r--r--``, or read-only on Windows).
+
+    A table someone made read-only in a folder they can write is a table they
+    meant to keep as it is: an export into the folder could replace it (a
+    folder's permission, not the file's, decides that), so the applications
+    leave it alone instead.
+    """
+    import stat
+    try:
+        return not (os.stat(path).st_mode & stat.S_IWUSR)
+    except OSError:
+        return False
+
+
+def protected_message(paths: Iterable[str], again: str = "export again") -> str:
+    """What an export (or a save) says of the tables it left alone because they are write-protected."""
+    listed = [os.path.basename(p) for p in paths]
+    names = ", ".join(listed)
+    if len(listed) == 1:
+        return (f"{names} was left as it is: it is write-protected (read-only for its owner). "
+                f"Make it writable and {again} to replace it.")
+    return (f"{names} were left as they are: they are write-protected (read-only for their owner). "
+            f"Make them writable and {again} to replace them.")
+
+
 class StagedExport:
     """Write a set of files into a directory all or nothing, keeping what they replace.
 
@@ -1194,14 +1220,16 @@ class StagedExport:
     replaced (so the contribution as it was before the application first
     wrote to it can always be recovered). A staging folder left by an export
     that was killed part way is removed by the next export into the folder
-    (:func:`remove_stale_staging`)::
+    (:func:`remove_stale_staging`). With ``keep_protected``, a table (``.txt``)
+    whose file is write-protected (:func:`is_write_protected`) is not
+    replaced: it is listed in ``protected`` and the others are written::
 
         with StagedExport(output_dir, backup) as stage:
             data.write_specimens(stage.dir)          # writers write into stage.dir
         stage.written                                # the final paths
     """
 
-    def __init__(self, output_dir: str, backup: Optional[str] = None, originals=False):
+    def __init__(self, output_dir: str, backup: Optional[str] = None, originals=False, keep_protected=False):
         self.output_dir = os.path.abspath(output_dir)
         self.backup = backup
         # True, or the names of the files the study had when it was opened: a file an
@@ -1211,6 +1239,8 @@ class StagedExport:
         self.written: list[str] = []
         self.backed_up: list[str] = []
         self.removed_stale: list[str] = []
+        self.keep_protected = keep_protected
+        self.protected: list[str] = []
 
     def __enter__(self) -> "StagedExport":
         import errno
@@ -1244,6 +1274,10 @@ class StagedExport:
         # in the order they were written (the callers list the first table first)
         names = sorted((n for n in os.listdir(self.dir) if not n.startswith(".")),
                        key=lambda n: (os.stat(os.path.join(self.dir, n)).st_mtime_ns, n))
+        if self.keep_protected:
+            self.protected = [os.path.join(self.output_dir, n) for n in names
+                              if n.endswith(".txt") and is_write_protected(os.path.join(self.output_dir, n))]
+            names = [n for n in names if os.path.join(self.output_dir, n) not in self.protected]
         if self.backup:
             previous = os.path.join(self.backup, "previous")
             for name in names:

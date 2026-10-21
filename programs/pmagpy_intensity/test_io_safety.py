@@ -209,3 +209,17 @@ class TestTwoWindows:
         reloaded = Session(src, cache=True)
         assert reloaded.data is not a.data
         assert self.bad(reloaded, first) and self.bad(reloaded, second) and self.bad(reloaded, third)
+
+
+class TestWriteProtectedTables:
+    def test_a_table_its_owner_made_read_only_is_left_as_it_is(self, tmp_path):
+        src = copy_study(tmp_path / "s")
+        Session(src).export_tables()                                # specimens.txt and sites.txt exist now
+        os.chmod(os.path.join(src, "specimens.txt"), 0o444)
+        protected = open(os.path.join(src, "specimens.txt"), "rb").read()
+        s = Session(src)
+        s.auto_interpret([s.specimen])
+        written = s.export_tables()
+        assert open(os.path.join(src, "specimens.txt"), "rb").read() == protected
+        assert os.path.join(src, "measurements.txt") in written and os.path.join(src, "specimens.txt") not in written
+        assert any(w.startswith("specimens.txt was left as it is: it is write-protected") for w in s.data.warnings)

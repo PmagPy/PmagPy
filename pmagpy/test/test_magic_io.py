@@ -255,6 +255,25 @@ class TestStagedExport:
         assert open(os.path.join(backup, "sites.txt")).read() == "v0"
         assert open(os.path.join(backup, "previous", "sites.txt")).read() == "v2"
 
+    def test_a_write_protected_table_is_left_alone_when_asked_and_the_others_are_written(self, tmp_path):
+        out = str(tmp_path / "out")
+        os.makedirs(out)
+        for name in ("sites.txt", "samples.txt"):
+            with open(os.path.join(out, name), "w") as fh:
+                fh.write("v0")
+        os.chmod(os.path.join(out, "sites.txt"), 0o444)
+        assert mp.is_write_protected(os.path.join(out, "sites.txt"))
+        assert not mp.is_write_protected(os.path.join(out, "samples.txt"))
+        with mp.StagedExport(out, backup=os.path.join(out, "backup"), keep_protected=True) as stage:
+            for name in ("sites.txt", "samples.txt", "locations.txt"):
+                mp.atomic_write_text(os.path.join(stage.dir, name), "v1")
+        assert open(os.path.join(out, "sites.txt")).read() == "v0"
+        assert open(os.path.join(out, "samples.txt")).read() == "v1"
+        assert stage.protected == [os.path.join(out, "sites.txt")]
+        assert sorted(stage.written) == [os.path.join(out, "locations.txt"), os.path.join(out, "samples.txt")]
+        assert not os.path.exists(os.path.join(out, "backup", "previous", "sites.txt"))
+        assert mp.protected_message(stage.protected).startswith("sites.txt was left as it is: it is write-protected")
+
     def test_a_backup_cut_short_leaves_no_truncated_original(self, tmp_path, monkeypatch):
         """A full disk part way through the backup copy left half a file as the kept "original",
         which the next export then trusted (it is written only once)."""
