@@ -2194,13 +2194,14 @@ class DemagData:
         return {"index": int(index), "measurement": str(row["measurement"]), "value": float(value),
                 "unit": unit, "label": str(row["label"])}
 
-    def components_to_json(self, current_specimen: Optional[str] = None) -> str:
+    def components_to_json(self, current_specimen: Optional[str] = None, writer: Optional[str] = None) -> str:
         """The interpretation state -- fits and step flags -- as a JSON session.
 
         Each bound is recorded as the step's index *and* its measurement name
         and treatment, so a session restores exactly the steps that were
         chosen (a re-measured step included), and still finds them by name or
-        value if the measurements table has been edited since.
+        value if the measurements table has been edited since. ``writer``
+        names the window that wrote the file (an application's autosave).
         """
         payload = []
         for c in self.components:
@@ -2211,9 +2212,12 @@ class DemagData:
                             # read by earlier builds
                             "step_min_label": spec.steps["label"].iloc[c.imin],
                             "step_max_label": spec.steps["label"].iloc[c.imax]})
-        return json.dumps({"format": self.SESSION_FORMAT, "version": 2, "software": SOFTWARE_TAG,
-                           "directory": self.contribution.directory, "current": current_specimen,
-                           "components": payload, "step_flags": self.step_flag_changes()}, indent=1)
+        session = {"format": self.SESSION_FORMAT, "version": 2, "software": SOFTWARE_TAG,
+                   "directory": self.contribution.directory, "current": current_specimen,
+                   "components": payload, "step_flags": self.step_flag_changes()}
+        if writer:
+            session["writer"] = writer
+        return json.dumps(session, indent=1)
 
     def _resolve_bound(self, spec: SpecimenData, index, ref) -> Optional[int]:
         steps = spec.steps
@@ -2288,8 +2292,8 @@ class DemagData:
         current = data.get("current")
         return len(parsed), (current if current in self.specimens else None)
 
-    def save_components(self, path: str, current_specimen: Optional[str] = None) -> str:
-        return mp.atomic_write_text(path, self.components_to_json(current_specimen))
+    def save_components(self, path: str, current_specimen: Optional[str] = None, writer: Optional[str] = None) -> str:
+        return mp.atomic_write_text(path, self.components_to_json(current_specimen, writer))
 
     def load_components(self, path: str, replace: bool = True) -> tuple[int, Optional[str]]:
         with open(path, "rb") as fh:

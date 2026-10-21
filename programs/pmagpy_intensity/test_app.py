@@ -1128,7 +1128,7 @@ class TestStartUp:
         doc = FakeDoc()
         monkeypatch.setattr(sess, "_server_document", lambda: doc)
         writes = []
-        monkeypatch.setattr(study.data, "save_session", lambda path: writes.append(path) or path)
+        monkeypatch.setattr(study.data, "save_session", lambda path, **kw: writes.append(path) or path)
         name = study.specimen
         for k in range(4):
             study.set_bounds(1 + (k % 2), 6)

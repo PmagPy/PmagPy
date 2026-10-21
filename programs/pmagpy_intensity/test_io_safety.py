@@ -159,3 +159,53 @@ class TestMeasurementsChangedOnDisk:
         view._export(confirmed=True)
         assert "measurements.txt was not written: it changed on disk since the study was opened " \
                "(2 rows added, 0 removed)" in view.message.object
+
+
+class TestTwoWindows:
+    """Two windows on one study, each with its own copy: the other one's autosave is not overwritten."""
+
+    def flag(self, session, k, step=1):
+        session.specimen = session.data.specimen_names[k]
+        sequence = int(session.spec.steps["sequence"].iloc[step])
+        session.toggle_step(sequence)
+        return session.specimen, sequence
+
+    def bad(self, session, picked):
+        name, sequence = picked
+        steps = session.data.specimens[name].steps
+        return steps.loc[steps["sequence"] == sequence, "quality"].iloc[0] == "b"
+
+    @pytest.mark.parametrize("export_first", [False, True])
+    def test_a_window_whose_autosave_another_window_wrote_since_keeps_its_edits_and_says_so(self, tmp_path,
+                                                                                            export_first):
+        from pmagpy_panel import autosave
+        src = copy_study(tmp_path / "s")
+        a = Session(src)
+        if export_first:
+            a.export_tables()                          # C4: the second window reads the study after the export
+        b = Session(src)
+        mine = self.flag(a, 0)
+        written = open(os.path.join(src, AUTOSAVE_NAME)).read()
+        theirs = self.flag(b, 1)
+        assert b.status == autosave.ANOTHER_WINDOW and self.bad(b, theirs)
+        assert open(os.path.join(src, AUTOSAVE_NAME)).read() == written
+        self.flag(a, 2)
+        assert a.status != autosave.ANOTHER_WINDOW
+        restarted = Session(src)
+        assert self.bad(restarted, mine) and not self.bad(restarted, theirs)
+
+    def test_tabs_sharing_one_dataset_are_one_window_and_a_reload_reads_the_other_window(self, tmp_path):
+        from pmagpy_panel import autosave
+        src = copy_study(tmp_path / "s")
+        a = Session(src, cache=True)
+        b = Session(src, cache=True)
+        assert b.data is a.data
+        first, second = self.flag(a, 0), self.flag(b, 1)
+        assert autosave.ANOTHER_WINDOW not in (a.status, b.status)
+        other = Session(src)                           # another server's window
+        third = self.flag(other, 2)
+        self.flag(a, 3)
+        assert a.status == autosave.ANOTHER_WINDOW
+        reloaded = Session(src, cache=True)
+        assert reloaded.data is not a.data
+        assert self.bad(reloaded, first) and self.bad(reloaded, second) and self.bad(reloaded, third)

@@ -2368,8 +2368,11 @@ class PintData:
             keys.append((spec.name, m, k))
         return keys
 
-    def to_json(self) -> str:
-        """The interpretations, flags, criteria and anisotropy policy as a human-readable session."""
+    def to_json(self, writer: Optional[str] = None) -> str:
+        """The interpretations, flags, criteria and anisotropy policy as a human-readable session.
+
+        ``writer`` names the window that wrote the file (an application's autosave).
+        """
         bad_steps = []
         for spec in self.specimens.values():
             bad = (spec.steps["quality"] == "b").to_numpy()
@@ -2407,6 +2410,8 @@ class PintData:
             "set_aside": [{"interpretation": asdict(i), "bounds_in_kelvin": list(bounds)}
                           for i, bounds in self._set_aside.values()],
         }
+        if writer:
+            payload["writer"] = writer
         return json.dumps(payload, indent=2, sort_keys=True)
 
     def from_json(self, text: str) -> int:
@@ -2537,8 +2542,8 @@ class PintData:
             return CRITERIA_SETS[name]
         return None
 
-    def save_session(self, path: str) -> str:
-        return mp.atomic_write_text(path, self.to_json())
+    def save_session(self, path: str, writer: Optional[str] = None) -> str:
+        return mp.atomic_write_text(path, self.to_json(writer))
 
     def load_session(self, path: str) -> int:
         with open(path, encoding="utf-8") as fh:

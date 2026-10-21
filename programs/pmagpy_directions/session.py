@@ -15,7 +15,7 @@ import param
 import pmagpy.demag as dc
 from pmagpy import magic_project as mp
 
-from pmagpy_panel import AppInfo, datasets, runtime
+from pmagpy_panel import AppInfo, autosave as guard, datasets, runtime
 from pmagpy_panel.theme import ComponentColors
 
 APP = AppInfo(name="PmagPy Directions", app_id=dc.APP_ID,
@@ -181,11 +181,13 @@ class Session(param.Parameterized):
         output_dir = os.path.abspath(os.path.expanduser(output_dir)) if output_dir else directory
         stamp = (_code_stamp(), datasets.table_stamp(directory))
         cached = _DATASETS.get(directory) if self.cache else None
+        autosave = os.path.join(output_dir, AUTOSAVE_NAME)
         try:
-            if cached is not None and cached[1] == stamp:
+            if cached is not None and cached[1] == stamp and guard.guard_of(cached[0]).may_write(autosave):
                 data, current, message = cached[0], None, f"{len(cached[0].components)} fits in memory"
             else:
                 data = dc.DemagData.from_directory(directory)
+                guard.guard_of(data).read(autosave)
                 current, message = self._restore(data, directory, output_dir)
                 if self.cache:
                     _DATASETS[directory] = (data, stamp)
@@ -570,14 +572,30 @@ class Session(param.Parameterized):
         return os.path.join(self.output_dir, AUTOSAVE_NAME)
 
     def autosave(self) -> None:
-        """Write the auto-saved session (fits and step flags) now."""
+        """Write the auto-saved session (fits and step flags) now.
+
+        Not when another window has written the autosave since this dataset read or wrote it
+        (:mod:`pmagpy_panel.autosave`): the header says so and the edits stay in memory.
+        """
         self._autosave_pending = None
         if self.data is None or not self.autosave_enabled:
             return
+        keeper = guard.guard_of(self.data)
+        if not keeper.may_write(self.autosave_path):
+            self._another_window()
+            return
         try:
-            self.data.save_components(self.autosave_path, current_specimen=self.specimen)
+            self.data.save_components(self.autosave_path, current_specimen=self.specimen, writer=keeper.writer)
+            keeper.wrote(self.autosave_path)
         except OSError as exc:
             self.status = f"autosave failed: {exc}"
+
+    def _another_window(self) -> None:
+        """Say that another window has the study's autosave, and let a reload read the study again."""
+        self.status = guard.ANOTHER_WINDOW
+        cached = _DATASETS.get(self.directory)
+        if cached is not None and cached[0] is self.data:
+            del _DATASETS[self.directory]
 
     def request_autosave(self) -> None:
         """Auto-save soon: once, ``autosave_delay`` seconds after the last edit.

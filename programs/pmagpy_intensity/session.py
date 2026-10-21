@@ -15,7 +15,7 @@ import pmagpy.paleointensity as pint
 from pmagpy import magic_project as mp
 from pmagpy import pint_stats as ps
 
-from pmagpy_panel import AppInfo, datasets
+from pmagpy_panel import AppInfo, autosave as guard, datasets
 
 APP = AppInfo(name="PmagPy Intensity", app_id=pint.APP_ID,
               env_prefixes=("PMAGPY_INTENSITY_", "THELLIER_"))
@@ -151,12 +151,14 @@ class Session(param.Parameterized):
         output_dir = os.path.abspath(os.path.expanduser(output_dir)) if output_dir else directory
         stamp = (_code_stamp(), datasets.table_stamp(directory))
         cached = _DATASETS.get(directory) if self.cache else None
+        autosave = os.path.join(output_dir, AUTOSAVE_NAME)
         try:
-            if cached is not None and cached[1] == stamp:
+            if cached is not None and cached[1] == stamp and guard.guard_of(cached[0]).may_write(autosave):
                 data = cached[0]
                 message = f"{len(data.interpretations)} interpretations in memory"
             else:
                 data = pint.PintData.from_directory(directory)
+                guard.guard_of(data).read(autosave)
                 message = self._restore(data, output_dir)
                 if self.cache:
                     _DATASETS[directory] = (data, stamp)
@@ -380,15 +382,31 @@ class Session(param.Parameterized):
         return os.path.join(self.output_dir, AUTOSAVE_NAME)
 
     def autosave(self) -> None:
-        """Write the session file now."""
+        """Write the session file now.
+
+        Not when another window has written it since this dataset read or wrote it
+        (:mod:`pmagpy_panel.autosave`): the header says so and the edits stay in memory.
+        """
         self._autosave_pending = None
         if not (self.autosave_enabled and self.data is not None and self.output_dir):
             return
+        keeper = guard.guard_of(self.data)
+        if not keeper.may_write(self.autosave_path):
+            self._another_window()
+            return
         try:
             os.makedirs(self.output_dir, exist_ok=True)
-            self.data.save_session(self.autosave_path)
+            self.data.save_session(self.autosave_path, writer=keeper.writer)
+            keeper.wrote(self.autosave_path)
         except OSError as exc:                             # a read-only directory must not block work
             self.status = f"could not auto-save into {self.output_dir}: {exc.strerror or exc}"
+
+    def _another_window(self) -> None:
+        """Say that another window has the study's autosave, and let a reload read the study again."""
+        self.status = guard.ANOTHER_WINDOW
+        cached = _DATASETS.get(self.directory)
+        if cached is not None and cached[0] is self.data:
+            del _DATASETS[self.directory]
 
     def request_autosave(self) -> None:
         """Auto-save soon: once, ``autosave_delay`` seconds after the last edit.

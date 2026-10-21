@@ -207,6 +207,83 @@ class TestEditsOnDisk:
             assert restarted.data.specimens[name].steps["quality"].iloc[1] == "b"
 
 
+class TestTwoWindows:
+    """Two windows on one study, each with its own copy of it: the autosave of the one that wrote first wins,
+    and the other says so instead of writing its copy over it."""
+
+    def flag(self, session, k, step=1):
+        session.specimen = session.data.specimen_names[k]
+        session.toggle_step(step)
+        return session.specimen
+
+    def bad(self, session, name, step=1):
+        return session.data.specimens[name].steps["quality"].iloc[step] == "b"
+
+    def test_a_window_whose_autosave_another_window_wrote_since_keeps_its_edits_and_says_so(self, tmp_path):
+        """Each window wrote its own copy over the other's autosave; the next start restored whichever wrote last."""
+        src = copy_study(tmp_path / "s")
+        a, b = Session(src), Session(src)
+        mine = self.flag(a, 1)
+        written = open(os.path.join(src, AUTOSAVE_NAME)).read()
+        theirs = self.flag(b, 2)
+        assert b.status == sess.guard.ANOTHER_WINDOW
+        assert open(os.path.join(src, AUTOSAVE_NAME)).read() == written      # a's autosave stands
+        assert self.bad(b, theirs)                                            # b's edit is kept in memory
+        self.flag(b, 3)
+        assert open(os.path.join(src, AUTOSAVE_NAME)).read() == written
+        self.flag(a, 4)                                                       # a goes on auto-saving
+        assert a.status != sess.guard.ANOTHER_WINDOW
+        reloaded = Session(src)
+        assert self.bad(reloaded, mine) and not self.bad(reloaded, theirs)
+        b.export_tables()                                                     # an export still writes b's edits
+        now = pd.read_csv(os.path.join(src, "measurements.txt"), sep="\t", skiprows=1, dtype=str,
+                          keep_default_na=False)
+        steps = b.data.specimens[theirs].steps
+        assert now.loc[int(steps["meas_pos"].iloc[1]), "quality"] == "b"
+
+    def test_tabs_sharing_one_dataset_are_one_window(self, tmp_path):
+        src = copy_study(tmp_path / "s")
+        a = Session(src, cache=True)
+        b = Session(src, cache=True)
+        assert b.data is a.data
+        self.flag(a, 1)
+        self.flag(b, 2)
+        self.flag(a, 3)
+        assert sess.guard.ANOTHER_WINDOW not in (a.status, b.status)
+        restarted = Session(src)
+        assert all(self.bad(restarted, restarted.data.specimen_names[k]) for k in (1, 2, 3))
+
+    def test_a_reload_after_the_warning_reads_the_other_windows_work(self, tmp_path):
+        src = copy_study(tmp_path / "s")
+        b = Session(src, cache=True)
+        a = Session(src)                               # another window with its own copy (another server)
+        mine = self.flag(a, 1)
+        self.flag(b, 2)
+        assert b.status == sess.guard.ANOTHER_WINDOW
+        reloaded = Session(src, cache=True)
+        assert reloaded.data is not b.data and self.bad(reloaded, mine)
+
+    def test_a_cached_dataset_older_than_the_autosave_is_not_reused(self, tmp_path):
+        src = copy_study(tmp_path / "s")
+        b = Session(src, cache=True)
+        a = Session(src)
+        mine = self.flag(a, 1)
+        opened = Session(src, cache=True)
+        assert opened.data is not b.data and self.bad(opened, mine)
+
+    def test_after_an_export_a_window_with_its_own_copy_does_not_overwrite_the_exporting_one(self, tmp_path):
+        """C4: a tab opened after an export read the study again; the two tabs then overwrote each other's autosave."""
+        src = copy_study(tmp_path / "s")
+        a = Session(src)
+        a.export_tables()
+        b = Session(src)
+        mine = self.flag(a, 1)
+        theirs = self.flag(b, 2)
+        assert b.status == sess.guard.ANOTHER_WINDOW
+        restarted = Session(src)
+        assert self.bad(restarted, mine) and not self.bad(restarted, theirs)
+
+
 class TestOutputFolders:
     def test_studies_with_the_same_folder_name_get_their_own_output(self, tmp_path):
         a = str(tmp_path / "one" / "MagIC")
