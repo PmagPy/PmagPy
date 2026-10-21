@@ -35,10 +35,7 @@ from . import pmagplotlib
 from . import data_model3 as data_model
 from . import validate_upload3 as val_up3
 from numpy.linalg import inv, eig
-try:
-    import requests
-except ImportError:
-    requests = None
+import requests
 encoding = "ISO-8859-1"
 has_cartopy, cartopy = pmag.import_cartopy()
 ccrs = None
@@ -5256,6 +5253,7 @@ def download_magic_from_id(magic_id, directory='.', share_key=""):
         str: Relative file path if successful or error message if failed.
     """
     magic_id = str(magic_id)  # Ensure magic_id is a string to avoid errors in API request
+    directory = os.fspath(directory)  # accept pathlib.Path as well as str
 
     # Normalize the directory path to ensure consistent directory formatting
     if not directory.endswith('/'):
@@ -5273,8 +5271,13 @@ def download_magic_from_id(magic_id, directory='.', share_key=""):
     api = 'https://api.earthref.org/v1/MagIC/data'
     params = {'id': magic_id, 'key': share_key} if share_key else {'id': magic_id}
 
-    # Perform the request
-    response = requests.get(api, params=params)
+    # Perform the request; give up if the server sends nothing for 60 s
+    try:
+        response = requests.get(api, params=params, timeout=60)
+    except requests.exceptions.RequestException as ex:
+        error_message = f"Failed to download: {ex}"
+        print("Download failed with error:", error_message)
+        return False, error_message
 
     if response.status_code == 200 and response.text:
         # Write the content to the file only if the request was successful and the content is not empty
@@ -5287,6 +5290,160 @@ def download_magic_from_id(magic_id, directory='.', share_key=""):
         error_message = "Failed to download: " + (response.reason if response.status_code != 200 else "The file is empty.")
         print("Download failed with error:", error_message)
         return False, error_message
+
+
+def load_magic_contribution(magic_id, dir_path='.', share_key='',
+                            overwrite=False, print_progress=False):
+    """
+    Load a MagIC contribution by its id, downloading and unpacking it only
+    when needed.
+
+    The contribution file (magic_contribution_<magic_id>.txt) is downloaded
+    from earthref.org/MagIC with download_magic_from_id unless it is already
+    in dir_path, and it is unpacked into its tables (measurements.txt,
+    specimens.txt, ...) with unpack_magic unless all of its tables are
+    already there and contribution.txt has the id and version of the file.
+    Notebooks and scripts can therefore call this function every time they
+    run: the database is contacted only on the first call, and later calls
+    read the local copy. Only the tables in the contribution file are
+    loaded, so tables of another contribution left in dir_path are not
+    mixed in; still, using one directory per contribution keeps their
+    unpacked tables apart.
+
+    Parameters:
+        magic_id : str or int
+            Unique id of the MagIC contribution.
+        dir_path : str or path-like, optional
+            Directory for the contribution file and its unpacked tables,
+            created if it does not exist. Default is the current directory.
+        share_key : str, optional
+            Share key for downloading a private contribution; default is ""
+            for a public contribution.
+        overwrite : bool, optional
+            If True, download and unpack the contribution again even if a
+            local copy exists (e.g. to pick up a new version). If that
+            download fails, RuntimeError is raised although the local copy
+            is still in dir_path. Default is False.
+        print_progress : bool, optional
+            Whether unpack_magic reports the table it is working on and
+            where it is written. pmag.magic_write prints the number of
+            records written to each table either way. Default is False.
+
+    Returns:
+        Contribution
+            pmagpy.contribution_builder.Contribution holding the tables of
+            the contribution.
+
+    Raises:
+        RuntimeError
+            If the contribution cannot be downloaded.
+        ValueError
+            If the contribution file in dir_path holds a different
+            contribution than magic_id (e.g. a renamed file).
+
+    Examples:
+        >>> contribution = ipmag.load_magic_contribution(
+        ...     20213, dir_path='data/ECMB')
+        >>> measurements = contribution.tables['measurements'].df
+    """
+    magic_id = str(magic_id)
+    dir_path = os.fspath(dir_path)
+    os.makedirs(dir_path, exist_ok=True)
+    file_name = f'magic_contribution_{magic_id}.txt'
+    file_path = os.path.join(dir_path, file_name)
+    contribution_table = os.path.join(dir_path, 'contribution.txt')
+
+    if overwrite or not os.path.exists(file_path):
+        success, message = download_magic_from_id(magic_id, directory=dir_path,
+                                                  share_key=share_key)
+        if not success:
+            raise RuntimeError(f'MagIC contribution {magic_id} could not be '
+                               f'downloaded: {message}')
+    tables, contribution_record = _magic_file_tables(file_path)
+    file_id = str(contribution_record.get('id', ''))
+    if file_id != magic_id:
+        raise ValueError(f'{file_path} does not hold MagIC contribution '
+                         f'{magic_id}: its contribution table gives id '
+                         f'{file_id!r}. Remove or rename the file.')
+
+    if overwrite or not os.path.exists(contribution_table):
+        unpack = True
+    else:
+        # unpack unless the tables in dir_path are this version of this
+        # contribution and none is missing (e.g. after an interrupted unpack,
+        # which leaves contribution.txt, the first table written). An empty
+        # or unreadable contribution.txt gives no records, so it is unpacked.
+        records, _ = pmag.magic_read(contribution_table)
+        unpacked = [(str(record.get('id', '')), str(record.get('version', '')))
+                    for record in records]
+        this_version = (file_id, str(contribution_record.get('version', '')))
+        missing = [table for table in tables if not
+                   os.path.exists(os.path.join(dir_path, table + '.txt'))]
+        unpack = this_version not in unpacked or len(missing) > 0
+
+    if unpack:
+        unpack_magic(file_name, dir_path=dir_path, input_dir_path=dir_path,
+                     print_progress=print_progress)
+    # read only the tables of this contribution, not tables of another
+    # contribution that may be left in dir_path
+    magic_tables = ['measurements', 'specimens', 'samples', 'sites',
+                    'locations', 'contribution', 'criteria', 'ages', 'images']
+    return cb.Contribution(dir_path, read_tables=[table for table in tables
+                                                  if table in magic_tables])
+
+
+def _magic_file_tables(file_path):
+    """
+    Find the tables that a MagIC contribution file holds records for, and
+    its contribution record.
+
+    The file is split into tables the way download_magic splits it: each
+    table starts with a 'tab delimited<TAB>table name' line and ends at a
+    '>>>>' line, and only tables with at least one record are written out.
+    Keep the two in step: a table counted here that download_magic does not
+    write would make load_magic_contribution unpack on every call.
+
+    Parameters:
+        file_path : str
+            Path to a MagIC contribution file, e.g. one downloaded with
+            download_magic_from_id.
+
+    Returns:
+        tables : list of str
+            Names of the tables with at least one record, in file order.
+        contribution_record : dict
+            First record of the contribution table ({} if there is none).
+    """
+    try:
+        with codecs.open(file_path, 'r', "utf-8") as f:
+            lines = f.readlines()
+    except UnicodeDecodeError:
+        with codecs.open(file_path, 'r', "Latin-1") as f:
+            lines = f.readlines()
+    blocks, block = [], []
+    for line in lines:
+        line = line.rstrip('\r\n')
+        if line.startswith('>>>>'):
+            blocks.append(block)
+            block = []
+        elif len(line.strip()) > 0:
+            block.append(line)
+    blocks.append(block)
+
+    tables, contribution_record = [], {}
+    for block in blocks:
+        # the header line is followed by the column names and the records;
+        # lines starting with '*' are shared values (MagIC compact format)
+        rows = [line for line in block[1:] if not line.startswith('*')]
+        if len(rows) < 2 or '\t' not in block[0]:
+            continue
+        table = block[0].split('\t')[1].strip().lower()
+        if table not in tables:
+            tables.append(table)
+        if table == 'contribution' and not contribution_record:
+            contribution_record = dict(zip(rows[0].split('\t'),
+                                           rows[1].split('\t')))
+    return tables, contribution_record
 
 
 def download_magic_from_doi(doi):

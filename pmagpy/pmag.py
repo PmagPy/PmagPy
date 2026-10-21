@@ -1861,9 +1861,10 @@ def open_file(infile, verbose=True):
     except Exception as ex:
         print("-W- ", type(ex), ex)
         return []
-    # don't leave a blank line at the end
+    # don't leave a blank line at the end; an empty file (e.g. one left by
+    # an interrupted write) gives an empty list, not an IndexError
     i = 0
-    while i < 10:
+    while i < 10 and lines:
         if not len(lines[-1].strip("\n").strip("\t")):
             lines = lines[:-1]
             i += 1
