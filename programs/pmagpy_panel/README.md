@@ -227,7 +227,8 @@ folder that has tables already:
   lab files, the conversion log, `.redo`, session and autosave files stay. The
   write is all or nothing (`StagedExport(..., replace_tables=True)`;
   `convert_files(..., backup=..., replace=True)`); `pmagpy-convert` without
-  `--append` still replaces only the tables it writes.
+  `--append` replaces the same way, keeping what it replaces or removes in
+  `backup_before_pmagpy_apps/`.
 * A contribution file unpacked on the Convert page is not added to tables
   already there: into a folder that has tables (`contribution.txt` included)
   the first click asks the same question, with the same default, and the

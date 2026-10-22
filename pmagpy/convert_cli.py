@@ -14,8 +14,11 @@ same call with the same names::
 
 Options are the registry's fields with dashes for underscores; a ``bool`` field
 that defaults on is turned off with ``--no-<name>``. The tables go to ``--dir``
-(the working directory when not given), replacing what is there unless
-``--append`` is passed, and the conversion is added to the directory's
+(the working directory when not given). Without ``--append`` they replace the
+tables there, as the Convert page's "Replace" does: the new tables are the
+directory's whole set, and the tables replaced or no longer written are kept in
+``backup_before_pmagpy_apps/`` (``previous/`` for the last version). The
+conversion is added to the directory's
 ``pmagpy_conversions.json`` unless ``--no-record`` is. The older
 ``programs/conversion_scripts`` keep their own flags; this command does not
 replace them.
@@ -28,6 +31,10 @@ import sys
 from typing import List, Optional, Sequence
 
 from pmagpy import convert_registry as reg
+from pmagpy.magic_project import removed_note
+
+#: where a replace keeps the tables it replaced, as the applications do
+BACKUP_DIR = "backup_before_pmagpy_apps"
 
 PROG = "pmagpy-convert"
 
@@ -136,7 +143,9 @@ def build_parser(fmt: reg.Format) -> argparse.ArgumentParser:
     where.add_argument("--dir", dest="dir_path", default=".", metavar="DIR",
                        help="the MagIC directory the tables are written to (and, for a directory format, read from). "
                             "A FILE not found from the working directory is looked for there. Default: the working directory.")
-    where.add_argument("--append", action="store_true", help="add to the tables already in DIR instead of replacing them")
+    where.add_argument("--append", action="store_true",
+                       help="add to the tables already in DIR instead of replacing them (a replace keeps the old "
+                            f"tables in DIR/{BACKUP_DIR}/)")
     where.add_argument("--no-record", dest="record", action="store_false",
                        help=f"do not add this conversion to DIR's {reg.CONVERSION_LOG}")
     where.add_argument("--log", action="store_true", help="print everything the converter printed")
@@ -184,8 +193,9 @@ def main(argv: Optional[Sequence[str]] = None, out=None) -> int:
     if missing:
         parser.error(f"{fmt.label} needs {', '.join(missing)}")
     try:
+        replace = {} if namespace.append else {"replace": True, "backup": os.path.join(dir_path, BACKUP_DIR)}
         result = reg.convert_files(fmt, inputs, values, dir_path, append=namespace.append, record=namespace.record,
-                                   report=lambda text: print(text, file=out))
+                                   report=lambda text: print(text, file=out), **replace)
     except ValueError as err:                    # a naming code without its count, and the like
         parser.error(str(err))
     if namespace.log and result.log.strip():
@@ -195,6 +205,8 @@ def main(argv: Optional[Sequence[str]] = None, out=None) -> int:
         print(f"  {name}: {why}", file=out)
     if result.ok:
         print(f"Tables written to {dir_path}", file=out)
+        if result.removed:
+            print(removed_note(result.removed, BACKUP_DIR), file=out)
     return 0 if result.ok else 1
 
 

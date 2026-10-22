@@ -11,10 +11,13 @@ import io
 import os
 import shutil
 
+import pandas as pd
+
 import pytest
 
 from pmagpy import convert_cli as cli
 from pmagpy import convert_registry as reg
+from pmagpy import magic_project as mp
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(os.path.dirname(os.path.dirname(HERE)), "data_files", "convert_2_magic")
@@ -119,6 +122,20 @@ class TestRunning:
         assert sum(1 for _ in open(tmp_path / "measurements.txt")) > n
         assert "── thermal.dat" in text                                          # --log prints the converter's output
         assert len(reg.read_conversions(d)) == 1                                # --no-record
+
+    def test_without_append_the_new_tables_replace_the_old_ones_which_are_kept(self, tmp_path):
+        d = str(tmp_path)
+        shutil.copy(example("sio_magic/sio_af_example.dat"), tmp_path / "af.dat")
+        mp.magic_write(str(tmp_path / "images.txt"), pd.DataFrame({"image": ["old.png"], "location": ["X"]}), "images")
+        code, text = run("sio", "af.dat", "--codelist", "AF", "--dir", d)
+        assert code == 0, text
+        first = open(tmp_path / "measurements.txt").read()
+        assert not (tmp_path / "images.txt").exists()                       # not in the new set
+        assert (tmp_path / "backup_before_pmagpy_apps" / "images.txt").exists()
+        assert "removed, as the new tables do not have them: images.txt" in text
+        code, text = run("sio", "af.dat", "--codelist", "AF", "--dir", d)
+        assert code == 0, text
+        assert open(tmp_path / "backup_before_pmagpy_apps" / "previous" / "measurements.txt").read() == first
 
     def test_a_directory_format_reads_dir(self, tmp_path):
         for name in os.listdir(example("tdt_magic")):
