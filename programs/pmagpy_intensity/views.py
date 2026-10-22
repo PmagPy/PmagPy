@@ -103,6 +103,7 @@ def captioned(caption: str, fig, width: int = TILE, note: str = "") -> pn.Column
 
 PASS_COLOR = "#1a7f5a"
 FAIL_COLOR = "#c0392b"
+WARN_COLOR = "#b45309"
 NA_COLOR = "#6b7280"
 
 #: Tabulator's group rows default to a heavy grey bar; these are section
@@ -253,11 +254,16 @@ class DataView(DirectoryChooser):
         self.check_btn = pn.widgets.Button(name="Check", button_type="primary", width=110)
         self.convert_btn = pn.widgets.Button(name="Convert and open", button_type="success",
                                              width=170, disabled=True)
+        # magic3/ has tables already: where the new ones go, asked before anything is written (as Convert asks)
+        self.tdt_where = pn.widgets.RadioBoxGroup(options={}, inline=False, visible=False)
+        self._tdt_confirming = False
         self.tdt_report = pn.pane.HTML("", sizing_mode="stretch_width")
         self.tdt_table = pn.widgets.Tabulator(pd.DataFrame(), height=220, disabled=True,
                                               sizing_mode="stretch_width", show_index=False)
         self.check_btn.on_click(self._check_tdt)
         self.convert_btn.on_click(self._convert_tdt)
+        self.tdt_path.param.watch(lambda e: self._cancel_tdt_confirm(), "value")
+        self.tdt_where.param.watch(lambda e: self._label_tdt_confirm(), "value")
 
     # ----- ThellierTool import ---------------------------------------------
     def _tdt_files(self):
@@ -267,6 +273,7 @@ class DataView(DirectoryChooser):
         return tdt_reader.find_tdt_files(target)
 
     def _check_tdt(self, event=None):
+        self._cancel_tdt_confirm()
         files = self._tdt_files()
         if not files:
             self.tdt_report.object = (f'<div style="color:{FAIL_COLOR}">no .tdt file at '
@@ -290,29 +297,88 @@ class DataView(DirectoryChooser):
         self.convert_btn.disabled = not counts["ok"]
 
     def _convert_tdt(self, event=None):
+        """Convert the checked files into ``magic3/`` beside them, and open it.
+
+        When ``magic3/`` has tables already, the first click asks where the new ones go, as Convert
+        does: a dated folder ``MagIC_<date>/`` in the lab folder (the default), or replacing them with
+        the old ones kept in ``backup_before_pmagpy_apps/``. The tables are written all or nothing.
+        """
         files = self._tdt_files()
         if not files:
             return
-        target = self.tdt_path.value.strip()
-        out = os.path.join(target if os.path.isdir(target) else os.path.dirname(target), "magic3")
-        result = tdt_reader.to_magic(files, out, volume_cc=self.tdt_volume.value,
-                                     moment_units=self.tdt_units.value,
-                                     lab_dec=self.tdt_dec.value, lab_inc=self.tdt_inc.value,
-                                     import_anisotropy=self.tdt_aniso.value)
+        from pmagpy import magic_project as mp
+        from pmagpy.convert_registry import (MAGIC_TABLES, NEW_FOLDER, REPLACE, dated_folder, record_conversion,
+                                             where_choices)
+        from pmagpy.magic_metadata import BACKUP_DIR
+        lab = self._tdt_lab()
+        out, backup = os.path.join(lab, "magic3"), None
+        present = [f"{t}.txt" for t in MAGIC_TABLES if os.path.isfile(os.path.join(out, f"{t}.txt"))]
+        if present:
+            if not self._tdt_confirming:
+                self.tdt_where.options = where_choices(lab, out, BACKUP_DIR)
+                self.tdt_where.value = NEW_FOLDER
+                self.tdt_where.visible = self._tdt_confirming = True
+                self._label_tdt_confirm()
+                self.tdt_report.object = (f'<div style="color:{WARN_COLOR}">magic3/ has MagIC tables already '
+                                          f'({html.escape(", ".join(present))}). Choose where the new tables go and '
+                                          f'click again.</div>')
+                return
+            if self.tdt_where.value == REPLACE:
+                backup = os.path.join(out, BACKUP_DIR)
+            else:
+                out = dated_folder(lab)
+        self._cancel_tdt_confirm()
+        made = not os.path.isdir(out)
+        try:
+            with mp.StagedExport(out, backup=backup, originals=True) as stage:
+                result = tdt_reader.to_magic(files, stage.dir, volume_cc=self.tdt_volume.value,
+                                             moment_units=self.tdt_units.value,
+                                             lab_dec=self.tdt_dec.value, lab_inc=self.tdt_inc.value,
+                                             import_anisotropy=self.tdt_aniso.value)
+        except OSError as exc:
+            self.tdt_report.object = (f'<div style="color:{FAIL_COLOR}">could not write into {html.escape(out)}: '
+                                      f'{html.escape(str(exc))}</div>')
+            return
+        finally:
+            if made:
+                try:
+                    os.rmdir(out)                     # only while it is empty: nothing was written
+                except OSError:
+                    pass
         if not result["ok"]:
             self.tdt_report.object = (f'<div style="color:{FAIL_COLOR}">conversion refused; '
                                       f'fix the errors above</div>')
             return
-        from pmagpy import magic_project as mp
-        from pmagpy.convert_registry import record_conversion
+        written = [os.path.join(out, os.path.basename(p)) for p in result["files"]]
         # the log makes the tables PmagPy's own: every application works on them in place
         record_conversion(out, "tdt_import", files, label="ThellierTool .tdt",
                           values={"volume": self.tdt_volume.value, "moment_units": self.tdt_units.value,
                                   "lab_dec": self.tdt_dec.value, "lab_inc": self.tdt_inc.value,
                                   "import_anisotropy": self.tdt_aniso.value},
-                          tables={os.path.basename(p)[:-4]: mp.table_rows(p) for p in result["files"]})
+                          tables={os.path.basename(p)[:-4]: mp.table_rows(p) for p in written})
         self.path.value = out
         self.load()
+
+    def _tdt_lab(self) -> str:
+        """The folder the .tdt files are in: the one given, or the given file's."""
+        target = self.tdt_path.value.strip()
+        return target if os.path.isdir(target) else os.path.dirname(target)
+
+    def _label_tdt_confirm(self):
+        if not self._tdt_confirming:
+            return
+        from pmagpy.convert_registry import REPLACE, dated_folder
+        if self.tdt_where.value == REPLACE:
+            self.convert_btn.name, self.convert_btn.button_type = "Confirm: replace the tables", "danger"
+        else:
+            name = os.path.basename(dated_folder(self._tdt_lab()))
+            self.convert_btn.name, self.convert_btn.button_type = f"Confirm: write into {name}/", "warning"
+        self.convert_btn.width = 260
+
+    def _cancel_tdt_confirm(self):
+        self._tdt_confirming = False
+        self.tdt_where.visible = False
+        self.convert_btn.name, self.convert_btn.button_type, self.convert_btn.width = "Convert and open", "success", 170
 
     # ----- layout -----------------------------------------------------------
     def modal(self, *extra, width: int = 760):
@@ -322,7 +388,7 @@ class DataView(DirectoryChooser):
                          f'written: the table lists each problem with the line it is on.</div>'),
             self.tdt_path,
             pn.Row(self.tdt_units, self.tdt_volume, self.tdt_dec, self.tdt_inc),
-            self.tdt_aniso, pn.Row(self.check_btn, self.convert_btn), self.tdt_report,
+            self.tdt_aniso, pn.Row(self.check_btn, self.convert_btn), self.tdt_where, self.tdt_report,
             self.tdt_table, sizing_mode="stretch_width")
         return super().modal(importer, *extra, width=width)
 

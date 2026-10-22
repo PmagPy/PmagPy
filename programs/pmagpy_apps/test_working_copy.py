@@ -313,6 +313,81 @@ class TestStudiesPmagPyMadeAreWorkedOnInPlace:
         assert session.directory == out and "SP1" in session.data.specimens
 
 
+def tdt_lab(tmp_path, name="tdt_lab"):
+    """A folder holding one ThellierTool file, SP1.tdt, that checks clean."""
+    lab = tmp_path / name
+    lab.mkdir()
+    rows = ["Thellier-tdt", "45\t0\t0\t0\t0", "SP1\t0.0\t100\t10\t30"]
+    for i, temp in enumerate((100, 200, 300, 400, 500)):
+        rows.append(f"SP1\t{temp}.0\t{95 - 15 * i}\t10\t30")
+        rows.append(f"SP1\t{temp}.1\t{97 - 10 * i}\t12\t45")
+    (lab / "SP1.tdt").write_text("\n".join(rows) + "\n")
+    return lab
+
+
+class TestTheTdtImportAsksBeforeReplacing:
+    """Importing .tdt files again into a magic3/ that has tables asks first, as Convert does."""
+
+    def importer(self, study, lab):
+        from pmagpy_intensity.session import Session as Intensity
+        from pmagpy_intensity.views import DataView
+        session = Intensity(study)
+        view = DataView(session, chooser_available=False)
+        view.tdt_path.value = str(lab)
+        view.tdt_units.value = "Am^2"
+        view._check_tdt()
+        return session, view
+
+    def test_again_into_a_new_dated_folder_by_default(self, study, tmp_path):
+        from datetime import date
+        from pmagpy import convert_registry as reg
+        lab = tdt_lab(tmp_path)
+        session, view = self.importer(study, lab)
+        view._convert_tdt()
+        magic3 = str(lab / "magic3")
+        before = digest(magic3)
+        view._check_tdt()
+        view._convert_tdt()                                             # the first click asks
+        new = f"MagIC_{date.today().isoformat()}"
+        assert view.tdt_where.visible and view.tdt_where.value == reg.NEW_FOLDER
+        assert view.convert_btn.name == f"Confirm: write into {new}/"
+        assert "magic3/ has MagIC tables already" in view.tdt_report.object
+        assert digest(magic3) == before and not (lab / new).exists()
+        view._convert_tdt()
+        assert session.directory == str(lab / new) and digest(magic3) == before
+        (entry,) = reg.read_conversions(str(lab / new))
+        assert entry["files"] == ["SP1.tdt"] and reg.lab_folder(str(lab / new)) == str(lab)
+        assert view.convert_btn.name == "Convert and open" and not view.tdt_where.visible
+
+    def test_or_replacing_with_the_old_tables_kept(self, study, tmp_path):
+        from pmagpy import convert_registry as reg
+        lab = tdt_lab(tmp_path)
+        session, view = self.importer(study, lab)
+        view._convert_tdt()
+        magic3 = lab / "magic3"
+        first = (magic3 / "measurements.txt").read_text()
+        view.tdt_units.value = "emu"                                    # imported again in other units
+        view._check_tdt()
+        view._convert_tdt()
+        view.tdt_where.value = reg.REPLACE
+        assert view.convert_btn.name == "Confirm: replace the tables" and view.convert_btn.button_type == "danger"
+        view._convert_tdt()
+        assert session.directory == str(magic3)
+        assert (magic3 / "backup_before_pmagpy_apps" / "measurements.txt").read_text() == first
+        assert (magic3 / "measurements.txt").read_text() != first
+        assert len(reg.read_conversions(str(magic3))) == 2
+
+    def test_another_path_withdraws_the_question(self, study, tmp_path):
+        lab = tdt_lab(tmp_path)
+        session, view = self.importer(study, lab)
+        view._convert_tdt()
+        view._check_tdt()
+        view._convert_tdt()
+        assert view.tdt_where.visible
+        view.tdt_path.value = str(lab / "SP1.tdt")
+        assert not view.tdt_where.visible and view.convert_btn.name == "Convert and open"
+
+
 class TestContributionsFromMagicGetACopy:
     """A folder of tables that came from MagIC is someone's record: it is worked on in a copy, also when
     its tables were unpacked by Convert or lab files were converted into it since."""

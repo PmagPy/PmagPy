@@ -363,7 +363,10 @@ file operations live in the Export tab and the data dialog.
   here rather than at MagIC.
 * **ThellierTool `.tdt` import** that says what is wrong with a file instead of
   raising ([#818](https://github.com/PmagPy/PmagPy/issues/818)), and that reads
-  original Thellier–Thellier antiparallel pairs.
+  original Thellier–Thellier antiparallel pairs. Importing again into a
+  `magic3/` that has tables asks first, as the hub's Convert page does: into a
+  new folder `MagIC_<YYYY-MM-DD>/` beside it in the lab folder (the default), or
+  replacing them, the old ones kept in `magic3/backup_before_pmagpy_apps/`.
 * **Autosave**, so closing the tab does not lose an afternoon.
 * **A session file you can read**, diff and put in a repository.
 * **Publication figures without the GUI** — `publication.py` is importable from a
