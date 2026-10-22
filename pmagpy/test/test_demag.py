@@ -935,12 +935,13 @@ class TestCriteria:
             measured = lambda df: df[df["site"].isin(judged.names_at("site"))]      # noqa: E731
             assert measured(after)["dir_n_specimens"].sum() == len(rows) - len(failing) \
                 == measured(before)["dir_n_specimens"].sum() - len(failing)
-            # the stored-only interpretations (Spitsbergen) are judged by the same criterion
+            # the stored-only interpretations (Spitsbergen) enter as published: the criterion would fail
+            # some of them, but it is not applied to what cannot be re-fitted here
             stored = judged.stored_only_interpretations()
             stored = stored[stored["dir_tilt_correction"] == COORD_GEOGRAPHIC]
             stored_failing = int(((stored["dir_mad_free"] > 2.0) | (stored["dir_n_measurements"] < 5)).sum())
             assert 0 < stored_failing < len(stored) == 125
-            assert after["dir_n_specimens"].sum() == before["dir_n_specimens"].sum() - len(failing) - stored_failing
+            assert after["dir_n_specimens"].sum() == before["dir_n_specimens"].sum() - len(failing)
             lenient = judged.mean_directions("site", COORD_GEOGRAPHIC, include_bad=True)
             assert lenient["dir_n_specimens"].sum() == before["dir_n_specimens"].sum()
             # a plane left in the mean is still pinned down only by the accepted lines
@@ -1097,9 +1098,24 @@ class TestStoredOnlyInterpretations:
         assert any("no component name (dir_comp)" in w and "sp102j1a" in w for w in data.warnings)
         assert data.mean_directions("site", COORD_TILT, group="sp102").empty      # stored in -1 and 0 only
 
+        # DE-SPEC is not applied to them: sp102e2 (4 steps) stays in, as published
         data.set_criteria(criteria_frame(("DE-SPEC", "specimens.dir_n_measurements", ">=", "5")))
         judged = data.mean_directions("site", COORD_GEOGRAPHIC, "A", group="sp102").iloc[0]
-        assert judged["specimens"].split(":") == [s for s in kept if s != "sp102e2"]          # e2: 4 steps
+        assert judged["specimens"].split(":") == kept and "sp102e2" in kept
+
+    def test_sp102_mean_under_criteria_takes_every_stored_interpretation_as_published(self, tmp_path):
+        """With DE-SPEC dir_n_measurements >= 5, sp102e2 (4 steps) and one other used to drop out of sp102's
+        mean (212.0/-51.5, 11 specimens); the published selection is now trusted: 214.1/-51.5, 13 specimens."""
+        data = DemagData.from_directory(_copy_study(DMAG_DIR, tmp_path / "dmag"))
+        data.load_components_from_specimens_table()
+        data.set_criteria(criteria_frame(("DE-SPEC", "specimens.dir_n_measurements", ">=", "5")))
+        mean = data.mean_directions("site", COORD_GEOGRAPHIC, group="sp102").iloc[0]
+        assert (round(mean["dir_dec"], 1), round(mean["dir_inc"], 1), mean["dir_n_specimens"]) == (214.1, -51.5, 13)
+        assert mean["specimens"].split(":") == SP102
+        assert data.failing_groups("site", COORD_GEOGRAPHIC) == set()
+        data.write_means("site", str(tmp_path / "dmag"), coords=(COORD_GEOGRAPHIC,))
+        assert any(w.startswith("sites: 14 written means include 125 stored interpretations") and
+                   "criteria not applied" in w for w in data.warnings)
 
     def test_a_mixed_site_keeps_its_mean_when_measurements_are_missing(self, tmp_path):
         """dmag_magic jm004 with three specimens' measurements removed: their stored fits stand in for the re-fits."""

@@ -384,6 +384,7 @@ class TestExportView:
         assert s.version == version + 1 and s.data.criteria is not None
         failing = s.data.failing_components()
         assert len(failing) > 20 and f"{len(failing)} fits fail DE-SPEC" in view.criteria_note.object
+        assert "enter the means as published" in view.criteria_note.object         # Spitsbergen, stored only
         view._write()
         spec = pd.read_csv(out / "specimens.txt", sep="\t", skiprows=1, dtype=str)
         mine = spec[spec["software_packages"].fillna("").str.contains(dc.APP_ID)]
@@ -1078,7 +1079,8 @@ class TestMeansView:
         assert len(lines) == 8 and len(planes) == 5 and (lines["note"] == STORED_NOTE).all()
         assert (planes["note"] == STORED_NOTE).all() and (planes["bfv dec"] != "–").all()
         assert len(means.plot.src.data["x"]) == 8 and len(means.plot.circles.data["xs"]) == 5
-        assert ("A: 13 stored interpretations, no measurements here (as specimens.txt has them, not re-fitted): "
+        assert ("A: 13 stored interpretations, no measurements here (as published in specimens.txt: not re-fitted, "
+                "criteria not applied): "
                 "sp102a1, sp102a2, sp102b1") in means.stats_note.object
         means.stat.value = "bingham"                     # the 8 lines only
         assert means.stats.object.iloc[0]["n_spec"] == 8
@@ -1111,7 +1113,8 @@ class TestMeansView:
         view.levels.level.value = "site"
         dirs, planes, _vectors, _mark = view.levels._collect("site", "jm002", dc.COORD_GEOGRAPHIC)
         assert "jm002a1" in [d[2] for d in dirs]
-        assert "1 stored interpretation (stored, no measurements here)" in view.levels.stats.object
+        assert ("1 stored interpretation (stored, no measurements here; as published, criteria not applied)"
+                in view.levels.stats.object)
         fisher = s.data.mean_directions("site", dc.COORD_GEOGRAPHIC, group="jm002").iloc[0]
         assert fisher["dir_n_specimens"] == len(dirs) + len(planes)
 

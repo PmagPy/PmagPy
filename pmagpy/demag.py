@@ -1302,9 +1302,10 @@ class DemagData:
         A specimen with no measurements here (or none that can be read as a
         demagnetization) cannot be interpreted again, and an export keeps its
         rows in specimens.txt as they are. Those interpretations take part in
-        the sample, site and location means as stored: the row's dir_dec and
-        dir_inc in the row's coordinate system, a plane when its method codes
-        hold DE-BFP and a line otherwise. The stored direction of a DE-BFP row
+        the sample, site and location means as published: the row's dir_dec
+        and dir_inc in the row's coordinate system, a plane when its method
+        codes hold DE-BFP and a line otherwise, selected by the stored
+        ``result_quality`` and not judged by the DE-SPEC criteria. The stored direction of a DE-BFP row
         is the pole to the plane -- what ``pmag.domean`` reports, what the
         legacy Demag GUI wrote and averaged as a plane, and what a re-fitted
         plane carries here -- while ``dir_bfv_dec``/``dir_bfv_inc`` hold the
@@ -1321,7 +1322,8 @@ class DemagData:
             ``specimen``, ``sample``, ``site``, ``location``, ``dir_comp``,
             ``dir_tilt_correction`` (int), ``dir_dec``, ``dir_inc``,
             ``dir_type`` ('l' or 'p'), ``method_codes``, ``result_quality``
-            and the statistics a criterion judges; empty when there are none.
+            and the stored statistics (MAD, DANG, alpha95, number of steps);
+            empty when there are none.
         """
         tables = tuple(self.contribution.tables.get(n) for n in ("specimens", "samples", "sites"))
         frames = tuple(getattr(t, "df", None) for t in tables)
@@ -1384,7 +1386,14 @@ class DemagData:
 
     def _stored_for_means(self, coord: int, component: Optional[str] = None,
                           include_bad: bool = False) -> pd.DataFrame:
-        """The stored-only interpretations a mean in ``coord`` takes: the selection re-fitted fits get."""
+        """The stored-only interpretations a mean in ``coord`` takes.
+
+        They enter as published: the stored ``result_quality`` decides (g in, b
+        out unless bad ones are included) and the DE-SPEC criteria are not
+        applied to them, as they are to the fits re-fitted here -- the
+        published selection is trusted where the data to judge it again are
+        missing.
+        """
         stored = self.stored_only_interpretations()
         if len(stored) == 0:
             return stored
@@ -1393,7 +1402,6 @@ class DemagData:
             stored = stored[stored["dir_comp"] == str(component)]
         if not include_bad and len(stored):
             stored = stored[stored["result_quality"] != "b"]
-            stored = stored[~self._fails(stored, "specimen")]
         return stored
 
     def stored_interpretations_in(self, level: str, name: str) -> pd.DataFrame:
@@ -2012,7 +2020,7 @@ class DemagData:
         means_text = "1 written mean includes" if used == 1 else f"{used} written means include"
         self._warn_once(f"{table}: {means_text} {len(pairs)} stored interpretation{'s' if len(pairs) != 1 else ''} "
                         f"of {len(specimens)} specimen{'s' if len(specimens) != 1 else ''} with no measurements "
-                        "here, as specimens.txt has them (not re-fitted): " + ", ".join(specimens[:8])
+                        "here, as published in specimens.txt (not re-fitted; criteria not applied): " + ", ".join(specimens[:8])
                         + (" ..." if len(specimens) > 8 else ""))
 
     def _stamp(self, df: pd.DataFrame, analysts: Optional[str] = None) -> pd.DataFrame:

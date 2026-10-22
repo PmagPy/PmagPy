@@ -144,7 +144,7 @@ def orientation_html(orient) -> str:
 
 
 PLANE_FITS = ("plane fit", "plane fits")
-STORED_NOTE = "stored, no measurements here"
+STORED_NOTE = "stored, no measurements here; as published, criteria not applied"
 
 
 def stored_records(session, level, name, coord, comp=None):
@@ -1072,7 +1072,7 @@ class MeansView(LazyView):
             names = list(dict.fromkeys(names))
             if names:
                 notes.append(f"{comp_name}: {len(names)} stored interpretation{'s' if len(names) != 1 else ''}, "
-                             f"no measurements here (as specimens.txt has them, not re-fitted): "
+                             f"no measurements here (as published in specimens.txt: not re-fitted, criteria not applied): "
                              + ", ".join(names[:20]) + (" ..." if len(names) > 20 else ""))
         return notes
 
@@ -1834,6 +1834,9 @@ class ExportView:
             text = (f"{failing} fits fail DE-SPEC and are written <code>result_quality</code> 'b' and left out "
                     "of the means; a sample or site mean failing its criterion is written 'b' and left out of "
                     "the level above (location means, poles). Blank statistics do not fail a criterion.")
+            if len(self.s.data.stored_only_interpretations()):
+                text += (" Interpretations stored for specimens without measurements here enter the means as "
+                         "published: their <code>result_quality</code> decides, and DE-SPEC is not applied to them.")
         else:
             text = "the criteria are not applied: every fit and mean is written as it is"
         self.criteria_note.object = f'<div style="{MUTED_STYLE}">{text}</div>'
