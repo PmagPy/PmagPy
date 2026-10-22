@@ -2878,7 +2878,7 @@ def domean(data, start, end, calculation_type):
     end : step being used as end of fit (often temperature maximum)
     calculation_type : string describing type of calculation to be made
     'DE-BFL' (line), 'DE-BFL-A' (line-anchored), 'DE-BFL-O' (line-with-origin),
-    'DE-BFP' (plane), 'DE-FM' (Fisher mean)
+    'DE-VM' (vector mean), 'DE-BFP' (plane), 'DE-FM' (Fisher mean)
 
     Returns
     -------
@@ -2892,7 +2892,9 @@ def domean(data, start, end, calculation_type):
     anchored line ('DE-BFL-A') is the principal eigenvector of the orientation
     tensor taken about the origin, and its MAD is calculated from the same
     tensor. Lines point along the vector removed between the first and last
-    steps. 'specimen_dang' is not returned for anchored lines.
+    steps. 'specimen_dang' is not returned for anchored lines. A vector mean
+    ('DE-VM') is the direction of the sum of the selected steps, including
+    their intensities; it has no MAD, and its 'specimen_dang' is -1.
     """
     mpars = {}
     datablock = []
@@ -2929,7 +2931,7 @@ def domean(data, start, end, calculation_type):
 #
     fdata = []
     for k in range(start, end + 1):
-        if calculation_type == 'DE-BFL' or calculation_type == 'DE-BFL-A' or calculation_type == 'DE-BFL-O':  # best-fit line
+        if calculation_type in ('DE-BFL', 'DE-BFL-A', 'DE-BFL-O', 'DE-VM'):  # lines and vector means use intensity
             data = [datablock[k][1], datablock[k][2], datablock[k][3]]
         else:
             data = [datablock[k][1], datablock[k][2], 1.0]  # unit weight
@@ -2950,6 +2952,17 @@ def domean(data, start, end, calculation_type):
         mpars["measurement_step_min"] = indata[start0][0]
         mpars["measurement_step_max"] = indata[end0][0]
         mpars["center_of_mass"] = cm
+        mpars["specimen_dang"] = -1
+        return mpars
+    if calculation_type == 'DE-VM':  # vector mean, including the magnitudes of the steps
+        Dir, R = vector_mean(fdata)
+        mpars["specimen_direction_type"] = 'l'
+        mpars["specimen_dec"] = Dir[0]
+        mpars["specimen_inc"] = Dir[1]
+        mpars["specimen_n"] = len(fdata)
+        mpars["measurement_step_min"] = indata[start0][0]
+        mpars["measurement_step_max"] = indata[end0][0]
+        mpars["center_of_mass"] = cm  # the mean is drawn through the origin
         mpars["specimen_dang"] = -1
         return mpars
 #

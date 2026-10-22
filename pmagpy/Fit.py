@@ -37,6 +37,7 @@ class Fit(object):
         if calculation_type=="line": PCA_type="DE-BFL"
         elif calculation_type=="line-anchored": PCA_type="DE-BFL-A"
         elif calculation_type=="line-with-origin": PCA_type="DE-BFL-O"
+        elif calculation_type=="vector mean": PCA_type="DE-VM"
         elif calculation_type=="Fisher": PCA_type="DE-FM"
         elif calculation_type=="plane": PCA_type="DE-BFP"
         self.PCA_type = PCA_type

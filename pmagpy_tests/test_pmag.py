@@ -154,6 +154,15 @@ class TestDomean(unittest.TestCase):
         mad = np.degrees(np.arctan(np.sqrt(tau[1] + tau[2]) / np.sqrt(tau[0])))
         self.assertAlmostEqual(mpars['specimen_mad'], mad, places=6)
 
+    def test_vector_mean(self):
+        # DE-VM is the direction of the sum of the steps: atan(0.5) for the two steps
+        mpars = pmag.domean(self.block([(0., 0., 1.), (90., 0., 0.5)]), 0, 1, 'DE-VM')
+        self.assertLess(self.angle(mpars, np.degrees(np.arctan(0.5)), 0.), 1e-6)
+        self.assertEqual(mpars['specimen_direction_type'], 'l')
+        self.assertEqual(mpars['specimen_n'], 2)
+        self.assertEqual(mpars['specimen_dang'], -1)
+        self.assertNotIn('specimen_mad', mpars)
+
     def test_free_line_matches_eigenvector_about_centre_of_mass(self):
         directions, X = self.noisy_steps()
         mpars = pmag.domean(self.block(directions), 0, len(X) - 1, 'DE-BFL')
