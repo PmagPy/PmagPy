@@ -743,6 +743,25 @@ class TestConvertAgain:
         assert view.run_btn.name == f"Confirm: write into {new}-2/"
         assert asyncio.run(view._convert()) is True and session.directory == target + "-2"
 
+    def test_a_progress_line_arriving_late_does_not_replace_the_result(self, tmp_path, monkeypatch):
+        """In the browser the converter's last line ("Combining the tables …") could land after the result."""
+        from pmagpy import convert_registry as reg
+        queued = []
+        monkeypatch.setattr(pn.state, "execute", lambda callback: queued.append(callback))
+
+        def run(fmt, inputs, values, target, append=False, report=None, **extra):
+            result = reg.convert_files(fmt, inputs, values, target, append=append, **extra)
+            report("Combining the tables …")
+            return result
+        d = jr6_lab(tmp_path)
+        view = convert.ConvertView(home.HubSession(d), run=run)
+        choose(view, "jr6_jr6")
+        view.files.value = ["AF.jr6"]
+        assert asyncio.run(view._convert()) is True
+        for callback in queued:                                  # the server runs them after the result is shown
+            callback()
+        assert "AF.jr6 converted" in view.message.object and "Combining" not in view.message.object
+
     def test_a_dated_folder_takes_further_batches_from_its_lab_folder(self, tmp_path):
         from pmagpy import convert_registry as reg
         d, session, view = self.first(tmp_path)

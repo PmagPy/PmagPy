@@ -104,6 +104,7 @@ class ConvertView:
         self.message = pn.pane.HTML("", sizing_mode="stretch_width", min_height=24)
         self.log = pn.pane.HTML("", sizing_mode="stretch_width", visible=False)
         self._confirming = False
+        self._running = 0                       # the conversion whose progress lines may still be shown
         self._held = False                      # the tables folder has tables a conversion could add to
         self._chosen_for = None                 # the folder the format selector was last reset for
         self.run_btn.on_click(self._convert)
@@ -339,18 +340,23 @@ class ConvertView:
         self.run_btn.disabled = True
         loop = asyncio.get_running_loop()
         self._say(f"Converting with {html.escape(fmt.label)} …")
+        self._running += 1
+        running = self._running
+
+        def progress(text: str) -> None:
+            # a line queued from the converter's thread may arrive after the result: it is dropped then
+            pn.state.execute(lambda: self._say(html.escape(text)) if self._running == running else None)
         try:
             if target != tables:
                 os.mkdir(target)
             result = await loop.run_in_executor(
-                None, lambda: self.run(fmt, inputs, values, target, append=append,
-                                       report=lambda text: pn.state.execute(lambda: self._say(html.escape(text))),
-                                       **extra))
+                None, lambda: self.run(fmt, inputs, values, target, append=append, report=progress, **extra))
         except OSError as err:
             self._forget(target, tables)
             self._say(f"Could not write into {html.escape(shorten_home(target))}: {html.escape(str(err))}", FAIL_COLOR)
             return False
         finally:
+            self._running += 1
             self.run_btn.disabled = False
         self._show_log(result.log)
         if not result.ok:
