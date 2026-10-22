@@ -2180,14 +2180,20 @@ def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50
         model_name=model_name,saveto=save_svei,cdf_samples=cdf_samples,
         sim_batch_size=sim_batch_size,show=plot,random_seed=rng,
     )
-    if (res_dict['H']==0)&(res_dict['V2_result']==1)&(res_dict['E_result']==1):
+    fast_path = (
+        res_dict['H'] == 0
+        and res_dict['V2_result'] == 1
+        and res_dict['E_result'] == 1
+    )
+    if fast_path:
         res_dict['flat']=1
         res_dict['study']=study
         res_dict['kappa']=kappa
         if verbose: 
             print ('distribution is consistent with field model ',model_name)
             print ('You are done now')
-        return [res_dict] # don't do find_flat if none necessary  
+        flats = np.array([1])
+        flat_results = [res_dict]
     else:
         if verbose: 
             print ('distribution is not consistent with field model ',model_name)
@@ -2206,23 +2212,23 @@ def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50
             if verbose: print (res_dict)
             flat_results.append(res_dict)
 
-        for res_dict in flat_results:
-            V2mins.append(res_dict['V2sim_min'])
-            V2maxs.append(res_dict['V2sim_max'])
-            Emins.append(res_dict['Esim_min'])
-            Emaxs.append(res_dict['Esim_max'])
-            kappas.append(res_dict['kappa']) 
-            A2Is.append(res_dict['A2I'])
-            A2Ds.append(res_dict['A2D'])
-            Hs.append(res_dict['H'])
-            lats.append(res_dict['lat'])
-            inc=pmag.pinc(res_dict['lat'])
-            incs.append(inc)
-            pIDs.append(res_dict['pID'])
-            V2_results.append(res_dict['V2_result'])
-            E_results.append(res_dict['E_result'])
-            V2s.append(res_dict['V2dec'])
-            Es.append(res_dict['E'])
+    for res_dict in flat_results:
+        V2mins.append(res_dict['V2sim_min'])
+        V2maxs.append(res_dict['V2sim_max'])
+        Emins.append(res_dict['Esim_min'])
+        Emaxs.append(res_dict['Esim_max'])
+        kappas.append(res_dict['kappa'])
+        A2Is.append(res_dict['A2I'])
+        A2Ds.append(res_dict['A2D'])
+        Hs.append(res_dict['H'])
+        lats.append(res_dict['lat'])
+        inc=pmag.pinc(res_dict['lat'])
+        incs.append(inc)
+        pIDs.append(res_dict['pID'])
+        V2_results.append(res_dict['V2_result'])
+        E_results.append(res_dict['E_result'])
+        V2s.append(res_dict['V2dec'])
+        Es.append(res_dict['E'])
  
     As_df['flat']=flats
     As_df['study']=study
@@ -2356,6 +2362,8 @@ def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50
             plt.show()
         else:
             plt.close(fig)
+    if fast_path:
+        return [res_dict]
     return(As_df) 
 
 def svei_test(di_block,model_name='TK03_GAD',degree=8,lat=False,kappa=-1,plot=False,cite="",saveto=False,

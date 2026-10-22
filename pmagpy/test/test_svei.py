@@ -263,3 +263,42 @@ def test_find_flat_saves_both_figures_and_reuses_initial_result(
                for call in calls)
     assert_allclose(result['V2max'], 210.0)
     plt.close('all')
+
+
+def test_find_flat_saves_summary_when_initial_result_passes(
+        monkeypatch, tmp_path):
+    calls = []
+
+    def fake_svei_test(*args, **kwargs):
+        calls.append(kwargs)
+        if kwargs['plot'] and kwargs['saveto']:
+            plt.figure().savefig(kwargs['saveto'])
+        return {
+            'kappa': kwargs['kappa'], 'lat': 35.0,
+            'A2D': 1.0, 'A2I': 1.0, 'pID': 0.5, 'H': 0,
+            'V2dec': 180.0, 'V2sim_min': 150.0,
+            'V2sim_max': 210.0, 'E': 1.5, 'Esim_min': 1.1,
+            'Esim_max': 2.0, 'V2_result': 1, 'E_result': 1,
+        }
+
+    monkeypatch.setattr(svei, 'svei_test', fake_svei_test)
+    monkeypatch.setattr(svei.ipmag, 'plot_net', lambda *a, **k: None)
+    monkeypatch.setattr(svei.ipmag, 'plot_di', lambda *a, **k: None)
+
+    directions = np.array([
+        [0, 45], [5, 50], [355, 40], [180, -45],
+        [185, -50], [175, -40], [10, 42], [190, -42],
+    ])
+    summary_path = tmp_path / 'passing.pdf'
+    result = svei.find_flat(
+        directions, save=True, plot=False, quick=True,
+        saveto=summary_path, num_sims=10, cdf_samples=5000,
+        random_seed=5,
+    )
+
+    assert summary_path.exists()
+    assert (tmp_path / 'passing_svei_test.pdf').exists()
+    assert len(calls) == 1
+    assert isinstance(result, list)
+    assert result[0]['flat'] == 1
+    plt.close('all')
