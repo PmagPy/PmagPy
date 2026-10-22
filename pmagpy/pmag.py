@@ -2882,8 +2882,17 @@ def domean(data, start, end, calculation_type):
 
     Returns
     -------
-    mpars : dictionary 
+    mpars : dictionary
         The keys within are "specimen_n","measurement_step_min", "measurement_step_max","specimen_mad","specimen_dec","specimen_inc".
+
+    Notes
+    -----
+    Lines and planes are principal component fits (Kirschvink, 1980). A free
+    line ('DE-BFL') is fit about the centre of mass of the selected steps; an
+    anchored line ('DE-BFL-A') is the principal eigenvector of the orientation
+    tensor taken about the origin, and its MAD is calculated from the same
+    tensor. Lines point along the vector removed between the first and last
+    steps. 'specimen_dang' is not returned for anchored lines.
     """
     mpars = {}
     datablock = []
@@ -2979,7 +2988,16 @@ def domean(data, start, end, calculation_type):
     if t[2] < 0:
         t[2] = 0  # make positive
     if calculation_type == 'DE-BFL-A':
-        Dir, R = vector_mean(fdata)
+        # anchored line: the principal eigenvector of the orientation tensor
+        # taken about the origin (Kirschvink, 1980), pointing along the vector
+        # removed between the first and last steps, as for free lines
+        v1 = np.array(v1).real
+        control = np.array(dir2cart(fdata[0])) - np.array(dir2cart(fdata[-1]))
+        if not np.any(control):  # a single step: point along the step itself
+            control = np.array(dir2cart(fdata[0]))
+        if np.dot(v1, control) < 0:
+            v1 = -v1
+        Dir = cart2dir(v1)
         mpars["specimen_direction_type"] = 'l'
         mpars["specimen_dec"] = Dir[0]
         mpars["specimen_inc"] = Dir[1]
@@ -2991,7 +3009,6 @@ def domean(data, start, end, calculation_type):
         MAD = np.arctan(np.sqrt(t[1] + t[2]) / s1) / rad
         if np.iscomplexobj(MAD):
             MAD = MAD.real
-        # I think this is how it is done - i never anchor the "PCA" - check
         mpars["specimen_mad"] = MAD
         return mpars
     if calculation_type != 'DE-BFP':
