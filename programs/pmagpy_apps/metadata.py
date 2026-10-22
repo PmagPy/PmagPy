@@ -338,12 +338,17 @@ class MetadataView:
         text = (f"Unsaved changes. {what} {html.escape(shared.name)} has {shared.rows} rows: this row's "
                 f"{html.escape(cols)} now in every one of them ({shared.changed} other "
                 f"row{'s' if shared.changed != 1 else ''} changed).")
+        warn = False
         if shared.disagreed:
             differ = "; ".join(f"{html.escape(c)} {html.escape(', '.join(v))}" for c, v in shared.disagreed.items())
-            self._say(text + f" Its rows disagreed before this edit ({differ}); all now take this row's values.",
-                      WARN_COLOR)
-        else:
-            self._say(text)
+            text += f" Its rows disagreed before this edit ({differ}); all now take this row's values."
+            warn = True
+        if shared.cleared:
+            gone = "; ".join(f"{html.escape(c)} {html.escape(', '.join(v))}" for c, v in shared.cleared.items())
+            text += (f" This row leaves blank what its other rows had ({gone}): those cells are now blank in every "
+                     "row; type the values into this row to keep them.")
+            warn = True
+        self._say(text, WARN_COLOR if warn else "")
 
     def _share(self, event) -> Optional[mm.SharedEdit]:
         """A site's (or sample's) position or age typed into one of its rows reaches all of its rows."""

@@ -864,6 +864,23 @@ class TestMetadata:
         view._edited(SimpleNamespace(row=2, column="lithologies", value="Basalt", old=""))
         assert view.message.object.endswith("Unsaved changes.</div>")             # nothing shared, nothing said
 
+    def test_a_position_edit_names_the_values_a_blank_in_the_row_clears(self, tmp_path):
+        """The whole position travels together, blanks included: the page names what the other rows lose."""
+        from types import SimpleNamespace
+        import pandas as pd
+        d = small_study(tmp_path)
+        metadata.mm.mp.magic_write(os.path.join(d, "sites.txt"), pd.DataFrame([
+            {"site": "Z11", "location": "Zavkhan", "lat": "47.05", "lon": "96.2", "elevation": "1500"},
+            {"site": "Z11", "location": "Zavkhan", "lat": "47.05", "lon": "96.2", "elevation": ""}]), "sites")
+        view = metadata.MetadataView(home.HubSession(d))
+        df = view.current()
+        df.loc[1, "lat"] = "47.06"
+        view.grid.value = df
+        view._edited(SimpleNamespace(row=1, column="lat", value="47.06", old="47.05"))
+        assert list(view.grid.value.lat[:2]) == ["47.06", "47.06"] and list(view.grid.value.elevation[:2]) == ["", ""]
+        assert "This row leaves blank what its other rows had (elevation 1500)" in view.message.object
+        assert "#b45309" in view.message.object
+
     def test_a_save_keeps_what_an_application_wrote_since_the_table_was_shown(self, tmp_path):
         """The page wrote back the grid it read when the table was shown, undoing the site means PmagPy
         Directions (or Intensity) had exported into sites.txt in the meantime."""

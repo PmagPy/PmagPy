@@ -322,6 +322,38 @@ class TestSharedEdit:
         assert mm.share_edit("sites", df, 1, "lat")[1] is None                 # sr02 has one row
         assert mm.share_edit("locations", df.rename(columns={"site": "location"}), 0, "lat")[1] is None
 
+    def test_the_whole_position_travels_together(self):
+        """lat and lon with their sigmas, precision and elevation: one group; height is not a site's position here."""
+        df = pd.DataFrame([
+            {"site": "sr01", "lat": "42.6", "lat_sigma": "0.01", "lon": "245.6", "lon_sigma": "0.01",
+             "geographic_precision": "0.001", "elevation": "1200", "height": "3", "age": "3.4"},
+            {"site": "sr01", "lat": "42.6", "lat_sigma": "0.01", "lon": "245.6", "lon_sigma": "0.01",
+             "geographic_precision": "0.001", "elevation": "1200", "height": "5", "age": "3.4"}])
+        df.loc[0, ["elevation", "lat_sigma"]] = ["1250", "0.02"]
+        out, shared = mm.share_edit("sites", df, 0, "elevation", before="1200")
+        assert shared.columns == ["lat", "lat_sigma", "lon", "lon_sigma", "geographic_precision", "elevation"]
+        assert out.loc[1, ["elevation", "lat_sigma", "height", "age"]].tolist() == ["1250", "0.02", "5", "3.4"]
+        assert shared.changed == 1 and shared.cleared == {}
+        out, shared = mm.share_edit("sites", df, 0, "geographic_precision")
+        assert shared is not None and "elevation" in shared.columns
+
+    def test_a_sample_shares_its_precision_and_height(self):
+        df = pd.DataFrame([{"sample": "sr01a", "lat": "42.6", "lon": "245.6", "lat_lon_precision": "0.01", "height": "2"},
+                           {"sample": "sr01a", "lat": "42.6", "lon": "245.6", "lat_lon_precision": "0.01", "height": "2"}])
+        df.loc[1, "height"] = "2.5"
+        out, shared = mm.share_edit("samples", df, 1, "height", before="2")
+        assert out.loc[0, "height"] == "2.5" and shared.columns == ["lat", "lon", "lat_lon_precision", "height"]
+
+    def test_the_values_a_blank_in_the_edited_row_clears_are_named(self):
+        """15143 sr01a carries its position on its first row only: a latitude typed into another row (whose
+        longitude is blank) blanks the longitude of the first, and says so."""
+        df = pd.DataFrame([{"sample": "sr01a", "lat": "42.60264", "lon": "245.602"},
+                           {"sample": "sr01a", "lat": "", "lon": ""}])
+        df.loc[1, "lat"] = "42.61"
+        out, shared = mm.share_edit("samples", df, 1, "lat", before="")
+        assert out.loc[0, ["lat", "lon"]].tolist() == ["42.61", ""]
+        assert shared.cleared == {"lon": ["245.602"]} and shared.disagreed == {}
+
     def test_a_sample_with_several_rows_shares_its_position(self):
         """Samples tables repeat a sample once per result (15143 sr01a: four rows, the position on the first)."""
         df = pd.DataFrame([{"sample": "sr01a", "site": "sr01", "lat": "42.6", "lon": "245.6"},

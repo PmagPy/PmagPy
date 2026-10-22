@@ -478,8 +478,19 @@ def merge_edits(directory: str, table: str, frame: EditorFrame, edited: pd.DataF
 
 #: the tables in which several rows of one name describe one thing: a site (or sample) has one place
 SHARED_TABLES = ("sites", "samples")
-#: the columns such rows share, each group edited together: the position, and the age with its unit and range
-SHARED_GROUPS = (("lat", "lon"), ("age", "age_sigma", "age_low", "age_high", "age_unit"))
+#: a site's (or sample's) position, edited together: lat and lon with their sigmas and precision, and the
+#: elevation (sites) or stratigraphic height (samples) -- the columns each table has in the data model
+POSITION_COLUMNS = {"sites": ("lat", "lat_sigma", "lon", "lon_sigma", "geographic_precision", "elevation"),
+                    "samples": ("lat", "lat_sigma", "lon", "lon_sigma", "lat_lon_precision", "height")}
+#: the age with its unit and range
+AGE_GROUP = ("age", "age_sigma", "age_low", "age_high", "age_unit")
+
+
+def shared_groups(table: str) -> Tuple[Tuple[str, ...], ...]:
+    """The groups of columns the rows of one site (or sample) share in ``table``, each edited together."""
+    if table not in SHARED_TABLES:
+        return ()
+    return (POSITION_COLUMNS[table], AGE_GROUP)
 
 
 @dataclass
@@ -493,12 +504,15 @@ class SharedEdit:
         changed: how many of the other rows took new values.
         disagreed: column -> the distinct values the rows had before the edit, for the
             columns in which they differed (blank cells are not counted as a value).
+        cleared: column -> the values other rows had in a column the edited row leaves
+            blank: those rows are now blank there too.
     """
     name: str
     columns: List[str]
     rows: int
     changed: int
     disagreed: Dict[str, List[str]] = field(default_factory=dict)
+    cleared: Dict[str, List[str]] = field(default_factory=dict)
 
 
 def share_edit(table: str, df: pd.DataFrame, row: int, column: str,
@@ -508,9 +522,12 @@ def share_edit(table: str, df: pd.DataFrame, row: int, column: str,
     MagIC tables often hold several rows for one site (one per experiment or
     result), and PmagPy Directions places a site at the mean position of its
     rows: an edit of one row's latitude would move the site's VGP to a place
-    no row names. When ``column`` belongs to one of :data:`SHARED_GROUPS`, the
-    whole group (lat with lon; age with its sigma, range and unit) is copied
+    no row names. When ``column`` belongs to one of :func:`shared_groups`, the
+    whole group (the position: lat and lon with their sigmas, precision and
+    elevation or height; the age with its sigma, range and unit) is copied
     from the edited row (position ``row``) onto the other rows of that name.
+    A cell of the group the edited row leaves blank is blank in every row
+    afterwards; the values that cleared are reported.
 
     Args:
         table: the table the frame holds.
@@ -525,8 +542,8 @@ def share_edit(table: str, df: pd.DataFrame, row: int, column: str,
         the column or a single-row name leaves nothing to share.
     """
     key = NAME_COLUMN.get(table)
-    group = next((g for g in SHARED_GROUPS if column in g), None)
-    if table not in SHARED_TABLES or group is None or key not in df.columns:
+    group = next((g for g in shared_groups(table) if column in g), None)
+    if group is None or key not in df.columns:
         return df, None
     names = df[key].astype(str).str.strip()
     name = names.iloc[row]
@@ -544,13 +561,20 @@ def share_edit(table: str, df: pd.DataFrame, row: int, column: str,
             disagreed[c] = values
     out = df.copy()
     source = [str(v) for v in df.iloc[row][cols]]
+    others = earlier.drop(index=earlier.index[same.index(row)])
+    cleared = {}
+    for c, value in zip(cols, source):
+        values = [v for v in dict.fromkeys(others[c].str.strip()) if v]
+        if not value.strip() and values:
+            cleared[c] = values
     changed = 0
     for i in same:
         if i != row and [str(v) for v in out.iloc[i][cols]] != source:
             for c, value in zip(cols, source):
                 out.iat[i, out.columns.get_loc(c)] = value
             changed += 1
-    return out, SharedEdit(name=name, columns=cols, rows=len(same), changed=changed, disagreed=disagreed)
+    return out, SharedEdit(name=name, columns=cols, rows=len(same), changed=changed, disagreed=disagreed,
+                           cleared=cleared)
 
 
 def blank_row(table: str, frame_columns: Iterable[str]) -> dict:
