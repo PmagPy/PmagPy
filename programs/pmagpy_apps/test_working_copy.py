@@ -646,6 +646,31 @@ class TestAWindowOnACopySetAside:
             old.save_session(os.path.join(copy, "mine.json"))
         assert digest(copy) == before and not os.path.exists(os.path.join(copy, AUTOSAVE_NAME))
 
+    def test_intensity_show_code_writes_no_snapshot_anywhere_and_says_to_reload(self, study, base, tmp_path,
+                                                                                 monkeypatch):
+        import pmagpy_intensity.session as session_module
+        from pmagpy_intensity.session import Session as Intensity
+        from pmagpy_intensity.views import GroupView
+        from pmagpy_panel import autosave
+        home = tmp_path / "home"
+        monkeypatch.setattr(session_module, "CODE_SESSION_HOME", str(home))
+        old = Intensity(study)
+        copy = old.directory
+        self.fresh(study, tmp_path)
+        before = digest(copy)
+        old.specimen = old.data.specimen_names[0]
+        old.toggle_step(int(old.spec.steps["sequence"].iloc[1]))
+        assert old.status == autosave.COPY_REPLACED
+        with pytest.raises(autosave.WorkingCopyReplaced):
+            old.code_session_file()
+        group = GroupView(old)
+        group.set_active(True)
+        group.code.toggle.value = True
+        assert f"# {autosave.COPY_REPLACED};" in group.code.text and "reload" in group.code.text
+        assert digest(copy) == before and not home.exists()
+        assert not [os.path.join(r, n) for r, _, names in os.walk(base) for n in names
+                    if n == session_module.CODE_SESSION_NAME]
+
     def test_the_metadata_page_does_not_save_into_the_new_copy(self, study, base, tmp_path):
         from pmagpy_apps import metadata
         from pmagpy_apps.home import HubSession

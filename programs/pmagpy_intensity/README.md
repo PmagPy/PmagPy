@@ -399,7 +399,9 @@ file operations live in the Export tab and the data dialog.
   and why: in the study's folder when it can be written, else in the study's
   folder under the output base, else in a folder of its own under
   `~/.pmagpy/pmagpy_intensity/code_sessions/` — never into a folder that ships with
-  PmagPy. Every figure and
+  PmagPy. A window whose working copy was set aside (*Start a fresh copy* in
+  another window) writes the file nowhere, as it writes no autosave or export:
+  the code says to reload. Every figure and
   every exported table is written with that script beside it, so a result you
   find in a folder six months later comes with the calls that made it.
 

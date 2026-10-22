@@ -26,6 +26,7 @@ from pmagpy import pint_stats as ps
 from pmagpy import tdt as tdt_reader
 
 from pmagpy_panel import code
+from pmagpy_panel.autosave import COPY_REPLACED, WorkingCopyReplaced
 from pmagpy_panel.chooser import DirectoryChooser, shorten
 from pmagpy_panel.widgets import HeightSplitter, Hotkeys, LayoutHold
 from pmagpy_panel.theme import (ACCENT, BUTTON_GROUP_CSS, CHECKBOX_CSS, INPUT_CSS, KPI_ITEM,
@@ -169,6 +170,8 @@ def code_session(session: Session, pane) -> tuple:
         return session.autosave_path, []
     try:
         path, why = session.code_session_file()
+    except WorkingCopyReplaced:
+        return session.autosave_path, [f"# {COPY_REPLACED};", "# the autosave below is the new copy's, not this window's session"]
     except OSError as exc:
         return session.autosave_path, [f"# the session could not be written for this code ({exc.strerror or exc});",
                                        "# the autosave below may hold an earlier state of it"]

@@ -502,9 +502,14 @@ class Session(param.Parameterized):
         written, autosaving is off, or another window wrote it) the session is written now to
         :data:`CODE_SESSION_NAME` in the first of :meth:`code_session_folders` that takes it.
 
+        A window whose working copy was set aside writes nothing, here or elsewhere: its autosave and
+        export do not either, and the window is to be reloaded.
+
         Raises:
+            WorkingCopyReplaced: this window's working copy was set aside and a new one made in its place.
             OSError: no folder could take the file.
         """
+        guard.guard_of(self.data).check(self.output_dir)
         if self._holds_the_session(self.autosave_path):
             return self.autosave_path, ""
         if self._autosave_pending is not None:
@@ -522,6 +527,8 @@ class Session(param.Parameterized):
                 os.makedirs(folder, exist_ok=True)
                 self.save_session(target)
                 return target, why
+            except guard.WorkingCopyReplaced:
+                raise
             except OSError as exc:
                 error = exc
         raise error or OSError("no folder could take the session file")
