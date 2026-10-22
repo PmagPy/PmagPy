@@ -769,9 +769,19 @@ class TestWhereInterpretationsCameFrom:
         out = small.auto_interpret_all(specimens=names, replace=False)
         assert names[0] not in out and set(out) == set(names[1:])
         assert (small.interpretations[names[0]].imin, small.interpretations[names[0]].imax) == (0, 4)
-        out = small.auto_interpret_all(specimens=names)
+        out = small.auto_interpret_all(specimens=names, replace=True)
         assert set(out) == set(names)
         assert small.interpretations[names[0]].source == "auto"
+
+    def test_auto_interpret_all_leaves_existing_interpretations_alone_by_default(self, small):
+        # the core matches the app: a script's bare call keeps what is there, published ones included
+        names = small.specimen_names[:6]
+        small.set_interpretation(names[0], 0, 4)
+        out = small.auto_interpret_all(specimens=names)
+        assert names[0] not in out and set(out) == set(names[1:])
+        assert (small.interpretations[names[0]].imin, small.interpretations[names[0]].imax) == (0, 4)
+        assert small.interpretations[names[0]].source == "analyst"
+        assert small.auto_interpret_all(specimens=names) == {}
 
 
 # ---------------------------------------------------------------------------

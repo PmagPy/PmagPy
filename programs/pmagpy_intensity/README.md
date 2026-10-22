@@ -414,13 +414,20 @@ computed from a script:
 import pmagpy.paleointensity as pint
 
 data = pint.PintData.from_directory("data_files/3_0/Megiddo")
-data.auto_interpret_all()                      # or set_interpretation(name, imin, imax)
+data.import_from_specimens_table()             # the published interpretations, if you want them
+data.auto_interpret_all()                      # the specimens without one; or set_interpretation(name, imin, imax)
 result = data.result("mgk09t1PI01")
 print(result.b_anc, result.passed, result.failures)
 
 frame = data.group_results(level="site")       # a DataFrame of site means
 data.write_specimens("out/")                   # MagIC 3 tables
 ```
+
+`auto_interpret_all()` interprets only the specimens that have no
+interpretation, as the app's *Auto-interpret all* does; pass `replace=True` to
+redo every one, published interpretations included. (Changed after pmagpy
+4.5.2, October 2026: the default used to be `replace=True`, so a bare call
+replaced every interpretation.)
 
 The statistics alone, with no MagIC in sight:
 

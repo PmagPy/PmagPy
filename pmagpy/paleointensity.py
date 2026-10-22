@@ -1974,11 +1974,21 @@ class PintData:
         return interp
 
     def auto_interpret_all(self, min_n: int = 4, specimens: Optional[Iterable[str]] = None,
-                           progress=None, replace: bool = True) -> Dict[str, Optional[Interpretation]]:
-        """Auto-interpret every specimen (or ``specimens``); returns specimen -> interpretation or None.
+                           progress=None, replace: bool = False) -> Dict[str, Optional[Interpretation]]:
+        """Auto-interpret the specimens without an interpretation; returns specimen -> interpretation or None.
 
-        ``replace`` False leaves alone every specimen that has an interpretation, or one set aside by
-        a flag (:meth:`has_interpretation`), and interprets only the others.
+        Args:
+            min_n: the fewest Arai points a segment may have.
+            specimens: the specimens to consider (default: every specimen).
+            progress: called with (fraction done, specimen name) after each specimen.
+            replace: False (the default) leaves alone every specimen that has an interpretation,
+                or one set aside by a flag (:meth:`has_interpretation`) -- published ones imported
+                from specimens.txt among them -- and interprets only the others, as the app's
+                *Auto-interpret all* does; True interprets every one, replacing what is there.
+
+        Changed after pmagpy 4.5.2 (October 2026): ``replace`` defaults to False. Before, a bare
+        ``data.auto_interpret_all()`` replaced every existing interpretation; a script that relies
+        on that passes ``replace=True``.
         """
         names = list(specimens) if specimens is not None else self.specimen_names
         if not replace:

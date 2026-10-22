@@ -360,7 +360,8 @@ class Session(param.Parameterized):
         return changed
 
     def auto_interpret(self, specimens: Optional[Iterable[str]] = None, progress=None,
-                       replace: bool = True) -> dict:
+                       replace: bool = False) -> dict:
+        """Auto-interpret the specimens without an interpretation (``replace=True``: every one)."""
         out = self.data.auto_interpret_all(specimens=specimens, progress=progress, replace=replace)
         self._changed()
         return out
