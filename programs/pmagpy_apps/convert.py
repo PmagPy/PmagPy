@@ -23,7 +23,9 @@ kept in ``backup_before_pmagpy_apps/``.
 
 A MagIC contribution file (one download from the database, all tables in one
 text file) is offered on the same page: it is not a conversion but it is the
-other way a directory of files becomes a MagIC directory.
+other way a directory of files becomes a MagIC directory. It cannot be added to
+tables already there: unpacking into a folder that has tables asks the same
+question first (a dated folder, or replacing them with the old ones kept).
 """
 from __future__ import annotations
 
@@ -102,6 +104,7 @@ class ConvertView:
         self.message = pn.pane.HTML("", sizing_mode="stretch_width", min_height=24)
         self.log = pn.pane.HTML("", sizing_mode="stretch_width", visible=False)
         self._confirming = False
+        self._held = False                      # the tables folder has tables a conversion could add to
         self._chosen_for = None                 # the folder the format selector was last reset for
         self.run_btn.on_click(self._convert)
         self.format.param.watch(lambda e: self._format_changed(), "value")
@@ -150,8 +153,8 @@ class ConvertView:
                 self.format.value = CHOOSE
                 self._chosen_for = folder
             # any table already there is worth keeping — the samples and sites from a field notebook as much as measurements
-            held = self.tables_inv.is_magic or self.tables_inv.has_level_tables
-            self.append.visible = self.append.value = held
+            self._held = self.tables_inv.is_magic or self.tables_inv.has_level_tables
+            self.append.visible = self.append.value = self._held
             self._format_changed()
 
     def reset(self) -> None:
@@ -179,13 +182,17 @@ class ConvertView:
                     "MagIC contribution file? " if inv.format_key == MAGIC_FILE else "")
             self._note(hint + "choose the format the instrument wrote, then the files to convert.")
             return
-        if fmt is None:                                   # the contribution file
-            self._offer(names, [f.name for f in inv.files if f.role == "MagIC contribution file"])
+        if fmt is None:                                   # the contribution file: its tables are not added to others
+            self.append.visible = False
+            # beside tables, a contribution file is taken for the upload built from them: offered all the same
+            self._offer(names + [n for n in inv.uploads if n not in names],
+                        [f.name for f in inv.files if f.role == "MagIC contribution file"])
             self.files.disabled = False
             self.form.set_fields(())
             self._note("One text file with every table in it, as MagIC serves a contribution. It unpacks into "
-                       "the tables here.")
+                       "the tables here; where there are tables already, the page asks first.")
             return
+        self.append.visible = self._held
         self.form.set_fields(fmt.fields)
         if fmt.takes_directory:
             self._offer(names, [])
@@ -256,18 +263,19 @@ class ConvertView:
         self.where.visible = False
         self.run_btn.name, self.run_btn.button_type, self.run_btn.width = "Convert", "success", 130
 
-    def _ask_where(self, tables: str) -> None:
+    def _ask_where(self, tables: str, can_add: bool = True) -> None:
         """The first click of a fresh conversion into a folder that has tables: ask where the new ones go."""
         self.where.options = where_choices(self.folder, tables, BACKUP_DIR)
         self.where.value = NEW_FOLDER
         self.where.visible = True
         self._confirming = True
         self._label_confirm()
-        present = [f"{t}.txt" for t in MAGIC_TABLES if os.path.isfile(os.path.join(tables, f"{t}.txt"))]
+        present = [f"{t}.txt" for t in ("contribution",) + MAGIC_TABLES if os.path.isfile(os.path.join(tables, f"{t}.txt"))]
         which = ("This folder" if os.path.realpath(tables) == os.path.realpath(self.folder)
                  else f"{html.escape(os.path.basename(tables.rstrip(os.sep)))}/")
         self._say(f"{which} has MagIC tables already ({html.escape(', '.join(present))}). Choose where the new "
-                  "tables go and click again, or tick “Add to the tables already here”.", WARN_COLOR)
+                  "tables go and click again" + (", or tick “Add to the tables already here”." if can_add else "."),
+                  WARN_COLOR)
 
     def _label_confirm(self) -> None:
         if not self._confirming:
@@ -380,32 +388,54 @@ class ConvertView:
                 pass
 
     async def _unpack(self, folder: str, directory: str) -> bool:
-        """Unpack the chosen contribution file (in the lab folder ``folder``) into ``directory``."""
+        """Unpack the chosen contribution file (in the lab folder ``folder``) into ``directory``, all or nothing.
+
+        Into a folder that has tables, the first click asks where the contribution's tables go, as a
+        conversion does: a dated folder in the lab folder, or replacing them (the old ones kept).
+        """
         chosen = list(self.files.value)
         if len(chosen) != 1:
             self._say("Choose the one contribution file to unpack.", FAIL_COLOR)
             return False
+        target, backup = directory, None
+        if has_tables(directory) or os.path.isfile(os.path.join(directory, "contribution.txt")):
+            if not self._confirming:
+                self._ask_where(directory, can_add=False)
+                return False
+            if self.where.value == REPLACE:
+                backup = os.path.join(directory, BACKUP_DIR)
+            else:
+                target = dated_folder(folder)
+        self._cancel_confirm()
         path = os.path.join(folder, chosen[0])
         self.run_btn.disabled = True
         loop = asyncio.get_running_loop()
         self._say(f"Unpacking {html.escape(chosen[0])} …")
+
+        def work():
+            with open(path, encoding="utf-8", errors="replace") as fh:
+                text = fh.read()
+            with mp.StagedExport(target, backup=backup, originals=True) as stage:
+                return mp.unpack_contribution(text, stage.dir)
         try:
-            def work():
-                with open(path, encoding="utf-8", errors="replace") as fh:
-                    text = fh.read()
-                return mp.unpack_contribution(text, directory)
             tables = await loop.run_in_executor(None, work)
         except (OSError, mp.MagicDownloadError) as err:
+            self._forget(target, directory)
             self._say(html.escape(str(err)), FAIL_COLOR)
             return False
         finally:
             self.run_btn.disabled = False
-        record_conversion(directory, "magic", [path], tables={t: mp.table_rows(os.path.join(directory, f"{t}.txt")) for t in tables},
+        record_conversion(target, "magic", [path], tables={t: mp.table_rows(os.path.join(target, f"{t}.txt")) for t in tables},
                           label="MagIC contribution file")
-        if not self.s.load(directory):
+        if not self.s.load(target):
             self._say(html.escape(self.s.status), FAIL_COLOR)
             return False
-        self._say(f"{html.escape(chosen[0])} unpacked · {len(tables)} tables", OK_COLOR)
+        lines = [f"{html.escape(chosen[0])} unpacked · {len(tables)} tables"]
+        if target != directory:
+            lines.append(f"written into {html.escape(os.path.basename(target))}/")
+        elif backup:
+            lines.append(f"the tables replaced are kept in {BACKUP_DIR}/")
+        self._say(" · ".join(lines), OK_COLOR)
         self.home_btn.button_type = "primary"
         return True
 

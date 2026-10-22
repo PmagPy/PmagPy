@@ -520,6 +520,46 @@ class TestConvert:
         assert asyncio.run(view._convert()) is True
         assert session.inventory.is_magic and "unpacked" in view.message.object
 
+    def test_unpacking_into_a_folder_with_tables_asks_first(self, tmp_path):
+        from datetime import date
+        from pmagpy.test.test_magic_project import AS_SERVED
+        from pmagpy import convert_registry as reg
+        lab = tmp_path / "lab"
+        lab.mkdir()
+        (lab / "magic_contribution_20549.txt").write_text(AS_SERVED)
+        session = home.HubSession(str(lab))
+        view = convert.ConvertView(session)
+        choose(view, convert.MAGIC_FILE)
+        assert asyncio.run(view._convert()) is True
+        first = {n: (lab / n).read_text() for n in os.listdir(lab) if n.endswith(".txt") and n != "magic_contribution_20549.txt"}
+        assert view.append.visible is False                       # a contribution's tables are not added to others
+        # the same file again (beside the tables now, so taken for an upload file, and offered all the same):
+        # asked first, nothing written
+        assert session.inventory.uploads == ["magic_contribution_20549.txt"]
+        assert "magic_contribution_20549.txt" in view.files.options
+        view.files.value = ["magic_contribution_20549.txt"]
+        assert asyncio.run(view._convert()) is False
+        new = f"MagIC_{date.today().isoformat()}"
+        assert view.where.visible and view.where.value == convert.NEW_FOLDER
+        assert view.run_btn.name == f"Confirm: write into {new}/" and "has MagIC tables already" in view.message.object
+        assert "Add to the tables" not in view.message.object
+        assert {n: (lab / n).read_text() for n in first} == first and len(reg.read_conversions(str(lab))) == 1
+        assert asyncio.run(view._convert()) is True
+        assert session.directory == str(lab / new) and f"written into {new}/" in view.message.object
+        assert {n: (lab / n).read_text() for n in first} == first
+        assert reg.read_conversions(str(lab / new))[0]["format"] == "magic" and reg.lab_folder(str(lab / new)) == str(lab)
+        # replacing keeps the old tables
+        session.load(str(lab))
+        view.files.value = ["magic_contribution_20549.txt"]
+        asyncio.run(view._convert())
+        view.where.value = convert.REPLACE
+        assert view.run_btn.name == "Confirm: replace the tables"
+        assert asyncio.run(view._convert()) is True
+        assert "kept in backup_before_pmagpy_apps/" in view.message.object
+        backup = lab / "backup_before_pmagpy_apps"
+        assert {n: (backup / n).read_text() for n in first} == first
+        assert len(reg.read_conversions(str(lab))) == 2
+
     def test_an_unpacked_contribution_is_worked_on_in_a_copy(self, tmp_path, monkeypatch):
         from pmagpy.test.test_magic_project import AS_SERVED
         from pmagpy import convert_registry as reg

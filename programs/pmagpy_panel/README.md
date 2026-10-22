@@ -197,6 +197,10 @@ folder that has tables already:
   exists; nothing is overwritten, and Home opens that folder), or replacing the
   tables, the old ones kept in `backup_before_pmagpy_apps/`. The second click
   converts; changing the files, the format or "add" withdraws the question.
+* A contribution file unpacked on the Convert page is not added to tables
+  already there: into a folder that has tables (`contribution.txt` included)
+  the first click asks the same question, with the same default, and the
+  tables are written all or nothing.
 * A `MagIC_<date>/` folder takes further batches from its lab folder: Convert
   on it lists the lab folder's files and adds to the dated folder's tables,
   whose own `pmagpy_conversions.json` says which files are in them already; a
