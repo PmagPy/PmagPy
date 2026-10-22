@@ -25,7 +25,7 @@ from pmagpy import bicep as bicep_core
 from pmagpy import pint_stats as ps
 from pmagpy import tdt as tdt_reader
 
-from pmagpy_panel import code
+from pmagpy_panel import code, runtime
 from pmagpy_panel.autosave import COPY_REPLACED, WorkingCopyReplaced
 from pmagpy_panel.chooser import DirectoryChooser, shorten
 from pmagpy_panel.widgets import HeightSplitter, Hotkeys, LayoutHold
@@ -358,7 +358,7 @@ class DataView(DirectoryChooser):
         self._cancel_tdt_confirm()
         made = not os.path.isdir(out)
         try:
-            with mp.StagedExport(out, backup=backup, originals=True) as stage:
+            with mp.StagedExport(out, backup=backup, originals=True, replace_tables=bool(backup)) as stage:
                 result = tdt_reader.to_magic(files, stage.dir, volume_cc=self.tdt_volume.value,
                                              moment_units=self.tdt_units.value,
                                              lab_dec=self.tdt_dec.value, lab_inc=self.tdt_inc.value,
@@ -386,6 +386,13 @@ class DataView(DirectoryChooser):
                           tables={os.path.basename(p)[:-4]: mp.table_rows(p) for p in written})
         self.path.value = out
         self.load()
+        if stage.removed:
+            note = mp.removed_note(stage.removed, BACKUP_DIR)
+            self.tdt_report.object = f'<div style="color:{WARN_COLOR}">magic3/ replaced · {html.escape(note)}</div>'
+
+            def say():
+                self.s.status = f"{self.s.status} · magic3/ replaced · {note}"
+            runtime.locked(say)
 
     def _tdt_lab(self) -> str:
         """The folder the .tdt files are in: the one given, or the given file's."""

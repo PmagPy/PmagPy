@@ -19,7 +19,10 @@ is not overwritten on one click: adding to them leaves out the files its
 conversion log says are in them already (unless the analyst asks for them
 again), and converting afresh asks first whether the new tables go into a dated
 folder of their own (``MagIC_<date>/``) or replace the old ones, which are then
-kept in ``backup_before_pmagpy_apps/``.
+kept in ``backup_before_pmagpy_apps/``. A replace leaves exactly the new tables:
+a MagIC table the conversion (or the unpacked contribution) does not write --
+an old ``ages.txt``, ``images.txt`` or ``contribution.txt`` -- is kept in the
+backup too and removed, and the message names it.
 
 A MagIC contribution file (one download from the database, all tables in one
 text file) is offered on the same page: it is not a conversion but it is the
@@ -327,7 +330,7 @@ class ConvertView:
                 self._ask_where(tables)
                 return False
             if self.where.value == REPLACE:
-                extra = {"backup": os.path.join(tables, BACKUP_DIR)}
+                extra = {"backup": os.path.join(tables, BACKUP_DIR), "replace": True}
             else:
                 target = dated_folder(folder)
                 extra = {"magic_dir": tables}
@@ -367,6 +370,8 @@ class ConvertView:
             lines.append(f"written into {html.escape(os.path.basename(target))}/")
         elif "backup" in extra:
             lines.append(f"the tables replaced are kept in {BACKUP_DIR}/")
+            if result.removed:
+                lines.append(html.escape(mp.removed_note(result.removed, BACKUP_DIR)))
         if left_out:
             lines.append(f"left out, in these tables already: {html.escape(', '.join(left_out))}")
         if result.failed:
@@ -417,10 +422,11 @@ class ConvertView:
         def work():
             with open(path, encoding="utf-8", errors="replace") as fh:
                 text = fh.read()
-            with mp.StagedExport(target, backup=backup, originals=True) as stage:
-                return mp.unpack_contribution(text, stage.dir)
+            with mp.StagedExport(target, backup=backup, originals=True, replace_tables=bool(backup)) as stage:
+                written = mp.unpack_contribution(text, stage.dir)
+            return written, stage.removed
         try:
-            tables = await loop.run_in_executor(None, work)
+            tables, removed = await loop.run_in_executor(None, work)
         except (OSError, mp.MagicDownloadError) as err:
             self._forget(target, directory)
             self._say(html.escape(str(err)), FAIL_COLOR)
@@ -437,6 +443,8 @@ class ConvertView:
             lines.append(f"written into {html.escape(os.path.basename(target))}/")
         elif backup:
             lines.append(f"the tables replaced are kept in {BACKUP_DIR}/")
+            if removed:
+                lines.append(html.escape(mp.removed_note(removed, BACKUP_DIR)))
         self._say(" · ".join(lines), OK_COLOR)
         self.home_btn.button_type = "primary"
         return True

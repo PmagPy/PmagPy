@@ -16,8 +16,10 @@ A folder that already holds MagIC tables is not overwritten on one click: the
 first click asks where the contribution's tables go, as an unpack on the Convert
 page does -- into a new folder ``MagIC_<YYYY-MM-DD>/`` inside it (the default;
 nothing is overwritten), or replacing its tables, the old ones kept in
-``backup_before_pmagpy_apps/`` -- and the second downloads. The tables are
-written all or nothing. On a working copy the folder offered is the study's own,
+``backup_before_pmagpy_apps/`` -- and the second downloads. A replace leaves
+exactly the contribution's tables: any other MagIC table there is kept in the
+backup too and removed, and the message names it. The tables are written all
+or nothing. On a working copy the folder offered is the study's own,
 where Convert writes too; a folder that ships with PmagPy is not written into.
 """
 from __future__ import annotations
@@ -194,9 +196,10 @@ class DownloadDialog:
             made = not os.path.isdir(target)
 
             def work():
-                with mp.StagedExport(target, backup=backup, originals=True) as stage:
-                    return mp.unpack_contribution(text, stage.dir, magic_id)
-            tables = await loop.run_in_executor(None, work)
+                with mp.StagedExport(target, backup=backup, originals=True, replace_tables=bool(backup)) as stage:
+                    written = mp.unpack_contribution(text, stage.dir, magic_id)
+                return written, stage.removed
+            tables, removed = await loop.run_in_executor(None, work)
             ref = mp.describe_contribution(text)
             if ref.id == 0:
                 ref = mp.ContributionRef(id=magic_id)
@@ -219,6 +222,9 @@ class DownloadDialog:
             lines.append(f"written into {html.escape(os.path.basename(target))}/")
         elif backup:
             lines.append(f"the tables replaced are kept in {BACKUP_DIR}/")
+            if removed:
+                lines.append(html.escape(mp.removed_note(removed, BACKUP_DIR)))
+                self.s.status = f"{self.s.status} · {mp.removed_note(removed, BACKUP_DIR)}"
         stale = datasets.working_copy_source(self.s.directory) and datasets.stale_copy_note(self.s.directory)
         if stale:
             lines.append(f"the working copy the applications use, {html.escape(datasets.shorten_home(self.s.directory))}, "

@@ -382,7 +382,9 @@ file operations live in the Export tab and the data dialog.
   original Thellier–Thellier antiparallel pairs. Importing again into a
   `magic3/` that has tables asks first, as the hub's Convert page does: into a
   new folder `MagIC_<YYYY-MM-DD>/` beside it in the lab folder (the default), or
-  replacing them, the old ones kept in `magic3/backup_before_pmagpy_apps/`.
+  replacing them, the old ones kept in `magic3/backup_before_pmagpy_apps/`; a
+  replace leaves exactly the imported tables (any other MagIC table in
+  `magic3/` is kept in that backup and removed, and the status names it).
 * **Autosave**, so closing the tab does not lose an afternoon.
 * **A session file you can read**, diff and put in a repository.
 * **Publication figures without the GUI** — `publication.py` is importable from a

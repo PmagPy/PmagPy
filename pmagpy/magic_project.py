@@ -1227,6 +1227,11 @@ def protected_message(paths: Iterable[str], again: str = "export again") -> str:
             f"Make them writable and {again} to replace them.")
 
 
+#: the tables of the MagIC data model, as the files a MagIC directory holds them in
+MAGIC_TABLE_FILES = ("contribution.txt", "locations.txt", "sites.txt", "samples.txt", "specimens.txt",
+                     "measurements.txt", "ages.txt", "criteria.txt", "images.txt")
+
+
 class StagedExport:
     """Write a set of files into a directory all or nothing, keeping what they replace.
 
@@ -1241,14 +1246,23 @@ class StagedExport:
     that was killed part way is removed by the next export into the folder
     (:func:`remove_stale_staging`). With ``keep_protected``, a table (``.txt``)
     whose file is write-protected (:func:`is_write_protected`) is not
-    replaced: it is listed in ``protected`` and the others are written::
+    replaced: it is listed in ``protected`` and the others are written. With
+    ``replace_tables`` (which needs a ``backup``), the new files are the
+    directory's whole set of MagIC tables: every MagIC table file
+    (:data:`MAGIC_TABLE_FILES`) the export does not write is backed up as a
+    replaced one is and then removed, and listed in ``removed`` -- only when
+    the export writes a MagIC table at all, so an export that wrote nothing
+    removes nothing::
 
         with StagedExport(output_dir, backup) as stage:
             data.write_specimens(stage.dir)          # writers write into stage.dir
         stage.written                                # the final paths
     """
 
-    def __init__(self, output_dir: str, backup: Optional[str] = None, originals=False, keep_protected=False):
+    def __init__(self, output_dir: str, backup: Optional[str] = None, originals=False, keep_protected=False,
+                 replace_tables=False):
+        if replace_tables and not backup:
+            raise ValueError("replace_tables removes tables, which must be kept in a backup")
         self.output_dir = os.path.abspath(output_dir)
         self.backup = backup
         # True, or the names of the files the study had when it was opened: a file an
@@ -1260,6 +1274,8 @@ class StagedExport:
         self.removed_stale: list[str] = []
         self.keep_protected = keep_protected
         self.protected: list[str] = []
+        self.replace_tables = replace_tables
+        self.removed: list[str] = []
 
     def __enter__(self) -> "StagedExport":
         import errno
@@ -1297,9 +1313,13 @@ class StagedExport:
             self.protected = [os.path.join(self.output_dir, n) for n in names
                               if n.endswith(".txt") and is_write_protected(os.path.join(self.output_dir, n))]
             names = [n for n in names if os.path.join(self.output_dir, n) not in self.protected]
+        staged = set(names)
+        tables = self.replace_tables and bool(staged & set(MAGIC_TABLE_FILES))
+        dropped = [n for n in MAGIC_TABLE_FILES if tables and n not in staged
+                   and os.path.isfile(os.path.join(self.output_dir, n))]
         if self.backup:
             previous = os.path.join(self.backup, "previous")
-            for name in names:
+            for name in names + dropped:
                 target = os.path.join(self.output_dir, name)
                 if not os.path.isfile(target):
                     continue
@@ -1323,6 +1343,17 @@ class StagedExport:
                     pass
             os.replace(os.path.join(self.dir, name), target)
             self.written.append(target)
+        for name in dropped:
+            os.remove(os.path.join(self.output_dir, name))
+            self.removed.append(name)
+
+
+def removed_note(removed: Iterable[str], backup_dir: str) -> str:
+    """'removed, as the new tables do not have them: images.txt, ages.txt (kept in <backup_dir>/)', or ""."""
+    removed = list(removed)
+    if not removed:
+        return ""
+    return f"removed, as the new tables do not have them: {', '.join(removed)} (kept in {backup_dir}/)"
 
 
 #: tables a complete MagIC directory carries that an application does not write itself

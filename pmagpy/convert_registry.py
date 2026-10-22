@@ -192,6 +192,7 @@ class ConversionResult:
     log: str = ""                                  # everything the converters printed
     tables: Dict[str, int] = field(default_factory=dict)      # table name → rows written
     failed: List[Tuple[str, str]] = field(default_factory=list)   # (file, reason)
+    removed: List[str] = field(default_factory=list)          # tables a replace removed (kept in the backup)
 
 
 # ----- the shared fields ------------------------------------------------------------------
@@ -320,7 +321,7 @@ def _normalise(result) -> Tuple[bool, str]:
 def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: str,
                   append: bool = False, report: Optional[Callable[[str], None]] = None,
                   record: bool = True, magic_dir: str = "", backup: Optional[str] = None,
-                  only: Optional[Sequence[str]] = None) -> ConversionResult:
+                  only: Optional[Sequence[str]] = None, replace: bool = False) -> ConversionResult:
     """Convert files (or one directory) with one converter and write the MagIC tables into ``dir_path``.
 
     Each input is converted on its own in a scratch directory; the tables are then
@@ -349,6 +350,10 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
         backup: a folder to keep the tables that are replaced in, as the
             applications' exports do: each one the first time it is replaced, and
             the last version every time in ``<backup>/previous/``.
+        replace: the new tables are the directory's whole set (needs ``backup``,
+            not ``append``): the MagIC tables already there that this conversion
+            does not write (an old ``ages.txt``, ``images.txt``, ``contribution.txt``)
+            are backed up and removed, and named in ``ConversionResult.removed``.
         only: for a format that ``takes_directory``, the names of the directory's
             files to convert (the new ones, when the rest are in the tables
             already): the converter reads a scratch folder holding copies of just
@@ -364,6 +369,8 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
         raise ValueError(f"{fmt.label} cannot convert a few of a directory's files")
     if only is not None and not only:
         return ConversionResult(False, "No files chosen.")
+    if replace and (append or not backup):
+        raise ValueError("replace needs a backup, and does not append")
     missing = [t for t in fmt.needs if not os.path.exists(os.path.join(magic_dir, f"{t}.txt"))]
     if missing:
         return ConversionResult(False, f"{fmt.label} needs {', '.join(missing)}.txt in the directory first"
@@ -409,13 +416,16 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
                 existing = os.path.join(dir_path, f"{table}.txt")
                 if per_table[table] and os.path.exists(existing):
                     per_table[table].insert(0, existing)
-        tables = {}
+        tables, removed = {}, []
         if any(per_table.values()):
             from pmagpy.magic_project import StagedExport
             say("Combining the tables …")
             notes: List[str] = []
-            with StagedExport(dir_path, backup=backup, originals=True) as stage:
+            with StagedExport(dir_path, backup=backup, originals=True, replace_tables=replace) as stage:
                 tables = combine_tables(per_table, stage.dir, replaces=fmt.replaces, warnings=notes)
+            removed = stage.removed
+            if removed:
+                notes.append(f"removed, as the new tables do not have them: {', '.join(removed)}")
             for note in notes:
                 say(note)
                 logs.append(note)
@@ -424,10 +434,10 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
     n_ok = len(inputs) - len(failed)
     if n_ok == 0:
         message = f"Nothing converted: {failed[0][1]}" if len(failed) == 1 else f"None of the {len(inputs)} files converted."
-        return ConversionResult(False, message, "\n".join(logs), tables, failed)
+        return ConversionResult(False, message, "\n".join(logs), tables, failed, removed)
     what = f"{n_ok} of {len(inputs)} files" if failed else (f"{n_ok} files" if n_ok > 1 else os.path.basename(inputs[0]))
     message = f"{what} converted · {describe_tables(tables)}" + (f" · {len(failed)} failed" if failed else "")
-    result = ConversionResult(True, message, "\n".join(logs), tables, failed)
+    result = ConversionResult(True, message, "\n".join(logs), tables, failed, removed)
     if record and tables:
         if source:
             names = [os.path.join(source, n) for n in only]

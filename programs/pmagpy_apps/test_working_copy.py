@@ -377,6 +377,22 @@ class TestTheTdtImportAsksBeforeReplacing:
         assert (magic3 / "measurements.txt").read_text() != first
         assert len(reg.read_conversions(str(magic3))) == 2
 
+    def test_a_replace_removes_the_tables_the_import_does_not_write(self, study, tmp_path):
+        from pmagpy import convert_registry as reg
+        lab = tdt_lab(tmp_path)
+        session, view = self.importer(study, lab)
+        view._convert_tdt()
+        magic3 = lab / "magic3"
+        (magic3 / "criteria.txt").write_text("tab\tcriteria\ntable_column\nspecimens.int_b_beta\n")
+        view._check_tdt()
+        view._convert_tdt()
+        view.tdt_where.value = reg.REPLACE
+        view._convert_tdt()
+        assert session.directory == str(magic3) and not (magic3 / "criteria.txt").exists()
+        assert (magic3 / "backup_before_pmagpy_apps" / "criteria.txt").exists()
+        assert "removed, as the new tables do not have them: criteria.txt" in view.tdt_report.object
+        assert "criteria.txt" in session.status and (lab / "SP1.tdt").exists()
+
     def test_another_path_withdraws_the_question(self, study, tmp_path):
         lab = tdt_lab(tmp_path)
         session, view = self.importer(study, lab)

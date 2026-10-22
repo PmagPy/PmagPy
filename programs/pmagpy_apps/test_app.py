@@ -354,6 +354,15 @@ class TestDownloadFromMagic:
         for name in ("contribution.txt", "measurements.txt", "specimens.txt", "sites.txt"):
             assert open(os.path.join(backup, name), "rb").read() == before[name], name
         assert not [n for n in os.listdir(study) if n.startswith("MagIC_")]
+        # exactly the contribution's tables: samples and locations, which it does not have, are kept and removed
+        assert sorted(n for n in os.listdir(study) if n.endswith(".txt")) == \
+            ["contribution.txt", "measurements.txt", "sites.txt", "specimens.txt"]
+        for name in ("samples.txt", "locations.txt"):
+            assert open(os.path.join(backup, name), "rb").read() == before[name], name
+        assert ("removed, as the new tables do not have them: locations.txt, samples.txt (kept in "
+                "backup_before_pmagpy_apps/)") in dialog.message.object
+        assert session.status.endswith("removed, as the new tables do not have them: locations.txt, samples.txt "
+                                       "(kept in backup_before_pmagpy_apps/)")
         (entry,) = reg.read_conversions(study)
         assert entry["format"] == "magic" and entry["values"]["id"] == 20549
         assert home.stages(session.inventory)[0][2].startswith("contribution 20549 from MagIC · ")
@@ -683,6 +692,15 @@ class TestConvert:
         backup = lab / "backup_before_pmagpy_apps"
         assert {n: (backup / n).read_text() for n in first} == first
         assert len(reg.read_conversions(str(lab))) == 2
+        # a table the contribution does not have goes too (kept in the backup), and the message says so
+        (lab / "images.txt").write_text("tab\timages\nimage\nfig1\n")
+        view.files.value = ["magic_contribution_20549.txt"]
+        asyncio.run(view._convert())
+        view.where.value = convert.REPLACE
+        assert asyncio.run(view._convert()) is True
+        assert not (lab / "images.txt").exists() and (backup / "images.txt").read_text() == "tab\timages\nimage\nfig1\n"
+        assert "removed, as the new tables do not have them: images.txt" in view.message.object
+        assert (lab / "magic_contribution_20549.txt").exists()
 
     def test_an_unpacked_contribution_is_worked_on_in_a_copy(self, tmp_path, monkeypatch):
         from pmagpy.test.test_magic_project import AS_SERVED
@@ -960,6 +978,23 @@ class TestConvertAgain:
         assert open(os.path.join(backup, "previous", "measurements.txt")).read() == before
         assert open(os.path.join(d, "measurements.txt")).read() != before
         assert not [n for n in os.listdir(d) if n.startswith("MagIC_")]
+
+    def test_a_replace_removes_the_tables_the_conversion_does_not_write(self, tmp_path):
+        d, session, view = self.first(tmp_path)
+        for table in ("ages", "images"):
+            with open(os.path.join(d, f"{table}.txt"), "w") as fh:
+                fh.write(f"tab\t{table}\nsite\nZ1\n")
+        view.append.value = False
+        view.files.value = ["TRM.jr6"]
+        asyncio.run(view._convert())
+        view.where.value = convert.REPLACE
+        assert asyncio.run(view._convert()) is True
+        assert not os.path.exists(os.path.join(d, "ages.txt")) and not os.path.exists(os.path.join(d, "images.txt"))
+        backup = os.path.join(d, "backup_before_pmagpy_apps")
+        assert open(os.path.join(backup, "ages.txt")).read() == "tab\tages\nsite\nZ1\n"
+        assert ("removed, as the new tables do not have them: ages.txt, images.txt (kept in "
+                "backup_before_pmagpy_apps/)") in view.message.object
+        assert "AF.jr6" in os.listdir(d) and "TRM.jr6" in os.listdir(d)        # lab files are not tables
 
     def test_changing_the_choice_cancels_the_question(self, tmp_path):
         d, session, view = self.first(tmp_path)

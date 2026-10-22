@@ -242,6 +242,51 @@ class TestStagedExport:
         assert stage.written == [os.path.join(out, "sites.txt")]
         assert not [n for n in os.listdir(out) if n.startswith(".staging")]
 
+    def test_a_replace_leaves_exactly_the_new_tables(self, tmp_path):
+        out = str(tmp_path / "out")
+        backup = os.path.join(out, "backup")
+        os.makedirs(out)
+        tables = ("contribution.txt", "measurements.txt", "sites.txt", "ages.txt", "images.txt")
+        others = ("pmagpy_conversions.json", "demag_gui.redo", "pmagpy_intensity_autosave.json", "AF.jr6",
+                  "notes.txt", "er_sites.txt")
+        for name in tables + others:
+            with open(os.path.join(out, name), "w") as fh:
+                fh.write(f"old {name}")
+        for version in ("v1", "v2"):
+            with mp.StagedExport(out, backup=backup, originals=True, replace_tables=True) as stage:
+                mp.atomic_write_text(os.path.join(stage.dir, "measurements.txt"), f"{version} measurements")
+                mp.atomic_write_text(os.path.join(stage.dir, "sites.txt"), f"{version} sites")
+            if version == "v1":
+                assert stage.removed == ["contribution.txt", "ages.txt", "images.txt"]
+                for name in stage.removed:                      # kept as the originals and as the last version
+                    assert open(os.path.join(backup, name)).read() == f"old {name}"
+                    assert open(os.path.join(backup, "previous", name)).read() == f"old {name}"
+        assert stage.removed == []                               # nothing left to remove the second time
+        assert sorted(n for n in os.listdir(out) if n.endswith(".txt") and not n.startswith(("er_", "notes"))) == \
+            ["measurements.txt", "sites.txt"]
+        for name in others:                                      # not MagIC tables: never removed
+            assert open(os.path.join(out, name)).read() == f"old {name}"
+        assert open(os.path.join(backup, "previous", "sites.txt")).read() == "v1 sites"
+        assert open(os.path.join(backup, "sites.txt")).read() == "old sites.txt"
+
+    def test_a_replace_that_fails_or_writes_no_table_removes_nothing(self, tmp_path):
+        out = str(tmp_path / "out")
+        backup = os.path.join(out, "backup")
+        os.makedirs(out)
+        for name in ("measurements.txt", "ages.txt"):
+            with open(os.path.join(out, name), "w") as fh:
+                fh.write(f"old {name}")
+        with pytest.raises(RuntimeError):
+            with mp.StagedExport(out, backup=backup, originals=True, replace_tables=True) as stage:
+                mp.atomic_write_text(os.path.join(stage.dir, "measurements.txt"), "new")
+                raise RuntimeError("the converter failed")
+        with mp.StagedExport(out, backup=backup, originals=True, replace_tables=True) as stage:
+            pass
+        assert stage.removed == [] and sorted(os.listdir(out)) == ["ages.txt", "measurements.txt"]
+        assert open(os.path.join(out, "measurements.txt")).read() == "old measurements.txt"
+        with pytest.raises(ValueError):
+            mp.StagedExport(out, replace_tables=True)
+
     def test_read_only_tables_can_be_exported_again_and_again(self, tmp_path):
         out = str(tmp_path / "out")
         backup = os.path.join(out, "backup")

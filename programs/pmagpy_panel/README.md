@@ -147,7 +147,8 @@ folder that has tables already (`contribution.txt` included) the first click
 asks the question Convert asks before an unpack -- a new folder
 `MagIC_<YYYY-MM-DD>/` inside it (the default), or replacing the tables with the
 old ones kept in `backup_before_pmagpy_apps/` -- and nothing is fetched until
-the second; the tables are written all or nothing. On a working copy the
+the second; the tables are written all or nothing, and a replace leaves exactly
+the contribution's tables (see below). On a working copy the
 folder offered is the study's own, and a folder that ships with PmagPy is not
 written into. The
 EarthRef calls are in `pmagpy.magic_project` (`find_contributions`,
@@ -216,6 +217,17 @@ folder that has tables already:
   exists; nothing is overwritten, and Home opens that folder), or replacing the
   tables, the old ones kept in `backup_before_pmagpy_apps/`. The second click
   converts; changing the files, the format or "add" withdraws the question.
+* A replace -- here, an unpack or download below, or Intensity's .tdt import
+  again into `magic3/` -- leaves exactly the new tables: every MagIC table file
+  the new set does not write (an old `ages.txt`, `criteria.txt`, `images.txt`,
+  and `contribution.txt`, which would describe tables no longer there) is kept
+  in `backup_before_pmagpy_apps/` as the replaced ones are (once as the
+  original, and in `previous/` every time) and then removed, and the message
+  names it. Only the data model's tables go (`magic_project.MAGIC_TABLE_FILES`):
+  lab files, the conversion log, `.redo`, session and autosave files stay. The
+  write is all or nothing (`StagedExport(..., replace_tables=True)`;
+  `convert_files(..., backup=..., replace=True)`); `pmagpy-convert` without
+  `--append` still replaces only the tables it writes.
 * A contribution file unpacked on the Convert page is not added to tables
   already there: into a folder that has tables (`contribution.txt` included)
   the first click asks the same question, with the same default, and the

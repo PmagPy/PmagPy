@@ -482,6 +482,31 @@ class TestConversionLog:
         assert {n: open(tmp_path / n).read() for n in os.listdir(d) if n.endswith(".txt")} == before
         assert not [n for n in os.listdir(d) if n.startswith(".staging-")]
 
+    def test_a_replace_leaves_exactly_the_tables_the_conversion_writes(self, tmp_path):
+        d = str(tmp_path)
+        shutil.copy(example_path("jr6_magic/AF.jr6"), d)
+        jr6 = reg.FORMATS["jr6_jr6"]
+        reg.convert_files(jr6, ["AF.jr6"], {}, d)
+        for table in ("ages", "images", "criteria", "contribution"):
+            (tmp_path / f"{table}.txt").write_text(f"tab\t{table}\nx\nold\n")
+        (tmp_path / "notes.txt").write_text("the analyst's own\n")
+        backup = str(tmp_path / "backup_before_pmagpy_apps")
+        with pytest.raises(ValueError):
+            reg.convert_files(jr6, ["AF.jr6"], {}, d, replace=True)                    # never without a backup
+        with pytest.raises(ValueError):
+            reg.convert_files(jr6, ["AF.jr6"], {}, d, append=True, backup=backup, replace=True)
+        result = reg.convert_files(jr6, ["AF.jr6"], {}, d, backup=backup, replace=True)
+        assert result.ok and result.removed == ["contribution.txt", "ages.txt", "criteria.txt", "images.txt"]
+        assert "removed, as the new tables do not have them: contribution.txt, ages.txt" in result.log
+        assert sorted(n for n in os.listdir(d) if n.endswith(".txt")) == \
+            ["locations.txt", "measurements.txt", "notes.txt", "samples.txt", "sites.txt", "specimens.txt"]
+        for table in ("ages", "images", "criteria", "contribution"):
+            assert open(os.path.join(backup, f"{table}.txt")).read() == f"tab\t{table}\nx\nold\n"
+        # without replace (the command line's default) the other tables stay, as before
+        (tmp_path / "ages.txt").write_text("tab\tages\nx\nold\n")
+        assert reg.convert_files(jr6, ["AF.jr6"], {}, d, backup=backup).removed == []
+        assert (tmp_path / "ages.txt").exists()
+
     def test_adding_rewrites_only_the_tables_the_conversion_adds_to(self, tmp_path):
         d = str(tmp_path)
         shutil.copy(example_path("jr6_magic/AF.jr6"), d)
