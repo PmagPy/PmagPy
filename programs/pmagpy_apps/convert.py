@@ -242,8 +242,12 @@ class ConvertView:
         done = self._already_in() if self.fmt is not None and self.append.visible and self.append.value else []
         self.done_note.visible = self.again.visible = bool(done)
         if done:
-            self.done_note.object = (f'<div style="{MUTED_STYLE}">Already in these tables (pmagpy_conversions.json '
-                                     f'lists them), so left out: <b>{html.escape(", ".join(done))}</b></div>')
+            text = (f'Already in these tables (pmagpy_conversions.json lists them), so left out: '
+                    f'<b>{html.escape(", ".join(done))}</b>')
+            if self.fmt.takes_directory and not self.fmt.reads_together:
+                new = [os.path.basename(p) for p in self._chosen_paths() if log_name(p, self.tables_dir) not in done]
+                text += (f' · new, to convert: <b>{html.escape(", ".join(new))}</b>' if new else ' · nothing new here')
+            self.done_note.object = f'<div style="{MUTED_STYLE}">{text}</div>'
         else:
             self.again.value = False
 
@@ -298,11 +302,17 @@ class ConvertView:
         if append and not self.again.value:
             left_out = self._already_in()
             again = "Tick “Convert them again anyway” to add them a second time."
-            if left_out and fmt.takes_directory:
-                self._say(f"{html.escape(fmt.label)} reads the whole folder, and "
+            if left_out and fmt.reads_together:
+                self._say(f"{html.escape(fmt.label)} reads the folder's files together, and "
                           f"<b>{html.escape(', '.join(left_out))}</b> are in these tables already. {again}", FAIL_COLOR)
                 return False
-            inputs = [p for p in inputs if log_name(p, tables) not in left_out]
+            if fmt.takes_directory:
+                new = [os.path.basename(p) for p in self._chosen_paths() if log_name(p, tables) not in left_out]
+                if left_out and new:
+                    extra = {"only": new}           # the converter reads every file there: it gets just these
+                inputs = inputs if new else []
+            else:
+                inputs = [p for p in inputs if log_name(p, tables) not in left_out]
             if not inputs:
                 self._say(f"Nothing new to convert: <b>{html.escape(', '.join(left_out))}</b> "
                           f"{'is' if len(left_out) == 1 else 'are'} in these tables already. {again}", FAIL_COLOR)

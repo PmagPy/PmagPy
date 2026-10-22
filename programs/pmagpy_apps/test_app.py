@@ -735,6 +735,51 @@ class TestConvertAgain:
         assert asyncio.run(view._convert()) is True and session.directory == dated + "-2"
         assert not [n for n in os.listdir(dated) if n.startswith("MagIC_")]
 
+    def test_a_directory_format_converts_only_the_new_files(self, tmp_path):
+        from pmagpy import convert_registry as reg
+        tdt_dir = os.path.join(os.path.dirname(CIT), "..", "tdt_magic")
+        lab = tmp_path / "tdt_lab"
+        lab.mkdir()
+        shutil.copy(os.path.join(tdt_dir, "Krasa_MGH1.tdt"), lab)
+        session = home.HubSession(str(lab))
+        view = convert.ConvertView(session)
+        choose(view, "tdt")
+        assert asyncio.run(view._convert()) is True
+        first = rows(lab / "measurements.txt")
+        shutil.copy(os.path.join(tdt_dir, "Krasa_MGH1_noAC.tdt"), lab)             # the next batch is measured
+        session.load(str(lab))
+        assert view.append.value is True
+        assert view.done_note.visible and "left out: <b>Krasa_MGH1.tdt</b>" in view.done_note.object
+        assert "new, to convert: <b>Krasa_MGH1_noAC.tdt</b>" in view.done_note.object
+        assert asyncio.run(view._convert()) is True, view.message.object
+        assert "left out, in these tables already: Krasa_MGH1.tdt" in view.message.object
+        assert [e["files"] for e in reg.read_conversions(str(lab))] == [["Krasa_MGH1.tdt"], ["Krasa_MGH1_noAC.tdt"]]
+        both = rows(lab / "measurements.txt")
+        assert both > first
+        # nothing new: said, and nothing written
+        assert "nothing new here" in view.done_note.object
+        assert asyncio.run(view._convert()) is False
+        assert "Nothing new to convert" in view.message.object and rows(lab / "measurements.txt") == both
+        assert len(reg.read_conversions(str(lab))) == 2
+
+    def test_the_2_5_upgrade_reads_its_tables_together(self, tmp_path):
+        from pmagpy import convert_registry as reg
+        src = os.path.join(os.path.dirname(MCMURDO), "..", "2_5", "McMurdo")
+        for name in os.listdir(src):
+            if name.startswith(("magic_", "er_", "pmag_", "rmag_")):
+                shutil.copy(os.path.join(src, name), tmp_path)
+        session = home.HubSession(str(tmp_path))
+        view = convert.ConvertView(session)
+        choose(view, "legacy")
+        assert asyncio.run(view._convert()) is True
+        log = (tmp_path / reg.CONVERSION_LOG).read_text()
+        shutil.copy(tmp_path / "er_sites.txt", tmp_path / "er_ages.txt")              # one 2.5 table changed
+        session.load(str(tmp_path))
+        assert view.append.value is True
+        assert asyncio.run(view._convert()) is False
+        assert "reads the folder's files together" in view.message.object
+        assert (tmp_path / reg.CONVERSION_LOG).read_text() == log
+
     def test_replacing_keeps_the_old_tables_in_the_backup(self, tmp_path):
         d, session, view = self.first(tmp_path)
         before = open(os.path.join(d, "measurements.txt")).read()

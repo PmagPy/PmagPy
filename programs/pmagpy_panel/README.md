@@ -185,7 +185,13 @@ folder that has tables already:
 * "Add to the tables already here" (ticked by default once there are tables)
   leaves out the chosen files the folder's `pmagpy_conversions.json` lists, and
   names them; "Convert them again anyway" adds them a second time. A file that
-  has changed since it was converted (its checksum differs) is converted.
+  has changed since it was converted (its checksum differs) is converted. A
+  directory format (TDT, Livdb) converts only the folder's new files: its
+  converter reads every file in a folder, so it is given a scratch folder
+  holding copies of just those (`convert_files(..., only=[...])`), and the page
+  says when there is nothing new. The MagIC 2.5 upgrade reads its tables
+  together (`Format.reads_together`) and cannot take a few of them: when some
+  are in the tables already it converts only with "Convert them again anyway".
 * Unticked, the first click asks where the new tables go: into a new folder
   `MagIC_<YYYY-MM-DD>/` inside the lab folder (the default; `-2`, `-3` when it
   exists; nothing is overwritten, and Home opens that folder), or replacing the

@@ -504,6 +504,45 @@ class TestConversionLog:
         assert "needs specimens.txt" not in result.message
 
 
+class TestOnlyTheNewFilesOfADirectory:
+    """A directory format reads every file in its folder; given the new ones, it converts just those."""
+
+    def tdt_lab(self, tmp_path):
+        lab = tmp_path / "tdt"
+        shutil.copytree(example_path("tdt_magic"), str(lab))
+        return lab
+
+    def test_a_directory_format_converts_only_the_files_named(self, tmp_path):
+        lab = self.tdt_lab(tmp_path)
+        tdt = reg.FORMATS["tdt"]
+        first = reg.convert_files(tdt, [str(lab)], {}, str(lab), only=["Krasa_MGH1.tdt"])
+        assert first.ok, first.message
+        (entry,) = reg.read_conversions(str(lab))
+        assert entry["files"] == ["Krasa_MGH1.tdt"] and set(entry["stamps"]) == {"Krasa_MGH1.tdt"}
+        assert entry["lab_folder"] == "."
+        assert reg.already_converted(str(lab), [str(lab / n) for n in reg.directory_inputs(tdt, str(lab))]) == \
+            ["Krasa_MGH1.tdt"]
+        second = reg.convert_files(tdt, [str(lab)], {}, str(lab), append=True, only=["Krasa_MGH1_noAC.tdt"])
+        assert second.ok and "pmagpy_convert_" not in second.log
+        assert [e["files"] for e in reg.read_conversions(str(lab))] == [["Krasa_MGH1.tdt"], ["Krasa_MGH1_noAC.tdt"]]
+        whole = reg.convert_files(tdt, [str(lab)], {}, str(tmp_path / "whole"), record=False)
+        assert len(read_table(lab / "measurements.txt")) == len(read_table(tmp_path / "whole" / "measurements.txt"))
+        assert sorted(os.listdir(lab)) == sorted(["Krasa_MGH1.tdt", "Krasa_MGH1_noAC.tdt", reg.CONVERSION_LOG,
+                                                  "measurements.txt", "specimens.txt", "samples.txt", "sites.txt",
+                                                  "locations.txt"])
+
+    def test_files_read_together_are_not_converted_apart(self, tmp_path):
+        with pytest.raises(ValueError):
+            reg.convert_files(reg.FORMATS["legacy"], [str(tmp_path)], {}, str(tmp_path), only=["er_sites.txt"])
+        with pytest.raises(ValueError):
+            reg.convert_files(reg.FORMATS["jr6_jr6"], ["AF.jr6"], {}, str(tmp_path), only=["AF.jr6"])
+
+    def test_the_files_a_livdb_directory_holds_are_the_ones_its_converter_reads(self):
+        livdb = reg.FORMATS["livdb"]
+        assert reg.directory_inputs(livdb, example_path("livdb_magic/MW_P")) == ["perp.csv"]
+        assert reg.directory_inputs(livdb, example_path("livdb_magic/MW_OT+")) == ["16-1.livdb"]
+
+
 class TestLabFolder:
     """A folder of tables Convert made inside a lab folder knows that its lab files are in the folder above."""
 

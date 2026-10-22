@@ -138,6 +138,8 @@ class Format:
         extensions: lower-case file extensions the format's files usually have —
             for guessing a format from a directory and for offering its files.
         takes_directory: the converter reads a whole directory, not files (``tdt``, ``livdb``).
+        reads_together: the directory's files make sense only together (the 2.5 tables the
+            upgrade reads): a few of them cannot be converted without the rest.
         needs: MagIC table → keyword: tables that must already be in the MagIC
             directory, passed to the converter by path (the IODP measurement
             converters read the ``specimens.txt`` made from the LIMS sample file).
@@ -168,6 +170,7 @@ class Format:
     fixed: Dict[str, object] = field(default_factory=dict)
     extensions: Tuple[str, ...] = ()
     takes_directory: bool = False
+    reads_together: bool = False
     needs: Dict[str, str] = field(default_factory=dict)
     prepare: Optional[Callable[[dict], dict]] = None
     replaces: Tuple[str, ...] = ()
@@ -319,7 +322,8 @@ def _normalise(result) -> Tuple[bool, str]:
 
 def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: str,
                   append: bool = False, report: Optional[Callable[[str], None]] = None,
-                  record: bool = True, magic_dir: str = "", backup: Optional[str] = None) -> ConversionResult:
+                  record: bool = True, magic_dir: str = "", backup: Optional[str] = None,
+                  only: Optional[Sequence[str]] = None) -> ConversionResult:
     """Convert files (or one directory) with one converter and write the MagIC tables into ``dir_path``.
 
     Each input is converted on its own in a scratch directory; the tables are then
@@ -348,6 +352,11 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
         backup: a folder to keep the tables that are replaced in, as the
             applications' exports do: each one the first time it is replaced, and
             the last version every time in ``<backup>/previous/``.
+        only: for a format that ``takes_directory``, the names of the directory's
+            files to convert (the new ones, when the rest are in the tables
+            already): the converter reads a scratch folder holding copies of just
+            those, since it would read every file in the directory. Not for a
+            format whose files are ``reads_together``.
     """
     say = report or (lambda text: None)
     dir_path = os.path.abspath(os.path.expanduser(dir_path))
@@ -355,13 +364,24 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
     inputs = [p if os.path.isabs(p) else os.path.join(dir_path, p) for p in inputs]
     if not inputs:
         return ConversionResult(False, "No files chosen.")
+    if only is not None and (not fmt.takes_directory or fmt.reads_together or len(inputs) != 1):
+        raise ValueError(f"{fmt.label} cannot convert a few of a directory's files")
+    if only is not None and not only:
+        return ConversionResult(False, "No files chosen.")
     missing = [t for t in fmt.needs if not os.path.exists(os.path.join(magic_dir, f"{t}.txt"))]
     if missing:
         return ConversionResult(False, f"{fmt.label} needs {', '.join(missing)}.txt in the directory first"
                                        f"{' — ' + fmt.notes if fmt.notes else '.'}")
     scratch = tempfile.mkdtemp(prefix="pmagpy_convert_")
     logs, failed, per_table = [], [], {t: [] for t in MAGIC_TABLES}
+    source = inputs[0] if only is not None else ""
     try:
+        if only is not None:
+            picked = os.path.join(scratch, "in", os.path.basename(source.rstrip(os.sep)))
+            os.makedirs(picked)
+            for name in only:
+                shutil.copy2(os.path.join(source, name), os.path.join(picked, name))
+            inputs = [picked]
         for i, path in enumerate(inputs):
             name = os.path.basename(path.rstrip(os.sep))
             say(f"Converting {name} ({i + 1} of {len(inputs)}) …")
@@ -372,6 +392,9 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
             # longer spelling goes first or its tail would survive
             for prefix in sorted({out, os.path.realpath(out)}, key=len, reverse=True):
                 log = log.replace(prefix + os.sep, "").replace(prefix, ".")
+            if source:
+                for prefix in sorted({path, os.path.realpath(path)}, key=len, reverse=True):
+                    log = log.replace(prefix, source)
             logs.append(f"── {name}\n{log.rstrip()}\n" if log.strip() else f"── {name}\n")
             if not ok:
                 failed.append((name, message or "the converter reported failure"))
@@ -410,7 +433,9 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
     message = f"{what} converted · {describe_tables(tables)}" + (f" · {len(failed)} failed" if failed else "")
     result = ConversionResult(True, message, "\n".join(logs), tables, failed)
     if record and tables:
-        if fmt.takes_directory:
+        if source:
+            names = [os.path.join(source, n) for n in only]
+        elif fmt.takes_directory:
             names = [n if not os.path.isfile(os.path.join(inputs[0], n)) else os.path.join(inputs[0], n)
                      for n in directory_inputs(fmt, inputs[0])]
         else:
@@ -421,7 +446,8 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
 
 
 def directory_inputs(fmt: Format, directory: str) -> List[str]:
-    """The files a directory format read: the ones it accepts by extension (the 2.5 tables for ``legacy``).
+    """The files a directory format reads: the ones it accepts by extension (the 2.5 tables for ``legacy``;
+    ``.livdb`` and ``.csv`` for ``livdb``, as its converter takes them).
 
     When the format lists no extensions, or none match, the directory's own
     name stands for its contents.
@@ -432,6 +458,8 @@ def directory_inputs(fmt: Format, directory: str) -> List[str]:
         names = []
     if fmt.key == "legacy":
         hits = [n for n in names if _legacy_table(n.lower())]
+    elif fmt.key == "livdb":
+        hits = [n for n in names if n.endswith((".livdb", ".csv"))]        # as convert_2_magic.livdb reads them
     else:
         hits = [n for n in names if fmt.extensions and fmt.accepts(n)]
     return hits or [os.path.basename(os.path.abspath(directory))]
@@ -1297,7 +1325,7 @@ def upgrade_2_to_3(input_dir: str, output_dir: str = ".", meas_fname: str = "mag
 _add(Format(
     "legacy", "MagIC 2.5 tables (upgrade)", upgrade_2_to_3,
     fields=(),
-    file_kw="input_dir", input_dir_kw="", output_dir_kw="output_dir", takes_directory=True,
+    file_kw="input_dir", input_dir_kw="", output_dir_kw="output_dir", takes_directory=True, reads_together=True,
     outputs={"measurements": None, "specimens": None, "samples": None, "sites": None, "locations": None,
              "ages": None, "criteria": None},
     extensions=(".txt",),
