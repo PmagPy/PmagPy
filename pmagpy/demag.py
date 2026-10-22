@@ -1333,9 +1333,16 @@ class DemagData:
         cached = getattr(self, "_stored_cache", None)
         if cached is not None and len(cached[0]) == len(frames) and all(a is b for a, b in zip(cached[0], frames)):
             return cached[1]
+        self._stored_named = {}
         out = self._read_stored_only()
         self._stored_cache = (frames, out)
         return out
+
+    def stored_names_given(self) -> dict:
+        """``{row of the specimens table: component name}`` for the stored-only rows without a ``dir_comp``
+        that :meth:`stored_only_interpretations` named and took (rows by their position in the table)."""
+        self.stored_only_interpretations()
+        return dict(getattr(self, "_stored_named", {}))
 
     def _read_stored_only(self) -> pd.DataFrame:
         columns = ["specimen", "sample", "site", "location", "dir_comp", "dir_tilt_correction", "dir_dec", "dir_inc",
@@ -1378,6 +1385,7 @@ class DemagData:
         first = rows.assign(_unnamed=~was_named).sort_values("_unnamed", kind="stable") \
             .drop_duplicates(subset=["specimen", "dir_comp", "dir_tilt_correction"], keep="first")
         rows = rows.loc[sorted(first.index)]
+        self._stored_named = {i: rows.at[i, "dir_comp"] for i in rows.index[~was_named[rows.index]]}
         names = list(dict.fromkeys(rows["specimen"].astype(str)))
         known = [n for n in names if n in self.hierarchy.index]
         hier = mp.build_hierarchy(pd.DataFrame({"specimen": [n for n in names if n not in self.hierarchy.index]}),
@@ -2137,7 +2145,7 @@ class DemagData:
         existing specimen rows, failing that from the samples table.
         """
         new = self.specimens_table(coords, analysts)
-        existing = self._table("specimens")
+        existing = self._name_stored_rows(self._table("specimens"))
         new = mp.carry_annotations(new, existing, "specimen")
         new = carry_metadata(new, existing, "specimen")
         samples = self._table("samples")
@@ -2166,6 +2174,24 @@ class DemagData:
                             f"so no sample, site or location means include them: {', '.join(unplaced[:5])}"
                             + (" ..." if len(unplaced) > 5 else ""))
         return trim_to_model(_tilt_codes_as_integers(merged), "specimens", self.warnings)
+
+    def _name_stored_rows(self, existing: Optional[pd.DataFrame]) -> Optional[pd.DataFrame]:
+        """The specimens table with the component names given to its unnamed stored-only rows written in,
+        so that specimens.txt names the component its interpretation enters the means as."""
+        given = self.stored_names_given()
+        if existing is None or not given:
+            return existing
+        existing = existing.copy()
+        if "dir_comp" not in existing.columns:
+            existing["dir_comp"] = np.nan
+        existing["dir_comp"] = existing["dir_comp"].astype(object)
+        rows = [i for i in given if i in existing.index]
+        existing.loc[rows, "dir_comp"] = [given[i] for i in rows]
+        listed = sorted({f"{existing.at[i, 'specimen']} {given[i]}" for i in rows}, key=_natural_key)
+        self._warn_once(f"specimens.txt: {len(rows)} stored interpretation{'s' if len(rows) != 1 else ''} of "
+                        "specimens without measurements here written with the component name they were given "
+                        "(dir_comp was blank): " + ", ".join(listed[:8]) + (" ..." if len(listed) > 8 else ""))
+        return existing
 
     def write_specimens(self, dir_path: str, coords=(COORD_SPECIMEN, COORD_GEOGRAPHIC, COORD_TILT),
                         custom_name: Optional[str] = None, analysts: Optional[str] = None) -> Optional[str]:

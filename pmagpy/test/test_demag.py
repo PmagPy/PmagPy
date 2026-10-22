@@ -1131,6 +1131,34 @@ class TestStoredOnlyInterpretations:
         b = data.mean_directions("site", COORD_GEOGRAPHIC, "B", group="sp102").iloc[0]
         assert b["specimens"] == "sp102l1"
 
+    def test_the_names_given_are_written_to_specimens_txt(self, tmp_path):
+        """A stored row named on reading is exported with that dir_comp, so specimens.txt and the means agree."""
+        directory = _copy_study(DMAG_DIR, tmp_path / "dmag")
+
+        def edit(df):
+            df.loc[df["specimen"] == "sp102j1a", "dir_comp"] = ""
+            geo_l1 = (df["specimen"] == "sp102l1") & (df["dir_tilt_correction"] == "0")
+            df.loc[geo_l1, ["dir_comp", "meas_step_min"]] = ["", "373"]
+        _edit_specimens(directory, edit)
+        data = DemagData.from_directory(directory)
+        data.load_components_from_specimens_table()
+        before = data.mean_directions("site", COORD_GEOGRAPHIC, group="sp102")
+        data.write_specimens(directory)
+        assert any(w.startswith("specimens.txt: 3 stored interpretations of specimens without measurements here "
+                                "written with the component name they were given (dir_comp was blank): "
+                                "sp102j1a A, sp102l1 B") for w in data.warnings)
+        df = pd.read_csv(os.path.join(directory, "specimens.txt"), sep="\t", header=1, dtype=str)
+        named = {(r.specimen, r.dir_tilt_correction): r.dir_comp
+                 for r in df[df["specimen"].str.startswith("sp102") & df["dir_dec"].notna()].itertuples()}
+        assert named[("sp102j1a", "-1")] == named[("sp102j1a", "0")] == "A"
+        assert named[("sp102l1", "-1")] == "A" and named[("sp102l1", "0")] == "B"
+        again = DemagData.from_directory(directory)
+        again.load_components_from_specimens_table()
+        assert not any("no component name" in w for w in again.warnings)
+        after = again.mean_directions("site", COORD_GEOGRAPHIC, group="sp102")
+        cols = ["dir_comp_name", "dir_dec", "dir_inc", "dir_n_specimens", "specimens"]
+        assert after[cols].values.tolist() == before[cols].values.tolist()
+
     def test_sp102_mean_under_criteria_takes_every_stored_interpretation_as_published(self, tmp_path):
         """With DE-SPEC dir_n_measurements >= 5, sp102e2 (4 steps) and one other used to drop out of sp102's
         mean (212.0/-51.5, 11 specimens); the published selection is now trusted: 214.1/-51.5, 13 specimens."""
