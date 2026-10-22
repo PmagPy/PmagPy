@@ -484,9 +484,12 @@ Intensity were built.
    contributions have no id in their `contribution` row, so the id they were
    fetched by is written in). `pmagpy_apps/download.py` is the "Download from
    MagIC…" dialog: ID or DOI, an "Into folder" field prefilled with the
-   session's directory, network and unpacking off the event loop, never over an
-   existing MagIC directory (it offers `MagIC_<id>` beside it instead), Home
-   reopening on the result. Verified live on six of the group's contributions
+   session's directory, network and unpacking off the event loop, Home
+   reopening on the result. Into a folder that has tables it asks first, as an
+   unpack on Convert does (2026-10-22; it used to refuse and offer `MagIC_<id>`
+   beside it): a dated `MagIC_<date>/` inside it by default, or replacing the
+   tables with the old ones in `backup_before_pmagpy_apps/`; the download is
+   recorded in the folder's conversion log (format `magic`). Verified live on six of the group's contributions
    (20340, 20549, 19314, 18693, 20614 via its DOI — two versions, the latest
    taken — and 16403, the no-id case). `ipmag.download_magic_from_doi` was
    fixed on the way (it wrote to the cwd and had a broken error return).

@@ -297,17 +297,120 @@ class TestDownloadFromMagic:
         assert asyncio.run(dialog._download()) is False
         assert "no public contribution with reference DOI 10.1130/nothing.here" in dialog.message.object
 
-    def test_it_never_writes_over_a_magic_directory_but_offers_one_beside_it(self, tmp_path):
-        session = home.HubSession(MCMURDO)
+    @staticmethod
+    def study(tmp_path, name="study") -> str:
+        """A copy of the McMurdo tables, someone's study a download might land on."""
+        d = tmp_path / name
+        d.mkdir()
+        for table in ("contribution", "measurements", "specimens", "samples", "sites", "locations"):
+            shutil.copy(os.path.join(MCMURDO, f"{table}.txt"), d)
+        return str(d)
+
+    @staticmethod
+    def digest(folder) -> dict:
+        return {n: open(os.path.join(folder, n), "rb").read() for n in sorted(os.listdir(folder))
+                if os.path.isfile(os.path.join(folder, n))}
+
+    def test_into_a_folder_with_tables_it_asks_first_and_a_dated_folder_is_the_default(self, tmp_path):
+        from pmagpy import convert_registry as reg
+        study = self.study(tmp_path)
+        before = self.digest(study)
+        session = home.HubSession(study)
         dialog = self._dialog(session)
         dialog.reference.value = "20549"
         assert asyncio.run(dialog._download()) is False
-        assert dialog.fetched == []                                       # refused before any network
-        assert "already holds MagIC tables" in dialog.message.object
-        assert dialog.folder.value == os.path.join(os.path.dirname(MCMURDO), "MagIC_20549")
-        dialog.folder.value = str(tmp_path / "somewhere" / "MagIC_20549")       # a folder that does not exist yet
+        assert dialog.fetched == []                                       # asked before any network
+        dated = os.path.basename(reg.dated_folder(study))
+        assert dialog.where.visible and dialog.where.value == download.NEW_FOLDER
+        assert list(dialog.where.options) == [
+            f"Into a new folder here, {dated}/ (nothing is overwritten)",
+            "Replace the tables here (the old ones are kept in backup_before_pmagpy_apps/)"]
+        assert "has MagIC tables already (contribution.txt, measurements.txt" in dialog.message.object
+        assert dialog.download_btn.name == f"Confirm: download into {dated}/"
+        assert dialog.download_btn.button_type == "warning"
         assert asyncio.run(dialog._download()) is True
-        assert session.directory == str(tmp_path / "somewhere" / "MagIC_20549") and session.landing is False
+        target = os.path.join(study, dated)
+        assert dialog.fetched == [20549] and session.directory == target and session.inventory.is_magic
+        assert f"written into {dated}/" in dialog.message.object and not dialog.where.visible
+        assert self.digest(study) == before                               # nothing in the study was touched
+        (entry,) = reg.read_conversions(target)
+        assert entry["format"] == "magic" and entry["values"]["id"] == 20549 and "lab_folder" not in entry
+        assert dialog.download_btn.name == "Download" and dialog.download_btn.button_type == "success"
+
+    def test_replacing_keeps_the_old_tables_in_the_backup(self, tmp_path):
+        from pmagpy import convert_registry as reg
+        study = self.study(tmp_path)
+        before = self.digest(study)
+        session = home.HubSession(study)
+        dialog = self._dialog(session)
+        dialog.reference.value = "20549"
+        asyncio.run(dialog._download())
+        dialog.where.value = download.REPLACE
+        assert dialog.download_btn.name == "Confirm: replace the tables" and dialog.download_btn.button_type == "danger"
+        assert asyncio.run(dialog._download()) is True
+        assert session.directory == study and "kept in backup_before_pmagpy_apps/" in dialog.message.object
+        assert open(os.path.join(study, "measurements.txt"), "rb").read() != before["measurements.txt"]
+        backup = os.path.join(study, "backup_before_pmagpy_apps")
+        for name in ("contribution.txt", "measurements.txt", "specimens.txt", "sites.txt"):
+            assert open(os.path.join(backup, name), "rb").read() == before[name], name
+        assert not [n for n in os.listdir(study) if n.startswith("MagIC_")]
+        (entry,) = reg.read_conversions(study)
+        assert entry["format"] == "magic" and entry["values"]["id"] == 20549
+        assert home.stages(session.inventory)[0][2].startswith("contribution 20549 from MagIC · ")
+
+    def test_changing_the_reference_or_the_folder_withdraws_the_question(self, tmp_path):
+        study = self.study(tmp_path)
+        session = home.HubSession(study)
+        dialog = self._dialog(session)
+        dialog.reference.value = "20549"
+        asyncio.run(dialog._download())
+        assert dialog.where.visible
+        dialog.reference.value = "20550"
+        assert not dialog.where.visible and dialog.download_btn.name == "Download"
+        asyncio.run(dialog._download())
+        assert dialog.where.visible
+        dialog.folder.value = str(tmp_path / "elsewhere")
+        assert not dialog.where.visible
+        assert asyncio.run(dialog._download()) is True                    # an empty folder: no question
+        assert dialog.fetched == [20550] and session.directory == str(tmp_path / "elsewhere")
+
+    def test_a_folder_that_ships_with_pmagpy_is_not_written_into(self, tmp_path):
+        session = home.HubSession(MCMURDO)
+        dialog = self._dialog(session)
+        dialog.reference.value = "20549"
+        before = self.digest(dialog.folder.value)
+        assert asyncio.run(dialog._download()) is False
+        assert dialog.fetched == [] and "ships with PmagPy" in dialog.message.object and not dialog.where.visible
+        assert self.digest(dialog.folder.value) == before
+
+    def test_on_a_working_copy_the_study_is_where_the_tables_go(self, tmp_path, monkeypatch):
+        for var in datasets.OUTPUT_BASE_VARS:
+            monkeypatch.delenv(var, raising=False)
+        monkeypatch.setenv("PMAGPY_APPS_OUTPUT", str(tmp_path / "PmagPy"))
+        study = self.study(tmp_path)
+        session = home.HubSession(study)
+        copy = session.directory
+        assert copy != study and datasets.working_copy_source(copy) == os.path.realpath(study)
+        dialog = self._dialog(session)
+        assert dialog.folder.value == os.path.realpath(study)
+        dialog.reference.value = "20549"
+        asyncio.run(dialog._download())
+        dialog.where.value = download.REPLACE
+        assert asyncio.run(dialog._download()) is True
+        assert session.directory == copy                                  # the copy is kept, and the dialog says so
+        assert "was made before and does not have them" in dialog.message.object
+        assert os.path.isfile(os.path.join(study, "backup_before_pmagpy_apps", "measurements.txt"))
+
+    def test_a_failed_download_into_a_new_folder_leaves_no_folder(self, tmp_path):
+        study = self.study(tmp_path)
+        session = home.HubSession(study)
+        dialog = self._dialog(session)
+        dialog.fetch = lambda magic_id: "tab delimited\ter_locations\ner_location_name\nL\n"     # a 2.5 file
+        dialog.reference.value = "20549"
+        asyncio.run(dialog._download())
+        assert asyncio.run(dialog._download()) is False
+        assert "MagIC 2.5 contribution file" in dialog.message.object
+        assert not [n for n in os.listdir(study) if n.startswith("MagIC_")]
 
     def test_nonsense_is_refused_in_place(self, tmp_path):
         session = home.HubSession(str(tmp_path))

@@ -142,7 +142,14 @@ are passed over, not listed as lab files; unpacking a 2.5 contribution file is
 refused, and reading a 2.5 table says the same as Home.
 
 "Download from MagIC…" (`pmagpy_apps/download.py`) fills a folder with a public
-contribution given its ID or the paper's DOI and reopens Home on it. The
+contribution given its ID or the paper's DOI and reopens Home on it. Into a
+folder that has tables already (`contribution.txt` included) the first click
+asks the question Convert asks before an unpack -- a new folder
+`MagIC_<YYYY-MM-DD>/` inside it (the default), or replacing the tables with the
+old ones kept in `backup_before_pmagpy_apps/` -- and nothing is fetched until
+the second; the tables are written all or nothing. On a working copy the
+folder offered is the study's own, and a folder that ships with PmagPy is not
+written into. The
 EarthRef calls are in `pmagpy.magic_project` (`find_contributions`,
 `fetch_contribution`, `unpack_contribution`, `download_contribution`) and work
 from a script too; a download is recorded in the folder's conversion log (see
