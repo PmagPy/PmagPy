@@ -601,7 +601,7 @@ class Demag_GUI(wx.Frame):
     # ----------------------------------------------------------------------
 
         self.PCA_type_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25), value='line', choices=[
-                                        'line', 'line-anchored', 'line-with-origin', 'plane', 'Fisher'], style=wx.CB_DROPDOWN | wx.TE_READONLY, name="coordinates")
+                                        'line', 'line-anchored', 'line-with-origin', 'vector mean', 'plane', 'Fisher'], style=wx.CB_DROPDOWN | wx.TE_READONLY, name="coordinates")
         self.Bind(wx.EVT_COMBOBOX,
                   self.on_select_specimen_mean_type_box, self.PCA_type_box)
         self.PCA_type_box.SetHelpText(dgh.PCA_type_help)
@@ -1708,7 +1708,7 @@ class Demag_GUI(wx.Frame):
             fit.points[0] = self.zijplot.collections[-1]
             fit.points[1] = self.zijplot.collections[-2]
 
-            if pars['calculation_type'] in ['DE-BFL', 'DE-BFL-A', 'DE-BFL-O']:
+            if pars['calculation_type'] in ['DE-BFL', 'DE-BFL-A', 'DE-BFL-O', 'DE-VM']:
 
                 # rotated zijderveld
                 if self.COORDINATE_SYSTEM == 'geographic' and len(self.Data[self.s]['zdata_geo']) > 0:
@@ -1752,13 +1752,14 @@ class Demag_GUI(wx.Frame):
 
                 xx = np.array([self.CART_rot[:, 0][tmax_index],
                             self.CART_rot[:, 0][tmin_index]])
+
+                if pars['calculation_type'] in ['DE-BFL-A', 'DE-VM']:
+                    # anchored line and vector mean pass through the origin
+                    intercept_xy_PCA, intercept_xz_PCA = 0., 0.
+                    xx = np.concatenate(([0.], xx))
+
                 yy = slop_xy_PCA*xx+intercept_xy_PCA
                 zz = slop_xz_PCA*xx+intercept_xz_PCA
-
-                if (pars['calculation_type'] in ['DE-BFL-A']):  # CHECK
-                    xx = [0.] + xx
-                    yy = [0.] + yy
-                    zz = [0.] + zz
 
                 self.zijplot.plot(xx, yy, '-', color=fit.color,
                                   lw=3, alpha=0.5, zorder=0)
@@ -3045,8 +3046,8 @@ class Demag_GUI(wx.Frame):
     def get_PCA_parameters(self, specimen, fit, tmin, tmax, coordinate_system, calculation_type):
         """
         Uses pmag.domean to preform a line, line-with-origin, line-anchored,
-        or plane least squared regression or a fisher mean on the
-        measurement data of specimen in coordinate system between bounds
+        or plane least squared regression, a vector mean or a fisher mean on
+        the measurement data of specimen in coordinate system between bounds
         tmin to tmax
 
         Parameters
@@ -3060,7 +3061,7 @@ class Demag_GUI(wx.Frame):
             should be in
         calculation_type : type of regression or mean to preform
             (options - DE-BFL:line,DE-BFL-A:line-anchored,DE-BFL-O:line-with-
-            origin,DE-FM:fisher,DE-BFP:plane)
+            origin,DE-VM:vector mean,DE-FM:fisher,DE-BFP:plane)
 
         Returns
         -------
@@ -4583,7 +4584,7 @@ class Demag_GUI(wx.Frame):
                 fmin = fdict[i]['meas_step_min']
                 fmax = fdict[i]['meas_step_max']
 
-            PCA_types = ["DE-BFL", "DE-BFL-A", "DE-BFL-O", "DE-FM", "DE-BFP"]
+            PCA_types = ["DE-BFL", "DE-BFL-A", "DE-BFL-O", "DE-VM", "DE-FM", "DE-BFP"]
             PCA_type_list = [x for x in str(fdict[i]['method_codes']).split(
                 ':') if x.strip() in PCA_types]
             if len(PCA_type_list) > 0:
@@ -6513,6 +6514,8 @@ class Demag_GUI(wx.Frame):
                 PCA_type = "line-anchored"
             elif calculation_type == "DE-BFL-O":
                 PCA_type = "line-with-origin"
+            elif calculation_type == "DE-VM":
+                PCA_type = "vector mean"
             elif calculation_type == "DE-FM":
                 PCA_type = "Fisher"
             elif calculation_type == "DE-BFP":
@@ -6964,6 +6967,12 @@ class Demag_GUI(wx.Frame):
                             mpars["specimen_mad"])
                         PmagSpecRec['specimen_dang'] = "%.1f" % float(
                             mpars['specimen_dang'])
+                        PmagSpecRec['specimen_alpha95'] = ""
+                    elif calculation_type in ["DE-VM"]:
+                        # a vector mean has no MAD or DANG
+                        PmagSpecRec['specimen_direction_type'] = 'l'
+                        PmagSpecRec['specimen_mad'] = ""
+                        PmagSpecRec['specimen_dang'] = ""
                         PmagSpecRec['specimen_alpha95'] = ""
                     elif calculation_type in ["DE-BFP"]:
                         PmagSpecRec['specimen_direction_type'] = 'p'
@@ -8442,6 +8451,8 @@ class Demag_GUI(wx.Frame):
             calculation_type = "DE-BFL-A"
         elif PCA_type == "line-with-origin":
             calculation_type = "DE-BFL-O"
+        elif PCA_type == "vector mean":
+            calculation_type = "DE-VM"
         elif PCA_type == "Fisher":
             calculation_type = "DE-FM"
         elif PCA_type == "plane":
