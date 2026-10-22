@@ -489,8 +489,8 @@ def merge_edits(directory: str, table: str, frame: EditorFrame, edited: pd.DataF
 #: the tables in which several rows of one name describe one thing: a site (or sample) has one place
 SHARED_TABLES = ("sites", "samples")
 #: a site's (or sample's) position, edited together: lat and lon with their sigmas and precision, and the
-#: elevation (sites) or stratigraphic height (samples) -- the columns each table has in the data model
-POSITION_COLUMNS = {"sites": ("lat", "lat_sigma", "lon", "lon_sigma", "geographic_precision", "elevation"),
+#: stratigraphic height, and for sites the elevation -- the columns each table has in the data model
+POSITION_COLUMNS = {"sites": ("lat", "lat_sigma", "lon", "lon_sigma", "geographic_precision", "height", "elevation"),
                     "samples": ("lat", "lat_sigma", "lon", "lon_sigma", "lat_lon_precision", "height")}
 #: the age with its unit and range
 AGE_GROUP = ("age", "age_sigma", "age_low", "age_high", "age_unit")
@@ -533,9 +533,10 @@ def share_edit(table: str, df: pd.DataFrame, row: int, column: str,
     result), and PmagPy Directions places a site at the mean position of its
     rows: an edit of one row's latitude would move the site's VGP to a place
     no row names. When ``column`` belongs to one of :func:`shared_groups`, the
-    whole group (the position: lat and lon with their sigmas, precision and
-    elevation or height; the age with its sigma, range and unit) is copied
-    from the edited row (position ``row``) onto the other rows of that name.
+    whole group (the position: lat and lon with their sigmas and precision,
+    the stratigraphic height and, for a site, the elevation; the age with its
+    sigma, range and unit) is copied from the edited row (position ``row``)
+    onto the other rows of that name.
     A cell of the group the edited row leaves blank is blank in every row
     afterwards; the values that cleared are reported.
 
