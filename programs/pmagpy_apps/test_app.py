@@ -736,8 +736,10 @@ class TestConvertAgain:
     def test_a_magic_2_5_directory_upgrades_in_place_and_opens_directions(self, tmp_path):
         src = os.path.join(os.path.dirname(MCMURDO), "..", "2_5", "McMurdo")
         for name in os.listdir(src):
-            if name != "zmab0100049tmp03.txt":                          # the 2.5 contribution file the tables came from
+            if name.endswith(".txt") and name not in ("zmab0100049tmp03.txt", "ages.txt"):   # the 2.5 tables
                 shutil.copy(os.path.join(src, name), tmp_path)
+        # a 3.0 table already beside them (as a half-finished earlier upgrade leaves): converting afresh must ask
+        (tmp_path / "ages.txt").write_text("tab\tages\nsite\tage\tage_unit\nmc01\t1.18\tMa\n")
         session = home.HubSession(str(tmp_path))
         inv = session.inventory
         assert inv.format_key == "legacy" and not inv.is_magic
@@ -748,7 +750,7 @@ class TestConvertAgain:
         choose(view, "legacy")
         assert view.files.disabled is True
         assert len(view.form.widgets) == 0 and "earthref.org/MagIC/upgrade" in view.notes.object
-        # the example carries a stray 3.0 ages.txt: converting afresh asks first, and replacing keeps it backed up
+        # converting afresh asks first, and replacing keeps the 3.0 table backed up
         assert asyncio.run(view._convert()) is False and "MagIC tables already (ages.txt)" in view.message.object
         view.where.value = convert.REPLACE
         assert asyncio.run(view._convert()) is True
