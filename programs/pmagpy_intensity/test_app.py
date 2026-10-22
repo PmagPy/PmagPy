@@ -813,6 +813,10 @@ class TestCorrectionsView:
         assert study_aniso.value == pint.MIXED and study_aniso.options[0] == pint.MIXED
         assert "mixed" in view.exceptions.object
         study_aniso.value = "never"
+        # the published choices it replaces are asked about first
+        assert view.study_confirm.visible and view.study_confirm.name == "Confirm: set 292"
+        view.study_confirm.clicks += 1
+        assert not view.study_confirm.visible
         assert all(i.use_anisotropy is False for i in session.data.interpretations.values())
         assert study_aniso.options == ["use if available", "always", "never"]
         assert "anisotropy: never for the whole study" in session.status
@@ -832,6 +836,52 @@ class TestCorrectionsView:
         reopened = CorrectionsView(again)
         reopened.set_active(True)
         assert dict((kind, w) for w, kind in reopened.study_switches)["anisotropy"].value == "never"
+
+    def test_a_study_wide_setting_asks_before_it_replaces_specimens_own_choices(self, tmp_path):
+        src = tmp_path / "McMurdo"
+        shutil.copytree(MCMURDO, src)
+        session = Session(str(src))
+        session.autosave_enabled = False
+        view = CorrectionsView(session)
+        view.set_active(True)
+        switches = {kind: widget for widget, kind in view.study_switches}
+        published = {n: i.use_nlt for n, i in session.data.interpretations.items()}
+        # NLT "always" would replace the 319 published "never": the first click only asks
+        switches["nlt"].value = "always"
+        assert view.study_confirm.visible and view.study_confirm.name == "Confirm: set 319"
+        assert "replaces the choice of 319 specimens set otherwise, 319 of them published" \
+            in view.study_question.object
+        assert {n: i.use_nlt for n, i in session.data.interpretations.items()} == published
+        assert session.data.correction_settings["nlt"] is None and switches["nlt"].value == "always"
+        # choosing the setting in force again takes the question back
+        switches["nlt"].value = "use if available"
+        assert not view.study_confirm.visible and session.data.correction_settings["nlt"] is None
+        # any edit takes it back as well, and the selector shows the setting in force
+        switches["nlt"].value = "always"
+        assert view.study_confirm.visible
+        session.specimen = session.data.specimen_names[0]
+        session.set_correction("anisotropy", None)
+        assert not view.study_confirm.visible and switches["nlt"].value == "use if available"
+        assert {n: i.use_nlt for n, i in session.data.interpretations.items()} == published
+        # the second click sets it
+        switches["nlt"].value = "always"
+        view.study_confirm.clicks += 1
+        assert session.data.correction_settings["nlt"] is True
+        assert all(i.use_nlt is True for i in session.data.interpretations.values())
+        assert "non-linear TRM: always for the whole study (319 specimens changed)" in session.status
+        # nothing set otherwise: no question
+        switches["cooling_rate"].value = "never"
+        assert not view.study_confirm.visible and session.data.correction_settings["cooling_rate"] is False
+        switches["nlt"].value = "never"
+        assert not view.study_confirm.visible and session.data.correction_settings["nlt"] is False
+        # a specimen interpreted and switched by hand is asked about, and not counted as published
+        name = next(n for n in session.data.specimen_names if not session.data.has_interpretation(n))
+        session.specimen = name
+        session.set_bounds(0, 4)
+        session.set_correction("nlt", True)
+        switches["nlt"].value = "use if available"
+        assert view.study_confirm.name == "Confirm: set 1"
+        assert "replaces the choice of 1 specimen set otherwise, 0 of them published" in view.study_question.object
 
     def test_switching_a_correction_off_is_reflected(self, study):
         study.specimen = "hz05a1"

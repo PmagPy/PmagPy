@@ -688,6 +688,20 @@ class TestStudyWideCorrections:
         other = next(n for n in data.specimen_names if n not in data.interpretations)
         assert data.set_interpretation(other, 0, 3).use_nlt is False
 
+    def test_the_specimens_a_study_wide_setting_would_replace(self, mcmurdo, small):
+        # those set otherwise than the study (published or by hand) whose choice the setting changes
+        assert len(mcmurdo.study_correction_overrides("nlt", True)) == 319
+        assert mcmurdo.study_correction_overrides("nlt", False) == []
+        names = small.specimen_names[:3]
+        for name in names:
+            small.set_interpretation(name, 0, 4)
+        assert small.study_correction_overrides("nlt", False) == []        # all follow the setting
+        small.interpretations[names[1]].use_nlt = True
+        assert small.study_correction_overrides("nlt", False) == [names[1]]
+        assert small.study_correction_overrides("nlt", True) == []
+        with pytest.raises(KeyError):
+            small.study_correction_overrides("magnetism", True)
+
     def test_megiddo_reads_mixed_for_every_correction_and_names_no_shared_choice(self, megiddo):
         assert all(megiddo.correction_settings[kind] is pi.MIXED for kind in pi.CORRECTION_KINDS)
         assert all(megiddo.imported_correction_choice(kind) is None for kind in pi.CORRECTION_KINDS)

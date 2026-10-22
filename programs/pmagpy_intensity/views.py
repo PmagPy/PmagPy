@@ -1235,6 +1235,13 @@ class CorrectionsView(LazyView):
         #: under each study-wide selector: the choice the imported specimens share, where it is not the setting
         self.study_notes = {kind: pn.pane.HTML("", visible=False, sizing_mode="stretch_width", margin=(0, 10, 4, 10))
                             for _, kind in self.study_switches}
+        # a study-wide choice that would replace specimens' own (published or set by hand) is asked
+        # first: the question names how many, and a second click on the button sets them
+        self.study_question = pn.pane.HTML("", visible=False, sizing_mode="stretch_width")
+        self.study_confirm = pn.widgets.Button(name="Confirm", button_type="danger", width=170, visible=False)
+        self.study_confirm.on_click(lambda e: self._confirm_study_switch())
+        self._study_pending = None      # (kind, use, specimens it would replace) awaiting the confirmation
+        session.param.watch(lambda *e: self._retract_study_question(), ["version", "directory"])
         self.exceptions = pn.pane.HTML("", sizing_mode="stretch_width")
         self.alt_limit = pn.widgets.FloatInput(name="anisotropy alteration limit (%)",
                                                value=5.0, width=220)
@@ -1246,9 +1253,57 @@ class CorrectionsView(LazyView):
     LABELS = {"anisotropy": "anisotropy", "nlt": "non-linear TRM", "cooling_rate": "cooling rate"}
 
     def _on_study_switch(self, kind: str, label: str) -> None:
-        if self._showing or label == pint.MIXED or self.s.data is None:
+        if self._showing or self.s.data is None:
+            return
+        if label == pint.MIXED:
+            self._retract_study_question()
             return
         use = self.USE[label]
+        if self.s.data.correction_settings.get(kind) is use:
+            self._retract_study_question()          # back to the setting in force: nothing to ask
+            return
+        replaced = self.s.data.study_correction_overrides(kind, use)
+        if replaced:
+            self._ask_study_switch(kind, use, replaced)
+            return
+        self._retract_study_question()
+        self._set_study(kind, use)
+
+    def _ask_study_switch(self, kind: str, use, replaced) -> None:
+        """The first click: say how many specimens' own choices (how many published) the setting replaces."""
+        self._retract_study_question(redraw=False)
+        self._study_pending = (kind, use, tuple(replaced))
+        published = self.s.data.interpretation_sources(replaced).get("specimens.txt", 0)
+        label = {v: k for k, v in self.USE.items()}[use]
+        n = len(replaced)
+        self.study_question.object = (
+            f'<div style="color:{FAIL_COLOR}">Setting {self.LABELS[kind]} to <i>{label}</i> for the whole '
+            f'study replaces the choice of {n} specimen{"" if n == 1 else "s"} set otherwise, '
+            f'{published} of them published (imported from specimens.txt). Click '
+            f'<i>Confirm: set {n}</i> to go on, or choose another setting.</div>')
+        self.study_confirm.name = f"Confirm: set {n}"
+        self.study_question.visible = self.study_confirm.visible = True
+        self._show_study_switches()
+
+    def _confirm_study_switch(self) -> None:
+        """The second click: set the study, as asked."""
+        if self._study_pending is None or self.s.data is None:
+            return
+        kind, use, _ = self._study_pending
+        self._retract_study_question(redraw=False)
+        self._set_study(kind, use)
+
+    def _retract_study_question(self, redraw: bool = True) -> None:
+        if self._study_pending is None:
+            return
+        self._study_pending = None
+        self.study_question.object = ""
+        self.study_question.visible = self.study_confirm.visible = False
+        if redraw and self.s.data is not None:
+            self._show_study_switches()             # the selector goes back to the setting in force
+
+    def _set_study(self, kind: str, use) -> None:
+        label = {v: k for k, v in self.USE.items()}[use]
         changed = self.s.set_study_correction(kind, use)
         self.s.status = (f"{self.LABELS[kind]}: {label} for the whole study "
                          f"({changed} specimen{'' if changed == 1 else 's'} changed)")
@@ -1324,7 +1379,11 @@ class CorrectionsView(LazyView):
                 options = ([pint.MIXED] if setting is pint.MIXED else []) + choices
                 if widget.options != options:
                     widget.options = options
-                widget.value = pint.MIXED if setting is pint.MIXED else labels.get(setting, choices[0])
+                pending = self._study_pending
+                if pending is not None and pending[0] == kind:
+                    widget.value = labels.get(pending[1], choices[0])     # the choice being asked about
+                else:
+                    widget.value = pint.MIXED if setting is pint.MIXED else labels.get(setting, choices[0])
                 imported = self.s.data.imported_correction_choice(kind)
                 note = self.study_notes[kind]
                 note.object = (f'<div style="{MUTED_STYLE}">the {imported[1]} imported specimen'
@@ -1417,6 +1476,7 @@ class CorrectionsView(LazyView):
             pn.pane.HTML(f'<div style="{SECTION_STYLE}">This specimen</div>'), self.detail,
             pn.pane.HTML(f'<div style="{SECTION_STYLE}">Apply to the whole study</div>'),
             *(item for widget, kind in self.study_switches for item in (widget, self.study_notes[kind])),
+            self.study_question, self.study_confirm,
             pn.pane.HTML(f'<div style="{MUTED_STYLE}">Sets every specimen, and every interpretation '
                          f'made later. A specimen can still be set on its own below.</div>'),
             pn.pane.HTML(f'<div style="{SECTION_STYLE}">Apply to this specimen</div>'),

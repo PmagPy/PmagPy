@@ -174,7 +174,12 @@ Each correction can be set to *use if available*, *always* (fail the specimen
 where it is missing) or *never*, for the whole study and for one specimen. The
 study-wide setting sets every specimen, and every interpretation made later; a
 specimen can then still be set on its own, and the tab lists the specimens set
-differently from the study. Interpretations imported from `specimens.txt` keep
+differently from the study. A study-wide setting that would replace the choice
+of specimens set otherwise (published, or switched by hand) asks first: it names
+how many, and how many of them are published, and the button below turns into
+*Confirm: set N*; a second click sets them, and choosing the setting in force
+again, or any edit, takes the question back. When no specimen is set otherwise,
+it is set at once. Interpretations imported from `specimens.txt` keep
 the corrections their rows record. After an import the study-wide setting
 starts at the default, *use if available*, so a new interpretation takes it
 unless you choose otherwise: the control reads *mixed* where the imported

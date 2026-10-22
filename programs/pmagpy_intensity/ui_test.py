@@ -705,7 +705,16 @@ with sync_playwright() as playwright:
     # every specimen, and a specimen set on its own afterwards is listed as differing
     check(selected(page, "anisotropy (whole study)") == "mixed",
           f"after the import the study-wide anisotropy reads mixed ({selected(page, 'anisotropy (whole study)')!r})")
+    own_before = selected(page, "anisotropy")
     choose(page, "anisotropy (whole study)", "never")
+    # the published choices it would replace are asked about first, with how many
+    asked = wait_for_text(page, r"replaces the choice of (\d+) specimens set otherwise, (\d+) of them published", 60)
+    check(asked is not None, "a study-wide setting that replaces published choices asks first, naming how many")
+    page.screenshot(path=f"{prefix}_corrections_ask.png")
+    check(selected(page, "anisotropy") == own_before,
+          f"... and changes nothing before the second click ({own_before!r} -> {selected(page, 'anisotropy')!r})")
+    if asked:
+        check(click_button(page, f"Confirm: set {asked.group(1)}"), f"the button reads Confirm: set {asked.group(1)}")
     check(wait_for_text(page, r"anisotropy: never for the whole study \(\d+ specimens? changed\)", 60) is not None,
           "setting anisotropy to never for the whole study says how many specimens changed")
     check(selected(page, "anisotropy") == "never", f"the specimen's own switch follows ({selected(page, 'anisotropy')!r})")

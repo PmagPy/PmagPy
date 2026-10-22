@@ -1637,6 +1637,25 @@ class PintData:
         self.invalidate()
         return changed
 
+    def study_correction_overrides(self, kind: str, use: Optional[bool]) -> List[str]:
+        """Specimens whose own choice :meth:`set_study_correction` ``(kind, use)`` would replace.
+
+        Those whose choice for ``kind`` differs from the study-wide setting (every one, where it is
+        :data:`MIXED`) -- published with a choice of their own, or set by hand -- and from ``use``;
+        fits set aside by a flag included. Specimens that follow the study-wide setting are not
+        listed: changing it is meant to change them.
+        """
+        if kind not in CORRECTION_KINDS:
+            raise KeyError(f"no correction {kind!r}; the corrections are {', '.join(CORRECTION_KINDS)}")
+        setting = self.correction_settings.get(kind)
+        held = {name: interp for name, (interp, _) in self._set_aside.items()}
+        names = []
+        for name, interp in list(self.interpretations.items()) + list(held.items()):
+            own = getattr(interp, f"use_{kind}")
+            if (setting is MIXED or own is not setting) and own is not use:
+                names.append(name)
+        return names
+
     def correction_exceptions(self, kind: str) -> Dict[str, Optional[bool]]:
         """Interpretations whose choice for ``kind`` differs from the study-wide one: specimen -> choice.
 
