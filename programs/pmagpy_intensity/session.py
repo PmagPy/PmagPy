@@ -5,6 +5,7 @@ the persistence policy (an auto-saved session file next to the data).
 """
 from __future__ import annotations
 
+import json
 import os
 from typing import Iterable, Optional
 
@@ -32,6 +33,12 @@ AUTOSAVE_NAME = f"{pint.APP_ID}_autosave.json"
 SESSION_NAME = f"{pint.APP_ID}_session.json"
 #: what *Save session* writes by default: SESSION_SAVE_PREFIX + the date (+ -2, -3 ... when taken)
 SESSION_SAVE_PREFIX = f"{pint.APP_ID}_session_"
+#: the session Show code writes for its code to load, where the autosave does not hold the session as
+#: it is now (it could not be written, or another window wrote it)
+CODE_SESSION_NAME = f"{pint.APP_ID}_code_session.json"
+#: where that file goes when neither the study's folder nor an output base can take it: a folder per
+#: study under the user's own PmagPy folder (``~/.pmagpy``, where the recent list is kept)
+CODE_SESSION_HOME = os.path.join(os.path.expanduser("~"), ".pmagpy", pint.APP_ID, "code_sessions")
 REDO_NAME = f"{pint.APP_ID}.redo"
 LEGACY_REDO_NAMES = ("thellier_gui.redo", "thellier_GUI.redo")
 # the recent list is shared by every PmagPy application; the per-application file
@@ -453,6 +460,71 @@ class Session(param.Parameterized):
                 pass
         self._autosave_doc = doc
         self._autosave_pending = doc.add_timeout_callback(self.autosave, int(self.autosave_delay * 1000))
+
+    def _holds_the_session(self, path: str) -> bool:
+        """True when loading the session file at ``path`` would bring back the session as it is now."""
+        try:
+            with open(path, encoding="utf-8") as fh:
+                saved = json.load(fh)
+        except (OSError, ValueError):
+            return False
+        saved.pop("writer", None)
+        return saved == json.loads(self.data.to_json())
+
+    def code_session_folders(self) -> list:
+        """Where a session snapshot for Show code may go, in order of preference.
+
+        The study's own folder (the output directory, where the autosave goes), then the study's
+        folder under the output base, then one under :data:`CODE_SESSION_HOME`. Never a folder that
+        ships with PmagPy (the application bundle, a checkout's ``data_files``).
+        """
+        base = datasets.output_base()
+        folders = [self.output_dir]
+        if base:
+            folders.append(datasets.default_output_dir(self.directory, base))
+        folders.append(datasets.default_output_dir(self.directory, CODE_SESSION_HOME))
+        shipped = datasets.shipped_roots()
+        out = []
+        for folder in folders:
+            if not folder:
+                continue
+            real = os.path.realpath(folder)
+            if any(real == root or real.startswith(root + os.sep) for root in shipped) or real in out:
+                continue
+            out.append(real)
+        return out
+
+    def code_session_file(self) -> tuple:
+        """The session file Show code loads, and a note saying why it is not the autosave ("" when it is).
+
+        An autosave that is due (or, with autosaving on, behind the session) is written first. When
+        the autosave holds the session as it is now, it is the file; otherwise (it could not be
+        written, autosaving is off, or another window wrote it) the session is written now to
+        :data:`CODE_SESSION_NAME` in the first of :meth:`code_session_folders` that takes it.
+
+        Raises:
+            OSError: no folder could take the file.
+        """
+        if self._holds_the_session(self.autosave_path):
+            return self.autosave_path, ""
+        if self._autosave_pending is not None:
+            self.flush_autosave()
+        elif self.autosave_enabled:
+            self.autosave()
+        if self._holds_the_session(self.autosave_path):
+            return self.autosave_path, ""
+        why = ("the autosave holds an earlier state of the session" if os.path.exists(self.autosave_path)
+               else f"there is no autosave in {datasets.shorten_home(self.output_dir)}")
+        error = None
+        for folder in self.code_session_folders():
+            target = os.path.join(folder, CODE_SESSION_NAME)
+            try:
+                os.makedirs(folder, exist_ok=True)
+                self.save_session(target)
+                return target, why
+            except OSError as exc:
+                error = exc
+        raise error or OSError("no folder could take the session file")
 
     def flush_autosave(self) -> None:
         """Write a pending autosave now (before the dataset or the output directory changes)."""

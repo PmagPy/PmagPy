@@ -260,6 +260,7 @@ was made before it had the log.
 | file | when | what |
 |---|---|---|
 | `pmagpy_intensity_autosave.json` | after every change | the interpretations and the step flags, so a reload or a crash loses nothing |
+| `pmagpy_intensity_code_session.json` | when Show code is opened and the autosave does not hold the session as it is now | the session the Group results and BiCEP code load (see *Show code*); not offered by *Load session* |
 | `pmagpy_intensity_session.json` | on export, and only then | the whole session the tables were written from: interpretations, flags, criteria, correction switches (per specimen and study-wide) — human-readable JSON |
 | `specimens_export.py` | on export | a script that restores that session file and writes the same tables again, into a folder of its own; since nothing else writes that file, it always reproduces the last export |
 | `pmagpy_intensity_session_<YYYY-MM-DD>.json` | on *Save session* | the same, saved by hand: dated, with `-2`, `-3` … added when the name is taken, or under the name given (not the export's). *Load session* offers these and the export's session |
@@ -391,7 +392,14 @@ file operations live in the Export tab and the data dialog.
   parameters in it. Paste it into a notebook and it runs. A specimen's code sets
   its flags, correction switches and bounds; the views of the whole study
   (Group results, BiCEP) start from the session as it is now — the autosave —
-  rather than re-interpreting anything. Every figure and
+  rather than re-interpreting anything. Where the autosave does not hold the
+  session as it is now (a read-only study, where it cannot be written; autosaving
+  off; another window wrote it), opening Show code writes the session to
+  `pmagpy_intensity_code_session.json` and the code loads that file, saying where
+  and why: in the study's folder when it can be written, else in the study's
+  folder under the output base, else in a folder of its own under
+  `~/.pmagpy/pmagpy_intensity/code_sessions/` — never into a folder that ships with
+  PmagPy. Every figure and
   every exported table is written with that script beside it, so a result you
   find in a folder six months later comes with the calls that made it.
 

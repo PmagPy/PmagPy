@@ -148,13 +148,33 @@ def preamble(session: Session) -> list:
     return lines
 
 
-def session_preamble(session: Session, session_file: str, what: str) -> list:
+def session_preamble(session: Session, session_file: str, what: str, where: Optional[list] = None) -> list:
     """The lines that bring back a saved session: the interpretations, flags, criteria and correction
-    choices exactly as they were, rather than re-deriving any of them."""
+    choices exactly as they were, rather than re-deriving any of them. ``where``: comment lines saying
+    why the file is not the autosave (:func:`code_session`)."""
     return ["import pmagpy.paleointensity as pint", "from pmagpy import pint_stats as ps", "",
             code.assign("data", code.call("pint.PintData.from_directory", session.directory)),
-            f"# {what}",
+            f"# {what}", *(where or []),
             code.call("data.load_session", session_file)]
+
+
+def code_session(session: Session, pane) -> tuple:
+    """The session file an open Show code loads, and the comment lines that say where it is and why.
+
+    The autosave while it holds the session as it is now; otherwise a snapshot the session writes
+    for the code (:meth:`Session.code_session_file`). Nothing is written while the pane is closed:
+    the code then names the autosave.
+    """
+    if not pane.toggle.value or session.data is None:
+        return session.autosave_path, []
+    try:
+        path, why = session.code_session_file()
+    except OSError as exc:
+        return session.autosave_path, [f"# the session could not be written for this code ({exc.strerror or exc});",
+                                       "# the autosave below may hold an earlier state of it"]
+    if not why:
+        return path, []
+    return path, [f"# {why}, so the session as it is now was written for this code to {path}"]
 
 
 def specimen_lines(session: Session, name: str) -> list:
@@ -1525,6 +1545,8 @@ class GroupView(LazyView):
         self.summary = pn.pane.HTML("", sizing_mode="stretch_width")
         self.members = pn.pane.HTML("", sizing_mode="stretch_width")
         self.code = code.CodePane()
+        # opening Show code is when its session file is made sure of (code_session)
+        self.code.toggle.param.watch(lambda e: self._fill_code() if e.new else None, "value")
         session.param.watch(self._lazy_redraw, ["version", "directory", "criteria_name",
                                                 "add_ziggie"])
 
@@ -1569,16 +1591,22 @@ class GroupView(LazyView):
             f"<b>{len(frame)}</b> {level}s", verdict,
             f'<span style="{MUTED_STYLE}">{int(frame["n"].sum()) if len(frame) else 0} specimens '
             f'averaged</span>'])
-        self.code.set(session_preamble(self.s, self.s.autosave_path,
+        self._fill_code()
+        self._redraw_plot()
+
+    def _fill_code(self) -> None:
+        if self.s.data is None:
+            return
+        session_file, where = code_session(self.s, self.code)
+        self.code.set(session_preamble(self.s, session_file,
                                        "the interpretations these means average: the session as it is now "
-                                       "(saved after every change)") + [
+                                       "(saved after every change)", where) + [
             "",
-            code.assign("means", code.call("data.group_results", level=level,
+            code.assign("means", code.call("data.group_results", level=self.level.value,
                                            only_accepted=self.only_accepted.value,
                                            weighted=self.weighted.value,
                                            corrected_only=self.corrected_only.value)),
             "print(means)"])
-        self._redraw_plot()
 
     def set_active(self, active: bool):
         # the figure is in the page only while this tab is shown: laid out again while hidden
@@ -1671,6 +1699,11 @@ class BicepView(LazyView):
         self.methods = pn.pane.HTML("", sizing_mode="stretch_width")
         self.save_btn = pn.widgets.Button(name="Save posterior", width=150)
         self.code = code.CodePane()
+        self._prepared = None
+        # opening Show code is when its session file is made sure of (code_session)
+        self.code.toggle.param.watch(
+            lambda e: self.code.set(self._code(self._prepared)) if e.new and self._prepared is not None else None,
+            "value")
         self.save_msg = pn.pane.HTML("", sizing_mode="stretch_width")
         self.run_btn.on_click(self._run)
         self.cancel_btn.on_click(self._cancel)
@@ -1823,15 +1856,17 @@ class BicepView(LazyView):
             self.plot.object = _pub().bicep_figure(result, prepared)
         self.audit.object = ("<div style='%s'>%s</div>" %
                              (MUTED_STYLE, "<br>".join(self._audit[-8:]))) if self._audit else ""
+        self._prepared = prepared
         self.code.set(self._code(prepared))
 
     def _code(self, prepared) -> list:
         """The calls behind this posterior: a seed and these draws reproduce it exactly."""
         site = self.site.value
         excluded = [p.name for p in prepared if not p.included]
-        lines = session_preamble(self.s, self.s.autosave_path,
+        session_file, where = code_session(self.s, self.code)
+        lines = session_preamble(self.s, session_file,
                                  "the segments this site's specimens were interpreted over: the session "
-                                 "as it is now (saved after every change)") + [
+                                 "as it is now (saved after every change)", where) + [
             "from pmagpy import bicep", "",
             "# BiCEP is fed the selected part of each Arai plot, and the lab field",
             f"rows = [(name, spec.arai.x[r.imin:r.imax + 1], spec.arai.y[r.imin:r.imax + 1],",

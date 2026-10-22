@@ -71,6 +71,11 @@ def mcmurdo_study():
     return session
 
 
+def datasets_vars():
+    from pmagpy_panel import datasets
+    return datasets.OUTPUT_BASE_VARS
+
+
 def _oriented(data, oriented=True):
     want = pint.COORD_GEOGRAPHIC if oriented else pint.COORD_SPECIMEN
     return next(n for n in data.specimen_names if pint.drawing_coordinates(data.specimens[n]) == want)
@@ -1335,6 +1340,101 @@ class TestShowCode:
             assert means.loc[row["site"], "int_abs"] == pytest.approx(row["B (µT)"], abs=0.051)
         expected = edited.data.group_results(level="site").set_index("site")
         assert np.allclose(means["int_abs"], expected.loc[means.index, "int_abs"], rtol=0, atol=1e-9)
+
+    def test_show_code_loads_the_autosave_while_it_holds_the_session(self, tmp_path, monkeypatch):
+        import pmagpy_intensity.session as session_module
+        monkeypatch.setattr(session_module, "CODE_SESSION_HOME", str(tmp_path / "home"))
+        src = tmp_path / "Megiddo"
+        shutil.copytree(MEGIDDO, src)
+        session = Session(str(src))
+        session.autosave_delay = 0
+        session.specimen = "hz05a1"
+        session.set_correction("anisotropy", False)               # written to the autosave at once
+        view = GroupView(session)
+        view.set_active(True)
+        view.code.toggle.value = True
+        assert f"data.load_session({str(src / AUTOSAVE_NAME)!r})" in view.code.text
+        assert not os.path.exists(src / session_module.CODE_SESSION_NAME)
+        assert not os.path.exists(tmp_path / "home")
+
+    def test_show_code_of_a_read_only_study_writes_a_session_for_it_elsewhere(self, tmp_path, monkeypatch):
+        # no autosave can be written into a read-only study: opening Show code writes the session
+        # under the user's PmagPy folder, says so, and the code loads it and gives the means shown
+        import pmagpy_intensity.session as session_module
+        home = tmp_path / "home"
+        monkeypatch.setattr(session_module, "CODE_SESSION_HOME", str(home))
+        for var in datasets_vars():
+            monkeypatch.delenv(var, raising=False)
+        src = tmp_path / "Megiddo"
+        shutil.copytree(MEGIDDO, src)
+        before = sorted(os.listdir(src))
+        os.chmod(src, 0o555)
+        try:
+            session = Session(str(src))
+            session.autosave_delay = 0
+            session.specimen = "hz05a1"
+            session.set_correction("anisotropy", False)
+            session.set_study_correction("cooling_rate", False)
+            assert "could not auto-save" in session.status
+            group = GroupView(session)
+            group.set_active(True)
+            assert f"data.load_session({str(src / AUTOSAVE_NAME)!r})" in group.code.text   # closed: nothing written
+            assert not home.exists()
+            group.code.toggle.value = True
+            written = session_module.datasets.default_output_dir(str(src), str(home))
+            target = os.path.join(written, session_module.CODE_SESSION_NAME)
+            assert os.path.isfile(target)
+            assert f"data.load_session({target!r})" in group.code.text
+            assert f"there is no autosave in" in group.code.text and target in group.code.text
+            ns = self._run(group.code.text, tmp_path)
+            expected = session.data.group_results(level="site").set_index("site")
+            means = ns["means"].set_index("site")
+            assert np.allclose(means["int_abs"], expected.loc[means.index, "int_abs"], rtol=0, atol=1e-9)
+            # an edit while the code is shown: the file is written again, and the code still reproduces
+            session.set_correction("anisotropy", True)
+            group.redraw()
+            assert json.loads(open(target).read())["interpretations"] == \
+                json.loads(session.data.to_json())["interpretations"]
+            bicep = BicepView(session)
+            bicep.set_active(True)
+            bicep.code.toggle.value = True
+            assert f"data.load_session({target!r})" in bicep.code.text
+            assert sorted(os.listdir(src)) == before                     # nothing written into the study
+        finally:
+            os.chmod(src, 0o755)
+
+    def test_show_code_never_writes_into_a_folder_that_ships_with_pmagpy(self, tmp_path, monkeypatch):
+        # the checkout's own data_files/3_0/Megiddo, with autosaving off
+        import pmagpy_intensity.session as session_module
+        monkeypatch.setattr(session_module, "CODE_SESSION_HOME", str(tmp_path / "home"))
+        for var in datasets_vars():
+            monkeypatch.delenv(var, raising=False)
+        study = Session(MEGIDDO, cache=False)
+        study.autosave_enabled = False
+        assert os.path.realpath(study.output_dir) == os.path.realpath(MEGIDDO)
+        assert os.path.realpath(study.output_dir) not in study.code_session_folders()
+        view = GroupView(study)
+        view.set_active(True)
+        view.code.toggle.value = True
+        assert str(tmp_path / "home") in view.code.text
+        assert not os.path.exists(os.path.join(MEGIDDO, session_module.CODE_SESSION_NAME))
+
+    def test_the_snapshot_goes_beside_the_study_then_under_the_output_base(self, tmp_path, monkeypatch):
+        import pmagpy_intensity.session as session_module
+        monkeypatch.setattr(session_module, "CODE_SESSION_HOME", str(tmp_path / "home"))
+        src = tmp_path / "study"
+        src.mkdir()
+        shutil.copy(os.path.join(SMALL, "measurements.txt"), src)
+        session = Session(str(src), str(tmp_path / "out"))
+        session.autosave_enabled = False                       # autosaving off: no autosave to load
+        session.set_bounds(0, 4)
+        path, why = session.code_session_file()
+        assert path == os.path.join(os.path.realpath(tmp_path / "out"), session_module.CODE_SESSION_NAME)
+        assert "there is no autosave" in why
+        monkeypatch.setenv("PMAGPY_APPS_OUTPUT", str(tmp_path / "base"))
+        folders = session.code_session_folders()
+        assert folders[1] == os.path.realpath(session_module.datasets.default_output_dir(str(src), str(tmp_path / "base")))
+        assert folders[2].startswith(os.path.realpath(tmp_path / "home"))
 
     def test_the_specimen_code_and_the_arai_figure_script_carry_flags_and_switches(self, edited, tmp_path):
         edited.specimen = "hz05a1"
