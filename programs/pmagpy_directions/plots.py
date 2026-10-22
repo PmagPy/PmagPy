@@ -133,8 +133,9 @@ class ZijderveldPlot:
         # axis-end labels at the frame edges: the along-axis coordinate is in screen
         # pixels (the frame is a fixed square), the other one is the axis itself
         # (data 0), so the labels stay at the edges through zoom and pan and never
-        # sit on the data
-        backing = dict(background_fill_color="white", background_fill_alpha=0.75, text_font_size="11pt")
+        # sit on the data. A size just above the step labels' 8 pt: larger, they cover
+        # the points near the frame's edges
+        backing = dict(background_fill_color="white", background_fill_alpha=0.75, text_font_size="9pt")
         edge = frame - 6
         self.lbl_right = Label(x=edge, y=0, x_units="screen", text="", y_offset=5, text_align="right",
                                text_baseline="bottom", **backing)
@@ -261,7 +262,7 @@ class ZijderveldPlot:
         side = dict(text_align="right", x_offset=-6) if axis_on_right else dict(text_align="left", x_offset=6)
         self.lbl_top.update(**side)
         self.lbl_bottom_v.update(y=6, **side)              # stacked, both on the same side
-        self.lbl_bottom_h.update(y=24, **side)
+        self.lbl_bottom_h.update(y=20, **side)
         vert = dict(text_baseline="top", y_offset=-5) if axis_on_top else dict(text_baseline="bottom", y_offset=5)
         self.lbl_right.update(**vert)
         self.lbl_left.update(**vert)
