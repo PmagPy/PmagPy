@@ -559,6 +559,7 @@ class MetadataView:
         notes = []
         stale = mm.stale_results_note(self.table, len(self.stale), self.stale_cols)
         try:
+            self.s.check_folder()
             if self.frame is not None:
                 df, report = mm.merge_edits(self.s.directory, self.table, self.frame, self.current(), self.origin)
             else:

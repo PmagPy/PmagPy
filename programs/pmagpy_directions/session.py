@@ -592,7 +592,7 @@ class Session(param.Parameterized):
 
     def _another_window(self) -> None:
         """Say that another window has the study's autosave, and let a reload read the study again."""
-        self.status = guard.ANOTHER_WINDOW
+        self.status = guard.refusal_of(self.data)
         cached = _DATASETS.get(self.directory)
         if cached is not None and cached[0] is self.data:
             del _DATASETS[self.directory]
@@ -630,6 +630,7 @@ class Session(param.Parameterized):
         self.autosave()
 
     def save_redo(self, path: str) -> str:
+        guard.guard_of(self.data).check(os.path.dirname(os.path.abspath(path)))
         os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
         return self.data.write_redo(path, current_specimen=self.specimen)
 
@@ -678,6 +679,7 @@ class Session(param.Parameterized):
         also receives the source's other tables (ages, criteria, contribution,
         ...) so that it is a complete contribution.
         """
+        guard.guard_of(self.data).check(self.directory)
         self.flush_autosave()
         if mean_coords is None:
             mean_coords = (mean_coord,) if mean_coord is not None else self.default_mean_coords()

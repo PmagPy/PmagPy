@@ -380,24 +380,44 @@ def _read_marker(directory: str) -> dict:
 
 
 def _write_marker(target: str, source: str, stamps: Optional[dict] = None, fresh: bool = False) -> None:
-    """Write the marker: the study, when the copy was made, and what each file copied from it was.
+    """Write the marker: the study, when the copy was made, the copy's id, and what each file copied from it was.
 
     ``files`` (name → size, modification time and checksum of the study's file
     when it was copied) is what :func:`copy_changes` compares the study with.
     A new copy records every file; an existing one adds the files copied now
     to its record -- but a marker that never had one (a copy made before
     copies recorded their files) stays without, so that it reads as unknown.
+    ``id`` is new with every copy and kept for its life (:func:`copy_id`).
     """
     import time
+    import uuid
     from pmagpy.magic_project import atomic_write_text
     old = {} if fresh else _read_marker(target)
     marker = {"source": os.path.realpath(source),
               "copied": old.get("copied") or time.strftime("%Y-%m-%dT%H:%M:%S")}
     if fresh:
+        marker["id"] = uuid.uuid4().hex
+    elif old.get("id"):
+        marker["id"] = old["id"]
+    if fresh:
         marker["files"] = dict(stamps or {})
     elif isinstance(old.get("files"), dict):
         marker["files"] = {**old["files"], **(stamps or {})}
     atomic_write_text(os.path.join(target, WORKING_COPY_MARKER), json.dumps(marker, indent=1))
+
+
+def copy_id(directory: str) -> Optional[str]:
+    """Which working copy is at ``directory`` now: its marker's ``id`` ("" for a copy made before copies had
+    one), or None when no working copy is there (a study worked on in place, or a copy set aside).
+
+    A window that opened the copy remembers it (:class:`pmagpy_panel.autosave.AutosaveGuard`): after
+    "Start a fresh copy" another copy is at the same path, and a window still open on the old one
+    must not write its autosave or an export into the new one.
+    """
+    path = os.path.join(directory, WORKING_COPY_MARKER)
+    if not os.path.isfile(path):
+        return None
+    return str(_read_marker(directory).get("id", ""))
 
 
 def copy_changes(directory: str) -> Optional[list]:

@@ -106,6 +106,7 @@ class HubSession(param.Parameterized):
         super().__init__(**params)
         self.recent_file = recent_file
         self.inventory: Inventory = Inventory(directory="")
+        self.copy_id: Optional[str] = None       # which working copy the directory was when it was opened
         if directory:
             self.load(directory)
 
@@ -130,6 +131,7 @@ class HubSession(param.Parameterized):
             self.status = inv.error
             return False
         self.inventory = inv
+        self.copy_id = datasets.copy_id(inv.directory)
         if remember and self.recent_file:
             # the study the analyst chose, not its working copy
             datasets.remember_recent(self.recent_file, datasets.working_copy_source(inv.directory) or inv.directory)
@@ -140,6 +142,17 @@ class HubSession(param.Parameterized):
         else:
             self.directory = inv.directory     # last: watchers rebuild the page from the new inventory
         return True
+
+    def check_folder(self) -> None:
+        """Before a page writes into the directory (a Metadata save).
+
+        Raises:
+            WorkingCopyReplaced: the working copy opened here was set aside and a new one made in its
+                place ("Start a fresh copy" in another window): this window would write into the new one.
+        """
+        from pmagpy_panel.autosave import COPY_REPLACED, WorkingCopyReplaced
+        if self.directory and datasets.copy_id(self.directory) != self.copy_id:
+            raise WorkingCopyReplaced(COPY_REPLACED)
 
     def start(self) -> None:
         """Close the directory and go back to the start page."""

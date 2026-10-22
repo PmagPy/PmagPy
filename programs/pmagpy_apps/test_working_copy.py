@@ -573,6 +573,104 @@ class TestAStaleCopy:
         assert view.start_fresh() is True and session.directory == study
 
 
+class TestAWindowOnACopySetAside:
+    """"Start a fresh copy" makes a new copy at the old one's path: a window still open on the old copy
+    writes neither its autosave nor an export into the new one, and says to reload."""
+
+    def fresh(self, study, tmp_path):
+        from pmagpy_apps.home import HubSession, HomeView
+        with open(os.path.join(study, "measurements.txt"), "a") as fh:
+            fh.write("\n")
+        view = HomeView(HubSession(study, recent_file=str(tmp_path / "hub_recent.json")))
+        assert view.fresh_btn.visible and view.start_fresh() is True
+        return view.s.directory
+
+    def test_each_copy_has_an_id_of_its_own(self, study, base):
+        copy = datasets.working_directory(study)
+        first = datasets.copy_id(copy)
+        assert first and datasets.copy_id(study) is None
+        shutil.copy(os.path.join(study, "sites.txt"), os.path.join(study, "extra.txt"))
+        datasets.working_directory(study)                      # a file the study gained: the same copy
+        assert datasets.copy_id(copy) == first
+        aside = os.path.realpath(copy) + "-aside"
+        os.rename(copy, aside)
+        assert datasets.copy_id(copy) is None and datasets.copy_id(aside) == first
+        assert datasets.working_directory(study) == copy and datasets.copy_id(copy) not in (None, first)
+
+    def test_directions_writes_nothing_into_the_new_copy(self, study, base, tmp_path):
+        from pmagpy_directions.session import AUTOSAVE_NAME, Session as Directions
+        from pmagpy_panel import autosave
+        old = Directions(study, cache=True)
+        copy = old.directory
+        assert self.fresh(study, tmp_path) == copy
+        before = digest(copy)
+        old.specimen = old.data.specimen_names[1]
+        old.toggle_step(1)                                      # an edit in the window left on the old copy
+        assert old.status == autosave.COPY_REPLACED and "reload" in old.status
+        with pytest.raises(autosave.WorkingCopyReplaced):
+            old.export_tables()
+        with pytest.raises(OSError):
+            old.save_redo(os.path.join(copy, "mine.redo"))
+        assert digest(copy) == before and not os.path.exists(os.path.join(copy, AUTOSAVE_NAME))
+        reloaded = Directions(study, cache=True)                # a reload reads the new copy, not the old dataset
+        assert reloaded.directory == copy and reloaded.data is not old.data
+        reloaded.specimen = reloaded.data.specimen_names[1]
+        reloaded.toggle_step(1)
+        assert reloaded.status != autosave.COPY_REPLACED and os.path.exists(os.path.join(copy, AUTOSAVE_NAME))
+
+    def test_the_export_view_says_to_reload(self, study, base, tmp_path):
+        from pmagpy_directions.session import Session as Directions
+        from pmagpy_directions.views import ExportView
+        old = Directions(study)
+        copy = old.directory
+        self.fresh(study, tmp_path)
+        before = digest(copy)
+        view = ExportView(old)
+        view._write()
+        assert "Export failed" in view.status.object and "reload" in view.status.object
+        assert digest(copy) == before
+
+    def test_intensity_writes_nothing_into_the_new_copy(self, study, base, tmp_path):
+        from pmagpy_intensity.session import AUTOSAVE_NAME, Session as Intensity
+        from pmagpy_panel import autosave
+        old = Intensity(study)
+        copy = old.directory
+        self.fresh(study, tmp_path)
+        before = digest(copy)
+        old.specimen = old.data.specimen_names[0]
+        old.toggle_step(int(old.spec.steps["sequence"].iloc[1]))
+        assert old.status == autosave.COPY_REPLACED
+        with pytest.raises(autosave.WorkingCopyReplaced):
+            old.export_tables()
+        with pytest.raises(OSError):
+            old.save_session(os.path.join(copy, "mine.json"))
+        assert digest(copy) == before and not os.path.exists(os.path.join(copy, AUTOSAVE_NAME))
+
+    def test_the_metadata_page_does_not_save_into_the_new_copy(self, study, base, tmp_path):
+        from pmagpy_apps import metadata
+        from pmagpy_apps.home import HubSession
+        old = HubSession(study, recent_file=str(tmp_path / "r.json"))
+        copy = old.directory
+        page = metadata.MetadataView(old)
+        self.fresh(study, tmp_path)
+        before = digest(copy)
+        assert page.save() is False
+        assert "Not saved" in page.message.object and "reload" in page.message.object
+        assert digest(copy) == before
+        old.load(study)                                         # a reload opens the new copy and saves there
+        assert page.save() is True
+
+    def test_a_study_worked_on_in_place_is_not_affected(self, study, base):
+        from pmagpy_directions.session import Session as Directions
+        from pmagpy_panel import autosave
+        converted(study)
+        d = Directions(study)
+        assert d.directory == study
+        d.specimen = d.data.specimen_names[1]
+        d.toggle_step(1)
+        assert d.status != autosave.COPY_REPLACED and d.export_tables()
+
+
 class TestOneClickInAWorkingCopy:
     def test_a_converted_study_worked_on_in_place_still_asks_first(self, study, base):
         from pmagpy_directions.session import Session as Directions

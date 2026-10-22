@@ -61,7 +61,13 @@ intended. Rock magnetism and Anisotropy join by adding them to the edition
   and a new copy is made from the study as it is now. For a study PmagPy made
   the button reads **Work on the study itself**, since such a study has no copy
   once its old one is set aside. A copy made before copies recorded their
-  files cannot tell, and says nothing.
+  files cannot tell, and says nothing. Each copy has an id of its own in its
+  marker (`pmagpy_panel.datasets.copy_id`), which a window remembers when it
+  opens the copy: a window (another browser tab, Directions, Intensity, the
+  Metadata page) still open on a copy that was set aside writes neither its
+  autosave nor an export into the new copy at the same path, and says to
+  reload (`pmagpy_panel.autosave`, beside the guard against two windows
+  overwriting one autosave).
 * Studies PmagPy made are worked on in place. A folder whose tables came from
   Convert or Intensity's .tdt import holds the conversion log
   `pmagpy_conversions.json`, and every application and the hub open that folder

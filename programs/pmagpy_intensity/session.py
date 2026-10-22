@@ -425,7 +425,7 @@ class Session(param.Parameterized):
 
     def _another_window(self) -> None:
         """Say that another window has the study's autosave, and let a reload read the study again."""
-        self.status = guard.ANOTHER_WINDOW
+        self.status = guard.refusal_of(self.data)
         cached = _DATASETS.get(self.directory)
         if cached is not None and cached[0] is self.data:
             del _DATASETS[self.directory]
@@ -464,6 +464,7 @@ class Session(param.Parameterized):
         self.autosave()
 
     def save_session(self, path: str) -> str:
+        guard.guard_of(self.data).check(os.path.dirname(os.path.abspath(path)))
         return self.data.save_session(path)
 
     def default_session_name(self, today=None) -> str:
@@ -502,6 +503,7 @@ class Session(param.Parameterized):
         return n
 
     def save_redo(self, path: str) -> str:
+        guard.guard_of(self.data).check(os.path.dirname(os.path.abspath(path)))
         return self.data.write_redo(path)
 
     def load_redo(self, path: str) -> tuple:
@@ -526,6 +528,7 @@ class Session(param.Parameterized):
         kept once in ``backup_before_pmagpy_intensity/``. A separate output
         directory also receives the source's other tables.
         """
+        guard.guard_of(self.data).check(self.directory)
         self.flush_autosave()
         # merge into the tables as they are now, not as they were when the study
         # was opened: PmagPy Directions (or another browser session) may have
