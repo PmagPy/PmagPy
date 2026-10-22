@@ -19,6 +19,7 @@ from __future__ import annotations
 import html
 import importlib.util
 import os
+import re
 from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Optional
@@ -388,20 +389,28 @@ def _stages(inv: Inventory) -> list:
 
 
 def converted_from(inv: Inventory) -> str:
-    """'converted from 10 CIT files · 2 Sep 2026' — the log's account of the tables, latest conversion dated."""
+    """'converted from 10 CIT files · 2 Sep 2026' — the log's account of the tables, latest conversion dated.
+
+    For tables that came from MagIC (:func:`pmagpy_panel.datasets.from_magic`) the line says so first,
+    then what PmagPy converted into them: 'contribution 20549 from MagIC · 2 JR6 files added · …'.
+    """
     last = inv.conversions[-1]
-    labels = {e.get("label") or e.get("format", "") for e in inv.conversions} - {""}
-    files = inv.source_files
-    if last.get("format") == "magic":
-        what = f"unpacked from {files[0]}" if len(files) == 1 else f"unpacked from {len(files)} contribution files"
+    unpacks = [e for e in inv.conversions if e.get("format") == "magic"]
+    added = [e for e in inv.conversions if e.get("format") != "magic"]
+    if unpacks or datasets.from_magic(inv.directory):
+        if unpacks:
+            names = _logged_files(unpacks)
+            what = f"unpacked from {names[0]}" if len(names) == 1 else f"unpacked from {len(names)} contribution files"
+        else:
+            magic_id = inv.contribution.get("id", "")
+            what = f"contribution {magic_id} from MagIC" if magic_id else "a contribution from MagIC"
+        if added:
+            what += " · " + _described_files(added) + " added"
     elif last.get("format") == "legacy":
+        files = inv.source_files
         what = f"upgraded from {fmt(len(files))} MagIC 2.5 table{'s' if len(files) != 1 else ''}"
     else:
-        label = labels.pop() if len(labels) == 1 else ""
-        if len(files) == 1:
-            what = f"converted from {files[0]}" + (f" ({label})" if label else "")
-        else:
-            what = f"converted from {fmt(len(files))} {label + ' ' if label else ''}files"
+        what = "converted from " + _described_files(inv.conversions)
     try:
         when = datetime.fromisoformat(last.get("when", ""))
         what += f" · {when:%-d %b %Y}"
@@ -410,6 +419,22 @@ def converted_from(inv: Inventory) -> str:
     if len(inv.conversions) > 1:
         what += f" · {len(inv.conversions)} conversions"
     return what
+
+
+def _logged_files(entries) -> List[str]:
+    """The files the log entries name, each once, in the order they were converted."""
+    return list(dict.fromkeys(name for entry in entries for name in entry.get("files", [])))
+
+
+def _described_files(entries) -> str:
+    """'PI47-.sam (CIT)' or '10 CIT files': what the entries converted, with the format when they share one."""
+    files = _logged_files(entries)
+    # the format's name without its gloss: 'JR6', not 'JR6 (.jr6)', which would read 'AF.jr6 (JR6 (.jr6))'
+    labels = {re.sub(r"\s*\([^()]*\)$", "", e.get("label") or e.get("format", "")) for e in entries} - {""}
+    label = labels.pop() if len(labels) == 1 else ""
+    if len(files) == 1:
+        return files[0] + (f" ({label})" if label else "")
+    return f"{fmt(len(files))} {label + ' ' if label else ''}files"
 
 
 def strip_html(inv: Inventory, edition: Optional[Edition] = None) -> str:

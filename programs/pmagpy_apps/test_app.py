@@ -429,6 +429,33 @@ class TestConvert:
                               label="MagIC contribution file")
         assert home.stages(take_inventory(str(d)))[0][2].startswith("unpacked from magic_contribution_16761.txt · ")
 
+    def test_home_says_a_contribution_came_from_magic_and_what_was_added(self, tmp_path):
+        """The log knows only the files PmagPy added to a downloaded contribution; Home says where the rest came from."""
+        from pmagpy import convert_registry as reg
+        d = tmp_path / "MagIC_13436"
+        d.mkdir()
+        for name in ("contribution", "measurements", "specimens", "sites"):
+            shutil.copy(os.path.join(MCMURDO, f"{name}.txt"), d)
+        inv = take_inventory(str(d))
+        assert home.stages(inv)[0][2] == "tables in place"
+        reg.record_conversion(str(d), "jr6_jr6", ["AF.jr6", "TRM.jr6"], append=True, tables={"measurements": 9},
+                              label="JR6 (.jr6)")
+        line = home.stages(take_inventory(str(d)))[0][2]
+        assert line.startswith("contribution 13436 from MagIC · 2 JR6 files added · "), line
+        assert "converted from" not in line
+        # a contribution file unpacked on the Convert page, and one file added to it
+        e = tmp_path / "unpacked"
+        e.mkdir()
+        for name in ("measurements", "specimens", "sites"):
+            shutil.copy(os.path.join(MCMURDO, f"{name}.txt"), e)
+        reg.record_conversion(str(e), "magic", ["magic_contribution_16761.txt"], tables={"measurements": 100},
+                              label="MagIC contribution file")
+        reg.record_conversion(str(e), "jr6_jr6", ["AF.jr6"], append=True, tables={"measurements": 5},
+                              label="JR6 (.jr6)")
+        line = home.stages(take_inventory(str(e)))[0][2]
+        assert line.startswith("unpacked from magic_contribution_16761.txt · AF.jr6 (JR6) added · ")
+        assert line.endswith(" · 2 conversions")
+
     def test_jr6_files_convert_together_and_a_bad_one_is_named(self, tmp_path):
         src = os.path.join(os.path.dirname(CIT), "..", "jr6_magic")
         d = tmp_path / "jr6"

@@ -165,7 +165,10 @@ the rows written, the files that failed — so the directory remembers what its
 tables came from (`reg.read_conversions(dir_path)`; `record=False` leaves no
 entry). Home reads it: the Import line says "converted from 10 CIT files ·
 2 Sep 2026" rather than counting the files beside the tables, and the aside
-marks the files that were converted. Unpacking a contribution file on the
+marks the files that were converted. For a contribution from MagIC that lab
+files were converted into, the log knows only the files added, and the line
+says where the rest came from first: "contribution 20549 from MagIC · 2 JR6
+files added · 22 Oct 2026" (or "unpacked from <file> · …"). Unpacking a contribution file on the
 Convert page is recorded the same way (format `magic`). Each file is stamped in
 its entry (size, modification time, SHA-1), so `reg.already_converted(dir_path,
 files)` can tell a file that is in the tables already from one remeasured
