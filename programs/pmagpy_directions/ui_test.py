@@ -117,6 +117,18 @@ with sync_playwright() as p:
       return m ? {w: m.width, h: m.height, fw: m.inner_width, fh: m.inner_height} : null;
     }"""
     ZIJ, EQ, DECAY, LEVELS = "Zijderveld diagram", "Equal-area plot", "Intensity decay (M/M₀)", "Higher-level means"
+    PLOTS = {ZIJ, EQ, DECAY}
+
+    # the higher-level means are a panel of their own, under the fits: the plot checks leave it out
+    def plot_tiles(state):
+        state["levels"] = state["tiles"].pop(LEVELS, None)
+        return state
+
+    def tiles_now(page):
+        return plot_tiles(tiles(page))
+
+    def drop(page, title, target, zone):
+        return plot_tiles(drop_tile(page, title, target, zone))
 
     def tiled(state, where):
         c, ts = state["canvas"], state["tiles"]
@@ -131,31 +143,34 @@ with sync_playwright() as p:
         check(inside and apart and clear, f"{where}: the panels tile the canvas (inside it, no overlap, "
               f"the fits below it)")
 
-    start = tiles(page)
-    check(set(start["tiles"]) == {ZIJ, EQ, DECAY, LEVELS}, f"the Specimen tab shows {len(start['tiles'])} panels")
+    start = tiles_now(page)
+    check(set(start["tiles"]) == PLOTS, f"the Specimen tab tiles {len(start['tiles'])} plots")
+    fits_box = page.locator(".tabulator", has_text="bounds").first.bounding_box()
+    check(start["levels"] is not None and fits_box is not None and start["levels"]["y"] >= fits_box["y"] + fits_box["height"] - 1,
+          "the higher-level means are a panel under the fits")
     tiled(start, "at the start")
     zij = page.evaluate(FIGURE_JS, "zijderveld")
     body = start["tiles"][ZIJ]["body"]
     check(zij and zij["w"] <= body["w"] and zij["h"] <= body["h"], f"the Zijderveld diagram fits its panel ({zij} in {body})")
-    after = drop_tile(page, DECAY, ZIJ, "bottom")
+    after = drop(page, DECAY, ZIJ, "bottom")
     t = after["tiles"]
-    check(t[DECAY]["y"] > t[ZIJ]["y"] and abs(t[DECAY]["x"] - t[ZIJ]["x"]) <= 1 and t[EQ]["h"] > start["tiles"][EQ]["h"],
+    check(t[DECAY]["y"] > t[ZIJ]["y"] and abs(t[DECAY]["x"] - t[ZIJ]["x"]) <= 1 and t[EQ]["w"] > start["tiles"][EQ]["w"],
           "the M/M₀ title dropped on the diagram's lower edge puts it under the diagram; the net takes its place")
     tiled(after, "after the drop")
     decay = page.evaluate(FIGURE_JS, "decay")
     check(decay["w"] <= t[DECAY]["body"]["w"] and decay["w"] > t[DECAY]["body"]["w"] - 20,
           f"the M/M₀ plot is fitted to its new panel ({decay['w']} px in {t[DECAY]['body']['w']})")
-    swapped = drop_tile(page, LEVELS, EQ, "swap")
-    check(abs(swapped["tiles"][LEVELS]["x"] - t[EQ]["x"]) <= 1 and abs(swapped["tiles"][EQ]["x"] - t[LEVELS]["x"]) <= 1,
+    swapped = drop(page, DECAY, EQ, "swap")
+    check(abs(swapped["tiles"][DECAY]["x"] - t[EQ]["x"]) <= 1 and abs(swapped["tiles"][EQ]["x"] - t[DECAY]["x"]) <= 1,
           "a title dropped on the middle of another panel swaps the two")
     root = next(i for i, d in enumerate(swapped["dividers"]) if d["row"] and abs(d["x"] - swapped["tiles"][ZIJ]["x"]
                                                                                - swapped["tiles"][ZIJ]["w"]) < 10)
-    widened = drag_divider(page, root, 80)
+    widened = plot_tiles(drag_divider(page, root, 80))
     check(widened["tiles"][ZIJ]["w"] > swapped["tiles"][ZIJ]["w"] + 60, "dragging a divider shares the width out again")
     tiled(widened, "after the divider")
     check_nets_circular(page, "after rearranging the panels")
     open_tab(page, "Fits"); time.sleep(3); open_tab(page, "Specimen"); time.sleep(3)
-    back = tiles(page)
+    back = tiles_now(page)
     check(abs(back["tiles"][ZIJ]["w"] - widened["tiles"][ZIJ]["w"]) <= 1, "the arrangement survives a visit to another tab")
     legend_ok = page.evaluate("""() => {
       const views = []; const walk = (v) => { views.push(v); (v.child_views || []).forEach(walk); };
@@ -167,7 +182,7 @@ with sync_playwright() as p:
     check(not legend_ok, "back on the tab, the diagram's legend and axes are laid out again "
           f"(none at the origin: {legend_ok})")
     page.get_by_role("button", name="Reset layout").click(); time.sleep(3)
-    reset = tiles(page)["tiles"]
+    reset = tiles_now(page)["tiles"]
     check(all(abs(reset[k]["x"] - v["x"]) <= 1 and abs(reset[k]["y"] - v["y"]) <= 1 for k, v in start["tiles"].items()),
           "Reset layout restores the default arrangement")
 

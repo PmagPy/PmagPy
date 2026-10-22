@@ -170,6 +170,13 @@ class HeightSplitter(JSComponent):
     value), the figures may not be dragged wider than the block: a block that
     wraps (a flex box) would otherwise drop half its figures below the rest on
     release, far from where the guide was let go.
+
+    Given ``room_below``, the handle also measures the window once it is on
+    the page and reports, as ``window_value``, the block height that leaves
+    that many pixels of the window under the handle: what is below it (a
+    table of fits, say) is then in view without scrolling. The application
+    decides whether to take it, and how to turn it into a ``value``; one that
+    remembers a height the analyst chose keeps that instead.
     """
 
     value = param.Integer(default=430, doc="the size the application draws its figures at")
@@ -181,6 +188,10 @@ class HeightSplitter(JSComponent):
     width_per_value = param.Number(default=None, allow_None=True, bounds=(0.05, None),
                                    doc="width the figures gain per unit of value; if given, they are kept "
                                        "within the block's width (updated by the application)")
+    room_below = param.Integer(default=0, doc="if > 0, window room to leave under the handle: the block "
+                                              "height that does so is reported as window_value")
+    window_value = param.Integer(default=0, doc="the block height that fits the window (reported by the browser, "
+                                                "with room_below)")
 
     _esm = """
     export function render({ model, el }) {
@@ -255,6 +266,17 @@ class HeightSplitter(JSComponent):
         e.preventDefault();
       });
       bar.addEventListener('dblclick', () => { model.value = model.default_value; });
+      // the block height that leaves room_below of the window under the handle, measured
+      // once the block is laid out (its top is 0 until then)
+      if (model.room_below > 0) {
+        const measure = (tries) => {
+          const b = block();
+          const top = b ? b.getBoundingClientRect().top : 0;
+          if (top <= 0) { if (tries < 60) setTimeout(() => measure(tries + 1), 50); return; }
+          model.window_value = Math.round(window.innerHeight - top - bar.offsetHeight - 4 - model.room_below);
+        };
+        requestAnimationFrame(() => measure(0));
+      }
       return bar;
     }
     """
@@ -462,6 +484,9 @@ class TileCanvas(JSComponent):
         });
       };
       const place = () => {
+        // the box follows the canvas's height (the panels fill it exactly): otherwise it keeps
+        // the height it was first drawn at, and a drop or a divider is measured against it
+        if (model.rects.length) root.style.height = Math.max(...model.rects.map(r => r.y + r.h)) + 'px';
         model.rects.forEach((r, i) => {
           if (!tiles[i]) return;
           Object.assign(tiles[i].style, {left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px',

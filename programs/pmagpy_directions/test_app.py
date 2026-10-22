@@ -465,7 +465,7 @@ class TestSpecimenView:
         canvas.width_px = 1000
         rects = dict(zip(canvas.titles, canvas.rects))
         zij = rects[view.ZIJ]
-        assert (zij["x"], zij["y"], zij["h"]) == (0, 0, SpecimenView.HEIGHT) and zij["w"] == 496
+        assert (zij["x"], zij["y"], zij["h"]) == (0, 0, SpecimenView.HEIGHT) and zij["w"] == 436
         bw, bh = canvas.sizes[view.ZIJ]
         assert view.zij.fig.frame_width == bw - 18                       # the frame takes the panel's shape
         assert view.zij.fig.frame_height == bh - ZijderveldPlot.CHROME - 4
@@ -503,6 +503,56 @@ class TestSpecimenView:
         assert canvas.tree == SpecimenView.DEFAULT_TREE and canvas.height == SpecimenView.HEIGHT
         assert SpecimenView(s).canvas.tree == SpecimenView.DEFAULT_TREE
         os.remove(LAYOUT_FILE)
+
+    def test_the_plots_take_the_windows_height_unless_one_was_chosen(self, tmp_path):
+        """The height the browser measures (room left for the fits) is used and not remembered;
+        a height the analyst drags to is remembered and wins over the window's."""
+        import json
+        from pmagpy_directions.views import SpecimenView, LAYOUT_FILE
+        if os.path.exists(LAYOUT_FILE):
+            os.remove(LAYOUT_FILE)
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        view = SpecimenView(s)
+        assert view.plot_size.room_below == SpecimenView.ROOM_BELOW > 0
+        view.plot_size.window_value = 350                    # a laptop's window
+        assert view.canvas.height == view.plot_size.value == view.plot_size.default_value == 350
+        view.canvas.width_px = 1000                          # the browser lays it out
+        assert not os.path.exists(LAYOUT_FILE)               # the default tree, the window's height: nothing to keep
+        lo, hi = SpecimenView.WINDOW_HEIGHTS
+        view.plot_size.window_value = 5000                   # a tall window: kept within reason
+        assert view.canvas.height == hi
+        view.plot_size.window_value = 10
+        assert view.canvas.height == lo
+
+        view.plot_size.value = 600                           # dragged: chosen, and remembered
+        assert view.canvas.height == 600
+        view.plot_size.window_value = 350
+        assert view.canvas.height == 600
+        again = SpecimenView(s)
+        assert again.canvas.height == 600
+        again.plot_size.window_value = 350
+        assert again.canvas.height == 600
+        again._reset_layout()                                # Reset layout: the window's height again
+        assert again.canvas.height == 350
+        with open(LAYOUT_FILE) as fh:
+            assert "height" not in json.load(fh)["specimen_tiles"]
+        assert SpecimenView(s).canvas.height == SpecimenView.HEIGHT     # nothing remembered
+        os.remove(LAYOUT_FILE)
+
+    def test_the_higher_level_means_are_a_panel_under_the_fits(self, tmp_path):
+        """The means are not among the tiled plots; their own panel follows the fits table,
+        and its net is fitted to the panel."""
+        from pmagpy_directions.views import SpecimenView
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        view = SpecimenView(s)
+        assert view.LEVELS not in view.canvas.titles
+        main = view.main()
+        objects = list(main.objects)
+        assert objects.index(view.levels.canvas) == objects.index(view.comp_table) + 1
+        assert view.levels.canvas.titles == [view.LEVELS]
+        view.levels.canvas.width_px = 900
+        w, h = view.levels.canvas.sizes[view.LEVELS]
+        assert view.levels.plot.fig.width == min(view.levels.NET, h - 44)
 
     def test_the_level_card_shows_the_specimens_group(self, tmp_path):
         """The hierarchical card plots the good fits of the current specimen's site, its means, and rings the current fit."""

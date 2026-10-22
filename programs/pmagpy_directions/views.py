@@ -206,8 +206,9 @@ class LevelMeansCard:
     """
 
     STATS = {"Fisher": "fisher", "by polarity": "polarity", "Bingham": "bingham"}
-    CONTROLS = 76            # the two button rows above the net
-    TABLE_MIN = 96           # room kept for the statistics below it
+    NET = 300                # the net's largest size: the section spans the page's width under the fits
+    CONTROLS_WIDTH = 420     # the level and statistic buttons, with the table of means under them
+    HEIGHT = 340             # the panel's height, its title bar included
 
     def __init__(self, session: Session):
         self.s = session
@@ -215,7 +216,7 @@ class LevelMeansCard:
                      sizing_mode="stretch_width", margin=(2, 4))
         self.level = pn.widgets.RadioButtonGroup(options=["sample", "site", "location"], value="site", **small)
         self.stat = pn.widgets.RadioButtonGroup(options=self.STATS, value="fisher", **small)
-        self.plot = DirectionsPlot("", size=240, mark_name="fit_mark")      # it rings a fit, not a step
+        self.plot = DirectionsPlot("", size=self.NET, mark_name="fit_mark")      # it rings a fit, not a step
         self.plot.fig.name = "level_net"
         self.stats = pn.pane.HTML("", sizing_mode="stretch_width", margin=(0, 6))
         for w in (self.level, self.stat):
@@ -223,12 +224,26 @@ class LevelMeansCard:
         session.param.watch(lambda e: self.redraw(), ["unify_polarity", "flip_polarity"])
 
     def panel(self, title):
-        return pn.Column(self.level, self.stat, pn.pane.Bokeh(self.plot.fig, margin=(0, 4)), self.stats,
-                         name=title, sizing_mode="stretch_width", margin=0, scroll=True)
+        """A panel the page's width: the buttons and the table of means, with the net beside them.
+
+        It is a one-panel :class:`TileCanvas`, as the plots above it are. That is
+        not only for the look: a Bokeh figure laid out beside the plots' canvas,
+        rather than inside a canvas of its own, keeps BokehJS from ever laying
+        out the canvas's figures (they stay blank).
+        """
+        controls = pn.Column(self.level, self.stat, self.stats, width=self.CONTROLS_WIDTH, margin=(4, 0, 0, 0))
+        row = pn.Row(controls, pn.pane.Bokeh(self.plot.fig, margin=(4, 4, 0, 12)), name=title, margin=0)
+        self.canvas = TileCanvas([row], tree=title, height=self.HEIGHT, sizing_mode="stretch_width",
+                                 margin=(4, 0, 10, 0))
+        self.canvas.param.watch(lambda e: self.fit(*e.new.get(title, (0, 0))), "sizes")
+        return self.canvas
 
     def fit(self, width, height):
-        """Size the net to the card: as wide as it is, leaving room for the controls and the table."""
-        size = int(max(140, min(width - 12, height - self.CONTROLS - self.TABLE_MIN - 28)))
+        """Size the net to its panel: as tall as the panel allows, beside the controls."""
+        if not (width and height):
+            return
+        # (the net's title row, "site … · geographic", is drawn above the circle)
+        size = int(max(160, min(self.NET, height - 44, width - self.CONTROLS_WIDTH - 24)))
         if size != self.plot.fig.width:
             self.plot.set_size(size)
 
@@ -387,15 +402,16 @@ class SpecimenView:
         self.hotkeys = Hotkeys(width=0, height=0, margin=0)
         self.hotkeys.param.watch(self._on_hotkey, "n")
         same = dict(stylesheets=[INPUT_CSS])
-        self.fit_type_sel = pn.widgets.Select(name="Fit type", options=FIT_OPTIONS, value="DE-BFL", width=210, **same)
-        self.comp_name = pn.widgets.TextInput(name="Component", value="A", width=110, **same)
+        # (widths that keep the row on one line in a laptop's window)
+        self.fit_type_sel = pn.widgets.Select(name="Fit type", options=FIT_OPTIONS, value="DE-BFL", width=165, **same)
+        self.comp_name = pn.widgets.TextInput(name="Component", value="A", width=75, **same)
         # the colour of the selected fit's name: every fit of that name, on every specimen, follows
-        self.color_pick = pn.widgets.ColorPicker(name="Colour", value="#2b2b2b", width=64)
+        self.color_pick = pn.widgets.ColorPicker(name="Colour", value="#2b2b2b", width=56)
         self.color_pick.param.watch(self._on_color_widget, "value")
-        self.tmin_sel = pn.widgets.Select(name="Lower bound", options=[], width=130, **same)
-        self.tmax_sel = pn.widgets.Select(name="Upper bound", options=[], width=130, **same)
-        self.add_btn = pn.widgets.Button(name="New fit", button_type="success", width=110, margin=(22, 5, 5, 5))
-        self.del_btn = pn.widgets.Button(name="Delete", button_type="danger", width=90, margin=(22, 5, 5, 5))
+        self.tmin_sel = pn.widgets.Select(name="Lower bound", options=[], width=100, **same)
+        self.tmax_sel = pn.widgets.Select(name="Upper bound", options=[], width=100, **same)
+        self.add_btn = pn.widgets.Button(name="New fit", button_type="success", width=90, margin=(22, 5, 5, 5))
+        self.del_btn = pn.widgets.Button(name="Delete", button_type="danger", width=80, margin=(22, 5, 5, 5))
         self.add_btn.on_click(self._new_fit)
         self.del_btn.on_click(lambda e: s.delete_current())
         # live edits of the selected fit
@@ -403,10 +419,11 @@ class SpecimenView:
         self.tmax_sel.param.watch(self._on_bound_widget, "value")
         self.fit_type_sel.param.watch(self._on_type_widget, "value")
         self.comp_name.param.watch(self._on_name_widget, "value")
-        self.hint = pn.pane.HTML(f'<span style="{MUTED_STYLE}">tap a point on a plot to move the selected fit\'s '
-                                 'nearest bound · <b>[</b> <b>]</b> <b>{</b> <b>}</b> nudge bounds · '
-                                 '<b>↑</b> <b>↓</b> steps · <b>←</b> <b>→</b> specimens</span>',
-                                 margin=(2, 0, 0, 12))
+        # one short line; the keys are in its tooltip (a laptop's window has no width to spare)
+        self.hint = pn.pane.HTML(f'<span style="{MUTED_STYLE};cursor:help" title="Tap a point on a plot to move '
+                                 'the selected fit\'s nearest bound. Keys: [ ] and { } nudge the bounds, ↑ ↓ move '
+                                 'through the steps, ← → through the specimens.">tap a point to move the nearest '
+                                 'bound · keys ⓘ</span>', margin=(2, 0, 0, 12))
         # the one list of fits: statistics + selection (click a row to make it the current fit)
         self.comp_table = pn.widgets.Tabulator(
             pd.DataFrame(), height=150, show_index=False, disabled=True, selectable=1, sortable=False, margin=(0, 5, 5, 5),
@@ -430,16 +447,20 @@ class SpecimenView:
             pn.pane.Bokeh(self.zij.fig, name=self.ZIJ, margin=0),
             pn.pane.Bokeh(self.eq.fig, name=self.EQ, margin=0),
             pn.pane.Bokeh(self.decay.fig, name=self.DECAY, margin=0),
-            self.levels.panel(self.LEVELS),
         ]
         saved = self._saved_layout()
-        self.canvas = TileCanvas(self.cards, tree=saved.get("tree"), height=saved.get("height", self.HEIGHT),
+        # a height the analyst chose is kept; otherwise the plots take what the window has
+        # room for once the fits are in view (the handle measures it), HEIGHT until then
+        self._height_chosen = saved["height"] is not None
+        self._fitting = False
+        self.canvas = TileCanvas(self.cards, tree=saved["tree"], height=saved["height"] or self.HEIGHT,
                                  sizing_mode="stretch_width", margin=(0, 0, 0, 0))
         self.canvas.param.watch(self._on_card_sizes, "sizes")
         # the handle under the canvas shares the window's height between the plots and the fits
         self.plot_size = HeightSplitter(value=self.canvas.height, default_value=self.HEIGHT, minimum=300,
-                                        maximum=1400)
-        self.plot_size.param.watch(lambda e: setattr(self.canvas, "height", int(e.new)), "value")
+                                        maximum=1400, room_below=self.ROOM_BELOW)
+        self.plot_size.param.watch(self._on_plot_size, "value")
+        self.plot_size.param.watch(self._on_window_room, "window_value")
         self.reset_layout_btn = pn.widgets.Button(name="Reset layout", width=110, height=26, button_type="light",
                                                   margin=(0, 5, 0, 5))
         self.reset_layout_btn.on_click(self._reset_layout)
@@ -448,38 +469,75 @@ class SpecimenView:
         s.param.watch(self.redraw, ["specimen", "coord", "projection", "label_every", "version", "current"])
         self.redraw()
 
-    # the panels' titles (also the leaves of a saved layout), and the default tiling:
-    # the diagram on the left half, then the equal-area plot over the M/M₀ curve, then
-    # the higher-level means (see pmagpy_panel.tiling)
-    ZIJ, EQ, DECAY, LEVELS = "Zijderveld diagram", "Equal-area plot", "Intensity decay (M/M₀)", "Higher-level means"
-    DEFAULT_TREE = ["row", 0.5, ZIJ, ["row", 0.5, ["col", 0.62, EQ, DECAY], LEVELS]]
-    HEIGHT = 540
+    # the panels' titles (also the leaves of a saved layout), and the default tiling: the
+    # diagram, the equal-area plot and the M/M₀ curve side by side (see pmagpy_panel.tiling).
+    # A row suits the short canvas of a laptop's window, where the fits must stay in view
+    ZIJ, EQ, DECAY = "Zijderveld diagram", "Equal-area plot", "Intensity decay (M/M₀)"
+    LEVELS = "Higher-level means"     # a panel of its own, under the fits
+    DEFAULT_TREE = ["row", 0.44, ZIJ, ["row", 0.5, EQ, DECAY]]
+    HEIGHT = 420              # the plots' height until the window is measured
+    ROOM_BELOW = 190          # window kept under the plots: the fits' heading, buttons and first rows
+    WINDOW_HEIGHTS = (300, 640)   # the range a height fitted to the window is kept in
 
     def _saved_layout(self) -> dict:
-        """{"tree", "height"} as the analyst left them, or the defaults."""
+        """{"tree", "height"} as the analyst left them: the default tree, and a height of None
+        (fit the window), for what was not saved."""
         try:
             with open(LAYOUT_FILE) as fh:
                 saved = json.load(fh).get("specimen_tiles", {})
         except (OSError, ValueError, AttributeError):
             saved = {}
-        titles = [self.ZIJ, self.EQ, self.DECAY, self.LEVELS]
+        titles = [self.ZIJ, self.EQ, self.DECAY]
         tree = saved.get("tree") if isinstance(saved, dict) and tiling.valid(saved.get("tree"), titles) \
             else self.DEFAULT_TREE
         height = saved.get("height") if isinstance(saved, dict) else None
-        height = int(height) if isinstance(height, (int, float)) and 300 <= height <= 1400 else self.HEIGHT
+        height = int(height) if isinstance(height, (int, float)) and 300 <= height <= 1400 else None
         return {"tree": tree, "height": height}
 
+    def _layout_record(self) -> dict:
+        """The layout as it would be saved: a height only if the analyst chose one."""
+        return {"tree": self.canvas.tree, "height": self.canvas.height if self._height_chosen else None}
+
     def _save_layout(self):
+        record = {"tree": self.canvas.tree}
+        if self._height_chosen:
+            record["height"] = self.canvas.height
         try:
             with open(LAYOUT_FILE, "w") as fh:
-                json.dump({"specimen_tiles": {"tree": self.canvas.tree, "height": self.canvas.height}}, fh)
+                json.dump({"specimen_tiles": record}, fh)
         except OSError:
             pass                                    # a layout not remembered is no loss
+
+    def _set_height(self, height, chosen):
+        """Draw the plots `height` px tall; `chosen`: the analyst set it (it is remembered)."""
+        self._fitting = True
+        try:
+            self.plot_size.value = int(height)
+        finally:
+            self._fitting = False
+        self._height_chosen = chosen
+        self.canvas.height = int(height)
+
+    def _on_plot_size(self, event):
+        """The handle was dragged (or double clicked, back to the window's height)."""
+        if self._fitting:
+            return
+        self._set_height(event.new, chosen=int(event.new) != self.plot_size.default_value)
+
+    def _on_window_room(self, event):
+        """The browser measured the window: that height is the default, and the height unless one was chosen."""
+        lo, hi = self.WINDOW_HEIGHTS
+        height = int(max(lo, min(hi, event.new)))
+        self.plot_size.default_value = height
+        if not self._height_chosen:
+            with LayoutHold.batch():
+                self._set_height(height, chosen=False)
 
     def _reset_layout(self, event=None):
         with LayoutHold.batch():
             self.canvas.arrange(self.DEFAULT_TREE)
-            self.plot_size.value = self.HEIGHT
+            self._set_height(self.plot_size.default_value, chosen=False)
+        self._save_layout()
 
     def _on_card_sizes(self, event):
         """The browser laid the cards out: fit each figure into its card, in one layout pass."""
@@ -499,11 +557,7 @@ class SpecimenView:
                 width, frame = max(160, w - 6), max(40, h - DecayPlot.TOP - DecayPlot.AXIS_ROWS - 6)
                 if w and h and (width, frame) != (self.decay.fig.width, self.decay.fig.frame_height):
                     self.decay.set_size(width, frame)
-            if self.LEVELS in sizes:
-                w, h = sizes[self.LEVELS]
-                if w and h:
-                    self.levels.fit(w, h)
-        if {"tree": self.canvas.tree, "height": self.canvas.height} != self._saved_layout():
+        if self._layout_record() != self._saved_layout():
             self._save_layout()
 
     # --- interaction ----------------------------------------------------------
@@ -796,19 +850,24 @@ class SpecimenView:
         )
 
     def main(self):
+        # no line of instructions above the plots (a laptop's window has no height to spare):
+        # how to rearrange them is the tooltip beside Reset layout, in the fits' heading
+        layout_help = pn.pane.HTML(
+            f'<span style="{MUTED_STYLE};cursor:help" title="Drag a panel\'s title onto another panel: its middle '
+            'swaps the two, its edge puts the panel on that side. Drag the gaps between panels to resize them, '
+            'and the bar below the plots for their height. The layout is remembered.">arrange the plots ⓘ</span>',
+            margin=(8, 0, 0, 10))
         return pn.Column(
-            pn.Row(pn.pane.HTML(f'<span style="{MUTED_STYLE}">drag a panel\'s title onto another panel: its middle '
-                                'swaps the two, its edge puts the panel on that side · drag the gaps between panels '
-                                'to resize them, the bar below for the height · the layout is remembered</span>',
-                                margin=(4, 0, 0, 5)),
-                   pn.layout.HSpacer(), self.reset_layout_btn, margin=0),
             self.canvas,
             self.plot_size,
             # left margin as the table below: the heading lines up with what it labels
-            pn.Row(section("Fits · click a row to select it"), self.hint, margin=(0, 0, 0, 5)),
+            pn.Row(section("Fits · click a row to select it"), self.hint, pn.layout.HSpacer(), layout_help,
+                   self.reset_layout_btn, margin=(0, 0, 0, 5)),
             pn.Row(self.comp_name, self.color_pick, self.fit_type_sel, self.tmin_sel, self.tmax_sel,
                    self.add_btn, self.del_btn),
             self.comp_table,
+            # the current specimen among its sample, site or location, the page's width under the fits
+            self.levels.panel(self.LEVELS),
         )
 
 

@@ -14,6 +14,9 @@ shell.setup()
 
 ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
 LOGO = os.path.join(ASSETS, "pmagpy_logo_white.png")
+# the side column's starting width: narrow enough on a laptop's window that the plots
+# have the room (the analyst drags it wider from there)
+SIDE_WIDTH = 360
 
 
 def build_body(session: Session) -> shell.Body:
@@ -48,7 +51,7 @@ def build_body(session: Session) -> shell.Body:
     # column is swapped per tab, and a component that is off the page cannot report
     main = pn.Column(specimen.hotkeys, tabs, margin=0, sizing_mode="stretch_both")
     body = shell.Body(info=APP, main=main, side=pn.Column(dataview.sidebar(), side.column, sizing_mode="stretch_width"),
-                      header=shell.status_line(session), modal=dataview.modal())
+                      header=shell.status_line(session), modal=dataview.modal(), side_width=SIDE_WIDTH)
 
     def _on_tab(event):
         for i, view in lazy.items():
@@ -103,6 +106,7 @@ def serve_default():
         if session.data is None:
             return DataView(session).failure_page(directory, session.status)
         return build_body(session)
-    template = shell.deferred_template(APP, LOGO, build, hub_url=runtime.hub_url(), loading=f"Loading {name} …")
+    template = shell.deferred_template(APP, LOGO, build, hub_url=runtime.hub_url(), loading=f"Loading {name} …",
+                                       side_width=SIDE_WIDTH)
     template.session = holder.get("session")
     return template
