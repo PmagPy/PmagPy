@@ -313,6 +313,44 @@ class TestStudiesPmagPyMadeAreWorkedOnInPlace:
         assert session.directory == out and "SP1" in session.data.specimens
 
 
+class TestContributionsFromMagicGetACopy:
+    """A folder of tables that came from MagIC is someone's record: it is worked on in a copy, also when
+    its tables were unpacked by Convert or lab files were converted into it since."""
+
+    def test_a_contribution_file_unpacked_by_convert_is_worked_on_in_a_copy(self, study, base):
+        from pmagpy import convert_registry as reg
+        os.remove(os.path.join(study, "contribution.txt"))           # an older file, served without one
+        reg.record_conversion(study, "magic", ["magic_contribution_13436.txt"], tables={"measurements": 1},
+                              label="MagIC contribution file")
+        assert datasets.from_magic(study) and not datasets.made_by_pmagpy(study)
+        copy = datasets.working_directory(study)
+        assert copy != study and datasets.working_copy_source(copy) == os.path.realpath(study)
+        assert reg.read_conversions(study)[0]["format"] == "magic"             # the log keeps the unpack
+
+    def test_a_download_with_lab_files_converted_into_it_is_worked_on_in_a_copy(self, study, base, tmp_path):
+        from pmagpy import convert_registry as reg
+        from pmagpy_apps.home import HubSession, ref_html
+        from pmagpy_apps.inventory import take_inventory
+        assert os.path.isfile(os.path.join(study, "contribution.txt"))         # as MagIC serves every contribution
+        reg.record_conversion(study, "jr6_jr6", ["AF.jr6", "TRM.jr6"], append=True, tables={"measurements": 9})
+        assert datasets.from_magic(study) and not datasets.made_by_pmagpy(study)
+        session = HubSession(study, recent_file=str(tmp_path / "hub_recent.json"))
+        assert session.directory != study and datasets.working_copy_source(session.directory) == os.path.realpath(study)
+        assert "contribution from MagIC, with lab files PmagPy converted added to it" in ref_html(take_inventory(session.directory))
+        assert datasets.kept_copy_note(session.directory) == ""
+
+    def test_a_download_alone_says_nothing_more(self, study, base):
+        copy = datasets.working_directory(study)
+        assert datasets.from_magic(study) and datasets.magic_copy_note(copy) == ""
+
+    def test_tables_a_conversion_replaced_are_pmagpy_s_own(self, study, base):
+        from pmagpy import convert_registry as reg
+        reg.record_conversion(study, "magic", ["mc.txt"], tables={"measurements": 1})
+        reg.record_conversion(study, "jr6_jr6", ["AF.jr6"], tables={"measurements": 9})      # replaced them
+        assert not datasets.from_magic(study) and datasets.made_by_pmagpy(study)
+        assert datasets.working_directory(study) == study
+
+
 class TestOnlyMarkedFoldersAreCopies:
     def test_a_study_kept_under_the_base_gets_a_copy_of_its_own(self, base):
         kept = os.path.join(base, "MyStudy")

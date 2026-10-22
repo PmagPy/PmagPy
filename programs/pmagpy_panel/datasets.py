@@ -84,6 +84,8 @@ WORKING_COPY_SUFFIXES = (".txt", ".redo", ".json")
 #: the log PmagPy writes beside the tables it converted (``pmagpy.convert_registry.CONVERSION_LOG``):
 #: a study that has one is PmagPy's own work, and is worked on in place
 CONVERSION_LOG = "pmagpy_conversions.json"
+#: the table MagIC serves with every contribution, and no converter writes
+CONTRIBUTION_TABLE = "contribution.txt"
 
 
 def output_base() -> str:
@@ -150,18 +152,56 @@ def made_by_pmagpy(directory: str) -> bool:
     """True for a study whose tables PmagPy wrote (Convert, the .tdt import, ``convert_cli``).
 
     That is a folder holding :data:`CONVERSION_LOG` that is the analyst's own:
-    writable, not a working copy, and not one that ships with PmagPy
-    (:func:`shipped_roots`). Such a study is worked on in place by every
-    application, also when there is an output base (:func:`working_directory`):
-    its tables sit with the lab files they came from, where the analyst builds
-    the upload from.
+    writable, not a working copy, not one that ships with PmagPy
+    (:func:`shipped_roots`), and not a contribution that came from MagIC
+    (:func:`from_magic`), also when lab files were converted into it since.
+    Such a study is worked on in place by every application, also when there
+    is an output base (:func:`working_directory`): its tables sit with the lab
+    files they came from, where the analyst builds the upload from.
     """
     path = os.path.realpath(os.path.abspath(os.path.expanduser(directory)))
     if not os.path.isfile(os.path.join(path, CONVERSION_LOG)) or not os.access(path, os.W_OK):
         return False
     if os.path.isfile(os.path.join(path, WORKING_COPY_MARKER)):
         return False
-    return not _under(path, shipped_roots())
+    return not _under(path, shipped_roots()) and not from_magic(path)
+
+
+def _conversions(directory: str) -> list:
+    """The entries of a folder's :data:`CONVERSION_LOG`, oldest first (empty when there is none)."""
+    try:
+        with open(os.path.join(directory, CONVERSION_LOG), encoding="utf-8") as fh:
+            entries = json.load(fh)
+    except (OSError, ValueError):
+        return []
+    return [e for e in entries if isinstance(e, dict)] if isinstance(entries, list) else []
+
+
+def _since_last_replace(entries: list) -> list:
+    """The log entries that account for the tables as they stand: the last one that replaced them and
+    every append since (as ``pmagpy.convert_registry.conversion_sources``)."""
+    kept: list = []
+    for entry in entries:
+        if not entry.get("append"):
+            kept = []
+        kept.append(entry)
+    return kept
+
+
+def from_magic(directory: str) -> bool:
+    """True for a folder whose tables came from MagIC: a published contribution, someone's record.
+
+    That is a contribution file unpacked on the Convert page (its log entry has
+    format ``magic``, among those that account for the tables), or a folder
+    holding :data:`CONTRIBUTION_TABLE` whose tables were there before any
+    conversion PmagPy logged replaced them -- a contribution downloaded from
+    MagIC, by the hub or from the website, with or without lab files added to
+    it since. Such a folder is worked on in a working copy, never in place.
+    """
+    entries = _conversions(directory)
+    if any(e.get("format") == "magic" for e in _since_last_replace(entries)):
+        return True
+    return os.path.isfile(os.path.join(directory, CONTRIBUTION_TABLE)) and all(e.get("append") for e in entries)
 
 
 def _marked_source(directory: str) -> str:
@@ -208,6 +248,17 @@ def kept_copy_note(directory: str) -> str:
             "was made before, and is still the one every application uses, so that nothing done in it is left behind.")
 
 
+def magic_copy_note(directory: str) -> str:
+    """A sentence for a working copy of a contribution from MagIC that lab files were converted into, else ""."""
+    source = working_copy_source(directory)
+    if not source or os.path.realpath(source) == os.path.realpath(directory) or not from_magic(source):
+        return ""
+    if not any(e.get("format") != "magic" for e in _since_last_replace(_conversions(source))):
+        return ""
+    return ("The study holds a contribution from MagIC, with lab files PmagPy converted added to it: a published "
+            "record is not worked on in place, so every application uses this working copy of it.")
+
+
 def study_name(directory: str) -> str:
     """The name to show for a study: its folder's name, also when `directory` is its working copy.
 
@@ -239,7 +290,7 @@ def working_directory(directory: str, base: Optional[str] = None) -> str:
     one copy: it is assembled beside the target and moved into place whole.
 
     A study PmagPy made (:func:`made_by_pmagpy`: its tables came from Convert
-    or the .tdt import) is worked on in place, base or not -- unless a working
+    or the .tdt import, not from MagIC) is worked on in place, base or not -- unless a working
     copy of it exists already (made by an earlier build, or before the study
     gained its conversion log), which is then kept (:func:`kept_copy_note`).
 

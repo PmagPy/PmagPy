@@ -493,6 +493,23 @@ class TestConvert:
         assert asyncio.run(view._convert()) is True
         assert session.inventory.is_magic and "unpacked" in view.message.object
 
+    def test_an_unpacked_contribution_is_worked_on_in_a_copy(self, tmp_path, monkeypatch):
+        from pmagpy.test.test_magic_project import AS_SERVED
+        from pmagpy import convert_registry as reg
+        for var in datasets.OUTPUT_BASE_VARS:
+            monkeypatch.delenv(var, raising=False)
+        monkeypatch.setenv("PMAGPY_APPS_OUTPUT", str(tmp_path / "PmagPy"))
+        lab = tmp_path / "lab"
+        lab.mkdir()
+        (lab / "magic_contribution_20549.txt").write_text(AS_SERVED)
+        session = home.HubSession(str(lab))
+        view = convert.ConvertView(session)
+        choose(view, convert.MAGIC_FILE)
+        assert asyncio.run(view._convert()) is True
+        assert reg.read_conversions(str(lab))[0]["format"] == "magic"
+        assert not datasets.made_by_pmagpy(str(lab))
+        assert session.directory != str(lab) and datasets.working_copy_source(session.directory) == os.path.realpath(lab)
+
     def test_a_field_notebook_is_recognised_and_writes_samples_and_sites(self, tmp_path):
         orient = os.path.join(os.path.dirname(CIT), "..", "..", "orientation_magic", "orient_example.txt")
         shutil.copy(orient, tmp_path / "orient_example.txt")
@@ -689,7 +706,7 @@ class TestConvertAgain:
         monkeypatch.setenv("PMAGPY_APPS_OUTPUT", str(tmp_path / "PmagPy"))
         study = tmp_path / "Downloaded"            # a contribution from MagIC: no conversion log, so a working copy
         study.mkdir()
-        for name in ("measurements", "specimens", "samples", "sites", "locations"):
+        for name in ("contribution", "measurements", "specimens", "samples", "sites", "locations"):
             shutil.copy(os.path.join(MCMURDO, f"{name}.txt"), study)
         session = home.HubSession(str(study))
         copy = session.directory
@@ -706,8 +723,8 @@ class TestConvertAgain:
         assert asyncio.run(view._convert()) is True
         assert rows(study / "measurements.txt") > n                     # into the study, beside its lab files
         assert open(os.path.join(copy, "measurements.txt")).read() == copied
-        assert datasets.made_by_pmagpy(str(study))
-        assert session.directory == copy                          # the copy made before is kept, and the page says so
+        assert not datasets.made_by_pmagpy(str(study))            # a contribution from MagIC stays someone's record
+        assert session.directory == copy                          # the copy is kept, and the page says so
         assert "was made before and does not have them" in view.message.object
 
     @pytest.mark.parametrize("key, example", [

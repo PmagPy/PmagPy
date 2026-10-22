@@ -253,9 +253,9 @@ def ref_html(inv: Inventory) -> str:
                "(only Convert writes into the study, where the lab files are)")
         lines = [f'<div class="path">{_esc(shorten_home(source))}</div>',
                  f'<div class="path" title="{_esc(tip)}">working copy · {_esc(shorten_home(inv.directory))}</div>']
-        kept = datasets.kept_copy_note(inv.directory)
-        if kept:
-            lines.append(f'<div class="path">{_esc(kept)}</div>')
+        for note in (datasets.kept_copy_note(inv.directory), datasets.magic_copy_note(inv.directory)):
+            if note:
+                lines.append(f'<div class="path">{_esc(note)}</div>')
         stale = datasets.stale_copy_note(inv.directory)
         if stale:
             lines.append(f'<div class="ref" style="color:var(--warn)">{_esc(stale)}</div>')

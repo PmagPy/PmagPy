@@ -68,14 +68,18 @@ intended. Rock magnetism and Anisotropy join by adding them to the edition
   itself, with or without a base (`pmagpy_panel.datasets.made_by_pmagpy`): the
   tables sit with the lab files, where the analyst builds the MagIC upload from,
   and the side column shows the folder's path with no "working copy". A study
-  without a log -- a contribution downloaded from MagIC, a colleague's study, the
-  bundled example -- still gets its copy, and nothing inside the application
-  bundle or an install's `data_files` (or a folder that cannot be written) is
-  ever worked on in place. A study that already had a working copy before it
-  gained its log (converted by an earlier build, or lab files converted into a
-  downloaded contribution's folder) keeps using that copy, so the work in it is
-  not left behind; the side column then says "earlier working copy", and Home
-  says why under the path.
+  without a log -- a colleague's study, the bundled example -- still gets its
+  copy, and nothing inside the application bundle or an install's `data_files`
+  (or a folder that cannot be written) is ever worked on in place. A
+  contribution that came from MagIC always gets a copy
+  (`pmagpy_panel.datasets.from_magic`): one unpacked from a contribution file on
+  the Convert page (its log entry has format `magic`, and the log keeps it) or
+  downloaded -- by "Download from MagIC" or from the website, known by its
+  `contribution.txt` -- also when lab files were converted into its folder
+  since; it is someone's record, and Home says so under the path. A study that
+  already had a working copy before it gained its log (converted by an earlier
+  build) keeps using that copy, so the work in it is not left behind; the side
+  column then says "earlier working copy", and Home says why under the path.
 * Closing the window ends the process; nothing keeps running.
 
 ## How it is built
