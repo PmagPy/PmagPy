@@ -232,6 +232,7 @@ class TestMergeEdits:
         assert report.conflicts == [("Z11", "lat", "47.5", "47.06")]
         assert merged.loc[0, "lat"] == "47.06" and merged.loc[1, ["lat", "lon"]].tolist() == ["47.2", "96.31"]
         assert report.cells == 2
+        assert report.pending == [((("Z11",), 0), "lat", "47.5")]      # for the page to keep as unsaved
 
     def test_added_rows_are_appended_and_a_deleted_row_goes_only_if_unchanged_on_disk(self, study):
         write(study, "sites", [{"site": s, "location": "Zavkhan", "lat": "47"} for s in ("Z11", "Z12", "Z14")])

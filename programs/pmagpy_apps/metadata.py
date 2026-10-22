@@ -37,6 +37,7 @@ OK_COLOR = "#1a7f5a"
 WARN_COLOR = "#b45309"
 CELL_FAIL = "background-color:#fde2e0"
 CELL_STUB = "background-color:#fff7db"
+CELL_PENDING = "background-color:#dbeafe;font-weight:600"
 PAGE_SIZE = 25
 
 LABELS = {"locations": "Locations", "sites": "Sites", "samples": "Samples", "specimens": "Specimens", "ages": "Ages",
@@ -174,6 +175,7 @@ class MetadataView:
         self.dirty = False
         self.stale: Dict[tuple, None] = {}      # rows whose results were computed at a position edited since shown
         self.stale_cols: List[str] = []
+        self.pending: Dict[tuple, str] = {}     # (row key, column) -> the analyst's value a save kept unsaved
         self.heading = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width")
         self.home_btn = pn.widgets.Button(name="← Home", button_type="default", width=110, margin=(30, 0, 0, 0))
         self.tables = pn.widgets.RadioButtonGroup(options={LABELS[t]: t for t in mm.TABLES}, value="sites",
@@ -245,6 +247,7 @@ class MetadataView:
             self.findings = []
             self.dirty = False
             self.stale, self.stale_cols = {}, []
+            self.pending = {}
             self._load_grid(self.frame.df)
             self._describe()
             self.help.object = column_help_html(table, mm.NAME_COLUMN.get(table, "criterion" if table == "criteria" else "location"))
@@ -276,9 +279,10 @@ class MetadataView:
         self.grid.header_tooltips = {c: (mm.column(self.table, c).description or c) if mm.column(self.table, c) else c
                                      for c in names}
         self.grid.frozen_columns = [names[0]] if names else []
-        self.grid.value = df.reset_index(drop=True)
+        df = df.reset_index(drop=True)
+        self._paint(df)              # before the value: the grid computes a new value's styles as it takes it
+        self.grid.value = df
         self.grid.selection = []
-        self._paint()
 
     def _describe(self) -> None:
         f = self.frame
@@ -295,15 +299,17 @@ class MetadataView:
         self.note.object = f'<div style="{MUTED_STYLE}">{html.escape(" · ".join(bits))}</div>'
 
     # ----- painting the grid --------------------------------------------------------------------
-    def _paint(self) -> None:
-        """Colour the stub rows and the cells the validator objected to."""
-        df = self.grid.value
+    def _paint(self, df: Optional[pd.DataFrame] = None) -> None:
+        """Colour the stub rows, the cells the validator objected to and the analyst's values a save kept unsaved."""
+        df = self.grid.value if df is None else df
         if df is None or len(df) == 0:
             return
         key = mm.NAME_COLUMN.get(self.table)
         stubs = set(self.frame.stubs) if self.frame else set()
         fails = {(f.row, f.column) for f in self.findings if f.row and f.column}
         bad_rows = {f.row for f in self.findings if f.row and not f.column}
+        pending = dict(self.pending)
+        table = self.table
 
         def styles(frame: pd.DataFrame) -> pd.DataFrame:
             out = pd.DataFrame("", index=frame.index, columns=frame.columns)
@@ -316,6 +322,12 @@ class MetadataView:
                         out.loc[names == row, column] = CELL_FAIL
                 if bad_rows:
                     out.loc[names.isin(bad_rows), :] = CELL_FAIL
+            if pending:
+                keys = mm.row_keys(table, frame.fillna("").astype(str))
+                for i, k in enumerate(keys):
+                    for column in frame.columns:
+                        if (k, column) in pending:
+                            out.iat[i, out.columns.get_loc(column)] = CELL_PENDING
             return out
 
         self.grid.style.clear()            # the last paint's function would otherwise stay in the queue
@@ -332,6 +344,10 @@ class MetadataView:
             self.grid.patch({event.column: [(event.row, "")]})
         self.dirty = True
         self.save_btn.button_type = "success"
+        if self.pending and 0 <= event.row < len(self.grid.value):
+            key = mm.row_keys(self.table, self.current())[event.row]
+            if self.pending.pop((key, event.column), None) is not None:
+                self._paint()
         before = self._before(event)
         shared = self._share(event)
         stale = self._stale_after(before)
@@ -551,12 +567,36 @@ class MetadataView:
             return False
         self.s.load(self.s.directory)     # also calls refresh() through the watcher, which re-reads the table
         self.dirty = False
+        self._keep_pending(report)
         text = (f"{self.table}.txt written" + (f" · original kept in {mm.BACKUP_DIR}/" if mm.backup_exists(self.s.directory, self.table) else "")
                 + self._merge_note(report) + "".join(f"<br>{html.escape(n)}" for n in notes)
                 + (f"<br>{html.escape(stale)}" if stale else ""))
         self._say(text, WARN_COLOR if (report.conflicts or report.kept or report.gone or stale) else OK_COLOR)
         self.home_btn.button_type = "primary"
         return True
+
+    def _keep_pending(self, report: mm.MergeReport) -> None:
+        """The analyst's values for the cells changed on disk too stay in the grid, unsaved and highlighted,
+        over the table as just written: the next Save writes them (then a deliberate choice over the disk value)."""
+        if not report.pending:
+            return
+        df = self.current()
+        keys = {k: i for i, k in enumerate(mm.row_keys(self.table, df))}
+        pending = {}
+        for key, column, mine in report.pending:
+            i = keys.get(key)
+            if i is None:
+                continue
+            if column not in df.columns:
+                df[column] = ""
+            df.iat[i, df.columns.get_loc(column)] = mine
+            pending[(key, column)] = mine
+        if not pending:
+            return
+        df = df[mm.order_columns(self.table, df.columns)]
+        self.pending = pending
+        self._replace(df)
+        self.save_btn.button_type = "success"
 
     def _merge_note(self, report: mm.MergeReport) -> str:
         """What a save merged, when the table had changed on disk, and what it left as it is there."""
@@ -575,8 +615,10 @@ class MetadataView:
             cells = "; ".join(f"{html.escape(row)} {html.escape(col)} (yours {html.escape(mine) or 'blank'}, on disk "
                               f"{html.escape(disk) or 'blank'})" for row, col, mine, disk in report.conflicts[:10])
             more = f" and {len(report.conflicts) - 10} more" if len(report.conflicts) > 10 else ""
-            bits.append(f"Not saved, as they were changed on disk too: {cells}{more}. The grid shows the values on "
-                        "disk; type yours again to replace them.")
+            then = ("The grid keeps yours, highlighted and not yet saved: Save again to write them over the "
+                    "values on disk." if self.pending else "The grid shows the values on disk; type yours again "
+                    "to replace them.")
+            bits.append(f"Not saved, as they were changed on disk too: {cells}{more}. {then}")
         if report.kept:
             bits.append("Not deleted, as they were changed on disk since: " + html.escape(", ".join(report.kept)) + ".")
         if report.gone:

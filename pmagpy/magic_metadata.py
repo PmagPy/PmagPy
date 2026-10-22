@@ -362,6 +362,9 @@ class MergeReport:
         deleted: rows the analyst deleted that were deleted.
         conflicts: (row, column, the analyst's value, the value on disk) for the cells
             changed both on the page and on disk: those keep the value on disk.
+        pending: (the row's :func:`row_keys` key in the table returned, column, the analyst's
+            value) for each conflict, so that the page can keep the analyst's value as an
+            unsaved change for the next save to write.
         kept: rows the analyst deleted that were changed on disk since: kept.
         gone: rows the analyst edited that are no longer on disk: their edits are not written.
     """
@@ -373,6 +376,7 @@ class MergeReport:
     added: int = 0
     deleted: int = 0
     conflicts: List[Tuple[str, str, str, str]] = field(default_factory=list)
+    pending: List[Tuple[tuple, str, str]] = field(default_factory=list)
     kept: List[str] = field(default_factory=list)
     gone: List[str] = field(default_factory=list)
 
@@ -389,7 +393,8 @@ def merge_edits(directory: str, table: str, frame: EditorFrame, edited: pd.DataF
     - a cell the analyst changed is written onto the same row of the file
       (the same name and row of that name, :func:`row_keys`), unless that cell
       was changed on disk too, to another value: it then keeps the value on
-      disk and is reported as a conflict;
+      disk and is reported as a conflict, with the analyst's value in
+      ``pending`` for the page to keep as an unsaved change;
     - rows the analyst added, and stub rows the file still lacks, are appended;
       a stub row the file has gained since takes the analyst's changed cells;
     - a row the analyst deleted is deleted if it is unchanged on disk, kept otherwise;
@@ -435,6 +440,7 @@ def merge_edits(directory: str, table: str, frame: EditorFrame, edited: pd.DataF
         if c not in merged.columns:
             merged[c] = ""
     appended = []
+    conflicted = []
     for j, o in enumerate(origin):
         if o is None or (o >= n_file and shown_keys[o] not in at):
             appended.append(edited.iloc[j])
@@ -453,6 +459,7 @@ def merge_edits(directory: str, table: str, frame: EditorFrame, edited: pd.DataF
                 report.cells += 1
             else:
                 report.conflicts.append((row_label(shown_keys[o], shown_keys), c, mine, disk))
+                conflicted.append((r, c, edited.iat[j, edited.columns.get_loc(c)]))
     drop = []
     kept_origins = {o for o in origin if o is not None}
     for o in range(n_file):
@@ -467,9 +474,12 @@ def merge_edits(directory: str, table: str, frame: EditorFrame, edited: pd.DataF
         else:
             report.kept.append(row_label(shown_keys[o], shown_keys))
     merged = merged.drop(index=drop)
+    position = {label: i for i, label in enumerate(merged.index)}
     if appended:
         merged = pd.concat([merged, pd.DataFrame(appended)], ignore_index=True, sort=False)
     merged = merged.fillna("").astype(str).reset_index(drop=True)
+    merged_keys = row_keys(table, merged)
+    report.pending = [(merged_keys[position[r]], c, mine) for r, c, mine in conflicted if r in position]
     for c in order_columns(table, merged.columns):
         if c not in merged.columns:
             merged[c] = ""

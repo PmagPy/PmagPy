@@ -939,6 +939,15 @@ class TestMetadata:
         said = view.message.object
         assert "had changed on disk since it was shown" in said and "1 row added" in said
         assert "Z12 lat (yours 47.1, on disk 45)" in said and metadata.WARN_COLOR in said
+        # the analyst's value stays in the grid, highlighted and unsaved, and the next Save writes it
+        assert "The grid keeps yours, highlighted and not yet saved: Save again to write them over" in said
+        row = view.current().index[view.current().site == "Z12"][0]
+        assert view.current().lat[row] == "47.1" and view.dirty and view.pending == {((("Z12",), 0), "lat"): "47.1"}
+        styles = view.grid.style._compute().ctx
+        assert any("#dbeafe" in str(v) for k, v in styles.items() if k == (row, list(view.current().columns).index("lat")))
+        assert view.save() is True
+        assert metadata.mm.read_table(d, "sites").lat[1] == "47.1" and not view.pending and not view.dirty
+        assert "Not saved" not in view.message.object
 
     def test_a_table_its_owner_made_read_only_is_not_saved_over(self, tmp_path):
         d = small_study(tmp_path)
