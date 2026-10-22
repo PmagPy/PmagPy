@@ -786,6 +786,21 @@ class TestCorrectionsView:
                 study.data.interpretations[name].use_anisotropy = use
             study.data.invalidate()
 
+    def test_after_an_import_the_study_wide_setting_is_the_default_and_names_the_imported_choice(
+            self, mcmurdo_study):
+        # McMurdo's 319 published results all record NLT and cooling rate as not applied: the controls
+        # read "use if available" with a note naming that choice; anisotropy, where they differ, "mixed"
+        view = CorrectionsView(mcmurdo_study)
+        view.set_active(True)
+        switches = {kind: widget for widget, kind in view.study_switches}
+        assert switches["nlt"].value == "use if available" and switches["cooling_rate"].value == "use if available"
+        assert switches["anisotropy"].value == pint.MIXED
+        for kind in ("nlt", "cooling_rate"):
+            assert view.study_notes[kind].visible
+            assert "the 319 imported specimens keep <i>never</i>" in view.study_notes[kind].object
+        assert not view.study_notes["anisotropy"].visible
+        assert "319 specimens differ from the study-wide <i>use if available</i>" in view.exceptions.object
+
     def test_the_study_wide_switch_sets_every_specimen_and_lists_the_exceptions(self, tmp_path):
         src = tmp_path / "Megiddo"
         shutil.copytree(MEGIDDO, src)

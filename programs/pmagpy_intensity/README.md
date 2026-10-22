@@ -175,8 +175,12 @@ where it is missing) or *never*, for the whole study and for one specimen. The
 study-wide setting sets every specimen, and every interpretation made later; a
 specimen can then still be set on its own, and the tab lists the specimens set
 differently from the study. Interpretations imported from `specimens.txt` keep
-the corrections their rows record, so after an import the study-wide control
-reads *mixed* where those differ. The anisotropy alteration limit defaults to
+the corrections their rows record. After an import the study-wide setting
+starts at the default, *use if available*, so a new interpretation takes it
+unless you choose otherwise: the control reads *mixed* where the imported
+choices differ, and where they all share one it reads *use if available* with a
+note naming theirs (McMurdo: "the 319 imported specimens keep *never*" for
+non-linear TRM and cooling rate). The anisotropy alteration limit defaults to
 5%, and Hext's F-test can be required.
 
 ### Group results

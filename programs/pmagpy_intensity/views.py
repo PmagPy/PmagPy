@@ -1232,6 +1232,9 @@ class CorrectionsView(LazyView):
                                 ("cooling rate", "cooling_rate")))
         for widget, kind in self.study_switches:
             widget.param.watch(lambda e, k=kind: self._on_study_switch(k, e.new), "value")
+        #: under each study-wide selector: the choice the imported specimens share, where it is not the setting
+        self.study_notes = {kind: pn.pane.HTML("", visible=False, sizing_mode="stretch_width", margin=(0, 10, 4, 10))
+                            for _, kind in self.study_switches}
         self.exceptions = pn.pane.HTML("", sizing_mode="stretch_width")
         self.alt_limit = pn.widgets.FloatInput(name="anisotropy alteration limit (%)",
                                                value=5.0, width=220)
@@ -1322,6 +1325,13 @@ class CorrectionsView(LazyView):
                 if widget.options != options:
                     widget.options = options
                 widget.value = pint.MIXED if setting is pint.MIXED else labels.get(setting, choices[0])
+                imported = self.s.data.imported_correction_choice(kind)
+                note = self.study_notes[kind]
+                note.object = (f'<div style="{MUTED_STYLE}">the {imported[1]} imported specimen'
+                               f'{"" if imported[1] == 1 else "s"} keep{"s" if imported[1] == 1 else ""} '
+                               f'<i>{labels.get(imported[0], "use if available")}</i></div>'
+                               if imported else "")
+                note.visible = imported is not None
         finally:
             self._showing = False
         blocks = []
@@ -1334,7 +1344,8 @@ class CorrectionsView(LazyView):
             for name, use in differ.items():
                 groups.setdefault(labels.get(use, "use if available"), []).append(name)
             if setting is pint.MIXED:
-                head = (f"<b>{self.LABELS[kind]}</b>: mixed, no study-wide setting; "
+                head = (f"<b>{self.LABELS[kind]}</b>: mixed (the imported specimens differ; a new "
+                        f"interpretation takes <i>use if available</i>); "
                         + ", ".join(f"{label} {len(names)}" for label, names in groups.items()))
             else:
                 head = (f"<b>{self.LABELS[kind]}</b>: {len(differ)} specimen{'' if len(differ) == 1 else 's'} "
@@ -1405,7 +1416,7 @@ class CorrectionsView(LazyView):
         return pn.Column(
             pn.pane.HTML(f'<div style="{SECTION_STYLE}">This specimen</div>'), self.detail,
             pn.pane.HTML(f'<div style="{SECTION_STYLE}">Apply to the whole study</div>'),
-            *(widget for widget, _ in self.study_switches),
+            *(item for widget, kind in self.study_switches for item in (widget, self.study_notes[kind])),
             pn.pane.HTML(f'<div style="{MUTED_STYLE}">Sets every specimen, and every interpretation '
                          f'made later. A specimen can still be set on its own below.</div>'),
             pn.pane.HTML(f'<div style="{SECTION_STYLE}">Apply to this specimen</div>'),

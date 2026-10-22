@@ -1299,8 +1299,9 @@ class PintData:
         #: interpretations whose bound step was flagged away, with their bounds in kelvin
         self._set_aside: Dict[str, Tuple[Interpretation, Tuple[float, float]]] = {}
         #: the study-wide choice for each correction (see :meth:`set_study_correction`): None (use if
-        #: available), True (always), False (never), or :data:`MIXED` where the specimens differ and
-        #: none has been chosen for the whole study
+        #: available, the default), True (always), False (never), or :data:`MIXED` where imported
+        #: specimens' choices differ and none has been chosen for the whole study (a new
+        #: interpretation then gets "use if available")
         self.correction_settings: Dict[str, object] = {kind: None for kind in CORRECTION_KINDS}
         self._build()
 
@@ -1646,16 +1647,38 @@ class PintData:
                 if setting is MIXED or getattr(interp, f"use_{kind}") is not setting}
 
     def _settle_correction_settings(self) -> None:
-        """The study-wide settings the interpretations imply: their one common choice, else MIXED.
+        """The study-wide settings after interpretations arrive with choices of their own.
 
-        Used where interpretations arrive with choices of their own and no study-wide setting (an
-        import from specimens.txt, a session written before the setting existed); a study with no
-        interpretations keeps "use if available".
+        Used for an import from specimens.txt and a session written before the setting existed.
+        Each specimen keeps its own choice; the study-wide setting starts at the default, "use if
+        available" (None), so a new interpretation takes the default unless the analyst chooses
+        otherwise. Where the specimens' choices differ the setting reads :data:`MIXED` (a new
+        interpretation still gets the default); where they all share one choice,
+        :meth:`imported_correction_choice` names it.
         """
         for kind in CORRECTION_KINDS:
             choices = {getattr(interp, f"use_{kind}") for interp in self.interpretations.values()}
-            self.correction_settings[kind] = (None if not choices else choices.pop() if len(choices) == 1
-                                              else MIXED)
+            self.correction_settings[kind] = MIXED if len(choices) > 1 else None
+
+    def imported_correction_choice(self, kind: str) -> Optional[Tuple[Optional[bool], int]]:
+        """The one choice the imported interpretations share for ``kind``, where the study-wide setting differs.
+
+        Imported interpretations are those read from specimens.txt (``source``), fits set aside by a
+        flag included. Returns (choice, how many) when they all share a choice other than the
+        study-wide setting; None when there are none, their choices differ, they follow the
+        setting, or the setting is :data:`MIXED`.
+        """
+        setting = self.correction_settings.get(kind)
+        if setting is MIXED:
+            return None
+        held = [interp for interp, _ in self._set_aside.values()]
+        imported = [interp for interp in list(self.interpretations.values()) + held
+                    if interp.source == "specimens.txt"]
+        choices = {getattr(interp, f"use_{kind}") for interp in imported}
+        if len(choices) != 1:
+            return None
+        choice = choices.pop()
+        return None if choice is setting else (choice, len(imported))
 
     def has_interpretation(self, specimen: str) -> bool:
         """True when the specimen has an interpretation, or one set aside by a bad-step flag."""
@@ -2752,8 +2775,10 @@ class PintData:
         DA- code -- switches each correction on or off as it records; a row
         that says nothing leaves the study-wide setting (use what is
         available, unless the analyst chose otherwise). The study-wide setting
-        then becomes the choice the interpretations share, or MIXED where they
-        differ. A stored correction this study cannot recompute is reported.
+        then starts at the default, "use if available", and reads MIXED where
+        the imported choices differ (:meth:`_settle_correction_settings`); a new
+        interpretation takes the study-wide setting. A stored correction this
+        study cannot recompute is reported.
         """
         table = self._table("specimens")
         if table is None or "meas_step_min" not in table.columns:
@@ -2783,7 +2808,7 @@ class PintData:
             problems.extend(self._import_corrections(interp, row))
             count += 1
         if count:
-            # each specimen keeps the choice its row records; the study-wide setting is what they share
+            # each specimen keeps the choice its row records; the study-wide setting starts at the default
             self._settle_correction_settings()
         self.invalidate()
         return count, problems

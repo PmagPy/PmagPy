@@ -652,13 +652,45 @@ class TestStudyWideCorrections:
             == {n: (i.use_anisotropy, i.use_nlt, i.use_cooling_rate) for n, i in data.interpretations.items()}
         assert again.correction_settings["anisotropy"] is pi.MIXED
 
-    def test_an_earlier_session_whose_specimens_agree_takes_their_choice(self, small):
+    def test_an_earlier_session_whose_specimens_agree_starts_at_the_default(self, small):
         name = small.specimen_names[0]
         small.set_interpretation(name, 0, 4).use_nlt = False
         payload = json.loads(small.to_json())
         del payload["correction_settings"]
         small.from_json(json.dumps(payload))
-        assert small.correction_settings == {"anisotropy": None, "nlt": False, "cooling_rate": None}
+        assert small.correction_settings == {kind: None for kind in pi.CORRECTION_KINDS}
+        assert small.interpretations[name].use_nlt is False
+        assert small.correction_exceptions("nlt") == {name: False}
+
+    def test_an_import_whose_specimens_agree_keeps_their_choice_and_starts_at_the_default(self, mcmurdo):
+        # McMurdo's published results all say NLT and cooling rate were not applied ('never'), and
+        # differ on anisotropy: the study-wide settings start at the default (mixed for anisotropy)
+        assert mcmurdo.correction_settings == {"anisotropy": pi.MIXED, "nlt": None, "cooling_rate": None}
+        imported = [i for i in mcmurdo.interpretations.values() if i.source == "specimens.txt"]
+        assert len(imported) == 319
+        assert all(i.use_nlt is False and i.use_cooling_rate is False for i in imported)
+        assert mcmurdo.imported_correction_choice("nlt") == (False, 319)
+        assert mcmurdo.imported_correction_choice("cooling_rate") == (False, 319)
+        assert mcmurdo.imported_correction_choice("anisotropy") is None
+        assert len(mcmurdo.correction_exceptions("nlt")) == 319
+
+    def test_a_new_interpretation_after_an_import_takes_the_study_wide_setting(self, tmp_path):
+        for name in ("measurements.txt", "specimens.txt", "samples.txt", "sites.txt", "locations.txt"):
+            shutil.copy(os.path.join(MCMURDO, name), tmp_path)
+        data = pi.PintData.from_directory(str(tmp_path))
+        data.import_from_specimens_table()
+        fresh = next(n for n in data.specimen_names if n not in data.interpretations)
+        interp = data.set_interpretation(fresh, 0, 3)
+        assert (interp.use_anisotropy, interp.use_nlt, interp.use_cooling_rate) == (None, None, None)
+        # chosen for the study, it is what a new fit gets, and the note about the imported choice goes
+        data.set_study_correction("nlt", False)
+        assert data.imported_correction_choice("nlt") is None
+        other = next(n for n in data.specimen_names if n not in data.interpretations)
+        assert data.set_interpretation(other, 0, 3).use_nlt is False
+
+    def test_megiddo_reads_mixed_for_every_correction_and_names_no_shared_choice(self, megiddo):
+        assert all(megiddo.correction_settings[kind] is pi.MIXED for kind in pi.CORRECTION_KINDS)
+        assert all(megiddo.imported_correction_choice(kind) is None for kind in pi.CORRECTION_KINDS)
 
     def test_a_study_without_interpretations_uses_what_is_available(self, small):
         assert small.correction_settings == {kind: None for kind in pi.CORRECTION_KINDS}
