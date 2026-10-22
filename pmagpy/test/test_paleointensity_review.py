@@ -726,3 +726,86 @@ class TestWhereInterpretationsCameFrom:
         out = small.auto_interpret_all(specimens=names)
         assert set(out) == set(names)
         assert small.interpretations[names[0]].source == "auto"
+
+
+# ---------------------------------------------------------------------------
+# The diagrams are drawn in geographic coordinates where the sample is oriented
+# ---------------------------------------------------------------------------
+class TestDrawnCoordinates:
+    """The Zijderveld and the net rotate into geographic coordinates; the statistics do not move."""
+
+    def test_an_oriented_specimen_is_drawn_as_directions_draws_it_in_geographic_coordinates(self, mcmurdo):
+        from pmagpy import demag as dc
+        directions = dc.DemagData.from_directory(mcmurdo.directory)
+        oriented = [n for n, s in mcmurdo.specimens.items() if pi.drawing_coordinates(s) == pi.COORD_GEOGRAPHIC]
+        assert len(oriented) == 382 and len(mcmurdo.specimens) - len(oriented) == 14
+        for name in oriented[:25] + ["mc15c2"]:
+            spec, steps = mcmurdo.specimens[name], directions.specimens[name].steps
+            assert (spec.orientation.azimuth, spec.orientation.dip) == \
+                (directions.specimens[name].orientation.azimuth, directions.specimens[name].orientation.dip)
+            # each zero-field point drawn where Directions draws that measurement in geographic
+            # coordinates (the measurement found by its specimen-coordinate direction)
+            geographic = {(round(d, 1), round(i, 1)): (dg, ig) for d, i, dg, ig in
+                          steps[["dec_s", "inc_s", "dec_g", "inc_g"]].itertuples(index=False)}
+            z = pi.zijderveld_xy(spec)
+            assert z["coordinates"] == pi.COORD_GEOGRAPHIC
+            scale = spec.arai.y[0]
+            for k, vector in enumerate(spec.arai.nrm_vectors):
+                dec, inc, length = ps.cart_to_dir(vector)
+                expected = ps.dir_to_cart(*geographic[(round(dec, 1), round(inc, 1))], length)
+                assert z["h_y"][k] == pytest.approx(expected[0] / scale, abs=1e-9)    # north up
+                assert z["h_x"][k] == pytest.approx(expected[1] / scale, abs=1e-9)    # east across
+                assert z["v_y"][k] == pytest.approx(-expected[2] / scale, abs=1e-9)   # up is up
+
+    def test_an_unoriented_specimen_is_drawn_in_specimen_coordinates(self, mcmurdo, megiddo):
+        spec = next(s for s in mcmurdo.specimens.values() if pi.drawing_coordinates(s) == pi.COORD_SPECIMEN)
+        assert spec.orientation is None or not spec.orientation.has_geographic
+        assert all(pi.drawing_coordinates(s) == pi.COORD_SPECIMEN for s in megiddo.specimens.values())
+        z = pi.zijderveld_xy(megiddo.specimens["hz05a1"])
+        v = megiddo.specimens["hz05a1"].arai.nrm_vectors / megiddo.specimens["hz05a1"].arai.y[0]
+        assert z["coordinates"] == pi.COORD_SPECIMEN
+        assert np.array_equal(z["h_x"], v[:, 1]) and np.array_equal(z["h_y"], v[:, 0])
+        with pytest.raises(ValueError, match="geographic"):
+            pi.zijderveld_xy(spec, coordinates=pi.COORD_GEOGRAPHIC)
+
+    def test_the_orientation_is_chosen_as_directions_chooses_it(self, tmp_path):
+        # two rows for one sample: the higher-ranked method wins whatever its order; among equals, the first
+        for name in ("measurements.txt", "specimens.txt", "samples.txt", "sites.txt", "locations.txt"):
+            shutil.copy(os.path.join(MCMURDO, name), tmp_path)
+        samples = read_table(str(tmp_path / "samples.txt"))
+        first = samples[samples["sample"] == "mc15c"].copy()
+        second, third = first.copy(), samples[samples["sample"] == "mc01a"].copy()
+        first["method_codes"], first["azimuth"] = "SO-MAG", "10"
+        second["method_codes"], second["azimuth"] = "SO-SUN", "200"
+        twin = third.copy()
+        third["azimuth"], twin["azimuth"] = "30", "60"
+        rest = samples[~samples["sample"].isin(["mc15c", "mc01a"])]
+        write_table(pd.concat([first, second, third, twin, rest]), str(tmp_path / "samples.txt"), "samples")
+        from pmagpy import demag as dc
+        data = pi.PintData.from_directory(str(tmp_path))
+        directions = dc.DemagData.from_directory(str(tmp_path))
+        for spec_name, azimuth in (("mc15c2", 200.0), ("mc01a", 30.0)):
+            spec = data.specimens[spec_name]
+            assert spec.orientation.azimuth == azimuth == directions.specimens[spec_name].orientation.azimuth
+        assert any("mc15c" in w and "orientation rows disagree" in w for w in data.warnings)
+
+    def test_the_statistics_are_those_of_the_specimen_coordinates(self, mcmurdo):
+        # DANG, MAD, the angles to the laboratory field: the rotation is the drawing's alone
+        import copy
+        for name in [n for n in mcmurdo.interpretations
+                     if pi.drawing_coordinates(mcmurdo.specimens[n]) == pi.COORD_GEOGRAPHIC][:20]:
+            stats = mcmurdo.statistics(name)
+            bare = copy.copy(mcmurdo.specimens[name])
+            bare.orientation = None
+            interp = mcmurdo.interpretations[name]
+            again = ps.all_statistics(pi.experiment(bare), interp.imin, interp.imax,
+                                      beta_threshold=mcmurdo._beta_threshold())
+            assert {k: repr(v) for k, v in stats.items()} == {k: repr(v) for k, v in again.items()}
+
+    def test_the_labels_are_directions_labels_for_each_system(self):
+        from pmagpy import demag as dc
+        for coord in (pi.COORD_SPECIMEN, pi.COORD_GEOGRAPHIC):
+            assert pi.ZIJDERVELD_AXES_BY_COORD[coord] == dc.axis_labels(coord, "ew")
+        assert pi.NET_LABELS_BY_COORD[pi.COORD_GEOGRAPHIC] == ("N", "E", "S", "W")
+        assert pi.NET_LABELS_BY_COORD[pi.COORD_SPECIMEN] == ("x", "y", "−x", "−y")
+        assert pi.coordinates_name(pi.COORD_GEOGRAPHIC) == "geographic coordinates"

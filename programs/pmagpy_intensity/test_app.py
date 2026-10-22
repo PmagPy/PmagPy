@@ -33,6 +33,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
 SMALL = os.path.join(REPO, "data_files", "thellier_magic")
 MEGIDDO = os.path.join(REPO, "data_files", "3_0", "Megiddo")
+MCMURDO = os.path.join(REPO, "data_files", "3_0", "McMurdo")
 
 
 def _wait(condition, timeout: float = 30.0) -> bool:
@@ -60,6 +61,19 @@ def study():
     session = Session(MEGIDDO, cache=False)
     session.autosave_enabled = False
     return session
+
+
+@pytest.fixture(scope="module")
+def mcmurdo_study():
+    """McMurdo: most of its samples are oriented (azimuth and dip), 14 specimens' are not."""
+    session = Session(MCMURDO, cache=False)
+    session.autosave_enabled = False
+    return session
+
+
+def _oriented(data, oriented=True):
+    want = pint.COORD_GEOGRAPHIC if oriented else pint.COORD_SPECIMEN
+    return next(n for n in data.specimen_names if pint.drawing_coordinates(data.specimens[n]) == want)
 
 
 # ---------------------------------------------------------------------------
@@ -299,6 +313,54 @@ class TestSpecimenView:
         assert plot.lbl_bottom.text == f'{axes["bottom_h"]}, {axes["bottom_v"]}'
         plot.set_size(260)
         assert (plot.lbl_right.x, plot.lbl_top.y) == (256, 256)
+
+    def test_an_oriented_specimen_is_drawn_and_labelled_in_geographic_coordinates(self, mcmurdo_study):
+        from pmagpy_intensity.plots import SpecimenZijderveldPlot, StepNetPlot
+        data = mcmurdo_study.data
+        zij, net = SpecimenZijderveldPlot(200), StepNetPlot(200)
+        name = _oriented(data)
+        spec = data.specimens[name]
+        stats = data.statistics(name)
+        zij.update(spec, None)
+        net.update(spec, None, stats)
+        assert (zij.lbl_right.text, zij.lbl_left.text, zij.lbl_top.text, zij.lbl_bottom.text) == \
+            ("E", "W", "N, Up", "S, Down")
+        assert [lbl.text for lbl in net.end_labels] == ["N", "E", "S", "W"]
+        # the NRM drawn where its geographic direction falls; the fit's symbol rotated with it
+        dec_g, inc_g = pint.drawn_directions(spec, *ps.cart_to_dir(spec.arai.nrm_vectors[0])[:2])
+        r = np.sqrt(1.0 - np.sin(np.radians(abs(inc_g[0]))))
+        assert net.src.data["x"][0] == pytest.approx(r * np.sin(np.radians(dec_g[0])))
+        assert net.src.data["y"][0] == pytest.approx(r * np.cos(np.radians(dec_g[0])))
+        if stats.get("Dec_Free") and stats["Dec_Free"].is_value:
+            fit = pint.drawn_directions(spec, [float(stats["Dec_Free"])], [float(stats["Inc_Free"])])
+            assert net.mean.data["label"] == [f"fit {fit[0][0]:.1f}/{fit[1][0]:.1f}"]
+        # an unoriented sample's specimen goes back to specimen coordinates, net included
+        other = data.specimens[_oriented(data, False)]
+        zij.update(other, None)
+        net.update(other, None, data.statistics(other.name))
+        axes = pint.ZIJDERVELD_AXES
+        assert (zij.lbl_right.text, zij.lbl_top.text) == (axes["right"], f'{axes["top_h"]}, {axes["top_v"]}')
+        assert [lbl.text for lbl in net.end_labels] == ["x", "y", "−x", "−y"]
+
+    def test_the_zijderveld_labels_go_on_the_roomy_side_of_their_axes(self, mcmurdo_study):
+        # an axis the data push to the frame's edge keeps its names inside the frame
+        from pmagpy_intensity.plots import SpecimenZijderveldPlot
+        assert pint.zijderveld_axis_sides({"h_x": [0.1, 0.5], "h_y": [0.2, 0.9], "v_y": [0.1, 0.3]}) == (False, False)
+        assert pint.zijderveld_axis_sides({"h_x": [-0.1, -0.5], "h_y": [-0.2, -0.9], "v_y": [0.1, 0.3]}) == (True, True)
+        plot = SpecimenZijderveldPlot(200)
+        spec = mcmurdo_study.data.specimens["mc130h1"]
+        assert pint.zijderveld_axis_sides(pint.zijderveld_xy(spec)) == (True, True)
+        plot.update(spec, None)
+        assert (plot.lbl_top.text_align, plot.lbl_bottom.text_align) == ("right", "right")
+        assert (plot.lbl_right.text_baseline, plot.lbl_left.text_baseline) == ("top", "top")
+
+    def test_the_captions_say_which_coordinates_are_drawn(self, mcmurdo_study):
+        view = SpecimenView(mcmurdo_study)
+        for oriented, words in ((True, "geographic coordinates"), (False, "specimen coordinates")):
+            mcmurdo_study.specimen = _oriented(mcmurdo_study.data, oriented)
+            view.redraw()
+            assert words in view.tiles[0][0].object and "Zijderveld" in view.tiles[0][0].object
+            assert words in view.tiles[1][0].object and "Equal area" in view.tiles[1][0].object
 
     def test_a_bound_at_the_first_point_is_shown_in_the_selector(self, workdir):
         # an interpretation that starts at the first Arai point, made on a specimen that had none
@@ -1068,6 +1130,21 @@ class TestPublication:
         texts = {t.get_text().strip() for t in zij.texts}
         assert {labels["right"], labels["left"], f'{labels["top_h"]}, {labels["top_v"]}',
                 f'{labels["bottom_h"]}, {labels["bottom_v"]}'} <= texts
+
+    def test_the_zijderveld_inset_of_an_oriented_specimen_is_in_geographic_coordinates(self, mcmurdo_study):
+        from pmagpy import demag
+        data = mcmurdo_study.data
+        name = _oriented(data)
+        res = data.result(name)
+        bounds = (res.imin, res.imax) if res is not None else None
+        figure = pub.specimen_figure(data.specimens[name], bounds, data.statistics(name), res)
+        zij = next(ax for ax in figure.axes if ax.get_title().startswith("Zijderveld"))
+        assert zij.get_title() == "Zijderveld (geographic coordinates)"
+        labels = demag.axis_labels(demag.COORD_GEOGRAPHIC, "ew")
+        assert {t.get_text().strip() for t in zij.texts} >= {"E", "W", "N, Up", "S, Down"}
+        z = pint.zijderveld_xy(data.specimens[name])
+        assert np.allclose(zij.lines[0].get_xdata(), z["h_x"]) and np.allclose(zij.lines[0].get_ydata(), z["h_y"])
+        assert labels["top_h"] == "N" and labels["top_v"] == "Up"
 
     def test_the_zijderveld_inset_plots_what_its_labels_say(self, study):
         # across: specimen y; up: specimen x (horizontal projection) and -z (vertical projection)

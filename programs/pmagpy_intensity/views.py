@@ -86,18 +86,23 @@ def block_px_per_frame(frame: int, step: int = 20) -> tuple:
     return tall, wide
 
 
+def caption_html(caption: str, note: str = "") -> str:
+    """A tile's heading, with an optional note beside it in plain type, on one line."""
+    extra = (f' <span style="text-transform:none;font-weight:400;letter-spacing:0;color:#6b7280">'
+             f'{note}</span>' if note else "")
+    return (f'<div style="{SECTION_STYLE};margin:0;white-space:nowrap;overflow:hidden;'
+            f'text-overflow:ellipsis">{caption}{extra}</div>')
+
+
 def captioned(caption: str, fig, width: int = TILE, note: str = "") -> pn.Column:
     """A figure under a small heading, with an optional note beside it in plain type.
 
     Outside the figure rather than as a Bokeh title, because ``net_figure``
     keeps a net circular by having no title row at all -- see the toolkit's
     note there. Doing it the same way for all four keeps the block aligned.
+    The heading is the column's first item (:func:`caption_html` rewrites it).
     """
-    extra = (f' <span style="text-transform:none;font-weight:400;letter-spacing:0;color:#6b7280">'
-             f'{note}</span>' if note else "")
-    label = pn.pane.HTML(f'<div style="{SECTION_STYLE};margin:0;white-space:nowrap;overflow:hidden;'
-                         f'text-overflow:ellipsis">{caption}{extra}</div>',
-                         width=width, height=16, margin=(0, 0, 1, 2))
+    label = pn.pane.HTML(caption_html(caption, note), width=width, height=16, margin=(0, 0, 1, 2))
     return pn.Column(label, fig, width=width, margin=(0, 0, 6, 0))
 
 
@@ -419,8 +424,9 @@ class SpecimenView:
         self.decay = DecayPlot(*frames["decay"])
         self.checks = ChecksPlot(*frames["checks"])
         # one block, built here so that it exists before main() is asked for it
-        self.tiles = [captioned("Zijderveld", self.zij.fig, note="specimen coordinates"),
-                      captioned("Equal area", self.net.fig),
+        # both name the coordinates they are drawn in (redraw() keeps the note up to date)
+        self.tiles = [captioned("Zijderveld", self.zij.fig, note=pint.coordinates_name(pint.COORD_SPECIMEN)),
+                      captioned("Equal area", self.net.fig, note=pint.coordinates_name(pint.COORD_SPECIMEN)),
                       captioned("NRM and pTRM", self.decay.fig),
                       captioned("Alteration checks", self.checks.fig)]
         self.companions = pn.GridBox(*self.tiles, ncols=2,
@@ -609,6 +615,11 @@ class SpecimenView:
                          show_checks=self.s.show_checks)
         self.zij.update(spec, bounds)
         self.net.update(spec, bounds, stats)
+        for tile, caption, coordinates in ((self.tiles[0], "Zijderveld", self.zij.coordinates),
+                                           (self.tiles[1], "Equal area", self.net.coordinates)):
+            heading = caption_html(caption, pint.coordinates_name(coordinates))
+            if tile[0].object != heading:
+                tile[0].object = heading
         self.decay.update(spec, bounds)
         self.checks.update(spec, bounds)
         self._fill_steps(spec, bounds)

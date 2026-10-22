@@ -119,17 +119,24 @@ def arai_axes(ax, spec: pint.PintSpecimen, bounds, stats=None, normalize: bool =
     _style(ax)
 
 
-def zijderveld_axis_labels(ax, labels=pint.ZIJDERVELD_AXES) -> None:
-    """Name the ends of a Zijderveld inset's axes, where the axes through the origin meet the box."""
+def zijderveld_axis_labels(ax, labels=pint.ZIJDERVELD_AXES, sides=(False, False)) -> None:
+    """Name the ends of a Zijderveld inset's axes, where the axes through the origin meet the box.
+
+    ``sides`` (:func:`pmagpy.paleointensity.zijderveld_axis_sides`): the vertical axis is in the right
+    half, the horizontal axis in the upper half; each label then goes on the roomy side of its axis.
+    """
+    axis_on_right, axis_on_top = sides
     along_x = blended_transform_factory(ax.transAxes, ax.transData)
     along_y = blended_transform_factory(ax.transData, ax.transAxes)
     style = dict(fontsize=6.5, color=GREY, clip_on=False,
                  bbox=dict(boxstyle="square,pad=0.1", fc="white", ec="none", alpha=0.75))
-    ax.text(1.0, 0.0, labels["right"], ha="right", va="bottom", transform=along_x, **style)
-    ax.text(0.0, 0.0, labels["left"], ha="left", va="bottom", transform=along_x, **style)
-    ax.text(0.0, 1.0, f' {labels["top_h"]}, {labels["top_v"]}', ha="left", va="top", transform=along_y, **style)
-    ax.text(0.0, 0.0, f' {labels["bottom_h"]}, {labels["bottom_v"]}', ha="left", va="bottom",
-            transform=along_y, **style)
+    va = "top" if axis_on_top else "bottom"
+    ax.text(1.0, 0.0, labels["right"], ha="right", va=va, transform=along_x, **style)
+    ax.text(0.0, 0.0, labels["left"], ha="left", va=va, transform=along_x, **style)
+    ha = "right" if axis_on_right else "left"
+    for y, va_end, text in ((1.0, "top", f'{labels["top_h"]}, {labels["top_v"]}'),
+                            (0.0, "bottom", f'{labels["bottom_h"]}, {labels["bottom_v"]}')):
+        ax.text(0.0, y, f"{text} " if axis_on_right else f" {text}", ha=ha, va=va_end, transform=along_y, **style)
 
 
 def specimen_figure(spec: pint.PintSpecimen, bounds, stats: Optional[dict] = None,
@@ -149,12 +156,12 @@ def specimen_figure(spec: pint.PintSpecimen, bounds, stats: Optional[dict] = Non
     zij_ax.axhline(0, color=EDGE, lw=0.6)
     zij_ax.axvline(0, color=EDGE, lw=0.6)
     zij_ax.set_aspect("equal", adjustable="datalim")
-    zij_ax.set_title("Zijderveld (specimen coordinates)", fontsize=8)
+    zij_ax.set_title(f"Zijderveld ({pint.coordinates_name(zij['coordinates'])})", fontsize=8)
     zij_ax.set_xticks([])
     zij_ax.set_yticks([])
     for side in ("top", "right", "bottom", "left"):
         zij_ax.spines[side].set_visible(False)
-    zijderveld_axis_labels(zij_ax)
+    zijderveld_axis_labels(zij_ax, pint.ZIJDERVELD_AXES_BY_COORD[zij["coordinates"]], pint.zijderveld_axis_sides(zij))
 
     decay_ax = fig.add_subplot(grid[1, 1])
     temps, decay = pint.decay_curve(spec)

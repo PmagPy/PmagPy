@@ -38,6 +38,7 @@ import numpy as np
 import pandas as pd
 
 import pmagpy.contribution_builder as cb
+import pmagpy.pmag as pmag
 from pmagpy import magic_project as mp
 from pmagpy import pint_stats as ps
 from pmagpy.magic_project import (COORD_GEOGRAPHIC, COORD_SPECIMEN, COORD_TILT, KELVIN_OFFSET, is_null,
@@ -127,6 +128,9 @@ class PintSpecimen:
     microwave: bool = False
     arai: Optional[AraiData] = None
     warnings: List[str] = field(default_factory=list)
+    #: the sample's orientation, chosen as PmagPy Directions chooses it; it rotates what the
+    #: diagrams draw (:func:`drawing_coordinates`), never what is computed
+    orientation: Optional[mp.Orientation] = None
 
     @property
     def nrm(self) -> float:
@@ -1349,6 +1353,14 @@ class PintData:
         self.site_coords = mp.build_site_coords(site_df, samp_df, self.warnings)
         self.sample_cooling_rate = self._sample_cooling_rates(samp_df)
 
+        # each sample's rows, grouped once; its orientation is worked out once, however many
+        # specimens share it, by the rules PmagPy Directions uses (mp.orientation_from_rows)
+        sample_rows: Dict[str, list] = {}
+        if samp_df is not None and "sample" in samp_df.columns:
+            for row in samp_df.to_dict("records"):
+                sample_rows.setdefault(str(row["sample"]), []).append(row)
+        orientations: Dict[str, Optional[mp.Orientation]] = {}
+
         pi_rows = paleointensity_rows(meas)
         microwave_only = []
         no_direction, bad_unit = [], []
@@ -1370,6 +1382,10 @@ class PintData:
             if arai is None or arai.n < 2:
                 self.warnings.append(f"{name}: no usable Arai points")
                 continue
+            if sample and str(sample) not in orientations:
+                own = sample_rows.get(str(sample))
+                orientations[str(sample)] = mp.orientation_from_rows(own, sample, None, self.warnings) \
+                    if own else None
             self.specimens[name] = PintSpecimen(
                 name=name, sample=sample, site=site, location=location, steps=steps,
                 blab=blab, blab_dir=direction,
@@ -1378,7 +1394,8 @@ class PintData:
                                            for c in split_codes(v)})),
                 microwave=any(c.startswith("LT-M-") or c.startswith("LT-PMRM")
                               for v in spec_meas["method_codes"].fillna("") for c in split_codes(v)),
-                arai=arai, warnings=spec_warnings)
+                arai=arai, warnings=spec_warnings,
+                orientation=orientations.get(str(sample)) if sample else None)
         if bad_unit:
             self.warnings.append(
                 f"{len(bad_unit)} specimens record a laboratory field (treat_dc_field) that cannot be in "
@@ -2851,19 +2868,84 @@ def arai_xy(spec: PintSpecimen, normalize: bool = True) -> Tuple[np.ndarray, np.
     return a.x / scale, a.y / scale
 
 
-#: the ends of the axes of :func:`zijderveld_xy`'s diagram: y across, x (horizontal projection)
-#: and -z (vertical projection) up. measurements.txt holds directions in specimen coordinates,
-#: so these are PmagPy Directions' labels for this projection in specimen coordinates
-#: (``pmagpy.demag.axis_labels(COORD_SPECIMEN, "ew")``)
-ZIJDERVELD_AXES = dict(right="y", left="−y", top_h="x", bottom_h="−x", top_v="−z (up)", bottom_v="z (down)")
+def drawing_coordinates(spec: PintSpecimen) -> int:
+    """The coordinate system the specimen's diagrams are drawn in.
+
+    Geographic (``COORD_GEOGRAPHIC``) when its sample has an orientation (an azimuth and a dip,
+    chosen as PmagPy Directions chooses them), specimen coordinates (``COORD_SPECIMEN``) otherwise.
+    Only the drawing is rotated: every statistic (DANG, MAD, the angles to the laboratory field) is
+    computed from the directions in specimen coordinates, as ``measurements.txt`` holds them.
+    """
+    orient = spec.orientation
+    return COORD_GEOGRAPHIC if orient is not None and orient.has_geographic else COORD_SPECIMEN
 
 
-def zijderveld_xy(spec: PintSpecimen, rotation: float = 0.0) -> dict:
-    """Horizontal and vertical projections of the zero-field steps."""
+def drawn_directions(spec: PintSpecimen, decs, incs, coordinates: Optional[int] = None
+                     ) -> Tuple[np.ndarray, np.ndarray]:
+    """Directions in specimen coordinates as the diagrams draw them (see :func:`drawing_coordinates`).
+
+    ``coordinates`` forces a system; by default the specimen's own. Geographic directions come
+    from ``pmag.dogeo_V`` with the sample's azimuth and dip, as in PmagPy Directions.
+    """
+    decs, incs = np.asarray(decs, dtype=float), np.asarray(incs, dtype=float)
+    coordinates = drawing_coordinates(spec) if coordinates is None else coordinates
+    if coordinates == COORD_SPECIMEN or decs.size == 0:
+        return decs, incs
+    if coordinates != COORD_GEOGRAPHIC or drawing_coordinates(spec) != COORD_GEOGRAPHIC:
+        raise ValueError(f"{spec.name} cannot be drawn in {mp.COORD_NAMES.get(coordinates, coordinates)} "
+                         f"coordinates")
+    n = decs.size
+    rows = np.column_stack([decs, incs, np.full(n, spec.orientation.azimuth), np.full(n, spec.orientation.dip)])
+    dec_g, inc_g = pmag.dogeo_V(rows)
+    return np.asarray(dec_g, dtype=float).reshape(n), np.asarray(inc_g, dtype=float).reshape(n)
+
+
+def drawn_vectors(spec: PintSpecimen, vectors, coordinates: Optional[int] = None) -> np.ndarray:
+    """Vectors (x, y, z) in specimen coordinates as the diagrams draw them, with their lengths kept."""
+    v = np.asarray(vectors, dtype=float).reshape(-1, 3)
+    coordinates = drawing_coordinates(spec) if coordinates is None else coordinates
+    if coordinates == COORD_SPECIMEN or len(v) == 0:
+        return v
+    length = np.linalg.norm(v, axis=1)
+    dec = np.degrees(np.arctan2(v[:, 1], v[:, 0])) % 360.0
+    inc = np.degrees(np.arcsin(np.clip(np.divide(v[:, 2], length, out=np.zeros_like(length),
+                                                 where=length > 0), -1.0, 1.0)))
+    dec_g, inc_g = drawn_directions(spec, dec, inc, coordinates)
+    d, i = np.radians(dec_g), np.radians(inc_g)
+    return np.column_stack([length * np.cos(i) * np.cos(d), length * np.cos(i) * np.sin(d), length * np.sin(i)])
+
+
+#: the ends of the axes of :func:`zijderveld_xy`'s diagram, by coordinate system: east (y) across,
+#: north (x) up in the horizontal projection and up (-z) in the vertical one. These are PmagPy
+#: Directions' labels for this projection (``pmagpy.demag.axis_labels(coord, "ew")``)
+ZIJDERVELD_AXES_BY_COORD = {
+    COORD_SPECIMEN: dict(right="y", left="−y", top_h="x", bottom_h="−x", top_v="−z (up)", bottom_v="z (down)"),
+    COORD_GEOGRAPHIC: dict(right="E", left="W", top_h="N", bottom_h="S", top_v="Up", bottom_v="Down"),
+}
+#: the specimen-coordinate labels, for a specimen with no orientation
+ZIJDERVELD_AXES = ZIJDERVELD_AXES_BY_COORD[COORD_SPECIMEN]
+#: the ends of an equal-area net's axes (top, right, bottom, left) in each system: declination is
+#: measured from x towards y in specimen coordinates, from north towards east in geographic ones
+NET_LABELS_BY_COORD = {COORD_SPECIMEN: ("x", "y", "−x", "−y"), COORD_GEOGRAPHIC: ("N", "E", "S", "W")}
+
+
+def coordinates_name(coordinates: int) -> str:
+    """'specimen coordinates' or 'geographic coordinates', as a caption says it."""
+    return f"{mp.COORD_NAMES[coordinates]} coordinates"
+
+
+def zijderveld_xy(spec: PintSpecimen, rotation: float = 0.0, coordinates: Optional[int] = None) -> dict:
+    """Horizontal and vertical projections of the zero-field steps.
+
+    Drawn in the specimen's :func:`drawing_coordinates` (geographic when its sample is oriented)
+    unless ``coordinates`` says otherwise; ``"coordinates"`` in the result says which, and
+    :data:`ZIJDERVELD_AXES_BY_COORD` names its axis ends.
+    """
     a = spec.arai
     if a is None:
         return {}
-    v = np.asarray(a.nrm_vectors, dtype=float)
+    coordinates = drawing_coordinates(spec) if coordinates is None else coordinates
+    v = drawn_vectors(spec, a.nrm_vectors, coordinates)
     if rotation:
         theta = math.radians(rotation)
         rot = np.array([[math.cos(theta), math.sin(theta), 0.0],
@@ -2873,7 +2955,20 @@ def zijderveld_xy(spec: PintSpecimen, rotation: float = 0.0) -> dict:
     scale = a.y[0] if a.y[0] else 1.0
     return {"h_x": v[:, 1] / scale, "h_y": v[:, 0] / scale,
             "v_x": v[:, 1] / scale, "v_y": -v[:, 2] / scale,
-            "temps": a.temps}
+            "temps": a.temps, "coordinates": coordinates}
+
+
+def zijderveld_axis_sides(z: dict) -> Tuple[bool, bool]:
+    """Where :func:`zijderveld_xy`'s axes fall: (vertical axis in the right half, horizontal axis in the upper half).
+
+    An axis label sits on its axis; when the data push the axis towards an edge of the frame, the
+    label goes on the roomy side of it (as in PmagPy Directions).
+    """
+    if not z:
+        return False, False
+    xs = np.concatenate([np.asarray(z["h_x"], dtype=float), [0.0]])
+    ys = np.concatenate([np.asarray(z["h_y"], dtype=float), np.asarray(z["v_y"], dtype=float), [0.0]])
+    return bool(abs(xs.min()) > xs.max()), bool(abs(ys.min()) > ys.max())
 
 
 def decay_curve(spec: PintSpecimen) -> Tuple[np.ndarray, np.ndarray]:

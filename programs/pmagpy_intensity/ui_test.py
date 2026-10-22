@@ -189,6 +189,17 @@ ALL_TEXT_JS = """() => {
 }"""
 
 
+#: the texts of the Label annotations on the figure named `name` (the axis ends of a Zijderveld, a net's N/E/S/W)
+FIGURE_LABELS_JS = """(name) => {
+  const doc = Bokeh.documents[0];
+  const models = doc._all_models ?? doc.all_models;
+  const list = models instanceof Map ? [...models.values()] : [...models];
+  const fig = list.find(m => m.name === name && m.center);
+  if (!fig) return null;
+  return fig.center.filter(r => r.constructor.__name__ === 'Label').map(r => r.text);
+}"""
+
+
 def wait_for_text(page, pattern, timeout=120):
     """Poll the page's text for `pattern` (a regular expression); the match, or None."""
     deadline = time.time() + timeout
@@ -424,6 +435,15 @@ with sync_playwright() as playwright:
     body = page.evaluate(TEXT_JS)
     check("µT" in body, "the result line reports an intensity")
     check("-999" not in body, "no statistic is shown as -999")
+    # Megiddo's samples carry no orientation: both are drawn in specimen coordinates, named x, y, z
+    zij_labels = page.evaluate(FIGURE_LABELS_JS, "zijderveld") or []
+    net_labels = page.evaluate(FIGURE_LABELS_JS, "equal_area_net") or []
+    check(sorted(zij_labels) == sorted(["y", "−y", "x, −z (up)", "−x, z (down)"]),
+          f"the Zijderveld names its axis ends in specimen coordinates ({zij_labels})")
+    check(net_labels == ["x", "y", "−x", "−y"], f"the equal-area net names its ends x, y, −x, −y ({net_labels})")
+    page_html = page.evaluate(HTML_JS)
+    check(len(re.findall(r"(Zijderveld|Equal area) <span[^>]*>specimen coordinates</span>", page_html)) >= 2,
+          "the Zijderveld and equal-area captions say they are in specimen coordinates")
     page.screenshot(path=f"{prefix}_specimen.png")
 
     # ---- resizing: the Arai plot keeps its scaling, the nets stay circular

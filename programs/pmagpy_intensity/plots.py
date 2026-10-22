@@ -273,20 +273,27 @@ class SpecimenZijderveldPlot:
                          line_color=SEGMENT_COLOR, line_width=2)
         self.fig.add_tools(HoverTool(renderers=[h, v], tooltips=[("step", "@label")]))
         # the ends of the axes, at the frame's edges in screen pixels and on the axes themselves
-        # (data 0), as PmagPy Directions labels them; measurements.txt holds specimen coordinates
-        axes = pint.ZIJDERVELD_AXES
+        # (data 0), as PmagPy Directions labels them in the coordinates drawn (update() names them)
         backing = dict(background_fill_color="white", background_fill_alpha=0.75, text_font_size="8pt",
                        text_color="#6b7280")
-        self.lbl_right = Label(x=size - 4, y=0, x_units="screen", text=axes["right"], y_offset=3,
+        self.lbl_right = Label(x=size - 4, y=0, x_units="screen", text="", y_offset=3,
                                text_align="right", text_baseline="bottom", **backing)
-        self.lbl_left = Label(x=4, y=0, x_units="screen", text=axes["left"], y_offset=3,
+        self.lbl_left = Label(x=4, y=0, x_units="screen", text="", y_offset=3,
                               text_align="left", text_baseline="bottom", **backing)
-        self.lbl_top = Label(x=0, y=size - 4, y_units="screen", text=f'{axes["top_h"]}, {axes["top_v"]}',
+        self.lbl_top = Label(x=0, y=size - 4, y_units="screen", text="",
                              x_offset=4, text_align="left", text_baseline="top", **backing)
-        self.lbl_bottom = Label(x=0, y=4, y_units="screen", text=f'{axes["bottom_h"]}, {axes["bottom_v"]}',
+        self.lbl_bottom = Label(x=0, y=4, y_units="screen", text="",
                                 x_offset=4, text_align="left", text_baseline="bottom", **backing)
         for lbl in (self.lbl_right, self.lbl_left, self.lbl_top, self.lbl_bottom):
             self.fig.add_layout(lbl)
+        self.coordinates = pint.COORD_SPECIMEN
+        self._name_axes(self.coordinates)
+
+    def _name_axes(self, coordinates: int) -> None:
+        axes = pint.ZIJDERVELD_AXES_BY_COORD[coordinates]
+        self.lbl_right.text, self.lbl_left.text = axes["right"], axes["left"]
+        self.lbl_top.text = f'{axes["top_h"]}, {axes["top_v"]}'
+        self.lbl_bottom.text = f'{axes["bottom_h"]}, {axes["bottom_v"]}'
 
     def set_size(self, size: int) -> None:
         self.size = size
@@ -301,6 +308,16 @@ class SpecimenZijderveldPlot:
             self.sel.data = {k: [] for k in self.sel.data}
             return
         z = pint.zijderveld_xy(spec)
+        self.coordinates = z["coordinates"]
+        self._name_axes(self.coordinates)
+        # each label on the roomy side of its axis, so that an axis at the frame's edge keeps its names
+        axis_on_right, axis_on_top = pint.zijderveld_axis_sides(z)
+        side = dict(text_align="right", x_offset=-4) if axis_on_right else dict(text_align="left", x_offset=4)
+        self.lbl_top.update(**side)
+        self.lbl_bottom.update(**side)
+        vert = dict(text_baseline="top", y_offset=-3) if axis_on_top else dict(text_baseline="bottom", y_offset=3)
+        self.lbl_right.update(**vert)
+        self.lbl_left.update(**vert)
         labels = [f"{t - pint.KELVIN_OFFSET:.0f}°C" for t in z["temps"]]
         self.src.data = dict(x=list(z["h_x"]), y_h=list(z["h_y"]), y_v=list(z["v_y"]), label=labels)
         if bounds:
@@ -313,11 +330,18 @@ class SpecimenZijderveldPlot:
 
 
 class StepNetPlot:
-    """Equal-area net of the zero-field directions, with the fitted direction."""
+    """Equal-area net of the zero-field directions, with the fitted direction.
+
+    Drawn in the specimen's coordinates for drawing (geographic when its sample is oriented,
+    :func:`pmagpy.paleointensity.drawing_coordinates`), with the net's ends named to match.
+    """
 
     def __init__(self, size: int = 320):
         self.size = size
-        self.fig = net_figure("", size)
+        self.fig = net_figure("", size, labels=pint.NET_LABELS_BY_COORD[pint.COORD_SPECIMEN])
+        #: the net's four end labels (top, right, bottom, left), as net_figure adds them
+        self.end_labels = [r for r in self.fig.center if isinstance(r, Label)]
+        self.coordinates = pint.COORD_SPECIMEN
         self.src = ColumnDataSource(dict(x=[], y=[], label=[], fill=[]))
         self.sel = ColumnDataSource(dict(x=[], y=[], label=[]))
         self.mean = ColumnDataSource(dict(x=[], y=[], label=[]))
@@ -343,11 +367,15 @@ class StepNetPlot:
             for src in (self.src, self.sel, self.mean):
                 src.data = {k: [] for k in src.data}
             return
+        self.coordinates = pint.drawing_coordinates(spec)
+        for lbl, text in zip(self.end_labels, pint.NET_LABELS_BY_COORD[self.coordinates]):
+            lbl.text = text
         decs, incs = [], []
         for vec in spec.arai.nrm_vectors:
             dec, inc, _ = ps.cart_to_dir(vec)
             decs.append(dec)
             incs.append(inc)
+        decs, incs = pint.drawn_directions(spec, decs, incs, self.coordinates)
         x, y = _equal_area(decs, incs)
         labels = [f"{t - pint.KELVIN_OFFSET:.0f}°C  {d:.1f}/{i:.1f}"
                   for t, d, i in zip(spec.arai.temps, decs, incs)]
@@ -360,10 +388,12 @@ class StepNetPlot:
         else:
             self.sel.data = {k: [] for k in self.sel.data}
         if stats and stats.get("Dec_Free") and stats["Dec_Free"].is_value:
-            mx, my = _equal_area([float(stats["Dec_Free"])], [float(stats["Inc_Free"])])
+            # the fit is computed in specimen coordinates; only its symbol is rotated with the steps
+            fit_dec, fit_inc = pint.drawn_directions(spec, [float(stats["Dec_Free"])],
+                                                     [float(stats["Inc_Free"])], self.coordinates)
+            mx, my = _equal_area(fit_dec, fit_inc)
             self.mean.data = dict(x=list(mx), y=list(my),
-                                  label=[f"fit {float(stats['Dec_Free']):.1f}/"
-                                         f"{float(stats['Inc_Free']):.1f}"])
+                                  label=[f"fit {fit_dec[0]:.1f}/{fit_inc[0]:.1f}"])
         else:
             self.mean.data = {k: [] for k in self.mean.data}
 

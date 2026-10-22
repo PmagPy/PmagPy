@@ -83,9 +83,15 @@ resize the plots themselves.
 Where an interpretation is made. The Arai plot on the left, at the size you set;
 beside it a 2 × 2 block of the four companions — **Zijderveld**, **equal area**,
 **NRM and pTRM** decay, **alteration checks** — each captioned, all four the
-same width so the block reads as one thing. The Zijderveld diagram is in
-specimen coordinates, the system `measurements.txt` holds, with its axis ends
-named as PmagPy Directions names them there (y across; x and −z up). The step table is in the side
+same width so the block reads as one thing. The Zijderveld diagram and the
+equal-area net (and the publication figure's Zijderveld inset) are drawn in
+geographic coordinates when the specimen's sample has an orientation (an azimuth
+and a dip in `samples.txt`, chosen as PmagPy Directions chooses them), with the
+axis ends named N, E and Up (the net's N, E, S, W); otherwise in specimen
+coordinates, the system `measurements.txt` holds, named x, y and −z (the net's
+x, y, −x, −y). The caption says which. Only the drawing is rotated: every
+statistic (DANG, MAD, the angles to the laboratory field) is computed from the
+directions in specimen coordinates. The step table is in the side
 column and the current result runs along the bottom.
 
 The whole tab fits a 1440-wide window without scrolling. Narrower than that and
