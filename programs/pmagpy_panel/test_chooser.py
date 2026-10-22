@@ -170,6 +170,13 @@ def test_the_modal_takes_whatever_the_application_adds(chooser):
     assert len(extended) > len(plain)
 
 
+def test_the_modal_with_an_importer_keeps_its_height(chooser):
+    """Stretched to the height of a modal that has none, Intensity's dialog opened as a thin empty bar."""
+    _, view = chooser
+    extended = view.modal(pn.pane.HTML("<b>an importer</b>"))
+    assert extended.sizing_mode in (None, "fixed") and extended.width == 760
+
+
 def test_a_host_with_its_own_folder_dialog_shows_no_in_page_browser(chooser):
     from pmagpy_panel import runtime
     session, view = chooser

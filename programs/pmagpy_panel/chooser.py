@@ -293,4 +293,4 @@ class DirectoryChooser:
             sizing_mode="stretch_width")
         if not extra:
             return pn.Column(block, width=width)
-        return pn.Column(block, pn.layout.Divider(), *extra, width=width, sizing_mode="stretch_height")
+        return pn.Column(block, pn.layout.Divider(), *extra, width=width)
