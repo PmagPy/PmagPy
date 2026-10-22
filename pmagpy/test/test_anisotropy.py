@@ -8,7 +8,10 @@ and on ``pmag`` itself (``doseigs``, ``dosgeo``/``dostilt``, ``dohext``,
 ``plot_ell``'s ellipse) and the McMurdo AARM specimens, whose stored
 ``aniso_ftest`` and ``aniso_v1`` were written by ``aarm_magic``.
 """
+import contextlib
+import io
 import os
+import shutil
 
 import numpy as np
 import pandas as pd
@@ -16,6 +19,7 @@ import pytest
 from numpy.testing import assert_allclose
 
 from pmagpy import anisotropy as aniso
+from pmagpy import ipmag
 from pmagpy import pmag
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -401,9 +405,15 @@ class TestReduce:
         with pytest.raises(ValueError, match="no LP-AN-TRM"):
             aniso.specimen_tensor(rows, "ATRM")
 
-    def test_atrm_without_baseline_matches_atrm_magic_and_with_it_gains_its_scatter(self):
+    def test_atrm_without_baseline_matches_atrm_magic_and_with_it_gains_its_scatter(self, tmp_path):
         measurements = pd.read_csv(os.path.join(ATRM, "measurements.txt"), sep="\t", header=1, low_memory=False)
-        stored = pd.read_csv(os.path.join(ATRM, "specimens.txt"), sep="\t", header=1).set_index("specimen")
+        # what ipmag.atrm_magic makes of the example (its output is not kept in the repository)
+        for name in ("measurements.txt", "orig_specimens.txt"):
+            shutil.copy(os.path.join(ATRM, name), tmp_path)
+        with contextlib.redirect_stdout(io.StringIO()):
+            ipmag.atrm_magic("measurements.txt", dir_path=str(tmp_path), input_spec_file="orig_specimens.txt",
+                             output_spec_file="specimens.txt")
+        stored = pd.read_csv(tmp_path / "specimens.txt", sep="\t", header=1).set_index("specimen")
         legacy, problems = aniso.reduce_measurements(measurements, "ATRM", baseline=False)
         assert problems == {} and len(legacy) == 30
         for _, row in legacy.iterrows():
