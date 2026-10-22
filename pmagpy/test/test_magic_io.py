@@ -366,6 +366,29 @@ class TestStagedExport:
         names = {os.path.basename(p) for p in copied}
         assert "specimens.txt" not in names and {"measurements.txt", "sites.txt"} <= names
 
+    def test_companion_tables_are_copied_writable_and_the_source_keeps_its_protection(self, study, tmp_path):
+        """copy2 carried a read-only source's mode, so the output folder's own sites.txt was write-protected
+        there and a later in-place export or Metadata save left it alone."""
+        import stat
+        src = os.path.join(study, "sites.txt")
+        os.chmod(src, 0o444)
+        out = str(tmp_path / "out")
+        try:
+            copied = mp.copy_companion_tables(study, out)
+            dst = os.path.join(out, "sites.txt")
+            assert dst in copied and open(dst, "rb").read() == open(src, "rb").read()
+            assert not mp.is_write_protected(dst) and stat.S_IMODE(os.stat(dst).st_mode) == 0o644
+            assert mp.is_write_protected(src)
+            assert os.stat(dst).st_mtime_ns == os.stat(src).st_mtime_ns          # its time, as copy2 kept it
+            # a copy an earlier export left read-only is replaced when the source is newer
+            os.chmod(dst, 0o444)
+            os.utime(dst, ns=(os.stat(src).st_mtime_ns - 10**9,) * 2)
+            assert dst in mp.copy_companion_tables(study, out)
+            assert not mp.is_write_protected(dst)
+            assert not [n for n in os.listdir(out) if n.endswith(".tmp")]
+        finally:
+            os.chmod(src, 0o644)
+
 
 class TestExactValues:
     def test_a_rewritten_table_keeps_every_value(self, study, tmp_path):

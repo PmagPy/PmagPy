@@ -16,6 +16,7 @@ import pandas as pd
 import pytest
 
 import pmagpy.demag as dc
+import pmagpy.magic_project as mp
 from pmagpy_directions import session as sess
 from pmagpy_directions.session import AUTOSAVE_NAME, Session
 from pmagpy_panel import datasets
@@ -348,6 +349,26 @@ class TestExportPane:
         s.export_tables()
         now = pd.read_csv(os.path.join(src, "measurements.txt"), sep="\t", skiprows=1, dtype=str, keep_default_na=False)
         assert now.loc[int(s.spec.steps["meas_pos"].iloc[3]), "quality"] == "b"
+
+    def test_an_export_to_another_folder_copies_protected_tables_writable(self, tmp_path):
+        """The companion tables were copied with their read-only mode, so the new folder's measurements.txt
+        was left alone (write-protected) when the analyst then worked in that folder."""
+        src = copy_study(tmp_path / "s")
+        for name in ("measurements.txt", "contribution.txt"):
+            os.chmod(os.path.join(src, name), 0o444)
+        out = str(tmp_path / "out")
+        s = Session(src)
+        written = s.export_tables(output_dir=out)
+        for name in ("measurements.txt", "contribution.txt"):
+            assert os.path.join(out, name) in written
+            assert not mp.is_write_protected(os.path.join(out, name)) and mp.is_write_protected(os.path.join(src, name))
+        there = Session(out)
+        there.specimen = "jm002a1"
+        there.toggle_step(3)
+        there.export_tables()
+        assert not [w for w in there.data.warnings if "write-protected" in w]
+        now = pd.read_csv(os.path.join(out, "measurements.txt"), sep="\t", skiprows=1, dtype=str, keep_default_na=False)
+        assert now.loc[int(there.spec.steps["meas_pos"].iloc[3]), "quality"] == "b"
 
     def test_in_a_working_copy_a_read_only_table_is_replaced(self, tmp_path, monkeypatch):
         for var in datasets.OUTPUT_BASE_VARS:

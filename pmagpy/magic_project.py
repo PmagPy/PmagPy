@@ -1316,7 +1316,10 @@ def copy_companion_tables(source_dir: str, output_dir: str, skip: Iterable[str] 
 
     Only tables the export did not write (``skip``) and that the output
     directory does not hold in a newer copy are copied. Nothing happens when
-    the output directory is the source directory.
+    the output directory is the source directory. The copies are the output
+    folder's own tables, which later exports and the Metadata page write: a
+    table write-protected in the source is copied writable for its owner
+    (:func:`_copy_writable`), and the source keeps its protection.
     """
     if os.path.realpath(source_dir) == os.path.realpath(output_dir):
         return []
@@ -1329,9 +1332,36 @@ def copy_companion_tables(source_dir: str, output_dir: str, skip: Iterable[str] 
         if os.path.isfile(dst) and os.path.getmtime(dst) >= os.path.getmtime(src):
             continue
         os.makedirs(output_dir, exist_ok=True)
-        shutil.copy2(src, dst)
+        _copy_writable(src, dst)
         copied.append(dst)
     return copied
+
+
+def _copy_writable(source: str, target: str) -> None:
+    """Copy a table into another folder as a file its owner may write, replacing ``target`` in one step.
+
+    ``shutil.copy2`` carries the source's mode, so a write-protected table
+    (:func:`is_write_protected`) became a write-protected copy, which an
+    in-place export and a Metadata save then refuse to replace. The copy
+    keeps the source's contents, times and other permission bits, with the
+    owner's write bit added; a target an earlier copy left read-only is
+    replaced all the same.
+    """
+    import stat
+    import tempfile
+    fd, tmp = tempfile.mkstemp(prefix="." + os.path.basename(target) + ".", suffix=".tmp",
+                               dir=os.path.dirname(os.path.abspath(target)))
+    os.close(fd)
+    try:
+        shutil.copy2(source, tmp)
+        os.chmod(tmp, stat.S_IMODE(os.stat(tmp).st_mode) | stat.S_IWUSR)
+        os.replace(tmp, target)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
 
 
 def _table_lines(text: str) -> tuple[list[str], str, bool]:
