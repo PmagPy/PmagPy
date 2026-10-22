@@ -145,7 +145,8 @@ refused, and reading a 2.5 table says the same as Home.
 contribution given its ID or the paper's DOI and reopens Home on it. The
 EarthRef calls are in `pmagpy.magic_project` (`find_contributions`,
 `fetch_contribution`, `unpack_contribution`, `download_contribution`) and work
-from a script too:
+from a script too; a download is recorded in the folder's conversion log (see
+below), as the dialog's is:
 
 ```python
 from pmagpy import magic_project as mp
@@ -179,7 +180,10 @@ marks the files that were converted. For a contribution from MagIC that lab
 files were converted into, the log knows only the files added, and the line
 says where the rest came from first: "contribution 20549 from MagIC · 2 JR6
 files added · 22 Oct 2026" (or "unpacked from <file> · …"). Unpacking a contribution file on the
-Convert page is recorded the same way (format `magic`). Each file is stamped in
+Convert page is recorded the same way (format `magic`), and so is a download
+from MagIC: an entry of format `magic` with no files, the contribution's id,
+version and reference DOI as its values, dated (`mp.record_download`; Home's
+Import line then reads "contribution 20549 from MagIC · 22 Oct 2026"). Each file is stamped in
 its entry (size, modification time, SHA-1), so `reg.already_converted(dir_path,
 files)` can tell a file that is in the tables already from one remeasured
 under the same name; `convert_files(..., backup=...)` keeps the tables it

@@ -182,6 +182,11 @@ class TestTalkingToMagic:
         assert "2 versions; taking the latest" in said[1]
         assert said[-1] == "MagIC contribution 20614 (version 1): 4 tables written."
         assert os.path.exists(tmp_path / "measurements.txt")
+        from pmagpy import convert_registry as reg
+        (entry,) = reg.read_conversions(str(tmp_path))
+        assert entry["format"] == "magic" and entry["files"] == [] and entry["label"] == mp.DOWNLOAD_LABEL
+        assert entry["values"] == {"id": 20614, "version": 1, "doi": "10.1029/2025TC009333"}
+        assert entry["tables"] == {"contribution": 1, "sites": 1, "specimens": 1, "measurements": 2}
 
 
 @pytest.mark.skipif(not os.environ.get("PMAGPY_NETWORK_TESTS"), reason="set PMAGPY_NETWORK_TESTS=1 to talk to EarthRef")

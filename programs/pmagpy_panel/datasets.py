@@ -191,12 +191,13 @@ def _since_last_replace(entries: list) -> list:
 def from_magic(directory: str) -> bool:
     """True for a folder whose tables came from MagIC: a published contribution, someone's record.
 
-    That is a contribution file unpacked on the Convert page (its log entry has
-    format ``magic``, among those that account for the tables), or a folder
-    holding :data:`CONTRIBUTION_TABLE` whose tables were there before any
-    conversion PmagPy logged replaced them -- a contribution downloaded from
-    MagIC, by the hub or from the website, with or without lab files added to
-    it since. Such a folder is worked on in a working copy, never in place.
+    That is a contribution file unpacked on the Convert page or a contribution
+    downloaded by the hub (its log entry has format ``magic``, among those that
+    account for the tables), or a folder holding :data:`CONTRIBUTION_TABLE`
+    whose tables were there before any conversion PmagPy logged replaced them --
+    a contribution downloaded from the website, or by a build that did not log
+    downloads -- with or without lab files added to it since. Such a folder is
+    worked on in a working copy, never in place.
     """
     entries = _conversions(directory)
     if any(e.get("format") == "magic" for e in _since_last_replace(entries)):

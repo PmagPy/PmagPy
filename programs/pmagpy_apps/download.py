@@ -3,7 +3,10 @@ The "Download from MagIC…" dialog: a public contribution, by ID or by DOI, int
 
 This is the first piece of the Import page and the one that needs no files of
 the user's own: paste ``20340`` or ``10.1130/G53450.1``, and the contribution's
-tables land in the folder named below, which Home then opens. The work —
+tables land in the folder named below, which Home then opens, and the folder's
+conversion log (``pmagpy_conversions.json``) records where they came from: an
+entry of format ``magic`` with the contribution's id, version and reference DOI,
+dated (:func:`pmagpy.magic_project.record_download`). The work —
 finding the contribution for a DOI, fetching the file, unpacking it — is
 :mod:`pmagpy.magic_project`'s; the dialog only runs it off the event loop
 (the server keeps serving while a large contribution comes down) and says what
@@ -124,6 +127,7 @@ class DownloadDialog:
             ref = mp.describe_contribution(text)
             if ref.id == 0:
                 ref = mp.ContributionRef(id=magic_id)
+            mp.record_download(folder, ref, tables)
         except mp.MagicDownloadError as err:
             self._say(str(err), FAIL_COLOR)
             return False

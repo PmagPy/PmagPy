@@ -79,9 +79,10 @@ intended. Rock magnetism and Anisotropy join by adding them to the edition
   (or a folder that cannot be written) is ever worked on in place. A
   contribution that came from MagIC always gets a copy
   (`pmagpy_panel.datasets.from_magic`): one unpacked from a contribution file on
-  the Convert page (its log entry has format `magic`, and the log keeps it) or
-  downloaded -- by "Download from MagIC" or from the website, known by its
-  `contribution.txt` -- also when lab files were converted into its folder
+  the Convert page or downloaded by "Download from MagIC" (either way its log
+  entry has format `magic`, and the log keeps it), or downloaded from the
+  website or by a build that did not log downloads (known by its
+  `contribution.txt`) -- also when lab files were converted into its folder
   since; it is someone's record, and Home says so under the path. A study that
   already had a working copy before it gained its log (converted by an earlier
   build) keeps using that copy, so the work in it is not left behind; the side

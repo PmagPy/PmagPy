@@ -412,17 +412,19 @@ def converted_from(inv: Inventory) -> str:
     """'converted from 10 CIT files · 2 Sep 2026' — the log's account of the tables, latest conversion dated.
 
     For tables that came from MagIC (:func:`pmagpy_panel.datasets.from_magic`) the line says so first,
-    then what PmagPy converted into them: 'contribution 20549 from MagIC · 2 JR6 files added · …'.
+    then what PmagPy converted into them: 'contribution 20549 from MagIC · 2 JR6 files added · …'. A
+    download's entry (format ``magic``, no files) names the contribution and dates the download.
     """
     last = inv.conversions[-1]
     unpacks = [e for e in inv.conversions if e.get("format") == "magic"]
     added = [e for e in inv.conversions if e.get("format") != "magic"]
     if unpacks or datasets.from_magic(inv.directory):
-        if unpacks:
-            names = _logged_files(unpacks)
+        names = _logged_files(unpacks)
+        if names:
             what = f"unpacked from {names[0]}" if len(names) == 1 else f"unpacked from {len(names)} contribution files"
         else:
-            magic_id = inv.contribution.get("id", "")
+            values = unpacks[-1].get("values", {}) if unpacks else {}
+            magic_id = values.get("id") or inv.contribution.get("id", "")
             what = f"contribution {magic_id} from MagIC" if magic_id else "a contribution from MagIC"
         if added:
             what += " · " + _described_files(added) + " added"

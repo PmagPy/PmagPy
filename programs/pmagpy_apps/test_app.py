@@ -265,6 +265,27 @@ class TestDownloadFromMagic:
         assert view.download_btn.button_type == "default"
         assert view.metadata_btn.button_type == "primary"           # the contribution has gaps: the next step is Metadata
 
+    def test_a_download_records_where_its_tables_came_from(self, tmp_path):
+        import datetime
+        from pmagpy import convert_registry as reg
+        folder = tmp_path / "Downloaded"
+        folder.mkdir()
+        session = home.HubSession(str(folder))
+        dialog = self._dialog(session)
+        dialog.reference.value = "20549"
+        assert asyncio.run(dialog._download()) is True
+        (entry,) = reg.read_conversions(str(folder))
+        assert entry["format"] == "magic" and entry["label"] == "Downloaded from MagIC" and entry["files"] == []
+        assert entry["values"] == {"id": 20549, "version": 1, "doi": "10.1029/2025TC009333"}
+        assert entry["tables"]["measurements"] == 2 and not entry["append"]
+        today = datetime.date.today()
+        assert entry["when"].startswith(today.isoformat())
+        assert home.stages(session.inventory)[0][2] == f"contribution 20549 from MagIC · {today:%-d %b %Y}"
+        # a published record: worked on in a copy, never in place, as a download without the entry was
+        assert datasets.from_magic(str(folder)) and not datasets.made_by_pmagpy(str(folder))
+        os.remove(folder / reg.CONVERSION_LOG)                   # downloaded before downloads were logged
+        assert datasets.from_magic(str(folder)) and not datasets.made_by_pmagpy(str(folder))
+
     def test_a_doi_finds_the_latest_version_and_says_so(self, tmp_path):
         session = home.HubSession(str(tmp_path))
         dialog = self._dialog(session, versions=2)

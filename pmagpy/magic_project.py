@@ -1865,9 +1865,27 @@ def unpack_contribution(text: str, directory: str, magic_id: int = 0) -> list[st
     return tables
 
 
+#: the label of a download's entry in a folder's conversion log
+DOWNLOAD_LABEL = "Downloaded from MagIC"
+
+
+def record_download(directory: str, ref: ContributionRef, tables: list) -> str:
+    """Note in ``directory``'s conversion log (``pmagpy_conversions.json``) that its tables came from MagIC.
+
+    The entry has format ``magic``, as an unpacked contribution file's does, no
+    files, and the contribution's ``id``, ``version`` and reference ``doi`` as
+    its values; its ``when`` is the date of the download. Returns the log's path.
+    """
+    from pmagpy.convert_registry import record_conversion
+    values = {"id": ref.id, "version": ref.version, "doi": ref.doi}
+    return record_conversion(directory, "magic", [], values=values, label=DOWNLOAD_LABEL,
+                             tables={t: table_rows(os.path.join(directory, f"{t}.txt")) for t in tables})
+
+
 def download_contribution(reference: str, directory: str, share_key: str = "",
                           report: Optional[Callable[[str], None]] = None) -> ContributionRef:
-    """Find, fetch and unpack a contribution into a directory, by id or by reference DOI.
+    """Find, fetch and unpack a contribution into a directory, by id or by reference DOI, and record the
+    download in the directory's conversion log (:func:`record_download`).
 
     Args:
         reference: anything :func:`parse_contribution_reference` accepts.
@@ -1900,5 +1918,6 @@ def download_contribution(reference: str, directory: str, share_key: str = "",
     ref = describe_contribution(text)
     if ref.id == 0:
         ref = ContributionRef(id=magic_id)
+    record_download(directory, ref, tables)
     say(f"{ref.label}: {len(tables)} tables written.")
     return ref
