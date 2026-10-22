@@ -1311,8 +1311,11 @@ class DemagData:
         plane carries here -- while ``dir_bfv_dec``/``dir_bfv_inc`` hold the
         vector on the plane.
 
-        Rows are left out (and counted in ``warnings``) when they have no
-        component name or no coordinate system; rows without a fit code
+        A row without a component name takes the first free letter of its
+        specimen, as the import names a re-fitted fit without one
+        (:meth:`_name_stored`), and ``warnings`` lists them. Rows are left out
+        (and counted in ``warnings``) when they have no coordinate system;
+        rows without a fit code
         (DE-BFL, DE-BFL-A, DE-BFL-O, DE-BFP, DE-FM), paleointensity results and
         a repeat of a (specimen, component, coordinate system) already taken
         are passed over, as the import of re-fittable interpretations does.
@@ -1355,15 +1358,26 @@ class DemagData:
             else pd.Series(np.nan, index=rows.index)
         comp = rows["dir_comp"].fillna("").astype(str).str.strip() if "dir_comp" in rows.columns \
             else pd.Series("", index=rows.index)
-        unplaced = (comp == "") | tilt.isna()
+        unplaced = tilt.isna()
         if unplaced.any():
             names = sorted(set(rows.loc[unplaced, "specimen"].astype(str)), key=_natural_key)
             self._warn_once(f"specimens.txt: {int(unplaced.sum())} stored interpretations of specimens without "
-                            "measurements here have no component name (dir_comp) or no coordinate system "
-                            "(dir_tilt_correction), so no mean includes them: " + ", ".join(names[:5])
-                            + (" ..." if len(names) > 5 else ""))
+                            "measurements here have no coordinate system (dir_tilt_correction), so no mean "
+                            "includes them: " + ", ".join(names[:5]) + (" ..." if len(names) > 5 else ""))
         rows = rows[~unplaced].assign(dir_comp=comp[~unplaced], dir_tilt_correction=tilt[~unplaced].astype(int))
-        rows = rows.drop_duplicates(subset=["specimen", "dir_comp", "dir_tilt_correction"], keep="first")
+        was_named = rows["dir_comp"] != ""
+        rows, given = self._name_stored(rows, fit)
+        if given:
+            n = sum(len(coords) for coords in given.values())
+            listed = [f"{spec} {name}" for spec, name in sorted(given, key=lambda k: (_natural_key(k[0]), k[1]))]
+            self._warn_once(f"specimens.txt: {n} stored interpretation{'s' if n != 1 else ''} of specimens without "
+                            "measurements here had no component name (dir_comp) and take the first free letter "
+                            "of their specimen, as an imported fit without a name does: " + ", ".join(listed[:8])
+                            + (" ..." if len(listed) > 8 else ""))
+        # a named row before an unnamed one repeating it, as the import takes them
+        first = rows.assign(_unnamed=~was_named).sort_values("_unnamed", kind="stable") \
+            .drop_duplicates(subset=["specimen", "dir_comp", "dir_tilt_correction"], keep="first")
+        rows = rows.loc[sorted(first.index)]
         names = list(dict.fromkeys(rows["specimen"].astype(str)))
         known = [n for n in names if n in self.hierarchy.index]
         hier = mp.build_hierarchy(pd.DataFrame({"specimen": [n for n in names if n not in self.hierarchy.index]}),
@@ -1383,6 +1397,58 @@ class DemagData:
         for col in self.STORED_STAT_COLUMNS:
             out[col] = pd.to_numeric(rows[col], errors="coerce").values if col in rows.columns else np.nan
         return out
+
+    @staticmethod
+    def _name_stored(rows: pd.DataFrame, fit: pd.Series) -> tuple[pd.DataFrame, dict]:
+        """Name the stored rows that have no ``dir_comp``, as the import names a re-fitted fit without one.
+
+        An unnamed row with the step bounds and fit type of a named row of its
+        specimen is that component (stored in another coordinate system); an
+        unnamed row with the bounds and fit type of an unnamed row already named
+        takes the same name; any other takes the first letter its specimen does
+        not use. Rows without step bounds are told apart by their order among
+        the unnamed rows of their specimen, fit type and coordinate system.
+
+        Returns:
+            (rows with every ``dir_comp`` filled, ``{(specimen, name): {coordinate systems}}`` named here).
+        """
+        unnamed = rows["dir_comp"] == ""
+        if not unnamed.any():
+            return rows, {}
+
+        def cell(idx, col):
+            value = rows.at[idx, col] if col in rows.columns else ""
+            return "" if _is_null(value) else str(value).strip()
+
+        def bounds(idx):
+            return tuple(cell(idx, c) for c in ("meas_step_min", "meas_step_max", "meas_step_unit")) + (fit[idx],)
+
+        taken: dict = {}
+        same_fit: dict = {}
+        for idx in rows.index[~unnamed]:
+            spec = str(rows.at[idx, "specimen"])
+            taken.setdefault(spec, set()).add(rows.at[idx, "dir_comp"])
+            if any(bounds(idx)[:2]):
+                same_fit.setdefault((spec, bounds(idx)), rows.at[idx, "dir_comp"])
+        order: dict = {}
+        given: dict = {}
+        names = rows["dir_comp"].copy()
+        for idx in rows.index[unnamed]:
+            spec, coord = str(rows.at[idx, "specimen"]), int(rows.at[idx, "dir_tilt_correction"])
+            key = bounds(idx)
+            if not any(key[:2]):
+                k = order.setdefault((spec, coord, key[-1]), 0)
+                order[(spec, coord, key[-1])] = k + 1
+                key = ("", "", "", key[-1], k)
+            name = same_fit.get((spec, key))
+            if name is None:
+                used = taken.setdefault(spec, set())
+                name = next((ch for ch in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" if ch not in used), f"F{len(used) + 1}")
+                used.add(name)
+                same_fit[(spec, key)] = name
+            given.setdefault((spec, name), set()).add(coord)
+            names[idx] = name
+        return rows.assign(dir_comp=names), given
 
     def _stored_for_means(self, coord: int, component: Optional[str] = None,
                           include_bad: bool = False) -> pd.DataFrame:

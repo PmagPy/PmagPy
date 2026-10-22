@@ -1087,21 +1087,49 @@ class TestStoredOnlyInterpretations:
         data = DemagData.from_directory(directory)
         data.load_components_from_specimens_table()
         mean = data.mean_directions("site", COORD_GEOGRAPHIC, "A", group="sp102").iloc[0]
-        kept = [s for s in SP102 if s not in ("sp102l1", "sp102k1", "sp102j1a")]
+        kept = [s for s in SP102 if s not in ("sp102l1", "sp102k1")]      # sp102j1a, unnamed, is named A
         assert mean["specimens"].split(":") == kept
         lnp, _ = _independent_lnp(directory, kept, COORD_GEOGRAPHIC)
         assert mean["dir_dec"] == pytest.approx(float(lnp["dec"]), abs=0.05)
         lenient = data.mean_directions("site", COORD_GEOGRAPHIC, "A", include_bad=True, group="sp102").iloc[0]
-        assert lenient["dir_n_specimens"] == 11
+        assert lenient["dir_n_specimens"] == 12
         b = data.mean_directions("site", COORD_GEOGRAPHIC, "B", group="sp102").iloc[0]
         assert b["specimens"] == "sp102k1" and (b["dir_dec"], b["dir_inc"]) == (211.7, -51.0)
-        assert any("no component name (dir_comp)" in w and "sp102j1a" in w for w in data.warnings)
+        assert any("no component name (dir_comp)" in w and "sp102j1a A" in w for w in data.warnings)
         assert data.mean_directions("site", COORD_TILT, group="sp102").empty      # stored in -1 and 0 only
 
         # DE-SPEC is not applied to them: sp102e2 (4 steps) stays in, as published
         data.set_criteria(criteria_frame(("DE-SPEC", "specimens.dir_n_measurements", ">=", "5")))
         judged = data.mean_directions("site", COORD_GEOGRAPHIC, "A", group="sp102").iloc[0]
         assert judged["specimens"].split(":") == kept and "sp102e2" in kept
+
+    def test_a_stored_row_without_a_component_name_takes_the_first_free_letter(self, tmp_path):
+        """As the import names a re-fitted fit without dir_comp; only a row without a coordinate system is left out."""
+        directory = _copy_study(DMAG_DIR, tmp_path / "dmag")
+
+        def edit(df):
+            df.loc[df["specimen"] == "sp102j1a", "dir_comp"] = ""                    # both rows unnamed
+            df.loc[(df["specimen"] == "sp102k1") & (df["dir_tilt_correction"] == "0"), "dir_comp"] = ""
+            geo_l1 = (df["specimen"] == "sp102l1") & (df["dir_tilt_correction"] == "0")
+            df.loc[geo_l1, ["dir_comp", "meas_step_min"]] = ["", "373"]            # another fit than its A
+            df.loc[(df["specimen"] == "sp102i1b") & (df["dir_tilt_correction"] == "0"), "dir_tilt_correction"] = ""
+        _edit_specimens(directory, edit)
+        data = DemagData.from_directory(directory)
+        stored = data.stored_only_interpretations()
+        sp102 = stored[stored["site"] == "sp102"]
+        named = {(r.specimen, r.dir_tilt_correction): r.dir_comp for r in sp102.itertuples()}
+        assert named[("sp102j1a", -1)] == named[("sp102j1a", 0)] == "A"           # one fit, both systems
+        assert named[("sp102k1", 0)] == "A"                     # the steps and fit of its named A: that fit
+        assert named[("sp102l1", -1)] == "A" and named[("sp102l1", 0)] == "B"     # A is taken: B
+        assert ("sp102i1b", 0) not in named and len(sp102) == 25
+        assert any("4 stored interpretations of specimens without measurements here had no component name "
+                   "(dir_comp) and take the first free letter of their specimen" in w
+                   and w.endswith("sp102j1a A, sp102k1 A, sp102l1 B") for w in data.warnings)
+        assert any("no coordinate system (dir_tilt_correction)" in w and "sp102i1b" in w for w in data.warnings)
+        mean = data.mean_directions("site", COORD_GEOGRAPHIC, "A", group="sp102").iloc[0]
+        assert mean["specimens"].split(":") == [s for s in SP102 if s not in ("sp102i1b", "sp102l1")]
+        b = data.mean_directions("site", COORD_GEOGRAPHIC, "B", group="sp102").iloc[0]
+        assert b["specimens"] == "sp102l1"
 
     def test_sp102_mean_under_criteria_takes_every_stored_interpretation_as_published(self, tmp_path):
         """With DE-SPEC dir_n_measurements >= 5, sp102e2 (4 steps) and one other used to drop out of sp102's
