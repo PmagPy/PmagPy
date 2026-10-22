@@ -349,15 +349,36 @@ class TestSharedEdit:
         out, shared = mm.share_edit("samples", df, 1, "height", before="2")
         assert out.loc[0, "height"] == "2.5" and shared.columns == ["lat", "lon", "lat_lon_precision", "height"]
 
-    def test_the_values_a_blank_in_the_edited_row_clears_are_named(self):
+    def test_a_blank_in_the_edited_row_takes_the_value_its_other_rows_agree_on(self):
         """15143 sr01a carries its position on its first row only: a latitude typed into another row (whose
-        longitude is blank) blanks the longitude of the first, and says so."""
-        df = pd.DataFrame([{"sample": "sr01a", "lat": "42.60264", "lon": "245.602"},
-                           {"sample": "sr01a", "lat": "", "lon": ""}])
+        longitude is blank) blanked the longitude of the first; the edited row now takes it instead."""
+        df = pd.DataFrame([{"sample": "sr01a", "lat": "42.60264", "lon": "245.602", "height": "2"},
+                           {"sample": "sr01a", "lat": "", "lon": "", "height": ""},
+                           {"sample": "sr01a", "lat": "", "lon": "", "height": "2"}])
         df.loc[1, "lat"] = "42.61"
         out, shared = mm.share_edit("samples", df, 1, "lat", before="")
-        assert out.loc[0, ["lat", "lon"]].tolist() == ["42.61", ""]
-        assert shared.cleared == {"lon": ["245.602"]} and shared.disagreed == {}
+        assert out[["lat", "lon", "height"]].values.tolist() == [["42.61", "245.602", "2"]] * 3
+        assert shared.filled == {"lon": "245.602", "height": "2"} and shared.cleared == {}
+        assert shared.disagreed == {} and shared.changed == 2
+
+    def test_where_the_other_rows_disagree_the_blank_stays_and_is_named(self):
+        df = pd.DataFrame([{"site": "sr01", "lat": "42.6", "lon": "245.6", "elevation": "1500"},
+                           {"site": "sr01", "lat": "42.6", "lon": "245.6", "elevation": "1510"},
+                           {"site": "sr01", "lat": "42.6", "lon": "245.6", "elevation": ""}])
+        df.loc[2, "lat"] = "42.61"
+        out, shared = mm.share_edit("sites", df, 2, "lat", before="42.6")
+        assert list(out["elevation"]) == ["", "", ""] and list(out["lat"]) == ["42.61"] * 3
+        assert shared.cleared == {"elevation": ["1500", "1510"]} and shared.filled == {}
+        df = pd.DataFrame([{"site": "sr01", "lat": "42.6", "lon": "245.6"}, {"site": "sr01", "lat": "42.6", "lon": "245.6"}])
+        df.loc[0, "lat"] = ""                                         # typed blank: the analyst's choice
+        out, shared = mm.share_edit("sites", df, 0, "lat", before="42.6")
+        assert list(out["lat"]) == ["", ""] and shared.cleared == {"lat": ["42.6"]} and shared.filled == {}
+
+    def test_an_age_unit_left_blank_is_taken_from_the_other_rows(self):
+        df = pd.DataFrame([{"site": "sr01", "age": "3.4", "age_unit": "Ma"}, {"site": "sr01", "age": "", "age_unit": ""}])
+        df.loc[1, "age"] = "3.5"
+        out, shared = mm.share_edit("sites", df, 1, "age", before="")
+        assert out[["age", "age_unit"]].values.tolist() == [["3.5", "Ma"]] * 2 and shared.filled == {"age_unit": "Ma"}
 
     def test_results_computed_from_the_position_come_from_the_data_model(self):
         cols = mm.position_results("sites")

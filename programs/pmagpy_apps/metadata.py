@@ -364,10 +364,13 @@ class MetadataView:
             differ = "; ".join(f"{html.escape(c)} {html.escape(', '.join(v))}" for c, v in shared.disagreed.items())
             text += f" Its rows disagreed before this edit ({differ}); all now take this row's values."
             warn = True
+        if shared.filled:
+            took = ", ".join(f"{html.escape(c)} {html.escape(v)}" for c, v in shared.filled.items())
+            text += f" This row was blank where its other rows agree, and took their values ({took})."
         if shared.cleared:
             gone = "; ".join(f"{html.escape(c)} {html.escape(', '.join(v))}" for c, v in shared.cleared.items())
             text += (f" This row leaves blank what its other rows had ({gone}): those cells are now blank in every "
-                     "row; type the values into this row to keep them.")
+                     "row; type a value into this row to keep one.")
             warn = True
         if stale:
             text += f" {stale}"

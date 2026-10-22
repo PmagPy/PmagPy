@@ -899,22 +899,28 @@ class TestMetadata:
         assert "2 published result rows keep VGPs and VADMs computed at the old position" in view.message.object
         assert view.stale == {}                                            # shown afresh
 
-    def test_a_position_edit_names_the_values_a_blank_in_the_row_clears(self, tmp_path):
-        """The whole position travels together, blanks included: the page names what the other rows lose."""
+    def test_a_position_edit_fills_the_rows_blanks_from_its_agreeing_rows(self, tmp_path):
+        """The whole position travels together; a blank in the edited row takes what the other rows agree on,
+        and where they disagree the page names what they lose."""
         from types import SimpleNamespace
         import pandas as pd
         d = small_study(tmp_path)
         metadata.mm.mp.magic_write(os.path.join(d, "sites.txt"), pd.DataFrame([
-            {"site": "Z11", "location": "Zavkhan", "lat": "47.05", "lon": "96.2", "elevation": "1500"},
-            {"site": "Z11", "location": "Zavkhan", "lat": "47.05", "lon": "96.2", "elevation": ""}]), "sites")
+            {"site": "Z11", "location": "Zavkhan", "lat": "47.05", "lon": "96.2", "elevation": "1500", "height": "3"},
+            {"site": "Z11", "location": "Zavkhan", "lat": "47.05", "lon": "96.2", "elevation": "1510", "height": "3"},
+            {"site": "Z11", "location": "Zavkhan", "lat": "47.05", "lon": "96.2", "elevation": "", "height": ""}]),
+            "sites")
         view = metadata.MetadataView(home.HubSession(d))
         df = view.current()
-        df.loc[1, "lat"] = "47.06"
+        df.loc[2, "lat"] = "47.06"
         view.grid.value = df
-        view._edited(SimpleNamespace(row=1, column="lat", value="47.06", old="47.05"))
-        assert list(view.grid.value.lat[:2]) == ["47.06", "47.06"] and list(view.grid.value.elevation[:2]) == ["", ""]
-        assert "This row leaves blank what its other rows had (elevation 1500)" in view.message.object
-        assert "#b45309" in view.message.object
+        view._edited(SimpleNamespace(row=2, column="lat", value="47.06", old="47.05"))
+        grid = view.grid.value
+        assert list(grid.lat[:3]) == ["47.06"] * 3 and list(grid.height[:3]) == ["3"] * 3
+        assert list(grid.elevation[:3]) == ["", "", ""]
+        said = view.message.object
+        assert "This row was blank where its other rows agree, and took their values (height 3)." in said
+        assert "This row leaves blank what its other rows had (elevation 1500, 1510)" in said and "#b45309" in said
 
     def test_a_save_keeps_what_an_application_wrote_since_the_table_was_shown(self, tmp_path):
         """The page wrote back the grid it read when the table was shown, undoing the site means PmagPy

@@ -515,7 +515,11 @@ class SharedEdit:
         disagreed: column -> the distinct values the rows had before the edit, for the
             columns in which they differed (blank cells are not counted as a value).
         cleared: column -> the values other rows had in a column the edited row leaves
-            blank: those rows are now blank there too.
+            blank and they do not agree on (or the edited column itself, typed blank):
+            those rows are now blank there too.
+        filled: column -> the value the other rows agree on, taken into a cell of the group
+            the edited row had blank (other than the one edited), so that the edit wipes
+            no value it did not touch.
     """
     name: str
     columns: List[str]
@@ -523,6 +527,7 @@ class SharedEdit:
     changed: int
     disagreed: Dict[str, List[str]] = field(default_factory=dict)
     cleared: Dict[str, List[str]] = field(default_factory=dict)
+    filled: Dict[str, str] = field(default_factory=dict)
 
 
 def share_edit(table: str, df: pd.DataFrame, row: int, column: str,
@@ -537,8 +542,12 @@ def share_edit(table: str, df: pd.DataFrame, row: int, column: str,
     the stratigraphic height and, for a site, the elevation; the age with its
     sigma, range and unit) is copied from the edited row (position ``row``)
     onto the other rows of that name.
-    A cell of the group the edited row leaves blank is blank in every row
-    afterwards; the values that cleared are reported.
+
+    A cell of the group the edited row has blank (other than the one edited)
+    first takes the value the other rows agree on, in the edited row too, so
+    that an edit never wipes a value it did not touch; where they disagree the
+    cell stays blank, is blank in every row afterwards, and the values that
+    cleared are reported, as they are for an edited cell typed blank.
 
     Args:
         table: the table the frame holds.
@@ -573,10 +582,15 @@ def share_edit(table: str, df: pd.DataFrame, row: int, column: str,
     out = df.copy()
     source = [str(v) for v in df.iloc[row][cols]]
     others = earlier.drop(index=earlier.index[same.index(row)])
-    cleared = {}
-    for c, value in zip(cols, source):
+    cleared, filled = {}, {}
+    for k, (c, value) in enumerate(zip(cols, source)):
         values = [v for v in dict.fromkeys(others[c].str.strip()) if v]
-        if not value.strip() and values:
+        if value.strip() or not values:
+            continue
+        if c != column and len(values) == 1:
+            filled[c] = source[k] = values[0]
+            out.iat[row, out.columns.get_loc(c)] = values[0]
+        else:
             cleared[c] = values
     changed = 0
     for i in same:
@@ -585,7 +599,7 @@ def share_edit(table: str, df: pd.DataFrame, row: int, column: str,
                 out.iat[i, out.columns.get_loc(c)] = value
             changed += 1
     return out, SharedEdit(name=name, columns=cols, rows=len(same), changed=changed, disagreed=disagreed,
-                           cleared=cleared)
+                           cleared=cleared, filled=filled)
 
 
 #: the data model's groups of results computed from a row's position: a VGP from the site's latitude and
