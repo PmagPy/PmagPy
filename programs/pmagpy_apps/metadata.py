@@ -172,6 +172,8 @@ class MetadataView:
         self.findings: List[mm.Finding] = []
         self.checks: List[mm.CriterionCheck] = []
         self.dirty = False
+        self.stale: Dict[tuple, None] = {}      # rows whose results were computed at a position edited since shown
+        self.stale_cols: List[str] = []
         self.heading = pn.pane.HTML("", stylesheets=[CSS], sizing_mode="stretch_width")
         self.home_btn = pn.widgets.Button(name="← Home", button_type="default", width=110, margin=(30, 0, 0, 0))
         self.tables = pn.widgets.RadioButtonGroup(options={LABELS[t]: t for t in mm.TABLES}, value="sites",
@@ -242,6 +244,7 @@ class MetadataView:
             self.origin = list(range(len(self.frame.df)))
             self.findings = []
             self.dirty = False
+            self.stale, self.stale_cols = {}, []
             self._load_grid(self.frame.df)
             self._describe()
             self.help.object = column_help_html(table, mm.NAME_COLUMN.get(table, "criterion" if table == "criteria" else "location"))
@@ -329,9 +332,11 @@ class MetadataView:
             self.grid.patch({event.column: [(event.row, "")]})
         self.dirty = True
         self.save_btn.button_type = "success"
+        before = self._before(event)
         shared = self._share(event)
+        stale = self._stale_after(before)
         if shared is None:
-            self._say("Unsaved changes.")
+            self._say("Unsaved changes." + (f" {stale}" if stale else ""), WARN_COLOR if stale else "")
             return
         what = {"sites": "Site", "samples": "Sample"}[self.table]
         cols = " and ".join(shared.columns) if len(shared.columns) == 2 else ", ".join(shared.columns)
@@ -348,7 +353,30 @@ class MetadataView:
             text += (f" This row leaves blank what its other rows had ({gone}): those cells are now blank in every "
                      "row; type the values into this row to keep them.")
             warn = True
+        if stale:
+            text += f" {stale}"
+            warn = True
         self._say(text, WARN_COLOR if warn else "")
+
+    def _before(self, event) -> pd.DataFrame:
+        """The grid as it was before this edit (the edited cell back at its old value)."""
+        df = self.current().copy()
+        if 0 <= event.row < len(df) and event.column in df.columns:
+            old = getattr(event, "old", None)
+            df.iat[event.row, df.columns.get_loc(event.column)] = "" if old is None or pd.isna(old) else str(old)
+        return df
+
+    def _stale_after(self, before: pd.DataFrame) -> str:
+        """The rows whose position just changed that hold results computed at the old one (VGPs, VADMs ...)."""
+        after = self.current()
+        hit, cols = mm.stale_results(self.table, after, mm.moved_rows(before, after))
+        if not hit:
+            return ""
+        keys = mm.row_keys(self.table, after)
+        for i in hit:
+            self.stale[keys[i]] = None
+        self.stale_cols = list(dict.fromkeys(self.stale_cols + cols))
+        return html.escape(mm.stale_results_note(self.table, len(hit), cols))
 
     def _share(self, event) -> Optional[mm.SharedEdit]:
         """A site's (or sample's) position or age typed into one of its rows reaches all of its rows."""
@@ -510,6 +538,7 @@ class MetadataView:
         says what was merged and which cells, changed on disk as well, were left as they are there.
         """
         notes = []
+        stale = mm.stale_results_note(self.table, len(self.stale), self.stale_cols)
         try:
             if self.frame is not None:
                 df, report = mm.merge_edits(self.s.directory, self.table, self.frame, self.current(), self.origin)
@@ -523,8 +552,9 @@ class MetadataView:
         self.s.load(self.s.directory)     # also calls refresh() through the watcher, which re-reads the table
         self.dirty = False
         text = (f"{self.table}.txt written" + (f" · original kept in {mm.BACKUP_DIR}/" if mm.backup_exists(self.s.directory, self.table) else "")
-                + self._merge_note(report) + "".join(f"<br>{html.escape(n)}" for n in notes))
-        self._say(text, WARN_COLOR if (report.conflicts or report.kept or report.gone) else OK_COLOR)
+                + self._merge_note(report) + "".join(f"<br>{html.escape(n)}" for n in notes)
+                + (f"<br>{html.escape(stale)}" if stale else ""))
+        self._say(text, WARN_COLOR if (report.conflicts or report.kept or report.gone or stale) else OK_COLOR)
         self.home_btn.button_type = "primary"
         return True
 

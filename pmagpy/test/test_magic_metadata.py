@@ -354,6 +354,33 @@ class TestSharedEdit:
         assert out.loc[0, ["lat", "lon"]].tolist() == ["42.61", ""]
         assert shared.cleared == {"lon": ["245.602"]} and shared.disagreed == {}
 
+    def test_results_computed_from_the_position_come_from_the_data_model(self):
+        cols = mm.position_results("sites")
+        assert {"vgp_lat", "vgp_lon", "vgp_dp", "vgp_dm", "vadm", "vadm_sigma", "paleolat", "paleolon"} <= set(cols)
+        assert not {"vdm", "dir_dec", "int_abs", "lat", "vgp_n_samples"} & set(cols)   # a VDM rests on the inclination
+        assert mm.position_results("samples") == []
+
+    def test_rows_moved_with_results_at_the_old_position_are_found(self):
+        """15143 sr01: three rows, the third (result_type i) with a VGP and a VADM computed at 42.60264."""
+        before = pd.DataFrame([
+            {"site": "sr01", "lat": "42.60264", "lon": "245.602", "elevation": "", "vgp_lat": "", "vadm": ""},
+            {"site": "sr01", "lat": "42.60264", "lon": "245.602", "elevation": "", "vgp_lat": "", "vadm": ""},
+            {"site": "sr01", "lat": "42.6026", "lon": "245.602", "elevation": "", "vgp_lat": "68.5", "vadm": "6.05e+23"}])
+        after = before.copy()
+        after["lat"] = "12.3456"
+        moved = mm.moved_rows(before, after)
+        assert moved == [0, 1, 2]
+        assert mm.stale_results("sites", after, moved) == ([2], ["vgp_lat", "vadm"])
+        after = before.copy()
+        after["elevation"] = "1200"                                     # no result rests on the elevation
+        assert mm.moved_rows(before, after) == []
+        note = mm.stale_results_note("sites", 1, ["vgp_lat", "vgp_lon", "vadm"])
+        assert note == ("1 published result row keeps VGPs and VADMs computed at the old position (vgp_lat, vgp_lon, "
+                        "vadm) — export from PmagPy Directions or PmagPy Intensity to recompute those they own, or "
+                        "edit them.")
+        assert mm.stale_results_note("sites", 2, ["vgp_lat"]).startswith("2 published result rows keep VGPs")
+        assert "export from PmagPy Directions to recompute those it owns" in mm.stale_results_note("sites", 2, ["vgp_lat"])
+
     def test_a_sample_with_several_rows_shares_its_position(self):
         """Samples tables repeat a sample once per result (15143 sr01a: four rows, the position on the first)."""
         df = pd.DataFrame([{"sample": "sr01a", "site": "sr01", "lat": "42.6", "lon": "245.6"},

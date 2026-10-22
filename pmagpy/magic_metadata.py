@@ -577,6 +577,57 @@ def share_edit(table: str, df: pd.DataFrame, row: int, column: str,
                            cleared=cleared)
 
 
+#: the data model's groups of results computed from a row's position: a VGP from the site's latitude and
+#: longitude, a VADM from its latitude, a paleoposition from both
+POSITION_RESULT_GROUPS = ("VGP", "VADM", "Paleoposition")
+#: the cells of the position those results are computed from
+RESULT_POSITION = ("lat", "lon")
+
+
+def position_results(table: str) -> List[str]:
+    """The columns of ``table`` holding results computed from the row's position, from the data model's groups
+    (not the counts beside them, such as vgp_n_samples)."""
+    return [c.name for c in columns(table).values() if c.group in POSITION_RESULT_GROUPS and "_n_" not in c.name]
+
+
+def moved_rows(before: pd.DataFrame, after: pd.DataFrame) -> List[int]:
+    """The positions of the rows whose lat or lon differ between two versions of one frame."""
+    cols = [c for c in RESULT_POSITION if c in before.columns and c in after.columns]
+    return [i for i in range(min(len(before), len(after)))
+            if any(_cell(before, i, c) != _cell(after, i, c) for c in cols)]
+
+
+def stale_results(table: str, df: pd.DataFrame, rows: Iterable[int]) -> Tuple[List[int], List[str]]:
+    """Of ``rows`` (whose position just changed), those holding results computed at the old position.
+
+    Returns:
+        (the rows that hold a value in a column of :func:`position_results`, those columns).
+    """
+    cols = [c for c in position_results(table) if c in df.columns]
+    hit, used = [], []
+    for i in rows:
+        filled = [c for c in cols if _cell(df, i, c)]
+        if filled:
+            hit.append(i)
+            used += [c for c in filled if c not in used]
+    return hit, [c for c in cols if c in used]
+
+
+def stale_results_note(table: str, n_rows: int, cols: List[str]) -> str:
+    """What the Metadata page says of the result rows a position edit leaves computed at the old position."""
+    if not n_rows:
+        return ""
+    group = {c.name: c.group for c in columns(table).values()}
+    kinds = list(dict.fromkeys({"VGP": "VGPs", "VADM": "VADMs", "Paleoposition": "paleopositions"}.get(
+        group.get(c, ""), "results") for c in cols))
+    what = " and ".join(kinds) if len(kinds) <= 2 else ", ".join(kinds[:-1]) + " and " + kinds[-1]
+    apps = (["PmagPy Directions"] if "VGPs" in kinds else []) + (["PmagPy Intensity"] if "VADMs" in kinds else [])
+    remedy = (f"export from {' or '.join(apps)} to recompute those {'it owns' if len(apps) == 1 else 'they own'}, "
+              "or edit them") if apps else "edit them"
+    return (f"{n_rows} published result row{'s' if n_rows != 1 else ''} keep{'s' if n_rows == 1 else ''} "
+            f"{what} computed at the old position ({', '.join(cols)}) — {remedy}.")
+
+
 def blank_row(table: str, frame_columns: Iterable[str]) -> dict:
     """A new row for the editor: Pmag GUI's defaults in the columns that take them, "" elsewhere."""
     return {c: DEFAULTS.get(c, "") for c in frame_columns}

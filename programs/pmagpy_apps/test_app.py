@@ -864,6 +864,39 @@ class TestMetadata:
         view._edited(SimpleNamespace(row=2, column="lithologies", value="Basalt", old=""))
         assert view.message.object.endswith("Unsaved changes.</div>")             # nothing shared, nothing said
 
+    def test_a_position_edit_warns_of_published_results_computed_at_the_old_one(self, tmp_path):
+        """15143 sr01: the shared latitude reaches the result_type i row whose VGP and VADM were computed at the
+        old position; the page says so on the edit and on the save."""
+        from types import SimpleNamespace
+        import pandas as pd
+        d = small_study(tmp_path)
+        metadata.mm.mp.magic_write(os.path.join(d, "sites.txt"), pd.DataFrame([
+            {"site": "Z11", "location": "Zavkhan", "lat": "47.05", "lon": "96.2", "method_codes": "LP-DIR-T"},
+            {"site": "Z11", "location": "Zavkhan", "lat": "47.05", "lon": "96.2", "result_type": "i",
+             "vgp_lat": "68.5", "vgp_lon": "177.3", "vadm": "6.05e+23"},
+            {"site": "Z12", "location": "Zavkhan", "lat": "47.1", "lon": "96.3", "vgp_lat": "70"}]), "sites")
+        view = metadata.MetadataView(home.HubSession(d))
+        df = view.current()
+        df.loc[0, "lat"] = "12.3456"
+        view.grid.value = df
+        view._edited(SimpleNamespace(row=0, column="lat", value="12.3456", old="47.05"))
+        said = ("1 published result row keeps VGPs and VADMs computed at the old position (vgp_lat, vgp_lon, vadm) "
+                "— export from PmagPy Directions or PmagPy Intensity to recompute those they own, or edit them.")
+        assert said in view.message.object and "#b45309" in view.message.object
+        df = view.current()
+        df.loc[2, "lon"] = "96.4"                                         # a single-row site with a VGP
+        view.grid.value = df
+        view._edited(SimpleNamespace(row=2, column="lon", value="96.4", old="96.3"))
+        assert "1 published result row keeps VGPs computed at the old position (vgp_lat)" in view.message.object
+        df = view.current()
+        df.loc[2, "lithologies"] = "Basalt"
+        view.grid.value = df
+        view._edited(SimpleNamespace(row=2, column="lithologies", value="Basalt", old=""))
+        assert "published result" not in view.message.object
+        assert view.save() is True
+        assert "2 published result rows keep VGPs and VADMs computed at the old position" in view.message.object
+        assert view.stale == {}                                            # shown afresh
+
     def test_a_position_edit_names_the_values_a_blank_in_the_row_clears(self, tmp_path):
         """The whole position travels together, blanks included: the page names what the other rows lose."""
         from types import SimpleNamespace
