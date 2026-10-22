@@ -825,6 +825,11 @@ the bottom; struck through once settled.
     *Nick, 2026-09-02*: 2.5 support is not a current need — nothing further
     here (or on 48); the translation above stays as committed but will not
     be extended.
+    *Nick, 2026-10-22*: no data model 2 in the apps at all — the `legacy`
+    format is removed (48 and this item are closed). Home describes 2.5
+    tables as ones PmagPy no longer reads and points at MagIC's upgrade tool;
+    `pmag.convert_rmag_2_to_3` is left in `pmag.py` for the DM2 removal there
+    (#789), and nothing in the apps calls it.
 
 57. **Bundled MagIC data model refreshed (2026-09-02).**
     `pmagpy/data_model/data_model.json` is now MagIC's 2025-02-26 model —

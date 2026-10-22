@@ -138,8 +138,6 @@ class Format:
         extensions: lower-case file extensions the format's files usually have —
             for guessing a format from a directory and for offering its files.
         takes_directory: the converter reads a whole directory, not files (``tdt``, ``livdb``).
-        reads_together: the directory's files make sense only together (the 2.5 tables the
-            upgrade reads): a few of them cannot be converted without the rest.
         needs: MagIC table → keyword: tables that must already be in the MagIC
             directory, passed to the converter by path (the IODP measurement
             converters read the ``specimens.txt`` made from the LIMS sample file).
@@ -170,7 +168,6 @@ class Format:
     fixed: Dict[str, object] = field(default_factory=dict)
     extensions: Tuple[str, ...] = ()
     takes_directory: bool = False
-    reads_together: bool = False
     needs: Dict[str, str] = field(default_factory=dict)
     prepare: Optional[Callable[[dict], dict]] = None
     replaces: Tuple[str, ...] = ()
@@ -355,8 +352,7 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
         only: for a format that ``takes_directory``, the names of the directory's
             files to convert (the new ones, when the rest are in the tables
             already): the converter reads a scratch folder holding copies of just
-            those, since it would read every file in the directory. Not for a
-            format whose files are ``reads_together``.
+            those, since it would read every file in the directory.
     """
     say = report or (lambda text: None)
     dir_path = os.path.abspath(os.path.expanduser(dir_path))
@@ -364,7 +360,7 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
     inputs = [p if os.path.isabs(p) else os.path.join(dir_path, p) for p in inputs]
     if not inputs:
         return ConversionResult(False, "No files chosen.")
-    if only is not None and (not fmt.takes_directory or fmt.reads_together or len(inputs) != 1):
+    if only is not None and (not fmt.takes_directory or len(inputs) != 1):
         raise ValueError(f"{fmt.label} cannot convert a few of a directory's files")
     if only is not None and not only:
         return ConversionResult(False, "No files chosen.")
@@ -446,8 +442,8 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
 
 
 def directory_inputs(fmt: Format, directory: str) -> List[str]:
-    """The files a directory format reads: the ones it accepts by extension (the 2.5 tables for ``legacy``;
-    ``.livdb`` and ``.csv`` for ``livdb``, as its converter takes them).
+    """The files a directory format reads: the ones it accepts by extension (``.livdb`` and ``.csv`` for
+    ``livdb``, as its converter takes them).
 
     When the format lists no extensions, or none match, the directory's own
     name stands for its contents.
@@ -456,9 +452,7 @@ def directory_inputs(fmt: Format, directory: str) -> List[str]:
         names = sorted(n for n in os.listdir(directory) if os.path.isfile(os.path.join(directory, n)))
     except OSError:
         names = []
-    if fmt.key == "legacy":
-        hits = [n for n in names if _legacy_table(n.lower())]
-    elif fmt.key == "livdb":
+    if fmt.key == "livdb":
         hits = [n for n in names if n.endswith((".livdb", ".csv"))]        # as convert_2_magic.livdb reads them
     else:
         hits = [n for n in names if fmt.extensions and fmt.accepts(n)]
@@ -773,13 +767,6 @@ def _looks_like_orient(head: str) -> bool:
     return "sample_name" in header and "mag_azimuth" in header
 
 
-def _legacy_table(lower_name: str) -> bool:
-    """A MagIC 2.5 table by its name: magic_measurements, er_*, pmag_*, rmag_*, magic_methods."""
-    return lower_name.endswith(".txt") and (
-        lower_name in ("magic_measurements.txt", "magic_methods.txt")
-        or lower_name.startswith(("er_", "pmag_", "rmag_")))
-
-
 def guess_format(names: Sequence[str], directory: str = "") -> Tuple[str, Dict[str, str]]:
     """A format key from file names (and a peek inside ambiguous ones), and a role per file.
 
@@ -796,11 +783,6 @@ def guess_format(names: Sequence[str], directory: str = "") -> Tuple[str, Dict[s
             elif any(n.startswith(s) for s in stems):
                 roles[n] = "CIT specimen"
         return "cit", roles
-    legacy = [n for n in names if _legacy_table(lower[n])]
-    if legacy:                           # 2.5 tables: the upgrade is the conversion, whatever else is beside them
-        for n in legacy:
-            roles[n] = "MagIC 2.5 table"
-        return "legacy", roles
     orient_files = []
     for n in names:                      # a downloaded contribution is a .txt like any other: look inside
         if lower[n].endswith((".txt", ".tsv")) and directory:
@@ -810,9 +792,7 @@ def guess_format(names: Sequence[str], directory: str = "") -> Tuple[str, Dict[s
             except OSError:
                 continue
             if head.startswith("tab") and ">>>>>>>>>>" in head:
-                first = head.splitlines()[0].split("\t")
-                old_model = len(first) > 1 and _legacy_table(first[1].strip().lower() + ".txt")
-                roles[n] = "MagIC 2.5 contribution file" if old_model else "MagIC contribution file"
+                roles[n] = "MagIC contribution file"
                 return "magic", roles
             if head.startswith("tab") and _looks_like_orient(head):
                 roles[n] = "Orientation file"
@@ -1295,42 +1275,3 @@ _add(Format(
     notes="Space-delimited 'sample azimuth dip strike dip' lines, azimuths already true north; the converter "
           "applies orientation convention 3 (lab arrow dip = 90 − dip) and takes bedding as strike and dip "
           "with the right-hand rule (dip direction = strike + 90). Writes samples only."))
-
-
-# ----- MagIC 2.5 tables: the upgrade, so an old dataset opens like a new one ---------------------------
-
-
-def upgrade_2_to_3(input_dir: str, output_dir: str = ".", meas_fname: str = "magic_measurements.txt"):
-    """MagIC 2.5 tables (``magic_measurements``, ``er_*``, ``pmag_*``, ``rmag_*``, ``pmag_criteria``) in
-    ``input_dir`` → 3.0 ``measurements``, ``specimens`` … ``ages``, ``criteria`` in ``output_dir``.
-
-    Wraps :func:`pmagpy.pmag.convert_directory_2_to_3` so it answers like a converter:
-    ``(ok, message)``, the message naming what was upgraded and what 2.5 cannot be
-    (``pmag_results``, images, results spanning several sites), which MagIC's own
-    upgrade tool handles. The rock magnetic tables become rows of ``specimens``
-    (``aniso_s``/``aniso_v*``, ``hyst_*``, ``rem_*``, ``susc_*``); results naming
-    one sample or site go to ``samples``/``sites``.
-    """
-    from pmagpy import pmag
-    meas, upgraded, no_upgrade = pmag.convert_directory_2_to_3(meas_fname, input_dir=input_dir, output_dir=output_dir)
-    if meas is False:
-        return False, f"no {meas_fname} in the directory — MagIC's upgrade tool (earthref.org/MagIC/upgrade) takes the rest"
-    message = "upgraded " + ", ".join(upgraded)
-    if no_upgrade:
-        message += f"; left as 2.5: {', '.join(sorted(no_upgrade))} (MagIC's upgrade tool at earthref.org/MagIC/upgrade takes those)"
-    print(message)                                # the converters' log is what the page shows
-    return True, message
-
-
-_add(Format(
-    "legacy", "MagIC 2.5 tables (upgrade)", upgrade_2_to_3,
-    fields=(),
-    file_kw="input_dir", input_dir_kw="", output_dir_kw="output_dir", takes_directory=True, reads_together=True,
-    outputs={"measurements": None, "specimens": None, "samples": None, "sites": None, "locations": None,
-             "ages": None, "criteria": None},
-    extensions=(".txt",),
-    examples=(("../2_5/McMurdo", {}),),
-    notes="Upgrades the whole directory's 2.5 tables (magic_measurements, er_*, pmag_*, rmag_*, pmag_criteria) "
-          "to 3.0 tables beside them; rmag_anisotropy/rmag_results tensors and eigenparameters, hysteresis, "
-          "remanence and susceptibility parameters become specimen rows. pmag_results and images are not "
-          "translated — MagIC's upgrade tool (earthref.org/MagIC/upgrade) does the full job."))

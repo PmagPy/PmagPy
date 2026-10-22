@@ -160,8 +160,9 @@ class TestBrokenTables:
     def test_a_magic_2_5_study_says_so(self, tmp_path):
         d = str(tmp_path)
         write_table(os.path.join(d, "measurements.txt"), ["er_specimen_name"], [["a"]], "magic_measurements")
-        with pytest.raises(mp.MagicReadError, match="MagIC 2.5"):
+        with pytest.raises(mp.MagicReadError, match="MagIC 2.5") as err:
             mp.read_contribution(d)
+        assert "PmagPy no longer reads" in str(err.value) and mp.MAGIC_UPGRADE_URL in str(err.value)
 
 
 class TestAtomicWrites:

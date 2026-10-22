@@ -34,7 +34,7 @@ Package names below (`pmagpy_apps` for the hub, `pmagpy_rockmag`,
 | 2. Geographic / tilt-corrected directions | `ipmag.orientation_magic` | works; 8 orientation conventions, no tests |
 | 3. MagIC metadata (incl. ages) | `ErMagicBuilder` + `ErMagicCheckFrame3` grids | the largest wx surface; wx-only |
 | Download or unpack MagIC file | `ipmag.download_magic_from_id/_from_doi`, `download_magic` | works; `_from_doi` writes to cwd |
-| Convert 2.5 directory to 3.0 | `pmag.convert_directory_2_to_3` | legacy, keep as is |
+| Convert 2.5 directory to 3.0 | `pmag.convert_directory_2_to_3` | not carried over: the apps read MagIC 3 only, and MagIC's upgrade tool takes 2.5 tables |
 | Demag GUI / Thellier GUI | spawn wx frames | replaced by the Panel apps |
 | Create upload file | `ipmag.upload_magic` → public validation endpoint | works; return arity inconsistent |
 | menu: AzDip, IODP samples, kly4s/k15/sufar4, agm | `ipmag.azdip_magic`, `convert.iodp_samples/kly4s/k15/sufar4/agm` | works |
@@ -190,7 +190,7 @@ are *pages in the hub*, not applications:
 | page | tasks | replaces |
 |---|---|---|
 | **Home** | the dataset: which tables, how many rows, which experiment types; the workflow strip with state per stage; the analysis cards (§ Design) | box 0, the launch buttons |
-| **Import** | *Convert* (registry-driven form, queue of files, run, log, then combine); *Orientation* (`orientation_magic`, form built from its conventions, AzDip as the simple case); *Download / unpack* (by ID, by DOI, from a `.txt` on disk or uploaded); *Legacy 2.5 → 3.0* | box 1, Import menu |
+| **Import** | *Convert* (registry-driven form, queue of files, run, log, then combine); *Orientation* (`orientation_magic`, form built from its conventions, AzDip as the simple case); *Download / unpack* (by ID, by DOI, from a `.txt` on disk or uploaded) | box 1, Import menu |
 | **Metadata** | what ErMagicBuilder does: the locations / sites / samples / specimens / ages tables in grids, columns and controlled vocabularies from the data model, names propagated between levels via `Contribution`; the criteria table | box 1 step 3 (`ErMagicBuilder`, `ErMagicCheckFrame3`) |
 | **Analyze** | the cards on Home: Directions, Intensity, Rock magnetism, Anisotropy — each mounts its body; disabled with a reason when the data cannot support it (no measurements; no `LP-DIR-*` steps; no `LP-PI-*`; no rock-mag or anisotropy method codes) | box 2 |
 | **Upload** | validate (offline `validate_upload3.validate_table` per table, and the public endpoint); build `upload.txt` (`upload_magic`); private workspace once its function is fixed; export result tables (`*_extract`) | box 3, Export menu |
@@ -535,8 +535,8 @@ Intensity were built.
    append, rows, failures; a directory format lists the files it accepted,
    `directory_inputs`), the Convert page records an unpacked contribution file
    the same way, and Home's Import line reads the log — "converted from 10 CIT
-   files · 2 Sep 2026", "upgraded from 17 MagIC 2.5 tables", "unpacked from
-   magic_contribution_16761.txt" — with `conversion_sources` keeping the last
+   files · 2 Sep 2026", "unpacked from magic_contribution_16761.txt",
+   "contribution 20549 from MagIC" — with `conversion_sources` keeping the last
    replace and the appends since; the aside marks the converted files
    (QUESTIONS 53). Some of `data_files/convert_2_magic` is old — the next round should track
    down current instrument exports and test with the labs that use them; the
@@ -811,6 +811,14 @@ Intensity were built.
    rows. `kly4s` wrote samples/sites into the cwd (fixed); `pmag.tauV` keeps
    real eigenvalues real (numpy 2 `eig` returns complex, and every `dostilt`
    raised a ComplexWarning). QUESTIONS 47 for the choices.
+   *Removed (2026-10-22): no MagIC data model 2 in the apps.* The `legacy`
+   format below, `Format.reads_together` and the 2.5 roles in `guess_format`
+   are gone; Home describes a folder of 2.5 tables, or a 2.5 contribution file,
+   as "MagIC 2.5 tables, which PmagPy no longer reads — upgrade them with
+   MagIC's own tool (https://earthref.org/MagIC/upgrade) and open the result",
+   with no Convert offer, and passes over 2.5 files beside MagIC 3 tables
+   (`Inventory.magic_2_5`, `magic_project.is_magic_2_5_file`). Unpacking a 2.5
+   contribution file is refused. What follows is the record of what was built.
    *Built (2.5 → 3.0, 2026-09-02)*: `convert_registry.upgrade_2_to_3` wraps
    `pmag.convert_directory_2_to_3` as the `legacy` Format (takes the directory,
    no fields); `guess_format` names a directory `legacy` from its 2.5 table
@@ -844,7 +852,7 @@ Intensity were built.
 | `azdip_magic` | **done** (2026-09-02), as the `azdip` format on Convert | same job, plainer input |
 | IODP sample summaries | **done**, as the `iodp_*` formats (LIMS samples, SRM section/discrete, JR6, and KLY4S from 2026-09-02) | they are conversions |
 | kly4s / k15 / sufar4 | **done** (2026-09-02), as the `k15`/`kly4s`/`sufar4` formats; the directory opens Anisotropy | conversions |
-| legacy 2.5 → 3.0 | **done** (2026-09-02), as the `legacy` format on Convert, guessed from the 2.5 table names | cheap; old datasets still arrive |
+| legacy 2.5 → 3.0 | **removed** (2026-10-22; built 2026-09-02 as the `legacy` format on Convert) | no data model 2 in the apps: MagIC's upgrade tool takes 2.5 tables, and Home points there |
 | export result tables (`*_extract`) | **done** (step 3, 2026-09-01): `magic_upload.export_tables` on Upload, Excel or LaTeX | publication tables; cheap |
 | criteria editor (`CustomizeCriteria`, unreachable today) | **done** (2026-09-02), as the criteria grid on Metadata with defaults and a per-criterion check | criteria need a home; Directions' export applies them, opt-in, since 2026-09-02 |
 | depth plots (`core_depthplot`, `ani_depthplot2`) | **defer** | matplotlib, niche; revisit when a stratigraphic user asks |

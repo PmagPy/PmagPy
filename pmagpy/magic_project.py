@@ -844,6 +844,25 @@ class MagicReadError(ValueError):
     """A table file that cannot be read, with a sentence that says which and why."""
 
 
+#: the names of MagIC 2.5 tables start with these (magic_measurements, er_sites, pmag_results, rmag_anisotropy)
+MAGIC_2_5_PREFIXES = ("magic_", "er_", "pmag_", "rmag_")
+#: MagIC's own tool for 2.5 tables, which PmagPy does not read
+MAGIC_UPGRADE_URL = "https://earthref.org/MagIC/upgrade"
+
+
+def is_magic_2_5_file(path: str) -> bool:
+    """True for a MagIC 2.5 table or 2.5 contribution file: its first line names a 2.5 table
+    (``tab delimited<TAB>er_locations``)."""
+    try:
+        with open(path, "rb") as fh:
+            first = fh.readline(512).decode("utf-8-sig", errors="replace")
+    except OSError:
+        return False
+    parts = first.split("\t")
+    return (len(parts) > 1 and parts[0].strip().lower() in ("tab", "tab delimited")
+            and parts[1].strip().startswith(MAGIC_2_5_PREFIXES))
+
+
 def decode_table_text(raw: bytes) -> tuple[str, str]:
     """``(text, encoding)`` for the bytes of a table file: UTF-8 when it is, else a Windows code page."""
     for encoding in TEXT_ENCODINGS:
@@ -884,9 +903,9 @@ def read_table_file(path: str, expected: Optional[str] = None,
         raise MagicReadError(f"{name} is not a MagIC table: its first line should be 'tab' and the table name "
                              f"(it is {lines[0][:40]!r})")
     table = first[1]
-    if table.startswith(("magic_", "er_", "pmag_", "rmag_")):
-        raise MagicReadError(f"{name} is a MagIC 2.5 table ({table}); convert the directory to MagIC 3 first "
-                             "(PmagPy's upgrade_magic.py, or the Convert page)")
+    if table.startswith(MAGIC_2_5_PREFIXES):
+        raise MagicReadError(f"{name} is a MagIC 2.5 table ({table}), which PmagPy no longer reads — upgrade it "
+                             f"with MagIC's own tool ({MAGIC_UPGRADE_URL}) and open the result")
     if expected and table != expected:
         raise MagicReadError(f"{name} holds a '{table}' table, not '{expected}'")
     # the header is the next line that is not blank: a file whose lines all end in \r\r\n
@@ -1814,13 +1833,16 @@ def unpack_contribution(text: str, directory: str, magic_id: int = 0) -> list[st
     Returns:
         the table names written, in file order.
     Raises:
-        MagicDownloadError: when the text holds no MagIC tables.
+        MagicDownloadError: when the text holds no MagIC tables, or MagIC 2.5 ones.
     """
     from pmagpy import ipmag
     text = clean_contribution_text(text)
     tables = contribution_tables(text)
     if not tables:
         raise MagicDownloadError("That is not a MagIC contribution file: no tables in it.")
+    if any(t.startswith(MAGIC_2_5_PREFIXES) for t in tables):
+        raise MagicDownloadError("That is a MagIC 2.5 contribution file, which PmagPy no longer reads — upgrade it "
+                                 f"with MagIC's own tool ({MAGIC_UPGRADE_URL}) and open the result.")
     directory = os.path.expanduser(directory)
     os.makedirs(directory, exist_ok=True)
     import contextlib

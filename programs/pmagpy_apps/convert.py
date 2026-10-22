@@ -252,7 +252,7 @@ class ConvertView:
         if done:
             text = (f'Already in these tables (pmagpy_conversions.json lists them), so left out: '
                     f'<b>{html.escape(", ".join(done))}</b>')
-            if self.fmt.takes_directory and not self.fmt.reads_together:
+            if self.fmt.takes_directory:
                 new = [os.path.basename(p) for p in self._chosen_paths() if log_name(p, self.tables_dir) not in done]
                 text += (f' · new, to convert: <b>{html.escape(", ".join(new))}</b>' if new else ' · nothing new here')
             self.done_note.object = f'<div style="{MUTED_STYLE}">{text}</div>'
@@ -311,10 +311,6 @@ class ConvertView:
         if append and not self.again.value:
             left_out = self._already_in()
             again = "Tick “Convert them again anyway” to add them a second time."
-            if left_out and fmt.reads_together:
-                self._say(f"{html.escape(fmt.label)} reads the folder's files together, and "
-                          f"<b>{html.escape(', '.join(left_out))}</b> are in these tables already. {again}", FAIL_COLOR)
-                return False
             if fmt.takes_directory:
                 new = [os.path.basename(p) for p in self._chosen_paths() if log_name(p, tables) not in left_out]
                 if left_out and new:

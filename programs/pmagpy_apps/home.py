@@ -28,11 +28,12 @@ from urllib.parse import quote
 import panel as pn
 import param
 
+from pmagpy.magic_project import MAGIC_UPGRADE_URL
 from pmagpy_panel import app_color, datasets, runtime, text_on
 from pmagpy_panel.chooser import DirectoryChooser
 from pmagpy_panel.widgets import LayoutHold
 from . import APP, EDITIONS, Edition
-from .inventory import Inventory, take_inventory
+from .inventory import FileRole, Inventory, take_inventory
 
 # ----- which applications there are ------------------------------------------------
 
@@ -177,7 +178,14 @@ def _status(inv: Inventory) -> str:
         return f"{inv.name} loaded · {n} tables"
     if inv.is_empty:
         return f"{inv.name} · empty"
+    if inv.is_magic_2_5:
+        return f"{inv.name} · MagIC 2.5 tables, not read"
     return f"{inv.name} · no MagIC tables yet"
+
+
+#: what Home says of MagIC 2.5 tables (or a 2.5 contribution file) in a folder with no MagIC 3 tables
+MAGIC_2_5_HTML = ("MagIC 2.5 tables, which PmagPy no longer reads — upgrade them with MagIC's own tool "
+                  f'(<a href="{MAGIC_UPGRADE_URL}" target="_blank">{MAGIC_UPGRADE_URL}</a>) and open the result.')
 
 
 # ----- rendering -----------------------------------------------------------------------
@@ -295,6 +303,8 @@ def ref_html(inv: Inventory) -> str:
         lines.append('<div class="ref">Empty</div>')
     elif inv.has_level_tables:
         lines.append('<div class="ref">No measurements yet</div>')
+    elif inv.is_magic_2_5:
+        lines.append('<div class="ref">MagIC 2.5 tables</div>')
     elif not inv.is_magic:
         lines.append('<div class="ref">No MagIC tables yet</div>')
     return f'<div class="home">{"".join(lines)}</div>'
@@ -322,24 +332,21 @@ def facts_html(inv: Inventory) -> str:
                    if inv.lab_files else
                    "Copy the lab files into this directory and convert them, adding to these tables.")
                 + " The measurements then hang from these samples and the analysis applications open.")
+    elif inv.is_magic_2_5 and not inv.files:
+        text = MAGIC_2_5_HTML
     else:
         n = len(inv.files)
         if inv.format_key == "cit":
             guess = " They look like CIT specimen files with a <code>.sam</code> index."
         elif inv.format_key == "magic":
-            guess = (" They include a MagIC 2.5 contribution file, which unpacks into 2.5 tables; upgrading those is the step after."
-                     if any(f.role == "MagIC 2.5 contribution file" for f in inv.files)
-                     else " They include a MagIC contribution file, which unpacks into the tables.")
-        elif inv.format_key == "legacy":
-            n_old = len(inv.lab_files)
-            guess = (f" {fmt(n_old)} of them are MagIC 2.5 tables (<code>magic_measurements</code>, <code>er_</code>, "
-                     f"<code>pmag_</code>), which upgrade to 3.0 tables beside them.")
+            guess = " They include a MagIC contribution file, which unpacks into the tables."
         elif inv.format_key:
             guess = f" They look like {_esc(inv.format_guess)} files."
         else:
             guess = ""
-        text = (f"{fmt(n)} file{'s' if n != 1 else ''}, none of them MagIC tables.{guess} Convert them with the "
-                f"button above, and this page fills in as the tables appear.")
+        lead = (f"{MAGIC_2_5_HTML} Beside them, {fmt(n)} other file{'s' if n != 1 else ''}." if inv.is_magic_2_5
+                else f"{fmt(n)} file{'s' if n != 1 else ''}, none of them MagIC tables.")
+        text = f"{lead}{guess} Convert them with the button above, and this page fills in as the tables appear."
     return f'<div class="home"><p class="empty">{text}</p></div>'
 
 
@@ -358,6 +365,8 @@ def _stages(inv: Inventory) -> list:
     if not inv.is_magic:
         if inv.is_empty:
             imp = ("warn", "convert files, or download from MagIC")
+        elif inv.is_magic_2_5 and not inv.files:
+            imp = ("warn", "MagIC 2.5 tables · upgrade them with MagIC's tool")
         elif inv.has_level_tables:
             n = len(inv.lab_files)
             imp = ("warn", "samples and sites in; " + (f"{fmt(n)} file{'s' if n != 1 else ''} to convert · {inv.format_guess}?"
@@ -373,8 +382,6 @@ def _stages(inv: Inventory) -> list:
         imp = ("ok", converted_from(inv))
     elif not others:
         imp = ("ok", "tables in place")
-    elif inv.format_key == "legacy":
-        imp = ("ok", f"{len(others)} MagIC 2.5 table{'s' if len(others) != 1 else ''} beside the 3.0 tables")
     else:
         imp = ("ok", f"{len(others)} {inv.format_guess} file{'s' if len(others) != 1 else ''} beside the tables")
     if inv.gaps:
@@ -419,9 +426,6 @@ def converted_from(inv: Inventory) -> str:
             what = f"contribution {magic_id} from MagIC" if magic_id else "a contribution from MagIC"
         if added:
             what += " · " + _described_files(added) + " added"
-    elif last.get("format") == "legacy":
-        files = inv.source_files
-        what = f"upgraded from {fmt(len(files))} MagIC 2.5 table{'s' if len(files) != 1 else ''}"
     else:
         what = "converted from " + _described_files(inv.conversions)
     try:
@@ -509,11 +513,12 @@ def aside_html(inv: Inventory) -> str:
     """
     if inv.is_magic:
         return ""
-    shown = inv.files[:6]
+    files = inv.files or ([FileRole(n, "MagIC 2.5, not read") for n in inv.magic_2_5] if inv.is_magic_2_5 else [])
+    shown = files[:6]
     rows = "".join(f'<tr><td class="file" title="{_esc(f.name)}">{_esc(f.name)}</td><td class="n">{_esc(f.role)}</td></tr>' for f in shown)
-    if len(inv.files) > len(shown):
-        rows += f'<tr><td class="file" style="color:var(--muted)">and {len(inv.files) - len(shown)} more</td><td class="n"></td></tr>'
-    if inv.folders and not inv.files:
+    if len(files) > len(shown):
+        rows += f'<tr><td class="file" style="color:var(--muted)">and {len(files) - len(shown)} more</td><td class="n"></td></tr>'
+    if inv.folders and not files:
         rows = f'<tr><td class="none">{inv.folders} folder{"s" if inv.folders != 1 else ""}, no files</td></tr>'
     body = f"<table>{rows}</table>" if rows else '<div class="none">none</div>'
     return f'<div class="home"><div class="section">Files</div><div class="box">{body}</div></div>'
@@ -693,7 +698,7 @@ class HomeView:
             self.upload_btn.button_type = "primary" if inv.is_magic and not inv.gaps and not inv.uploads else "default"
             self.download_btn.button_type = "primary" if inv.is_empty else "default"
             self.convert_btn.button_type = "primary" if (inv.files or inv.has_level_tables) and not inv.is_magic else "default"
-            self.convert_btn.visible = not inv.is_empty
+            self.convert_btn.visible = not inv.is_empty and not (inv.is_magic_2_5 and not inv.files)
             self.metadata_btn.button_type = "primary" if inv.is_magic and inv.gaps else "default"
             self.metadata_btn.visible = inv.is_magic and self.edition.has_page("metadata")
             self.upload_btn.visible = inv.is_magic and self.edition.has_page("upload")

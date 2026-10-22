@@ -6,7 +6,8 @@ tables it holds and how long they are, how many locations, sites, samples,
 specimens and measurements, which kinds of experiment the measurements record,
 what the contribution is, how far analysis has got, where the metadata has
 gaps — and, for a directory that holds no MagIC tables yet, which files are
-there and what format they look like. Everything on Home is read from it, and
+there and what format they look like. MagIC 2.5 tables are not read: they are
+only noticed (``Inventory.magic_2_5``), so that Home can say what to do with them. Everything on Home is read from it, and
 so can a notebook::
 
     from pmagpy_apps.inventory import take_inventory
@@ -25,6 +26,7 @@ from typing import Dict, List, Optional, Tuple
 import pandas as pd
 
 from pmagpy.convert_registry import CONVERSION_LOG, FORMATS, conversion_sources, guess_format, read_conversions
+from pmagpy.magic_project import is_magic_2_5_file
 from pmagpy.magic_upload import is_upload_file
 from pmagpy_panel import datasets
 
@@ -100,6 +102,7 @@ class Inventory:
     analysis: Dict[str, int] = field(default_factory=dict)        # specimens_interpreted, site_means, site_intensities
     gaps: List[Gap] = field(default_factory=list)                 # largest first
     files: List[FileRole] = field(default_factory=list)           # everything that is not a MagIC table
+    magic_2_5: List[str] = field(default_factory=list)            # MagIC 2.5 tables and contribution files, not read
     uploads: List[str] = field(default_factory=list)              # upload files built from the tables, newest first
     conversions: List[dict] = field(default_factory=list)         # the log entries that account for the tables, oldest first
     unsupported: Dict[str, str] = field(default_factory=dict)     # kind key -> why no application can open it yet
@@ -117,6 +120,12 @@ class Inventory:
     def is_magic(self) -> bool:
         """Holds a measurements table: the analysis applications can open it."""
         return "measurements" in self.tables
+
+    @property
+    def is_magic_2_5(self) -> bool:
+        """MagIC 2.5 tables (or a 2.5 contribution file) and no MagIC 3 tables: nothing here PmagPy reads,
+        and MagIC's upgrade tool is the way on."""
+        return bool(self.magic_2_5) and not self.tables
 
     @property
     def has_level_tables(self) -> bool:
@@ -146,7 +155,7 @@ class Inventory:
     @property
     def is_empty(self) -> bool:
         """No files at all (folders do not count: a directory of directories is still empty)."""
-        return not self.tables and not self.files
+        return not self.tables and not self.files and not self.magic_2_5
 
     def kind(self, key: str) -> Optional[Kind]:
         return next((k for k in self.kinds if k.key == key), None)
@@ -314,6 +323,9 @@ def take_inventory(directory: str) -> Inventory:
             others.append(n)
 
     inv.folders = sum(os.path.isdir(os.path.join(directory, n)) for n in names)
+    # MagIC 2.5 tables are not lab files to convert, nor tables to read: beside MagIC 3 tables they are passed over
+    inv.magic_2_5 = [n for n in others if n.lower().endswith(".txt") and is_magic_2_5_file(os.path.join(directory, n))]
+    others = [n for n in others if n not in inv.magic_2_5]
     if "measurements" in inv.tables:
         # a contribution file beside the tables is the upload file they were compiled into, not lab files to convert
         inv.uploads = sorted((n for n in others if n.endswith(".txt") and is_upload_file(os.path.join(directory, n))),

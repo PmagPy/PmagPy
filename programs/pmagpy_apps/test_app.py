@@ -821,24 +821,6 @@ class TestConvertAgain:
         assert "Nothing new to convert" in view.message.object and rows(lab / "measurements.txt") == both
         assert len(reg.read_conversions(str(lab))) == 2
 
-    def test_the_2_5_upgrade_reads_its_tables_together(self, tmp_path):
-        from pmagpy import convert_registry as reg
-        src = os.path.join(os.path.dirname(MCMURDO), "..", "2_5", "McMurdo")
-        for name in os.listdir(src):
-            if name.startswith(("magic_", "er_", "pmag_", "rmag_")):
-                shutil.copy(os.path.join(src, name), tmp_path)
-        session = home.HubSession(str(tmp_path))
-        view = convert.ConvertView(session)
-        choose(view, "legacy")
-        assert asyncio.run(view._convert()) is True
-        log = (tmp_path / reg.CONVERSION_LOG).read_text()
-        shutil.copy(tmp_path / "er_sites.txt", tmp_path / "er_ages.txt")              # one 2.5 table changed
-        session.load(str(tmp_path))
-        assert view.append.value is True
-        assert asyncio.run(view._convert()) is False
-        assert "reads the folder's files together" in view.message.object
-        assert (tmp_path / reg.CONVERSION_LOG).read_text() == log
-
     def test_replacing_keeps_the_old_tables_in_the_backup(self, tmp_path):
         d, session, view = self.first(tmp_path)
         before = open(os.path.join(d, "measurements.txt")).read()
@@ -913,43 +895,70 @@ class TestConvertAgain:
         assert not os.path.exists("samples.txt") and not os.path.exists("sites.txt")
         assert [a.name for a in home.APPLICATIONS if inv.has(*a.kinds)] == ["Anisotropy"]
 
-    def test_a_magic_2_5_directory_upgrades_in_place_and_opens_directions(self, tmp_path):
+    @staticmethod
+    def magic_2_5(folder, contribution_file=False) -> list:
+        """Copy McMurdo's MagIC 2.5 tables (or only its 2.5 contribution file) into ``folder``."""
         src = os.path.join(os.path.dirname(MCMURDO), "..", "2_5", "McMurdo")
-        for name in os.listdir(src):
-            if name.endswith(".txt") and name not in ("zmab0100049tmp03.txt", "ages.txt"):   # the 2.5 tables
-                shutil.copy(os.path.join(src, name), tmp_path)
-        # a 3.0 table already beside them (as a half-finished earlier upgrade leaves): converting afresh must ask
-        (tmp_path / "ages.txt").write_text("tab\tages\nsite\tage\tage_unit\nmc01\t1.18\tMa\n")
-        session = home.HubSession(str(tmp_path))
-        inv = session.inventory
-        assert inv.format_key == "legacy" and not inv.is_magic
-        assert len(inv.lab_files) == 17 and {"magic_measurements.txt", "rmag_anisotropy.txt"} <= {f.name for f in inv.lab_files}
-        assert "MagIC 2.5 tables" in home.facts_html(inv) and "upgrade to 3.0 tables beside them" in home.facts_html(inv)
-        assert "MagIC 2.5 tables (upgrade)?" in home.stages(inv)[0][2]
-        view = convert.ConvertView(session)
-        choose(view, "legacy")
-        assert view.files.disabled is True
-        assert len(view.form.widgets) == 0 and "earthref.org/MagIC/upgrade" in view.notes.object
-        # converting afresh asks first, and replacing keeps the 3.0 table backed up
-        assert asyncio.run(view._convert()) is False and "MagIC tables already (ages.txt)" in view.message.object
-        view.where.value = convert.REPLACE
-        assert asyncio.run(view._convert()) is True
-        assert (tmp_path / "backup_before_pmagpy_apps" / "ages.txt").exists()
-        assert "25,470 measurements" in view.message.object and "left as 2.5" in view.log.object
-        inv = session.inventory
-        assert inv.is_magic and inv.has("demag") and inv.has("pi")
-        assert {"measurements", "specimens", "samples", "sites", "locations", "ages", "criteria"} <= set(inv.tables)
-        assert (tmp_path / "magic_measurements.txt").exists()          # the 2.5 tables stay
-        assert home.stages(inv)[0][2].startswith("upgraded from 17 MagIC 2.5 tables · ")   # the log names them
-        assert "Directions" in [a.name for a in home.APPLICATIONS if inv.has(*a.kinds)]
+        names = (["zmab0100049tmp03.txt"] if contribution_file
+                 else [n for n in os.listdir(src) if n.startswith(("magic_", "er_", "pmag_", "rmag_"))])
+        for name in names:
+            shutil.copy(os.path.join(src, name), folder)
+        return sorted(names)
 
-    def test_a_2_5_contribution_file_is_told_apart(self, tmp_path):
-        src = os.path.join(os.path.dirname(MCMURDO), "..", "2_5", "McMurdo", "zmab0100049tmp03.txt")
-        shutil.copy(src, tmp_path)
+    @pytest.mark.parametrize("contribution_file", [False, True])
+    def test_magic_2_5_tables_alone_are_sent_to_magics_upgrade_tool(self, tmp_path, contribution_file):
+        names = self.magic_2_5(tmp_path, contribution_file)
         session = home.HubSession(str(tmp_path))
         inv = session.inventory
-        assert inv.format_key == "magic" and inv.files[0].role == "MagIC 2.5 contribution file"
-        assert "unpacks into 2.5 tables; upgrading those is the step after" in home.facts_html(inv)
+        assert inv.is_magic_2_5 and not inv.is_magic and not inv.is_empty
+        assert sorted(inv.magic_2_5) == names and inv.files == [] and inv.format_key == ""
+        assert len(names) == (1 if contribution_file else 17)
+        facts = home.facts_html(inv)
+        assert ("MagIC 2.5 tables, which PmagPy no longer reads — upgrade them with MagIC's own tool "
+                '(<a href="https://earthref.org/MagIC/upgrade" target="_blank">https://earthref.org/MagIC/upgrade</a>) '
+                "and open the result.") in facts
+        assert "Convert" not in facts and "convert" not in facts
+        assert home.stages(inv)[0] == ("Import", "warn", "MagIC 2.5 tables · upgrade them with MagIC's tool", True)
+        assert "MagIC 2.5 tables" in home.ref_html(inv) and session.status.endswith("MagIC 2.5 tables, not read")
+        assert names[0] in home.aside_html(inv) and "MagIC 2.5, not read" in home.aside_html(inv)
+        view = home.HomeView(session)
+        assert not view.convert_btn.visible and view.download_btn.button_type == "default"
+        # Convert offers nothing to do with them: no format for them, no file to choose
+        page = convert.ConvertView(session)
+        assert "legacy" not in convert.format_options().values() and page.files.options == []
+        page.format.value = convert.MAGIC_FILE
+        assert page.files.options == [] and asyncio.run(page._convert()) is False
+        assert sorted(os.listdir(tmp_path)) == names                    # nothing written
+
+    def test_lab_files_beside_magic_2_5_tables_are_offered_to_convert(self, tmp_path):
+        self.magic_2_5(tmp_path)
+        shutil.copy(os.path.join(os.path.dirname(CIT), "..", "jr6_magic", "AF.jr6"), tmp_path)
+        session = home.HubSession(str(tmp_path))
+        inv = session.inventory
+        assert inv.is_magic_2_5 and [f.name for f in inv.files] == ["AF.jr6"] and inv.format_key == "jr6_jr6"
+        facts = home.facts_html(inv)
+        assert facts.count("which PmagPy no longer reads") == 1
+        assert "Beside them, 1 other file. They look like JR6 (.jr6) files. Convert them" in facts
+        assert "MagIC 2.5" not in home.aside_html(inv) and "AF.jr6" in home.aside_html(inv)
+        view = home.HomeView(session)
+        assert view.convert_btn.visible and view.convert_btn.button_type == "primary"
+        page = convert.ConvertView(session)
+        choose(page, "jr6_jr6")
+        assert page.files.options == ["AF.jr6"]
+
+    def test_magic_2_5_files_beside_magic_3_tables_are_passed_over(self, tmp_path):
+        for name in ("measurements", "specimens", "samples", "sites", "locations"):
+            shutil.copy(os.path.join(MCMURDO, f"{name}.txt"), tmp_path)
+        self.magic_2_5(tmp_path)
+        self.magic_2_5(tmp_path, contribution_file=True)
+        inv = take_inventory(str(tmp_path))
+        assert inv.is_magic and not inv.is_magic_2_5 and inv.files == [] and inv.uploads == []
+        assert home.stages(inv)[0] == ("Import", "ok", "tables in place", False)
+        assert "2.5" not in home.facts_html(inv) + home.ref_html(inv)
+        shutil.copy(os.path.join(os.path.dirname(CIT), "..", "jr6_magic", "AF.jr6"), tmp_path)
+        inv = take_inventory(str(tmp_path))
+        assert [f.name for f in inv.lab_files] == ["AF.jr6"]
+        assert home.stages(inv)[0][2] == "1 JR6 (.jr6) file beside the tables"
 
     def test_appending_to_a_magic_directory_is_offered_and_keeps_what_is_there(self, tmp_path):
         d = cit_only(tmp_path)

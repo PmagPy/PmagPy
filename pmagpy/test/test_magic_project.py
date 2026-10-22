@@ -95,6 +95,26 @@ class TestUnpacking:
             mp.unpack_contribution("<html>not found</html>", str(tmp_path / "x"))
         assert not (tmp_path / "x").exists()
 
+    def test_a_magic_2_5_contribution_file_is_refused_before_anything_is_written(self, tmp_path):
+        old = "tab delimited\ter_locations\ner_location_name\nL\n>>>>>>>>>>\ntab delimited\tmagic_measurements\n" \
+              "er_specimen_name\tmeasurement_number\na1\t1\n"
+        with pytest.raises(mp.MagicDownloadError, match="MagIC 2.5 contribution file, which PmagPy no longer reads"):
+            mp.unpack_contribution(old, str(tmp_path / "x"))
+        assert not (tmp_path / "x").exists()
+
+    def test_a_magic_2_5_file_is_known_by_its_first_line(self, tmp_path):
+        files = {"zmab.txt": "\ufefftab delimited\ter_locations\ner_location_name\n",
+                 "magic_measurements.txt": "tab\tmagic_measurements\ner_specimen_name\n",
+                 "pmag_results.txt": "tab\tpmag_results\npmag_result_name\n",
+                 "measurements.txt": "tab\tmeasurements\nmeasurement\n",
+                 "contribution.txt": "tab delimited\tcontribution\nid\n",
+                 "notes.txt": "er_ is how 2.5 names began\n"}
+        for name, text in files.items():
+            (tmp_path / name).write_text(text, encoding="utf-8")
+        assert sorted(n for n in files if mp.is_magic_2_5_file(str(tmp_path / n))) == \
+            ["magic_measurements.txt", "pmag_results.txt", "zmab.txt"]
+        assert not mp.is_magic_2_5_file(str(tmp_path / "absent.txt"))
+
 
 class FakeResponse:
     def __init__(self, status_code, payload=None, text="", reason=""):

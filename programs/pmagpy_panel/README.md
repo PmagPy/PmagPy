@@ -131,6 +131,16 @@ ARM-based (`Inventory.unsupported`, from `pmagpy.paleointensity.unsupported_reas
 the selection PmagPy Intensity itself refuses such a study by); a study that
 also has thermal Thellier experiments keeps it.
 
+The apps read MagIC data model 3 only. A folder holding MagIC 2.5 tables
+(`magic_measurements.txt`, `er_*.txt`, `pmag_*.txt`, `rmag_*.txt`) or a 2.5
+contribution file, and no MagIC 3 tables, is described on Home as "MagIC 2.5
+tables, which PmagPy no longer reads — upgrade them with MagIC's own tool
+(https://earthref.org/MagIC/upgrade) and open the result", with no Convert
+offer for them (`Inventory.magic_2_5`; a file is known by its first line,
+`pmagpy.magic_project.is_magic_2_5_file`). 2.5 files beside MagIC 3 tables
+are passed over, not listed as lab files; unpacking a 2.5 contribution file is
+refused, and reading a 2.5 table says the same as Home.
+
 "Download from MagIC…" (`pmagpy_apps/download.py`) fills a folder with a public
 contribution given its ID or the paper's DOI and reopens Home on it. The
 EarthRef calls are in `pmagpy.magic_project` (`find_contributions`,
@@ -189,9 +199,7 @@ folder that has tables already:
   directory format (TDT, Livdb) converts only the folder's new files: its
   converter reads every file in a folder, so it is given a scratch folder
   holding copies of just those (`convert_files(..., only=[...])`), and the page
-  says when there is nothing new. The MagIC 2.5 upgrade reads its tables
-  together (`Format.reads_together`) and cannot take a few of them: when some
-  are in the tables already it converts only with "Convert them again anyway".
+  says when there is nothing new.
 * Unticked, the first click asks where the new tables go: into a new folder
   `MagIC_<YYYY-MM-DD>/` inside the lab folder (the default; `-2`, `-3` when it
   exists; nothing is overwritten, and Home opens that folder), or replacing the
