@@ -696,12 +696,44 @@ class TestConvertAgain:
         assert reg.read_conversions(target)[0]["files"] == ["TRM.jr6"] and datasets.made_by_pmagpy(target)
         # a second one the same day: -2
         session.load(d)
-        choose(view, "jr6_jr6")                                      # another folder again: chosen afresh
+        assert view.format.value == "jr6_jr6"                       # the same lab folder: the choice stays
         view.append.value = False
         view.files.value = ["AF.jr6"]
         asyncio.run(view._convert())
         assert view.run_btn.name == f"Confirm: write into {new}-2/"
         assert asyncio.run(view._convert()) is True and session.directory == target + "-2"
+
+    def test_a_dated_folder_takes_further_batches_from_its_lab_folder(self, tmp_path):
+        from pmagpy import convert_registry as reg
+        d, session, view = self.first(tmp_path)
+        lab_tables = open(os.path.join(d, "measurements.txt")).read()
+        view.append.value = False
+        view.files.value = ["TRM.jr6"]
+        asyncio.run(view._convert())
+        assert asyncio.run(view._convert()) is True                         # into MagIC_<date>/
+        dated = session.directory
+        assert os.path.dirname(dated) == d and reg.lab_folder(dated) == d
+        # the page on the dated folder lists the lab folder's files and adds to the dated folder's tables
+        assert view.folder == d and view.tables_dir == dated
+        assert view.format.value == "jr6_jr6" and sorted(view.files.options) == ["AF.jr6", "TRM.jr6"]
+        assert "the tables are written into " + os.path.basename(dated) + "/" in view.heading.object
+        assert view.append.visible and view.append.value
+        view.files.value = ["AF.jr6", "TRM.jr6"]
+        assert view.done_note.visible and "TRM.jr6" in view.done_note.object and "AF.jr6" not in view.done_note.object
+        n = rows(os.path.join(dated, "measurements.txt"))
+        assert asyncio.run(view._convert()) is True
+        assert session.directory == dated and rows(os.path.join(dated, "measurements.txt")) > n
+        assert [e["files"] for e in reg.read_conversions(dated)] == [["TRM.jr6"], ["AF.jr6"]]
+        assert open(os.path.join(d, "measurements.txt")).read() == lab_tables       # the lab folder's own tables
+        assert [e["files"] for e in reg.read_conversions(d)] == [["AF.jr6"]]
+        # a fresh conversion from the dated folder asks the same question: a new dated folder goes in the lab folder
+        view.append.value = False
+        view.files.value = ["AF.jr6"]
+        assert asyncio.run(view._convert()) is False
+        assert view.run_btn.name == f"Confirm: write into {os.path.basename(dated)}-2/"
+        assert os.path.basename(dated) + "/ has MagIC tables already" in view.message.object
+        assert asyncio.run(view._convert()) is True and session.directory == dated + "-2"
+        assert not [n for n in os.listdir(dated) if n.startswith("MagIC_")]
 
     def test_replacing_keeps_the_old_tables_in_the_backup(self, tmp_path):
         d, session, view = self.first(tmp_path)

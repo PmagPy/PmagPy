@@ -11,7 +11,10 @@ session reloads the directory and Home fills in.
 The tables go into the lab folder the analyst chose, beside the files they came
 from -- also when the session is on a working copy of the study
 (:func:`pmagpy_panel.datasets.working_directory`): the page then lists the
-study's own folder and converts into it. A folder that already has MagIC tables
+study's own folder and converts into it. On a folder Convert made inside a lab
+folder (``MagIC_<date>/``, :func:`pmagpy.convert_registry.lab_folder`) the page
+lists the lab folder's files and converts into that folder's tables, whose log
+says which files are in them already. A folder that already has MagIC tables
 is not overwritten on one click: adding to them leaves out the files its
 conversion log says are in them already (unless the analyst asks for them
 again), and converting afresh asks first whether the new tables go into a dated
@@ -27,14 +30,14 @@ from __future__ import annotations
 import asyncio
 import html
 import os
-from datetime import date
 from typing import Callable, List, Optional
 
 import panel as pn
 
 from pmagpy import magic_project as mp
-from pmagpy.convert_registry import (FORMATS, MAGIC_TABLES, Format, already_converted, convert_files,
-                                     directory_inputs, log_name, record_conversion)
+from pmagpy.convert_registry import (FORMATS, MAGIC_TABLES, NEW_FOLDER, REPLACE, Format, already_converted,  # noqa: F401
+                                     convert_files, dated_folder, directory_inputs, lab_folder, log_name,
+                                     record_conversion, where_choices)
 from pmagpy.magic_metadata import BACKUP_DIR
 from pmagpy_panel import datasets
 from pmagpy_panel.forms import Form
@@ -48,22 +51,16 @@ OK_COLOR = "#1a7f5a"
 WARN_COLOR = "#b45309"
 MAGIC_FILE = "magic"       # the pseudo-format for a contribution file
 CHOOSE = ""                # no format chosen yet: the page never chooses one for the analyst
-NEW_FOLDER, REPLACE = "folder", "replace"
-
-
-def dated_folder(directory: str, today: Optional[date] = None) -> str:
-    """The folder a fresh set of tables goes to beside old ones: ``MagIC_<YYYY-MM-DD>``, then ``-2``, ``-3`` …"""
-    stem = f"MagIC_{(today or date.today()).isoformat()}"
-    name, n = stem, 1
-    while os.path.exists(os.path.join(directory, name)):
-        n += 1
-        name = f"{stem}-{n}"
-    return os.path.join(directory, name)
 
 
 def has_tables(directory: str) -> bool:
     """True when any MagIC table is in the folder: a conversion without "add" would replace it."""
     return any(os.path.isfile(os.path.join(directory, f"{t}.txt")) for t in MAGIC_TABLES)
+
+
+def same(a: str, b: str) -> bool:
+    """Whether two paths name one folder."""
+    return os.path.realpath(a) == os.path.realpath(b)
 
 
 def format_options() -> dict:
@@ -120,21 +117,30 @@ class ConvertView:
         return FORMATS.get(self.format.value)
 
     @property
-    def folder(self) -> str:
-        """Where the lab files are and the tables go: the study itself, also when the session is on its working copy."""
+    def tables_dir(self) -> str:
+        """Where the tables go: the study itself, also when the session is on its working copy."""
         directory = self.s.directory
         return (datasets.working_copy_source(directory) or directory) if directory else ""
 
+    @property
+    def folder(self) -> str:
+        """Where the lab files are: the study's folder, or the lab folder it was made in (``MagIC_<date>/``)."""
+        tables = self.tables_dir
+        return lab_folder(tables) if tables else ""
+
     def refresh(self) -> None:
-        """Point the page at the session's study: its own folder's files, and the format they look like."""
+        """Point the page at the session's study: its lab folder's files, and the format they look like."""
         with LayoutHold.batch():
-            folder = self.folder
-            on_copy = bool(folder) and os.path.realpath(folder) != os.path.realpath(self.s.directory)
-            self.inv = inv = take_inventory(folder) if on_copy else self.s.inventory
+            folder, tables = self.folder, self.tables_dir
+            self.inv = inv = self.s.inventory if not folder or same(folder, self.s.directory) else take_inventory(folder)
+            self.tables_inv = self.s.inventory if not tables or same(tables, self.s.directory) else take_inventory(tables)
             lines = f'<div class="path">{html.escape(shorten_home(inv.directory))}</div>'
-            if on_copy:
-                lines += (f'<div class="path">The lab files are here, and the tables are written here too; the '
-                          f'applications work on the copy {html.escape(shorten_home(self.s.directory))}.</div>')
+            if folder and not same(folder, tables):
+                lines += (f'<div class="path">The lab files are here; the tables are written into '
+                          f'{html.escape(os.path.basename(tables.rstrip(os.sep)))}/ inside it, which Convert made.</div>')
+            if tables and not same(tables, self.s.directory):
+                lines += (f'<div class="path">The tables are written {"here" if same(folder, tables) else "there"}; '
+                          f'the applications work on the copy {html.escape(shorten_home(self.s.directory))}.</div>')
             self.heading.object = (f'<div class="home"><div class="section">Convert</div><h1>{html.escape(inv.name)}</h1>'
                                    f'{lines}</div>')
             # the format is the analyst's to choose: file names alone mislead (every .dat looks like
@@ -143,9 +149,9 @@ class ConvertView:
             if folder != self._chosen_for:
                 self.format.value = CHOOSE
                 self._chosen_for = folder
-            # any table already here is worth keeping — the samples and sites from a field notebook as much as measurements
-            self.append.visible = inv.is_magic or inv.has_level_tables
-            self.append.value = inv.is_magic or inv.has_level_tables
+            # any table already there is worth keeping — the samples and sites from a field notebook as much as measurements
+            held = self.tables_inv.is_magic or self.tables_inv.has_level_tables
+            self.append.visible = self.append.value = held
             self._format_changed()
 
     def reset(self) -> None:
@@ -227,8 +233,8 @@ class ConvertView:
         return [os.path.join(folder, n) for n in self.files.value]
 
     def _already_in(self) -> List[str]:
-        """The chosen files the folder's conversion log says are in its tables already (as they are now)."""
-        return already_converted(self.folder, self._chosen_paths()) if self.folder else []
+        """The chosen files the tables' conversion log says are in them already (as they are now)."""
+        return already_converted(self.tables_dir, self._chosen_paths()) if self.tables_dir else []
 
     def _choice_changed(self) -> None:
         """Another format, file or "add": nothing waits to be confirmed, and the files converted before are named."""
@@ -246,17 +252,17 @@ class ConvertView:
         self.where.visible = False
         self.run_btn.name, self.run_btn.button_type, self.run_btn.width = "Convert", "success", 130
 
-    def _ask_where(self, folder: str) -> None:
+    def _ask_where(self, tables: str) -> None:
         """The first click of a fresh conversion into a folder that has tables: ask where the new ones go."""
-        name = os.path.basename(dated_folder(folder))
-        self.where.options = {f"Into a new folder here, {name}/ (nothing is overwritten)": NEW_FOLDER,
-                              f"Replace the tables here (the old ones are kept in {BACKUP_DIR}/)": REPLACE}
+        self.where.options = where_choices(self.folder, tables, BACKUP_DIR)
         self.where.value = NEW_FOLDER
         self.where.visible = True
         self._confirming = True
         self._label_confirm()
-        present = [f"{t}.txt" for t in MAGIC_TABLES if os.path.isfile(os.path.join(folder, f"{t}.txt"))]
-        self._say(f"This folder has MagIC tables already ({html.escape(', '.join(present))}). Choose where the new "
+        present = [f"{t}.txt" for t in MAGIC_TABLES if os.path.isfile(os.path.join(tables, f"{t}.txt"))]
+        which = ("This folder" if os.path.realpath(tables) == os.path.realpath(self.folder)
+                 else f"{html.escape(os.path.basename(tables.rstrip(os.sep)))}/")
+        self._say(f"{which} has MagIC tables already ({html.escape(', '.join(present))}). Choose where the new "
                   "tables go and click again, or tick “Add to the tables already here”.", WARN_COLOR)
 
     def _label_confirm(self) -> None:
@@ -273,12 +279,12 @@ class ConvertView:
     async def _convert(self, event=None) -> bool:
         """Run the converter on the chosen files and reload the directory."""
         fmt = self.fmt
-        folder = self.folder
+        folder, tables = self.folder, self.tables_dir
         if self.format.value == CHOOSE:
             self._say("Choose the format of the files first.", FAIL_COLOR)
             return False
         if fmt is None:
-            return await self._unpack(folder)
+            return await self._unpack(folder, tables)
         if not fmt.takes_directory and not self.files.value:
             self._say("Choose the files to convert.", FAIL_COLOR)
             return False
@@ -288,7 +294,7 @@ class ConvertView:
             return False
         inputs = [folder] if fmt.takes_directory else [os.path.join(folder, n) for n in self.files.value]
         append = self.append.visible and self.append.value
-        target, extra, left_out = folder, {}, []
+        target, extra, left_out = tables, {}, []
         if append and not self.again.value:
             left_out = self._already_in()
             again = "Tick “Convert them again anyway” to add them a second time."
@@ -296,48 +302,48 @@ class ConvertView:
                 self._say(f"{html.escape(fmt.label)} reads the whole folder, and "
                           f"<b>{html.escape(', '.join(left_out))}</b> are in these tables already. {again}", FAIL_COLOR)
                 return False
-            inputs = [p for p in inputs if log_name(p, folder) not in left_out]
+            inputs = [p for p in inputs if log_name(p, tables) not in left_out]
             if not inputs:
                 self._say(f"Nothing new to convert: <b>{html.escape(', '.join(left_out))}</b> "
                           f"{'is' if len(left_out) == 1 else 'are'} in these tables already. {again}", FAIL_COLOR)
                 return False
-        elif not append and has_tables(folder):
+        elif not append and has_tables(tables):
             if not self._confirming:
-                self._ask_where(folder)
+                self._ask_where(tables)
                 return False
             if self.where.value == REPLACE:
-                extra = {"backup": os.path.join(folder, BACKUP_DIR)}
+                extra = {"backup": os.path.join(tables, BACKUP_DIR)}
             else:
                 target = dated_folder(folder)
-                extra = {"magic_dir": folder}
+                extra = {"magic_dir": tables}
         self._cancel_confirm()
         values = self.form.values()
         self.run_btn.disabled = True
         loop = asyncio.get_running_loop()
         self._say(f"Converting with {html.escape(fmt.label)} …")
         try:
-            if target != folder:
+            if target != tables:
                 os.mkdir(target)
             result = await loop.run_in_executor(
                 None, lambda: self.run(fmt, inputs, values, target, append=append,
                                        report=lambda text: pn.state.execute(lambda: self._say(html.escape(text))),
                                        **extra))
         except OSError as err:
-            self._forget(target, folder)
+            self._forget(target, tables)
             self._say(f"Could not write into {html.escape(shorten_home(target))}: {html.escape(str(err))}", FAIL_COLOR)
             return False
         finally:
             self.run_btn.disabled = False
         self._show_log(result.log)
         if not result.ok:
-            self._forget(target, folder)
+            self._forget(target, tables)
             self._say(html.escape(result.message), FAIL_COLOR)
             return False
         if not self.s.load(target):
             self._say(html.escape(self.s.status), FAIL_COLOR)
             return False
         lines = [html.escape(result.message)]
-        if target != folder:
+        if target != tables:
             lines.append(f"written into {html.escape(os.path.basename(target))}/")
         elif "backup" in extra:
             lines.append(f"the tables replaced are kept in {BACKUP_DIR}/")
@@ -363,12 +369,13 @@ class ConvertView:
             except OSError:
                 pass
 
-    async def _unpack(self, directory: str) -> bool:
+    async def _unpack(self, folder: str, directory: str) -> bool:
+        """Unpack the chosen contribution file (in the lab folder ``folder``) into ``directory``."""
         chosen = list(self.files.value)
         if len(chosen) != 1:
             self._say("Choose the one contribution file to unpack.", FAIL_COLOR)
             return False
-        path = os.path.join(directory, chosen[0])
+        path = os.path.join(folder, chosen[0])
         self.run_btn.disabled = True
         loop = asyncio.get_running_loop()
         self._say(f"Unpacking {html.escape(chosen[0])} …")
@@ -383,7 +390,7 @@ class ConvertView:
             return False
         finally:
             self.run_btn.disabled = False
-        record_conversion(directory, "magic", [chosen[0]], tables={t: mp.table_rows(os.path.join(directory, f"{t}.txt")) for t in tables},
+        record_conversion(directory, "magic", [path], tables={t: mp.table_rows(os.path.join(directory, f"{t}.txt")) for t in tables},
                           label="MagIC contribution file")
         if not self.s.load(directory):
             self._say(html.escape(self.s.status), FAIL_COLOR)

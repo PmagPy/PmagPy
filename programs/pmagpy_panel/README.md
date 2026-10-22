@@ -191,6 +191,15 @@ folder that has tables already:
   exists; nothing is overwritten, and Home opens that folder), or replacing the
   tables, the old ones kept in `backup_before_pmagpy_apps/`. The second click
   converts; changing the files, the format or "add" withdraws the question.
+* A `MagIC_<date>/` folder takes further batches from its lab folder: Convert
+  on it lists the lab folder's files and adds to the dated folder's tables,
+  whose own `pmagpy_conversions.json` says which files are in them already; a
+  fresh conversion from there asks the same question, and its new dated folder
+  goes into the lab folder. Each log entry records where its files were
+  (`lab_folder`, `".."` for the folder above), and `reg.lab_folder(dir_path)`
+  reads it back; a dated folder logged before entries recorded it is known by
+  its name and the files its log names in the folder above. The .tdt import's
+  `magic3/` is such a folder too.
 
 The same registry is a command. `pmagpy-convert` (installed by `setup.py`; or
 `python -m pmagpy.convert_cli`) lists the formats, `pmagpy-convert sio --help`

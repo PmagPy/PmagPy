@@ -41,10 +41,11 @@ import inspect
 import io
 import json
 import os
+import re
 import shutil
 import tempfile
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date, datetime
 from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
 import pandas as pd
@@ -54,6 +55,8 @@ from pmagpy import convert_2_magic as convert
 MAGIC_TABLES = ("measurements", "specimens", "samples", "sites", "locations", "ages", "criteria", "images")
 #: the record, beside the tables, of the conversions that wrote them (see :func:`record_conversion`)
 CONVERSION_LOG = "pmagpy_conversions.json"
+#: the name of a folder a fresh set of tables goes to inside its lab folder (:func:`dated_folder`)
+DATED_FOLDER = re.compile(r"MagIC_\d{4}-\d{2}-\d{2}(-\d+)?")
 
 
 class Deferred:
@@ -454,9 +457,12 @@ def record_conversion(dir_path: str, format_key: str, files: Sequence[str], valu
     tell which (see :func:`conversion_sources`).
 
     ``files`` may be paths (absolute, or relative to ``dir_path``) or names; a
-    file that is there is stamped.
+    file that is there is stamped. When the files given as paths are all in
+    one folder, the entry also has ``lab_folder``: that folder, relative to
+    ``dir_path`` (``"."``, or ``".."`` for tables written into a folder of their
+    own inside the lab folder; see :func:`lab_folder`).
     """
-    names, stamps = [], {}
+    names, stamps, folders = [], {}, set()
     for item in files:
         path = item if os.path.isabs(item) else os.path.join(dir_path, item)
         name = log_name(path, dir_path) if os.path.isabs(item) else item
@@ -464,6 +470,8 @@ def record_conversion(dir_path: str, format_key: str, files: Sequence[str], valu
         stamp = file_stamp(path)
         if stamp:
             stamps[name] = stamp
+            if os.path.isabs(item):
+                folders.add(os.path.dirname(os.path.realpath(path)))
     entry = {
         "when": datetime.now().replace(microsecond=0).isoformat(),
         "format": format_key,
@@ -475,6 +483,8 @@ def record_conversion(dir_path: str, format_key: str, files: Sequence[str], valu
         "tables": dict(tables or {}),
         "failed": list(failed),
     }
+    if len(folders) == 1:
+        entry["lab_folder"] = os.path.relpath(folders.pop(), os.path.realpath(dir_path))
     entries = read_conversions(dir_path)
     entries.append(entry)
     path = os.path.join(dir_path, CONVERSION_LOG)
@@ -482,6 +492,57 @@ def record_conversion(dir_path: str, format_key: str, files: Sequence[str], valu
         json.dump(entries, fh, indent=1, default=str)
         fh.write("\n")
     return path
+
+
+def dated_folder(directory: str, today: Optional[date] = None) -> str:
+    """The folder a fresh set of tables goes to beside old ones: ``MagIC_<YYYY-MM-DD>``, then ``-2``, ``-3`` …"""
+    stem = f"MagIC_{(today or date.today()).isoformat()}"
+    name, n = stem, 1
+    while os.path.exists(os.path.join(directory, name)):
+        n += 1
+        name = f"{stem}-{n}"
+    return os.path.join(directory, name)
+
+
+#: the answers to "where do the new tables go?", asked before tables already in a folder are replaced
+NEW_FOLDER, REPLACE = "folder", "replace"
+
+
+def where_choices(lab: str, tables: str, backup_dir: str) -> Dict[str, str]:
+    """The question asked before a conversion, an unpack or an import replaces the tables in ``tables``:
+    label → :data:`NEW_FOLDER` (the default: a :func:`dated_folder` in the lab folder ``lab``) or
+    :data:`REPLACE` (the old tables kept in ``backup_dir``)."""
+    name = os.path.basename(dated_folder(lab))
+    here = os.path.realpath(lab) == os.path.realpath(tables)
+    into = "here" if here else f"in {os.path.basename(lab.rstrip(os.sep))}/"
+    there = "here" if here else f"in {os.path.basename(tables.rstrip(os.sep))}/"
+    return {f"Into a new folder {into}, {name}/ (nothing is overwritten)": NEW_FOLDER,
+            f"Replace the tables {there} (the old ones are kept in {backup_dir}/)": REPLACE}
+
+
+def lab_folder(dir_path: str) -> str:
+    """The folder holding the lab files the tables in ``dir_path`` came from.
+
+    ``dir_path`` itself, unless its tables were written into a folder of their
+    own inside the lab folder -- a ``MagIC_<date>/`` folder Convert made beside
+    tables already there (:func:`dated_folder`), or the .tdt import's ``magic3/``
+    -- when it is that lab folder, the folder holding ``dir_path``. The log says
+    so (``lab_folder`` of its latest entry that records one is ``".."``); a log
+    from a build that did not record it counts for a folder named
+    ``MagIC_<date>`` whose parent holds a file its log names.
+    """
+    dir_path = os.path.abspath(os.path.expanduser(dir_path)).rstrip(os.sep) or os.sep
+    parent = os.path.dirname(dir_path)
+    entries = read_conversions(dir_path)
+    recorded = [e["lab_folder"] for e in entries if isinstance(e.get("lab_folder"), str)]
+    if recorded:
+        return parent if recorded[-1] == os.pardir else dir_path
+    if entries and DATED_FOLDER.fullmatch(os.path.basename(dir_path)):
+        named = {n for e in entries for n in e.get("files", []) if isinstance(n, str)}
+        if any(os.path.isfile(os.path.join(parent, n)) and not os.path.isfile(os.path.join(dir_path, n))
+               for n in named):
+            return parent
+    return dir_path
 
 
 def read_conversions(dir_path: str) -> List[dict]:

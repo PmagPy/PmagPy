@@ -504,6 +504,60 @@ class TestConversionLog:
         assert "needs specimens.txt" not in result.message
 
 
+class TestLabFolder:
+    """A folder of tables Convert made inside a lab folder knows that its lab files are in the folder above."""
+
+    def lab(self, tmp_path):
+        lab = tmp_path / "lab"
+        lab.mkdir()
+        for name in ("AF.jr6", "TRM.jr6"):
+            shutil.copy(example_path(f"jr6_magic/{name}"), lab)
+        return lab
+
+    def test_tables_beside_their_files_are_their_own_lab_folder(self, tmp_path):
+        lab = self.lab(tmp_path)
+        reg.convert_files(reg.FORMATS["jr6_jr6"], ["AF.jr6"], {}, str(lab))
+        assert reg.read_conversions(str(lab))[0]["lab_folder"] == "."
+        assert reg.lab_folder(str(lab)) == str(lab)
+        assert reg.lab_folder(str(tmp_path)) == str(tmp_path)                 # no log: the folder itself
+
+    def test_a_dated_folder_names_the_lab_folder_it_was_made_in(self, tmp_path):
+        lab = self.lab(tmp_path)
+        dated = reg.dated_folder(str(lab))
+        os.mkdir(dated)
+        reg.convert_files(reg.FORMATS["jr6_jr6"], [str(lab / "TRM.jr6")], {}, dated)
+        (entry,) = reg.read_conversions(dated)
+        assert entry["files"] == ["TRM.jr6"] and entry["lab_folder"] == ".."
+        assert reg.lab_folder(dated) == str(lab)
+        assert reg.already_converted(dated, [str(lab / "AF.jr6"), str(lab / "TRM.jr6")]) == ["TRM.jr6"]
+
+    def test_a_dated_folder_logged_before_the_log_said_so_is_recognised(self, tmp_path):
+        import json
+        lab = self.lab(tmp_path)
+        dated = lab / "MagIC_2026-10-21-2"
+        dated.mkdir()
+        reg.record_conversion(str(dated), "jr6_jr6", [str(lab / "AF.jr6")], tables={"measurements": 5})
+        entries = reg.read_conversions(str(dated))
+        del entries[0]["lab_folder"]                                   # as the build of 21 Oct 2026 wrote it
+        (dated / reg.CONVERSION_LOG).write_text(json.dumps(entries))
+        assert reg.lab_folder(str(dated)) == str(lab)
+        other = lab / "results"                                        # not a dated folder: its own lab folder
+        other.mkdir()
+        (other / reg.CONVERSION_LOG).write_text(json.dumps(entries))
+        assert reg.lab_folder(str(other)) == str(other)
+        gone = tmp_path / "MagIC_2026-10-21"                           # nothing it names is above it
+        gone.mkdir()
+        (gone / reg.CONVERSION_LOG).write_text(json.dumps(entries))
+        assert reg.lab_folder(str(gone)) == str(gone)
+
+    def test_the_question_names_the_folders(self, tmp_path):
+        lab = self.lab(tmp_path)
+        dated = reg.dated_folder(str(lab))
+        labels = list(reg.where_choices(str(lab), dated, "backup_before_pmagpy_apps"))
+        assert labels[0].startswith("Into a new folder in lab/, ") and "Replace the tables in MagIC_" in labels[1]
+        assert list(reg.where_choices(str(lab), str(lab), "b").values()) == [reg.NEW_FOLDER, reg.REPLACE]
+
+
 # ----- guessing ------------------------------------------------------------------------------
 
 class TestGuessFormat:
