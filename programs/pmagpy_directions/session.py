@@ -69,8 +69,8 @@ def session_directory(default: str) -> str:
 
 
 def default_output_dir(directory: str) -> str:
-    """Where this study is worked on: the study itself, or its working copy under the shared output base
-    (``PMAGPY_APPS_OUTPUT``; see :func:`pmagpy_panel.datasets.working_directory`)."""
+    """Where this study's working copy goes in the PmagPy folder, should it need one
+    (``PMAGPY_APPS_OUTPUT``, default ``~/PmagPy``; see :func:`pmagpy_panel.datasets.working_directory`)."""
     return datasets.default_output_dir(directory, base=datasets.output_base())
 
 
@@ -170,8 +170,8 @@ class Session(param.Parameterized):
         self.flush_autosave()         # the dataset being left keeps its last edits
         source = directory
         if not output_dir:
-            # every application works on the same folder: the study itself, or -- when the output is
-            # kept out of it (the desktop build) -- one working copy of it that all of them share
+            # every application works on the same folder: the study itself, or -- for an example or a
+            # study that cannot be written in place -- one working copy of it in the PmagPy folder
             try:
                 directory = datasets.working_directory(source)
             except OSError as exc:

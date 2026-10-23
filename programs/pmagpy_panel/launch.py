@@ -102,7 +102,9 @@ def main(app_files: Union[str, Sequence[str]], env_prefix: str, default_port: in
     port_default = os.environ.get(env_prefix + "PORT") or default_port
     ap.add_argument("--port", type=int, default=int(port_default))
     ap.add_argument("--dir", help=f"MagIC directory to open (sets {env_prefix}DIR)")
-    ap.add_argument("--output", help=f"output directory root (sets {env_prefix}OUTPUT)")
+    ap.add_argument("--output", help=f"the PmagPy folder (default ~/PmagPy): copies of the examples and of studies "
+                                     f"that cannot be written in place, and contributions downloaded from MagIC; "
+                                     f"every other study is worked on where it is (sets {env_prefix}OUTPUT)")
     ap.add_argument("--no-show", action="store_true", help="do not open a browser tab")
     ap.add_argument("--no-reload", action="store_true", help="disable automatic reload on code changes")
     args = ap.parse_args(argv)

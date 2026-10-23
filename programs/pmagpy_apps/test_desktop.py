@@ -46,7 +46,7 @@ class TestEditions:
     def test_the_directory_page_lists_only_the_editions_applications_and_tools(self):
         tmpl = app.create_app(MCMURDO, edition=EDITIONS["directions"])
         html = page_html(tmpl)
-        assert app.app_link("pmagpy_directions", MCMURDO) in html
+        assert app.app_link("pmagpy_directions", datasets.working_directory(MCMURDO)) in html
         for other in ("Intensity", "Rock magnetism", "FORC", "Anisotropy"):
             assert f"<h3>{other}</h3>" not in html
         assert "Metadata" not in html and "Upload" not in html          # neither the strip nor the buttons
@@ -280,8 +280,8 @@ class TestDesktopEdition:
 
     def test_the_directory_page_offers_both_applications_on_mcmurdo(self):
         html = page_html(app.create_app(MCMURDO, edition=EDITIONS["desktop"]))
-        assert app.app_link("pmagpy_directions", MCMURDO) in html
-        assert app.app_link("pmagpy_intensity", MCMURDO) in html      # McMurdo has Thellier experiments
+        assert app.app_link("pmagpy_directions", datasets.working_directory(MCMURDO)) in html
+        assert app.app_link("pmagpy_intensity", datasets.working_directory(MCMURDO)) in html      # McMurdo has Thellier experiments
         assert "<h3>Rock magnetism</h3>" not in html
 
     def test_the_site_serves_both_applications(self):

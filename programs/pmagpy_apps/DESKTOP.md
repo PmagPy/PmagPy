@@ -24,69 +24,46 @@ intended. Rock magnetism and Anisotropy join by adding them to the edition
   in an application's header comes back.
 * "Browse with Finder…" is the system's own folder chooser (pywebview's dialog,
   registered with `pmagpy_panel.runtime.set_folder_dialog`).
-* One copy of each study, shared by every application: the first time a
-  study is opened, its tables (and any legacy `.redo` or session files) are
-  copied to `~/PmagPy/<dataset>-<fingerprint>/`, and Directions, Intensity,
-  Rock Magnetism, Anisotropy and the hub's Metadata page all read and write
-  that folder -- so a flag set in Directions, an interpretation exported from
-  Intensity and a metadata edit on the hub are one set of tables, ready to
-  upload. An export into the copy writes on one click (the tables it replaces
-  are kept in its `backup_before_…/previous/`); where the study itself is
-  written, the export asks for a second click. The applications never write to the study itself (nor to the
-  read-only bundle, where the example lives); only Convert does, when the
-  analyst converts lab files: their tables go into the lab folder, beside the
-  files (`pmagpy_apps/convert.py`). The fingerprint is a short hash of the study's full
-  path (`pmagpy_panel.datasets.default_output_dir`), so studies kept in
-  folders of the same name (`MagIC`, `data`) get copies of their own. The
-  bundled example is the exception: its copy is `~/PmagPy/McMurdo-example/`,
-  whatever the application's location or version (moving it to Applications,
-  installing a newer build or macOS's App Translocation would otherwise each
-  give it a new path and a new, empty copy); a newer example's new files are
-  added to that copy and the files in it are kept, as for any copy; the copy
-  records where it came from (`.pmagpy_working_copy.json`), and only a folder
-  holding that marker is taken for a copy -- a study the analyst keeps under
-  `~/PmagPy` gets a copy of its own like any other. Every page names
-  the study (McMurdo, not its fingerprinted folder); the dataset block in the
-  side column adds "working copy · ~/PmagPy/McMurdo-…", and hovering over it
-  says which study is never written and where the copy is. A copy is made once: files the study gains later are added to it,
-  files it already has are not overwritten. `PMAGPY_APPS_OUTPUT` (or `--output`)
-  names another base; without one -- a checkout or a pip install -- every
-  application works in the study's own folder, as before.
+* A study is worked on where the analyst keeps it: the folder chosen in Open
+  MagIC data, or the lab folder converted into on the Convert page. Lab files
+  are never edited; the MagIC tables, session files and exports are written
+  beside them, so they stay with the study (in its git repository, say).
+  Directions, Intensity, Rock Magnetism, Anisotropy and the hub's Metadata
+  page all read and write that folder, so a flag set in Directions, an
+  interpretation exported from Intensity and a metadata edit on the hub are one
+  set of tables, ready to upload. An export that replaces the study's tables
+  asks for a second click, and keeps the tables it replaces in
+  `backup_before_…/`. Contributions downloaded from MagIC go into `~/PmagPy/`
+  (`MagIC_<id>/`) and are worked on there in the same way.
+* The PmagPy folder, `~/PmagPy/` (`PMAGPY_APPS_OUTPUT` or `--output` names
+  another), takes what cannot be worked on in place
+  (`pmagpy_panel.datasets.needs_copy`): the examples, which live in the
+  read-only bundle (or a checkout's `data_files`), and a study in a folder that
+  cannot be written. Such a study is copied once to
+  `~/PmagPy/<dataset>-<fingerprint>/` and every application works on that one
+  copy; the fingerprint is a short hash of the study's full path, so studies in
+  folders of the same name get copies of their own. The bundled example's copy
+  is `~/PmagPy/McMurdo-example/`, whatever the application's location or
+  version; a newer example's new files are added to it and the files in it are
+  kept. A copy records where it came from (`.pmagpy_working_copy.json`), the
+  pages name the study (McMurdo, not its fingerprinted folder), and the
+  dataset block in the side column adds "working copy · ~/PmagPy/McMurdo-…".
 * A copy records what it was made from: each file's size, modification time
-  and checksum, in its `.pmagpy_working_copy.json`. When the study's tables
-  have changed since (new lab files converted into it, a corrected table), the
-  side column and Home say so and offer **Start a fresh copy**: the old copy,
-  with its interpretations, is set aside under its name and the date
-  (`McMurdo-1a2b3c4d-2026-10-20`, then `-2` …; nothing in it is overwritten)
-  and a new copy is made from the study as it is now. For a study PmagPy made
-  the button reads **Work on the study itself**, since such a study has no copy
-  once its old one is set aside. A copy made before copies recorded their
-  files cannot tell, and says nothing. Each copy has an id of its own in its
-  marker (`pmagpy_panel.datasets.copy_id`), which a window remembers when it
-  opens the copy: a window (another browser tab, Directions, Intensity, the
-  Metadata page) still open on a copy that was set aside writes neither its
-  autosave nor an export into the new copy at the same path, and says to
-  reload (`pmagpy_panel.autosave`, beside the guard against two windows
-  overwriting one autosave).
-* Studies PmagPy made are worked on in place. A folder whose tables came from
-  Convert or Intensity's .tdt import holds the conversion log
-  `pmagpy_conversions.json`, and every application and the hub open that folder
-  itself, with or without a base (`pmagpy_panel.datasets.made_by_pmagpy`): the
-  tables sit with the lab files, where the analyst builds the MagIC upload from,
-  and the side column shows the folder's path with no "working copy". A study
-  without a log -- a colleague's study, the bundled example -- still gets its
-  copy, and nothing inside the application bundle or an install's `data_files`
-  (or a folder that cannot be written) is ever worked on in place. A
-  contribution that came from MagIC always gets a copy
-  (`pmagpy_panel.datasets.from_magic`): one unpacked from a contribution file on
-  the Convert page or downloaded by "Download from MagIC" (either way its log
-  entry has format `magic`, and the log keeps it), or downloaded from the
-  website or by a build that did not log downloads (known by its
-  `contribution.txt`) -- also when lab files were converted into its folder
-  since; it is someone's record, and Home says so under the path. A study that
-  already had a working copy before it gained its log (converted by an earlier
-  build) keeps using that copy, so the work in it is not left behind; the side
-  column then says "earlier working copy", and Home says why under the path.
+  and checksum. When the study has changed since (a newer example), the side
+  column and Home say so and offer **Start a fresh copy**: the old copy, with
+  its interpretations, is set aside under its name and the date
+  (`McMurdo-example-2026-10-20`, then `-2` …; nothing in it is overwritten)
+  and a new copy is made. Each copy has an id of its own
+  (`pmagpy_panel.datasets.copy_id`): a window still open on a copy that was
+  set aside writes neither its autosave nor an export into the new copy at the
+  same path, and says to reload (`pmagpy_panel.autosave`).
+* Earlier builds worked on every study in a copy under `~/PmagPy/`. When such
+  a study is opened now it is worked on in place, and the side column and Home
+  name the earlier copy and the files in it that differ from the study's
+  (`pmagpy_panel.datasets.earlier_copy_note`). **Bring the copy's work into the
+  study** copies those files into the study -- each study file it replaces kept
+  first in `backup_before_working_copy-<date>/` -- and sets the copy aside
+  under its name and the date (`pmagpy_panel.datasets.bring_over`).
 * Closing the window ends the process; nothing keeps running.
 
 ## How it is built

@@ -60,6 +60,16 @@ def choose(view, key: str, hint: str = "") -> None:
     view.format.value = key
 
 
+def earlier_copy_of(study: str) -> str:
+    """The working copy a build that copied every study made of `study`."""
+    real = datasets.needs_copy
+    datasets.needs_copy = lambda directory: True
+    try:
+        return datasets.working_directory(study)
+    finally:
+        datasets.needs_copy = real
+
+
 def cit_only(tmp_path) -> str:
     d = tmp_path / "PI47"
     d.mkdir()
@@ -76,7 +86,8 @@ class TestPage:
         assert tmpl.favicon == "/pmagpy_apps_assets/favicon.png"
         html = page_html(tmpl)
         assert "McMurdo" in html and "MagIC contribution 13436" in html
-        assert app.app_link("pmagpy_directions", MCMURDO) in html
+        # the example ships with PmagPy: every application works on its copy in the PmagPy folder
+        assert app.app_link("pmagpy_directions", datasets.working_directory(MCMURDO)) in html
         assert "contribution.txt" not in html          # never user-visible
 
     def test_links_carry_the_directory_on_the_query_string(self):
@@ -117,7 +128,7 @@ class TestPage:
         view = home.HomeView(session)
         assert session.landing and view.start.visible and not view.work.visible
         view.example_btn.clicks += 1
-        assert session.directory == MCMURDO and not session.landing
+        assert session.directory == datasets.working_directory(MCMURDO) and not session.landing
         assert view.work.visible and not view.start.visible and "MagIC contribution 13436" in view.ref.object
         assert datasets.load_recent(recent) == []                              # the example is not "recent"
         view.start_btn.clicks += 1                                              # and back
@@ -212,7 +223,7 @@ class TestOpenDirectory:
         dialog.path.value = str(tmp_path / "nowhere")
         assert dialog.load() is False
         assert "is not a directory" in dialog.message.object
-        assert session.directory == MCMURDO
+        assert session.directory == datasets.working_directory(MCMURDO)
 
     def test_any_existing_directory_opens_even_an_empty_one(self, tmp_path):
         session = home.HubSession(MCMURDO)
@@ -281,10 +292,10 @@ class TestDownloadFromMagic:
         today = datetime.date.today()
         assert entry["when"].startswith(today.isoformat())
         assert home.stages(session.inventory)[0][2] == f"contribution 20549 from MagIC · {today:%-d %b %Y}"
-        # a published record: worked on in a copy, never in place, as a download without the entry was
-        assert datasets.from_magic(str(folder)) and not datasets.made_by_pmagpy(str(folder))
+        # worked on where it was downloaded, as a download without the entry is
+        assert datasets.from_magic(str(folder)) and datasets.working_directory(str(folder)) == str(folder)
         os.remove(folder / reg.CONVERSION_LOG)                   # downloaded before downloads were logged
-        assert datasets.from_magic(str(folder)) and not datasets.made_by_pmagpy(str(folder))
+        assert datasets.from_magic(str(folder)) and datasets.working_directory(str(folder)) == str(folder)
 
     def test_a_doi_finds_the_latest_version_and_says_so(self, tmp_path):
         session = home.HubSession(str(tmp_path))
@@ -392,12 +403,12 @@ class TestDownloadFromMagic:
         assert dialog.fetched == [] and "ships with PmagPy" in dialog.message.object and not dialog.where.visible
         assert self.digest(dialog.folder.value) == before
 
-    def test_on_a_working_copy_the_study_is_where_the_tables_go(self, tmp_path, monkeypatch):
+    def test_on_an_earlier_working_copy_the_study_is_where_the_tables_go(self, tmp_path, monkeypatch):
         for var in datasets.OUTPUT_BASE_VARS:
             monkeypatch.delenv(var, raising=False)
         monkeypatch.setenv("PMAGPY_APPS_OUTPUT", str(tmp_path / "PmagPy"))
         study = self.study(tmp_path)
-        session = home.HubSession(study)
+        session = home.HubSession(earlier_copy_of(study))            # a copy an earlier build made, opened itself
         copy = session.directory
         assert copy != study and datasets.working_copy_source(copy) == os.path.realpath(study)
         dialog = self._dialog(session)
@@ -406,8 +417,8 @@ class TestDownloadFromMagic:
         asyncio.run(dialog._download())
         dialog.where.value = download.REPLACE
         assert asyncio.run(dialog._download()) is True
-        assert session.directory == copy                                  # the copy is kept, and the dialog says so
-        assert "was made before and does not have them" in dialog.message.object
+        # the session opens the study, where the tables went, and the earlier copy is still offered to it
+        assert session.directory == study and datasets.earlier_copy(study) == os.path.realpath(copy)
         assert os.path.isfile(os.path.join(study, "backup_before_pmagpy_apps", "measurements.txt"))
 
     def test_a_failed_download_into_a_new_folder_leaves_no_folder(self, tmp_path):
@@ -479,14 +490,14 @@ class TestDownloadFromMagic:
         body.chooser.path.value = lab
         assert body.chooser.load() is True and body.pages["home"].visible
 
-    def test_a_download_from_the_start_page_goes_to_the_default_folder(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(download, "DEFAULT_BASE", str(tmp_path / "MagIC"))
+    def test_a_download_from_the_start_page_goes_to_the_pmagpy_folder(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("PMAGPY_APPS_OUTPUT", str(tmp_path / "PmagPy"))
         session = home.HubSession()
         dialog = self._dialog(session)
         assert dialog.folder.value == "" and "MagIC_<id>" in dialog.folder.placeholder
         dialog.reference.value = "20549"
         assert asyncio.run(dialog._download()) is True
-        assert session.directory == str(tmp_path / "MagIC" / "MagIC_20549") and not session.landing
+        assert session.directory == str(tmp_path / "PmagPy" / "MagIC_20549") and not session.landing
 
 
 class TestConvert:
@@ -702,7 +713,7 @@ class TestConvert:
         assert "removed, as the new tables do not have them: images.txt" in view.message.object
         assert (lab / "magic_contribution_20549.txt").exists()
 
-    def test_an_unpacked_contribution_is_worked_on_in_a_copy(self, tmp_path, monkeypatch):
+    def test_an_unpacked_contribution_is_worked_on_in_place(self, tmp_path, monkeypatch):
         from pmagpy.test.test_magic_project import AS_SERVED
         from pmagpy import convert_registry as reg
         for var in datasets.OUTPUT_BASE_VARS:
@@ -716,8 +727,7 @@ class TestConvert:
         choose(view, convert.MAGIC_FILE)
         assert asyncio.run(view._convert()) is True
         assert reg.read_conversions(str(lab))[0]["format"] == "magic"
-        assert not datasets.made_by_pmagpy(str(lab))
-        assert session.directory != str(lab) and datasets.working_copy_source(session.directory) == os.path.realpath(lab)
+        assert session.directory == str(lab) and not os.path.exists(tmp_path / "PmagPy")
 
     def test_a_field_notebook_is_recognised_and_writes_samples_and_sites(self, tmp_path):
         orient = os.path.join(os.path.dirname(CIT), "..", "..", "orientation_magic", "orient_example.txt")
@@ -875,7 +885,7 @@ class TestConvertAgain:
         assert f"written into {new}/" in view.message.object and view.run_btn.name == "Convert"
         assert open(os.path.join(d, "measurements.txt")).read() == before          # nothing overwritten
         from pmagpy import convert_registry as reg
-        assert reg.read_conversions(target)[0]["files"] == ["TRM.jr6"] and datasets.made_by_pmagpy(target)
+        assert reg.read_conversions(target)[0]["files"] == ["TRM.jr6"] and datasets.working_directory(target) == target
         # a second one the same day: -2
         session.load(d)
         assert view.format.value == "jr6_jr6"                       # the same lab folder: the choice stays
@@ -1004,15 +1014,15 @@ class TestConvertAgain:
         view.files.value = ["TRM.jr6"]
         assert not view.where.visible and view.run_btn.name == "Convert" and view.run_btn.button_type == "success"
 
-    def test_on_a_working_copy_the_page_lists_and_converts_into_the_study(self, tmp_path, monkeypatch):
+    def test_on_an_earlier_working_copy_the_page_lists_and_converts_into_the_study(self, tmp_path, monkeypatch):
         for var in datasets.OUTPUT_BASE_VARS:
             monkeypatch.delenv(var, raising=False)
         monkeypatch.setenv("PMAGPY_APPS_OUTPUT", str(tmp_path / "PmagPy"))
-        study = tmp_path / "Downloaded"            # a contribution from MagIC: no conversion log, so a working copy
+        study = tmp_path / "Downloaded"            # a contribution from MagIC an earlier build worked on in a copy
         study.mkdir()
         for name in ("contribution", "measurements", "specimens", "samples", "sites", "locations"):
             shutil.copy(os.path.join(MCMURDO, f"{name}.txt"), study)
-        session = home.HubSession(str(study))
+        session = home.HubSession(earlier_copy_of(str(study)))      # that copy, opened itself
         copy = session.directory
         assert copy != str(study) and datasets.working_copy_source(copy) == os.path.realpath(study)
         for name in ("AF.jr6", "TRM.jr6"):                 # the analyst's own lab files arrive in the study's folder
@@ -1027,9 +1037,8 @@ class TestConvertAgain:
         assert asyncio.run(view._convert()) is True
         assert rows(study / "measurements.txt") > n                     # into the study, beside its lab files
         assert open(os.path.join(copy, "measurements.txt")).read() == copied
-        assert not datasets.made_by_pmagpy(str(study))            # a contribution from MagIC stays someone's record
-        assert session.directory == copy                          # the copy is kept, and the page says so
-        assert "was made before and does not have them" in view.message.object
+        # the session opens the study, where the tables went, and the earlier copy is still offered to it
+        assert session.directory == str(study) and datasets.earlier_copy(str(study)) == os.path.realpath(copy)
 
     @pytest.mark.parametrize("key, example", [
         ("k15", "k15_magic/k15_example.dat"),

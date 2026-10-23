@@ -59,12 +59,10 @@ def ships_with_pmagpy(folder: str) -> bool:
     return any(path == root or path.startswith(root + os.sep) for root in datasets.shipped_roots())
 
 
-DEFAULT_BASE = os.path.join("~", "MagIC")
-
-
 def default_folder(magic_id: int) -> str:
-    """Where a contribution goes when no directory is open and none is typed: ``~/MagIC/MagIC_<id>``."""
-    return os.path.join(os.path.expanduser(DEFAULT_BASE), f"MagIC_{magic_id}")
+    """Where a contribution goes when no directory is open and none is typed: ``<PmagPy folder>/MagIC_<id>``
+    (``~/PmagPy`` unless ``--output`` names another; :func:`pmagpy_panel.datasets.output_base`)."""
+    return os.path.join(datasets.output_base(), f"MagIC_{magic_id}")
 
 
 class DownloadDialog:
@@ -86,7 +84,8 @@ class DownloadDialog:
         self.reference = pn.widgets.TextInput(name="Contribution ID or DOI", placeholder="20340  ·  10.1130/G53450.1",
                                               sizing_mode="stretch_width")
         self.folder = pn.widgets.TextInput(name="Into folder", sizing_mode="stretch_width",
-                                           placeholder=os.path.join(DEFAULT_BASE, "MagIC_<id>") + " unless you name one")
+                                           placeholder=os.path.join(datasets.shorten_home(datasets.output_base()), "MagIC_<id>")
+                                           + " unless you name one")
         self.download_btn = pn.widgets.Button(name="Download", button_type="success", width=130, margin=(23, 10, 5, 10))
         # a folder that has tables: where the contribution's go, asked before anything is fetched
         self.where = pn.widgets.RadioBoxGroup(options={}, inline=False, visible=False, margin=(0, 10, 5, 10))
@@ -228,7 +227,7 @@ class DownloadDialog:
         stale = datasets.working_copy_source(self.s.directory) and datasets.stale_copy_note(self.s.directory)
         if stale:
             lines.append(f"the working copy the applications use, {html.escape(datasets.shorten_home(self.s.directory))}, "
-                         "was made before and does not have them (Home offers to start afresh)")
+                         f"was made before and does not have them ({datasets.copy_remedy(self.s.directory)})")
         self._say(" · ".join(lines), WARN_COLOR if stale else OK_COLOR)
         location = runtime.location()
         if location is not None:

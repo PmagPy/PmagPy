@@ -1082,6 +1082,8 @@ class TestExportView:
             monkeypatch.delenv(var)
         monkeypatch.setenv("PMAGPY_APPS_OUTPUT", str(tmp_path / "base"))
         src, _ = workdir
+        monkeypatch.setattr(datasets, "shipped_roots",                 # a study that ships with PmagPy: a copy
+                            lambda roots=datasets.shipped_roots(): roots + [os.path.realpath(src)])
         session = Session(src)
         session.autosave_enabled = False
         assert session.directory != src and session.writes_in_place()
@@ -1357,48 +1359,31 @@ class TestShowCode:
         assert not os.path.exists(src / session_module.CODE_SESSION_NAME)
         assert not os.path.exists(tmp_path / "home")
 
-    def test_show_code_of_a_read_only_study_writes_a_session_for_it_elsewhere(self, tmp_path, monkeypatch):
-        # no autosave can be written into a read-only study: opening Show code writes the session
-        # under the user's PmagPy folder, says so, and the code loads it and gives the means shown
-        import pmagpy_intensity.session as session_module
-        home = tmp_path / "home"
-        monkeypatch.setattr(session_module, "CODE_SESSION_HOME", str(home))
-        for var in datasets_vars():
-            monkeypatch.delenv(var, raising=False)
+    def test_a_read_only_study_is_worked_on_in_a_copy_that_show_code_loads(self, tmp_path, monkeypatch):
+        # nothing can be written into a read-only study: it is worked on in a copy in the PmagPy folder,
+        # whose autosave Show code loads, and the code reproduces the means shown
+        from pmagpy_panel import datasets
+        monkeypatch.setenv("PMAGPY_APPS_OUTPUT", str(tmp_path / "PmagPy"))
         src = tmp_path / "Megiddo"
         shutil.copytree(MEGIDDO, src)
         before = sorted(os.listdir(src))
         os.chmod(src, 0o555)
         try:
             session = Session(str(src))
+            copy = session.directory
+            assert copy == datasets.working_directory(str(src)) and copy.startswith(str(tmp_path / "PmagPy"))
             session.autosave_delay = 0
             session.specimen = "hz05a1"
             session.set_correction("anisotropy", False)
             session.set_study_correction("cooling_rate", False)
-            assert "could not auto-save" in session.status
+            assert "could not auto-save" not in session.status
             group = GroupView(session)
             group.set_active(True)
-            assert f"data.load_session({str(src / AUTOSAVE_NAME)!r})" in group.code.text   # closed: nothing written
-            assert not home.exists()
-            group.code.toggle.value = True
-            written = session_module.datasets.default_output_dir(str(src), str(home))
-            target = os.path.join(written, session_module.CODE_SESSION_NAME)
-            assert os.path.isfile(target)
-            assert f"data.load_session({target!r})" in group.code.text
-            assert f"there is no autosave in" in group.code.text and target in group.code.text
+            assert f"data.load_session({os.path.join(copy, AUTOSAVE_NAME)!r})" in group.code.text
             ns = self._run(group.code.text, tmp_path)
             expected = session.data.group_results(level="site").set_index("site")
             means = ns["means"].set_index("site")
             assert np.allclose(means["int_abs"], expected.loc[means.index, "int_abs"], rtol=0, atol=1e-9)
-            # an edit while the code is shown: the file is written again, and the code still reproduces
-            session.set_correction("anisotropy", True)
-            group.redraw()
-            assert json.loads(open(target).read())["interpretations"] == \
-                json.loads(session.data.to_json())["interpretations"]
-            bicep = BicepView(session)
-            bicep.set_active(True)
-            bicep.code.toggle.value = True
-            assert f"data.load_session({target!r})" in bicep.code.text
             assert sorted(os.listdir(src)) == before                     # nothing written into the study
         finally:
             os.chmod(src, 0o755)
@@ -1409,14 +1394,17 @@ class TestShowCode:
         monkeypatch.setattr(session_module, "CODE_SESSION_HOME", str(tmp_path / "home"))
         for var in datasets_vars():
             monkeypatch.delenv(var, raising=False)
-        study = Session(MEGIDDO, cache=False)
+        study = Session(MEGIDDO, MEGIDDO, cache=False)                  # its output named as the folder itself
         study.autosave_enabled = False
         assert os.path.realpath(study.output_dir) == os.path.realpath(MEGIDDO)
         assert os.path.realpath(study.output_dir) not in study.code_session_folders()
         view = GroupView(study)
         view.set_active(True)
         view.code.toggle.value = True
-        assert str(tmp_path / "home") in view.code.text
+        # the snapshot goes to the example's folder in the PmagPy folder, never into the shipped data
+        snapshot = os.path.join(os.path.realpath(session_module.datasets.default_output_dir(
+            MEGIDDO, session_module.datasets.output_base())), session_module.CODE_SESSION_NAME)
+        assert snapshot in view.code.text and os.path.isfile(snapshot)
         assert not os.path.exists(os.path.join(MEGIDDO, session_module.CODE_SESSION_NAME))
 
     def test_the_snapshot_goes_beside_the_study_then_under_the_output_base(self, tmp_path, monkeypatch):

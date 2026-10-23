@@ -200,7 +200,7 @@ every conversion writes its tables all or nothing.
 
 The tables go into the lab folder the analyst chose, where they will be looked
 for when the upload is built -- also when the session is on a working copy of
-the study (an output base, the desktop build): the Convert page then lists the
+the study (an example, or a study in a read-only folder): the Convert page then lists the
 study's own folder and converts into it, and the copy is left as it is. In a
 folder that has tables already:
 

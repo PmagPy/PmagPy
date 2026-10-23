@@ -314,6 +314,8 @@ class TestExportPane:
             monkeypatch.setenv(var, "placeholder")
             monkeypatch.delenv(var)
         monkeypatch.setenv("PMAGPY_APPS_OUTPUT", str(tmp_path / "base"))
+        monkeypatch.setattr(datasets, "shipped_roots",               # a study that ships with PmagPy: a copy
+                            lambda roots=datasets.shipped_roots(): roots + [os.path.realpath(str(tmp_path / "s"))])
         src = copy_study(tmp_path / "s")
         before = digest(src)
         s = Session(src)
@@ -375,6 +377,8 @@ class TestExportPane:
             monkeypatch.setenv(var, "placeholder")
             monkeypatch.delenv(var)
         monkeypatch.setenv("PMAGPY_APPS_OUTPUT", str(tmp_path / "base"))
+        monkeypatch.setattr(datasets, "shipped_roots",               # a study that ships with PmagPy: a copy
+                            lambda roots=datasets.shipped_roots(): roots + [os.path.realpath(str(tmp_path / "s"))])
         src = copy_study(tmp_path / "s")
         s = Session(src)
         os.chmod(os.path.join(s.directory, "sites.txt"), 0o444)

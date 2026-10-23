@@ -40,7 +40,8 @@ def code_text(view) -> str:
 # ----------------------------------------------------------------------------- the session
 class TestSession:
     def test_the_example_loads_in_the_frame_its_tensors_are_in(self, session):
-        assert session.directory == EXAMPLE
+        from pmagpy_panel import datasets
+        assert session.directory == datasets.working_directory(EXAMPLE)     # the example: its copy in the PmagPy folder
         assert session.status == "19 specimens with tensors (AARM) · 19 specimen / 0 geographic / 0 tilt-corrected"
         assert session.n_specimens() == 19 and session.types() == ["AARM"]
         assert session.frames() == {"s": 19, "g": 0, "t": 0}

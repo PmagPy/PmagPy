@@ -57,12 +57,11 @@ def prepare_environment(edition: Edition, directory: str = "", output: str = "")
     """Environment the served pages read: the edition, the directory to open, where to write.
 
     A frozen build also makes the bundle its working directory (pmagpy finds
-    its data files relative to it) and keeps the analyst's output out of the
-    read-only bundle and the analyst's own studies: every application works
-    on one working copy of a study under ``~/PmagPy/<dataset>-<fingerprint>/``
-    (``PMAGPY_APPS_OUTPUT``; :func:`pmagpy_panel.datasets.working_directory`),
-    so Directions, Intensity, Rock Magnetism, Anisotropy and the hub all see
-    the same tables. ``output`` names another base.
+    its data files relative to it). The PmagPy folder is ``~/PmagPy``
+    (``PMAGPY_APPS_OUTPUT``; ``output`` names another): the examples, which
+    are in the read-only bundle, are worked on in a copy there, and
+    contributions are downloaded from MagIC into it. The analyst's own studies
+    are worked on where they are (:func:`pmagpy_panel.datasets.working_directory`).
     """
     os.environ[EDITION_VAR] = edition.key
     if directory:

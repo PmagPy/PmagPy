@@ -5,9 +5,10 @@ PmagPy Intensity — Panel application launcher.
     PMAGPY_INTENSITY_DIR=/path/to/magic/dir panel serve programs/pmagpy_intensity/pmagpy_intensity.py --show
 
 ``PMAGPY_INTENSITY_DIR`` selects the MagIC directory (default
-``data_files/3_0/Megiddo``); ``PMAGPY_APPS_OUTPUT`` (or ``PMAGPY_INTENSITY_OUTPUT``) keeps
-everything the app writes away from the data directory: every application then works on
-one shared copy of the study under it (``pmagpy_panel.datasets.working_directory``).
+``data_files/3_0/Megiddo``), which is worked on where it is. ``PMAGPY_APPS_OUTPUT`` (or
+``PMAGPY_INTENSITY_OUTPUT``) names the PmagPy folder (default ``~/PmagPy``), where the
+examples and studies that cannot be written in place are worked on in a copy
+(``pmagpy_panel.datasets.working_directory``).
 """
 import os
 import sys

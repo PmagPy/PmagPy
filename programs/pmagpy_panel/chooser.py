@@ -103,6 +103,10 @@ class DirectoryChooser:
         self.stale = pn.pane.HTML("", sizing_mode="stretch_width", visible=False)
         self.fresh_btn = pn.widgets.Button(name="Start a fresh copy", button_type="warning", width=180, visible=False)
         self.fresh_btn.on_click(self.start_fresh)
+        # a study an earlier build worked on in a copy: its work can be brought into the study
+        self.bring_btn = pn.widgets.Button(name="Bring the copy's work into the study", button_type="warning",
+                                           width=280, visible=False)
+        self.bring_btn.on_click(self.bring_over)
         app = {"darwin": "Finder", "win32": "Explorer"}.get(sys.platform, "the system dialog")
         self.native_btn = pn.widgets.Button(name=f"Browse with {app}…", button_type="primary",
                                             width=220, disabled=not self.chooser_available)
@@ -136,10 +140,12 @@ class DirectoryChooser:
                   or directory) if directory else ""
         name = html.escape(datasets.study_name(directory)) if directory else "(none)"
         if directory and os.path.realpath(source) != os.path.realpath(directory):
-            kept = datasets.kept_copy_note(directory)
-            tip = (kept or f"{source} is never written by the analysis: every application reads and writes this copy "
-                           f"of it, {directory} (only Convert writes into the study, where the lab files are)")
-            label = "earlier working copy" if kept else "working copy"
+            superseded = datasets.is_superseded_copy(directory)
+            tip = (f"an earlier PmagPy worked on {source} in this copy; the applications now work in the study itself"
+                   if superseded else
+                   f"{source} ships with PmagPy or cannot be written, so every application reads and writes this "
+                   f"copy of it, {directory}")
+            label = "earlier working copy" if superseded else "working copy"
             where = (f'<span style="{MUTED_STYLE}" title="{html.escape(tip)}">{label} · '
                      f'{html.escape(shorten(datasets.shorten_home(directory)))}</span>')
         elif directory and datasets.working_copy_note(directory):
@@ -148,12 +154,13 @@ class DirectoryChooser:
         else:
             where = (f'<span style="{MUTED_STYLE}" title="{html.escape(directory)}">'
                      f'{html.escape(shorten(datasets.shorten_home(directory)))}</span>')
-        stale = datasets.stale_copy_note(directory) if directory else ""
-        self.stale.object = f'<div style="color:{WARN_COLOR};font-size:.85rem">{html.escape(stale)}</div>' if stale else ""
-        self.stale.visible = bool(stale)
+        earlier = datasets.earlier_copy_note(directory) if directory else ""
+        stale = "" if earlier else (datasets.stale_copy_note(directory) if directory else "")
+        note = earlier or stale
+        self.stale.object = f'<div style="color:{WARN_COLOR};font-size:.85rem">{html.escape(note)}</div>' if note else ""
+        self.stale.visible = bool(note)
         self.fresh_btn.visible = bool(stale) and datasets.can_start_fresh(directory)
-        if self.fresh_btn.visible:
-            self.fresh_btn.name = datasets.start_fresh_label(directory)
+        self.bring_btn.visible = bool(earlier)
         self.summary.object = kpi([f"<b>{name}</b>", f'<span style="{MUTED_STYLE}">{self._count(self.s)}</span>',
                                    where])
         self.recent.options = {shorten(d, 70): d for d in self.recent_directories()}
@@ -258,6 +265,32 @@ class DirectoryChooser:
         self.refresh()                     # the new copy has the old one's path: the session's directory did not change
         return ok
 
+    def bring_over(self, event=None) -> bool:
+        """Bring the earlier working copy's work into the study (the study's own files backed up first),
+        set the copy aside, and open the study, where every application now works."""
+        directory = getattr(self.s, "directory", "") or ""
+        copy = datasets.earlier_copy(directory)
+        if not copy:
+            return False
+        if os.path.realpath(copy) == os.path.realpath(directory):
+            flush = getattr(self.s, "flush_autosave", None)
+            if flush is not None:
+                flush()                    # the last edits in the copy go with it
+        try:
+            source, names = datasets.bring_over(copy)
+        except OSError as exc:
+            self.stale.object = (f'<div style="color:{FAIL_COLOR}">Could not bring the copy\'s work over: '
+                                 f'{html.escape(str(exc))}</div>')
+            return False
+        self.path.value = source
+        ok = self._finish_load(source)
+        if ok:
+            self.s.status = (f"brought {len(names)} file{'s' if len(names) != 1 else ''} from the earlier working copy "
+                             f"into {datasets.shorten_home(source)}" if names else
+                             f"the earlier working copy held nothing new; working in {datasets.shorten_home(source)}")
+        self.refresh()
+        return ok
+
     def failure_page(self, directory: str, reason: str) -> pn.Column:
         """The page for a directory that could not be opened: why, and the dialog to choose another.
 
@@ -272,7 +305,7 @@ class DirectoryChooser:
     # ----- layout -----------------------------------------------------------
     def sidebar(self) -> pn.Column:
         return pn.Column(pn.pane.HTML(f'<div style="{SECTION_STYLE}">Data</div>'),
-                         pn.Row(self.summary, self.change_btn), self.stale, self.fresh_btn,
+                         pn.Row(self.summary, self.change_btn), self.stale, self.fresh_btn, self.bring_btn,
                          sizing_mode="stretch_width")
 
     @staticmethod

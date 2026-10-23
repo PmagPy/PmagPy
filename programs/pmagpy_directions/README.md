@@ -89,15 +89,15 @@ checkout are `PMAGPY_APPS_EDITION=directions pmagpy-apps`.
 (*Data › Change data…* at the top of the side column: *Browse with Finder…*
 opens the system folder chooser and loads the directory you pick; there are
 also recent directories, a path field, and an in-page browser for sessions
-served from another machine). By default the app works in the data directory,
-as the legacy GUI did. `PMAGPY_APPS_OUTPUT` (or `PMAGPY_DIRECTIONS_OUTPUT`) keeps
-the study itself untouched instead: the first application to open it copies its
-tables to `<base>/<dataset>-<path fingerprint>/`, and every application --
-Directions, Intensity, Rock Magnetism, Anisotropy, the hub -- then works on that
-one copy, so they all see the same tables (the desktop build does this under
-`~/PmagPy/`). A study PmagPy converted (one with a `pmagpy_conversions.json`
-log beside its tables) is the exception: it is worked on in place, unless a
-working copy of it was made before it had the log. Recently opened
+served from another machine). The app works in the data directory you open,
+as the legacy GUI did, and every application -- Directions, Intensity, Rock
+Magnetism, Anisotropy, the hub -- works there too, so they all see the same
+tables. Only a dataset that ships with PmagPy (the examples) or one in a folder
+that cannot be written is worked on in a copy, made once under the PmagPy
+folder (`~/PmagPy`, or `PMAGPY_APPS_OUTPUT` / `--output`) as
+`<dataset>-<path fingerprint>/` (the example as `McMurdo-example/`); a study
+an earlier build worked on in such a copy offers to bring that copy's work
+into it. Recently opened
 directories are remembered in `~/.pmagpy_directions_recent.json` (override with
 `PMAGPY_DIRECTIONS_RECENT`; the older `DEMAG_*` variable names are still
 honoured). The launcher's default port is `PMAGPY_DIRECTIONS_PORT` (5100).
@@ -351,20 +351,18 @@ Writing the MagIC tables is the explicit, deliberate step. Opening a study
 never writes to it (a `measurements.txt` without measurement names is named
 in memory only). An export is all or nothing: the tables are written to a
 staging folder and moved into place only when every one of them is complete,
-always as UTF-8. An export that replaces the study's own tables (in place: a
-checkout without an output base, or a study PmagPy converted) asks first -- the
-button turns into "Confirm: replace the tables" -- while one into a working copy
-writes on the first click and says it wrote into the working copy. Every table an export replaces is kept in
+always as UTF-8. An export that replaces the study's own tables asks first --
+the button turns into "Confirm: replace the tables" -- while one into a working
+copy (an example's, say) writes on the first click and says it wrote into the
+working copy. Every table an export replaces is kept in
 `backup_before_pmagpy_directions/previous/`, and when the output directory
 is the data directory itself (the MagIC workflow of building the
 contribution in place) the tables as they were before this application first
-wrote there are also kept, once, in `backup_before_pmagpy_directions/`. With
-an output base (`PMAGPY_APPS_OUTPUT`, the desktop build's `~/PmagPy/`) the
-applications share one working copy of the study, named after the dataset and a
-fingerprint of its path, so studies in folders of the same name never share
-one; the pages name the study, and the dataset block in the side column says
-"working copy · <folder>" (the whole story on hover); a study PmagPy converted is
-worked on in place and shows its own path. An export to another folder, chosen in the Export pane, receives the
+wrote there are also kept, once, in `backup_before_pmagpy_directions/`. A
+working copy is named after the dataset and a fingerprint of its path, so
+studies in folders of the same name never share one; the pages name the
+study, and the dataset block in the side column says "working copy ·
+<folder>" (the whole story on hover). An export to another folder, chosen in the Export pane, receives the
 source's other tables so that it is a complete contribution.
 
 ### Publication figures

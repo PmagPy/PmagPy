@@ -67,7 +67,8 @@ class TestExperimentIndex:
 
 class TestSession:
     def test_the_example_loads_with_its_types_counted(self, session):
-        assert session.directory == EXAMPLE
+        from pmagpy_panel import datasets
+        assert session.directory == datasets.working_directory(EXAMPLE)     # the example: its copy in the PmagPy folder
         assert session.status == "9 specimens · 40 experiments · 4 experiment types"
         counts = {t.key: (n_spec, n_exp) for t, n_spec, n_exp in session.type_counts()}
         assert counts == {"mpms_dc": (8, 30), "mpms_ac": (5, 5), "chi_t": (2, 2), "ms_t": (3, 3)}
@@ -94,7 +95,8 @@ class TestMpmsDcView:
         assert "FC <b>59</b>" in view.series.object and "RTSIRM warming <b>59</b>" in view.series.object
         lines = view.code.text.splitlines()
         assert lines[0] == "import pmagpy.rockmag as rmag"
-        assert f"contribution = cb.Contribution('{EXAMPLE}')" in lines
+        from pmagpy_panel import datasets
+        assert f"contribution = cb.Contribution('{datasets.working_directory(EXAMPLE)}')" in lines   # the example's copy
         assert ("fc_data, zfc_data, rtsirm_cool_data, rtsirm_warm_data = "
                 f"rmag.extract_mpms_data_dc(measurements, '{FOUR_CURVES}')") in lines
         assert "    plot_derivative=True," in lines and "drop_first" not in view.code.text
@@ -843,8 +845,9 @@ class TestSpecimenSave:
 
 class TestApp:
     def test_create_app_builds_the_template_with_one_tab_per_view(self):
+        from pmagpy_panel import datasets
         template = app.create_app(EXAMPLE)
-        assert template.session.directory == EXAMPLE
+        assert template.session.directory == datasets.working_directory(EXAMPLE)
         assert isinstance(app.create_app(os.path.join(EXAMPLE, "nowhere")), pn.pane.Markdown)
 
     def test_the_body_has_the_index_and_the_views(self, session):

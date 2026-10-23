@@ -73,8 +73,8 @@ def default_output_dir(directory: str, base: str = "") -> str:
     return directory
 
 
-#: the settings that name the one folder under which every application works on a copy of each
-#: study (the shared one first; an application's own older setting still counts, for all of them)
+#: the settings that name the PmagPy folder (the shared one first; an application's own older
+#: setting still counts, for all of them); unset, it is :data:`DEFAULT_HOME`
 OUTPUT_BASE_VARS = ("PMAGPY_APPS_OUTPUT", "PMAGPY_DIRECTIONS_OUTPUT", "PMAGPY_INTENSITY_OUTPUT",
                     "DEMAG_OUTPUT", "THELLIER_OUTPUT")
 #: written into a working copy: where it was copied from, and when
@@ -88,18 +88,24 @@ CONVERSION_LOG = "pmagpy_conversions.json"
 CONTRIBUTION_TABLE = "contribution.txt"
 
 
-def output_base() -> str:
-    """The folder the applications keep their working copies in, or "" to work in the study itself.
+#: the PmagPy folder when no setting names another: copies of the examples, contributions downloaded from MagIC
+DEFAULT_HOME = os.path.join("~", "PmagPy")
 
-    Every application answers the same setting, so that PmagPy Directions,
-    PmagPy Intensity, Rock Magnetism, Anisotropy and the hub all read and
-    write one copy of a study rather than each keeping its own.
+
+def output_base() -> str:
+    """The PmagPy folder: where the examples are copied to and contributions from MagIC are downloaded.
+
+    ``PMAGPY_APPS_OUTPUT`` (``pmagpy-apps --output``, or an application's own
+    older setting) names it; unset, it is ``~/PmagPy``. A study the analyst
+    opens is worked on where it is (:func:`working_directory`); this folder
+    only takes what cannot be: the datasets that ship with PmagPy, and a
+    study in a folder that cannot be written.
     """
     for var in OUTPUT_BASE_VARS:
         value = os.environ.get(var)
         if value:
             return os.path.abspath(os.path.expanduser(value))
-    return ""
+    return os.path.abspath(os.path.expanduser(DEFAULT_HOME))
 
 
 def is_working_copy(directory: str, base: str = "") -> bool:
@@ -148,23 +154,23 @@ def is_bundled_example(directory: str) -> bool:
             and _under(path, shipped_roots()))
 
 
-def made_by_pmagpy(directory: str) -> bool:
-    """True for a study whose tables PmagPy wrote (Convert, the .tdt import, ``convert_cli``).
+def needs_copy(directory: str) -> bool:
+    """True for a study that is not worked on where it is, but in a working copy in the PmagPy folder.
 
-    That is a folder holding :data:`CONVERSION_LOG` that is the analyst's own:
-    writable, not a working copy, not one that ships with PmagPy
-    (:func:`shipped_roots`), and not a contribution that came from MagIC
-    (:func:`from_magic`), also when lab files were converted into it since.
-    Such a study is worked on in place by every application, also when there
-    is an output base (:func:`working_directory`): its tables sit with the lab
-    files they came from, where the analyst builds the upload from.
+    That is a dataset that ships with PmagPy (an example in the application or
+    a checkout's ``data_files``, :func:`shipped_roots`), or one in a folder
+    that cannot be written (a read-only share). A table its owner made
+    read-only in a writable study does not count: the study is worked on in
+    place and that table is left as it is (an export says so).
+    Every other study -- the analyst's own folder, a git repository, a
+    contribution downloaded from MagIC -- is read and written in place: its
+    lab files are never edited, and its MagIC tables, session files and
+    exports are where the analyst keeps (and versions) the study.
     """
     path = os.path.realpath(os.path.abspath(os.path.expanduser(directory)))
-    if not os.path.isfile(os.path.join(path, CONVERSION_LOG)) or not os.access(path, os.W_OK):
-        return False
-    if os.path.isfile(os.path.join(path, WORKING_COPY_MARKER)):
-        return False
-    return not _under(path, shipped_roots()) and not from_magic(path)
+    if _under(path, shipped_roots()) or is_bundled_example(path):
+        return True
+    return not os.access(path, os.W_OK)
 
 
 def _conversions(directory: str) -> list:
@@ -235,31 +241,6 @@ def working_copy_note(directory: str) -> str:
             "it is opened as a study of its own.")
 
 
-def kept_copy_note(directory: str) -> str:
-    """A sentence for a working copy of a study that is otherwise worked on in place, else "".
-
-    A study converted by an earlier build, or one that gained a conversion log
-    after its copy was made, keeps that copy (:func:`working_directory`): the
-    flags, interpretations and metadata in it are not left behind.
-    """
-    source = working_copy_source(directory)
-    if not source or os.path.realpath(source) == os.path.realpath(directory) or not made_by_pmagpy(source):
-        return ""
-    return (f"{source} holds tables PmagPy converted, which are worked on in place; this working copy of it "
-            "was made before, and is still the one every application uses, so that nothing done in it is left behind.")
-
-
-def magic_copy_note(directory: str) -> str:
-    """A sentence for a working copy of a contribution from MagIC that lab files were converted into, else ""."""
-    source = working_copy_source(directory)
-    if not source or os.path.realpath(source) == os.path.realpath(directory) or not from_magic(source):
-        return ""
-    if not any(e.get("format") != "magic" for e in _since_last_replace(_conversions(source))):
-        return ""
-    return ("The study holds a contribution from MagIC, with lab files PmagPy converted added to it: a published "
-            "record is not worked on in place, so every application uses this working copy of it.")
-
-
 def study_name(directory: str) -> str:
     """The name to show for a study: its folder's name, also when `directory` is its working copy.
 
@@ -278,33 +259,33 @@ def shorten_home(path: str) -> str:
 
 
 def working_directory(directory: str, base: Optional[str] = None) -> str:
-    """The directory an application reads and writes for a study: its working copy when there is a base.
+    """The directory an application reads and writes for a study: the study itself, unless it needs a copy.
 
-    With no base (a checkout, a pip install) that is the study itself, as it
-    always was. With one (the desktop build sets ``~/PmagPy``; the setting is
-    :func:`output_base`), the study's tables are copied once to
-    ``<base>/<name>-<path fingerprint>/`` (:func:`default_output_dir`) and every
-    application works there, so they all see one set of tables -- and the
-    study itself is never written to. A copy that already exists is used as it
-    is; files the study has gained since are added to it, files it has are
-    never overwritten. Two applications opening the same study at once make
-    one copy: it is assembled beside the target and moved into place whole.
+    A study is worked on where the analyst keeps it -- the folder chosen in
+    Open MagIC data or converted into on the Convert page -- so that its
+    tables, session files and exports stay with it (in its git repository,
+    say). Only a study that cannot be (:func:`needs_copy`: one that ships with
+    PmagPy, or a read-only one) is copied, once, to
+    ``<PmagPy folder>/<name>-<path fingerprint>/`` (:func:`default_output_dir`;
+    an example to ``<name>-example``), and every application works there. A
+    copy that already exists is used as it is; files the study has gained
+    since are added to it, files it has are never overwritten. Two
+    applications opening the same study at once make one copy: it is
+    assembled beside the target and moved into place whole.
 
-    A study PmagPy made (:func:`made_by_pmagpy`: its tables came from Convert
-    or the .tdt import, not from MagIC) is worked on in place, base or not -- unless a working
-    copy of it exists already (made by an earlier build, or before the study
-    gained its conversion log), which is then kept (:func:`kept_copy_note`).
+    A working copy opened itself is worked on as it is. A study that an
+    earlier build copied (it worked on every study in a copy) is worked on in
+    place all the same; the work in that copy is offered to it
+    (:func:`earlier_copy`, :func:`bring_over`).
 
     Raises:
-        OSError: the copy cannot be made (the base is not writable, the disk is full).
+        OSError: a copy is needed and cannot be made (the PmagPy folder is not writable, the disk is full).
     """
     directory = os.path.abspath(os.path.expanduser(directory))
-    base = output_base() if base is None else base
-    if not base or is_working_copy(directory, base):
+    if is_working_copy(directory) or not needs_copy(directory):
         return directory
+    base = base or output_base()
     target = default_output_dir(directory, base)
-    if not os.path.isdir(target) and made_by_pmagpy(directory):
-        return directory
     files = [n for n in sorted(os.listdir(directory))
              if n.endswith(WORKING_COPY_SUFFIXES) and not n.startswith(".")
              and os.path.isfile(os.path.join(directory, n))]
@@ -467,18 +448,12 @@ def can_start_fresh(directory: str) -> bool:
         os.path.realpath(directory)
 
 
-def start_fresh_label(directory: str) -> str:
-    """What starting afresh does: a new copy, or -- for a study PmagPy made -- the study itself."""
-    source = working_copy_source(directory)
-    return "Work on the study itself" if source and made_by_pmagpy(source) else "Start a fresh copy"
-
-
 def set_copy_aside(directory: str, today=None) -> str:
     """Rename a working copy to ``<its name>-<YYYY-MM-DD>`` (``-2``, ``-3`` … when taken) and return its study.
 
     Its tables, interpretations and session files are kept as they are, never
-    overwritten; opening the study next makes a new copy from it (or, for a
-    study PmagPy made, opens it in place, :func:`working_directory`).
+    overwritten; opening the study next makes a new copy from it, or, for a
+    study that is worked on in place, opens it there (:func:`working_directory`).
 
     Raises:
         OSError: the copy's study is not there, or the copy cannot be renamed.
@@ -495,6 +470,124 @@ def set_copy_aside(directory: str, today=None) -> str:
         aside = f"{stem}-{n}"
     os.rename(path, aside)
     return source
+
+
+def is_superseded_copy(directory: str) -> bool:
+    """True for a working copy whose study is there and is now worked on in place (an earlier build
+    copied every study): the applications use the study, and this copy's work can be brought to it."""
+    source = working_copy_source(directory)
+    return (bool(source) and os.path.realpath(source) != os.path.realpath(directory)
+            and not needs_copy(source))
+
+
+def copy_remedy(directory: str) -> str:
+    """What Home offers for a working copy that lacks tables written into its study since."""
+    return ("Home offers to bring the copy's work into the study" if is_superseded_copy(directory)
+            else "Home offers to start afresh")
+
+
+def earlier_copy(directory: str) -> str:
+    """The working copy of the study at ``directory`` whose work is not in the study yet, or "".
+
+    For a study worked on in place, the copy an earlier build made of it in the
+    PmagPy folder (still at its own path, not set aside); for such a copy
+    opened itself, the copy.
+    """
+    if not directory or not os.path.isdir(directory):
+        return ""
+    if is_working_copy(directory):
+        return os.path.realpath(directory) if is_superseded_copy(directory) else ""
+    if needs_copy(directory):
+        return ""
+    copy = default_output_dir(directory, output_base())
+    if os.path.isdir(copy) and is_working_copy(copy) and \
+            os.path.realpath(_marked_source(copy) or "") == os.path.realpath(directory):
+        return os.path.realpath(copy)
+    return ""
+
+
+def _work_in(copy: str) -> list:
+    """The files of a working copy that differ from its study's (or that the study lacks), by name."""
+    source = working_copy_source(copy)
+    names = []
+    for name in sorted(os.listdir(copy)):
+        path = os.path.join(copy, name)
+        if name.startswith(".") or not name.endswith(WORKING_COPY_SUFFIXES) or not os.path.isfile(path):
+            continue
+        theirs = os.path.join(source, name)
+        if not os.path.isfile(theirs) or _sha1(theirs) != _sha1(path):
+            names.append(name)
+    return names
+
+
+def earlier_copy_note(directory: str) -> str:
+    """A sentence for a study with an earlier working copy (or for that copy), else ""."""
+    copy = earlier_copy(directory)
+    if not copy:
+        return ""
+    source = working_copy_source(copy)
+    when = str(_read_marker(copy).get("copied", ""))[:10]
+    work = _work_in(copy)
+    if os.path.realpath(directory) == copy:
+        where = (f"This is a working copy an earlier PmagPy made{' on ' + when if when else ''}; the applications "
+                 f"now work in the study itself, {shorten_home(source)}.")
+    else:
+        where = (f"An earlier PmagPy worked on this study in a copy, {shorten_home(copy)}"
+                 f"{' (made ' + when + ')' if when else ''}.")
+    if not work:
+        return where + " It holds nothing the study does not."
+    names = ", ".join(work[:4]) + (f" and {len(work) - 4} more" if len(work) > 4 else "")
+    note = (where + f" Its {names} differ from the study's: bring them into the study to carry on with that work "
+            "(the study's own are backed up first).")
+    changed = [name for name in (copy_changes(copy) or []) if name in work]
+    if changed:
+        note += (f" The study's {', '.join(changed[:4])} changed after the copy was made: bringing the copy's "
+                 "over replaces those changes, which stay in the backup.")
+    return note
+
+
+#: the folder in a study that keeps its own files that :func:`bring_over` replaced
+BROUGHT_OVER_BACKUP = "backup_before_working_copy"
+
+
+def bring_over(copy: str, today=None) -> tuple:
+    """Bring an earlier working copy's work into its study, then set the copy aside.
+
+    Every file of the copy that the study lacks or has otherwise (its MagIC
+    tables, session files, ``.redo`` files) is copied into the study; a study
+    file it replaces is first kept in ``<study>/backup_before_working_copy-<date>/``.
+    The copy is then renamed with the date (:func:`set_copy_aside`), so it is
+    not offered again and a window still open on it writes nothing more.
+
+    Returns:
+        (the study, the names of the files brought over).
+
+    Raises:
+        OSError: the copy's study is not there, or a file cannot be written.
+    """
+    import shutil
+    from datetime import date
+    source = working_copy_source(copy)
+    if not source:
+        raise OSError(f"{copy} is not a working copy of a study that is there")
+    names = _work_in(copy)
+    if names:
+        stem = os.path.join(source, f"{BROUGHT_OVER_BACKUP}-{(today or date.today()).isoformat()}")
+        backup, n = stem, 1
+        while os.path.lexists(backup):
+            n += 1
+            backup = f"{stem}-{n}"
+        for name in names:
+            theirs = os.path.join(source, name)
+            if os.path.isfile(theirs):
+                os.makedirs(backup, exist_ok=True)
+                shutil.copy2(theirs, os.path.join(backup, name))
+        for name in names:
+            staged = os.path.join(source, f".{name}.bringing-over")
+            shutil.copy2(os.path.join(copy, name), staged)
+            os.replace(staged, os.path.join(source, name))
+    set_copy_aside(copy, today)
+    return source, names
 
 
 #: the tables whose files decide whether a dataset read earlier is still current

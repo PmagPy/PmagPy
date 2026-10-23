@@ -250,12 +250,11 @@ as PDF, SVG or PNG.
 ## Files it writes
 
 Everything goes to the directory the study is worked on: the data directory
-itself, or, with an output base (`PMAGPY_APPS_OUTPUT` or `PMAGPY_INTENSITY_OUTPUT`;
-the desktop build's `~/PmagPy/`), the working copy of the study that every
-application shares. A study PmagPy converted -- Convert's tables, or the .tdt
-importer's `magic3/` folder, both of which leave a `pmagpy_conversions.json` log
--- is worked on in place even with an output base, unless a working copy of it
-was made before it had the log.
+itself, where every application works. Only a dataset that ships with PmagPy
+(the examples) or one in a folder that cannot be written is worked on in a
+copy that every application shares, made once under the PmagPy folder
+(`~/PmagPy`, or `PMAGPY_APPS_OUTPUT` / `PMAGPY_INTENSITY_OUTPUT`) as
+`<dataset>-<path fingerprint>/`.
 
 | file | when | what |
 |---|---|---|
@@ -291,7 +290,7 @@ back to.
 | variable | does |
 |---|---|
 | `PMAGPY_INTENSITY_DIR` | the directory to open at start-up |
-| `PMAGPY_APPS_OUTPUT` (or `PMAGPY_INTENSITY_OUTPUT`) | work on a copy of the study under `<this>/<dataset name>-<path fingerprint>`, shared with the other applications, instead of in the data directory |
+| `PMAGPY_APPS_OUTPUT` (or `PMAGPY_INTENSITY_OUTPUT`) | the PmagPy folder (default `~/PmagPy`): copies of the examples and of studies that cannot be written in place, under `<this>/<dataset name>-<path fingerprint>`, and contributions downloaded from MagIC |
 | `PMAGPY_INTENSITY_PORT` | the port (default 5101) |
 | `PMAGPY_INTENSITY_RECENT` | where the recent-directory list is kept |
 
@@ -399,7 +398,7 @@ file operations live in the Export tab and the data dialog.
   off; another window wrote it), opening Show code writes the session to
   `pmagpy_intensity_code_session.json` and the code loads that file, saying where
   and why: in the study's folder when it can be written, else in the study's
-  folder under the output base, else in a folder of its own under
+  folder under the PmagPy folder, else in a folder of its own under
   `~/.pmagpy/pmagpy_intensity/code_sessions/` — never into a folder that ships with
   PmagPy. A window whose working copy was set aside (*Start a fresh copy* in
   another window) writes the file nowhere, as it writes no autosave or export:

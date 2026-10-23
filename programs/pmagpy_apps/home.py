@@ -271,14 +271,12 @@ def ref_html(inv: Inventory) -> str:
     """Under the title, at full width: the path, then contribution · DOI · contributor or what the directory lacks."""
     source = datasets.working_copy_source(inv.directory)
     if source and os.path.realpath(source) != os.path.realpath(inv.directory):
-        tip = (f"{source} is never written by the analysis: every application reads and writes this copy of it "
-               "(only Convert writes into the study, where the lab files are)")
+        tip = (f"an earlier PmagPy worked on {source} in this copy; the applications now work in the study itself"
+               if datasets.is_superseded_copy(inv.directory) else
+               f"{source} ships with PmagPy or cannot be written, so every application reads and writes this copy of it")
         lines = [f'<div class="path">{_esc(shorten_home(source))}</div>',
                  f'<div class="path" title="{_esc(tip)}">working copy · {_esc(shorten_home(inv.directory))}</div>']
-        for note in (datasets.kept_copy_note(inv.directory), datasets.magic_copy_note(inv.directory)):
-            if note:
-                lines.append(f'<div class="path">{_esc(note)}</div>')
-        stale = datasets.stale_copy_note(inv.directory)
+        stale = datasets.earlier_copy_note(inv.directory) or datasets.stale_copy_note(inv.directory)
         if stale:
             lines.append(f'<div class="ref" style="color:var(--warn)">{_esc(stale)}</div>')
     else:
@@ -286,6 +284,9 @@ def ref_html(inv: Inventory) -> str:
         note = datasets.working_copy_note(inv.directory)
         if note:
             lines.append(f'<div class="path">{_esc(note)}</div>')
+        earlier = datasets.earlier_copy_note(inv.directory)
+        if earlier:
+            lines.append(f'<div class="ref" style="color:var(--warn)">{_esc(earlier)}</div>')
     c = inv.contribution
     if inv.is_magic and c:
         bits = []
@@ -637,12 +638,16 @@ class HomeView:
         self.fresh_btn = pn.widgets.Button(name="Start a fresh copy", button_type="warning", width=200,
                                            margin=(4, 10, 0, 10), visible=False)
         self.fresh_btn.on_click(lambda e: self.start_fresh())
+        # a study an earlier build worked on in a copy: its work can be brought into the study
+        self.bring_btn = pn.widgets.Button(name="Bring the copy's work into the study", button_type="warning",
+                                           width=300, margin=(4, 10, 0, 10), visible=False)
+        self.bring_btn.on_click(lambda e: self.bring_over())
         self.start = pn.Column(self.start_heading, pn.GridBox(*shown, ncols=2, sizing_mode="stretch_width"),
                                self.recent_pane, sizing_mode="stretch_width")
         self.work = pn.Column(
             pn.Row(self.heading, self.convert_btn, self.metadata_btn, self.upload_btn, self.download_btn, self.change_btn,
                    self.start_btn, sizing_mode="stretch_width"),
-            self.ref, self.fresh_btn, self.facts, self.strip,
+            self.ref, self.fresh_btn, self.bring_btn, self.facts, self.strip,
             pn.Row(self.bars, self.spacer, self.aside, sizing_mode="stretch_width", margin=(28, 0, 0, 0)),
             sizing_mode="stretch_width")
         session.param.watch(lambda e: self.refresh(), "directory")
@@ -676,6 +681,25 @@ class HomeView:
             return True
         return False
 
+    def bring_over(self) -> bool:
+        """Bring the earlier working copy's work into the study (its own files backed up first), set the
+        copy aside, and open the study, where every application now works."""
+        copy = datasets.earlier_copy(self.s.directory)
+        if not copy:
+            return False
+        try:
+            source, names = datasets.bring_over(copy)
+        except OSError as exc:
+            self.s.status = f"Could not bring the working copy's work over: {exc}"
+            return False
+        if self.s.load(source):
+            _set_url(source)
+            self.s.status = (f"brought {len(names)} file{'s' if len(names) != 1 else ''} from the earlier working copy "
+                             f"into {shorten_home(source)}" if names else
+                             f"the earlier working copy held nothing new; working in {shorten_home(source)}")
+            return True
+        return False
+
     def refresh(self) -> None:
         with LayoutHold.batch():        # visibility, button styles, texts: one layout of the page
             self.start.visible = self.s.landing
@@ -686,9 +710,10 @@ class HomeView:
             inv = self.s.inventory
             self.heading.object = title_html(inv)
             self.ref.object = ref_html(inv)
-            self.fresh_btn.visible = bool(datasets.stale_copy_note(inv.directory)) and datasets.can_start_fresh(inv.directory)
-            if self.fresh_btn.visible:
-                self.fresh_btn.name = datasets.start_fresh_label(inv.directory)
+            earlier = bool(datasets.earlier_copy(inv.directory))
+            self.bring_btn.visible = earlier
+            self.fresh_btn.visible = (not earlier and bool(datasets.stale_copy_note(inv.directory))
+                                      and datasets.can_start_fresh(inv.directory))
             self.facts.object = facts_html(inv)
             self.strip.object = strip_html(inv, self.edition)
             self.bars.object = bars_html(inv, self.applications)
