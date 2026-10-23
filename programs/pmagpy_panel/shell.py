@@ -26,8 +26,8 @@ from typing import Callable, Optional, Union
 
 import panel as pn
 
-from . import AppInfo, text_on
-from .theme import ACCENT, RAW_CSS, asset_data_uri
+from . import AppInfo, runtime, text_on
+from .theme import ACCENT, MUTED_STYLE, RAW_CSS, asset_data_uri
 from .widgets import LayoutHold, Splitter
 
 SIDE_WIDTH = 450       # default width of the side column
@@ -137,7 +137,7 @@ class SidePanels:
                 p.visible = p is panel
 
 
-def lazy_tabs(*items, prepare: Optional[dict] = None, **params) -> pn.Tabs:
+def lazy_tabs(*items, loading: str = "Loading …", **params) -> pn.Tabs:
     """Tabs whose content goes into the page the first time a tab is shown, and stays there.
 
     Panel's ``dynamic=True`` keeps only the tab on show in the page, so every
@@ -148,37 +148,37 @@ def lazy_tabs(*items, prepare: Optional[dict] = None, **params) -> pn.Tabs:
     empty placeholder until it is first opened; its content then replaces the
     placeholder, once, and later switches are the browser's alone.
 
-    The content is added before the application's own watchers on ``active``
-    run (it is registered first), so the tab appears at once even when a view
-    computes for seconds when first shown (Intensity's group results take
-    seven): the layout arrives, then its numbers.
-
-    Except for a tab given in ``prepare``: its callable runs first, and the
-    content goes in afterwards, filled. A paginated Tabulator needs that in
-    Safari (WebKit): data that reaches it while it is still being built is
-    lost (it is given its page count before it exists), and the table stays
-    empty. Built with its data, it is not.
+    When a tab is first opened its placeholder says ``loading`` at once; the
+    application's own watchers on ``active`` then draw the tab (Intensity's
+    group results take seconds) while its content is not yet in the page, and
+    the content goes in on the server's next tick, filled. That order is what
+    makes tables work in every browser: a Tabulator that is sent its data
+    while the browser is still building it may lose it (Safari's WebKit gives
+    it its columns and page count before it exists, and it stays empty),
+    whereas one built with its data is whole. Later changes reach tables that
+    are built. Outside a served session the content goes in at once.
 
     Args:
         items: ``(title, content)`` pairs, as for ``pn.Tabs``.
-        prepare: ``{index: callable}``, run before that tab's content is first shown.
+        loading: what a tab says while it is drawn for the first time.
         params: passed to ``pn.Tabs`` (``dynamic`` is always False).
     """
-    prepare = prepare or {}
     items = list(items)
     params["dynamic"] = False
     active = params.get("active", 0)
-    tabs = pn.Tabs(*[(title, content if i == active else pn.Column(margin=0))
-                     for i, (title, content) in enumerate(items)], **params)
+    holders = [content if i == active else pn.Column(margin=0) for i, (_, content) in enumerate(items)]
+    tabs = pn.Tabs(*[(title, holder) for (title, _), holder in zip(items, holders)], **params)
     shown = {active}
+
+    def _mount(i):
+        tabs[i] = items[i]
 
     def _add(event):
         i = event.new
         if i is not None and 0 <= i < len(items) and i not in shown:
             shown.add(i)
-            if i in prepare:
-                prepare[i]()
-            tabs[i] = items[i]
+            holders[i].objects = [pn.pane.HTML(f'<span style="{MUTED_STYLE}">{loading}</span>', margin=(12, 10))]
+            runtime.locked(lambda: _mount(i))
     tabs.param.watch(_add, "active")
     return tabs
 

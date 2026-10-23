@@ -66,27 +66,29 @@ class TestLazyTabs:
         tabs.active = 2                                    # back again: nothing replaced a second time
         assert tabs[0] is a and tabs[2] is c and tabs._names == ["A", "B", "C"]
 
-    def test_the_content_is_added_before_the_applications_own_watchers(self):
-        """The tab appears at once, however long the application's watcher then computes."""
+    def test_the_content_goes_in_after_the_applications_watchers_have_drawn_it(self, monkeypatch):
+        """Served, a tab says it is loading at once, the application draws it while it is out of the
+        page, and it goes in on the next tick, filled: a table built with its data works in every
+        browser (WebKit loses data sent to a Tabulator it is still building)."""
+        from pmagpy_panel import runtime
+        queued = []
+        monkeypatch.setattr(runtime, "locked", queued.append)       # a served session's next tick
         b = pn.pane.Markdown("")
-        tabs = shell.lazy_tabs(("A", pn.pane.Markdown("a")), ("B", b))
+        tabs = shell.lazy_tabs(("A", pn.pane.Markdown("a")), ("B", b), loading="Loading B")
         seen = []
-        tabs.param.watch(lambda e: seen.append(tabs[1] is b), "active")
-        tabs.active = 1
-        assert seen == [True]
 
-    def test_a_prepared_tab_is_filled_before_it_joins_the_page(self):
-        """A paginated table must be built with its data (WebKit drops data sent while it is built)."""
-        b = pn.pane.Markdown("")
-        order = []
-        tabs = shell.lazy_tabs(("A", pn.pane.Markdown("a")), ("B", b),
-                               prepare={1: lambda: order.append(("prepared", tabs[1] is b))})
-        tabs.param.watch(lambda e: order.append(("watcher", tabs[1] is b)), "active")
+        def draw(event):
+            seen.append(tabs[1] is b)
+            b.object = "drawn"
+        tabs.param.watch(draw, "active")
         tabs.active = 1
-        assert order == [("prepared", False), ("watcher", True)]
+        assert seen == [False] and len(queued) == 1
+        assert "Loading B" in tabs[1].objects[0].object            # the tab says so meanwhile
+        queued.pop()()
+        assert tabs[1] is b and b.object == "drawn"
         tabs.active = 0
-        tabs.active = 1                                     # prepared once, as it is added once
-        assert [o for o, _ in order].count("prepared") == 1
+        tabs.active = 1                                             # added once
+        assert not queued and tabs[1] is b
 
     def test_another_tab_can_be_on_show_first(self):
         a, b = pn.pane.Markdown("a"), pn.pane.Markdown("b")
