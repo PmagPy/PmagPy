@@ -254,7 +254,9 @@ reversed; inverted VGPs are drawn open. The axis points at the majority,
 so *flip polarity* reports the antipodes instead (VGPs, pole, paleolatitude
 sign and the location mean direction); the choice carries into the Means
 tab, the PDF map and the locations export. Centre the globe on the pole, the
-sites, either geographic pole or a chosen point — or click a point on the globe.
+sites, either geographic pole or a chosen point — click a point on the globe,
+or drag the centre longitude / latitude sliders, which turn the globe as they
+move (either one switches the centre to *custom*).
 VGPs on the far hemisphere are counted. The same map downloads as PDF.
 
 **Fits pane.** Every fit in the study with filters (means are

@@ -366,6 +366,24 @@ class TestPolesView:
         moved = view.plot.centre
         view.plot._on_tap(SimpleNamespace(x=1.5, y=0.0))          # off the globe: ignored
         assert view.plot.centre == moved
+        # the centre sliders (issue #972): from any mode they turn the globe at once, the mode
+        # becomes custom, and the poles are not recomputed for it
+        view.centre.value = "pole"
+        pole_centre = view.plot.centre
+        computed = []
+        compute = view._compute
+        view._compute = lambda: computed.append(1) or compute()
+        view.lat0.value = 10.0
+        assert view.centre.value == "custom" and view.plot.centre == (pytest.approx(pole_centre[0], abs=0.1), 10.0)
+        view.lon0.value = 120.0
+        assert view.plot.centre == (120.0, 10.0) and computed == []
+        land = view.plot.land.data["xs"]
+        view.lon0.value = 300.0
+        assert view.plot.land.data["xs"] != land                         # the globe turned
+        view._compute = compute
+        view.centre.value = "pole"                                        # back to the pole; the sliders follow it
+        assert view.plot.centre == pytest.approx(pole_centre) and view.centre.value == "pole"
+        assert view.lat0.value == pytest.approx(round(pole_centre[1], 1))
         # polarity unification off: reversed VGPs move to the far hemisphere
         view.unify.value = False
         assert view.plot.hidden >= 0 and "flip" in view.table.value.columns

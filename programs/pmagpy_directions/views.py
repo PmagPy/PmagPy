@@ -1351,8 +1351,12 @@ class PolesView(LazyView):
                                                      stylesheets=[CHECKBOX_CSS])
         self.centre = pn.widgets.RadioButtonGroup(options=self.CENTRES, value="pole", button_type="primary",
                                                   button_style="outline", stylesheets=[BUTTON_GROUP_CSS])
-        self.lon0 = pn.widgets.FloatSlider(name="centre longitude", start=-180, end=360, step=1, value=0, width=195)
-        self.lat0 = pn.widgets.FloatSlider(name="centre latitude", start=-90, end=90, step=1, value=90, width=195)
+        # one above the other, each the side column's width: side by side at a fixed width the
+        # latitude slider ran past the column's edge, its handle out of sight and out of reach
+        self.lon0 = pn.widgets.FloatSlider(name="centre longitude", start=-180, end=360, step=1, value=0,
+                                           sizing_mode="stretch_width")
+        self.lat0 = pn.widgets.FloatSlider(name="centre latitude", start=-90, end=90, step=1, value=90,
+                                           sizing_mode="stretch_width")
         self.plot = PoleMapPlot()
         self.plot.on_recentre(self._on_recentre)
         self.pole = pn.pane.HTML("", sizing_mode="stretch_width")
@@ -1365,8 +1369,10 @@ class PolesView(LazyView):
                                                 label="Download figure (PDF)", button_type="primary", width=220)
         for w in (self.comp, self.level, self.centre):
             w.param.watch(self._lazy_redraw, "value")
+        # "value", not "value_throttled": the globe turns while a slider is dragged (a re-projection
+        # of a few ms, the poles are not recomputed)
         for w in (self.lon0, self.lat0):
-            w.param.watch(self._on_slider, "value_throttled")
+            w.param.watch(self._on_slider, "value")
         session.param.watch(self._lazy_redraw, ["coord", "version", "unify_polarity", "flip_polarity"])
         self._start(active)
 
@@ -1425,8 +1431,18 @@ class PolesView(LazyView):
         self._notes(self.plot.hidden)
 
     def _on_slider(self, event):
-        if not self._syncing and self.centre.value == "custom":
-            self.redraw()
+        """A centre slider moved: the centre becomes custom (as a click on the globe makes it)
+        and the globe turns to the sliders' point."""
+        if self._syncing or self.s.data is None:
+            return
+        if self.centre.value != "custom":
+            self._syncing = True                  # the mode change alone must not redraw onto the old centre
+            try:
+                self.centre.value = "custom"
+            finally:
+                self._syncing = False
+        self.plot.recentre(self.lon0.value, self.lat0.value)
+        self._notes(self.plot.hidden)
 
     # --- drawing ------------------------------------------------------------
     def redraw(self, *events):
@@ -1496,7 +1512,7 @@ class PolesView(LazyView):
     def sidebar(self):
         return pn.Column(section("Coordinates"), self.coord,
                          pn.Row(self.comp, pn.Column(section("Level"), self.level)), self.unify, self.invert,
-                         section("Globe centre · click the globe to move it"), self.centre, pn.Row(self.lon0, self.lat0),
+                         section("Globe centre · click the globe to move it"), self.centre, self.lon0, self.lat0,
                          section("VGPs plotted · plat/plon = VGP, dec/inc = mean direction"), self.table)
 
     def panel(self):

@@ -664,6 +664,12 @@ class PoleMapPlot:
         if self._last is not None:
             self._draw_data(*self._last)
 
+    def recentre(self, lon0: float, lat0: float):
+        """Turn the globe to a new centre, re-projecting what it shows (no new data): a few ms,
+        so a slider can turn it while it is dragged."""
+        self.centre = (float(lon0), float(lat0))
+        self._draw_globe()
+
     def update(self, vgps, pole=None, sites=(), centre=None, color="#2b2b2b"):
         """vgps: iterable of (lon, lat, label, flipped); sites: iterable of (lon, lat, name)."""
         if centre is not None:
