@@ -103,6 +103,16 @@ class TestShell:
         assert first.busy_indicator.throttle == shell.BUSY_MIN_MS < 500
         assert first.busy_indicator is not second.busy_indicator        # each page has its own
 
+    def test_the_busy_spinner_raises_no_warning(self):
+        """param's 'busy_indicator ... valid parameter reference' warning is filtered, nothing else."""
+        import warnings
+        with warnings.catch_warnings(record=True) as caught:      # the filters as shell left them
+            shell.template(_body(), logo=LOGO)
+            warnings.warn("Parameter 'other' on <class 'panel.template.base.BasicTemplate'> ...", FutureWarning)
+        messages = [str(w.message) for w in caught]
+        assert not [m for m in messages if "busy_indicator" in m]
+        assert any("Parameter 'other'" in m for m in messages)            # the filter is that warning's only
+
     def test_template_wraps_a_body_and_wires_the_modal(self):
         """The host owns the modal; the body only asks for it to open and close."""
         modal = pn.Column(pn.pane.HTML("choose"))
@@ -271,6 +281,64 @@ class TestLaunch:
         assert cmd[cmd.index("--index") + 1] == "pmagpy_apps" and "--dev" not in cmd
         i = cmd.index("--static-dirs")
         assert cmd[i + 1].startswith("pmagpy_apps_assets=") and cmd[i + 2].startswith("pmagpy_directions_assets=")
+
+
+    NETSTAT = """
+Active Connections
+
+  Proto  Local Address          Foreign Address        State           PID
+  TCP    0.0.0.0:135            0.0.0.0:0              LISTENING       1012
+  TCP    0.0.0.0:5010           0.0.0.0:0              LISTENING       4242
+  TCP    127.0.0.1:5010         127.0.0.1:61000        ESTABLISHED     4242
+  TCP    127.0.0.1:61000        127.0.0.1:5010         ESTABLISHED     9999
+  TCP    0.0.0.0:50100          0.0.0.0:0              LISTENING       7777
+  TCP    [::]:5010              [::]:0                 LISTENING       4243
+  UDP    0.0.0.0:5010           *:*                                    5555
+"""
+
+    def test_windows_netstat_finds_the_servers_listening_on_the_port(self):
+        """Only the listening TCP sockets of exactly that port (IPv4 and IPv6): not 50100, not a client's
+        connection to it, not UDP."""
+        assert launch._listening_pids_in_netstat(self.NETSTAT, 5010) == [4242, 4243]
+        assert launch._listening_pids_in_netstat(self.NETSTAT, 135) == [1012]
+        assert launch._listening_pids_in_netstat(self.NETSTAT, 501) == []
+
+    def test_windows_netstat_in_another_language(self):
+        """Windows translates the state column; a listening socket is told by its foreign address."""
+        for state in ("ABHÖREN", "ESCUCHANDO", "EN ÉCOUTE", "LISTENING"):     # one word or two
+            assert launch._listening_pids_in_netstat(self.NETSTAT.replace("LISTENING", state), 5010) == [4242, 4243]
+
+    def test_windows_runs_netstat_for_both_ip_versions(self, monkeypatch):
+        calls = []
+        monkeypatch.setattr(launch.sys, "platform", "win32")
+        monkeypatch.setattr(launch.subprocess, "run",
+                            lambda cmd, **kw: calls.append((cmd, kw)) or type("Out", (), {"stdout": self.NETSTAT})())
+        assert launch.pids_on_port(5010) == [4242, 4243]
+        cmd, kw = calls[0]
+        assert cmd == ["netstat", "-ano"] and kw.get("errors") == "replace"    # no -p TCP: that is IPv4 only
+
+    def test_the_hub_serves_without_dev_mode_unless_asked(self, monkeypatch):
+        """Dev mode builds every served application before the server answers: off for the hub,
+        on for one application; --reload and --no-reload turn it either way, not both at once."""
+        commands = []
+
+        class Done:
+            def poll(self):
+                return 0
+
+            def wait(self):
+                return 0
+        monkeypatch.setattr(launch.subprocess, "Popen", lambda cmd, **kw: commands.append(cmd) or Done())
+        monkeypatch.setattr(launch, "stop_previous", lambda port: 0)
+        app = os.path.join(os.path.dirname(HERE), "pmagpy_directions", "pmagpy_directions.py")
+
+        def dev(argv, **kw):
+            launch.main([app], "PMAGPY_X_", 5999, argv=["--no-show", *argv], **kw)
+            return "--dev" in commands[-1]
+        assert dev([]) and not dev(["--no-reload"])
+        assert not dev([], reload=False) and dev(["--reload"], reload=False)
+        with pytest.raises(SystemExit):
+            launch.main([app], "PMAGPY_X_", 5999, argv=["--reload", "--no-reload"])
 
 
 class TestDeferredTemplate:

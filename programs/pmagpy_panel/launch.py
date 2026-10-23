@@ -40,23 +40,39 @@ from .runtime import HUB_URL_VAR, open_ui
 def pids_on_port(port: int) -> list[int]:
     """PIDs listening on a TCP port (Windows via netstat, macOS/Linux via lsof; empty if neither runs)."""
     if sys.platform == "win32":
-        try:
-            out = subprocess.run(["netstat", "-ano", "-p", "TCP"], capture_output=True, text=True)
-        except OSError:
-            return []
-        pids = set()
-        for line in out.stdout.splitlines():
-            # "  TCP    0.0.0.0:5010    0.0.0.0:0    LISTENING    1234"
-            fields = line.split()
-            if (len(fields) == 5 and fields[3] == "LISTENING" and fields[1].rsplit(":", 1)[-1] == str(port)
-                    and fields[4].isdigit()):
-                pids.add(int(fields[4]))
-        return sorted(pids)
+        return _listening_pids_in_netstat(_netstat(), port)
     try:
         out = subprocess.run(["lsof", "-ti", f"tcp:{port}", "-sTCP:LISTEN"], capture_output=True, text=True)
     except OSError:
         return []
     return [int(p) for p in out.stdout.split() if p.strip().isdigit()]
+
+
+def _netstat() -> str:
+    """``netstat -ano`` (IPv4 and IPv6 sockets) as text; empty if it cannot run."""
+    try:
+        # netstat writes in the console's code page, which need not be Python's: never fail on a byte
+        out = subprocess.run(["netstat", "-ano"], capture_output=True, text=True, errors="replace")
+    except OSError:
+        return ""
+    return out.stdout
+
+
+def _listening_pids_in_netstat(text: str, port: int) -> list[int]:
+    """The PIDs of the TCP sockets listening on ``port`` in Windows ``netstat -ano`` output.
+
+    A listening socket is told by its foreign address, ``0.0.0.0:0`` or ``[::]:0``,
+    not by the state column, which Windows translates ("LISTENING", "ABHÖREN" …)
+    sometimes into more than one word: the PID is the last column, whatever is between.
+    """
+    pids = set()
+    for line in text.splitlines():
+        # "  TCP    0.0.0.0:5010    0.0.0.0:0    LISTENING    1234" (or [::]:5010 ... [::]:0)
+        fields = line.split()
+        if (len(fields) >= 4 and fields[0] == "TCP" and fields[1].rsplit(":", 1)[-1] == str(port)
+                and fields[2].rsplit(":", 1)[-1] == "0" and fields[-1].isdigit()):
+            pids.add(int(fields[-1]))
+    return sorted(pids)
 
 
 def stop_previous(port: int) -> int:

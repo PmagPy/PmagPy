@@ -38,6 +38,11 @@ HEADER_HEIGHT = 52     # the template's header, which the panes sit under
 #: Panel's default is 500: every tab switch then looked like half a second of work,
 #: however quick it was (a switch to a tab already shown takes about 15 ms)
 BUSY_MIN_MS = 100
+# param takes the template's busy spinner (a widget, so a possible reference) for one it should
+# resolve, and warns once per application; the template wants the spinner itself, which is what
+# it gets (the warning is Panel's to fix). A filter set once, not around each template: a
+# catch_warnings block swaps the process's filters and is not thread-safe
+warnings.filterwarnings("ignore", message=r"Parameter 'busy_indicator' on <class 'panel\.template")
 STATUS_STYLE = "color:inherit;opacity:.88;font-size:0.85rem"   # follows the header's text colour
 #: a long status (a legacy .redo not read, a warning count) is cut at two lines rather than
 #: pushing the header down over the tabs; the whole text is its tooltip
@@ -275,18 +280,14 @@ def template(body: Body, logo: str, hub_url: str = "") -> pn.template.FastListTe
         header.append(back_link(hub_url))
     if body.header is not None:
         header.append(body.header)
-    with warnings.catch_warnings():
-        # param takes the spinner (a widget, so a possible reference) for one it should resolve;
-        # the template wants the spinner itself, which is what it gets (the warning is Panel's to fix)
-        warnings.filterwarnings("ignore", message=r"Parameter 'busy_indicator'")
-        tmpl = pn.template.FastListTemplate(
-            title=body.info.name, logo=asset_data_uri(logo), favicon=asset_url(body.info, "favicon.png"),
-            main=[workspace.layout], header=header, theme_toggle=False,
-            header_background=body.info.color, header_color=text_on(body.info.color),   # the application's colour
-            accent_base_color=ACCENT,                                                   # buttons stay the family's
-            collapsed_sidebar=True, main_max_width="100%", raw_css=[RAW_CSS],
-            busy_indicator=pn.indicators.LoadingSpinner(width=20, height=20, throttle=BUSY_MIN_MS),
-        )
+    tmpl = pn.template.FastListTemplate(
+        title=body.info.name, logo=asset_data_uri(logo), favicon=asset_url(body.info, "favicon.png"),
+        main=[workspace.layout], header=header, theme_toggle=False,
+        header_background=body.info.color, header_color=text_on(body.info.color),   # the application's colour
+        accent_base_color=ACCENT,                                                   # buttons stay the family's
+        collapsed_sidebar=True, main_max_width="100%", raw_css=[RAW_CSS],
+        busy_indicator=pn.indicators.LoadingSpinner(width=20, height=20, throttle=BUSY_MIN_MS),
+    )
     if body.modal is not None:
         tmpl.modal.append(body.modal)
         body.open_modal = tmpl.open_modal
