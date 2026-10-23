@@ -556,6 +556,19 @@ class TestSpecimenView:
         w, h = view.levels.canvas.sizes[view.LEVELS]
         assert view.levels.plot.fig.width == min(view.levels.NET, h - 44)
 
+    def test_the_zijderveld_diagram_opens_with_its_origin_in_view(self):
+        """The auto-ranges fit the renderers' data, not the axis spans: an invisible point at the
+        origin keeps it in every first view, whichever side of the axes the steps lie on."""
+        from bokeh.models import DataRange1d
+        from pmagpy_directions.plots import ZijderveldPlot
+        zij = ZijderveldPlot()
+        assert isinstance(zij.fig.x_range, DataRange1d) and isinstance(zij.fig.y_range, DataRange1d)
+        assert zij.fig.x_range.renderers in ("auto", [])                  # every renderer counts
+        origin = zij.fig.select_one({"name": "origin"})
+        assert list(origin.data_source.data["x"]) == [0.0] and list(origin.data_source.data["y"]) == [0.0]
+        assert origin.glyph.fill_alpha == 0 and origin.glyph.line_alpha == 0
+        assert origin.visible                                             # hidden renderers may not range
+
     def test_the_information_line_gives_sample_site_and_location(self, tmp_path):
         """Under the specimen selector: the specimen's sample, site and location, each labelled;
         not the specimen again (the selector shows it)."""

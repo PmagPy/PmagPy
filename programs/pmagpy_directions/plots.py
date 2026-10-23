@@ -86,6 +86,13 @@ class ZijderveldPlot:
         style_figure(self.fig, hide_axes=True)
         self.fig.add_layout(Span(location=0, dimension="width", line_color=NET_COLOR, line_width=1))
         self.fig.add_layout(Span(location=0, dimension="height", line_color=NET_COLOR, line_width=1))
+        # an invisible point at the origin: the auto-ranges fit the renderers' data, not the
+        # axis spans, so without it a specimen whose steps all lie to one side of an axis
+        # opens zoomed onto the data, its origin out of view. Every first view (and the
+        # reset button) shows the origin; a zoom box can still leave it out
+        transparent = dict(fill_alpha=0, line_alpha=0, selection_fill_alpha=0, selection_line_alpha=0,
+                           nonselection_fill_alpha=0, nonselection_line_alpha=0)
+        self.fig.scatter([0.0], [0.0], size=1, name="origin", **transparent)
         self.src = ColumnDataSource(dict(x=[], y_h=[], y_v=[], label=[], text=[], seq=[]))
         self.bad = ColumnDataSource(dict(x=[], y_h=[], y_v=[], label=[]))
         # faint connecting traces beneath solid symbols; a tap must never fade the points
