@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import html
 import re
+import warnings
 
 from dataclasses import dataclass, field
 from typing import Callable, Optional, Union
@@ -37,6 +38,11 @@ HEADER_HEIGHT = 52     # the template's header, which the panes sit under
 #: Panel's default is 500: every tab switch then looked like half a second of work,
 #: however quick it was (a switch to a tab already shown takes about 15 ms)
 BUSY_MIN_MS = 100
+# param takes the template's busy spinner (a widget, so a possible reference) for one it should
+# resolve, and warns once per application; the template wants the spinner itself, which is what
+# it gets (the warning is Panel's to fix). A filter set once, not around each template: a
+# catch_warnings block swaps the process's filters and is not thread-safe
+warnings.filterwarnings("ignore", message=r"Parameter 'busy_indicator' on <class 'panel\.template")
 STATUS_STYLE = "color:inherit;opacity:.88;font-size:0.85rem"   # follows the header's text colour
 #: a long status (a legacy .redo not read, a warning count) is cut at two lines rather than
 #: pushing the header down over the tabs; the whole text is its tooltip

@@ -5,7 +5,9 @@ What it does, for whichever application (or set of them) is passed to it:
 * stops a server already listening on the port (so you never have to hunt down
   and kill the old one),
 * starts ``panel serve`` in *dev* mode, which reloads the app whenever its
-  source changes — after an edit just refresh the browser tab,
+  source changes — after an edit just refresh the browser tab (the hub, which
+  serves several applications, leaves it off unless ``--reload``: dev mode
+  builds every served application before the server answers),
 * waits until the app answers before opening a browser, so the tab is never
   blank while the first dataset is read.
 
@@ -24,6 +26,7 @@ An application wraps this with its own file, environment prefix and port; see
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import os
 import signal
 import subprocess
@@ -35,12 +38,41 @@ from .runtime import HUB_URL_VAR, open_ui
 
 
 def pids_on_port(port: int) -> list[int]:
-    """PIDs listening on a TCP port (macOS/Linux via lsof; empty elsewhere)."""
+    """PIDs listening on a TCP port (Windows via netstat, macOS/Linux via lsof; empty if neither runs)."""
+    if sys.platform == "win32":
+        return _listening_pids_in_netstat(_netstat(), port)
     try:
         out = subprocess.run(["lsof", "-ti", f"tcp:{port}", "-sTCP:LISTEN"], capture_output=True, text=True)
     except OSError:
         return []
     return [int(p) for p in out.stdout.split() if p.strip().isdigit()]
+
+
+def _netstat() -> str:
+    """``netstat -ano`` (IPv4 and IPv6 sockets) as text; empty if it cannot run."""
+    try:
+        # netstat writes in the console's code page, which need not be Python's: never fail on a byte
+        out = subprocess.run(["netstat", "-ano"], capture_output=True, text=True, errors="replace")
+    except OSError:
+        return ""
+    return out.stdout
+
+
+def _listening_pids_in_netstat(text: str, port: int) -> list[int]:
+    """The PIDs of the TCP sockets listening on ``port`` in Windows ``netstat -ano`` output.
+
+    A listening socket is told by its foreign address, ``0.0.0.0:0`` or ``[::]:0``,
+    not by the state column, which Windows translates ("LISTENING", "ABHÖREN" …)
+    sometimes into more than one word: the PID is the last column, whatever is between.
+    """
+    pids = set()
+    for line in text.splitlines():
+        # "  TCP    0.0.0.0:5010    0.0.0.0:0    LISTENING    1234" (or [::]:5010 ... [::]:0)
+        fields = line.split()
+        if (len(fields) >= 4 and fields[0] == "TCP" and fields[1].rsplit(":", 1)[-1] == str(port)
+                and fields[2].rsplit(":", 1)[-1] == "0" and fields[-1].isdigit()):
+            pids.add(int(fields[-1]))
+    return sorted(pids)
 
 
 def stop_previous(port: int) -> int:
@@ -85,7 +117,7 @@ def serve_command(app_files: Sequence[str], port: int, dev: bool = True, index: 
 
 
 def main(app_files: Union[str, Sequence[str]], env_prefix: str, default_port: int, argv=None,
-         index: bool = False) -> int:
+         index: bool = False, reload: bool = True) -> int:
     """Serve the application(s), reading settings from ``<env_prefix>PORT/DIR/OUTPUT``.
 
     Args:
@@ -96,6 +128,9 @@ def main(app_files: Union[str, Sequence[str]], env_prefix: str, default_port: in
         default_port: used unless ``<env_prefix>PORT`` or ``--port`` says otherwise.
         index: serve the first application at ``/`` as well as at its own path,
             and tell the others where it is.
+        reload: serve in dev mode unless ``--no-reload`` (``--reload`` turns it on
+            when this is False). Panel's dev mode builds every served application
+            once before the server answers, so several of them start slowly.
     """
     app_files = [app_files] if isinstance(app_files, str) else list(app_files)
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -106,8 +141,18 @@ def main(app_files: Union[str, Sequence[str]], env_prefix: str, default_port: in
                                      f"that cannot be written in place, and contributions downloaded from MagIC; "
                                      f"every other study is worked on where it is (sets {env_prefix}OUTPUT)")
     ap.add_argument("--no-show", action="store_true", help="do not open a browser tab")
-    ap.add_argument("--no-reload", action="store_true", help="disable automatic reload on code changes")
+    group = ap.add_mutually_exclusive_group()
+    group.add_argument("--reload", dest="reload", action="store_true", default=reload,
+                       help="reload automatically on code changes (slower start)"
+                            + ("; the default" if reload else ""))
+    group.add_argument("--no-reload", dest="reload", action="store_false",
+                       help="disable automatic reload on code changes" + ("" if reload else "; the default"))
     args = ap.parse_args(argv)
+
+    if importlib.util.find_spec("panel") is None:
+        print(f"Panel is not installed for {sys.executable}; install it (pip install panel bokeh) "
+              "or run this with the Python that has it", file=sys.stderr)
+        return 1
 
     env = dict(os.environ)
     if args.dir:
@@ -124,7 +169,7 @@ def main(app_files: Union[str, Sequence[str]], env_prefix: str, default_port: in
     if n:
         print(f"stopped {n} previous server process(es) on port {args.port}")
 
-    cmd = serve_command(app_files, args.port, dev=not args.no_reload, index=index)
+    cmd = serve_command(app_files, args.port, dev=args.reload, index=index)
     print("launching:", " ".join(cmd))
     proc = subprocess.Popen(cmd, env=env, cwd=_working_dir(app_files[0]))
     try:
