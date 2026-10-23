@@ -344,6 +344,9 @@ Each of these was found the hard way in Directions; none is obvious.
   browser.** Param defaults reload, so a change looks half-applied while the
   old JavaScript keeps running. Restart the server after touching any
   component's JS.
+* **Panel's `--dev` builds every served application before the server
+  answers** (to learn which modules to watch). For the hub that is all five,
+  about a minute, so `pmagpy-apps` serves without it unless `--reload`.
 * **Bokeh renders every model into its own shadow root.** A component's host
   element therefore has `parentElement === null` — walk up with
   `el.parentElement || el.parentNode.host`. Sibling lookups

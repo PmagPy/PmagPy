@@ -4,6 +4,7 @@ The ``pmagpy-apps`` command: serve the family on one port.
     pmagpy-apps                       # start (or restart) and open the browser
     pmagpy-apps --no-show             # start without opening a browser tab
     pmagpy-apps --port 5200 --dir /path/to/magic
+    pmagpy-apps --reload              # reload on code changes (starts much slower)
 
 This page is served at ``/`` and each application beside it (``/pmagpy_directions``
 …), all from one process, so a directory opened here is opened once. The work
@@ -44,8 +45,10 @@ def application_files() -> list:
 
 
 def main(argv=None) -> int:
+    # no dev reload by default: Panel's dev mode builds every application before the
+    # server answers, about a minute for the family against seconds without it
     return launch.main([HUB, *application_files()], env_prefix="PMAGPY_APPS_",
-                       default_port=DEFAULT_PORT, argv=argv, index=True)
+                       default_port=DEFAULT_PORT, argv=argv, index=True, reload=False)
 
 
 if __name__ == "__main__":
