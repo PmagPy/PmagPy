@@ -174,7 +174,7 @@ Right click toggles a measurement good/bad (struck through
 and tagged; on every plot a bad step is greyed out — it takes part in no
 fit — and the connecting line joins the good steps either side of it,
 never the bad one). Fits are edited without modes or buttons: with a fit selected,
-tapping a point on the Zijderveld or equal-area plot moves its nearest bound
+clicking a point on the Zijderveld or equal-area plot moves its nearest bound
 and the fit recomputes at once;
 box-selecting a range sets both bounds; the bound, fit-type and name fields
 apply live; `[` `]` nudge the lower bound and `{` `}` the upper. *New fit*

@@ -429,11 +429,11 @@ class SpecimenView:
         self.tmax_sel.param.watch(self._on_bound_widget, "value")
         self.fit_type_sel.param.watch(self._on_type_widget, "value")
         self.comp_name.param.watch(self._on_name_widget, "value")
-        # one short line; the keys are in its tooltip (a laptop's window has no width to spare)
+        # two words; the tips are in its tooltip (a laptop's window has no width to spare)
         self.hint = heading_item(f'<span style="{MUTED_STYLE};cursor:help" title="Click a point on a plot to move '
                                  'the selected fit\'s nearest bound. Keys: [ ] and { } nudge the bounds, ↑ ↓ move '
-                                 'through the steps, ← → through the specimens.">click a point to move the nearest '
-                                 'bound · keys ⓘ</span>', margin=(0, 0, 0, 12))
+                                 'through the steps, ← → through the specimens.">fit tips ⓘ</span>',
+                                 margin=(0, 0, 0, 12))
         # the one list of fits: statistics + selection (click a row to make it the current fit)
         self.comp_table = pn.widgets.Tabulator(
             pd.DataFrame(), height=150, show_index=False, disabled=True, selectable=1, sortable=False, margin=(0, 5, 5, 5),
