@@ -12,12 +12,13 @@ import pmagpy.demag_geo as geo
 
 from pmagpy_panel.nets import declutter_labels, keep_circular, net_figure
 from pmagpy_panel.theme import (HORIZONTAL_COLOR, LAND_COLOR, LAND_EDGE, MEAN_COLOR, NET_COLOR, OCEAN_COLOR,
-                                SITE_COLOR, VERTICAL_COLOR, style_figure)
+                                SITE_COLOR, VERTICAL_COLOR, darken, style_figure)
 
 BAD_ALPHA = 0.55        # a step flagged bad stays visible on every plot, greyed out
 BAD_FILL = "#e5e7eb"    # ... as a pale grey symbol with a grey edge, joined to nothing
 BAD_LINE = "#9ca3af"
 MARK_COLOR = "#1f2937"  # the ring around the selected step / fit: the same dark as the logger's side bar
+AXIS_LABEL_SIZE = "8pt"  # the Specimen tab's axis text: the diagram's axis ends, the net's N E S W, the M/M₀ axes
 
 
 def zoom_tools(fig, match_aspect=True):
@@ -133,9 +134,9 @@ class ZijderveldPlot:
         # axis-end labels at the frame edges: the along-axis coordinate is in screen
         # pixels (the frame is a fixed square), the other one is the axis itself
         # (data 0), so the labels stay at the edges through zoom and pan and never
-        # sit on the data. A size just above the step labels' 8 pt: larger, they cover
-        # the points near the frame's edges
-        backing = dict(background_fill_color="white", background_fill_alpha=0.75, text_font_size="9pt")
+        # sit on the data. The step labels' size: larger, they cover the points near
+        # the frame's edges
+        backing = dict(background_fill_color="white", background_fill_alpha=0.75, text_font_size=AXIS_LABEL_SIZE)
         edge = frame - 6
         self.lbl_right = Label(x=edge, y=0, x_units="screen", text="", y_offset=5, text_align="right",
                                text_baseline="bottom", **backing)
@@ -272,7 +273,7 @@ class StepEqualAreaPlot:
     """Equal-area plot of a specimen's steps with fitted directions and great circles."""
 
     def __init__(self, size=340):
-        self.fig = zoom_tools(net_figure(None, size, tools="tap"))   # no title: the net speaks for itself
+        self.fig = zoom_tools(net_figure(None, size, tools="tap", label_size=AXIS_LABEL_SIZE))   # no title: the net speaks for itself
         self.fig.toolbar_location, self.fig.toolbar_inner = "right", True
         # every step is a symbol (a bad one greyed out); the path joins the good ones only
         self.src = ColumnDataSource(dict(x=[], y=[], fill=[], line=[], label=[], seq=[], alpha=[]))
@@ -369,7 +370,7 @@ class DecayPlot:
         style_figure(self.fig)
         # compact axis text: this plot is an overview strip, its labels need not
         # compete with the Zijderveld axis-end labels for attention (or height)
-        self.fig.axis.axis_label_text_font_size = "9pt"
+        self.fig.axis.axis_label_text_font_size = AXIS_LABEL_SIZE
         self.fig.axis.major_label_text_font_size = "8pt"
         self.fig.min_border_right = 4          # same right border as the net box above: frames end flush
         self.src = ColumnDataSource(dict(x=[], y=[], label=[], color=[], line=[], alpha=[]))
@@ -422,9 +423,17 @@ class DecayPlot:
 
 
 class DirectionsPlot:
-    """Equal-area plot of many directions (specimen fits or site means) with a Fisher mean."""
+    """Equal-area plot of many directions (specimen fits or site means) with a Fisher mean.
 
-    def __init__(self, title="Directions", size=460, mark_name="step_mark"):
+    ``mark_style`` is how :meth:`mark` singles one out: ``"ring"``, a dark ring (a
+    plane: its great circle drawn heavy), for a fit picked from a table; ``"shade"``,
+    the direction or great circle drawn in a darker shade of its own colour, for
+    the current fit among its neighbours, where a ring would cover them.
+    """
+
+    SHADE = 0.4              # how far "shade" takes a colour towards black
+
+    def __init__(self, title="Directions", size=460, mark_name="step_mark", mark_style="ring"):
         self.fig = zoom_tools(net_figure(None, size, tools=""))
         self.fig.toolbar_location, self.fig.toolbar_inner = "right", True
         self.fig.title.text = title
@@ -432,6 +441,11 @@ class DirectionsPlot:
         self.src = ColumnDataSource(dict(x=[], y=[], fill=[], line=[], label=[], comp=[]))
         self.points = self.fig.scatter("x", "y", source=self.src, size=8, fill_color="fill", line_color="line",
                                        line_width=0.8)
+        # the "shade" mark: over the other directions, under the means
+        self.mark_style = mark_style
+        self.shade_src = ColumnDataSource(dict(x=[], y=[], color=[], fill=[]))
+        self.fig.scatter("x", "y", source=self.shade_src, size=8, fill_color="fill", line_color="color",
+                         line_width=1.2, name=f"{mark_name}_shade")
         self.fig.add_tools(HoverTool(renderers=[self.points], tooltips=[("", "@label"), ("component", "@comp")]))
         self.circles = ColumnDataSource(dict(xs=[], ys=[], color=[]))
         self.great = self.fig.multi_line("xs", "ys", source=self.circles, color="color", line_width=1, alpha=0.8)
@@ -447,13 +461,16 @@ class DirectionsPlot:
         # where each great circle is resolved to once the lines pin it down: a third
         # kind of thing on the net, so a third symbol — circles are measured
         # directions, the square is the mean, triangles sit on the circles
-        # one star + α95 circle per component mean, in the component's colour
-        self.mean = ColumnDataSource(dict(x=[], y=[], color=[], name=[]))
+        # one square + α95 circle per component mean, in the component's colour
+        self.mean = ColumnDataSource(dict(x=[], y=[], color=[], fill=[], line=[], width=[], name=[]))
         self.a95 = ColumnDataSource(dict(xs=[], ys=[], color=[]))
         self.fig.multi_line("xs", "ys", source=self.a95, color="color", line_width=2)
-        # a square mean against the circles of the directions it averages
-        means_r = self.fig.scatter("x", "y", source=self.mean, marker="square", size=14, fill_color="color",
-                                   line_color="#2b2b2b", line_width=0.8)
+        # a square mean against the circles of the directions it averages: told apart by
+        # its shape, not its size, and see-through, so the tight cluster it usually sits
+        # on stays visible under it. Lower hemisphere: filled, with a dark edge; upper:
+        # open (white) with an edge in the component's colour, as the directions are
+        means_r = self.fig.scatter("x", "y", source=self.mean, marker="square", size=9, fill_color="fill",
+                                   fill_alpha=0.7, line_color="line", line_width="width")
         self.fig.add_tools(HoverTool(renderers=[means_r], tooltips=[("mean", "@name")]))
         # the fit selected in the table: a ring around its direction, or its great
         # circle drawn heavy (a halo under it) when the fit is a plane
@@ -462,20 +479,38 @@ class DirectionsPlot:
         self.fig.multi_line("xs", "ys", source=self.mark_circle_src, color=MARK_COLOR, line_width=2,
                             name=f"{mark_name}_circle")
         self.mark_src = add_mark(self.fig, size=16, name=mark_name)
+        self.shade_circle_src = ColumnDataSource(dict(xs=[], ys=[], color=[]))
+        self.fig.multi_line("xs", "ys", source=self.shade_circle_src, color="color", line_width=2,
+                            name=f"{mark_name}_shade_circle")
 
     def set_size(self, size: int):
         """Resize the square net (the title row above it keeps its height)."""
         self.fig.width = int(size)
         self.fig.height = int(size) + (28 if self.fig.title.text else 0)
 
-    def mark(self, dec=None, inc=None, plane=False):
-        """Single out one direction: ring it, or draw its great circle heavy if `plane`.
+    def mark(self, dec=None, inc=None, plane=False, color=None):
+        """Single out one direction: ring it, or draw its great circle heavy if `plane`
+        (with ``mark_style="shade"``: draw it in a darker shade of `color`, its own colour).
 
         Called with no arguments, clears the mark.
         """
+        self.shade_src.data = dict(x=[], y=[], color=[], fill=[])
+        self.shade_circle_src.data = dict(xs=[], ys=[], color=[])
         if dec is None or inc is None or np.isnan(dec) or np.isnan(inc):
             self.mark_src.data = dict(x=[], y=[])
             self.mark_circle_src.data = dict(xs=[], ys=[])
+            return
+        if self.mark_style == "shade":
+            self.mark_src.data = dict(x=[], y=[])
+            self.mark_circle_src.data = dict(xs=[], ys=[])
+            shade = darken(color or MARK_COLOR, self.SHADE)
+            if plane:
+                gx, gy = dc.great_circle_xy(dec, inc)
+                self.shade_circle_src.data = dict(xs=[list(gx)], ys=[list(gy)], color=[shade])
+            else:
+                x, y = dc.equal_area_xy([dec], [inc])
+                self.shade_src.data = dict(x=[float(x[0])], y=[float(y[0])], color=[shade],
+                                           fill=[shade if inc >= 0 else "white"])      # open: upper hemisphere
             return
         if plane:
             gx, gy = dc.great_circle_xy(dec, inc)
@@ -522,18 +557,23 @@ class DirectionsPlot:
         self.points.glyph.size = 8 if len(dirs) <= 150 else (6 if len(dirs) <= 400 else 4.5)
         self.great.glyph.line_alpha = 0.8 if len(gxs) <= 15 else max(0.12, 10 / len(gxs))
         mx, my, mcol, mname, axs, ays, acol = [], [], [], [], [], [], []
+        mfill, mline, mwidth = [], [], []
         for mean, color in means:
             if mean is None or np.isnan(mean.get("dir_dec", np.nan)):
                 continue
             x, y = dc.equal_area_xy([mean["dir_dec"]], [mean["dir_inc"]])
             mx.append(float(x[0])); my.append(float(y[0])); mcol.append(color)
+            down = mean["dir_inc"] >= 0
+            mfill.append(color if down else "white")
+            mline.append("#2b2b2b" if down else color)
+            mwidth.append(1.0 if down else 1.6)
             mname.append(str(mean.get("dir_comp_name", "")))
             a95 = mean.get("dir_alpha95", np.nan)
             if a95 is not None and not np.isnan(a95) and a95 > 0:
                 cd, ci = dc.pmag.circ(mean["dir_dec"], mean["dir_inc"], a95)
                 cx, cy = dc.equal_area_xy(cd, np.abs(ci))
                 axs.append(list(cx)); ays.append(list(cy)); acol.append(color)
-        self.mean.data = dict(x=mx, y=my, color=mcol, name=mname)
+        self.mean.data = dict(x=mx, y=my, color=mcol, fill=mfill, line=mline, width=mwidth, name=mname)
         self.a95.data = dict(xs=axs, ys=ays, color=acol)
         if title:
             self.fig.title.text = title

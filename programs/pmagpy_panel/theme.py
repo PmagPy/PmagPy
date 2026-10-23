@@ -144,6 +144,15 @@ def lighten(hex_color: str, amount: float = 0.75) -> str:
     return "#%02x%02x%02x" % (int(r * 255), int(g * 255), int(b * 255))
 
 
+def darken(hex_color: str, amount: float = 0.35) -> str:
+    """Blend a hex colour towards black (amount=1 is black), keeping its hue."""
+    if amount <= 0:
+        return hex_color
+    hex_color = hex_color.lstrip("#")
+    r, g, b = (int(hex_color[i:i + 2], 16) / 255 * (1 - amount) for i in (0, 2, 4))
+    return "#%02x%02x%02x" % (round(r * 255), round(g * 255), round(b * 255))
+
+
 RAW_CSS = """
 :root { --demag-accent: %(accent)s; }
 .bk-root, .pn-loading { font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif; }

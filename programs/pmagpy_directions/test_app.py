@@ -6,6 +6,7 @@ step logger's row model. Run with the demag-playground environment::
     pytest programs/pmagpy_directions/test_app.py -q
 """
 import os
+import re
 import shutil
 
 import matplotlib
@@ -465,8 +466,9 @@ class TestSpecimenView:
         canvas.width_px = 1000
         rects = dict(zip(canvas.titles, canvas.rects))
         zij = rects[view.ZIJ]
-        assert (zij["x"], zij["y"], zij["h"]) == (0, 0, SpecimenView.HEIGHT) and zij["w"] == 436
+        assert (zij["x"], zij["y"], zij["h"]) == (0, 0, SpecimenView.HEIGHT) and zij["w"] == 615
         bw, bh = canvas.sizes[view.ZIJ]
+        assert bh == SpecimenView.HEIGHT - 2                             # no title bar: the plot has the panel
         assert view.zij.fig.frame_width == bw - 18                       # the frame takes the panel's shape
         assert view.zij.fig.frame_height == bh - ZijderveldPlot.CHROME - 4
         assert view.zij.lbl_right.x == bw - 24 and view.zij.lbl_top.y == view.zij.fig.frame_height - 6
@@ -554,9 +556,28 @@ class TestSpecimenView:
         w, h = view.levels.canvas.sizes[view.LEVELS]
         assert view.levels.plot.fig.width == min(view.levels.NET, h - 44)
 
+    def test_sample_orientation_always_shows_both_rows(self):
+        """The lab arrow and the bedding each get a row, "none recorded" when missing; no paragraph."""
+        from types import SimpleNamespace
+        from pmagpy_directions.views import orientation_html
+        both = SimpleNamespace(has_geographic=True, has_tilt=True, azimuth=210, dip=-19,
+                               bed_dip_direction=160.3, bed_dip=13)
+        html_both = orientation_html(both)
+        assert "<b>210°</b>" in html_both and "<b>160.3°</b>" in html_both and "none recorded" not in html_both
+        no_bed = orientation_html(SimpleNamespace(**{**vars(both), "has_tilt": False}))
+        assert "<b>210°</b>" in no_bed and no_bed.count("none recorded") == 1
+        for nothing in (None, SimpleNamespace(**{**vars(both), "has_geographic": False, "has_tilt": False})):
+            html_none = orientation_html(nothing)
+            assert html_none.count("none recorded") == 2 and "lab arrow" in html_none and "bedding" in html_none
+        visible = re.sub(r'title="[^"]*"', "", html_both)
+        assert "turns" not in visible and "turns specimen into geographic" in html_both   # the use: tooltips only
+
     def test_the_level_card_shows_the_specimens_group(self, tmp_path):
-        """The hierarchical card plots the good fits of the current specimen's site, its means, and rings the current fit."""
+        """The hierarchical card plots the good fits of the current specimen's site, its means, and shades the
+        current fit darker in its own colour (no ring over its neighbours)."""
+        from pmagpy_directions.plots import DirectionsPlot
         from pmagpy_directions.views import SpecimenView
+        from pmagpy_panel.theme import darken
         s = Session(_DMAG, output_dir=str(tmp_path))
         view = SpecimenView(s)
         card = view.levels
@@ -566,7 +587,11 @@ class TestSpecimenView:
         assert len(card.plot.src.data["x"]) == n_fits
         assert site in card.plot.fig.title.text
         assert len(card.plot.mean.data["x"]) >= 1 and "α95" in card.stats.object
-        assert len(card.plot.mark_src.data["x"]) == (1 if s.current is not None and s.current.fit_type != "DE-BFP" else 0)
+        line = s.current is not None and s.current.fit_type != "DE-BFP"
+        assert card.plot.mark_src.data["x"] == [] and card.plot.mark_circle_src.data["xs"] == []
+        assert len(card.plot.shade_src.data["x"]) == (1 if line else 0)
+        if line:
+            assert card.plot.shade_src.data["color"] == [darken(s.color_of(s.current.name), DirectionsPlot.SHADE)]
         card.stat.value = "bingham"
         assert "η / ζ" in card.stats.object
         card.level.value = "sample"
@@ -699,7 +724,7 @@ class TestSpecimenView:
         assert first is not None and (first.imin, first.imax) == (0, n - 1)
         assert first.fit_type == view.fit_type_sel.value
         assert first.name in view.comp_table.value["fit"].tolist()
-        assert "tap a point" in s.status
+        assert "click a point" in s.status
 
         # the next plot taps shape the new fit rather than starting another one
         view._pick(3)
@@ -999,6 +1024,22 @@ class TestMeansView:
         assert means._records[0]["q"] == "b" and means.plot.mark_src.data["x"] == []
         means._flag()
         assert means.plot.mark_src.data["x"] != []
+
+    def test_means_and_the_shaded_fit_are_open_in_the_upper_hemisphere(self):
+        """A mean (and the shaded current fit) is filled when it points down, open (white) when it
+        points up, as the directions on the net are."""
+        from pmagpy_directions.plots import DirectionsPlot
+        plot = DirectionsPlot("", size=300, mark_style="shade")
+        down = {"dir_dec": 10.0, "dir_inc": 45.0, "dir_alpha95": 3.0, "dir_comp_name": "A"}
+        up = {"dir_dec": 190.0, "dir_inc": -45.0, "dir_alpha95": 3.0, "dir_comp_name": "B"}
+        plot.update([(10.0, 45.0, "s1", "A", "#aa0000"), (190.0, -45.0, "s2", "B", "#0000aa")],
+                    means=[(down, "#aa0000"), (up, "#0000aa")])
+        assert plot.mean.data["fill"] == ["#aa0000", "white"]
+        assert plot.mean.data["line"] == ["#2b2b2b", "#0000aa"]          # an open square keeps its colour
+        plot.mark(190.0, -45.0, color="#0000aa")
+        assert plot.shade_src.data["fill"] == ["white"] and plot.shade_src.data["color"][0] != "#0000aa"
+        plot.mark(10.0, 45.0, color="#aa0000")
+        assert plot.shade_src.data["fill"] == plot.shade_src.data["color"]
 
     def test_statistic_selector_switches_what_is_averaged(self, tmp_path):
         """Fisher of the whole set, a mean per polarity mode, or the axial Bingham mean."""

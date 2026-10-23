@@ -22,7 +22,7 @@ from .theme import NET_COLOR, style_figure
 NET_TICKS = [(d, i) for d in range(0, 360, 90) for i in range(10, 90, 10)]
 
 
-def _net(fig, labels=("N", "E", "S", "W")):
+def _net(fig, labels=("N", "E", "S", "W"), label_size="9pt"):
     theta = np.linspace(0, 2 * np.pi, 361)
     fig.line(np.cos(theta), np.sin(theta), color=NET_COLOR, line_width=1)
     ticks = np.array([dc.pmag.dimap(d, i) for d, i in NET_TICKS])
@@ -31,7 +31,7 @@ def _net(fig, labels=("N", "E", "S", "W")):
     for txt, (x, y), align, base in zip(labels, [(0, 1.0), (1.0, 0), (0, -1.0), (-1.0, 0)],
                                         ["center", "left", "center", "right"],
                                         ["bottom", "middle", "top", "middle"]):
-        fig.add_layout(Label(x=x, y=y, text=txt, text_font_size="9pt", text_color=NET_COLOR,
+        fig.add_layout(Label(x=x, y=y, text=txt, text_font_size=label_size, text_color=NET_COLOR,
                              text_align=align, text_baseline=base, x_offset={"left": 3, "right": -3}.get(align, 0),
                              y_offset={"bottom": 2, "top": -2}.get(base, 0)))
 
@@ -52,7 +52,8 @@ def declutter_labels(x, y, labels, min_sep: float = 0.035):
     return np.array(out, dtype=object)
 
 
-def net_figure(title, size: int, tools="tap,pan,wheel_zoom,reset,save", labels=("N", "E", "S", "W")):
+def net_figure(title, size: int, tools="tap,pan,wheel_zoom,reset,save", labels=("N", "E", "S", "W"),
+               label_size="9pt"):
     # A square canvas with no axes, no title row, no toolbar strip and equal borders
     # is a square frame by construction, so equal explicit ranges keep the net
     # circular without over-constraining the layout (frame + outer sizes) — which
@@ -65,7 +66,7 @@ def net_figure(title, size: int, tools="tap,pan,wheel_zoom,reset,save", labels=(
                  sizing_mode="fixed", min_border=4, toolbar_location=None, frame_align=False,
                  name="equal_area_net")
     style_figure(fig, hide_axes=True)
-    _net(fig, labels)
+    _net(fig, labels, label_size)
     keep_circular(fig)
     return fig
 

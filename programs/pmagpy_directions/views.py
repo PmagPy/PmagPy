@@ -55,6 +55,19 @@ def section(text: str):
     return pn.pane.HTML(f'<div style="{SECTION_STYLE}">{text}</div>', margin=(2, 0, 0, 0))
 
 
+# the fits' heading row: one line of mixed text and small buttons, every item centred on it
+HEADING_ROW_HEIGHT = 28
+COMPACT_BUTTON_CSS = """
+.bk-btn { height: 24px !important; min-height: 0 !important; padding: 0 10px !important; line-height: 22px !important; }
+"""
+
+
+def heading_item(html_text: str, margin=(0, 0, 0, 0)):
+    """Text for the fits' heading row: no margin of its own above or below, centred on the row."""
+    return pn.pane.HTML(f'<div style="line-height:{HEADING_ROW_HEIGHT}px;white-space:nowrap">{html_text}</div>',
+                        margin=margin, align="center")
+
+
 def coord_selector(session):
     """A specimen / geographic / tilt-corrected button group bound to the session's coordinate system."""
     widget = pn.widgets.RadioButtonGroup(options=COORD_OPTIONS, value=session.coord, button_type="primary",
@@ -119,28 +132,23 @@ def _table_height(rows: int, cap: int) -> int:
 
 
 def orientation_html(orient) -> str:
-    """The sample's orientation, saying what each angle is and what it is used for.
+    """The sample's orientation: a row for the lab arrow and one for the bedding, always
+    both ("none recorded" for what is missing), what each is for in its tooltip.
 
     MagIC records the field orientation of a sample as the azimuth and dip of
     its *lab arrow* (the fiducial line drawn on the sample, the x-axis of the
     specimen coordinates); bedding as a dip direction and dip.
     """
     row = '<div style="display:flex;gap:8px;align-items:baseline;font-size:0.9rem;line-height:1.5">' \
-          '<span style="min-width:62px;color:#374151">{}</span><span>{}</span></div>'
-    note = '<div style="{};margin-top:2px">{}</div>'
-    if orient is None or not orient.has_geographic:
-        return note.format(MUTED_STYLE, "no sample orientation: plots are in specimen coordinates")
-    lab = (f"azimuth <b>{orient.azimuth:g}°</b> · dip <b>{orient.dip:g}°</b>")
-    out = [row.format('<span title="the fiducial line marked on the sample: the x-axis of the specimen '
-                      'coordinates">lab arrow ⓘ</span>', lab)]
-    if orient.has_tilt:
-        out.append(row.format("bedding", f"dip direction <b>{orient.bed_dip_direction:g}°</b> · "
-                                         f"dip <b>{orient.bed_dip:g}°</b>"))
-        text = ("the lab arrow's field orientation turns specimen into geographic coordinates; "
-                "the bedding then turns geographic into tilt-corrected coordinates")
-    else:
-        text = "the lab arrow's field orientation turns specimen into geographic coordinates (no bedding recorded)"
-    return "".join(out) + note.format(MUTED_STYLE, text)
+          '<span style="min-width:78px;color:#374151;cursor:help" title="{}">{} ⓘ</span><span>{}</span></div>'
+    none = f'<span style="{MUTED_STYLE}">none recorded</span>'
+    lab = (f"azimuth <b>{orient.azimuth:g}°</b> · dip <b>{orient.dip:g}°</b>"
+           if orient is not None and orient.has_geographic else none)
+    bed = (f"dip direction <b>{orient.bed_dip_direction:g}°</b> · dip <b>{orient.bed_dip:g}°</b>"
+           if orient is not None and orient.has_tilt else none)
+    return (row.format("the line marked on the sample (the specimen x-axis): turns specimen into geographic "
+                       "coordinates", "lab arrow", lab)
+            + row.format("turns geographic into tilt-corrected coordinates", "bedding", bed))
 
 
 PLANE_FITS = ("plane fit", "plane fits")
@@ -200,7 +208,7 @@ class LevelMeansCard:
     "higher level" panel).
 
     Every good fit of the group is drawn on a net in its component's colour —
-    the current fit ringed, so the specimen being interpreted can be judged
+    the current fit in a darker shade of it, so the specimen being interpreted can be judged
     against its neighbours — with the mean of each component under the chosen
     statistic, and a compact table of those means beneath.
     """
@@ -216,7 +224,8 @@ class LevelMeansCard:
                      sizing_mode="stretch_width", margin=(2, 4))
         self.level = pn.widgets.RadioButtonGroup(options=["sample", "site", "location"], value="site", **small)
         self.stat = pn.widgets.RadioButtonGroup(options=self.STATS, value="fisher", **small)
-        self.plot = DirectionsPlot("", size=self.NET, mark_name="fit_mark")      # it rings a fit, not a step
+        # it shades a fit (not a step), and does not ring it: a ring covers the neighbours it is judged against
+        self.plot = DirectionsPlot("", size=self.NET, mark_name="fit_mark", mark_style="shade")
         self.plot.fig.name = "level_net"
         self.stats = pn.pane.HTML("", sizing_mode="stretch_width", margin=(0, 6))
         for w in (self.level, self.stat):
@@ -271,7 +280,7 @@ class LevelMeansCard:
                                                        "dir_type": res.direction_type, "specimen": spec_name,
                                                        "color": color})
                 if cur is not None and c.key() == cur.key():
-                    mark = (res.dir_dec, res.dir_inc, res.direction_type == "p")
+                    mark = (res.dir_dec, res.dir_inc, res.direction_type == "p", color)
         self._n_stored = 0
         for rec, plotted in stored_records(s, level, name, coord):
             self._n_stored += 1
@@ -325,7 +334,7 @@ class LevelMeansCard:
         if mark is None:
             self.plot.mark()
         else:
-            self.plot.mark(mark[0], mark[1], plane=mark[2])
+            self.plot.mark(mark[0], mark[1], plane=mark[2], color=mark[3])
         self.stats.object = self._table(means, n_spec, len(dirs), len(planes))
 
     def _table(self, means, n_spec, n_lines, n_planes):
@@ -357,7 +366,7 @@ class LevelMeansCard:
         caption = (f'<div style="{MUTED_STYLE};margin:2px 0 4px 0">{n_spec} specimen{"s" if n_spec != 1 else ""}'
                    f'{stored} · {n_lines} line{"s" if n_lines != 1 else ""}'
                    + (f' · {n_planes} plane{"s" if n_planes != 1 else ""}' if n_planes else "")
-                   + ' · the current fit is ringed</div>')
+                   + ' · the current fit is shaded darker</div>')
         if not rows:
             return caption + f'<div style="{MUTED_STYLE}">no mean: fewer than two good fits of a component</div>'
         header = "".join(f'<th style="padding:1px 5px;text-align:{"left" if i == 0 else "right"};'
@@ -395,7 +404,8 @@ class SpecimenView:
         self.proj_sel.param.watch(lambda e: setattr(s, "projection", e.new), "value")
         self.label_sel = pn.widgets.RadioButtonGroup(options={"auto": -1, "all": 1}, value=s.label_every,
                                                      button_type="primary", button_style="outline",
-                                                     stylesheets=[BUTTON_GROUP_CSS], width=100)
+                                                     stylesheets=[BUTTON_GROUP_CSS, COMPACT_BUTTON_CSS], width=96,
+                                                     height=24, margin=(0, 12, 0, 6), align="center")
         self.label_sel.param.watch(lambda e: setattr(s, "label_every", e.new), "value")
         self.logger = StepLogger(height=540, sizing_mode="stretch_width")
         self.logger.param.watch(self._on_logger_click, "clicked")
@@ -420,10 +430,10 @@ class SpecimenView:
         self.fit_type_sel.param.watch(self._on_type_widget, "value")
         self.comp_name.param.watch(self._on_name_widget, "value")
         # one short line; the keys are in its tooltip (a laptop's window has no width to spare)
-        self.hint = pn.pane.HTML(f'<span style="{MUTED_STYLE};cursor:help" title="Tap a point on a plot to move '
+        self.hint = heading_item(f'<span style="{MUTED_STYLE};cursor:help" title="Click a point on a plot to move '
                                  'the selected fit\'s nearest bound. Keys: [ ] and { } nudge the bounds, ↑ ↓ move '
-                                 'through the steps, ← → through the specimens.">tap a point to move the nearest '
-                                 'bound · keys ⓘ</span>', margin=(2, 0, 0, 12))
+                                 'through the steps, ← → through the specimens.">click a point to move the nearest '
+                                 'bound · keys ⓘ</span>', margin=(0, 0, 0, 12))
         # the one list of fits: statistics + selection (click a row to make it the current fit)
         self.comp_table = pn.widgets.Tabulator(
             pd.DataFrame(), height=150, show_index=False, disabled=True, selectable=1, sortable=False, margin=(0, 5, 5, 5),
@@ -433,8 +443,8 @@ class SpecimenView:
         self.comp_table.param.watch(self._on_comp_select, "selection")
 
         # --- figures ---------------------------------------------------------
-        # four cards on a canvas the analyst rearranges (drag a title bar, resize from
-        # a corner); each figure is resized to its card once the browser reports it
+        # cards on a canvas the analyst rearranges (drag a card's grip, or a gap between
+        # cards); each figure is resized to its card once the browser reports it
         self.zij = ZijderveldPlot(frame=380)
         self.eq = StepEqualAreaPlot(size=250)
         self.decay = DecayPlot(size=250, frame_height=110)
@@ -453,28 +463,31 @@ class SpecimenView:
         # room for once the fits are in view (the handle measures it), HEIGHT until then
         self._height_chosen = saved["height"] is not None
         self._fitting = False
+        # no title bars: the plots need no naming, and the height is the plots'
         self.canvas = TileCanvas(self.cards, tree=saved["tree"], height=saved["height"] or self.HEIGHT,
-                                 sizing_mode="stretch_width", margin=(0, 0, 0, 0))
+                                 show_titles=False, sizing_mode="stretch_width", margin=(0, 0, 0, 0))
         self.canvas.param.watch(self._on_card_sizes, "sizes")
         # the handle under the canvas shares the window's height between the plots and the fits
         self.plot_size = HeightSplitter(value=self.canvas.height, default_value=self.HEIGHT, minimum=300,
                                         maximum=1400, room_below=self.ROOM_BELOW)
         self.plot_size.param.watch(self._on_plot_size, "value")
         self.plot_size.param.watch(self._on_window_room, "window_value")
-        self.reset_layout_btn = pn.widgets.Button(name="Reset layout", width=110, height=26, button_type="light",
-                                                  margin=(0, 5, 0, 5))
+        # outlined in blue as the button groups are: it reads as a button, not a label
+        self.reset_layout_btn = pn.widgets.Button(name="Reset layout", width=110, height=24, button_type="primary",
+                                                  button_style="outline", stylesheets=[COMPACT_BUTTON_CSS],
+                                                  margin=(0, 5, 0, 6), align="center")
         self.reset_layout_btn.on_click(self._reset_layout)
 
         s.param.watch(self._reset_pending, ["specimen"])
         s.param.watch(self.redraw, ["specimen", "coord", "projection", "label_every", "version", "current"])
         self.redraw()
 
-    # the panels' titles (also the leaves of a saved layout), and the default tiling: the
-    # diagram, the equal-area plot and the M/M₀ curve side by side (see pmagpy_panel.tiling).
-    # A row suits the short canvas of a laptop's window, where the fits must stay in view
+    # the panels' titles (the leaves of a saved layout, and the grips' tooltips), and the
+    # default tiling (see pmagpy_panel.tiling): the diagram on the left, the equal-area
+    # plot over the M/M₀ curve on the right
     ZIJ, EQ, DECAY = "Zijderveld diagram", "Equal-area plot", "Intensity decay (M/M₀)"
     LEVELS = "Higher-level means"     # a panel of its own, under the fits
-    DEFAULT_TREE = ["row", 0.44, ZIJ, ["row", 0.5, EQ, DECAY]]
+    DEFAULT_TREE = ["row", 0.62, ZIJ, ["col", 0.58, EQ, DECAY]]
     HEIGHT = 420              # the plots' height until the window is measured
     ROOM_BELOW = 190          # window kept under the plots: the fits' heading, buttons and first rows
     WINDOW_HEIGHTS = (300, 640)   # the range a height fitted to the window is kept in
@@ -658,7 +671,7 @@ class SpecimenView:
             lo = max(c.imax for c in comps)
         comp = self.s.add_component(self.s.next_fit_name(), lo, hi, self.fit_type_sel.value)
         self.s.status = (f"fit {comp.name}: {labels[comp.imin]} – {labels[comp.imax]} — "
-                         "tap a point on a plot to move its nearest bound")
+                         "click a point on a plot to move its nearest bound")
 
     def _on_bound_widget(self, event):
         if self._syncing or self.s.current is None:
@@ -842,8 +855,7 @@ class SpecimenView:
                                       pn.pane.HTML(f'<span style="{MUTED_STYLE}">← → keys</span>', margin=(12, 0, 0, 4))),
             self.info,
             section("Sample orientation"), self.orientation,
-            pn.Row(pn.Column(section("Coordinates"), self.coord_sel, margin=0),
-                   pn.Column(section("Step labels"), self.label_sel, width=110, margin=0)),
+            section("Coordinates"), self.coord_sel,
             section("Zijderveld projection · x axis"), self.proj_sel,
             section("Steps · click = select, right-click = good/bad"),
             self.logger,
@@ -851,18 +863,20 @@ class SpecimenView:
 
     def main(self):
         # no line of instructions above the plots (a laptop's window has no height to spare):
-        # how to rearrange them is the tooltip beside Reset layout, in the fits' heading
-        layout_help = pn.pane.HTML(
-            f'<span style="{MUTED_STYLE};cursor:help" title="Drag a panel\'s title onto another panel: its middle '
+        # how to rearrange them is the tooltip beside Reset layout, in the fits' heading,
+        # with the step-label density (a setting of the plots, not of the data)
+        labels_note = heading_item(f'<span style="{MUTED_STYLE}">step labels</span>')
+        layout_help = heading_item(
+            f'<span style="{MUTED_STYLE};cursor:help" title="Drag a plot by its ⠿ grip (top left) onto another plot: its middle '
             'swaps the two, its edge puts the panel on that side. Drag the gaps between panels to resize them, '
-            'and the bar below the plots for their height. The layout is remembered.">arrange the plots ⓘ</span>',
-            margin=(8, 0, 0, 10))
+            'and the bar below the plots for their height. The layout is remembered.">arrange the plots ⓘ</span>')
         return pn.Column(
             self.canvas,
             self.plot_size,
             # left margin as the table below: the heading lines up with what it labels
-            pn.Row(section("Fits · click a row to select it"), self.hint, pn.layout.HSpacer(), layout_help,
-                   self.reset_layout_btn, margin=(0, 0, 0, 5)),
+            pn.Row(heading_item(f'<span style="{SECTION_STYLE};margin:0">Fits · click a row to select it</span>'),
+                   self.hint, pn.layout.HSpacer(), labels_note, self.label_sel, layout_help, self.reset_layout_btn,
+                   height=HEADING_ROW_HEIGHT, margin=(2, 0, 2, 5)),
             pn.Row(self.comp_name, self.color_pick, self.fit_type_sel, self.tmin_sel, self.tmax_sel,
                    self.add_btn, self.del_btn),
             self.comp_table,

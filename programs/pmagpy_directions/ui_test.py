@@ -154,7 +154,8 @@ with sync_playwright() as p:
     check(zij and zij["w"] <= body["w"] and zij["h"] <= body["h"], f"the Zijderveld diagram fits its panel ({zij} in {body})")
     after = drop(page, DECAY, ZIJ, "bottom")
     t = after["tiles"]
-    check(t[DECAY]["y"] > t[ZIJ]["y"] and abs(t[DECAY]["x"] - t[ZIJ]["x"]) <= 1 and t[EQ]["w"] > start["tiles"][EQ]["w"],
+    area = lambda tile: tile["w"] * tile["h"]
+    check(t[DECAY]["y"] > t[ZIJ]["y"] and abs(t[DECAY]["x"] - t[ZIJ]["x"]) <= 1 and area(t[EQ]) > area(start["tiles"][EQ]),
           "the M/M₀ title dropped on the diagram's lower edge puts it under the diagram; the net takes its place")
     tiled(after, "after the drop")
     decay = page.evaluate(FIGURE_JS, "decay")

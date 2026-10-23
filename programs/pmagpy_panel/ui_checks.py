@@ -118,8 +118,9 @@ _TILES = r"""() => {
     const r = tile.getBoundingClientRect();
     if (r.width === 0) continue;
     const head = tile.querySelector('.tile-head'), body = tile.querySelector('.tile-body');
-    tiles[head.textContent.replace('⠿', '').trim()] = {x: r.left, y: r.top, w: r.width, h: r.height,
-      head: {x: r.left + 40, y: head.getBoundingClientRect().top + 12}, body: {w: body.clientWidth, h: body.clientHeight}};
+    const hr = head.getBoundingClientRect();    // a title bar, or (show_titles off) a grip in the corner
+    tiles[tile.querySelector('.tile-title').textContent.trim()] = {x: r.left, y: r.top, w: r.width, h: r.height,
+      head: {x: hr.left + Math.min(40, hr.width / 2), y: hr.top + hr.height / 2}, body: {w: body.clientWidth, h: body.clientHeight}};
   }
   for (const d of deep(document, '.divider')) {
     const r = d.getBoundingClientRect();
@@ -137,7 +138,7 @@ def tiles(page) -> dict:
 
 
 def drop_tile(page, title: str, target: str, zone: str, settle: float = 2.0) -> dict:
-    """Drag a panel by its title onto ``zone`` ("swap", "left", "right", "top", "bottom") of ``target``.
+    """Drag a panel by its title bar (or grip) onto ``zone`` ("swap", "left", "right", "top", "bottom") of ``target``.
 
     The pointer moves in small steps, as a hand does. Returns the canvas afterwards.
     """

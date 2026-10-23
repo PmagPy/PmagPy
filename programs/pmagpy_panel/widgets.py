@@ -445,7 +445,10 @@ class TileCanvas(JSComponent):
     last layout, for the application to fit its fixed-size figures to.
 
     A panel is any Panel object; its ``name`` is its title. ``tree`` is the
-    layout (see :mod:`~pmagpy_panel.tiling`), JSON to save and restore.
+    layout (see :mod:`~pmagpy_panel.tiling`), JSON to save and restore. With
+    ``show_titles=False`` a panel has no title bar: its body takes the whole
+    panel, and a small grip over its top-left corner (the title its tooltip) is
+    what is dragged.
     """
 
     objects = Children(doc="the panels; each one's name is its title")
@@ -458,6 +461,7 @@ class TileCanvas(JSComponent):
     sizes = param.Dict(default={}, doc="{title: (width, height)} of each panel's body after the last layout")
     gap = param.Integer(default=8, doc="the space between panels, which is also the divider")
     min_panel = param.Integer(default=140, doc="smallest width or height a divider leaves a panel")
+    show_titles = param.Boolean(default=True, doc="a title bar on each panel; without, a grip in its corner")
 
     HEAD = 26        # a panel's title bar, border included
 
@@ -478,7 +482,11 @@ class TileCanvas(JSComponent):
             tile.append(head, body); root.appendChild(tile); tiles[i] = tile;
             head.addEventListener('mousedown', (e) => startMove(e, i));
           }
-          tile.querySelector('.tile-head').innerHTML = '<span class="grip">⠿</span>' + (model.titles[i] || '');
+          const head = tile.querySelector('.tile-head'), title = model.titles[i] || '';
+          head.innerHTML = '<span class="grip">⠿</span><span class="tile-title">' + title + '</span>';
+          head.title = (model.show_titles ? '' : title + ': ') + 'drag onto another panel: its middle swaps the two, '
+                       + 'its edge puts this panel on that side';
+          tile.classList.toggle('bare', !model.show_titles);
           const body = tile.querySelector('.tile-body');
           if (child && child.parentNode !== body) { body.innerHTML = ''; body.appendChild(child); }
         });
@@ -583,7 +591,7 @@ class TileCanvas(JSComponent):
       });
       observer.observe(root);
       model.on('objects', () => { mount(); place(); });
-      model.on('titles', mount);
+      model.on(['titles', 'show_titles'], mount);
       model.on(['rects', 'dividers'], place);
       model.on('remove', () => observer.disconnect());
       mount(); place();
@@ -604,6 +612,11 @@ class TileCanvas(JSComponent):
                  white-space: nowrap; overflow: hidden; }
     .tile-head:hover { background: #eef3fb; color: #1f2937; }
     .tile-head .grip { color: #b5bbc4; font-size: 0.9rem; }
+    .tile.bare .tile-head { position: absolute; z-index: 3; top: 3px; left: 3px; height: 20px; padding: 0 5px;
+                            border: none; border-radius: 4px; background: rgba(247, 248, 250, .85); opacity: .6; }
+    .tile.bare:hover .tile-head { opacity: 1; }
+    .tile.bare .tile-head:hover { background: #eef3fb; }
+    .tile.bare .tile-title { display: none; }
     .tile-body { flex: 1 1 auto; position: relative; overflow: hidden; display: flex; justify-content: center;
                  align-items: flex-start; padding-top: 2px; }
     .divider { position: absolute; z-index: 2; }
@@ -627,7 +640,7 @@ class TileCanvas(JSComponent):
         self._tree = tree if tree is not None and tiling.valid(tree, self.titles) else self._default_tree()
         self.param.watch(self._on_drop, "drop")
         self.param.watch(self._on_split, "split")
-        self.param.watch(lambda e: self._relayout(), ["width_px", "height", "gap"])
+        self.param.watch(lambda e: self._relayout(), ["width_px", "height", "gap", "show_titles"])
         self._relayout()
 
     def _default_tree(self):
@@ -678,4 +691,5 @@ class TileCanvas(JSComponent):
         with LayoutHold.batch():
             self.rects = [dict(zip("xywh", rects[t])) for t in self.titles]
             self.dividers = dividers
-            self.sizes = {t: (rects[t][2] - 2, rects[t][3] - self.HEAD - 2) for t in self.titles}
+            head = self.HEAD if self.show_titles else 0
+            self.sizes = {t: (rects[t][2] - 2, rects[t][3] - head - 2) for t in self.titles}

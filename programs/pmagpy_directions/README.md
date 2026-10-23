@@ -120,8 +120,9 @@ in a single layout pass (`LayoutHold`, see `pmagpy_panel/README.md`).
 The *Specimen* pane's plots are tiled over a canvas of fixed height, as a
 tiling window manager (Hyprland's dwindle layout, as Omarchy uses it)
 tiles windows: the panels always fill it exactly, never overlap and never
-spill over the fits below (`TileCanvas`, `pmagpy_panel/tiling.py`). Drop a
-panel's title on the middle of another panel to swap the two, or near one
+spill over the fits below (`TileCanvas`, `pmagpy_panel/tiling.py`). The
+plots carry no title bars, which would take height from them; drop a plot
+by the ⠿ grip at its top-left corner on the middle of another panel to swap the two, or near one
 of its edges to put the panel on that side (that panel gives up half its
 area, and the dropped panel's old place goes to its neighbour); drag the
 gap between two panels to share the space out differently, and the bar
@@ -131,8 +132,9 @@ it. During a drag only an outline moves; on release every figure is fitted
 to its panel in one layout pass (the Zijderveld frame takes the panel's
 shape, at one scale on both axes). The layout and height are remembered
 in `~/.pmagpy_directions_layout.json` (`PMAGPY_DIRECTIONS_LAYOUT`);
-*Reset layout* restores the default: the Zijderveld diagram on the left
-half, the equal-area plot over the M/M₀ curve, and the higher-level means. On the
+*Reset layout* restores the default: the Zijderveld diagram over the left
+62 % of the width, the equal-area plot over the M/M₀ curve (58 : 42) on the
+right. On the
 Zijderveld plot, drag = zoom box, tap = pick a step, and box-select is one
 click away in the toolbar; the nets and the M/M₀ curve have zoom (box,
 wheel), pan and reset in a toolbar that shows inside the plot on hover.
@@ -157,13 +159,14 @@ the sample orientation allows it; a dataset opens in tilt-corrected
 coordinates when bedding is recorded for most specimens, geographic when
 only sample orientations are, specimen coordinates otherwise, and a
 specimen lacking the chosen system falls back to the next one down), Zijderveld projection (x = East,
-North or NRM dec, with the legacy axis labelling), step-label
-density, and the *step logger*: every measurement in sequence with dec, inc,
+North or NRM dec, with the legacy axis labelling), and the *step logger*: every measurement in sequence with dec, inc,
 moment and csd. Above the coordinate buttons, *Sample orientation* names
-the angles behind them: the azimuth and dip of the lab arrow (the fiducial
-line on the sample, the x-axis of specimen coordinates), which turn
-specimen into geographic coordinates, and the bedding, which turns
-geographic into tilt-corrected ones. Clicking a row selects that step: it is set bold in the
+the angles behind them, a row each ("none recorded" when missing): the
+azimuth and dip of the lab arrow (the fiducial line on the sample, the
+x-axis of specimen coordinates), which turn specimen into geographic
+coordinates, and the bedding, which turns geographic into tilt-corrected
+ones; each row's tooltip says which. The step-label density (auto / all)
+sits with *arrange the plots* and *Reset layout* in the fits' heading. Clicking a row selects that step: it is set bold in the
 logger and ringed on the Zijderveld (both projections), the net and the
 M/M₀ strip, so one measurement can be followed across the three views; `↑`
 `↓` move the selection, a second click (or a change of specimen) clears it.
@@ -206,7 +209,8 @@ keep a stripe of their colour on white.
 
 The *Higher-level means* card puts the specimen among its sample, site or
 location, as the legacy GUI's fourth plot did: every good fit of the group
-on a net in its component's colour, the current fit ringed, the mean of each
+on a net in its component's colour, the current fit in a darker shade of it (a
+ring would cover the neighbours it is judged against), the mean of each
 component under the chosen statistic (Fisher, by polarity, Bingham) with
 its α95 (or η/ζ), and a compact table of those means (dec, inc, α95, k, n
 lines and planes).
