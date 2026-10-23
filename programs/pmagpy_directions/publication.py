@@ -415,13 +415,18 @@ def _empty_corners(x, y):
 def directions_figure(directions, mean: Optional[dict] = None, title: str = "", planes=(),
                       caption: str = "", figsize=(4.4, 4.4), legend: bool = True, ax=None,
                       mean_color: str = MEAN_COLOR, means=None,
-                      mean_label: str = "Fisher mean", plane_vectors=()) -> Figure:
+                      mean_label: str = "Fisher mean", plane_vectors=(),
+                      legend_position: Optional[str] = None) -> Figure:
     """Equal-area plot of directions with an optional Fisher mean and α95.
 
-    In the style of Slotznick et al. (2023): lower-hemisphere directions are
-    filled, upper-hemisphere ones open, the title (e.g. the component name)
-    and a caption (e.g. "tilt corrected") sit inside the net in its emptiest
-    corner and the Fisher statistics in the next emptiest.
+    In the style of Slotznick et al. (2023): lower-hemisphere directions (and
+    means) are filled, upper-hemisphere ones open, and the title (e.g. the
+    component name) and a caption (e.g. "tilt corrected") sit inside the net
+    in its emptiest corner. The statistics go below the net, in a strip the
+    figure grows by, so that they never cover data however many components
+    there are; or, in the net's next emptiest corner (``legend_position=
+    "corner"``, the default when drawing into a given ``ax``, where the figure
+    is not this function's to resize).
 
     Args:
         directions: iterable of (dec, inc, label, color).
@@ -437,7 +442,12 @@ def directions_figure(directions, mean: Optional[dict] = None, title: str = "", 
             not a Fisher mean of the whole set (by polarity, or Bingham).
         plane_vectors: (dec, inc, label, component, colour) per plane — the point
             of its great circle the mean is formed from, drawn as a triangle.
+        legend_position: "below" (the default for a figure of its own) or "corner".
     """
+    if legend_position is None:
+        legend_position = "below" if ax is None else "corner"
+    if legend_position not in ("below", "corner"):
+        raise ValueError(f"legend_position must be 'below' or 'corner', not {legend_position!r}")
     if ax is None:
         fig = Figure(figsize=figsize)
         ax = fig.add_axes([0.03, 0.03, 0.94, 0.94])
@@ -467,7 +477,10 @@ def directions_figure(directions, mean: Optional[dict] = None, title: str = "", 
         if not m or np.isnan(m.get("dir_dec", np.nan)):
             continue
         mx, my = dc.equal_area_xy([m["dir_dec"]], [m["dir_inc"]])
-        ax.scatter(mx, my, marker="s", s=95, c=color, edgecolors=POINT_EDGE, linewidths=0.6, zorder=6)
+        if m["dir_inc"] >= 0:            # lower hemisphere: filled; upper: open, edged in its colour
+            ax.scatter(mx, my, marker="s", s=95, c=color, edgecolors=POINT_EDGE, linewidths=0.6, zorder=6)
+        else:
+            ax.scatter(mx, my, marker="s", s=95, facecolors="white", edgecolors=color, linewidths=1.4, zorder=6)
         a95 = m.get("dir_alpha95", np.nan)
         if a95 and not np.isnan(a95) and a95 > 0:
             cd, ci = dc.pmag.circ(m["dir_dec"], m["dir_inc"], a95)
@@ -495,7 +508,9 @@ def directions_figure(directions, mean: Optional[dict] = None, title: str = "", 
             dy = -0.17 if va == "top" else 0.17
             ax.text(x, y + dy + (0.0 if va == "top" else 0.0), caption, ha=ha, va=va, fontsize=8.5, color="#333",
                     zorder=8)
-    if legend and stats_lines:
+    if legend and stats_lines and legend_position == "below":
+        _stats_below(fig, ax, stats_lines, stats_colors, mean_label)
+    elif legend and stats_lines:
         x, y, ha, va = _CORNERS[corners[1] if title else corners[0]]
         if len(set(stats_colors)) <= 1:
             ax.text(x, y, mean_label + "\n" + "\n".join(stats_lines), ha=ha, va=va, fontsize=8.5, zorder=8,
@@ -507,6 +522,35 @@ def directions_figure(directions, mean: Optional[dict] = None, title: str = "", 
             for k, (line, color) in enumerate(zip(stats_lines, stats_colors)):
                 ax.text(x, y - step * (k + 1), line, ha=ha, va=va, fontsize=7.5, zorder=8, color=color)
     return fig
+
+
+STATS_LINE_HEIGHT = 0.17       # inches: one line of the statistics under the net (8–8.5 pt)
+
+
+def _stats_below(fig, ax, lines, colors, mean_label):
+    """Grow ``fig`` downwards by a strip and write the statistics in it, left-aligned with the net.
+
+    One mean: a single line, "Fisher mean: dec = …, inc = …, …". Several (one per
+    component or polarity mode): a heading, then a line each in the mean's colour.
+    """
+    single = len(set(colors)) <= 1
+    rows = [(f"{mean_label}: " + ", ".join(lines), "#222", 8.5)] if single else \
+        [((mean_label + "s" if mean_label.endswith("mean") else mean_label), "#222", 8.5)] + \
+        [(line, color, 8.0) for line, color in zip(lines, colors)]
+    width, height = fig.get_size_inches()
+    strip = 0.12 + STATS_LINE_HEIGHT * len(rows)
+    fig.set_size_inches(width, height + strip)
+    # the net keeps its size in inches, now above the strip
+    left, bottom, w, h = ax.get_position().bounds
+    total = height + strip
+    ax.set_position([left, (strip + bottom * height) / total, w, h * height / total])
+    # the circle's left edge (the axes span ±1.12 around a unit circle), and just under its
+    # S label (about 0.2 in below the circle); what the strip leaves below is cropped on saving
+    x = left + w * (1 - 1 / 1.12) / 2
+    circle_bottom = (strip + bottom * height + h * height * (1 - 1 / 1.12) / 2) / total
+    y = circle_bottom - 0.24 / total
+    for k, (text, color, size) in enumerate(rows):
+        fig.text(x, y - k * STATS_LINE_HEIGHT / total, text, ha="left", va="top", fontsize=size, color=color)
 
 
 def components_overview_figure(data: dc.DemagData, coord: int, components=None, level: str = "location",

@@ -379,10 +379,12 @@ directions (lower hemisphere filled, upper open) and an M/NRM curve with a
 labelled bracket over the steps of every fit. The default *panel* layout
 puts the two small plots beside the diagram so nothing ever overlaps; the
 *inset* layout reproduces the papers' compact style. `directions_figure`
-draws the "directions for all specimens" nets with the component title,
-coordinate caption and Fisher statistics inside the net (in its emptiest
-corners); `components_overview_figure` lines up one such net per
-component; `vgp_map_figure` draws VGPs, the mean pole with A95 and the
+draws the "directions for all specimens" nets with the component title and
+coordinate caption inside the net (in its emptiest corner) and the
+statistics below it, a line per mean, so that they never cover data
+(issue #973; means, like directions, are open in the upper hemisphere);
+`components_overview_figure` lines up one such net per component, its
+statistics in a corner; `vgp_map_figure` draws VGPs, the mean pole with A95 and the
 study location on an orthographic globe with Natural Earth land, as in
 Swanson-Hysell et al. (2025, Geology, Fig. 2D). The globe geometry lives
 in `demag_geo.py` (pure numpy: hemisphere clipping of polygons with rim

@@ -296,7 +296,48 @@ class TestMapsAndOverview:
         fig = pub.directions_figure(dirs, {"dir_dec": 305.0, "dir_inc": 22.0, "dir_alpha95": 4.0, "dir_k": 30.0,
                                            "dir_n_specimens": 2}, title="HT", caption="(geographic)")
         texts = [t.get_text() for t in fig.axes[0].texts]
-        assert "HT" in texts and "(geographic)" in texts and any("Fisher mean" in t for t in texts)
+        assert "HT" in texts and "(geographic)" in texts                   # title and caption: in the net
+        below = [t.get_text() for t in fig.texts]
+        assert any(t.startswith("Fisher mean: dec = 305.0°") for t in below)   # one line, under the net
+        fig = pub.directions_figure(dirs, {"dir_dec": 305.0, "dir_inc": 22.0, "dir_alpha95": 4.0}, title="HT",
+                                    legend_position="corner")
+        assert any("Fisher mean" in t.get_text() for t in fig.axes[0].texts) and not fig.texts
+
+    def test_directions_figure_statistics_never_cover_the_net(self):
+        """Issue #973: with several components the statistics block ran over the data. It is
+        drawn under the net, below its S label, and the net keeps its size."""
+        from matplotlib.backends.backend_agg import FigureCanvasAgg
+        rng = np.random.default_rng(0)
+        dirs = [(float(d), float(i), "s", c) for c, d0 in (("#e08", 270), ("#a24", 45), ("#42a", 0))
+                for d, i in zip(rng.normal(d0, 15, 30), rng.normal(20, 10, 30))]
+        means = [({"dir_dec": d, "dir_inc": i, "dir_alpha95": 5.0, "dir_k": 20.0, "dir_n_specimens": 30,
+                   "dir_comp_name": n}, c) for n, d, i, c in (("mt", 268.7, 23.1, "#e08"), ("mt", 1.3, -44.3, "#e08"),
+                                                              ("ht", 47.5, -11.6, "#a24"), ("ht", 237.4, 8.1, "#a24"),
+                                                              ("lt", 1.8, 82.1, "#42a"))]
+        fig = pub.directions_figure(dirs, means=means, title="site KH2", caption="(tilt-corrected)",
+                                    mean_label="Fisher mean, by polarity")
+        assert len(fig.texts) == 1 + len(means)                                # heading + a line per mean
+        renderer = FigureCanvasAgg(fig).get_renderer()
+        ax = fig.axes[0]
+        south = next(t for t in ax.texts if t.get_text() == "S").get_window_extent(renderer)
+        net_bottom = min(south.y0, ax.transData.transform((0, -1))[1])
+        for text in fig.texts:
+            box = text.get_window_extent(renderer)
+            assert box.y1 < net_bottom, f"{text.get_text()!r} reaches up into the net"
+            assert box.x1 <= fig.bbox.x1                                        # and stays on the page
+        net_inches = (ax.transData.transform((1, 0))[0] - ax.transData.transform((-1, 0))[0]) / fig.dpi
+        plain = pub.directions_figure(dirs, legend=False)
+        pax = plain.axes[0]
+        FigureCanvasAgg(plain).draw()
+        plain_inches = (pax.transData.transform((1, 0))[0] - pax.transData.transform((-1, 0))[0]) / plain.dpi
+        assert abs(net_inches - plain_inches) < 0.01
+
+    def test_directions_figure_means_are_open_in_the_upper_hemisphere(self):
+        fig = pub.directions_figure([], means=[({"dir_dec": 10.0, "dir_inc": 30.0}, "#aa0000"),
+                                              ({"dir_dec": 200.0, "dir_inc": -30.0}, "#0000aa")], legend=False)
+        squares = [c for c in fig.axes[0].collections if c.get_paths() and len(c.get_offsets()) == 1]
+        faces = [tuple(np.round(c.get_facecolor()[0][:3], 3)) for c in squares]
+        assert (1.0, 1.0, 1.0) in faces and (round(0xaa / 255, 3), 0.0, 0.0) in faces
 
 
 class TestPolesView:
@@ -970,7 +1011,7 @@ class TestMeansView:
                                                                         "dir_k": 30, "dir_n_specimens": 3, "dir_comp_name": "A"}, "#123456"),
                                                                        ({"dir_dec": 200, "dir_inc": -20, "dir_alpha95": 4,
                                                                         "dir_k": 40, "dir_n_specimens": 4, "dir_comp_name": "B"}, "#654321")])
-        texts = [t.get_text() for t in fig.axes[0].texts]
+        texts = [t.get_text() for t in fig.texts]                         # under the net (issue #973)
         assert any(t.startswith("A:") for t in texts) and any(t.startswith("B:") for t in texts)
 
     def test_planes_show_the_vector_the_mean_is_formed_from(self, tmp_path):
