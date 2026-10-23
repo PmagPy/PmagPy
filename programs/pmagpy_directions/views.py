@@ -1330,8 +1330,27 @@ class MeansView(LazyView):
 
 
 # ===========================================================================
+# the Poles tab's table: a ticked row (a site in the pole) looks like any row; a row left out is
+# greyed by its style, so the selection colour of the other tables is not wanted here
+POLE_TABLE_CSS = """
+.tabulator-row:hover { background-color: #eef3fb !important; }
+.tabulator-row.tabulator-selected, .tabulator-row.tabulator-selected:hover { background-color: transparent !important; }
+.tabulator-row.tabulator-selected:hover { background-color: #eef3fb !important; }
+.tabulator-row.tabulator-selected .tabulator-cell { color: #111 !important; }
+"""
+# at site level a row not ticked is a site left out: greyed in the browser, at once (a cell style
+# sent from the server is not resent when only the ticks change)
+POLE_SITES_CSS = ".tabulator-row:not(.tabulator-selected) .tabulator-cell { color: #9aa1ab; }"
+LEFT_OUT_STYLE = "color: #9aa1ab"        # at sample level: the samples of a site left out
+
+
 class PolesView(LazyView):
-    """Site VGPs and the mean pole on a globe, plus the table behind them."""
+    """Site VGPs and the mean pole on a globe, plus the table behind them.
+
+    A pole is a location, the collection of the sites it includes: the table's
+    ticks are those sites, per component, and the pole, the location's mean and
+    its exported row follow them (issue #970).
+    """
 
     CENTRES = {"pole": "pole", "sites": "sites", "N pole": "north", "S pole": "south", "custom": "custom"}
 
@@ -1363,8 +1382,12 @@ class PolesView(LazyView):
         self.notes = pn.pane.HTML("", sizing_mode="stretch_width")
         # short headers and no sort arrows: eight columns have to share the side column
         self.table = pn.widgets.Tabulator(pd.DataFrame(), height=430, show_index=False, disabled=True, sortable=False,
-                                          sizing_mode="stretch_width", configuration={"headerSort": False},
-                                          layout="fit_columns", text_align="right", stylesheets=[TABLE_ROW_CSS])
+                                          selectable="checkbox", sizing_mode="stretch_width",
+                                          configuration={"headerSort": False}, layout="fit_columns",
+                                          text_align="right", stylesheets=[POLE_TABLE_CSS])
+        self.table.param.watch(self._on_pole_choice, "selection")
+        self.table_head = section("Sites in the pole · untick to leave one out")
+        self._candidates: list = []          # the table's sites (or samples), in its order
         self.download = pn.widgets.FileDownload(callback=self._figure_bytes, filename="vgps.pdf",
                                                 label="Download figure (PDF)", button_type="primary", width=220)
         for w in (self.comp, self.level, self.centre):
@@ -1430,6 +1453,36 @@ class PolesView(LazyView):
             self._syncing = False
         self._notes(self.plot.hidden)
 
+    def _on_pole_choice(self, event):
+        """The ticks changed: the ticked sites are the component's pole."""
+        if self._syncing or self.level.value != "site" or not self.comp.value or not self._candidates:
+            return
+        included = [self._candidates[i] for i in event.new if 0 <= i < len(self._candidates)]
+        self.s.set_pole_sites(self.comp.value, included, self._candidates)
+
+    def _table_rows(self, means, vgps, key):
+        """(table, names, in the pole) of every group that has a VGP for this component: those in
+        the pole with their VGP as averaged (polarity unified), those left out as stored."""
+        data, comp = self.s.data, self.comp.value
+        if not len(means) or "vgp_lat" not in means.columns:
+            return pd.DataFrame(), [], []
+        candidates = means.dropna(subset=["vgp_lat", "vgp_lon"])
+        if key in ("site", "sample"):
+            candidates = candidates[~data._fails(candidates, key)]
+        used = {str(r[key]): r for _, r in vgps.iterrows()} if len(vgps) and key in vgps.columns else {}
+        rows, names, chosen = [], [], []
+        for _, m in candidates.iterrows():
+            name = str(m[key])
+            in_pole = data.in_pole(m.get("site", name), comp)
+            r = used.get(name, m) if in_pole else m
+            rows.append({key: name, "vgp_lat": r["vgp_lat"], "vgp_lon": r["vgp_lon"], "dir_dec": r["dir_dec"],
+                         "dir_inc": r["dir_inc"], "dir_alpha95": r.get("dir_alpha95", np.nan),
+                         "dir_n_specimens": r.get("dir_n_specimens", np.nan),
+                         "flipped": bool(r.get("flipped", False)) if in_pole else False})
+            names.append(name)
+            chosen.append(bool(in_pole))
+        return pd.DataFrame(rows), names, chosen
+
     def _on_slider(self, event):
         """A centre slider moved: the centre becomes custom (as a click on the globe makes it)
         and the globe turns to the sliders' point."""
@@ -1477,16 +1530,36 @@ class PolesView(LazyView):
                                 '(site latitude/longitude needed)</div>')
         self._notes(self.plot.hidden)
         key = self.level.value
-        cols = [c for c in [key, "vgp_lat", "vgp_lon", "dir_dec", "dir_inc", "dir_alpha95", "dir_n_specimens", "flipped"]
-                if c in vgps.columns]
-        table = vgps[cols].copy() if len(vgps) else pd.DataFrame()
+        table, names, chosen = self._table_rows(means, vgps, key)
         if "flipped" in table.columns:
             table["flipped"] = table["flipped"].map({True: "↺", False: ""})
         num = [c for c in table.columns if c not in (key, "flipped")]
         table[num] = table[num].astype(float).round(1)
-        self.table.value = table.rename(columns={"dir_dec": "dec", "dir_inc": "inc", "dir_alpha95": "α95",
-                                                 "dir_n_specimens": "n", "vgp_lat": "plat", "vgp_lon": "plon",
-                                                 "flipped": "flip"})
+        table = table.rename(columns={"dir_dec": "dec", "dir_inc": "inc", "dir_alpha95": "α95",
+                                      "dir_n_specimens": "n", "vgp_lat": "plat", "vgp_lon": "plon", "flipped": "↺"})
+        self._syncing = True                 # the ticks set here are not a choice of the analyst's
+        try:
+            self._candidates = names if key == "site" else []
+            self.table_head.object = section(
+                "Sites in the pole · untick to leave one out" if key == "site"
+                else "Samples · in the pole when their site is (sites are chosen at site level)").object
+            # the sites are ticked in and out; at sample level the rows follow their site's tick
+            self.table.selectable = "checkbox" if key == "site" else False
+            # the names whole; the counts and the flip mark need little
+            self.table.widths = {key: 66, "α95": 42, "n": 34, "↺": 24}
+            self.table.stylesheets = [POLE_TABLE_CSS] + ([POLE_SITES_CSS] if key == "site" else [])
+            self.table.style.clear()
+            left = [not c for c in chosen]
+
+            def style_rows(frame, left=left):
+                return pd.DataFrame([[LEFT_OUT_STYLE if i < len(left) and left[i] else ""] * frame.shape[1]
+                                     for i in range(len(frame))], index=frame.index, columns=frame.columns)
+            if len(table) and key != "site":
+                self.table.style.apply(style_rows, axis=None)
+            self.table.value = table
+            self.table.selection = [i for i, c in enumerate(chosen) if c] if key == "site" else []
+        finally:
+            self._syncing = False
         self.download.filename = f"vgps_{self.comp.value}_{dc.COORD_NAMES[self.s.coord]}.pdf"
 
     def _notes(self, hidden):
@@ -1513,7 +1586,11 @@ class PolesView(LazyView):
         return pn.Column(section("Coordinates"), self.coord,
                          pn.Row(self.comp, pn.Column(section("Level"), self.level)), self.unify, self.invert,
                          section("Globe centre · click the globe to move it"), self.centre, self.lon0, self.lat0,
-                         section("VGPs plotted · plat/plon = VGP, dec/inc = mean direction"), self.table)
+                         self.table_head,
+                         pn.pane.HTML(f'<span style="{MUTED_STYLE}">plat/plon = VGP, dec/inc = mean direction; '
+                                      'the choice is the component\'s, and the exported location lists its '
+                                      'sites</span>', margin=(0, 5, 4, 5)),
+                         self.table)
 
     def panel(self):
         return pn.Column(pn.Row(plot_box(self.plot.fig, 460), pn.Column(self.pole, self.notes, self.download)))

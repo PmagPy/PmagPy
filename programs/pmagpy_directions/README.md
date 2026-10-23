@@ -259,6 +259,19 @@ or drag the centre longitude / latitude sliders, which turn the globe as they
 move (either one switches the centre to *custom*).
 VGPs on the far hemisphere are counted. The same map downloads as PDF.
 
+A pole is a location: the collection of the sites it includes. The side
+table lists every site with a VGP for the component, ticked when it is in
+the pole; untick one (the clasts of a conglomerate test, say) and the pole,
+the globe and the location's mean direction are recomputed from the sites
+still ticked, the row staying in the list, greyed. The choice belongs to the
+component, holds in every coordinate system, is kept with the session, and
+is documented on export by the location row itself: its `sites` lists the
+sites chosen, `dir_n_sites` and `pole_n_sites` count them, and its
+`description` says how many of the location's sites were chosen. The site
+means themselves are untouched. A site added to the study after a choice was
+made is included until it is unticked. At sample level the samples follow
+their site (issue #970).
+
 **Fits pane.** Every fit in the study with filters (means are
 interpretations too, hence the name); go to a
 specimen, delete or flag in bulk, copy the current fit's bounds to all

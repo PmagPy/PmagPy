@@ -6,6 +6,7 @@ The regression targets are the directional interpretations already stored in
 re-fitting every one of them with the new core must reproduce the published
 dec/inc/MAD/n values.
 """
+import json
 import os
 
 import numpy as np
@@ -1257,3 +1258,82 @@ class TestTiltCodesWritten:
         text = pd.DataFrame({"dir_tilt_correction": ["-1.0", "0"]})              # text is written as read
         assert _tilt_codes_as_integers(text)["dir_tilt_correction"].tolist() == ["-1.0", "0"]
         assert _tilt_codes_as_integers(pd.DataFrame({"x": [1.0]}))["x"].tolist() == [1.0]
+
+
+class TestPoleSites:
+    """A pole is a location: the collection of the sites it includes (issue #970). The analyst
+    chooses them per component; the location row then lists exactly those sites."""
+
+    @pytest.fixture
+    def data(self):
+        data = DemagData.from_directory(DMAG_DIR)
+        data.load_components_from_specimens_table()
+        return data
+
+    @staticmethod
+    def _site_vgps(data, comp="A"):
+        sites = data.mean_directions("site", COORD_GEOGRAPHIC, comp).dropna(subset=["vgp_lat"])
+        return sites
+
+    def test_the_pole_and_the_location_row_follow_the_chosen_sites(self, data):
+        sites = self._site_vgps(data)
+        location = sites["location"].value_counts().index[0]           # the location with most sites
+        mine = sites[sites["location"] == location]
+        considered = list(sites["site"])
+        left_out = list(mine["site"])[:2]
+        included = [s for s in considered if s not in left_out]
+        before = data.mean_pole(COORD_GEOGRAPHIC, "A", "site", location=location)
+        data.set_pole_sites("A", included, considered)
+        pole = data.mean_pole(COORD_GEOGRAPHIC, "A", "site", location=location)
+        assert pole["N"] == before["N"] - 2
+        assert set(pole["vgps"]["site"]) == set(mine["site"]) - set(left_out)
+        # the same pole as a Fisher mean of the chosen sites' VGPs, computed independently
+        chosen = before["vgps"][~before["vgps"]["site"].isin(left_out)]
+        expected = pmag.fisher_mean([[lon, lat, 1.0] for lon, lat in zip(chosen["vgp_lon"], chosen["vgp_lat"])])
+        assert pole["plat"] == pytest.approx(expected["inc"], abs=1e-9)
+        assert pole["plon"] == pytest.approx(expected["dec"], abs=1e-9)
+        # the location row lists the sites chosen, counts them, and says that a choice was made
+        locs = data.locations_table(coords=(COORD_GEOGRAPHIC,))
+        row = locs[(locs["location"] == location) & (locs["pole_comp_name"] == "A")].iloc[0]
+        listed = set(str(row["sites"]).split(":"))
+        assert listed == set(mine["site"]) - set(left_out)
+        assert int(row["pole_n_sites"]) == pole["N"] and int(row["dir_n_sites"]) == len(listed)
+        assert f"{len(listed)} of {len(listed) + 2} sites chosen for the pole" in row["description"]
+        # the location mean over specimens leaves the sites out too
+        loc_means = data.mean_directions("location", COORD_GEOGRAPHIC, "A")
+        n_spec = loc_means.loc[loc_means["location"] == location, "dir_n_specimens"].iloc[0]
+        assert n_spec == mine["dir_n_specimens"].sum() - mine.loc[mine["site"].isin(left_out), "dir_n_specimens"].sum()
+        # site means themselves are untouched: a site left out of the pole keeps its mean
+        assert set(left_out) <= set(self._site_vgps(data)["site"])
+
+    def test_a_site_not_considered_is_included_and_including_all_clears(self, data):
+        sites = list(self._site_vgps(data)["site"])
+        data.set_pole_sites("A", sites[2:], sites[1:])        # sites[0] was not among those considered
+        assert data.in_pole(sites[0], "A") and not data.in_pole(sites[1], "A") and data.in_pole(sites[2], "A")
+        assert data.pole_sites_left_out("A") == {sites[1]}
+        assert data.in_pole(sites[1], "B")                     # the choice is the component's own
+        data.set_pole_sites("A", sites, sites)
+        assert data.pole_choices == {}
+
+    def test_a_sample_level_pole_follows_the_sites_chosen(self, data):
+        sites = list(self._site_vgps(data)["site"])
+        before = data.mean_pole(COORD_GEOGRAPHIC, "A", "sample")
+        gone = before["vgps"]["site"].iloc[0]
+        data.set_pole_sites("A", [s for s in sites if s != gone], sites)
+        after = data.mean_pole(COORD_GEOGRAPHIC, "A", "sample")
+        assert gone not in set(after["vgps"]["site"])
+        assert after["N"] == before["N"] - (before["vgps"]["site"] == gone).sum()
+
+    def test_the_choice_is_kept_in_the_session_file(self, data):
+        sites = list(self._site_vgps(data)["site"])
+        data.set_pole_sites("A", sites[1:], sites)
+        text = data.components_to_json()
+        assert json.loads(text)["pole_sites"] == {"A": {"included": sorted(sites[1:]), "considered": sorted(sites)}}
+        again = DemagData.from_directory(DMAG_DIR)
+        again.components_from_json(text)
+        assert again.pole_choices == data.pole_choices
+        # a session written before the choice existed (no key) restores none
+        old = json.loads(text)
+        del old["pole_sites"]
+        again.components_from_json(json.dumps(old))
+        assert again.pole_choices == {}

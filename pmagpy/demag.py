@@ -891,6 +891,8 @@ class DemagData:
         self._fit_cache: dict = {}
         self.criteria: Optional[pd.DataFrame] = None     # acceptance criteria applied to means and export
         self._criteria_cache: dict = {}
+        # the sites chosen for each component's pole: {component: (included, considered)}, see set_pole_sites
+        self.pole_choices: dict[str, tuple[frozenset, frozenset]] = {}
         self._build()
 
     def invalidate(self) -> None:
@@ -1751,6 +1753,45 @@ class DemagData:
         fails = self._fails(means, level)
         return set(zip(means.loc[fails, level].astype(str), means.loc[fails, "dir_comp_name"].astype(str)))
 
+    # ----- the sites of a pole ----------------------------------------------
+    def set_pole_sites(self, component: str, included, considered) -> None:
+        """Choose the sites that make a component's pole: a location is the collection of its sites,
+        and its row (mean direction and pole) is documented by the sites it includes.
+
+        Args:
+            component: the component whose pole this is.
+            included: the sites in the pole.
+            considered: the sites the choice was made among. A site not among them
+                (one added to the study since) is included, so that a choice never
+                silently leaves out data it did not see. Including every considered
+                site clears the choice.
+        """
+        included, considered = frozenset(map(str, included)), frozenset(map(str, considered))
+        if considered <= included:
+            self.pole_choices.pop(str(component), None)
+        else:
+            self.pole_choices[str(component)] = (included & considered, considered)
+
+    def in_pole(self, site, component) -> bool:
+        """True when ``site`` is among the sites of ``component``'s pole (every site, unless chosen)."""
+        choice = self.pole_choices.get(str(component))
+        if choice is None:
+            return True
+        included, considered = choice
+        return str(site) in included or str(site) not in considered
+
+    def pole_sites_left_out(self, component) -> frozenset:
+        """The sites the analyst left out of ``component``'s pole (empty unless chosen)."""
+        choice = self.pole_choices.get(str(component))
+        return choice[1] - choice[0] if choice else frozenset()
+
+    def _in_pole_rows(self, rows: pd.DataFrame) -> pd.Series:
+        """Which mean rows (with ``site`` and ``dir_comp_name``) belong to their component's pole."""
+        if not self.pole_choices or len(rows) == 0 or "site" not in rows.columns:
+            return pd.Series(True, index=rows.index)
+        return pd.Series([self.in_pole(s, c) for s, c in zip(rows["site"], rows["dir_comp_name"])],
+                         index=rows.index, dtype=bool)
+
     # ----- higher-level means ---------------------------------------------
     def mean_directions(self, level: str = "site", coord: int = COORD_GEOGRAPHIC,
                         component: Optional[str] = None, include_bad: bool = False,
@@ -1803,6 +1844,8 @@ class DemagData:
             spec = self.specimens[r.specimen]
             if (r.specimen, r.dir_comp) in failing or (spec.site, r.dir_comp) in failing_sites:
                 continue
+            if level == "location" and not include_bad and not self.in_pole(spec.site, r.dir_comp):
+                continue                                # a site not chosen for this component's pole
             if not getattr(spec, level):                # no sample/site/location to average into
                 continue
             rows.append({"group": getattr(spec, level), "sample": spec.sample, "site": spec.site,
@@ -1813,6 +1856,8 @@ class DemagData:
         # the interpretations of specimens without measurements here, as specimens.txt stores them
         for r in self._stored_for_means(coord, component, include_bad).to_dict("records"):
             if not r[level] or (r["site"], r["dir_comp"]) in failing_sites:
+                continue
+            if level == "location" and not include_bad and not self.in_pole(r["site"], r["dir_comp"]):
                 continue
             rows.append({"group": r[level], "sample": r["sample"], "site": r["site"], "location": r["location"],
                          "dir_comp": r["dir_comp"], "dir_dec": r["dir_dec"], "dir_inc": r["dir_inc"],
@@ -1934,6 +1979,8 @@ class DemagData:
         lower_means = self.mean_directions(lower, coord, component, include_bad, over="specimens")
         if not include_bad:                      # a mean failing its criterion stops here
             lower_means = lower_means[~self._fails(lower_means, lower)]
+            if lower == "site":                  # ... as does a site not chosen for its component's pole
+                lower_means = lower_means[self._in_pole_rows(lower_means)]
         if len(lower_means) == 0:
             return lower_means
         parent_of = self.parent_names(lower, level)
@@ -2007,6 +2054,7 @@ class DemagData:
         means = self.mean_directions(level, coord, component)
         if level in ("sample", "site"):
             means = means[~self._fails(means, level)]          # a site failing DE-SITE gives no VGP to the pole
+            means = means[self._in_pole_rows(means)]           # nor does a site not chosen for the pole
         if len(means) == 0 or "vgp_lat" not in means.columns:
             return {}
         reference = None
@@ -2380,6 +2428,12 @@ class DemagData:
                 rec["method_codes"] = _join_codes(_codes(rec["method_codes"]) + [POLE_CODE])
             if "sites" in m and not _is_null(m["sites"]):
                 rec["sites"] = m["sites"]
+                left_out = self.pole_sites_left_out(comp) & {str(site) for site, parent in
+                                                             self.parent_names("site", "location").items()
+                                                             if parent == loc}
+                if left_out:                     # the choice, documented: the sites listed are those chosen
+                    n = len(str(m["sites"]).split(":"))
+                    rec["description"] += f"; {n} of {n + len(left_out)} sites chosen for the pole"
             rows.append(rec)
         new = self._stamp(pd.DataFrame(rows), analysts)
         existing = self._table("locations")
@@ -2512,6 +2566,9 @@ class DemagData:
         session = {"format": self.SESSION_FORMAT, "version": 2, "software": SOFTWARE_TAG,
                    "directory": self.contribution.directory, "current": current_specimen,
                    "components": payload, "step_flags": self.step_flag_changes()}
+        if self.pole_choices:                    # read by builds that know it; others ignore the key
+            session["pole_sites"] = {comp: {"included": sorted(inc), "considered": sorted(con)}
+                                     for comp, (inc, con) in sorted(self.pole_choices.items())}
         if writer:
             session["writer"] = writer
         return json.dumps(session, indent=1)
@@ -2586,6 +2643,13 @@ class DemagData:
         if flags:
             self._fit_cache.clear()
         self._set_components(parsed, replace)
+        choices = data.get("pole_sites")
+        if replace:
+            self.pole_choices = {}
+        if isinstance(choices, dict):
+            for comp, choice in choices.items():
+                if isinstance(choice, dict):
+                    self.set_pole_sites(comp, choice.get("included") or [], choice.get("considered") or [])
         current = data.get("current")
         return len(parsed), (current if current in self.specimens else None)
 

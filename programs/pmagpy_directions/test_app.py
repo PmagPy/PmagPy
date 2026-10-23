@@ -386,7 +386,7 @@ class TestPolesView:
         assert view.lat0.value == pytest.approx(round(pole_centre[1], 1))
         # polarity unification off: reversed VGPs move to the far hemisphere
         view.unify.value = False
-        assert view.plot.hidden >= 0 and "flip" in view.table.value.columns
+        assert view.plot.hidden >= 0 and "↺" in view.table.value.columns
         # flip polarity: the mean pole moves to its antipode and the export follows
         view.unify.value = True
         view.centre.value = "pole"
@@ -400,6 +400,49 @@ class TestPolesView:
         loc = pd.read_csv(tmp_path / "locations.txt", sep="\t", skiprows=1)
         row = loc[loc["pole_comp_name"] == view.comp.value].iloc[0]
         assert row["pole_lat"] == pytest.approx(round(-before["plat"], 1))
+
+
+    def test_the_sites_of_a_pole_are_ticked_in_and_out(self, tmp_path):
+        """Issue #970: the analyst unticks a site (a conglomerate test, say); the pole is the mean of
+        the sites still ticked, the row stays listed and greyed, the export's location row lists
+        the sites chosen, and the choice comes back with the session."""
+        from pmagpy_directions.views import LEFT_OUT_STYLE, POLE_SITES_CSS, PolesView
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        view = PolesView(s)
+        comp = view.comp.value
+        rows = len(view.table.value)
+        assert view.table.selectable == "checkbox" and view.table.selection == list(range(rows))
+        n_before = s.data.mean_pole(s.coord, comp, "site", common_polarity=s.unify_polarity)["N"]
+        assert f"<b>{n_before}</b>" in view.pole.object
+        gone = view.table.value["site"].iloc[0]
+        view.table.selection = list(range(1, rows))                    # untick the first site
+        assert s.data.pole_sites_left_out(comp) == {gone}
+        assert len(view.table.value) == rows and view.table.selection == list(range(1, rows))
+        assert f"<b>{n_before - 1}</b>" in view.pole.object
+        assert POLE_SITES_CSS in view.table.stylesheets                 # a row not ticked is greyed, in the browser
+        # at sample level the samples follow their site, greyed with it; nothing to tick there
+        view.level.value = "sample"
+        assert view.table.selectable is False and "Samples" in view.table_head.object
+        assert POLE_SITES_CSS not in view.table.stylesheets
+        samples = view.table.value["sample"]
+        of_gone = [i for i, smp in enumerate(samples) if s.data.parent_names("sample", "site").get(smp) == gone]
+        styles = view.table.style._compute().ctx
+        grey = tuple(part.strip() for part in LEFT_OUT_STYLE.split(":"))
+        assert of_gone and all(grey in styles[(i, 0)] for i in of_gone)
+        assert not any(grey in styles.get((i, 0), []) for i in range(len(samples)) if i not in of_gone)
+        view.level.value = "site"
+        # the export documents the choice as the sites the pole includes
+        s.export_tables(levels=("location",), write_measurements=False)
+        loc = pd.read_csv(tmp_path / "locations.txt", sep="\t", skiprows=1)
+        mine = loc[(loc["pole_comp_name"] == comp) & loc["sites"].fillna("").str.len().gt(0)]
+        listed = set(":".join(mine["sites"]).split(":"))
+        assert gone not in listed and mine["description"].str.contains("sites chosen for the pole").any()
+        # the choice is kept with the session
+        s.flush_autosave()
+        again = Session(_DMAG, output_dir=str(tmp_path))
+        assert again.data.pole_sites_left_out(comp) == {gone}
+        view.table.selection = list(range(rows))                       # tick it back: no choice left
+        assert s.data.pole_choices == {}
 
 
 class TestExportView:

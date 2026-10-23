@@ -449,6 +449,12 @@ class Session(param.Parameterized):
         comp.quality = "b" if comp.quality == "g" else "g"
         self._changed()
 
+    def set_pole_sites(self, component: str, included, considered) -> None:
+        """Choose the sites of ``component``'s pole among ``considered`` (see ``DemagData.set_pole_sites``):
+        the pole, the location's mean and its exported row follow; the choice is kept with the session."""
+        self.data.set_pole_sites(component, included, considered)
+        self._changed()
+
     def toggle_step(self, index: int, specimen: Optional[str] = None) -> str:
         new = self.data.toggle_step_quality(specimen or self.specimen, index)
         self._changed()
