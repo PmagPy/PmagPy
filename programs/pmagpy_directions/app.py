@@ -35,8 +35,10 @@ def build_body(session: Session) -> shell.Body:
     export = ExportView(session)
 
     # analysis order: interpret specimens, review every fit, then means, poles, export
+    # the Fits table is paginated: it is filled before it goes into the page (see lazy_tabs)
     tabs = shell.lazy_tabs(("Specimen", specimen.main()), ("Fits", interps.panel()), ("Means", means.panel()),
-                           ("Poles", poles.panel()), ("Export", export.panel()), stylesheets=[TABS_CSS])
+                           ("Poles", poles.panel()), ("Export", export.panel()), stylesheets=[TABS_CSS],
+                           prepare={1: lambda: interps.set_active(True)})
     lazy = {1: interps, 2: means, 3: poles}
     for i, view in lazy.items():
         view.set_active(i == tabs.active)

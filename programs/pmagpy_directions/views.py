@@ -1490,10 +1490,16 @@ class PolesView(LazyView):
 class InterpretationsView(LazyView):
     """The *Fits* tab: every fit in the study; jump to a specimen, delete or flag in bulk, propagate a fit."""
 
+    COLUMNS = ["specimen", "site", "fit", "type", "from", "to", "dec", "inc", "MAD", "n", "q"]
+
     def __init__(self, session: Session, active: bool = True):
         self.s = session
         self.active = active
-        self.table = pn.widgets.Tabulator(pd.DataFrame(), height=560, show_index=False, disabled=True,
+        # the table has its columns (and their types) from the start, although the tab fills it
+        # only when first opened: in Safari (WebKit) a Tabulator whose columns first arrive with
+        # the data is given them before it is built, and stays empty, with no header
+        empty = pd.DataFrame({c: pd.Series(dtype="int64" if c == "n" else "object") for c in self.COLUMNS})
+        self.table = pn.widgets.Tabulator(empty, height=560, show_index=False, disabled=True,
                                           selectable="checkbox", sizing_mode="stretch_width",
                                           # local pagination: with "remote" the header
                                           # filters are applied in the browser only and
@@ -1741,8 +1747,7 @@ class InterpretationsView(LazyView):
                              dec=_fmt(res.dir_dec) if res else "–", inc=_fmt(res.dir_inc) if res else "–",
                              MAD=_fmt(res.dir_mad_free) if res else "–", n=res.dir_n_measurements if res else 0,
                              q=comp.quality))
-        self.table.value = pd.DataFrame(rows, columns=["specimen", "site", "fit", "type", "from", "to", "dec", "inc",
-                                                       "MAD", "n", "q"])
+        self.table.value = pd.DataFrame(rows, columns=self.COLUMNS).astype({"n": "int64"})
         info = s.study_summary()
         self.summary.object = kpi([f'<b>{info["fits"]}</b> fits',
                                    f'<b>{info["interpreted"]}</b> of {info["specimens"]} specimens interpreted',

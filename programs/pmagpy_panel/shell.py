@@ -137,7 +137,7 @@ class SidePanels:
                 p.visible = p is panel
 
 
-def lazy_tabs(*items, **params) -> pn.Tabs:
+def lazy_tabs(*items, prepare: Optional[dict] = None, **params) -> pn.Tabs:
     """Tabs whose content goes into the page the first time a tab is shown, and stays there.
 
     Panel's ``dynamic=True`` keeps only the tab on show in the page, so every
@@ -153,10 +153,18 @@ def lazy_tabs(*items, **params) -> pn.Tabs:
     computes for seconds when first shown (Intensity's group results take
     seven): the layout arrives, then its numbers.
 
+    Except for a tab given in ``prepare``: its callable runs first, and the
+    content goes in afterwards, filled. A paginated Tabulator needs that in
+    Safari (WebKit): data that reaches it while it is still being built is
+    lost (it is given its page count before it exists), and the table stays
+    empty. Built with its data, it is not.
+
     Args:
         items: ``(title, content)`` pairs, as for ``pn.Tabs``.
+        prepare: ``{index: callable}``, run before that tab's content is first shown.
         params: passed to ``pn.Tabs`` (``dynamic`` is always False).
     """
+    prepare = prepare or {}
     items = list(items)
     params["dynamic"] = False
     active = params.get("active", 0)
@@ -168,6 +176,8 @@ def lazy_tabs(*items, **params) -> pn.Tabs:
         i = event.new
         if i is not None and 0 <= i < len(items) and i not in shown:
             shown.add(i)
+            if i in prepare:
+                prepare[i]()
             tabs[i] = items[i]
     tabs.param.watch(_add, "active")
     return tabs

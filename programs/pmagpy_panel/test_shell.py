@@ -75,6 +75,19 @@ class TestLazyTabs:
         tabs.active = 1
         assert seen == [True]
 
+    def test_a_prepared_tab_is_filled_before_it_joins_the_page(self):
+        """A paginated table must be built with its data (WebKit drops data sent while it is built)."""
+        b = pn.pane.Markdown("")
+        order = []
+        tabs = shell.lazy_tabs(("A", pn.pane.Markdown("a")), ("B", b),
+                               prepare={1: lambda: order.append(("prepared", tabs[1] is b))})
+        tabs.param.watch(lambda e: order.append(("watcher", tabs[1] is b)), "active")
+        tabs.active = 1
+        assert order == [("prepared", False), ("watcher", True)]
+        tabs.active = 0
+        tabs.active = 1                                     # prepared once, as it is added once
+        assert [o for o, _ in order].count("prepared") == 1
+
     def test_another_tab_can_be_on_show_first(self):
         a, b = pn.pane.Markdown("a"), pn.pane.Markdown("b")
         tabs = shell.lazy_tabs(("A", a), ("B", b), active=1)
