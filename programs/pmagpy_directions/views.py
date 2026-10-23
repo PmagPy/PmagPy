@@ -429,11 +429,13 @@ class SpecimenView:
         self.tmax_sel.param.watch(self._on_bound_widget, "value")
         self.fit_type_sel.param.watch(self._on_type_widget, "value")
         self.comp_name.param.watch(self._on_name_widget, "value")
-        # two words; the tips are in its tooltip (a laptop's window has no width to spare)
-        self.hint = heading_item(f'<span style="{MUTED_STYLE};cursor:help" title="Click a point on a plot to move '
-                                 'the selected fit\'s nearest bound. Keys: [ ] and { } nudge the bounds, ↑ ↓ move '
-                                 'through the steps, ← → through the specimens.">fit tips ⓘ</span>',
-                                 margin=(0, 0, 0, 12))
+        # the fits' heading and two words of hint, the tips in its tooltip (a laptop's window has
+        # no width to spare); one element, so that the two can never be laid out over each other
+        self.hint = heading_item(
+            f'<span style="{SECTION_STYLE};margin:0">Fits · click row to select</span>'
+            f'<span style="{MUTED_STYLE};cursor:help;margin-left:14px" title="Click a point on a plot to move '
+            'the selected fit\'s nearest bound. Keys: [ ] and { } nudge the bounds, ↑ ↓ move '
+            'through the steps, ← → through the specimens.">fit tips ⓘ</span>')
         # the one list of fits: statistics + selection (click a row to make it the current fit)
         self.comp_table = pn.widgets.Tabulator(
             pd.DataFrame(), height=150, show_index=False, disabled=True, selectable=1, sortable=False, margin=(0, 5, 5, 5),
@@ -874,8 +876,7 @@ class SpecimenView:
             self.canvas,
             self.plot_size,
             # left margin as the table below: the heading lines up with what it labels
-            pn.Row(heading_item(f'<span style="{SECTION_STYLE};margin:0">Fits · click a row to select it</span>'),
-                   self.hint, pn.layout.HSpacer(), labels_note, self.label_sel, layout_help, self.reset_layout_btn,
+            pn.Row(self.hint, pn.layout.HSpacer(), labels_note, self.label_sel, layout_help, self.reset_layout_btn,
                    height=HEADING_ROW_HEIGHT, margin=(2, 0, 2, 5)),
             pn.Row(self.comp_name, self.color_pick, self.fit_type_sel, self.tmin_sel, self.tmax_sel,
                    self.add_btn, self.del_btn),
