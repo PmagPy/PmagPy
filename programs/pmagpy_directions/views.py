@@ -847,7 +847,9 @@ class SpecimenView:
         finally:
             self._syncing = False
 
-        self.info.object = kpi([f"<b>{spec.name}</b>", ("sample", spec.sample), ("site", spec.site), spec.location])
+        # the specimen is named in the selector just above: the line gives its place in the hierarchy
+        self.info.object = kpi([(level, value) for level, value in
+                                (("sample", spec.sample), ("site", spec.site), ("location", spec.location)) if value])
         self.orientation.object = orientation_html(spec.orientation)
 
     # --- layout -----------------------------------------------------------------

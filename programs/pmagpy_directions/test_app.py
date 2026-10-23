@@ -556,6 +556,16 @@ class TestSpecimenView:
         w, h = view.levels.canvas.sizes[view.LEVELS]
         assert view.levels.plot.fig.width == min(view.levels.NET, h - 44)
 
+    def test_the_information_line_gives_sample_site_and_location(self, tmp_path):
+        """Under the specimen selector: the specimen's sample, site and location, each labelled;
+        not the specimen again (the selector shows it)."""
+        from pmagpy_directions.views import SpecimenView
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        view = SpecimenView(s)
+        info, spec = view.info.object, s.spec
+        assert f"sample <b>{spec.sample}</b>" in info and f"site <b>{spec.site}</b>" in info
+        assert f"location <b>{spec.location}</b>" in info and f"<b>{spec.name}</b>" not in info
+
     def test_sample_orientation_always_shows_both_rows(self):
         """The lab arrow and the bedding each get a row, "none recorded" when missing; no paragraph."""
         from types import SimpleNamespace

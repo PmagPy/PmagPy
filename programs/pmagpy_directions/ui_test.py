@@ -380,7 +380,8 @@ with sync_playwright() as p:
         current = page.locator("select").first.evaluate("el => el.value")
         check(current and not current.startswith(foreign), f"[{name}] current specimen {current}")
         check(page.locator(".step-logger tr[data-i]").count() > 3, f"[{name}] logger shows steps")
-        check(page.get_by_text(current, exact=True).count() > 0, f"[{name}] information line names {current}")
+        check(page.get_by_text(re.compile(r"^sample \S")).count() > 0 and page.get_by_text(re.compile(r"^site \S")).count() > 0,
+              f"[{name}] information line names the sample and site of {current}")
         page.screenshot(path=f"{prefix}_{name}_specimen.png")
         open_tab(page, "Fits")
         time.sleep(5)
