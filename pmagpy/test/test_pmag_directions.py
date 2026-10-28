@@ -5,7 +5,10 @@ These are the most-called functions in the codebase (dir2cart: 88 calls,
 cart2dir: 54 calls, angle: 29 calls). Regressions here would silently
 break dozens of downstream analyses.
 """
+import warnings
+
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
 from pmagpy import pmag
@@ -212,6 +215,48 @@ class TestAngle:
         ab = pmag.angle([30, 45], [120, -10])
         ba = pmag.angle([120, -10], [30, 45])
         assert_allclose(ab, ba, atol=1e-10)
+
+    def test_roundoff_at_arccos_endpoints(self):
+        """Regression: unit-vector dot products rounded past +/-1 used to give
+        NaN and an 'invalid value encountered in arccos' warning. These
+        directions give 1 + 1 ulp with themselves and -1 - 1 ulp with their
+        antipodes."""
+        directions = np.array([[170.7, 27.3], [224.3, 60.3], [189.1, -26.0]])
+        antipodes = np.column_stack([directions[:, 0] + 180, -directions[:, 1]])
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            same = pmag.angle(directions, directions)
+            opposite = pmag.angle(directions, antipodes)
+        assert_allclose(same, [0.0, 0.0, 0.0], atol=1e-5)
+        assert_allclose(opposite, [180.0, 180.0, 180.0], atol=1e-5)
+
+    def test_single_direction_broadcasts(self):
+        """A single direction is compared against each of several directions."""
+        many = [[350.0, 10.0], [320.0, 20.0]]
+        single = [345, 13]
+        expected = pmag.angle(many, [single, single])
+        assert_allclose(pmag.angle(many, single), expected, atol=1e-10)
+        assert_allclose(pmag.angle(single, many), expected, atol=1e-10)
+
+    def test_mismatched_lengths_raise(self):
+        """Different numbers of directions (neither one) is an error."""
+        with pytest.raises(ValueError):
+            pmag.angle([[10, 20], [30, 40], [50, 60]], [[10, 20], [30, 40]])
+
+
+class TestFormQ:
+    """Tests for pmag.form_Q."""
+
+    def test_nearly_parallel_vectors(self):
+        """Regression: for unit vectors 1e-7 degrees apart, a.T @ b rounds to
+        1 + 1 ulp, which used to give NaN and an 'invalid value encountered
+        in arccos' warning instead of a rotation of ~0."""
+        a = pmag.dir2cart([15, 15])[0]
+        b = pmag.dir2cart([15, 15 + 1e-7])[0]
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            Q = pmag.form_Q(a, b)
+        assert_allclose(Q, np.eye(3), atol=1e-7)
 
 
 class TestDolnpNumericalRobustness:
