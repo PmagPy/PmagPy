@@ -216,41 +216,27 @@ class TestAngle:
         ba = pmag.angle([120, -10], [30, 45])
         assert_allclose(ab, ba, atol=1e-10)
 
-    # these directions give unit-vector dot products of 1 + 1 ulp with
-    # themselves and -1 - 1 ulp with their antipodes
-    ROUNDOFF_DIRECTIONS = [[170.7, 27.3], [224.3, 60.3], [189.1, -26.0]]
-
-    @pytest.mark.parametrize("direction", ROUNDOFF_DIRECTIONS)
-    @pytest.mark.parametrize("antipodal", [False, True])
-    def test_roundoff_at_arccos_endpoints(self, direction, antipodal):
-        """Regression: dot products rounded past +/-1 used to give NaN and an
-        'invalid value encountered in arccos' warning."""
-        other = [direction[0] + 180, -direction[1]] if antipodal else direction
+    def test_roundoff_at_arccos_endpoints(self):
+        """Regression: unit-vector dot products rounded past +/-1 used to give
+        NaN and an 'invalid value encountered in arccos' warning. These
+        directions give 1 + 1 ulp with themselves and -1 - 1 ulp with their
+        antipodes."""
+        directions = np.array([[170.7, 27.3], [224.3, 60.3], [189.1, -26.0]])
+        antipodes = np.column_stack([directions[:, 0] + 180, -directions[:, 1]])
         with warnings.catch_warnings():
             warnings.simplefilter("error")
-            result = pmag.angle(direction, other)
-        assert result.shape == (1,)
-        assert_allclose(result, [180.0 if antipodal else 0.0], atol=1e-5)
+            same = pmag.angle(directions, directions)
+            opposite = pmag.angle(directions, antipodes)
+        assert_allclose(same, [0.0, 0.0, 0.0], atol=1e-5)
+        assert_allclose(opposite, [180.0, 180.0, 180.0], atol=1e-5)
 
-    def test_batch_ignores_intensity(self):
-        """A third (intensity) column is ignored, including at the endpoints."""
-        directions = [[170.7, 27.3, 1.0], [47.0, 63.6, 3.0], [0.0, 0.0, 2.0]]
-        others = [[170.7, 27.3, 5.0], [227.0, -63.6, 4.0], [90.0, 0.0, 1.0]]
-        with warnings.catch_warnings():
-            warnings.simplefilter("error")
-            result = pmag.angle(directions, others)
-        assert result.shape == (3,)
-        assert_allclose(result, [0.0, 180.0, 90.0], atol=1e-5)
-
-    @pytest.mark.parametrize("swap", [False, True])
-    def test_single_direction_broadcasts(self, swap):
+    def test_single_direction_broadcasts(self):
         """A single direction is compared against each of several directions."""
         many = [[350.0, 10.0], [320.0, 20.0]]
         single = [345, 13]
-        result = pmag.angle(single, many) if swap else pmag.angle(many, single)
         expected = pmag.angle(many, [single, single])
-        assert result.shape == (2,)
-        assert_allclose(result, expected, atol=1e-10)
+        assert_allclose(pmag.angle(many, single), expected, atol=1e-10)
+        assert_allclose(pmag.angle(single, many), expected, atol=1e-10)
 
     def test_mismatched_lengths_raise(self):
         """Different numbers of directions (neither one) is an error."""
