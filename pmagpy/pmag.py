@@ -2546,19 +2546,32 @@ def angle(D1, D2):
     ----------
     D1 : Direction 1 as an array of [declination, inclination] pair or pairs
     D2 : Direction 2 as an array of [declination, inclination] pair or pairs
+        Any third column (intensity) is ignored. D1 and D2 must have the same
+        number of directions, or one of them must be a single direction that
+        is compared against every direction in the other.
 
     Returns
     -------
-    angle : single-element array 
-        angle between the input directions
+    angles : array
+        angle in degrees between each pair of directions, with one element
+        per pair
+
+    Raises
+    ------
+    ValueError
+        if D1 and D2 contain different numbers of directions and neither is
+        a single direction
 
     Examples
     --------
     >>> pmag.angle([350.0,10.0],[320.0,20.0])
     array([ 30.59060998])
-    
+
     >>> pmag.angle([[350.0,10.0],[320.0,20.0]],[[345,13],[340,14]])
     array([ 5.744522410794302, 20.026413431433475])
+
+    >>> pmag.angle([[350.0,10.0],[320.0,20.0]],[345,13])
+    array([ 5.744522410794302, 24.938515705411056])
     """
     D1 = np.array(D1)
     if len(D1.shape) > 1:
@@ -2572,13 +2585,13 @@ def angle(D1, D2):
         D2 = D2[:2]
     X1 = dir2cart(D1)  # convert to cartesian from polar
     X2 = dir2cart(D2)
-    angles = []  # set up a list for angles
-    for k in range(X1.shape[0]):  # single vector
-        angle = np.arccos(np.clip(np.dot(X1[k], X2[k]), -1., 1.)) * \
-            180. / np.pi  # take the dot product
-        angle = angle % 360.
-        angles.append(angle)
-    return np.array(angles)
+    if X1.shape[0] != X2.shape[0] and 1 not in (X1.shape[0], X2.shape[0]):
+        raise ValueError("D1 and D2 must contain the same number of directions "
+                         "or one of them must be a single direction, got "
+                         f"{X1.shape[0]} and {X2.shape[0]}")
+    # dot products of unit vectors, clipped because roundoff can push them past +/-1
+    cos_angles = np.clip(np.sum(X1 * X2, axis=1), -1., 1.)
+    return np.degrees(np.arccos(cos_angles))
 
 
 def cart2dir(cart):
