@@ -2574,7 +2574,7 @@ def angle(D1, D2):
     X2 = dir2cart(D2)
     angles = []  # set up a list for angles
     for k in range(X1.shape[0]):  # single vector
-        angle = np.arccos(np.dot(X1[k], X2[k])) * \
+        angle = np.arccos(np.clip(np.dot(X1[k], X2[k]), -1., 1.)) * \
             180. / np.pi  # take the dot product
         angle = angle % 360.
         angles.append(angle)
