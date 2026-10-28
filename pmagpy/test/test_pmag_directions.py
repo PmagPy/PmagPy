@@ -244,6 +244,21 @@ class TestAngle:
             pmag.angle([[10, 20], [30, 40], [50, 60]], [[10, 20], [30, 40]])
 
 
+class TestFormQ:
+    """Tests for pmag.form_Q."""
+
+    def test_nearly_parallel_vectors(self):
+        """Regression: for unit vectors 1e-7 degrees apart, a.T @ b rounds to
+        1 + 1 ulp, which used to give NaN and an 'invalid value encountered
+        in arccos' warning instead of a rotation of ~0."""
+        a = pmag.dir2cart([15, 15])[0]
+        b = pmag.dir2cart([15, 15 + 1e-7])[0]
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            Q = pmag.form_Q(a, b)
+        assert_allclose(Q, np.eye(3), atol=1e-7)
+
+
 class TestDolnpNumericalRobustness:
     """Regression: the lines-and-planes iteration in calculate_best_fit_vectors takes
     arccos of a unit-vector dot product that can exceed 1 by rounding, which used

@@ -13970,7 +13970,8 @@ def form_Q(a,b):
     c = b - a @ (a.T @ b)
     c /= np.linalg.norm(c)
 
-    alpha = np.arccos(a.T @ b)
+    # unit-vector dot products can exceed 1 by rounding; clip before arccos
+    alpha = np.arccos(np.clip(a.T @ b, -1., 1.))
     A = a @ c.T - c @ a.T
 
     Q = np.eye(3)+np.multiply(np.sin(alpha),A)+np.multiply(np.cos(alpha)-1, a @ a.T + c @ c.T)
