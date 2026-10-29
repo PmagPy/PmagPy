@@ -9038,7 +9038,10 @@ def coercivity_spectrum_components(x, parameters, curve_type='backfield'):
     Each component is factor * contribution * pdf, with factor 2 for
     'backfield' and 1 for 'acquisition' spectra (see
     coercivity_curve_components), so its area is the curve change the
-    component causes.
+    component causes. Earlier PmagPy versions had no curve_type argument
+    and no factor: pass curve_type='acquisition' for parameters fitted to
+    an IRM acquisition spectrum, and halve backfield contributions saved by
+    those versions, which were twice the component remanence.
 
     Parameters
     ----------
@@ -9205,7 +9208,8 @@ def estimate_coercivity_components(x, spectrum, n_components, smooth_window=None
         the grid (minimum 5).
     curve_type : str
         'backfield' or 'acquisition': the curve the spectrum was derived
-        from.
+        from. Pass 'acquisition' for an IRM acquisition spectrum, or the
+        estimated contributions are halved.
 
     Returns
     -------
@@ -9397,26 +9401,37 @@ def _unmix_fit_engine(x, y, initial, method, curve_type='backfield',
     }
 
 
+def _measured_remanence(x, y, space, curve_type):
+    """
+    Remanence change spanned by the data: half the drop of a backfield curve
+    (about Mrs when the curve saturates) or the rise of an acquisition curve.
+    For a spectrum (space='spectrum') it is the spectrum area divided by the
+    same factor; the trapezoid over the finite-difference midpoints leaves
+    out half of the first and last field steps, so the fits that start from
+    a measured curve report the value from the curve instead.
+    """
+    x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
+    finite = np.isfinite(x) & np.isfinite(y)
+    order = np.argsort(x[finite])
+    x, y = x[finite][order], y[finite][order]
+    if space == 'curve':
+        change = y[0] - y[-1] if curve_type == 'backfield' else y[-1] - y[0]
+    else:
+        change = trapezoid(y, x)
+    return float(change / _remanence_curve_factor(curve_type))
+
+
 def _remanence_diagnostics(contributions, x, y, method, curve_type):
     """
     Compare the summed component remanence with the measured remanence.
 
-    'measured_remanence' is the remanence change spanned by the data: half
-    the drop of a backfield curve (about Mrs when the curve saturates), the
-    rise of an acquisition curve, or the spectrum area divided by the same
-    factor. 'total_contribution' should be close to it when the components
-    are fully captured within the measured field range.
+    'total_contribution' should be close to 'measured_remanence' (see
+    _measured_remanence) when the components are fully captured within the
+    measured field range.
     """
-    order = np.argsort(x)
-    x, y = np.asarray(x)[order], np.asarray(y)[order]
-    if method == 'curve':
-        change = y[0] - y[-1] if curve_type == 'backfield' else y[-1] - y[0]
-    else:
-        change = trapezoid(y, x)
     return {
         'total_contribution': float(np.sum(contributions)),
-        'measured_remanence': float(change
-                                    / _remanence_curve_factor(curve_type)),
+        'measured_remanence': _measured_remanence(x, y, method, curve_type),
     }
 
 
@@ -9551,7 +9566,12 @@ def unmix_coercivity_spectrum(x, spectrum, n_components=None,
         'backfield' (default) or 'acquisition': the curve the spectrum was
         derived from. Each fitted 'contribution' is the remanence carried by
         a component, so a backfield spectrum, whose area is twice the
-        remanence, is modeled with twice each contribution.
+        remanence, is modeled with twice each contribution. Earlier
+        versions had no curve_type and fitted every spectrum without the
+        factor; an IRM acquisition spectrum must now be passed with
+        curve_type='acquisition', or its contributions come out halved.
+        Initial contributions saved from earlier backfield fits are twice
+        the remanence and should be halved.
 
     Returns
     -------
@@ -9661,11 +9681,14 @@ def _unmix_method_spectrum(x, magnetization, n_components=None,
     """Registered 'spectrum' method: finite-difference spectrum fit."""
     x_mid, spectrum = coercivity_spectrum_from_curve(x, magnetization,
                                                      curve_type)
-    return unmix_coercivity_spectrum(x_mid, spectrum,
-                                     n_components=n_components,
-                                     initial_parameters=initial_parameters,
-                                     vary_skew=vary_skew,
-                                     curve_type=curve_type, **kwargs)
+    result = unmix_coercivity_spectrum(x_mid, spectrum,
+                                       n_components=n_components,
+                                       initial_parameters=initial_parameters,
+                                       vary_skew=vary_skew,
+                                       curve_type=curve_type, **kwargs)
+    result['stats']['measured_remanence'] = _measured_remanence(
+        x, magnetization, 'curve', curve_type)
+    return result
 
 
 def _unmix_method_curve(x, magnetization, n_components=None,
@@ -9730,6 +9753,8 @@ def _unmix_method_maxunmix(x, magnetization, n_components=None,
                                        initial_parameters=initial_parameters,
                                        vary_skew=vary_skew,
                                        curve_type=curve_type, **kwargs)
+    result['stats']['measured_remanence'] = _measured_remanence(
+        x, M, 'curve', curve_type)
     if n_boot == 0:
         return result
     best = result['params'][UNMIX_PARAM_COLUMNS].to_numpy()
@@ -10674,7 +10699,8 @@ def unmix_coercivity_bayes(x, magnetization, n_components=2,
         'mean', 'location', 'dp', 'contribution', 'skew' map to a list
         of (low, high) tuples, one per component (in log10 units for
         'mean'/'location'/'dp', component remanence in magnetization units
-        for 'contribution');
+        for 'contribution', so backfield contribution bounds written for
+        earlier versions, which were twice the remanence, should be halved);
         'offset' and 'noise' map to a single (low, high) tuple in
         magnetization units. A 'mean' window constrains each component's
         MEAN coercivity (log10 mT): the mean is sampled uniformly in the
@@ -10728,6 +10754,7 @@ def unmix_coercivity_bayes(x, magnetization, n_components=2,
     y = np.asarray(magnetization, dtype=float)
     finite = np.isfinite(x) & np.isfinite(y)
     x, y = x[finite], y[finite]
+    measured_remanence = _measured_remanence(x, y, 'curve', curve_type)
     if space == 'spectrum':
         # fit the finite-difference spectrum dM/dlog10(B); there is no
         # baseline offset in derivative space
@@ -10931,8 +10958,8 @@ def unmix_coercivity_bayes(x, magnetization, n_components=2,
         'bic': np.nan,
         'logz': float(ns_results.logz[-1]),
         'logzerr': float(ns_results.logzerr[-1]),
-        **_remanence_diagnostics(params['contribution'], x, y, space,
-                                 curve_type),
+        'total_contribution': float(params['contribution'].sum()),
+        'measured_remanence': measured_remanence,
     }
 
     # posterior model bands from a subset of equally weighted draws
@@ -12419,7 +12446,9 @@ def unmix_backfield_experiments(measurements, experiments=None,
     tuple
         (components_df, results) where components_df is a tidy DataFrame
         with one row per experiment and component (parameters, derived
-        coercivities, uncertainties, fit statistics, and Bcr) and results
+        coercivities, uncertainties, fit statistics including the
+        experiment's total_contribution and measured_remanence, and Bcr) and
+        results
         is a dict mapping experiment name -> full result dictionary.
     """
     if method not in UNMIXING_METHODS:
@@ -12511,6 +12540,9 @@ def unmix_backfield_experiments(measurements, experiments=None,
                 'r_squared': stats['r_squared'],
                 'aic': stats['aic'],
                 'bic': stats['bic'],
+                # absent from methods registered without the diagnostic
+                'total_contribution': stats.get('total_contribution', np.nan),
+                'measured_remanence': stats.get('measured_remanence', np.nan),
             }
             row.update(prow.to_dict())
             uncertainty = result.get('bootstrap') or result.get('bayes')
@@ -12539,7 +12571,7 @@ def aggregate_by_class(components, boundaries_mT, class_names=None,
                        coercivity_column='B_mean_mT',
                        proportion_column='proportion',
                        contribution_column='contribution',
-                       curve_factor=1.0, group_column='experiment',
+                       group_column='experiment',
                        passthrough=('specimen', 'Bcr_mT', 'r_squared')):
     """
     Aggregate fitted unmixing components into coercivity classes.
@@ -12575,14 +12607,9 @@ def aggregate_by_class(components, boundaries_mT, class_names=None,
         Column summed to give each class's remanence fraction (default
         'proportion').
     contribution_column : str
-        Column summed (and divided by curve_factor) to give each class's
-        absolute remanence; skipped if the column is absent.
-    curve_factor : float
-        Divisor applied to summed contributions (default 1). Fitted
-        contributions are component remanences for both backfield and IRM
-        acquisition curves, so no correction is needed; pass 2 only for
-        backfield contributions from earlier PmagPy versions, which were
-        twice the component remanence.
+        Column summed to give each class's absolute remanence (fitted
+        contributions are component remanences for backfield and IRM
+        acquisition curves alike); skipped if the column is absent.
     group_column : str
         Column identifying each specimen/experiment to aggregate within
         (default 'experiment').
@@ -12622,7 +12649,7 @@ def aggregate_by_class(components, boundaries_mT, class_names=None,
                 group.loc[in_class, proportion_column].sum()
             if has_contribution:
                 row[f'{name}_remanence'] = \
-                    group.loc[in_class, contribution_column].sum() / curve_factor
+                    group.loc[in_class, contribution_column].sum()
         rows.append(row)
     return pd.DataFrame(rows)
 
