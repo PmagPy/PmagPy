@@ -1389,6 +1389,8 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
     idx = np.argmin(D)
     Lmin = D[idx] #minimum eigenvalue
     mhat0 = V[:,idx] #eigenvector corresponding to pooled sample mean
+    if mhat0 @ mhat12 < 0: #eigenvector sign is arbitrary; orient mhat0 with the pooled data
+        mhat0 = -mhat0 #so Q1 and Q2 are the short rotations of the sample means onto it
 
     Q1 = pmag.form_Q(mhat0,mhat1) #rotation matrix for first data set
     X10 = np.matmul(Q1,X1) #rotated version of first data set
