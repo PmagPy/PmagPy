@@ -13967,6 +13967,14 @@ def form_Q(a,b):
     a = np.asarray(a, dtype=float).reshape(3,1)
     b = np.asarray(b, dtype=float).reshape(3,1)
 
+    if not np.any(np.cross(a[:, 0], b[:, 0])):
+        if (a.T @ b).item() > 0:
+            return np.eye(3)
+        # A half turn may use any axis perpendicular to the antipodal pair.
+        axis = np.cross(a[:, 0], np.eye(3)[np.argmin(np.abs(a))])
+        axis /= np.linalg.norm(axis)
+        return 2 * np.outer(axis, axis) - np.eye(3)
+
     c = b - a @ (a.T @ b)
     c /= np.linalg.norm(c)
 

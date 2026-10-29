@@ -247,6 +247,18 @@ class TestAngle:
 class TestFormQ:
     """Tests for pmag.form_Q."""
 
+    @pytest.mark.parametrize("direction", np.vstack((np.eye(3), np.ones(3) / np.sqrt(3))))
+    @pytest.mark.parametrize("sign", [-1, 1])
+    def test_parallel_vectors(self, direction, sign):
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            Q = pmag.form_Q(direction, sign * direction)
+        assert_allclose(Q @ (sign * direction), direction, atol=1e-14)
+        assert_allclose(Q.T @ Q, np.eye(3), atol=1e-14)
+        assert_allclose(np.linalg.det(Q), 1, atol=1e-14)
+        if sign == 1:
+            assert_allclose(Q, np.eye(3), atol=0)
+
     def test_nearly_parallel_vectors(self):
         """Regression: for unit vectors 1e-7 degrees apart, a.T @ b rounds to
         1 + 1 ulp, which used to give NaN and an 'invalid value encountered
