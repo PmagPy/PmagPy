@@ -123,6 +123,12 @@ class SidePanels:
     of a second for the Directions *Fits* panel, whose net holds every fit in
     the study, each time that tab was opened.
 
+    Panel gives a column the ``min_width`` of its widest child, hidden or not,
+    so a panel of fixed-width plots would hold the column (and the panel on
+    show, with a table that stretches to it) wider than the side column, which
+    cuts off the overflow. The column's own min-width is turned off; each
+    panel keeps its own.
+
     Args:
         panels: the panel for each tab, by tab index.
         default: the tab whose panel is shown first, and for a tab with none.
@@ -131,7 +137,7 @@ class SidePanels:
     def __init__(self, panels: dict, default: int = 0):
         self.panels = panels
         self.default = default
-        self.column = pn.Column(panels[default], sizing_mode="stretch_width")
+        self.column = pn.Column(panels[default], sizing_mode="stretch_width", styles={"min-width": "0"})
 
     def show(self, index: int) -> None:
         """Show the panel of tab ``index`` (the default's, if it has none) and hide the rest."""
