@@ -141,24 +141,48 @@ class TestSkewNormalModel:
         stats = rmag.skewnormal_stats(2.0, 0.4, -5.0)
         assert stats['mean'] < 2.0
 
-    def test_spectrum_component_area_equals_contribution(self):
-        """Component area in spectrum space equals its contribution."""
+    @pytest.mark.parametrize('curve_type, factor',
+                             [('acquisition', 1.0), ('backfield', 2.0)])
+    def test_spectrum_component_area_is_curve_change(self, curve_type, factor):
+        """A component's spectrum area is the curve change it causes: its
+        contribution (remanence) for an acquisition curve, and twice that for
+        a backfield curve, where the remanence is reversed from +m to -m."""
         params = pd.DataFrame({'contribution': [0.37], 'location': [2.0],
                                'dp': [0.3], 'skew': [-1.5]})
         area, _err = quad(
-            lambda t: rmag.coercivity_spectrum_model(np.array([t]),
-                                                     params)[0], -10, 10)
-        assert area == pytest.approx(0.37, abs=1e-6)
+            lambda t: rmag.coercivity_spectrum_model(
+                np.array([t]), params, curve_type)[0], -10, 10)
+        assert area == pytest.approx(factor * 0.37, abs=1e-6)
 
-    def test_curve_model_is_integral_of_spectrum_model(self):
+    @pytest.mark.parametrize('curve_type, sign, factor',
+                             [('acquisition', 1.0, 1.0),
+                              ('backfield', -1.0, 2.0)])
+    def test_curve_model_is_integral_of_spectrum_model(self, curve_type, sign,
+                                                       factor):
         """The measurement-space model is the cumulative of the spectrum model."""
         x = np.linspace(0.5, 3.2, 400)
-        spectrum = rmag.coercivity_spectrum_model(x, TWO_COMPONENT_TRUTH)
+        spectrum = rmag.coercivity_spectrum_model(x, TWO_COMPONENT_TRUTH,
+                                                  curve_type)
         curve = rmag.coercivity_curve_model(x, TWO_COMPONENT_TRUTH,
-                                            curve_type='backfield')
-        # -dM/dx of the curve model equals the spectrum model
-        derivative = -np.gradient(curve, x)
-        assert np.allclose(derivative[5:-5], spectrum[5:-5], atol=2e-3)
+                                            curve_type=curve_type)
+        # +-dM/dx of the curve model equals the spectrum model (the
+        # finite-difference error scales with the curve amplitude)
+        derivative = sign * np.gradient(curve, x)
+        assert np.allclose(derivative[5:-5], spectrum[5:-5],
+                           atol=2e-3 * factor)
+
+    def test_backfield_curve_spans_twice_the_remanence(self):
+        """A saturated backfield component of remanence m reverses from +m to
+        -m, so the shifted backfield curve drops by 2m while the acquisition
+        curve rises by m."""
+        x = np.linspace(-1.0, 5.0, 300)
+        remanence = TWO_COMPONENT_TRUTH['contribution'].sum()
+        backfield = rmag.coercivity_curve_model(x, TWO_COMPONENT_TRUTH,
+                                                curve_type='backfield')
+        acquisition = rmag.coercivity_curve_model(x, TWO_COMPONENT_TRUTH,
+                                                  curve_type='acquisition')
+        assert backfield[0] - backfield[-1] == pytest.approx(2 * remanence)
+        assert acquisition[-1] - acquisition[0] == pytest.approx(remanence)
 
 
 # ---------------------------------------------------------------------------
@@ -664,9 +688,10 @@ def make_magic_measurements(experiment='synthetic-LP-BCR-BF-1',
                                                 curve_type='backfield')
     curve_shifted = curve_shifted + rng.normal(0, noise, size=len(x))
     # convert the shifted curve back to the measured convention:
-    # M measured runs from +Mrs down to -Mrs with negative applied fields
+    # M measured runs from +Mrs down to -Mrs with negative applied fields,
+    # where Mrs is the summed component remanence
     total = TWO_COMPONENT_TRUTH['contribution'].sum()
-    magn_mass = curve_shifted - total / 2
+    magn_mass = curve_shifted - total
     treat_dc_field = -(10 ** x) * 1e-3  # tesla, negative back fields
     return pd.DataFrame({
         'experiment': experiment,
@@ -793,12 +818,23 @@ class TestAggregateByClass:
         assert set(['specimen', 'r_squared']).issubset(out.columns)
         assert out[out['experiment'] == 'A'].iloc[0]['specimen'] == 'sA'
 
+    def test_remanence_is_summed_contribution_by_default(self):
+        """Fitted contributions are component remanences for backfield and
+        acquisition curves alike, so they are summed without a divisor."""
+        out = rmag.aggregate_by_class(
+            self._components(), boundaries_mT=200.0,
+            class_names=['magnetite', 'hematite'])
+        row_a = out[out['experiment'] == 'A'].iloc[0]
+        assert row_a['magnetite_remanence'] == pytest.approx(1.0)
+        row_b = out[out['experiment'] == 'B'].iloc[0]
+        assert row_b['hematite_remanence'] == pytest.approx(0.3)
+
     def test_curve_factor_halves_remanence(self):
         out = rmag.aggregate_by_class(
             self._components(), boundaries_mT=200.0,
             class_names=['magnetite', 'hematite'], curve_factor=2.0)
         row_b = out[out['experiment'] == 'B'].iloc[0]
-        # contribution 0.7 divided by the backfield span factor of 2
+        # a legacy backfield contribution of 0.7 (twice the remanence)
         assert row_b['magnetite_remanence'] == pytest.approx(0.35)
 
     def test_three_classes_from_two_boundaries(self):
@@ -1603,3 +1639,79 @@ class TestMaxunmixTrialEconomy:
         for K, res in results.items():
             if K != selected:
                 assert 'bootstrap' not in res
+
+
+class TestComponentRemanence:
+    """Fitted contributions are component remanences for backfield and
+    acquisition curves alike (issue #979): the shifted backfield curve spans
+    twice the remanence, so the backfield model carries the factor of 2."""
+
+    @staticmethod
+    def _curves():
+        x = np.linspace(0.5, 3.2, 120)
+        return x, {curve_type: rmag.coercivity_curve_model(
+            x, TWO_COMPONENT_TRUTH, curve_type=curve_type)
+            for curve_type in ('backfield', 'acquisition')}
+
+    @pytest.mark.parametrize('method', ['curve', 'spectrum', 'maxunmix'])
+    def test_both_curve_types_recover_component_remanence(self, method):
+        x, curves = self._curves()
+        kwargs = {'n_boot': 0} if method == 'maxunmix' else {}
+        for curve_type, curve in curves.items():
+            result = rmag.unmix_coercivity(x, curve, method=method,
+                                           n_components=2, vary_skew=False,
+                                           curve_type=curve_type, **kwargs)
+            assert result['curve_type'] == curve_type
+            assert np.allclose(result['params']['contribution'],
+                               TWO_COMPONENT_TRUTH['contribution'],
+                               rtol=2e-2)
+
+    def test_automatic_estimates_are_component_remanences(self):
+        x, curves = self._curves()
+        estimates = {}
+        for curve_type, curve in curves.items():
+            x_mid, spectrum = rmag.coercivity_spectrum_from_curve(
+                x, curve, curve_type)
+            estimates[curve_type] = rmag.estimate_coercivity_components(
+                x_mid, spectrum, 2, curve_type=curve_type)
+        assert np.allclose(estimates['backfield']['contribution'],
+                           estimates['acquisition']['contribution'],
+                           rtol=1e-6)
+
+    def test_total_contribution_matches_measured_remanence(self):
+        """For a backfield curve that saturates within the measured range,
+        the summed contributions equal half the curve drop (Mrs)."""
+        x = np.linspace(0.0, 4.5, 150)
+        curve = rmag.coercivity_curve_model(x, TWO_COMPONENT_TRUTH,
+                                            curve_type='backfield')
+        stats = rmag.unmix_backfield_curve(x, curve, n_components=2,
+                                           vary_skew=False)['stats']
+        remanence = TWO_COMPONENT_TRUTH['contribution'].sum()
+        assert stats['measured_remanence'] == pytest.approx(remanence,
+                                                            rel=1e-3)
+        assert stats['total_contribution'] == pytest.approx(remanence,
+                                                            rel=1e-3)
+
+    def test_spectrum_bootstrap_keeps_acquisition_scale(self):
+        """Bootstrap refits of an acquisition spectrum stay in the same
+        remanence units as the fit they resample."""
+        x, curves = self._curves()
+        x_mid, spectrum = rmag.coercivity_spectrum_from_curve(
+            x, curves['acquisition'], 'acquisition')
+        fit = rmag.unmix_coercivity_spectrum(x_mid, spectrum, n_components=2,
+                                             vary_skew=False,
+                                             curve_type='acquisition')
+        boot = rmag.unmixing_bootstrap(fit, n_boot=20, random_seed=4)
+        summary = boot['bootstrap']['param_summary']
+        for comp in (1, 2):
+            assert summary.loc[comp, 'contribution_p50'] == pytest.approx(
+                TWO_COMPONENT_TRUTH['contribution'].iloc[comp - 1], rel=2e-2)
+
+    @needs_dynesty
+    def test_bayes_contribution_is_component_remanence(self):
+        x, curve = synthetic_curve(noise=0.003, n=BAYES_N)
+        result = rmag.unmix_coercivity_bayes(x, curve, n_components=2,
+                                             random_seed=6, **FAST_BAYES)
+        total = result['params']['contribution'].sum()
+        assert total == pytest.approx(
+            TWO_COMPONENT_TRUTH['contribution'].sum(), rel=0.1)

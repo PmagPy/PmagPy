@@ -8770,12 +8770,15 @@ def add_Bcr_to_specimens_table(specimens_df, experiment_name, Bcr):
 # ------------------------------------------------------------------------------------------------------------------
 # Toolkit for decomposing remanence curves (backfield demagnetization or IRM
 # acquisition) into coercivity components. Every component is a skew-normal
-# distribution in x = log10(B/mT) parameterized by its integrated area
+# distribution in x = log10(B/mT) parameterized by the remanence it carries
 # ('contribution', in the units of the magnetization data), location, scale
-# ('dp'), and shape ('skew'). With skew = 0 the component reduces exactly to
-# the log-Gaussian of Robertson & France (1994). Because the skew-normal has
-# an analytic CDF (via Owen's T function), the same component model can be
-# fit in two data spaces:
+# ('dp'), and shape ('skew'). A component adds its contribution to an IRM
+# acquisition curve, but reversing its remanence from +m to -m changes a
+# backfield curve by 2m, so backfield components are modeled with twice their
+# contribution (see _remanence_curve_factor). With skew = 0 the component
+# reduces exactly to the log-Gaussian of Robertson & France (1994). Because
+# the skew-normal has an analytic CDF (via Owen's T function), the same
+# component model can be fit in two data spaces:
 #
 #   1. spectrum space -- fitting the coercivity spectrum |dM/dlog10(B)|,
 #      following Kruiver et al. (2001), Egli (2003), and the MAX UnMix
@@ -9014,30 +9017,53 @@ def _unmix_parameters_to_array(parameters):
     return arr
 
 
-def coercivity_spectrum_components(x, parameters):
+def _remanence_curve_factor(curve_type):
+    """
+    Change of a remanence curve per unit of component remanence.
+
+    Acquiring a component's remanence m raises an IRM acquisition curve by
+    m, while reversing it from +m to -m lowers a backfield curve by 2m. The
+    forward models multiply each 'contribution' by this factor, so fitted
+    contributions are component remanences for both curve types.
+    """
+    assert curve_type in ('backfield', 'acquisition'), \
+        "curve_type must be 'backfield' or 'acquisition'"
+    return 2.0 if curve_type == 'backfield' else 1.0
+
+
+def coercivity_spectrum_components(x, parameters, curve_type='backfield'):
     """
     Evaluate each unmixing component in spectrum space (dM/dlog10 B).
+
+    Each component is factor * contribution * pdf, with factor 2 for
+    'backfield' and 1 for 'acquisition' spectra (see
+    coercivity_curve_components), so its area is the curve change the
+    component causes.
 
     Parameters
     ----------
     x : array-like
         log10 of field values (mT).
     parameters : pandas.DataFrame or array-like
-        One row per component with columns 'contribution' (area under the
-        component in magnetization units), 'location', 'dp', 'skew'.
+        One row per component with columns 'contribution' (remanence carried
+        by the component, in magnetization units), 'location', 'dp', 'skew'.
+    curve_type : str
+        'backfield' or 'acquisition': the curve the spectrum was derived
+        from.
 
     Returns
     -------
     numpy.ndarray
         Array of shape (n_components, len(x)).
     """
+    factor = _remanence_curve_factor(curve_type)
     arr = _unmix_parameters_to_array(parameters)
     x = np.asarray(x, dtype=float)
-    return np.array([c * skewnormal_pdf(x, loc, dp, skew)
+    return np.array([factor * c * skewnormal_pdf(x, loc, dp, skew)
                      for c, loc, dp, skew in arr])
 
 
-def coercivity_spectrum_model(x, parameters):
+def coercivity_spectrum_model(x, parameters, curve_type='backfield'):
     """
     Evaluate the summed unmixing model in spectrum space.
 
@@ -9047,13 +9073,16 @@ def coercivity_spectrum_model(x, parameters):
         log10 of field values (mT).
     parameters : pandas.DataFrame or array-like
         Component parameters (see coercivity_spectrum_components).
+    curve_type : str
+        'backfield' or 'acquisition'.
 
     Returns
     -------
     numpy.ndarray
         Total model spectrum at x.
     """
-    return coercivity_spectrum_components(x, parameters).sum(axis=0)
+    return coercivity_spectrum_components(x, parameters,
+                                          curve_type).sum(axis=0)
 
 
 def coercivity_curve_components(x, parameters, curve_type='backfield'):
@@ -9062,7 +9091,9 @@ def coercivity_curve_components(x, parameters, curve_type='backfield'):
 
     For 'backfield' curves (processed so that magnetization decays from a
     maximum toward zero with increasing field magnitude) each component is
-    contribution * (1 - CDF); for 'acquisition' curves each component is
+    2 * contribution * (1 - CDF), because reversing the component's
+    remanence from +contribution to -contribution changes the curve by
+    twice that remanence; for 'acquisition' curves each component is
     contribution * CDF.
 
     Parameters
@@ -9079,14 +9110,14 @@ def coercivity_curve_components(x, parameters, curve_type='backfield'):
     numpy.ndarray
         Array of shape (n_components, len(x)).
     """
-    assert curve_type in ('backfield', 'acquisition'), \
-        "curve_type must be 'backfield' or 'acquisition'"
+    factor = _remanence_curve_factor(curve_type)
     arr = _unmix_parameters_to_array(parameters)
     x = np.asarray(x, dtype=float)
     comps = []
     for c, loc, dp, skew in arr:
         cdf = skewnormal_cdf(x, loc, dp, skew)
-        comps.append(c * (1.0 - cdf) if curve_type == 'backfield' else c * cdf)
+        shape = 1.0 - cdf if curve_type == 'backfield' else cdf
+        comps.append(factor * c * shape)
     return np.array(comps)
 
 
@@ -9144,16 +9175,18 @@ def coercivity_spectrum_from_curve(x, magnetization, curve_type='backfield'):
     return x_mid, (-dM if curve_type == 'backfield' else dM)
 
 
-def estimate_coercivity_components(x, spectrum, n_components, smooth_window=None):
+def estimate_coercivity_components(x, spectrum, n_components, smooth_window=None,
+                                   curve_type='backfield'):
     """
     Automatic initial-guess estimation for unmixing components.
 
     The spectrum is interpolated onto a uniform grid, lightly smoothed
     (Savitzky-Golay), and searched for peaks. The n_components most
     prominent peaks seed the component locations; widths at half maximum
-    seed dp; peak heights seed the contributions. If fewer peaks than
-    components are found, the remaining components are placed at evenly
-    spaced quantiles of the cumulative spectrum.
+    seed dp; peak heights seed the contributions (peak areas, halved for a
+    backfield spectrum so that they are component remanences). If fewer
+    peaks than components are found, the remaining components are placed at
+    evenly spaced quantiles of the cumulative spectrum.
 
     Initial choices matter for nonlinear fitting: these automatic estimates
     are a starting point that can (and often should) be refined by the user,
@@ -9170,6 +9203,9 @@ def estimate_coercivity_components(x, spectrum, n_components, smooth_window=None
     smooth_window : int, optional
         Savitzky-Golay window length (grid points). Defaults to ~1/10 of
         the grid (minimum 5).
+    curve_type : str
+        'backfield' or 'acquisition': the curve the spectrum was derived
+        from.
 
     Returns
     -------
@@ -9179,6 +9215,7 @@ def estimate_coercivity_components(x, spectrum, n_components, smooth_window=None
     """
     assert isinstance(n_components, (int, np.integer)) and n_components > 0, \
         'n_components must be a positive integer'
+    factor = _remanence_curve_factor(curve_type)
     x = np.asarray(x, dtype=float)
     y = np.asarray(spectrum, dtype=float)
     order = np.argsort(x)
@@ -9229,7 +9266,8 @@ def estimate_coercivity_components(x, spectrum, n_components, smooth_window=None
             n_missing -= 1
 
     initial = pd.DataFrame({
-        'contribution': [h * dp * _SQRT2PI for h, dp in zip(heights, dps)],
+        'contribution': [h * dp * _SQRT2PI / factor
+                         for h, dp in zip(heights, dps)],
         'location': locations,
         'dp': dps,
         'skew': 0.0,
@@ -9267,7 +9305,10 @@ def _unmix_fit_engine(x, y, initial, method, curve_type='backfield',
         raise ValueError('y data are all zero')
     ys = y / y_scale
 
-    c0 = np.clip(init_arr[:, 0] / y_scale, 1e-6, 20.0)
+    # the contribution bound keeps the modeled curve change within 20 times
+    # the data scale for both curve types
+    c_max = 20.0 / _remanence_curve_factor(curve_type)
+    c0 = np.clip(init_arr[:, 0] / y_scale, 1e-6, c_max)
     loc0 = np.clip(init_arr[:, 1], x.min() - 0.5, x.max() + 0.5)
     dp0 = np.clip(init_arr[:, 2], dp_bounds[0], dp_bounds[1])
     skew0 = np.clip(init_arr[:, 3], skew_bounds[0], skew_bounds[1])
@@ -9276,7 +9317,7 @@ def _unmix_fit_engine(x, y, initial, method, curve_type='backfield',
     p0 = np.concatenate([c0, loc0, dp0])
     lb = np.concatenate([np.zeros(K), np.full(K, x.min() - 0.5),
                          np.full(K, dp_bounds[0])])
-    ub = np.concatenate([np.full(K, 20.0), np.full(K, x.max() + 0.5),
+    ub = np.concatenate([np.full(K, c_max), np.full(K, x.max() + 0.5),
                          np.full(K, dp_bounds[1])])
     if vary_skew:
         p0 = np.concatenate([p0, skew0])
@@ -9299,7 +9340,7 @@ def _unmix_fit_engine(x, y, initial, method, curve_type='backfield',
         c, loc, dp, skew, offset = unpack(p)
         params = np.column_stack([c, loc, dp, skew])
         if method == 'spectrum':
-            return coercivity_spectrum_model(x, params)
+            return coercivity_spectrum_model(x, params, curve_type)
         return coercivity_curve_model(x, params, offset=offset,
                                       curve_type=curve_type)
 
@@ -9356,6 +9397,29 @@ def _unmix_fit_engine(x, y, initial, method, curve_type='backfield',
     }
 
 
+def _remanence_diagnostics(contributions, x, y, method, curve_type):
+    """
+    Compare the summed component remanence with the measured remanence.
+
+    'measured_remanence' is the remanence change spanned by the data: half
+    the drop of a backfield curve (about Mrs when the curve saturates), the
+    rise of an acquisition curve, or the spectrum area divided by the same
+    factor. 'total_contribution' should be close to it when the components
+    are fully captured within the measured field range.
+    """
+    order = np.argsort(x)
+    x, y = np.asarray(x)[order], np.asarray(y)[order]
+    if method == 'curve':
+        change = y[0] - y[-1] if curve_type == 'backfield' else y[-1] - y[0]
+    else:
+        change = trapezoid(y, x)
+    return {
+        'total_contribution': float(np.sum(contributions)),
+        'measured_remanence': float(change
+                                    / _remanence_curve_factor(curve_type)),
+    }
+
+
 def _build_unmix_result(engine, method, curve_type, vary_skew, fit_offset,
                         initial):
     """Assemble the standardized result dictionary from the fit engine output."""
@@ -9388,7 +9452,7 @@ def _build_unmix_result(engine, method, curve_type, vary_skew, fit_offset,
     x, y = engine['x'], engine['y']
     param_arr = params[UNMIX_PARAM_COLUMNS].to_numpy()
     if method == 'spectrum':
-        y_fit = coercivity_spectrum_model(x, param_arr)
+        y_fit = coercivity_spectrum_model(x, param_arr, curve_type)
     else:
         y_fit = coercivity_curve_model(x, param_arr, offset=engine['offset'],
                                        curve_type=curve_type)
@@ -9415,6 +9479,8 @@ def _build_unmix_result(engine, method, curve_type, vary_skew, fit_offset,
         # Jacobian): the se_* fields are NaN for that reason rather than
         # because the fit was degenerate. Normally False.
         'covariance_singular': not engine.get('covariance_ok', True),
+        **_remanence_diagnostics(params['contribution'], x, y, method,
+                                 curve_type),
     }
 
     scipy_result = engine['scipy_result']
@@ -9445,7 +9511,8 @@ def unmix_coercivity_spectrum(x, spectrum, n_components=None,
                               initial_parameters=None,
                               vary_skew=DEFAULT_UNMIX_VARY_SKEW,
                               weights=None, dp_bounds=(0.01, 2.0),
-                              skew_bounds=(-10.0, 10.0)):
+                              skew_bounds=(-10.0, 10.0),
+                              curve_type='backfield'):
     """
     Unmix a coercivity spectrum into skew-normal (log-Gaussian) components.
 
@@ -9480,6 +9547,11 @@ def unmix_coercivity_spectrum(x, spectrum, n_components=None,
         (min, max) bounds on the dp scale parameter in log10 units.
     skew_bounds : tuple
         (min, max) bounds on the skew shape parameter.
+    curve_type : str
+        'backfield' (default) or 'acquisition': the curve the spectrum was
+        derived from. Each fitted 'contribution' is the remanence carried by
+        a component, so a backfield spectrum, whose area is twice the
+        remanence, is modeled with twice each contribution.
 
     Returns
     -------
@@ -9487,23 +9559,23 @@ def unmix_coercivity_spectrum(x, spectrum, n_components=None,
         Standardized result dictionary with keys including 'params' (a
         DataFrame of fitted parameters, linearized standard errors, and
         derived quantities such as B_mean_mT and proportion), 'y_fit',
-        'residuals', 'stats' (rss, r_squared, aic, bic, ...), 'success',
-        and 'initial_parameters'.
+        'residuals', 'stats' (rss, r_squared, aic, bic, total_contribution,
+        measured_remanence, ...), 'success', and 'initial_parameters'.
     """
     if initial_parameters is None:
         if n_components is None:
             raise ValueError('specify n_components or initial_parameters')
-        initial_parameters = estimate_coercivity_components(x, spectrum,
-                                                            n_components)
+        initial_parameters = estimate_coercivity_components(
+            x, spectrum, n_components, curve_type=curve_type)
     elif (n_components is not None
           and len(initial_parameters) != n_components):
         raise ValueError('n_components does not match the number of rows in '
                          'initial_parameters')
     engine = _unmix_fit_engine(x, spectrum, initial_parameters,
-                               method='spectrum', vary_skew=vary_skew,
-                               weights=weights, dp_bounds=dp_bounds,
-                               skew_bounds=skew_bounds)
-    return _build_unmix_result(engine, 'spectrum', 'backfield', vary_skew,
+                               method='spectrum', curve_type=curve_type,
+                               vary_skew=vary_skew, weights=weights,
+                               dp_bounds=dp_bounds, skew_bounds=skew_bounds)
+    return _build_unmix_result(engine, 'spectrum', curve_type, vary_skew,
                                False, initial_parameters)
 
 
@@ -9525,10 +9597,15 @@ def unmix_backfield_curve(x, magnetization, n_components=None,
     two approaches is a good indication of a robust unmixing model.
 
     For backfield data processed with process_backfield_data, pass
-    x = 'log_dc_field' and magnetization = 'magn_mass_shift'. Note that the
-    shifted backfield curve spans twice the saturation remanence, so each
-    fitted 'contribution' is twice the remanence carried by that component;
-    'proportion' values are unaffected.
+    x = 'log_dc_field' and magnetization = 'magn_mass_shift'. The shifted
+    backfield curve spans twice the saturation remanence, because each
+    component's remanence is reversed from +m to -m, so the backfield model
+    uses twice each contribution. Each fitted 'contribution' is therefore
+    the remanence carried by that component for both backfield and
+    acquisition curves, and stats['total_contribution'] can be compared
+    with stats['measured_remanence'] (about Mrs for a saturated backfield
+    curve). Earlier versions reported backfield contributions of twice the
+    component remanence; 'proportion' values are unaffected.
 
     Parameters
     ----------
@@ -9563,8 +9640,8 @@ def unmix_backfield_curve(x, magnetization, n_components=None,
             raise ValueError('specify n_components or initial_parameters')
         x_mid, spec = coercivity_spectrum_from_curve(x, magnetization,
                                                      curve_type)
-        initial_parameters = estimate_coercivity_components(x_mid, spec,
-                                                            n_components)
+        initial_parameters = estimate_coercivity_components(
+            x_mid, spec, n_components, curve_type=curve_type)
     elif (n_components is not None
           and len(initial_parameters) != n_components):
         raise ValueError('n_components does not match the number of rows in '
@@ -9587,7 +9664,8 @@ def _unmix_method_spectrum(x, magnetization, n_components=None,
     return unmix_coercivity_spectrum(x_mid, spectrum,
                                      n_components=n_components,
                                      initial_parameters=initial_parameters,
-                                     vary_skew=vary_skew, **kwargs)
+                                     vary_skew=vary_skew,
+                                     curve_type=curve_type, **kwargs)
 
 
 def _unmix_method_curve(x, magnetization, n_components=None,
@@ -9626,9 +9704,10 @@ def _unmix_method_maxunmix(x, magnetization, n_components=None,
     intrinsic to the rockmagpy component model rather than to the resampling:
     skewness follows the Azzalini rather than the Fernandez-Steel (fGarch)
     parameterization, so skew values are not numerically comparable, and
-    components are parameterized by integrated area rather than by peak
-    height. Recovered coercivities, dispersions, and relative contributions
-    are directly comparable to the MAX UnMix web application.
+    components are parameterized by the remanence they carry (the spectrum
+    area, halved for a backfield curve) rather than by peak height.
+    Recovered coercivities, dispersions, and relative contributions are
+    directly comparable to the MAX UnMix web application.
 
     For the more flexible rockmagpy resampling -- case or residual resampling
     of the fitted data, optionally with added measurement noise, and usable
@@ -9649,7 +9728,8 @@ def _unmix_method_maxunmix(x, magnetization, n_components=None,
     result = unmix_coercivity_spectrum(x_mid, spectrum,
                                        n_components=n_components,
                                        initial_parameters=initial_parameters,
-                                       vary_skew=vary_skew, **kwargs)
+                                       vary_skew=vary_skew,
+                                       curve_type=curve_type, **kwargs)
     if n_boot == 0:
         return result
     best = result['params'][UNMIX_PARAM_COLUMNS].to_numpy()
@@ -9695,7 +9775,7 @@ def _unmix_method_maxunmix(x, magnetization, n_components=None,
                 x_mid_b, spectrum_b, vary_skew=vary_skew,
                 initial_parameters=pd.DataFrame(init,
                                                 columns=UNMIX_PARAM_COLUMNS),
-                **replicate_kwargs)
+                curve_type=curve_type, **replicate_kwargs)
         except (ValueError, RuntimeError):
             continue
         if not fit['success']:
@@ -9704,8 +9784,9 @@ def _unmix_method_maxunmix(x, magnetization, n_components=None,
         for name in tracked:
             samples[name].append(p[name].to_numpy())
         arr = p[UNMIX_PARAM_COLUMNS].to_numpy()
-        total_curves.append(coercivity_spectrum_model(x_grid, arr))
-        comp_curves.append(coercivity_spectrum_components(x_grid, arr))
+        total_curves.append(coercivity_spectrum_model(x_grid, arr, curve_type))
+        comp_curves.append(coercivity_spectrum_components(x_grid, arr,
+                                                          curve_type))
         n_success += 1
 
     if n_success < max(10, n_boot // 10):
@@ -10253,7 +10334,8 @@ def unmixing_bootstrap(result, n_boot=500, resample='cases', proportion=1.0,
             if fits_spectrum:
                 fit = unmix_coercivity_spectrum(xb, yb,
                                                 initial_parameters=best,
-                                                vary_skew=vary_skew)
+                                                vary_skew=vary_skew,
+                                                curve_type=curve_type)
             else:
                 fit = unmix_backfield_curve(xb, yb, initial_parameters=best,
                                             curve_type=curve_type,
@@ -10269,8 +10351,10 @@ def unmixing_bootstrap(result, n_boot=500, resample='cases', proportion=1.0,
             samples[name].append(p[name].to_numpy())
         arr = p[UNMIX_PARAM_COLUMNS].to_numpy()
         if fits_spectrum:
-            total_curves.append(coercivity_spectrum_model(x_grid, arr))
-            comp_curves.append(coercivity_spectrum_components(x_grid, arr))
+            total_curves.append(coercivity_spectrum_model(x_grid, arr,
+                                                          curve_type))
+            comp_curves.append(coercivity_spectrum_components(x_grid, arr,
+                                                              curve_type))
         else:
             total_curves.append(coercivity_curve_model(
                 x_grid, arr, offset=fit['offset'], curve_type=curve_type))
@@ -10373,7 +10457,10 @@ def unmixing_multistart(x, magnetization, method=DEFAULT_UNMIX_METHOD,
     x = np.asarray(x, dtype=float)
     M = np.asarray(magnetization, dtype=float)
     x_mid, spectrum = coercivity_spectrum_from_curve(x, M, curve_type)
-    total_area = np.abs(trapezoid(spectrum, x_mid))
+    # random starts share out the measured remanence (the spectrum area,
+    # halved for a backfield curve) between the components
+    total_remanence = (np.abs(trapezoid(spectrum, x_mid))
+                       / _remanence_curve_factor(curve_type))
     K = n_components
 
     starting_tables = [None]  # None -> automatic estimation inside the method
@@ -10384,7 +10471,7 @@ def unmixing_multistart(x, magnetization, method=DEFAULT_UNMIX_METHOD,
         proportions = rng.dirichlet(np.ones(K))
         skews = rng.uniform(-5, 5, size=K) if vary_skew else np.zeros(K)
         starting_tables.append(pd.DataFrame({
-            'contribution': proportions * total_area,
+            'contribution': proportions * total_remanence,
             'location': locations,
             'dp': dps,
             'skew': skews,
@@ -10541,9 +10628,9 @@ def unmix_coercivity_bayes(x, magnetization, n_components=2,
       (the same one the least-squares and MAX UnMix spectrum fits make);
       credible intervals in this space should be read with that caveat.
 
-    The component parameterization (contribution=area, location, dp, skew) is
-    identical in both spaces, so their results are directly comparable, and
-    comparing them is a useful robustness check.
+    The component parameterization (contribution=component remanence,
+    location, dp, skew) is identical in both spaces, so their results are
+    directly comparable, and comparing them is a useful robustness check.
 
     Unlike bootstrap resampling of a single fit, the posterior represents
     the full range of component decompositions consistent with the data
@@ -10555,8 +10642,9 @@ def unmix_coercivity_bayes(x, magnetization, n_components=2,
     fixes component labels without distorting the prior. Default priors
     are weakly informative (locations uniform across the measured field
     range, dispersions log-uniform on [0.02, 1.0] decades, contributions
-    uniform up to ~3x the data range); mineralogical knowledge can be
-    injected through the priors argument.
+    uniform up to ~3x the data range for an acquisition curve and ~1.5x for
+    a backfield curve, which is the same bound on the modeled curve change);
+    mineralogical knowledge can be injected through the priors argument.
 
     Parameters
     ----------
@@ -10585,7 +10673,8 @@ def unmix_coercivity_bayes(x, magnetization, n_components=2,
         Overrides for the default prior bounds. Recognized keys:
         'mean', 'location', 'dp', 'contribution', 'skew' map to a list
         of (low, high) tuples, one per component (in log10 units for
-        'mean'/'location'/'dp', magnetization units for 'contribution');
+        'mean'/'location'/'dp', component remanence in magnetization units
+        for 'contribution');
         'offset' and 'noise' map to a single (low, high) tuple in
         magnetization units. A 'mean' window constrains each component's
         MEAN coercivity (log10 mT): the mean is sampled uniformly in the
@@ -10650,16 +10739,17 @@ def unmix_coercivity_bayes(x, magnetization, n_components=2,
     ys = y / y_scale
     K = n_components
     n_data = len(x)
+    factor = _remanence_curve_factor(curve_type)
 
     def _forward(params, offset):
         if space == 'spectrum':
-            return coercivity_spectrum_model(x, params)
+            return coercivity_spectrum_model(x, params, curve_type)
         return coercivity_curve_model(x, params, offset=offset,
                                       curve_type=curve_type)
 
     def _forward_components(grid, params):
         if space == 'spectrum':
-            return coercivity_spectrum_components(grid, params)
+            return coercivity_spectrum_components(grid, params, curve_type)
         return coercivity_curve_components(grid, params, curve_type=curve_type)
 
     # prior bounds (normalized units for contribution/offset/noise)
@@ -10682,7 +10772,7 @@ def unmix_coercivity_bayes(x, magnetization, n_components=2,
     dp_bounds = priors.get('dp', [(0.02, 1.0)] * K)
     contribution_bounds = [(low / y_scale, high / y_scale) for low, high in
                            priors.get('contribution',
-                                      [(0.0, 3.0 * y_scale)] * K)]
+                                      [(0.0, 3.0 * y_scale / factor)] * K)]
     skew_bounds = priors.get('skew', [(-10.0, 10.0)] * K)
     offset_low, offset_high = np.array(
         priors.get('offset', (-0.2 * y_scale, 0.2 * y_scale))) / y_scale
@@ -10841,6 +10931,8 @@ def unmix_coercivity_bayes(x, magnetization, n_components=2,
         'bic': np.nan,
         'logz': float(ns_results.logz[-1]),
         'logzerr': float(ns_results.logzerr[-1]),
+        **_remanence_diagnostics(params['contribution'], x, y, space,
+                                 curve_type),
     }
 
     # posterior model bands from a subset of equally weighted draws
@@ -11609,17 +11701,20 @@ def plot_coercivity_unmixing(result, show_components=True,
         x_mid, spec = coercivity_spectrum_from_curve(x, y, curve_type)
         ax_spec.scatter(x_mid, spec, c='grey', s=12,
                         label='finite-difference spectrum')
-        ax_spec.plot(x_grid, coercivity_spectrum_model(x_grid, param_arr),
+        ax_spec.plot(x_grid, coercivity_spectrum_model(x_grid, param_arr,
+                                                       curve_type),
                      c='k', label='model')
         if show_components:
-            comps = coercivity_spectrum_components(x_grid, param_arr)
+            comps = coercivity_spectrum_components(x_grid, param_arr,
+                                                   curve_type)
             for i, comp_index in enumerate(params.index):
                 ax_spec.plot(x_grid, comps[i], c=component_colors[i],
                              label=_component_label(comp_index))
         if show_initial:
             init_arr = _unmix_parameters_to_array(
                 result['initial_parameters'])
-            ax_spec.plot(x_grid, coercivity_spectrum_model(x_grid, init_arr),
+            ax_spec.plot(x_grid, coercivity_spectrum_model(x_grid, init_arr,
+                                                           curve_type),
                          c='k', ls=':', alpha=0.6, label='initial model')
         ax_spec.set_ylabel('dM/dlog$_{10}$(B)')
         ax_spec.set_xlabel('field (mT)')
@@ -11638,17 +11733,20 @@ def plot_coercivity_unmixing(result, show_components=True,
                                          curves['components_p2_5'][i],
                                          curves['components_p97_5'][i],
                                          color=component_colors[i], alpha=0.2)
-        ax_spec.plot(x_grid, coercivity_spectrum_model(x_grid, param_arr),
+        ax_spec.plot(x_grid, coercivity_spectrum_model(x_grid, param_arr,
+                                                       curve_type),
                      c='k', label='model')
         if show_components:
-            comps = coercivity_spectrum_components(x_grid, param_arr)
+            comps = coercivity_spectrum_components(x_grid, param_arr,
+                                                   curve_type)
             for i, comp_index in enumerate(params.index):
                 ax_spec.plot(x_grid, comps[i], c=component_colors[i],
                              label=_component_label(comp_index))
         if show_initial:
             init_arr = _unmix_parameters_to_array(
                 result['initial_parameters'])
-            ax_spec.plot(x_grid, coercivity_spectrum_model(x_grid, init_arr),
+            ax_spec.plot(x_grid, coercivity_spectrum_model(x_grid, init_arr,
+                                                           curve_type),
                          c='k', ls=':', alpha=0.6, label='initial model')
         ax_spec.set_ylabel('dM/dlog$_{10}$(B)')
         ax_spec.set_xlabel('field (mT)')
@@ -11902,8 +12000,9 @@ def plot_unmixing_ensemble(result, space='spectrum', n_draws=200, n_grid=300,
         params = np.column_stack([contribution[j], location[j], dp[j],
                                   skew[j]])
         if space == 'spectrum':
-            total = coercivity_spectrum_model(x_grid, params)
-            comps = (coercivity_spectrum_components(x_grid, params)
+            total = coercivity_spectrum_model(x_grid, params, curve_type)
+            comps = (coercivity_spectrum_components(x_grid, params,
+                                                    curve_type)
                      if show_components else None)
         else:
             offset = offset_draws[j] if offset_draws is not None \
@@ -12022,8 +12121,8 @@ def plot_unmixing_multistart(result, max_solutions=6, space='spectrum',
         n_hits = int(solutions['n_hits'].iloc[sol_idx])
         ax.scatter(x_data, y_data, s=8, c='lightgrey', zorder=1)
         if space == 'spectrum':
-            total = coercivity_spectrum_model(x_grid, params)
-            comps = coercivity_spectrum_components(x_grid, params)
+            total = coercivity_spectrum_model(x_grid, params, curve_type)
+            comps = coercivity_spectrum_components(x_grid, params, curve_type)
         else:
             total = coercivity_curve_model(x_grid, params,
                                            offset=fit.get('offset', 0.0),
@@ -12142,10 +12241,14 @@ def coercivity_unmixing_interactive(x, magnetization, n_components=2,
     x = np.asarray(x, dtype=float)
     M = np.asarray(magnetization, dtype=float)
     x_mid, spectrum = coercivity_spectrum_from_curve(x, M, curve_type)
-    total_area = trapezoid(spectrum, x_mid)
+    # remanence measured by the curve: the spectrum area, halved for a
+    # backfield curve, so slider proportions map to component remanences
+    total_remanence = (trapezoid(spectrum, x_mid)
+                       / _remanence_curve_factor(curve_type))
     x_grid = np.linspace(x.min(), x.max(), 300)
 
-    auto = estimate_coercivity_components(x_mid, spectrum, n_components)
+    auto = estimate_coercivity_components(x_mid, spectrum, n_components,
+                                          curve_type=curve_type)
     handle = {'initial_parameters': None, 'result': None}
 
     fig, ax = plt.subplots(figsize=figsize)
@@ -12154,7 +12257,7 @@ def coercivity_unmixing_interactive(x, magnetization, n_components=2,
     sliders = []
     for i in range(n_components):
         peak_mT = 10 ** auto['location'][i]
-        proportion_0 = min(auto['contribution'][i] / total_area, 1.0)
+        proportion_0 = min(auto['contribution'][i] / total_remanence, 1.0)
         column = [
             widgets.FloatLogSlider(value=peak_mT, base=10,
                                    min=x.min(), max=x.max(), step=0.01,
@@ -12184,7 +12287,7 @@ def coercivity_unmixing_interactive(x, magnetization, n_components=2,
         rows = []
         for column in sliders:
             rows.append({
-                'contribution': column[1].value * total_area,
+                'contribution': column[1].value * total_remanence,
                 'location': np.log10(column[0].value),
                 'dp': column[2].value,
                 'skew': column[3].value if vary_skew else 0.0,
@@ -12198,7 +12301,7 @@ def coercivity_unmixing_interactive(x, magnetization, n_components=2,
         ax.scatter(x_mid, spectrum, c='grey', s=10, alpha=0.6,
                    label='coercivity spectrum')
         arr = parameters[UNMIX_PARAM_COLUMNS].to_numpy()
-        comps = coercivity_spectrum_components(x_grid, arr)
+        comps = coercivity_spectrum_components(x_grid, arr, curve_type)
         for i in range(n_components):
             ax.plot(x_grid, comps[i], c=f'C{i}', ls='--', alpha=0.8,
                     label=f'component {i + 1}')
@@ -12206,7 +12309,8 @@ def coercivity_unmixing_interactive(x, magnetization, n_components=2,
                 label='total (manual)')
         if handle['result'] is not None:
             fitted = handle['result']['params'][UNMIX_PARAM_COLUMNS].to_numpy()
-            fitted_comps = coercivity_spectrum_components(x_grid, fitted)
+            fitted_comps = coercivity_spectrum_components(x_grid, fitted,
+                                                          curve_type)
             for i in range(n_components):
                 ax.plot(x_grid, fitted_comps[i], c=f'C{i}')
             ax.plot(x_grid, fitted_comps.sum(axis=0), c='k',
@@ -12225,7 +12329,7 @@ def coercivity_unmixing_interactive(x, magnetization, n_components=2,
                 if method == 'spectrum':
                     handle['result'] = unmix_coercivity_spectrum(
                         x_mid, spectrum, initial_parameters=parameters,
-                        vary_skew=vary_skew)
+                        vary_skew=vary_skew, curve_type=curve_type)
                 else:
                     handle['result'] = unmix_backfield_curve(
                         x, M, initial_parameters=parameters,
@@ -12435,7 +12539,7 @@ def aggregate_by_class(components, boundaries_mT, class_names=None,
                        coercivity_column='B_mean_mT',
                        proportion_column='proportion',
                        contribution_column='contribution',
-                       curve_factor=2.0, group_column='experiment',
+                       curve_factor=1.0, group_column='experiment',
                        passthrough=('specimen', 'Bcr_mT', 'r_squared')):
     """
     Aggregate fitted unmixing components into coercivity classes.
@@ -12474,9 +12578,11 @@ def aggregate_by_class(components, boundaries_mT, class_names=None,
         Column summed (and divided by curve_factor) to give each class's
         absolute remanence; skipped if the column is absent.
     curve_factor : float
-        Divisor applied to summed contributions. Use 2 for a shift-corrected
-        backfield curve (which spans twice the saturation remanence) and 1
-        for an IRM acquisition curve.
+        Divisor applied to summed contributions (default 1). Fitted
+        contributions are component remanences for both backfield and IRM
+        acquisition curves, so no correction is needed; pass 2 only for
+        backfield contributions from earlier PmagPy versions, which were
+        twice the component remanence.
     group_column : str
         Column identifying each specimen/experiment to aggregate within
         (default 'experiment').
