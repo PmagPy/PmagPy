@@ -6097,7 +6097,9 @@ def plot_chi_T(
     Parameters:
         experiment (pandas.DataFrame): MagIC-formatted experiment DataFrame.
         temperature_column (str): Name of temperature column.
-        magnetic_column (str): Name of susceptibility column.
+        magnetic_column (str): Name of susceptibility column. The y-axis
+            unit follows its MagIC normalization: m³ kg⁻¹ for
+            'susc_chi_mass', SI for 'susc_chi_volume'.
         temp_unit (str): "C" or "K" for the plotted temperatures (input
             temperatures are assumed to be in Kelvin, the MagIC convention).
         smooth_window (int): Window for smoothing, if 0, no smoothing is applied.
@@ -6139,6 +6141,10 @@ def plot_chi_T(
     scT = cooling["T"] if cooling else empty
     scX = cooling["y"] if cooling else empty
     title = experiment["specimen"].unique()[0]
+    y_label = _thermomag_y_label(
+        magnetic_column,
+        _resolve_thermomag_data_type(None, magnetic_column) == "susceptibility",
+    )
     figs = []
 
     if interactive:
@@ -6150,7 +6156,7 @@ def plot_chi_T(
             sizing_mode="stretch_width",
             height=bokeh_height,
             x_axis_label=f"Temperature ({_temp_unit_label(temp_unit)})",
-            y_axis_label="χ (m³ kg⁻¹)",
+            y_axis_label=y_label,
             tools="pan,wheel_zoom,box_zoom,reset,save",
         )
         p.xaxis.axis_label_text_font_style = "normal"
@@ -6298,7 +6304,7 @@ def plot_chi_T(
         ax1.plot(scT, scX, label="Cooling – smoothed", linewidth=2)
         ax1.set_title(title)
         ax1.set_xlabel(f"Temperature ({_temp_unit_label(temp_unit)})")
-        ax1.set_ylabel("χ (m³ kg⁻¹)")
+        ax1.set_ylabel(y_label)
         ax1.grid(True)
         ax1.legend(loc="upper left")
         figs.append(fig1)
@@ -7322,6 +7328,32 @@ def _temp_unit_label(temp_unit):
     return "K" if temp_unit == "K" else f"°{temp_unit}"
 
 
+# Units of thermomagnetic data keyed by the normalization suffix of the MagIC
+# measurements column: mass-normalized susceptibility (susc_chi_mass) is in
+# m³/kg while volume susceptibility (susc_chi_volume, the usual Kappabridge
+# K-T output) is the dimensionless SI value.
+_THERMOMAG_CHI_UNITS = {"_mass": "m³ kg⁻¹", "_volume": "SI"}
+_THERMOMAG_MAGN_UNITS = {"_mass": "Am² kg⁻¹", "_volume": "A m⁻¹",
+                         "_moment": "Am²"}
+
+
+def _thermomag_y_label(magnetic_column, is_susceptibility):
+    """
+    Axis label for thermomagnetic data, with the unit implied by the MagIC
+    normalization suffix of ``magnetic_column`` (e.g. 'χ (m³ kg⁻¹)' for
+    susc_chi_mass, 'χ (SI)' for susc_chi_volume, 'M (A m⁻¹)' for
+    magn_volume). A column without a recognized suffix gets the bare symbol
+    rather than a unit that may be wrong.
+    """
+    symbol = "χ" if is_susceptibility else "M"
+    units = _THERMOMAG_CHI_UNITS if is_susceptibility else _THERMOMAG_MAGN_UNITS
+    column = magnetic_column.lower()
+    for suffix, unit in units.items():
+        if column.endswith(suffix):
+            return f"{symbol} ({unit})"
+    return symbol
+
+
 def _branch_shade(color, branch):
     """
     Branch-dependent shade of a method color: the heating branch keeps the
@@ -7791,7 +7823,7 @@ def plot_curie_estimates(
         "cooling": {"data_color": "#dddddd", "line_color": "#888888",
                     "linestyle": "--", "label": "cooling"},
     }
-    y_label = ("χ (m³ kg⁻¹)" if is_susceptibility else "M (Am² kg⁻¹)")
+    y_label = _thermomag_y_label(magnetic_column, is_susceptibility)
     unit_label = _temp_unit_label(temp_unit)
 
     for branch in branches:

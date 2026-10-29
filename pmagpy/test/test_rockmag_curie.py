@@ -880,6 +880,24 @@ class TestPlotCurieEstimates:
                            {"fit_range": (620, 700)}},
         )
         assert len(axes) == 3  # main + derivative + 1/chi panels
+        assert axes[0].get_ylabel() == "χ (m³ kg⁻¹)"
+        import matplotlib.pyplot as plt
+        plt.close(fig)
+
+    def test_volume_susceptibility_y_label(self, curie_weiss_chi):
+        """Issue #990: susc_chi_volume is dimensionless SI."""
+        T, chi = curie_weiss_chi
+        df = pd.DataFrame({
+            "meas_temp": T + 273.15,
+            "susc_chi_volume": chi,
+            "specimen": "chi-syn",
+            "experiment": "SYN-LP-X-T-1",
+        })
+        fig, axes = rmag.plot_curie_estimates(
+            df, magnetic_column="susc_chi_volume", remove_holder=False,
+            methods=("inflection",), return_figure=True,
+        )
+        assert axes[0].get_ylabel() == "χ (SI)"
         import matplotlib.pyplot as plt
         plt.close(fig)
 
@@ -1116,6 +1134,41 @@ class TestThermomagPlots:
         assert isinstance(figs, tuple) and len(figs) >= 1
         assert all(isinstance(f, plt.Figure) for f in figs)
         plt.close("all")
+
+    @pytest.mark.parametrize("column, label", [
+        ("susc_chi_mass", "χ (m³ kg⁻¹)"),
+        ("susc_chi_volume", "χ (SI)"),
+    ])
+    def test_plot_chi_t_y_label_follows_column(self, curie_weiss_chi,
+                                               column, label):
+        """Issue #990: volume susceptibility (the usual Kappabridge K-T
+        output) must not be labeled with the mass-normalized unit."""
+        import matplotlib.pyplot as plt
+        T, chi = curie_weiss_chi
+        df = pd.DataFrame({"meas_temp": T + 273.15, column: chi,
+                           "specimen": "chi-syn"})
+        figs = rmag.plot_chi_T(
+            df, magnetic_column=column, remove_holder=False,
+            interactive=False, return_figure=True, plot_derivative=False,
+        )
+        assert figs[0].axes[0].get_ylabel() == label
+        plt.close("all")
+
+    @pytest.mark.parametrize("column, data_type, label", [
+        ("susc_chi_mass", None, "χ (m³ kg⁻¹)"),
+        ("susc_chi_volume", None, "χ (SI)"),
+        ("susc_chi_qdr_volume", None, "χ (SI)"),
+        ("magn_mass", None, "M (Am² kg⁻¹)"),
+        ("magn_volume", None, "M (A m⁻¹)"),
+        ("magn_moment", None, "M (Am²)"),
+        # no recognized suffix: bare symbol rather than a guessed unit
+        ("magn_uncal", None, "M"),
+        ("kappa", "susceptibility", "χ"),
+    ])
+    def test_thermomag_y_label(self, column, data_type, label):
+        is_susceptibility = (rmag._resolve_thermomag_data_type(
+            data_type, column) == "susceptibility")
+        assert rmag._thermomag_y_label(column, is_susceptibility) == label
 
     def test_interactive_inverse_susceptibility_missing_branch_raises(self):
         pytest.importorskip("bokeh")
