@@ -13967,7 +13967,8 @@ def form_Q(a,b):
     a = np.asarray(a, dtype=float).reshape(3,1)
     b = np.asarray(b, dtype=float).reshape(3,1)
 
-    if not np.any(np.cross(a[:, 0], b[:, 0])):
+    n = np.cross(a[:, 0], b[:, 0])
+    if not np.any(n):
         if (a.T @ b).item() > 0:
             return np.eye(3)
         # A half turn may use any axis perpendicular to the antipodal pair.
@@ -13975,11 +13976,13 @@ def form_Q(a,b):
         axis /= np.linalg.norm(axis)
         return 2 * np.outer(axis, axis) - np.eye(3)
 
-    c = b - a @ (a.T @ b)
+    # (a x b) x a is the part of b perpendicular to a. Unlike b - a(a.b), it stays
+    # perpendicular to a to working precision when b is nearly parallel or antiparallel to a.
+    c = np.cross(n, a[:, 0]).reshape(3,1)
     c /= np.linalg.norm(c)
 
-    # unit-vector dot products can exceed 1 by rounding; clip before arccos
-    alpha = np.arccos(np.clip(a.T @ b, -1., 1.))
+    # arctan2 is accurate near 0 and 180 degrees, where arccos of a rounded dot product is not
+    alpha = np.arctan2(np.linalg.norm(n), (a.T @ b).item())
     A = a @ c.T - c @ a.T
 
     Q = np.eye(3)+np.multiply(np.sin(alpha),A)+np.multiply(np.cos(alpha)-1, a @ a.T + c @ c.T)

@@ -247,15 +247,25 @@ class TestAngle:
 class TestFormQ:
     """Tests for pmag.form_Q."""
 
-    @pytest.mark.parametrize("direction", np.vstack((np.eye(3), np.ones(3) / np.sqrt(3))))
-    @pytest.mark.parametrize("sign", [-1, 1])
+    @staticmethod
+    def assert_rotation(Q, a, b, atol):
+        """Q is a proper rotation that takes b onto a."""
+        assert_allclose(Q @ b, a, atol=atol)
+        assert_allclose(Q.T @ Q, np.eye(3), atol=atol)
+        assert_allclose(np.linalg.det(Q), 1, atol=atol)
+
+    @pytest.mark.parametrize("direction", np.vstack((np.eye(3), np.ones(3) / np.sqrt(3))),
+                             ids=["x", "y", "z", "diagonal"])
+    @pytest.mark.parametrize("sign", [-1, 1], ids=["antiparallel", "parallel"])
     def test_parallel_vectors(self, direction, sign):
+        """Regression: exactly parallel or antiparallel vectors have no plane of
+        rotation, which used to give NaN or, for the diagonal antipode, a finite
+        matrix that is not a rotation. Parallel gives the identity; antiparallel
+        gives a half turn."""
         with warnings.catch_warnings():
             warnings.simplefilter("error")
             Q = pmag.form_Q(direction, sign * direction)
-        assert_allclose(Q @ (sign * direction), direction, atol=1e-14)
-        assert_allclose(Q.T @ Q, np.eye(3), atol=1e-14)
-        assert_allclose(np.linalg.det(Q), 1, atol=1e-14)
+        self.assert_rotation(Q, direction, sign * direction, atol=1e-14)
         if sign == 1:
             assert_allclose(Q, np.eye(3), atol=0)
 
@@ -269,6 +279,33 @@ class TestFormQ:
             warnings.simplefilter("error")
             Q = pmag.form_Q(a, b)
         assert_allclose(Q, np.eye(3), atol=1e-7)
+
+    @pytest.mark.parametrize("sign", [-1, 1], ids=["antiparallel", "parallel"])
+    def test_renormalized_direction(self, sign):
+        """Regression: renormalizing a unit vector can move it by an ulp, so a x b
+        is not exactly zero but b - a(a.b) is, which gave NaN. Dec 3, inc 44
+        is one such direction."""
+        a = pmag.dir2cart([3, 44])[0]
+        b = sign * a / np.linalg.norm(a)
+        assert np.any(np.cross(a, b))
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            Q = pmag.form_Q(a, b)
+        self.assert_rotation(Q, a, b, atol=1e-14)
+
+    @pytest.mark.parametrize("dinc", [1e-12, 1e-9, 1e-6])
+    def test_nearly_antiparallel_vectors(self, dinc):
+        """Regression: for b close to -a, rounding left c = b - a(a.b) off
+        perpendicular to a, and the cos(alpha) - 1 = -2 term amplified that into a
+        matrix that was not a rotation (|Qb - a| ~ 7e-3 at dinc = 1e-12, 1e-8 at 1e-6).
+        common_mean_bootstrap_H23 reaches this case when the eigenvector for the
+        common mean is returned antipodal to a nearly identical sample mean."""
+        a = pmag.dir2cart([15, 15])[0]
+        b = -pmag.dir2cart([15, 15 + dinc])[0]
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            Q = pmag.form_Q(a, b)
+        self.assert_rotation(Q, a, b, atol=1e-13)
 
 
 class TestDolnpNumericalRobustness:
