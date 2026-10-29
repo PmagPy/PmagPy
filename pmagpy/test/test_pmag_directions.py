@@ -302,14 +302,24 @@ class TestFormQ:
         """Regression: for b close to -a, rounding left c = b - a(a.b) off
         perpendicular to a, and the cos(alpha) - 1 = -2 term amplified that into a
         matrix that was not a rotation (|Qb - a| ~ 7e-3 at dinc = 1e-12, 1e-8 at 1e-6).
-        common_mean_bootstrap_H23 reaches this case when the eigenvector for the
-        common mean is returned antipodal to a nearly identical sample mean."""
+        common_mean_bootstrap_H23 reaches this case when the two sample means are
+        nearly antipodal, as for normal and reversed data passed without flipping
+        one polarity."""
         a = pmag.dir2cart([15, 15])[0]
         b = -pmag.dir2cart([15, 15 + dinc])[0]
         with warnings.catch_warnings():
             warnings.simplefilter("error")
             Q = pmag.form_Q(a, b)
         self.assert_rotation(Q, a, b, atol=1e-13)
+
+    @pytest.mark.parametrize("a, b", [([1., 0., 0.], [0., 0., 0.]),
+                                      ([0., 0., 0.], [1., 0., 0.])],
+                             ids=["zero_b", "zero_a"])
+    def test_zero_vector_raises(self, a, b):
+        """A zero vector has no direction; form_Q should raise rather than
+        return a plausible-looking rotation."""
+        with pytest.raises(ValueError):
+            pmag.form_Q(a, b)
 
 
 class TestDolnpNumericalRobustness:

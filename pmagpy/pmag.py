@@ -13947,8 +13947,11 @@ def form_Ghat(X,Mhat):
 
 def form_Q(a,b):
     """
-    Creates the rotation matrix Q so that Qb = a 
+    Creates the rotation matrix Q so that Qb = a
     (according to equations (9) and (10)Heslop et al., 2023)
+
+    If a and b are parallel, Q is the identity. If they are antiparallel, the
+    rotation is not unique and Q is a half turn about one axis perpendicular to a.
 
     Parameters:
         a (ndarray): Destination direction (unit vector).
@@ -13956,6 +13959,9 @@ def form_Q(a,b):
 
     Returns:
         ndarray: Rotation matrix Q.
+
+    Raises:
+        ValueError: If a or b is a zero vector.
 
     """
 
@@ -13968,9 +13974,13 @@ def form_Q(a,b):
     b = np.asarray(b, dtype=float).reshape(3,1)
 
     n = np.cross(a[:, 0], b[:, 0])
+    cos_ab = (a.T @ b).item()
     if not np.any(n):
-        if (a.T @ b).item() > 0:
+        if cos_ab > 0:
             return np.eye(3)
+        if cos_ab == 0:
+            # a x b and a.b both vanish only when a or b is a zero vector
+            raise ValueError("form_Q requires nonzero direction vectors")
         # A half turn may use any axis perpendicular to the antipodal pair.
         axis = np.cross(a[:, 0], np.eye(3)[np.argmin(np.abs(a))])
         axis /= np.linalg.norm(axis)
@@ -13982,7 +13992,7 @@ def form_Q(a,b):
     c /= np.linalg.norm(c)
 
     # arctan2 is accurate near 0 and 180 degrees, where arccos of a rounded dot product is not
-    alpha = np.arctan2(np.linalg.norm(n), (a.T @ b).item())
+    alpha = np.arctan2(np.linalg.norm(n), cos_ab)
     A = a @ c.T - c @ a.T
 
     Q = np.eye(3)+np.multiply(np.sin(alpha),A)+np.multiply(np.cos(alpha)-1, a @ a.T + c @ c.T)
