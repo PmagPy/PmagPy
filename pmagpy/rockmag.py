@@ -12340,7 +12340,9 @@ def unmix_backfield_experiments(measurements, experiments=None,
     field, magnetization : str
         Column names in the measurements table.
     random_seed : None, int, or numpy.random.Generator
-        Seed for reproducible bootstraps.
+        Seed for reproducible bootstraps, MAX UnMix resampling and
+        Bayesian nested sampling. A random_seed given in method_kwargs
+        takes precedence.
     verbose : bool
         Print progress and failures.
     **method_kwargs
@@ -12412,6 +12414,9 @@ def unmix_backfield_experiments(measurements, experiments=None,
             if method == 'maxunmix':
                 method_kwargs.setdefault('n_boot', n_boot if n_boot > 0
                                          else 100)
+            # the stochastic methods draw from the batch generator, so a
+            # seeded batch is reproducible end to end
+            if method in ('maxunmix', 'bayes'):
                 method_kwargs.setdefault('random_seed', rng)
             result = unmix_coercivity(
                 x_fit, M_fit, method=method, n_components=n_components,
