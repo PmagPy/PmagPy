@@ -16,7 +16,7 @@ import panel as pn
 
 import pmagpy.demag as dc
 
-from .logger import StepLogger
+from .logger import StepLogger, valid_widths
 from pmagpy_panel import tiling
 from pmagpy_panel.widgets import HeightSplitter, Hotkeys, LayoutHold, TileCanvas
 from .plots import DecayPlot, DirectionsPlot, PoleMapPlot, StepEqualAreaPlot, ZijderveldPlot
@@ -32,7 +32,7 @@ COORD_OPTIONS = {v: k for k, v in dc.COORD_NAMES.items()}
 # which plots it on the globe, rather than in this table
 MEAN_COLUMNS = ["dir_dec", "dir_inc", "dir_alpha95", "dir_k", "dir_r", "dir_n_specimens", "dir_n_samples",
                 "dir_n_sites", "dir_n_specimens_lines", "dir_n_specimens_planes"]
-SIDE_PLOT = 380      # equal-area net in the side column, inside its 450 px default width
+SIDE_PLOT = 340      # equal-area net in the side column, inside its 360 px default width (app.SIDE_WIDTH)
 
 
 def next_tick(fn):
@@ -407,8 +407,11 @@ class SpecimenView:
                                                      stylesheets=[BUTTON_GROUP_CSS, COMPACT_BUTTON_CSS], width=96,
                                                      height=24, margin=(0, 12, 0, 6), align="center")
         self.label_sel.param.watch(lambda e: setattr(s, "label_every", e.new), "value")
-        self.logger = StepLogger(height=540, sizing_mode="stretch_width")
+        # the column widths the analyst dragged to are kept with the plots' layout
+        self.logger = StepLogger(height=540, sizing_mode="stretch_width",
+                                 widths=valid_widths(self._saved("step_columns")))
         self.logger.param.watch(self._on_logger_click, "clicked")
+        self.logger.param.watch(lambda e: self._save_layout(), "widths")
         self.hotkeys = Hotkeys(width=0, height=0, margin=0)
         self.hotkeys.param.watch(self._on_hotkey, "n")
         same = dict(stylesheets=[INPUT_CSS])
@@ -494,14 +497,19 @@ class SpecimenView:
     ROOM_BELOW = 190          # window kept under the plots: the fits' heading, buttons and first rows
     WINDOW_HEIGHTS = (300, 640)   # the range a height fitted to the window is kept in
 
+    @staticmethod
+    def _saved(key: str):
+        """What the layout file keeps under `key` ({} when nothing is kept)."""
+        try:
+            with open(LAYOUT_FILE) as fh:
+                return json.load(fh).get(key, {})
+        except (OSError, ValueError, AttributeError):
+            return {}
+
     def _saved_layout(self) -> dict:
         """{"tree", "height"} as the analyst left them: the default tree, and a height of None
         (fit the window), for what was not saved."""
-        try:
-            with open(LAYOUT_FILE) as fh:
-                saved = json.load(fh).get("specimen_tiles", {})
-        except (OSError, ValueError, AttributeError):
-            saved = {}
+        saved = self._saved("specimen_tiles")
         titles = [self.ZIJ, self.EQ, self.DECAY]
         tree = saved.get("tree") if isinstance(saved, dict) and tiling.valid(saved.get("tree"), titles) \
             else self.DEFAULT_TREE
@@ -517,9 +525,12 @@ class SpecimenView:
         record = {"tree": self.canvas.tree}
         if self._height_chosen:
             record["height"] = self.canvas.height
+        layout = {"specimen_tiles": record}
+        if self.logger.widths:
+            layout["step_columns"] = self.logger.widths
         try:
             with open(LAYOUT_FILE, "w") as fh:
-                json.dump({"specimen_tiles": record}, fh)
+                json.dump(layout, fh)
         except OSError:
             pass                                    # a layout not remembered is no loss
 
