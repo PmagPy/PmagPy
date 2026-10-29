@@ -2047,6 +2047,21 @@ class TestSummaryTableUnits:
         assert ax.get_ylabel() == 'Magnetization (Am²)'
         plt.close(fig)
 
+    def test_static_plot_does_not_require_bokeh(self, monkeypatch):
+        """Issue #989: the Matplotlib path must work without bokeh, and
+        the interactive path must still raise a clear ImportError."""
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+        monkeypatch.setattr(rmag, '_HAS_BOKEH', False)
+        H, M = synthetic_loop()
+        fig, ax = rmag.plot_hyst_loop(H, M, 'syn', interactive=False,
+                                      show_plot=False, return_figure=True)
+        assert len(ax.get_lines()) == 1
+        plt.close(fig)
+        with pytest.raises(ImportError, match='bokeh is required'):
+            rmag.plot_hyst_loop(H, M, 'syn', show_plot=False)
+
     def test_results_record_normalized_unit_on_every_path(self):
         import warnings as _warnings
         # full processing, linear exit and open-loop exit all report the
