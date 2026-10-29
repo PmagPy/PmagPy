@@ -281,13 +281,17 @@ class TestFormQ:
         assert_allclose(Q, np.eye(3), atol=1e-7)
 
     @pytest.mark.parametrize("sign", [-1, 1], ids=["antiparallel", "parallel"])
-    def test_renormalized_direction(self, sign):
-        """Regression: renormalizing a unit vector can move it by an ulp, so a x b
-        is not exactly zero but b - a(a.b) is, which gave NaN. Dec 3, inc 44
-        is one such direction."""
+    @pytest.mark.parametrize("component", [0, 1, 2])
+    @pytest.mark.parametrize("toward", [np.inf, -np.inf], ids=["up", "down"])
+    def test_one_ulp_apart(self, sign, component, toward):
+        """Regression: for vectors one ulp apart, as when the same direction is
+        computed two ways (e.g. renormalized), a x b is not exactly zero but
+        b - a(a.b) is pure rounding noise, which gave a matrix that was not a
+        rotation or, when it rounded to zero, NaN."""
         a = pmag.dir2cart([3, 44])[0]
-        b = sign * a / np.linalg.norm(a)
-        assert np.any(np.cross(a, b))
+        b = a.copy()
+        b[component] = np.nextafter(a[component], toward)
+        b *= sign
         with warnings.catch_warnings():
             warnings.simplefilter("error")
             Q = pmag.form_Q(a, b)
