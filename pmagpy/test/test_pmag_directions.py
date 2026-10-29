@@ -247,6 +247,28 @@ class TestAngle:
 class TestFormQ:
     """Tests for pmag.form_Q."""
 
+    @staticmethod
+    def assert_rotation(Q, a, b, atol):
+        """Q is a proper rotation that takes b onto a."""
+        assert_allclose(Q @ b, a, atol=atol)
+        assert_allclose(Q.T @ Q, np.eye(3), atol=atol)
+        assert_allclose(np.linalg.det(Q), 1, atol=atol)
+
+    @pytest.mark.parametrize("direction", np.vstack((np.eye(3), np.ones(3) / np.sqrt(3))),
+                             ids=["x", "y", "z", "diagonal"])
+    @pytest.mark.parametrize("sign", [-1, 1], ids=["antiparallel", "parallel"])
+    def test_parallel_vectors(self, direction, sign):
+        """Regression: exactly parallel or antiparallel vectors have no plane of
+        rotation, which used to give NaN or, for the diagonal antipode, a finite
+        matrix that is not a rotation. Parallel gives the identity; antiparallel
+        gives a half turn."""
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            Q = pmag.form_Q(direction, sign * direction)
+        self.assert_rotation(Q, direction, sign * direction, atol=1e-14)
+        if sign == 1:
+            assert_allclose(Q, np.eye(3), atol=0)
+
     def test_nearly_parallel_vectors(self):
         """Regression: for unit vectors 1e-7 degrees apart, a.T @ b rounds to
         1 + 1 ulp, which used to give NaN and an 'invalid value encountered
@@ -257,6 +279,47 @@ class TestFormQ:
             warnings.simplefilter("error")
             Q = pmag.form_Q(a, b)
         assert_allclose(Q, np.eye(3), atol=1e-7)
+
+    @pytest.mark.parametrize("sign", [-1, 1], ids=["antiparallel", "parallel"])
+    @pytest.mark.parametrize("component", [0, 1, 2])
+    @pytest.mark.parametrize("toward", [np.inf, -np.inf], ids=["up", "down"])
+    def test_one_ulp_apart(self, sign, component, toward):
+        """Regression: for vectors one ulp apart, as when the same direction is
+        computed two ways (e.g. renormalized), a x b is not exactly zero but
+        b - a(a.b) is pure rounding noise, which gave a matrix that was not a
+        rotation or, when it rounded to zero, NaN."""
+        a = pmag.dir2cart([3, 44])[0]
+        b = a.copy()
+        b[component] = np.nextafter(a[component], toward)
+        b *= sign
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            Q = pmag.form_Q(a, b)
+        self.assert_rotation(Q, a, b, atol=1e-14)
+
+    @pytest.mark.parametrize("dinc", [1e-12, 1e-9, 1e-6])
+    def test_nearly_antiparallel_vectors(self, dinc):
+        """Regression: for b close to -a, rounding left c = b - a(a.b) off
+        perpendicular to a, and the cos(alpha) - 1 = -2 term amplified that into a
+        matrix that was not a rotation (|Qb - a| ~ 7e-3 at dinc = 1e-12, 1e-8 at 1e-6).
+        common_mean_bootstrap_H23 reaches this case when the two sample means are
+        nearly antipodal, as for normal and reversed data passed without flipping
+        one polarity."""
+        a = pmag.dir2cart([15, 15])[0]
+        b = -pmag.dir2cart([15, 15 + dinc])[0]
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            Q = pmag.form_Q(a, b)
+        self.assert_rotation(Q, a, b, atol=1e-13)
+
+    @pytest.mark.parametrize("a, b", [([1., 0., 0.], [0., 0., 0.]),
+                                      ([0., 0., 0.], [1., 0., 0.])],
+                             ids=["zero_b", "zero_a"])
+    def test_zero_vector_raises(self, a, b):
+        """A zero vector has no direction; form_Q should raise rather than
+        return a plausible-looking rotation."""
+        with pytest.raises(ValueError):
+            pmag.form_Q(a, b)
 
 
 class TestDolnpNumericalRobustness:
