@@ -2219,13 +2219,17 @@ def plot_hyst_loop(field, magnetization, specimen_name, p=None, interactive=True
 
     Returns
     -------
-    p : bokeh.plotting.figure
+    p : bokeh.plotting.figure or None
+        When interactive is True and return_figure is True.
+    (fig, ax) : tuple of matplotlib Figure and Axes or None
+        When interactive is False and return_figure is True. Bokeh is not
+        required on this path.
     
     '''
-    _check_bokeh()
     assert len(field) == len(magnetization), 'Field and magnetization arrays must be the same length'
     magn_unit = _normalize_magn_unit(magn_unit)
     if interactive:
+        _check_bokeh()
         if p is None:
             p = figure(title=f'{specimen_name} hysteresis loop',
                     x_axis_label='Field (T)',
