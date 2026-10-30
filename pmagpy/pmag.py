@@ -1,9 +1,9 @@
-import codecs
 import math
 import os
 import sys
 import time
 import importlib
+import warnings
 
 import numpy as np
 from numpy import linalg
@@ -1839,7 +1839,7 @@ def open_file(infile, verbose=True):
         all lines in the file
     """
     try:
-        with codecs.open(infile, "r", "utf-8") as f:
+        with open(infile, "r", encoding="utf-8") as f:
             lines = list(f.readlines())
     # file might not exist
     except FileNotFoundError:
@@ -1850,7 +1850,7 @@ def open_file(infile, verbose=True):
     # encoding might be wrong
     except UnicodeDecodeError:
         try:
-            with codecs.open(infile, "r", "Latin-1") as f:
+            with open(infile, "r", encoding="Latin-1") as f:
                 print(
                     '-I- Using less strict decoding for {}, output may have formatting errors'.format(infile))
                 lines = list(f.readlines())
@@ -4261,7 +4261,8 @@ def dosundec(sundata):
     ----------
     sundata : dictionary with these keys:
         date: time string with the format 'yyyy:mm:dd:hr:min'
-        delta_u: time to SUBTRACT from local time for Universal time
+        delta_u: hours to SUBTRACT from local time for Universal time
+            (fractional offsets such as 5.5 are allowed)
         lat: latitude of location (negative for south)
         lon: longitude of location (negative for west)
         shadow_angle: shadow angle of the desired direction with respect to the sun.
@@ -4270,13 +4271,24 @@ def dosundec(sundata):
     -------
     sunaz : the declination of the desired direction with respect to true north
     
+    Notes
+    -----
+    The azimuth of the sun is calculated from its local hour angle and
+    declination with atan2, which gives the correct quadrant at any time of
+    day. The azimuth of the shadow (the sun's azimuth + 180) plus the shadow
+    angle is returned.
+    
+    A UserWarning is issued if the sun is more than 1 degree below the
+    horizon at the given time, when it cannot cast a shadow. This usually
+    means that the time, the date or delta_u is wrong. The azimuth is still
+    returned.
+
     Examples
     --------
     >>> sundata={'date':'1994:05:23:16:9','delta_u':3,'lat':35,'lon':33,'shadow_angle':68}
     >>> pmag.dosundec(sundata)
-    154.24420046668928
+    154.13766831762484
     """
-    iday = 0
     timedate = sundata["date"]
     timedate = timedate.split(":")
     year = int(timedate[0])
@@ -4284,7 +4296,7 @@ def dosundec(sundata):
     day = int(timedate[2])
     hours = float(timedate[3])
     min = float(timedate[4])
-    du = int(sundata["delta_u"])
+    du = float(sundata["delta_u"])
     hrs = hours - du
     if hrs > 24:
         day += 1
@@ -4295,28 +4307,32 @@ def dosundec(sundata):
     julian_day = julian(mon, day, year)
     utd = (hrs + (min / 60)) / 24
     greenwich_hour_angle, delta = gha(julian_day, utd)
-    H = greenwich_hour_angle + float(sundata["lon"])
-    if H > 360:
-        H = H - 360
-    lat = float(sundata["lat"])
-    if H > 90 and H < 270:
-        lat = -lat
-# now do spherical trig to get azimuth to sun
-    lat = np.radians(lat)
+    # local hour angle of the sun: zero at local apparent noon, increasing
+    # westward through the afternoon
+    H = np.radians(greenwich_hour_angle + float(sundata["lon"]))
+    lat = np.radians(float(sundata["lat"]))
     delta = np.radians(delta)
-    H = np.radians(H)
-    ctheta = np.sin(lat) * np.sin(delta) + np.cos(lat) * \
-        np.cos(delta) * np.cos(H)
-    theta = np.arccos(ctheta)
-    beta = np.cos(delta) * np.sin(H) / np.sin(theta)
-#
-#       check which beta
-#
-    beta = np.degrees(np.arcsin(beta))
-    if delta < lat:
-        beta = 180 - beta
-    sunaz = 180 - beta
-    sunaz = (sunaz + float(sundata["shadow_angle"])) % 360.  # mod 360
+    # a shadow is impossible once the center of the sun is more than about
+    # 0.83 degrees (refraction + semidiameter) below the geometric horizon
+    sun_altitude = np.degrees(np.arcsin(np.sin(lat) * np.sin(delta) +
+                                        np.cos(lat) * np.cos(delta) * np.cos(H)))
+    if sun_altitude < -1:
+        warnings.warn('the sun is {:.1f} degrees below the horizon at {} (local time, '
+                      'delta_u = {}), so no sun compass reading is possible; check the '
+                      'time, date and delta_u'.format(-sun_altitude, sundata["date"],
+                                                      sundata["delta_u"]),
+                      UserWarning, stacklevel=2)
+# now do spherical trig to get azimuth to sun (clockwise from true north).
+# atan2 resolves the quadrant, including when the sun is on the poleward side of
+# the east-west line in the early morning and late afternoon. The previous
+# arcsin solution chose the quadrant by comparing delta with lat, which is only
+# correct near local noon.
+    sun_azimuth = np.degrees(np.arctan2(-np.sin(H) * np.cos(delta),
+                                        np.cos(lat) * np.sin(delta) -
+                                        np.sin(lat) * np.cos(delta) * np.cos(H)))
+    # the shadow points away from the sun
+    shadow_azimuth = sun_azimuth + 180.
+    sunaz = (shadow_azimuth + float(sundata["shadow_angle"])) % 360.  # mod 360
     return sunaz
 
 
@@ -4326,25 +4342,27 @@ def gha(julian_day, f):
     
     Parameters
     ----------
-    julian_day : int, julian day
-    f : int 
+    julian_day : int, julian day number of the date (as returned by julian,
+        which is the julian day at noon)
+    f : float
         fraction of the day in Universal Time, (hrs + (min/60))/24
     
     Returns
     -------
-    H: int, hour
-    delta: int, angle
+    H: float, Greenwich hour angle of the sun in degrees
+    delta: float, declination of the sun in degrees
     
     Examples
     --------
     >>> julianday = pmag.julian(10,20,2000)
-    >>> pmag.gha(julianday, 33)
-    (183.440612472039, -20.255315389871825)
-    >>> pmag.gha(2451838, 33)
-    (183.440612472039, -20.255315389871825)
+    >>> pmag.gha(julianday, 0.5)
+    (3.8138097463153713, -10.54983694801999)
     """
     rad = np.pi/180.
-    d = julian_day - 2451545.0 + f
+    # days since J2000.0 (2000-01-01 12:00 UT). julian_day is the julian day at
+    # noon, so the julian date at 0 h UT, from which f is counted, is
+    # julian_day - 0.5
+    d = julian_day - 0.5 + f - 2451545.0
     L = 280.460 + 0.9856474 * d
     g = 357.528 + 0.9856003 * d
     L = L % 360.
