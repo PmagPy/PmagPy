@@ -1,4 +1,3 @@
-import codecs
 import math
 import os
 import sys
@@ -1840,7 +1839,7 @@ def open_file(infile, verbose=True):
         all lines in the file
     """
     try:
-        with codecs.open(infile, "r", "utf-8") as f:
+        with open(infile, "r", encoding="utf-8") as f:
             lines = list(f.readlines())
     # file might not exist
     except FileNotFoundError:
@@ -1851,7 +1850,7 @@ def open_file(infile, verbose=True):
     # encoding might be wrong
     except UnicodeDecodeError:
         try:
-            with codecs.open(infile, "r", "Latin-1") as f:
+            with open(infile, "r", encoding="Latin-1") as f:
                 print(
                     '-I- Using less strict decoding for {}, output may have formatting errors'.format(infile))
                 lines = list(f.readlines())
