@@ -3395,6 +3395,10 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
     pars[z_key] = ZigZag
     pars[meth_key] = methcode
 # do drats
+    # A repeat check needs an original in-field step at the same temperature.
+    infield_steps = {rec[0] for rec in first_I}
+    ptrm_check = [rec for rec in ptrm_check if rec[0] in infield_steps]
+    zptrm_check = [rec for rec in zptrm_check if rec[0] in infield_steps]
     if len(ptrm_check) != 0:
         diffcum, drat_max = 0, 0
         for prec in ptrm_check:
