@@ -101,6 +101,7 @@ setup(
         'pandas',
         'pytz',
         'packaging',
+        'requests',  # downloading from and uploading to MagIC
     ],
 
     # cartopy and shapely are only needed for map-making.

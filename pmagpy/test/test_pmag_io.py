@@ -64,6 +64,25 @@ class TestMagicRead:
         assert data == []
         assert file_type == 'empty_file'
 
+    def test_empty_file_returns_bad_file(self, tmp_path):
+        """A zero-byte file is a bad file, not an IndexError."""
+        empty = str(tmp_path / 'empty.txt')
+        open(empty, 'w').close()
+        assert pmag.open_file(empty) == []
+        data, file_type = pmag.magic_read(empty)
+        assert data == []
+        assert file_type == 'bad_file'
+
+    def test_blank_lines_only_returns_bad_file(self, tmp_path):
+        """A file of blank lines is trimmed to nothing without error."""
+        blank = str(tmp_path / 'blank.txt')
+        with open(blank, 'w') as f:
+            f.write('\n\t\n\n')
+        assert pmag.open_file(blank) == []
+        data, file_type = pmag.magic_read(blank)
+        assert data == []
+        assert file_type == 'bad_file'
+
 
 # ---------------------------------------------------------------------------
 # magic_write: write MagIC tab-delimited files
