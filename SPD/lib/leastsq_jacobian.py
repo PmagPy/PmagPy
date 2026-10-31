@@ -95,7 +95,7 @@ def do_circlefit(x, y):
 def get_SSE(a,b,r,x,y):
     """
     input: a, b, r, x, y.  circle center, radius, xpts, ypts
-    output: SSE
+    output: SSE (sum of squared errors)
     """
     SSE = 0
     X = numpy.array(x)
