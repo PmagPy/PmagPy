@@ -3282,6 +3282,22 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
     xi, yi, diffcum = [], [], 0
     xiz, xzi, yiz, yzi = [], [], [], []
     Nptrm, dmax = 0, -1e-22
+    # A check after heating above the fit range cannot assess that range.
+    # Retain the heating history across consecutive lower-temperature checks.
+    ptrm_starts, zptrm_starts = {}, {}
+    if len(ptrm_check) or len(zptrm_check):
+        peak_temp = float('-inf')
+        for rec in datablock:
+            temperature = rec.get(temp_key)
+            if temperature is None or temperature == "":
+                continue
+            temperature = float(temperature)
+            methods = [m.strip() for m in rec.get(meth_key, "").split(":")]
+            if "LT-PTRM-I" in methods:
+                ptrm_starts.setdefault(temperature, peak_temp)
+            if "LT-PTRM-Z" in methods:
+                zptrm_starts.setdefault(temperature, peak_temp)
+            peak_temp = max(peak_temp, temperature)
 # check if even zero and infield steps
     if len(first_Z) > len(first_I):
         maxe = len(first_I) - 1
@@ -3407,7 +3423,9 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
             zend = end
             while zend > len(zijdblock) - 1:
                 zend = zend - 2  # don't count alteration that happens after this step
-            if step < zijdblock[zend][0]:
+            # Preprocessed callers may not supply raw check records.
+            if (step < zijdblock[zend][0]
+                    and ptrm_starts.get(step, step) <= zijdblock[zend][0]):
                 Nptrm += 1
                 for irec in first_I:
                     if irec[0] == step:
@@ -3425,7 +3443,8 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
             zend = end
             while zend > len(zijdblock) - 1:
                 zend = zend - 1
-            if step < zijdblock[zend][0]:
+            if (step < zijdblock[zend][0]
+                    and zptrm_starts.get(step, step) <= zijdblock[zend][0]):
                 Nptrm += 1
                 for irec in first_I:
                     if irec[0] == step:
