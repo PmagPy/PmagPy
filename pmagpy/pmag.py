@@ -1438,7 +1438,7 @@ def get_curve(araiblock,**kwargs):
     y_Arai=first_Z[3]/first_Z[3][0]
     krv_data=lib_k.AraiCurvature(x=x_Arai,y=y_Arai)
     pars['int_k']=krv_data[0]
-    pars['int_k_sse']=krv_data[1]
+    pars['int_k_sse']=krv_data[3]
     # segment
     if 'start' in kwargs.keys() and 'end' in kwargs.keys():
         start=kwargs['start']
@@ -1447,7 +1447,7 @@ def get_curve(araiblock,**kwargs):
         y_Arai_segment = y_Arai[start:end + 1]  # chosen segent in the Arai plot
         krv_data=lib_k.AraiCurvature(x=x_Arai_segment,y=y_Arai_segment)
         pars['int_k_prime']=krv_data[0]
-        pars['int_k_prime_sse']=krv_data[1]
+        pars['int_k_prime_sse']=krv_data[3]
     return pars
 
 def dovds(data):
