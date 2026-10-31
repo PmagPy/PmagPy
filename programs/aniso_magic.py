@@ -8,8 +8,6 @@ set_env.set_backend_if_unset("TKAgg")
 
 import pmagpy.pmag as pmag
 from pmagpy import ipmag
-import pmagpy.pmagplotlib as pmagplotlib
-import pmagpy.contribution_builder as cb
 
 
 def main():
