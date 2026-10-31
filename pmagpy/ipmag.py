@@ -12145,6 +12145,8 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
                             calculation_type = 'DE-FM'  # fisher mean
                         if 'DE-BFL-A' in m:
                             calculation_type = 'DE-BFL-A'  # anchored best fit line
+                        if 'DE-VM' in m:
+                            calculation_type = 'DE-VM'  # vector mean
 
                     treatments = pd.to_numeric(this_specimen_measurements.treatment).tolist()
 

@@ -135,7 +135,13 @@ save_fit_btn_help = """Saves current interpretations to demag_gui.redo file so t
 
 delete_fit_btn_help = """Deletes current fit and reverts your current fit to the previous fit. Hotkey: ctrl-D"""
 
-PCA_type_help = """Shows the current fit's regression or mean type."""
+PCA_type_help = """Shows the current fit's regression or mean type:
+line = principal component line fit about the centre of mass (DE-BFL)
+line-anchored = principal component line fit anchored to the origin (DE-BFL-A)
+line-with-origin = line fit with the origin included as a point (DE-BFL-O)
+vector mean = direction of the sum of the steps, including their intensities (DE-VM)
+plane = principal component plane fit (DE-BFP)
+Fisher = Fisher mean of the step directions (DE-FM)"""
 
 plane_display_help = """How to display plane fits on eqarea plots:
 bfv = Best Fit Vector
