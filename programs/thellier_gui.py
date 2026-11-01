@@ -7139,35 +7139,14 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         "-W- Can't find ancient cooling rate estimation for sample %s\n" % sample)
                     continue
                 # self.Data_info["er_samples"]
-                cooling_rate_data = {}
-                cooling_rate_data['pairs'] = []
-                cooling_rates_list = []
-                cooling_rate_data['alteration_check'] = []
-                for rec in Data[s]['crblock']:
-                    magic_method_codes = rec['magic_method_codes'].strip(
-                        ' ').strip('\n').split(":")
-                    try:
-                        measurement_description = rec['measurement_description'].strip(
-                            ' ').strip('\n').split(":")
-                        index = measurement_description.index("K/min")
-                        cooling_rate = float(
-                            measurement_description[index - 1])
-                        cooling_rates_list.append(cooling_rate)
-                    except:
-                        measurement_description = []
-                    if "LT-T-Z" in magic_method_codes:
-                        cooling_rate_data['baseline'] = float(
-                            rec['measurement_magn_moment'])
-                        continue
-                    moment = float(rec['measurement_magn_moment'])
-                    if "LT-T-I" in magic_method_codes:
-                        cooling_rate_data['pairs'].append(
-                            [cooling_rate, moment])
-                    if "LT-PTRM-I" in magic_method_codes:
-                        cooling_rate_data['alteration_check'] = [
-                            cooling_rate, moment]
-                lab_cooling_rate = max(cooling_rates_list)
-                cooling_rate_data['lab_cooling_rate'] = lab_cooling_rate
+                cooling_rate_data = thellier_gui_lib.get_cooling_rate_data(
+                    Data[s]['crblock'])
+                if cooling_rate_data is None:
+                    self.GUI_log.write(
+                        "-W- Skipping cooling rate correction for specimen %s: "
+                        "need two in-field cooling rates and an alteration check "
+                        "with rates in K/min\n" % s)
+                    continue
                 #lab_cooling_rate = self.Data[self.s]['cooling_rate_data']['lab_cooling_rate']
                 moments = []
                 lab_fast_cr_moments = []
