@@ -109,7 +109,12 @@ def main():
     OPTIONS
         -h plots help message and quits
         -WD DIR, directory with the input files, in which plots are also saved, default is current directory
-        -f AFILE, specify specimens.txt formatted file for input
+        -f AFILE, specify the selected MagIC input table
+        -source [specimens,measurements], tensor source (default specimens)
+        -exp NAME, select one exact measurement experiment name
+        -m CODES, require all colon-separated measurement method-code tokens
+        -treat COLUMN VALUE, select a numeric treatment value in SI units (repeatable)
+        -no-mean, plot individual axes only, allowing multiple treatment steps
         -fsa SAMPFILE, specify samples.txt file (required to plot by site)
         -fsi SITEFILE, specify site file (required to include location information)
         -x Hext [1963] and bootstrap
@@ -151,7 +156,18 @@ def main():
         vec = 3
     #iplot = pmag.get_flag_arg_from_sys("-P", true=0, false=1)
     isite = pmag.get_flag_arg_from_sys("-sit", true=1, false=0)
-    infile = pmag.get_named_arg('-f', 'specimens.txt')
+    source = pmag.get_named_arg('-source', 'specimens')
+    infile = pmag.get_named_arg('-f', source + '.txt')
+    experiment = pmag.get_named_arg('-exp', None)
+    method_codes = pmag.get_named_arg('-m', None)
+    treatments = None
+    for index, arg in enumerate(args):
+        if arg == '-treat':
+            if index + 2 >= len(args):
+                raise ValueError("-treat requires COLUMN VALUE in MagIC SI units")
+            if treatments is None:
+                treatments = {}
+            treatments[args[index + 1]] = float(args[index + 2])
     samp_file = pmag.get_named_arg('-fsa', 'samples.txt')
     site_file = pmag.get_named_arg('-fsi', 'sites.txt')
     #outfile = pmag.get_named_arg("-F", "rmag_results.txt")
@@ -182,7 +198,9 @@ def main():
                       verbose=verbose, ipar=ipar, ihext=ihext, ivec=ivec,
                       isite=isite, iboot=iboot, vec=vec, Dir=Dir, PDir=PDir,
                       crd=crd, num_bootstraps=num_bootstraps, dir_path=dir_path,
-                      save_plots=save_plots, interactive=interactive, fmt=fmt)
+                      save_plots=save_plots, interactive=interactive, fmt=fmt,
+                      source=source, experiments=experiment, method_codes=method_codes,
+                      treatments=treatments, plot_mean='-no-mean' not in args)
 
 
 
