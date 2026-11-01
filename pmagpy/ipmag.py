@@ -10725,13 +10725,16 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                 isample=False, samples=None, group_samples=False,
                 iboot=False, vec=0, Dir=[], PDir=[], crd="s", num_bootstraps=1000,
                 dir_path=".", fignum=1, save_plots=True, interactive=False, fmt="png",
-                contribution=None, image_records=False):
+                contribution=None, image_records=False, source='specimens',
+                experiments=None, method_codes=None, treatments=None, plot_mean=True):
     """
     Makes plots of anisotropy eigenvectors, eigenvalues and confidence bounds
     All directions are on the lower hemisphere.
 
     Parameters:
-        infile : specimens formatted file with aniso_s data
+        infile : MagIC table with aniso_s data. With source='measurements', the
+            default specimens.txt is replaced by measurements.txt. A custom
+            filename is read as the selected source table.
         samp_file : samples formatted file with sample => site relationship
         site_file : sites formatted file with site => location relationship
         verbose : if True, print messages to output
@@ -10789,12 +10792,52 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
             format for figures, [svg, jpg, pdf, png]
         contribution : pmagpy contribution_builder.Contribution object, if not provided will be created
             in directory (default None).  (if provided, infile/samp_file/dir_path may be left blank)
+        source : {'specimens', 'measurements'}, default 'specimens'
+            table containing the tensors. Measured tensors retain their treatment
+            records; the specimens table supplies specimen-to-sample relationships.
+        experiments : str or list of str, optional
+            exact experiment names to include (measurements source only).
+        method_codes : str or list of str, optional
+            require all listed method-code tokens (measurements source only).
+            A string may contain colon-separated codes, e.g. 'LP-AN-MS:LT-AF-Z-X'.
+        treatments : dict, optional
+            numeric treatment column/value filters in MagIC SI units, e.g.
+            {'treat_ac_field': 0.05} for 50 mT. All filters are combined with AND.
+            Numeric spellings such as '5e-2' and '0.05' compare equally.
+        plot_mean : bool, default True
+            plot a mean tensor and its confidence estimates as well as individual
+            axes. For measured tensors, first select one treatment condition;
+            mixing different recorded physical treatment values, LT codes or
+            anisotropy types raises ValueError. The ordinal treat_step_num is
+            not a physical condition. With False, individual axes from multiple
+            steps can be plotted together, including a single measured tensor.
+
+    Examples:
+        Plot the mean AMS after a 50 mT AF treatment along X::
+
+            aniso_magic(source='measurements', method_codes='LT-AF-Z-X',
+                        treatments={'treat_ac_field': 0.05})
+
+        Plot all measured axes for one experiment without averaging steps::
+
+            aniso_magic(source='measurements', experiments='specimen1:AMS',
+                        plot_mean=False)
+
+        Measurement plot titles and filenames include the selection, so saving
+        successive treatment steps does not overwrite the specimen plots.
 
 
     """
     figs = {}
     saved = []
     image_recs = []
+    if source not in ('specimens', 'measurements'):
+        raise ValueError("aniso_magic: source must be 'specimens' or 'measurements'")
+    if source != 'measurements' and any(
+            value is not None for value in (experiments, method_codes, treatments)):
+        raise ValueError("aniso_magic: experiment/method/treatment filters require source='measurements'")
+    if source == 'measurements' and infile == 'specimens.txt':
+        infile = 'measurements.txt'
     # make sure boolean values are in integer form
     # for backwards compatibility
     ipar = int(ipar)
@@ -10840,21 +10883,24 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
         # fix directory
         input_dir_path = os.path.realpath(dir_path)
         fnames = {'specimens': infile, 'samples': samp_file, 'sites': site_file}
-        con = cb.Contribution(input_dir_path, read_tables=['specimens', 'samples', 'sites', 'contribution'],
+        if source == 'measurements':
+            fnames['specimens'] = 'specimens.txt'
+            fnames['measurements'] = infile
+        con = cb.Contribution(input_dir_path, read_tables=[source, 'specimens', 'samples', 'sites', 'contribution'],
                               custom_filenames=fnames)
     else:
         con = contribution
         dir_path = con.directory
-    # the specimens table with the anisotropy tensors is required
+    # The selected source table must contain anisotropy tensors.
     problem = ""
-    if 'specimens' not in con.tables:
+    if source not in con.tables:
         if contribution is None:
-            problem = "could not read a specimens table from {}".format(
-                os.path.join(input_dir_path, infile))
+            problem = "could not read a {} table from {}".format(
+                source, os.path.join(input_dir_path, infile))
         else:
-            problem = "the contribution has no specimens table"
-    elif 'aniso_s' not in con.tables['specimens'].df.columns:
-        problem = "the specimens table has no aniso_s column, so there are no anisotropy data to plot"
+            problem = "the contribution has no {} table".format(source)
+    elif 'aniso_s' not in con.tables[source].df.columns:
+        problem = "the {} table has no aniso_s column, so there are no anisotropy data to plot".format(source)
     if problem:
         print("-E- aniso_magic: " + problem)
         if image_records:
@@ -10866,11 +10912,16 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
         if 'id' in con.tables['contribution'].df.columns:
             con_id = str(con.tables['contribution'].df['id'].values[0])
     # get other data
-    con.propagate_location_to_specimens()
-    spec_container = con.tables['specimens']
+    if source == 'measurements':
+        con.propagate_location_to_measurements()
+    else:
+        con.propagate_location_to_specimens()
+    spec_container = con.tables[source]
     spec_df = spec_container.df
     # use only anisotropy records
     spec_df = spec_df.dropna(subset=['aniso_s']).copy()
+    if source == 'measurements':
+        spec_df = _select_aniso_measurements(spec_df, experiments, method_codes, treatments)
     if 'aniso_tilt_correction' not in spec_df.columns:
         spec_df['aniso_tilt_correction'] = -1  # assume specimen coordinates
     if "aniso_s_n_measurements" not in spec_df.columns:
@@ -10910,6 +10961,27 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
         return df[df[col].isin(requested)], names
     cs_df, sites = _apply_name_filter(cs_df, 'site', sites, 'sites')
     cs_df, samples = _apply_name_filter(cs_df, 'sample', samples, 'samples')
+    if source == 'measurements' and cs_df.empty:
+        if verbose:
+            print("-W- aniso_magic: no measured tensors match the selection")
+        return (False, [], []) if image_records else (False, [])
+
+    # Keep plots from successive selections distinct, including selections saved
+    # alongside the default specimen plots in the same contribution directory.
+    selection = []
+    if source == 'measurements':
+        if experiments is not None:
+            names = [experiments] if isinstance(experiments, str) else list(experiments)
+            selection.append('exp-' + '-'.join(names))
+        if method_codes is not None:
+            codes = method_codes.split(':') if isinstance(method_codes, str) else list(method_codes)
+            selection.append('-'.join(codes))
+        if treatments:
+            selection.extend('{}-{:g}'.format(key, float(value))
+                             for key, value in sorted(treatments.items()))
+        selection.insert(0, 'measurements')
+    selection_title = ', '.join(selection)
+    selection_suffix = '_' + re.sub(r'[^A-Za-z0-9_.-]', '_', selection_title) if selection else ''
 
     if iter_by_site or iter_by_sample:
         group_col = 'site' if iter_by_site else 'sample'
@@ -10917,6 +10989,8 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
         group_values = cs_df[group_col].unique() if group_col in cs_df.columns else []
         for group_val in list(group_values):
             group_df = cs_df[cs_df[group_col] == group_val]
+            if source == 'measurements' and plot_mean:
+                _check_aniso_measurement_mean(group_df)
             # look up location for filenames: from sites table when grouping by site,
             # from the (already-propagated) location column on specimens when grouping by sample
             loc = ""
@@ -10935,13 +11009,15 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
 
             figs = plot_aniso(fignum, group_df, Dir=Dir, PDir=PDir, ipar=ipar,
                               ihext=ihext, ivec=ivec, iboot=iboot,
-                              vec=vec, num_bootstraps=num_bootstraps, title=group_val)
-            files = {key: loc + "_" + group_val + "_" + crd + "_aniso-" + key + ".png"
+                              vec=vec, num_bootstraps=num_bootstraps,
+                              title=', '.join(part for part in (group_val, selection_title) if part),
+                              plot_mean=plot_mean)
+            files = {key: loc + "_" + group_val + selection_suffix + "_" + crd + "_aniso-" + key + ".png"
                      for (key, value) in figs.items()}
             if pmagplotlib.isServer:
                 titles = {}
                 for key in figs.keys():
-                    files[key] = "LO:_" + loc + "_" + group_tag + ":_" + group_val + '_TY:_aniso_' + key + '_.' + fmt
+                    files[key] = "LO:_" + loc + "_" + group_tag + ":_" + group_val + selection_suffix + '_TY:_aniso_' + key + '_.' + fmt
                     titles = {}
                     titles['data'] = "Eigenvectors"
                     titles['tcdf'] = "Eigenvalue Confidence"
@@ -10983,19 +11059,23 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
             n_samples = cs_df['sample'].dropna().nunique()
             title_parts.append("{} grouped samples".format(n_samples))
         combined_title = ", ".join(title_parts)
+        if selection_title:
+            combined_title = ', '.join(part for part in (combined_title, selection_title) if part)
+        if source == 'measurements' and plot_mean:
+            _check_aniso_measurement_mean(cs_df)
         figs = plot_aniso(fignum, cs_df, Dir=Dir, PDir=PDir, ipar=ipar, ihext=ihext,
                           ivec=ivec, iboot=iboot, vec=vec, num_bootstraps=num_bootstraps,
-                          title=combined_title)
+                          title=combined_title, plot_mean=plot_mean)
         try:
             locs = cs_df['location'].unique()
         except KeyError:
             locs = [""]
         locs = "-".join(locs)
-        files = {key:  locs + "_" + crd + "_aniso-" + key + ".png" for (key, value) in figs.items()}
+        files = {key:  locs + selection_suffix + "_" + crd + "_aniso-" + key + ".png" for (key, value) in figs.items()}
         if pmagplotlib.isServer:
             titles = {}
             for key in figs.keys():
-                files[key] = 'MC:_' + con_id + '_TY:_aniso_' + key + '_.' + fmt
+                files[key] = 'MC:_' + con_id + selection_suffix + '_TY:_aniso_' + key + '_.' + fmt
                 titles = {}
                 titles['data'] = "Eigenvectors"
                 titles['tcdf'] = "Eigenvalue Confidence"
@@ -11127,6 +11207,54 @@ def plot_gc(poles, color='g', fignum=1):
         pmagplotlib.plot_circ(fignum, pole, 90., color)
 
 
+def _select_aniso_measurements(df, experiments, method_codes, treatments):
+    """Select measured tensors without changing their order or repeated specimens."""
+    if experiments is not None:
+        names = [experiments] if isinstance(experiments, str) else list(experiments)
+        if 'experiment' not in df.columns:
+            raise ValueError("aniso_magic: experiment selection requires an experiment column")
+        df = df[df['experiment'].isin(names)]
+    if method_codes is not None:
+        codes = method_codes.split(':') if isinstance(method_codes, str) else list(method_codes)
+        if not codes or any(not isinstance(code, str) or not code.strip() for code in codes):
+            raise ValueError("aniso_magic: method_codes must contain non-empty method codes")
+        if 'method_codes' not in df.columns:
+            raise ValueError("aniso_magic: method selection requires a method_codes column")
+        codes = {code.strip() for code in codes}
+        df = df[df['method_codes'].fillna('').apply(
+            lambda value: codes.issubset({code.strip() for code in value.split(':')}))]
+    if treatments is not None:
+        for column, value in treatments.items():
+            if not column.startswith('treat_') or column not in df.columns:
+                raise ValueError("aniso_magic: unknown treatment column {!r}".format(column))
+            value = float(value)
+            if not np.isfinite(value):
+                raise ValueError("aniso_magic: treatment values must be finite numbers")
+            # MagIC fields are in SI units; compare numeric values, not their
+            # spelling (e.g. 0.05 and 5e-2 describe the same treatment).
+            df = df[pd.to_numeric(df[column], errors='coerce') == value]
+    return df.copy()
+
+
+def _check_aniso_measurement_mean(df):
+    """Keep different treatment conditions out of a pooled mean tensor."""
+    for column in df.columns:
+        if column.startswith('treat_') and column != 'treat_step_num':
+            values = pd.to_numeric(df[column], errors='coerce')
+        elif column == 'aniso_type':
+            values = df[column].fillna('')
+        elif column == 'method_codes':
+            values = df[column].fillna('').apply(lambda value: tuple(sorted(
+                code.strip() for code in value.split(':') if code.strip().startswith('LT-'))))
+        else:
+            continue
+        if values.nunique(dropna=False) > 1:
+            raise ValueError(
+                "aniso_magic: measured tensors have different {} values; select "
+                "one treatment condition with experiments, method_codes and treatments, "
+                "or use plot_mean=False to plot individual axes".format(column))
+
+
 def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=False,
                iboot=False, vec=0, num_bootstraps=1000, title="", plot_mean=True):
     """
@@ -11200,7 +11328,7 @@ def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=F
             V2.append([Vdir[1][0], Vdir[1][1]])
             V3.append([Vdir[2][0], Vdir[2][1]])
     Ss = np.array(Ss)
-    if Ss.shape[0] > 1:
+    if Ss.shape[0] > 1 or (Ss.shape[0] == 1 and not plot_mean):
         # plot the data
         plot_net(fignum)
         figs['data'] = fignum

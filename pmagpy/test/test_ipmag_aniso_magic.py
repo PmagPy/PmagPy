@@ -203,6 +203,21 @@ def program():
 
 class TestAnisoMagicProgram:
 
+    def test_measurement_arguments(self, program, monkeypatch):
+        calls = []
+        monkeypatch.setattr(program.ipmag, 'aniso_magic', lambda **kwargs: calls.append(kwargs))
+        monkeypatch.setattr(sys, 'argv', [
+            'aniso_magic.py', '-source', 'measurements', '-exp', 'sp:AMS',
+            '-m', 'LP-AN-MS:LT-AF-Z-X', '-treat', 'treat_ac_field', '.05',
+            '-treat', 'treat_temp', '300', '-no-mean', '-sav'])
+        program.main()
+        assert calls[0]['source'] == 'measurements'
+        assert calls[0]['infile'] == 'measurements.txt'
+        assert calls[0]['experiments'] == 'sp:AMS'
+        assert calls[0]['method_codes'] == 'LP-AN-MS:LT-AF-Z-X'
+        assert calls[0]['treatments'] == {'treat_ac_field': .05, 'treat_temp': 300.}
+        assert calls[0]['plot_mean'] is False
+
     def test_arguments_reach_the_parameters_they_are_meant_for(self, program, monkeypatch):
         signature = inspect.signature(ipmag.aniso_magic)
         calls = []
