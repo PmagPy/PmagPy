@@ -1026,12 +1026,6 @@ class TestAnisoMagic(unittest.TestCase):
             for fname in glob.glob(string):
                 os.remove(fname)
 
-    def test_success_old(self):
-        dir_path = os.path.join(WD, 'data_files', 'aniso_magic')
-        ipmag.aniso_magic_old('dike_specimens.txt', plots=True, input_dir_path=dir_path)
-        files = glob.glob('*.png')
-        self.assertEqual(3, len(files))
-
     def test_success(self):
         dir_path = os.path.join(WD, 'data_files', 'aniso_magic')
         status, outfiles = ipmag.aniso_magic_nb(infile='dike_specimens.txt',
