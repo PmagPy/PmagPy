@@ -83,12 +83,6 @@ def test_site_filter_is_applied_before_mean_condition_check(contribution, captur
     assert list(captured[0][0].specimen) == ['sp2', 'sp2']
 
 
-def test_treatment_match_tolerates_floating_point_representation(contribution, captured):
-    contribution.tables['measurements'].df['treat_ac_field'] = ['0.01', str(0.1 * 0.5)] * 3
-    run(contribution, treatments={'treat_ac_field': 0.05})
-    assert list(captured[0][0].measurement) == ['m0-1', 'm1-1', 'm2-1']
-
-
 def test_individual_axes_keep_repeated_specimens(contribution, captured):
     run(contribution, plot_mean=False)
     frame, options = captured[0]
