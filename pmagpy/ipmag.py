@@ -10719,6 +10719,36 @@ def aniso_magic_old(infile='specimens.txt', samp_file='samples.txt', site_file='
 
 
 
+def _aniso_rotate_specimen_tensors(spec_df, sample_df, correction):
+    """Rotate a complete specimen-frame set, or leave the existing fallback in use."""
+    records = spec_df[spec_df['aniso_tilt_correction'] == -1].copy()
+    columns = ['azimuth', 'dip']
+    if correction == 100:
+        columns += ['bed_dip_direction', 'bed_dip']
+    if records.empty or 'sample' not in records or not set(columns).issubset(sample_df.columns):
+        return None
+    tensors = []
+    for _, record in records.iterrows():
+        if record['sample'] not in sample_df.index:
+            return None
+        orientations = sample_df.loc[[record['sample']], columns].apply(
+            pd.to_numeric, errors='coerce').drop_duplicates()
+        # Do not silently omit unoriented samples or choose between conflicting
+        # orientations when computing the mean tensor.
+        if len(orientations) != 1 or not np.isfinite(
+                orientations.to_numpy(dtype=float, na_value=np.nan)).all():
+            return None
+        orientation = orientations.iloc[0]
+        tensor = [float(value) for value in record['aniso_s'].split(':')]
+        tensor = pmag.dosgeo(tensor, orientation['azimuth'], orientation['dip'])
+        if correction == 100:
+            tensor = pmag.dostilt(tensor, orientation['bed_dip_direction'], orientation['bed_dip'])
+        tensors.append(':'.join(str(value) for value in tensor))
+    records['aniso_s'] = tensors
+    records['aniso_tilt_correction'] = correction
+    return records
+
+
 def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='sites.txt', verbose=True,
                 ipar=False, ihext=True, ivec=False,
                 isite=False, sites=None, group_sites=False,
@@ -10777,6 +10807,9 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
             s : specimen coordinates, aniso_tile_correction = -1, or unspecified
             g : geographic coordinates, aniso_tile_correction = 0
             t : tilt corrected coordinates, aniso_tile_correction = 100
+            If the requested frame is absent, specimen tensors are rotated using
+            sample azimuth/dip (and bedding for t) when all have unambiguous
+            orientation metadata. Otherwise the available-frame fallback is used.
         num_bootstraps : how many bootstraps to do, default 1000
         dir_path : directory with the input files, in which the plots are also saved
         fignum : matplotlib figure number, default 1
@@ -10878,6 +10911,11 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
     if "aniso_s_sigma" not in spec_df.columns:
         spec_df["aniso_sigma"] = "0"
     orlist = spec_df['aniso_tilt_correction'].dropna().unique()
+    if CS not in orlist and CS in (0, 100) and 'samples' in con.tables:
+        rotated = _aniso_rotate_specimen_tensors(spec_df, con.tables['samples'].df, CS)
+        if rotated is not None:
+            spec_df = pd.concat([spec_df, rotated])
+            orlist = spec_df['aniso_tilt_correction'].dropna().unique()
     if CS not in orlist:
         if len(orlist) > 0:
             CS = orlist[0]
