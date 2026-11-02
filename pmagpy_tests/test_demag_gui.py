@@ -6,6 +6,7 @@ import wx.lib.inspection
 import random as rn
 from pmagpy.demag_gui_utilities import *
 import pmagpy.find_pmag_dir as find_pmag_dir
+import pmagpy.pmag as pmag
 from programs import demag_gui
 
 
@@ -51,6 +52,42 @@ class TestDemagGUI(unittest.TestCase):
         self.assertEqual(len(self.frame.pmag_results_data['specimens'][self.frame.s]),1)
         self.frame.ProcessEvent(delete_fit_evt)
         self.assertEqual(len(self.frame.pmag_results_data['specimens'][self.frame.s]),0)
+
+    def test_vector_mean_fit(self):
+        # 'vector mean' in the fit type box makes a DE-VM fit, calculated by pmag.domean
+        add_fit_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId,self.frame.add_fit_button.GetId())
+        type_evt = wx.PyCommandEvent(wx.EVT_COMBOBOX.typeId,self.frame.PCA_type_box.GetId())
+        self.assertIn('vector mean', self.frame.PCA_type_box.GetItems())
+        tmin=self.frame.Data[self.frame.s]['zijdblock_steps'][0]
+        tmax=self.frame.Data[self.frame.s]['zijdblock_steps'][-1]
+        self.frame.tmin_box.SetValue(tmin)
+        self.frame.tmax_box.SetValue(tmax)
+        self.frame.ProcessEvent(add_fit_evt)
+        self.frame.PCA_type_box.SetValue('vector mean')
+        self.frame.ProcessEvent(type_evt)
+        fit = self.frame.current_fit
+        self.assertEqual(fit.PCA_type, 'DE-VM')
+        pars = fit.get('specimen')
+        self.assertEqual(pars['calculation_type'], 'DE-VM')
+        self.assertNotIn('specimen_mad', pars)
+        block = self.frame.Data[self.frame.s]['zijdblock']
+        good = [rec for rec in block if rec[5] == 'g']
+        expected = pmag.vector_mean([rec[1:4] for rec in good])[0]
+        self.assertLess(pmag.angle([pars['specimen_dec'], pars['specimen_inc']],
+                                   expected[:2])[0], 1e-6)
+        self.frame.PCA_type_box.SetValue('line')
+        self.frame.update_PCA_box()
+        self.assertEqual(self.frame.PCA_type_box.GetValue(), 'vector mean')
+        # the vector mean and the anchored line are drawn through the origin
+        self.frame.draw_interpretations()
+        self.assertEqual(list(fit.lines[0].get_xdata()[:1]) + list(fit.lines[0].get_ydata()[:1]),
+                         [0., 0.])
+        self.frame.PCA_type_box.SetValue('line-anchored')
+        self.frame.ProcessEvent(type_evt)
+        self.assertEqual(fit.PCA_type, 'DE-BFL-A')
+        self.frame.draw_interpretations()
+        self.assertEqual(list(fit.lines[0].get_xdata()[:1]) + list(fit.lines[0].get_ydata()[:1]),
+                         [0., 0.])
 
     def test_next_prev_specimen(self):
 

@@ -2892,12 +2892,23 @@ def domean(data, start, end, calculation_type):
     end : step being used as end of fit (often temperature maximum)
     calculation_type : string describing type of calculation to be made
     'DE-BFL' (line), 'DE-BFL-A' (line-anchored), 'DE-BFL-O' (line-with-origin),
-    'DE-BFP' (plane), 'DE-FM' (Fisher mean)
+    'DE-VM' (vector mean), 'DE-BFP' (plane), 'DE-FM' (Fisher mean)
 
     Returns
     -------
-    mpars : dictionary 
+    mpars : dictionary
         The keys within are "specimen_n","measurement_step_min", "measurement_step_max","specimen_mad","specimen_dec","specimen_inc".
+
+    Notes
+    -----
+    Lines and planes are principal component fits (Kirschvink, 1980). A free
+    line ('DE-BFL') is fit about the centre of mass of the selected steps; an
+    anchored line ('DE-BFL-A') is the principal eigenvector of the orientation
+    tensor taken about the origin, and its MAD is calculated from the same
+    tensor. Lines point along the vector removed between the first and last
+    steps. 'specimen_dang' is not returned for anchored lines. A vector mean
+    ('DE-VM') is the direction of the sum of the selected steps, including
+    their intensities; it has no MAD, and its 'specimen_dang' is -1.
     """
     mpars = {}
     datablock = []
@@ -2934,7 +2945,7 @@ def domean(data, start, end, calculation_type):
 #
     fdata = []
     for k in range(start, end + 1):
-        if calculation_type == 'DE-BFL' or calculation_type == 'DE-BFL-A' or calculation_type == 'DE-BFL-O':  # best-fit line
+        if calculation_type in ('DE-BFL', 'DE-BFL-A', 'DE-BFL-O', 'DE-VM'):  # lines and vector means use intensity
             data = [datablock[k][1], datablock[k][2], datablock[k][3]]
         else:
             data = [datablock[k][1], datablock[k][2], 1.0]  # unit weight
@@ -2955,6 +2966,17 @@ def domean(data, start, end, calculation_type):
         mpars["measurement_step_min"] = indata[start0][0]
         mpars["measurement_step_max"] = indata[end0][0]
         mpars["center_of_mass"] = cm
+        mpars["specimen_dang"] = -1
+        return mpars
+    if calculation_type == 'DE-VM':  # vector mean, including the magnitudes of the steps
+        Dir, R = vector_mean(fdata)
+        mpars["specimen_direction_type"] = 'l'
+        mpars["specimen_dec"] = Dir[0]
+        mpars["specimen_inc"] = Dir[1]
+        mpars["specimen_n"] = len(fdata)
+        mpars["measurement_step_min"] = indata[start0][0]
+        mpars["measurement_step_max"] = indata[end0][0]
+        mpars["center_of_mass"] = cm  # the mean is drawn through the origin
         mpars["specimen_dang"] = -1
         return mpars
 #
@@ -2993,7 +3015,16 @@ def domean(data, start, end, calculation_type):
     if t[2] < 0:
         t[2] = 0  # make positive
     if calculation_type == 'DE-BFL-A':
-        Dir, R = vector_mean(fdata)
+        # anchored line: the principal eigenvector of the orientation tensor
+        # taken about the origin (Kirschvink, 1980), pointing along the vector
+        # removed between the first and last steps, as for free lines
+        v1 = np.array(v1).real
+        control = np.array(dir2cart(fdata[0])) - np.array(dir2cart(fdata[-1]))
+        if not np.any(control):  # a single step: point along the step itself
+            control = np.array(dir2cart(fdata[0]))
+        if np.dot(v1, control) < 0:
+            v1 = -v1
+        Dir = cart2dir(v1)
         mpars["specimen_direction_type"] = 'l'
         mpars["specimen_dec"] = Dir[0]
         mpars["specimen_inc"] = Dir[1]
@@ -3005,7 +3036,6 @@ def domean(data, start, end, calculation_type):
         MAD = np.arctan(np.sqrt(t[1] + t[2]) / s1) / rad
         if np.iscomplexobj(MAD):
             MAD = MAD.real
-        # I think this is how it is done - i never anchor the "PCA" - check
         mpars["specimen_mad"] = MAD
         return mpars
     if calculation_type != 'DE-BFP':
