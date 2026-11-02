@@ -167,7 +167,10 @@ def main():
                 raise ValueError("-treat requires COLUMN VALUE in MagIC SI units")
             if treatments is None:
                 treatments = {}
-            treatments[args[index + 1]] = float(args[index + 2])
+            try:
+                treatments[args[index + 1]] = float(args[index + 2])
+            except ValueError:
+                raise ValueError("-treat value must be a number in MagIC SI units, got {!r}".format(args[index + 2]))
     samp_file = pmag.get_named_arg('-fsa', 'samples.txt')
     site_file = pmag.get_named_arg('-fsi', 'sites.txt')
     #outfile = pmag.get_named_arg("-F", "rmag_results.txt")

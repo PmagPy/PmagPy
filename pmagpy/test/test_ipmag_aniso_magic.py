@@ -218,6 +218,12 @@ class TestAnisoMagicProgram:
         assert calls[0]['treatments'] == {'treat_ac_field': .05, 'treat_temp': 300.}
         assert calls[0]['plot_mean'] is False
 
+    def test_treat_value_must_be_numeric(self, program, monkeypatch):
+        monkeypatch.setattr(sys, 'argv', [
+            'aniso_magic.py', '-source', 'measurements', '-treat', 'treat_temp', 'hot'])
+        with pytest.raises(ValueError, match='must be a number'):
+            program.main()
+
     def test_arguments_reach_the_parameters_they_are_meant_for(self, program, monkeypatch):
         signature = inspect.signature(ipmag.aniso_magic)
         calls = []
