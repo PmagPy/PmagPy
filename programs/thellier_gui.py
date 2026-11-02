@@ -7291,7 +7291,10 @@ You can combine multiple measurement files into one measurement file using Pmag 
             # Fix zijderveld block for Thellier-Thellier protocol (II)
             # (take the vector subtruction instead of the zerofield steps)
 
-            if "LP-PI-II" in Data[s]['datablock'][0]["magic_method_codes"] or "LP-PI-M-II" in Data[s]['datablock'][0]["magic_method_codes"] or "LP-PI-T-II" in Data[s]['datablock'][0]["magic_method_codes"]:
+            ii_protocols = {"LP-PI-II", "LP-PI-M-II", "LP-PI-T-II"}
+            if any(method.strip() in ii_protocols
+                   for rec in datablock
+                   for method in rec["magic_method_codes"].split(":")):
                 Data[s]['zijdblock'] = []
                 for zerofield in araiblock[0]:
                     Data[s]['zijdblock'].append(
