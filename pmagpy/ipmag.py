@@ -10330,7 +10330,7 @@ def aniso_magic_old(infile='specimens.txt', samp_file='samples.txt', site_file='
                 aniso_v3 += " : eta/zeta : "
                 aniso_v3 += " : ".join([str(i) for i in [hpars["v1_dec"],
                                                          hpars["v1_inc"],
-                                                         hpars["e12"],
+                                                         hpars["e13"],
                                                          hpars["v2_dec"],
                                                          hpars["v2_inc"],
                                                          hpars["e23"]]])
@@ -10340,7 +10340,7 @@ def aniso_magic_old(infile='specimens.txt', samp_file='samples.txt', site_file='
                 HextRec["anisotropy_v3_inc"] = '%7.1f' % (hpars["v3_inc"])
                 HextRec["anisotropy_t3"] = '%10.8f' % (hpars["t3"])
                 HextRec["anisotropy_v3_eta_semi_angle"] = '%7.1f ' % (
-                    hpars["e12"])
+                    hpars["e13"])
                 HextRec["anisotropy_v3_eta_dec"] = '%7.1f ' % (hpars["v1_dec"])
                 HextRec["anisotropy_v3_eta_inc"] = '%7.1f ' % (hpars["v1_inc"])
                 HextRec["anisotropy_v3_zeta_semi_angle"] = '%7.1f ' % (
