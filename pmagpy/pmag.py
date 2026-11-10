@@ -2891,8 +2891,10 @@ def domean(data, start, end, calculation_type):
     line ('DE-BFL') is fit about the centre of mass of the selected steps; an
     anchored line ('DE-BFL-A') is the principal eigenvector of the orientation
     tensor taken about the origin, and its MAD is calculated from the same
-    tensor. Lines point along the vector removed between the first and last
-    steps. 'specimen_dang' is not returned for anchored lines. A vector mean
+    tensor. Free lines point along the vector removed between the first and
+    last steps. Anchored lines point toward the selected steps (along their
+    vector sum), whichever of the first and last steps is the larger.
+    'specimen_dang' is not returned for anchored lines. A vector mean
     ('DE-VM') is the direction of the sum of the selected steps, including
     their intensities; it has no MAD, and its 'specimen_dang' is -1.
     """
@@ -3002,12 +3004,14 @@ def domean(data, start, end, calculation_type):
         t[2] = 0  # make positive
     if calculation_type == 'DE-BFL-A':
         # anchored line: the principal eigenvector of the orientation tensor
-        # taken about the origin (Kirschvink, 1980), pointing along the vector
-        # removed between the first and last steps, as for free lines
+        # taken about the origin (Kirschvink, 1980). The line passes through
+        # the origin, so it points toward the selected steps (along their
+        # vector sum); the vector removed between the first and last steps,
+        # used for free lines, reverses when the last step is the larger
         v1 = np.array(v1).real
-        control = np.array(dir2cart(fdata[0])) - np.array(dir2cart(fdata[-1]))
-        if not np.any(control):  # a single step: point along the step itself
-            control = np.array(dir2cart(fdata[0]))
+        control = np.sum([dir2cart(step) for step in fdata], axis=0)
+        if np.dot(v1, control) == 0:  # steps balanced about the origin
+            control = np.array(dir2cart(fdata[0])) - np.array(dir2cart(fdata[-1]))
         if np.dot(v1, control) < 0:
             v1 = -v1
         Dir = cart2dir(v1)

@@ -139,6 +139,24 @@ class TestDomean(unittest.TestCase):
         self.assertLess(self.angle(mpars, 30., 45.), 1e-6)
         self.assertLess(mpars['specimen_mad'], 1e-6)
 
+    def test_anchored_line_points_toward_steps(self):
+        # an anchored line points toward the selected steps whichever of the
+        # first and last steps is the larger; a free line points along the
+        # vector removed, which reverses when the intensity rises
+        rising = [(30., 45., m) for m in (1.0, 1.1, 1.2)]
+        mpars = pmag.domean(self.block(rising), 0, 2, 'DE-BFL-A')
+        self.assertLess(self.angle(mpars, 30., 45.), 1e-6)
+        mpars = pmag.domean(self.block(rising), 0, 2, 'DE-BFL')
+        self.assertLess(self.angle(mpars, 210., -45.), 1e-6)
+        # weak steps near the origin, the last one the largest
+        weak = [(30., 45., 0.05), (25., 50., 0.04), (36., 41., 0.06)]
+        mpars = pmag.domean(self.block(weak), 0, 2, 'DE-BFL-A')
+        self.assertLess(self.angle(mpars, 30., 45.), 5.)
+        # the anchored line is within 90 degrees of the vector mean of its steps
+        vector_mean = pmag.domean(self.block(weak), 0, 2, 'DE-VM')
+        self.assertLess(self.angle(mpars, vector_mean['specimen_dec'],
+                                   vector_mean['specimen_inc']), 90.)
+
     def test_anchored_line_single_step(self):
         mpars = pmag.domean(self.block([(30., 45., 5.), (200., -10., 2.)]), 0, 0, 'DE-BFL-A')
         self.assertLess(self.angle(mpars, 30., 45.), 1e-6)
@@ -147,7 +165,7 @@ class TestDomean(unittest.TestCase):
         directions, X = self.noisy_steps()
         mpars = pmag.domean(self.block(directions), 0, len(X) - 1, 'DE-BFL-A')
         tau, V = np.linalg.eigh(X.T @ X)
-        v1 = V[:, -1] * np.sign(V[:, -1] @ (X[0] - X[-1]))
+        v1 = V[:, -1] * np.sign(V[:, -1] @ X.sum(axis=0))  # toward the steps
         expected = pmag.cart2dir(v1)
         self.assertLess(self.angle(mpars, expected[0], expected[1]), 1e-6)
         tau = tau[::-1] / tau.sum()

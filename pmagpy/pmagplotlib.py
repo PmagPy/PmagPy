@@ -1034,7 +1034,9 @@ def plot_dir(ZED, pars, datablock, angle):
 
     For a line fit, the best-fit direction is added to the equal area plot
     and the bounding steps and best-fit line are added to the Zijderveld
-    plot. For a plane fit (DE-BFP) the bounding steps and the great circle
+    plot. A free line is drawn through the center of mass of its steps; an
+    anchored line (DE-BFL-A) and a vector mean (DE-VM) are drawn along the
+    line through the origin. For a plane fit (DE-BFP) the bounding steps and the great circle
     are added to the equal area plot. For a Fisher mean (DE-FM) only the
     mean direction is plotted.
 
@@ -1113,19 +1115,29 @@ def plot_dir(ZED, pars, datablock, angle):
 #          Xs.append(P1[i]+us*(P2[i]-P1[i]))
 #          Xe.append(P1[i]+ue*(P2[i]-P1[i]))
 #   old way:
+        px, py, pz = [], [], []
         cm = pars["center_of_mass"]
-        if cm != [0., 0., 0.]:
-            cm = np.array(pars["center_of_mass"])/datablock[0][3]
-            cmDir = pmag.cart2dir(cm)
-            cmDir[0] = cmDir[0] - angle
-            cm = pmag.dir2cart(cmDir)
+        through_origin = pars["calculation_type"] in ('DE-BFL-A', 'DE-VM')
+        if through_origin or list(cm) != [0., 0., 0.]:
+            if through_origin:
+                # anchored lines and vector means pass through the origin: the
+                # segment is centered where the midpoint of the bounding steps
+                # projects onto the line through the origin
+                fit_direction = np.array(pmag.dir2cart(
+                    [pars["specimen_dec"] - angle, pars["specimen_inc"], 1.]))
+                midpoint = (np.array(XYZs) + np.array(XYZe)) / 2.
+                cm = np.dot(midpoint, fit_direction) * fit_direction
+            else:
+                cm = np.array(pars["center_of_mass"])/datablock[0][3]
+                cmDir = pmag.cart2dir(cm)
+                cmDir[0] = cmDir[0] - angle
+                cm = pmag.dir2cart(cmDir)
             diff = []
             for i in range(3):
                 diff.append(XYZe[i] - XYZs[i])
             R = np.sqrt(diff[0]**2 + diff[1]**2 + diff[2]**2)
             P = pmag.dir2cart(
                 ((pars["specimen_dec"] - angle), pars["specimen_inc"], R/2.5))
-            px, py, pz = [], [], []
             px.append((cm[0] + P[0]))
             py.append((cm[1] + P[1]))
             pz.append((cm[2] + P[2]))
