@@ -2316,3 +2316,48 @@ class DataView(DirectoryChooser):
             count=lambda s: f"{len(s.data.specimens) if s.data else 0} specimens",
             note="Fits are auto-saved per dataset; switching datasets restores what you had there.")
 
+
+
+class AnchoredLinesNotice:
+    """Asks what to do with anchored lines whose rows in specimens.txt store vector means.
+
+    Earlier versions of PmagPy computed anchored lines (DE-BFL-A) as vector
+    means. Fitted as anchored lines, such components move away from their
+    stored directions, and an export replaces them; relabelled as vector
+    means (DE-VM) they keep them. The notice shows while the session has such
+    components (``Session.anchored_vector_means``) and the analyst has not
+    chosen.
+    """
+
+    def __init__(self, session: Session):
+        self.s = session
+        self.text = pn.pane.Markdown("", margin=(0, 5), sizing_mode="stretch_width")
+        self.relabel_btn = pn.widgets.Button(name="Relabel as vector means", button_type="primary", width=200)
+        self.keep_btn = pn.widgets.Button(name="Refit as anchored lines", button_type="primary",
+                                          button_style="outline", width=200)
+        self.relabel_btn.on_click(lambda e: self.s.relabel_anchored_vector_means())
+        self.keep_btn.on_click(lambda e: self.s.keep_anchored_lines())
+        self.layout = pn.Column(self.text, pn.Row(self.relabel_btn, self.keep_btn), visible=False,
+                                sizing_mode="stretch_width", margin=(5, 5),
+                                styles={"border-left": "4px solid #e9a800", "background": "rgba(233, 168, 0, 0.08)",
+                                        "padding": "4px 8px"})
+        session.param.watch(lambda e: self._update(), "anchored_vector_means")
+        self._update()
+
+    def _update(self) -> None:
+        found = self.s.anchored_vector_means
+        self.layout.visible = bool(found)
+        if not found:
+            return
+        shifts = [shift for _, shift in found]
+        n = len(found)
+        self.text.object = (
+            f"**{n} anchored line{'s' if n > 1 else ''} (DE-BFL-A) in specimens.txt "
+            f"store{'' if n > 1 else 's'} the vector mean of {'their' if n > 1 else 'its'} steps.** "
+            f"Earlier versions of PmagPy computed anchored lines as vector means. Fit as anchored lines, "
+            f"{'they move by a median of %.1f° and up to %.1f°' % (np.median(shifts), max(shifts)) if n > 1 else 'it moves by %.1f°' % shifts[0]}, "
+            f"and an export replaces the stored direction{'s' if n > 1 else ''}. Relabelling as vector means "
+            f"(DE-VM) keeps {'them' if n > 1 else 'it'}.")
+
+    def panel(self):
+        return self.layout

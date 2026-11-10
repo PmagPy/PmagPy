@@ -116,7 +116,7 @@ def _sci(value: float) -> str:
 
 
 def _fit_short(fit_type: str) -> str:
-    return {"DE-BFL": "line", "DE-BFL-A": "anchored line", "DE-BFL-O": "line through origin",
+    return {"DE-BFL": "line", "DE-BFL-A": "anchored line", "DE-BFL-O": "line through origin", "DE-VM": "vector mean",
             "DE-BFP": "plane", "DE-FM": "Fisher mean"}.get(fit_type, fit_type)
 
 

@@ -50,6 +50,52 @@ class TestSession:
         assert os.path.exists(os.path.join(out, AUTOSAVE_NAME))
         assert not os.path.exists(os.path.join(src, AUTOSAVE_NAME))
 
+    def test_anchored_lines_stored_as_vector_means(self, workdir):
+        # rows written as an earlier PmagPy wrote anchored lines (#963): DE-BFL-A with the vector mean
+        src, out = workdir
+        path = os.path.join(src, "specimens.txt")
+        with open(path) as fh:
+            header = fh.readline()
+        df = pd.read_csv(path, sep="\t", header=1)
+        data = dc.DemagData.from_directory(src)
+        data.load_components_from_specimens_table()
+        relabelled = []
+        for comp in data.components:
+            if comp.fit_type != "DE-BFL" or len(relabelled) == 2:
+                continue
+            vm, anchored = (data.fit(dc.Component(comp.specimen, comp.name, comp.imin, comp.imax, fit), -1)
+                            for fit in ("DE-VM", "DE-BFL-A"))
+            if vm is None or abs(vm.dir_dec - anchored.dir_dec) + abs(vm.dir_inc - anchored.dir_inc) < 0.5:
+                continue
+            rows = (df["specimen"] == comp.specimen) & (df["dir_comp"] == comp.name)
+            df.loc[rows, "method_codes"] = df.loc[rows, "method_codes"].str.replace("DE-BFL", "DE-BFL-A")
+            spec_rows = rows & (df["dir_tilt_correction"] == -1)
+            df.loc[spec_rows, ["dir_dec", "dir_inc"]] = [round(vm.dir_dec, 1), round(vm.dir_inc, 1)]
+            relabelled.append((comp.specimen, comp.name, vm.dir_dec, vm.dir_inc))
+        assert len(relabelled) == 2
+        with open(path, "w") as fh:
+            fh.write(header)
+            df.to_csv(fh, sep="\t", index=False)
+
+        s = Session(src, out)
+        assert sorted(c.key() for c, _ in s.anchored_vector_means) == sorted(r[:2] for r in relabelled)
+        assert all(shift > 0.1 for _, shift in s.anchored_vector_means)
+        assert s.relabel_anchored_vector_means() == 2
+        assert s.anchored_vector_means == []
+        for spec, name, dec, inc in relabelled:
+            comp = next(c for c in s.data.components_for(spec) if c.name == name)
+            fit = s.data.fit(comp, -1)
+            assert comp.fit_type == "DE-VM" and np.isnan(fit.dir_mad_free)
+            assert fit.dir_dec == pytest.approx(dec) and fit.dir_inc == pytest.approx(inc)
+        # restored from the autosave, the relabelled fits are vector means and nothing is reported
+        assert Session(src, out).anchored_vector_means == []
+        # kept as anchored lines, they are refit as such
+        s2 = Session(src, out + "_kept")
+        assert len(s2.anchored_vector_means) == 2
+        s2.keep_anchored_lines()
+        assert s2.anchored_vector_means == []
+        assert {c.fit_type for c in s2.data.components if c.key() in {r[:2] for r in relabelled}} == {"DE-BFL-A"}
+
     def test_autosave_is_restored_on_reload(self, workdir):
         src, out = workdir
         s = Session(src, out)

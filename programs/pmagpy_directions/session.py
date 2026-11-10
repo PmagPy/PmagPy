@@ -140,6 +140,10 @@ class Session(param.Parameterized):
                                                       "(DE-SPEC / DE-SAMP / DE-SITE): failing rows are written "
                                                       "result_quality 'b' and left out of the level above")
     version = param.Integer(default=0, doc="incremented whenever interpretations or flags change")
+    anchored_vector_means = param.List(default=[], doc="(component, shift) for each anchored line whose row in "
+                                                       "specimens.txt stores the vector mean of its steps, as "
+                                                       "earlier versions of PmagPy computed anchored lines; the "
+                                                       "analyst is asked whether to relabel them DE-VM")
     status = param.String(default="")
 
     def __init__(self, directory: Optional[str] = None, output_dir: Optional[str] = None, cache: bool = False,
@@ -214,6 +218,7 @@ class Session(param.Parameterized):
         # the old specimen name up in the new dataset)
         self.param.update(current=None, specimen=current if current in names else names[0], directory=directory,
                           source_directory=source,
+                          anchored_vector_means=data.anchored_lines_stored_as_vector_means(),
                           coord=data.default_coord(),
                           status=f"{len(names)} specimens from {datasets.study_name(directory)}; {message}",
                           version=self.version + 1)
@@ -653,9 +658,21 @@ class Session(param.Parameterized):
 
     def import_from_specimens_table(self) -> int:
         n = self.data.load_components_from_specimens_table()
+        self.anchored_vector_means = self.data.anchored_lines_stored_as_vector_means()
         self._sync_current()
         self._changed()
         return n
+
+    def relabel_anchored_vector_means(self) -> int:
+        """Relabel the anchored lines that store vector means as vector means (DE-VM), keeping their directions."""
+        comps = [comp for comp, _ in self.anchored_vector_means]
+        self.anchored_vector_means = []
+        n, _ = self.edit_components(comps, fit_type="DE-VM")
+        return n
+
+    def keep_anchored_lines(self) -> None:
+        """Fit the anchored lines that store vector means as anchored lines; an export replaces their directions."""
+        self.anchored_vector_means = []
 
     def export_tables(self, coords=(dc.COORD_SPECIMEN, dc.COORD_GEOGRAPHIC, dc.COORD_TILT),
                       levels=("sample", "site", "location"), mean_coord: Optional[int] = None,

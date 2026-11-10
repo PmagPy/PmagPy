@@ -8,7 +8,7 @@ import panel as pn
 from pmagpy_panel import datasets, runtime, shell
 from pmagpy_panel.theme import TABS_CSS
 from .session import APP, Session, session_directory
-from .views import DataView, ExportView, InterpretationsView, MeansView, PolesView, SpecimenView
+from .views import AnchoredLinesNotice, DataView, ExportView, InterpretationsView, MeansView, PolesView, SpecimenView
 
 shell.setup()
 
@@ -49,7 +49,8 @@ def build_body(session: Session) -> shell.Body:
 
     # the hotkeys listener lives beside the tabs, never in a side panel: the side
     # column is swapped per tab, and a component that is off the page cannot report
-    main = pn.Column(specimen.hotkeys, tabs, margin=0, sizing_mode="stretch_both")
+    notice = AnchoredLinesNotice(session)
+    main = pn.Column(specimen.hotkeys, notice.panel(), tabs, margin=0, sizing_mode="stretch_both")
     body = shell.Body(info=APP, main=main, side=pn.Column(dataview.sidebar(), side.column, sizing_mode="stretch_width"),
                       header=shell.status_line(session), modal=dataview.modal(), side_width=SIDE_WIDTH)
 

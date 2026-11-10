@@ -91,9 +91,10 @@ COORD_COLUMNS = {COORD_SPECIMEN: ("dec_s", "inc_s"),
 FIT_TYPES = {"DE-BFL": "best-fit line",
              "DE-BFL-A": "anchored line",
              "DE-BFL-O": "line through origin",
+             "DE-VM": "vector mean",
              "DE-BFP": "best-fit plane",
              "DE-FM": "Fisher mean"}
-LINE_FITS = ("DE-BFL", "DE-BFL-A", "DE-BFL-O", "DE-FM")
+LINE_FITS = ("DE-BFL", "DE-BFL-A", "DE-BFL-O", "DE-VM", "DE-FM")
 
 # measurement-level method codes that define a demagnetization step
 INCLUDED_STEP_CODES = ("LT-NO", "LT-AF-Z", "LT-T-Z", "LT-M-Z", "LT-LT-Z")
@@ -360,7 +361,7 @@ def fit_line_segment(result: DirectionResult, spec: SpecimenData, coord: int,
     """End points of a best-fit line for drawing on a Zijderveld diagram.
 
     The line passes through the centre of mass of the fitted steps (or the
-    origin for anchored fits) along the fitted direction; its extent is the
+    origin for anchored fits and vector means) along the fitted direction; its extent is the
     projection of the bounding steps onto that line.
 
     Returns:
@@ -379,7 +380,7 @@ def fit_line_segment(result: DirectionResult, spec: SpecimenData, coord: int,
         return None
     direction = np.asarray(pmag.dir2cart([result.dir_dec, result.dir_inc, 1.0]), dtype=float).ravel()
     centre = np.asarray(result.center_of_mass, dtype=float)
-    if result.fit_type in ("DE-BFL-A", "DE-BFL-O"):
+    if result.fit_type in ("DE-BFL-A", "DE-BFL-O", "DE-VM"):
         centre = np.zeros(3)
     t = (sub - centre) @ direction
     ends = np.vstack([centre + t.min() * direction, centre + t.max() * direction])
@@ -1289,7 +1290,7 @@ class DemagData:
         if "dir_dec" in rows.columns:
             rows = rows[pd.to_numeric(rows["dir_dec"], errors="coerce").notna()]
         codes = rows["method_codes"].fillna("").astype(str)
-        rows = rows[codes.str.contains("DE-BF|DE-FM", regex=True) & ~codes.str.contains("LP-PI", regex=False)]
+        rows = rows[codes.str.contains("DE-BF|DE-FM|DE-VM", regex=True) & ~codes.str.contains("LP-PI", regex=False)]
         rows = rows[rows["specimen"].astype(str).isin(self.specimens)]
         if len(rows) == 0:
             return 0
@@ -1586,6 +1587,56 @@ class DemagData:
                             f"imported: {examples}" + (" ..." if len(conflicting) > 5 else ""))
         return len(parsed)
 
+    def anchored_lines_stored_as_vector_means(self) -> list[tuple[Component, float]]:
+        """Anchored lines whose rows in the specimens table store the vector mean of their steps.
+
+        Earlier versions of PmagPy computed anchored lines (DE-BFL-A) as vector
+        means (#963). A component fitted as an anchored line from such a row
+        moves away from the stored direction, and exporting replaces it;
+        relabelling the component as a vector mean (DE-VM) keeps it. Rows are
+        matched to components by specimen, name and bounds, and checked with
+        :func:`pmagpy.pmag.anchored_line_stored_as_vector_mean`.
+
+        Returns:
+            (component, angle in degrees between the stored direction and the
+            anchored line refit to the steps) for each such component.
+        """
+        spec_df = self._table("specimens")
+        needed = {"specimen", "meas_step_min", "meas_step_max", "meas_step_unit", "method_codes",
+                  "dir_dec", "dir_inc", "dir_tilt_correction"}
+        anchored = [c for c in self.components if c.fit_type == "DE-BFL-A"]
+        if spec_df is None or not anchored or not needed <= set(spec_df.columns):
+            return []
+        rows = spec_df[spec_df["method_codes"].map(lambda mc: "DE-BFL-A" in _codes(mc))]
+        n_warnings = len(self.warnings)     # the bounds were read, and reported on, when the fits were imported
+        found: dict = {}
+        for _, row in rows.iterrows():
+            spec = str(row["specimen"])
+            dec, inc = _to_float(row["dir_dec"]), _to_float(row["dir_inc"])
+            coord = _to_float(row["dir_tilt_correction"])
+            if spec not in self.specimens or np.isnan(dec) or np.isnan(inc) or coord not in COORD_COLUMNS:
+                continue
+            coord = int(coord)
+            if not self.specimens[spec].has_coord(coord):
+                continue
+            unit = str(row["meas_step_unit"]).strip()
+            bounds = (self.step_index_for_value(spec, row["meas_step_min"], unit),
+                      self.step_index_for_value(spec, row["meas_step_max"], unit))
+            name = row.get("dir_comp")
+            for comp in anchored:
+                if comp.specimen != spec or (comp.imin, comp.imax) != bounds or comp.key() in found or \
+                        (not _is_null(name) and comp.name != str(name).strip()):
+                    continue
+                imin, imax = self._snap_bounds(self.specimens[spec], comp.imin, comp.imax)
+                if imax <= imin:
+                    continue
+                shift = pmag.anchored_line_stored_as_vector_mean(
+                    self._datablock(self.specimens[spec], coord), imin, imax, dec, inc)
+                if shift is not None:
+                    found[comp.key()] = (comp, shift)
+        del self.warnings[n_warnings:]
+        return list(found.values())
+
     # ----- fitting ---------------------------------------------------------
     def _snap_bounds(self, spec: SpecimenData, imin: int, imax: int) -> tuple[int, int]:
         q = spec.steps["quality"].values
@@ -1611,16 +1662,21 @@ class DemagData:
         self._fit_cache[key] = result
         return result
 
-    def _fit_uncached(self, spec: SpecimenData, comp: Component, coord: int) -> Optional[DirectionResult]:
+    @staticmethod
+    def _datablock(spec: SpecimenData, coord: int) -> list:
+        """The steps of a specimen in the form ``pmag.domean`` takes."""
         dec_col, inc_col = COORD_COLUMNS[coord]
+        block = spec.steps[["treat_value", dec_col, inc_col, "moment_norm"]].copy()
+        block["zi"] = 0
+        block["quality"] = spec.steps["quality"].values
+        return block.values.tolist()
+
+    def _fit_uncached(self, spec: SpecimenData, comp: Component, coord: int) -> Optional[DirectionResult]:
         imin, imax = self._snap_bounds(spec, comp.imin, comp.imax)
         n_good = int((spec.steps["quality"].values[imin:imax + 1] == "g").sum())
         if imax <= imin or n_good < 2 or (comp.fit_type == "DE-BFP" and n_good < 3):
             return None
-        block = spec.steps[["treat_value", dec_col, inc_col, "moment_norm"]].copy()
-        block["zi"] = 0
-        block["quality"] = spec.steps["quality"].values
-        datablock = block.values.tolist()
+        datablock = self._datablock(spec, coord)
         try:
             mpars = pmag.domean(datablock, imin, imax, comp.fit_type)
         except Exception as exc:  # numerical failure inside domean
