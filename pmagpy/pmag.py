@@ -9341,7 +9341,9 @@ def sortarai(datablock, s, Zdiff, **kwargs):
     GammaChecks = []  # comparison of pTRM direction acquired and lab field
     rec = datablock[0]
     for key in Mkeys:
-        if key in list(rec.keys()) and rec[key] != "":
+        # the first magnitude column that holds a value: a table of several
+        # experiments can have a magnitude column that is empty for this specimen
+        if key in list(rec.keys()) and not pd.isnull(rec[key]) and str(rec[key]).strip() != "":
             momkey = key
             break
 # first find all the steps
