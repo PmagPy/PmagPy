@@ -484,7 +484,11 @@ class InterpretationEditorFrame(wx.Frame):
             else: inc = "N/A"
             if 'specimen_mad' in list(pars.keys()): mad = "%.1f"%pars['specimen_mad']
             else: mad = "N/A"
-            if 'specimen_dang' in list(pars.keys()): dang = "%.1f"%pars['specimen_dang']
+            # DANG is not calculated for anchored lines (placeholder of 0), nor
+            # for fits that return -1 (vector and Fisher means)
+            if 'specimen_dang' in list(pars.keys()) and float(pars['specimen_dang']) != -1 \
+                    and pars.get('calculation_type') != 'DE-BFL-A':
+                dang = "%.1f"%pars['specimen_dang']
             else: dang = "N/A"
             if 'specimen_alpha95' in list(pars.keys()): a95 = "%.1f"%pars['specimen_alpha95']
             else: a95 = "N/A"

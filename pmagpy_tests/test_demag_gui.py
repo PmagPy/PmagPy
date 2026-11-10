@@ -78,6 +78,10 @@ class TestDemagGUI(unittest.TestCase):
         self.frame.PCA_type_box.SetValue('line')
         self.frame.update_PCA_box()
         self.assertEqual(self.frame.PCA_type_box.GetValue(), 'vector mean')
+        # a vector mean has no MAD or DANG to show
+        self.frame.update_fit_bounds_and_statistics()
+        self.assertEqual(self.frame.smad_window.GetValue(), '')
+        self.assertEqual(self.frame.sdang_window.GetValue(), '')
         # the vector mean and the anchored line are drawn through the origin
         self.frame.draw_interpretations()
         self.assertEqual(list(fit.lines[0].get_xdata()[:1]) + list(fit.lines[0].get_ydata()[:1]),
@@ -88,6 +92,16 @@ class TestDemagGUI(unittest.TestCase):
         self.frame.draw_interpretations()
         self.assertEqual(list(fit.lines[0].get_xdata()[:1]) + list(fit.lines[0].get_ydata()[:1]),
                          [0., 0.])
+        # an anchored line has a MAD, and no DANG (it is not calculated)
+        self.frame.update_fit_bounds_and_statistics()
+        self.assertNotEqual(self.frame.smad_window.GetValue(), '')
+        self.assertEqual(self.frame.sdang_window.GetValue(), '')
+        # a free line has both
+        self.frame.PCA_type_box.SetValue('line')
+        self.frame.ProcessEvent(type_evt)
+        self.frame.update_fit_bounds_and_statistics()
+        self.assertEqual(fit.PCA_type, 'DE-BFL')
+        self.assertNotEqual(self.frame.sdang_window.GetValue(), '')
 
     def test_next_prev_specimen(self):
 

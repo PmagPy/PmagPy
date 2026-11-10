@@ -6405,7 +6405,10 @@ class Demag_GUI(wx.Frame):
             self.smad_window.SetValue("")
             gui_theme.style_control(self.smad_window, gui_theme.INACTIVE)
 
-        if mpars and 'specimen_dang' in list(mpars.keys()) and float(mpars['specimen_dang']) != -1:
+        # DANG is not calculated for anchored lines (placeholder of 0), nor
+        # for fits that return -1
+        if mpars and 'specimen_dang' in list(mpars.keys()) and float(mpars['specimen_dang']) != -1 \
+                and mpars.get('calculation_type') != 'DE-BFL-A':
             self.sdang_window.SetValue("%.1f" % mpars['specimen_dang'])
             gui_theme.style_control(self.sdang_window)
         else:
@@ -6965,8 +6968,13 @@ class Demag_GUI(wx.Frame):
                         PmagSpecRec['specimen_direction_type'] = 'l'
                         PmagSpecRec['specimen_mad'] = "%.1f" % float(
                             mpars["specimen_mad"])
-                        PmagSpecRec['specimen_dang'] = "%.1f" % float(
-                            mpars['specimen_dang'])
+                        if calculation_type == "DE-BFL-A":
+                            # DANG is not calculated for anchored lines
+                            # (get_PCA_parameters holds a placeholder of 0)
+                            PmagSpecRec['specimen_dang'] = ""
+                        else:
+                            PmagSpecRec['specimen_dang'] = "%.1f" % float(
+                                mpars['specimen_dang'])
                         PmagSpecRec['specimen_alpha95'] = ""
                     elif calculation_type in ["DE-VM"]:
                         # a vector mean has no MAD or DANG

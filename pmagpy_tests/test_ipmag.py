@@ -1050,6 +1050,20 @@ class TestZeq(unittest.TestCase):
         (x1, y1), (x2, y2) = ends
         return abs(x1 * y2 - x2 * y1) / np.hypot(x2 - x1, y2 - y1)
 
+    def test_fit_type_from_method_codes(self):
+        fit_type = ipmag._fit_type_from_method_codes
+        self.assertEqual(fit_type('LP-DIR-T:DE-BFL:DA-DIR'), 'DE-BFL')
+        self.assertEqual(fit_type('LP-DIR-AF:DE-BFL-A:DA-DIR-GEO'), 'DE-BFL-A')
+        # a line with origin is not read as a free line
+        self.assertEqual(fit_type('DE-BFL-O:LP-DIR-T'), 'DE-BFL-O')
+        self.assertEqual(fit_type('LP-DIR-T:DE-BFP'), 'DE-BFP')
+        self.assertEqual(fit_type('LP-DIR-T:DE-VM:DA-DIR-TILT'), 'DE-VM')
+        # a more specific code gives the type that it extends
+        self.assertEqual(fit_type('LP-DIR-T:DE-FM-LP'), 'DE-FM')
+        # no code for the type of fit
+        self.assertIsNone(fit_type('LP-DIR-T:DA-DIR'))
+        self.assertIsNone(fit_type(''))
+
     def test_summary_without_mad(self):
         # a vector mean has no MAD; the summary is printed without one
         ipmag.zeq(data=self.data, units='C', begin_pca=0, end_pca=4,

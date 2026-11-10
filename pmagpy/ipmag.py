@@ -12055,6 +12055,37 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
 
 
 
+def _fit_type_from_method_codes(method_codes):
+    """
+    Finds the kind of directional fit that a colon-delimited list of MagIC
+    method codes describes.
+
+    Parameters
+    ----------
+    method_codes : str
+        colon-delimited method codes of an interpretation (e.g. the
+        method_codes of a row of a specimens table)
+
+    Returns
+    -------
+    str or None
+        'DE-BFL' (line), 'DE-BFL-A' (anchored line), 'DE-BFL-O' (line with
+        origin), 'DE-BFP' (plane), 'DE-FM' (Fisher mean) or 'DE-VM' (vector
+        mean), which are the calculation types of pmag.domean; None if the
+        list has no such code. A more specific code that pmag.domean does not
+        have (e.g. 'DE-FM-LP') gives the type that it extends ('DE-FM').
+    """
+    fit_types = ('DE-BFL', 'DE-BFL-A', 'DE-BFL-O', 'DE-BFP', 'DE-FM', 'DE-VM')
+    calculation_type = None
+    for code in str(method_codes).split(':'):
+        code = code.strip()
+        matches = [fit_type for fit_type in fit_types
+                   if code == fit_type or code.startswith(fit_type + '-')]
+        if matches:
+            calculation_type = max(matches, key=len)
+    return calculation_type
+
+
 def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = ".", input_dir_path="", angle=0,
               n_plots=5, save_plots=True, fmt="svg", interactive=False, specimen="",
               samp_file='samples.txt', contribution=None,fignum=1, image_records=False):
@@ -12138,18 +12169,11 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
             # step through all prior interpretations and plot them
                 for ind in range(len(beg_pcas)):
                     interpretations = False
-                    spec_meths = spec_methods[ind].split(':')
-                    for m in spec_meths:
-                        if 'DE-BFL' in m:
-                            calculation_type = 'DE-BFL'  # best fit line
-                        if 'DE-BFP' in m:
-                            calculation_type = 'DE-BFP'  # best fit plane
-                        if 'DE-FM' in m:
-                            calculation_type = 'DE-FM'  # fisher mean
-                        if 'DE-BFL-A' in m:
-                            calculation_type = 'DE-BFL-A'  # anchored best fit line
-                        if 'DE-VM' in m:
-                            calculation_type = 'DE-VM'  # vector mean
+                    calculation_type = _fit_type_from_method_codes(spec_methods[ind])
+                    if calculation_type is None:
+                        print('-W- interpretation {} of specimen {} has no method code for the type of fit '
+                              '(e.g. DE-BFL) and is not plotted'.format(ind + 1, this_specimen))
+                        continue
 
                     treatments = pd.to_numeric(this_specimen_measurements.treatment).tolist()
 
