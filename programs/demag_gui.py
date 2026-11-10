@@ -600,8 +600,7 @@ class Demag_GUI(wx.Frame):
         # Interpretation Type and Display window
     # ----------------------------------------------------------------------
 
-        self.PCA_type_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25), value='line', choices=[
-                                        'line', 'line-anchored', 'line-with-origin', 'plane', 'Fisher'], style=wx.CB_DROPDOWN | wx.TE_READONLY, name="coordinates")
+        self.PCA_type_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25), value='line', choices=list(PCA_TYPE_CODES), style=wx.CB_DROPDOWN | wx.TE_READONLY, name="coordinates")
         self.Bind(wx.EVT_COMBOBOX,
                   self.on_select_specimen_mean_type_box, self.PCA_type_box)
         self.PCA_type_box.SetHelpText(dgh.PCA_type_help)
@@ -1708,7 +1707,7 @@ class Demag_GUI(wx.Frame):
             fit.points[0] = self.zijplot.collections[-1]
             fit.points[1] = self.zijplot.collections[-2]
 
-            if pars['calculation_type'] in ['DE-BFL', 'DE-BFL-A', 'DE-BFL-O']:
+            if pars['calculation_type'] in ['DE-BFL', 'DE-BFL-A', 'DE-BFL-O', 'DE-VM']:
 
                 # rotated zijderveld
                 if self.COORDINATE_SYSTEM == 'geographic' and len(self.Data[self.s]['zdata_geo']) > 0:
@@ -1752,13 +1751,14 @@ class Demag_GUI(wx.Frame):
 
                 xx = np.array([self.CART_rot[:, 0][tmax_index],
                             self.CART_rot[:, 0][tmin_index]])
+
+                if pars['calculation_type'] in ['DE-BFL-A', 'DE-VM']:
+                    # anchored line and vector mean pass through the origin
+                    intercept_xy_PCA, intercept_xz_PCA = 0., 0.
+                    xx = np.concatenate(([0.], xx))
+
                 yy = slop_xy_PCA*xx+intercept_xy_PCA
                 zz = slop_xz_PCA*xx+intercept_xz_PCA
-
-                if (pars['calculation_type'] in ['DE-BFL-A']):  # CHECK
-                    xx = [0.] + xx
-                    yy = [0.] + yy
-                    zz = [0.] + zz
 
                 self.zijplot.plot(xx, yy, '-', color=fit.color,
                                   lw=3, alpha=0.5, zorder=0)
@@ -3045,8 +3045,8 @@ class Demag_GUI(wx.Frame):
     def get_PCA_parameters(self, specimen, fit, tmin, tmax, coordinate_system, calculation_type):
         """
         Uses pmag.domean to preform a line, line-with-origin, line-anchored,
-        or plane least squared regression or a fisher mean on the
-        measurement data of specimen in coordinate system between bounds
+        or plane least squared regression, a vector mean or a fisher mean on
+        the measurement data of specimen in coordinate system between bounds
         tmin to tmax
 
         Parameters
@@ -3060,7 +3060,7 @@ class Demag_GUI(wx.Frame):
             should be in
         calculation_type : type of regression or mean to preform
             (options - DE-BFL:line,DE-BFL-A:line-anchored,DE-BFL-O:line-with-
-            origin,DE-FM:fisher,DE-BFP:plane)
+            origin,DE-VM:vector mean,DE-FM:fisher,DE-BFP:plane)
 
         Returns
         -------
@@ -4535,9 +4535,12 @@ class Demag_GUI(wx.Frame):
             self.spec_data["result_quality"] = "g"
         if "dir_tilt_correction" not in self.spec_data.columns:
             self.spec_data["dir_tilt_correction"] = ""
-        fdict = self.spec_data[['specimen', fnames, 'meas_step_min', 'meas_step_max', 'meas_step_unit',
-                                'dir_tilt_correction', 'method_codes', 'result_quality']].to_dict("records")
+        columns = ['specimen', fnames, 'meas_step_min', 'meas_step_max', 'meas_step_unit',
+                   'dir_tilt_correction', 'method_codes', 'result_quality']
+        columns += [col for col in ['dir_dec', 'dir_inc'] if col in self.spec_data.columns]
+        fdict = self.spec_data[columns].to_dict("records")
         unnamed_fits = []
+        anchored_fits = []
         for i in range(len(fdict)):
             spec = fdict[i]['specimen']
             if spec not in self.specimens:
@@ -4583,15 +4586,16 @@ class Demag_GUI(wx.Frame):
                 fmin = fdict[i]['meas_step_min']
                 fmax = fdict[i]['meas_step_max']
 
-            PCA_types = ["DE-BFL", "DE-BFL-A", "DE-BFL-O", "DE-FM", "DE-BFP"]
             PCA_type_list = [x for x in str(fdict[i]['method_codes']).split(
-                ':') if x.strip() in PCA_types]
+                ':') if x.strip() in PCA_TYPE_NAMES]
             if len(PCA_type_list) > 0:
                 PCA_type = PCA_type_list[0].strip()
             else:
                 PCA_type = "DE-BFL"
             if "DE-BLANKET" not in str(fdict[i]['method_codes']):
                 fit = self.add_fit(spec, fname, fmin, fmax, PCA_type)
+                if fit is not None and PCA_type == "DE-BFL-A":
+                    anchored_fits.append((spec, fit, fdict[i]))
 
             if fdict[i]['result_quality'] == 'b':
                 self.bad_fits.append(fit)
@@ -4599,6 +4603,65 @@ class Demag_GUI(wx.Frame):
         if unnamed_fits:
             print(("-W- skipped %i directional fit(s) with no component name in specimens.txt, for specimens: %s"
                    % (len(unnamed_fits), ", ".join(sorted(set(unnamed_fits))))))
+        if anchored_fits:
+            self.check_anchored_fits(anchored_fits)
+
+    def check_anchored_fits(self, anchored_fits):
+        """
+        Finds anchored lines (DE-BFL-A) read from specimens.txt whose stored
+        directions are the vector means of their steps, as earlier versions
+        of PmagPy computed anchored lines (#963). Demag GUI refits them as
+        anchored principal components, so saving would replace the stored
+        directions; the user can instead relabel them as vector means
+        (DE-VM), which keeps the stored directions.
+
+        Parameters
+        ----------
+        anchored_fits : list of (specimen, fit, record) for each anchored
+            line read, with record the row of specimens.txt it was read from
+        """
+        blocks = {-1: 'zijdblock', 0: 'zijdblock_geo', 100: 'zijdblock_tilt'}
+        vector_means, shifts = [], []
+        for spec, fit, rec in anchored_fits:
+            try:
+                tilt = int(float(rec['dir_tilt_correction']))
+                dec, inc = float(rec['dir_dec']), float(rec['dir_inc'])
+            except (KeyError, TypeError, ValueError):
+                continue
+            if tilt not in blocks or np.isnan(dec) or np.isnan(inc):
+                continue
+            block = self.Data[spec][blocks[tilt]]
+            if len(block) == 0:
+                continue
+            start, end = self.get_indices(fit, fit.tmin, fit.tmax, spec)
+            shift = pmag.anchored_line_stored_as_vector_mean(block, start, end, dec, inc)
+            if shift is not None:
+                vector_means.append((spec, fit))
+                shifts.append(shift)
+        if not vector_means:
+            return
+        message = ("%i of the %i anchored line (DE-BFL-A) interpretations in specimens.txt store the "
+                   "vector mean of their steps rather than an anchored line. Earlier versions of PmagPy "
+                   "computed anchored lines as vector means. Refit as anchored lines, their directions "
+                   "change by a median of %.1f and up to %.1f degrees, and saving would replace the stored "
+                   "directions.\n\nRelabel them as vector means (DE-VM), which keeps their stored "
+                   "directions?\n\nYes: relabel as vector means.\nNo: refit as anchored lines."
+                   % (len(vector_means), len(anchored_fits), np.median(shifts), max(shifts)))
+        print("-W- " + message.replace("\n\n", " ").replace("\n", " "))
+        dlg = wx.MessageDialog(self, message, "Anchored lines stored as vector means",
+                               wx.YES_NO | wx.ICON_WARNING)
+        relabel = self.show_dlg(dlg) == wx.ID_YES
+        dlg.Destroy()
+        if not relabel:
+            return
+        for spec, fit in vector_means:
+            for coordinate_system, block in [('specimen', 'zijdblock'), ('geographic', 'zijdblock_geo'),
+                                             ('tilt-corrected', 'zijdblock_tilt')]:
+                if len(self.Data[spec][block]) > 0:
+                    fit.put(spec, coordinate_system, self.get_PCA_parameters(
+                        spec, fit, fit.tmin, fit.tmax, coordinate_system, 'DE-VM'))
+            fit.PCA_type = 'DE-VM'
+        print("-I- relabelled %i anchored line(s) as vector means (DE-VM)" % len(vector_means))
 
     def get_data_info(self):
         """
@@ -6404,7 +6467,10 @@ class Demag_GUI(wx.Frame):
             self.smad_window.SetValue("")
             gui_theme.style_control(self.smad_window, gui_theme.INACTIVE)
 
-        if mpars and 'specimen_dang' in list(mpars.keys()) and float(mpars['specimen_dang']) != -1:
+        # DANG is not calculated for anchored lines (placeholder of 0), nor
+        # for fits that return -1
+        if mpars and 'specimen_dang' in list(mpars.keys()) and float(mpars['specimen_dang']) != -1 \
+                and mpars.get('calculation_type') != 'DE-BFL-A':
             self.sdang_window.SetValue("%.1f" % mpars['specimen_dang'])
             gui_theme.style_control(self.sdang_window)
         else:
@@ -6507,16 +6573,8 @@ class Demag_GUI(wx.Frame):
                 PCA_type = "None"
 
             # update calculation type windows
-            if calculation_type == "DE-BFL":
-                PCA_type = "line"
-            elif calculation_type == "DE-BFL-A":
-                PCA_type = "line-anchored"
-            elif calculation_type == "DE-BFL-O":
-                PCA_type = "line-with-origin"
-            elif calculation_type == "DE-FM":
-                PCA_type = "Fisher"
-            elif calculation_type == "DE-BFP":
-                PCA_type = "plane"
+            if calculation_type in PCA_TYPE_NAMES:
+                PCA_type = PCA_TYPE_NAMES[calculation_type]
             else:
                 print("no PCA type found setting to line")
                 PCA_type = "line"
@@ -6962,8 +7020,19 @@ class Demag_GUI(wx.Frame):
                         PmagSpecRec['specimen_direction_type'] = 'l'
                         PmagSpecRec['specimen_mad'] = "%.1f" % float(
                             mpars["specimen_mad"])
-                        PmagSpecRec['specimen_dang'] = "%.1f" % float(
-                            mpars['specimen_dang'])
+                        if calculation_type == "DE-BFL-A":
+                            # DANG is not calculated for anchored lines
+                            # (get_PCA_parameters holds a placeholder of 0)
+                            PmagSpecRec['specimen_dang'] = ""
+                        else:
+                            PmagSpecRec['specimen_dang'] = "%.1f" % float(
+                                mpars['specimen_dang'])
+                        PmagSpecRec['specimen_alpha95'] = ""
+                    elif calculation_type in ["DE-VM"]:
+                        # a vector mean has no MAD or DANG
+                        PmagSpecRec['specimen_direction_type'] = 'l'
+                        PmagSpecRec['specimen_mad'] = ""
+                        PmagSpecRec['specimen_dang'] = ""
                         PmagSpecRec['specimen_alpha95'] = ""
                     elif calculation_type in ["DE-BFP"]:
                         PmagSpecRec['specimen_direction_type'] = 'p'
@@ -8435,17 +8504,7 @@ class Demag_GUI(wx.Frame):
             self.on_btn_add_fit(event)
             return
 
-        PCA_type = self.PCA_type_box.GetValue()
-        if PCA_type == "line":
-            calculation_type = "DE-BFL"
-        elif PCA_type == "line-anchored":
-            calculation_type = "DE-BFL-A"
-        elif PCA_type == "line-with-origin":
-            calculation_type = "DE-BFL-O"
-        elif PCA_type == "Fisher":
-            calculation_type = "DE-FM"
-        elif PCA_type == "plane":
-            calculation_type = "DE-BFP"
+        calculation_type = PCA_TYPE_CODES[self.PCA_type_box.GetValue()]
         coordinate_system = self.COORDINATE_SYSTEM
         if self.current_fit:
             self.current_fit.put(self.s, coordinate_system, self.get_PCA_parameters(
