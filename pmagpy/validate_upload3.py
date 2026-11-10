@@ -1,15 +1,19 @@
 #!/usr/bin/env python
 """
-Validation of MagIC tables against the data model, by column, with the
-failures kept in the table (used for the Pmag GUI grids).
+Deprecated: use pmagpy.magic_validation, which applies the rules of the MagIC
+website and API.
 
-To check whether a contribution will pass the validation run on MagIC, use
-pmagpy.magic_validation.validate, which applies the rules of the MagIC website.
+This module validated MagIC tables with its own reading of the data model,
+which differs from MagIC's (e.g. it did not check method codes or empty
+required values). validate_contribution now runs magic_validation;
+validate_table and validate_df keep their old behavior and return values for
+existing scripts, and will be removed in a later release.
 """
 
 import math
 import os
 import re
+import warnings
 import numpy as np
 from pmagpy import contribution_builder as cb
 
@@ -324,7 +328,11 @@ def validate_df(df, dm, con=None):
     type_pass_  (checking that the data is of the correct type)
     value_pass_ (checking that the value is within the appropriate range)
     group_pass_ (making sure that group validations pass)
+
+    Deprecated: use pmagpy.magic_validation.validate.
     """
+    warnings.warn("validate_upload3.validate_df is deprecated and will be removed; "
+                  "use pmagpy.magic_validation.validate", DeprecationWarning, stacklevel=2)
     # check column validity
     required_one = {}  # keep track of req'd one in group validations here
     cols = df.columns
@@ -540,7 +548,11 @@ def validate_table(the_con, dtype, verbose=False, output_dir="."):
     """
     Return name of bad table, or False if no errors found.
     Calls validate_df then parses its output.
+
+    Deprecated: use pmagpy.magic_validation.validate.
     """
+    warnings.warn("validate_upload3.validate_table is deprecated and will be removed; "
+                  "use pmagpy.magic_validation.validate", DeprecationWarning, stacklevel=2)
     print("-I- Validating {}".format(dtype))
     # grab dataframe
     current_df = the_con.tables[dtype].df
@@ -582,15 +594,21 @@ def validate_table(the_con, dtype, verbose=False, output_dir="."):
 
 def validate_contribution(the_con):
     """
-    Go through a Contribution and validate each table
+    Validate a Contribution with the rules of MagIC (pmagpy.magic_validation)
+    and print the problems.
+
+    Deprecated: call pmagpy.magic_validation.validate directly.
+
+    Returns
+    -------
+    DataFrame of problems from magic_validation.validate (empty if none)
     """
-    passing = True
-    for dtype in list(the_con.tables.keys()):
-        print("validating {}".format(dtype))
-        fail = validate_table(the_con, dtype)
-        if fail:
-            passing = False
-        print('--')
+    warnings.warn("validate_upload3.validate_contribution is deprecated and will be removed; "
+                  "use pmagpy.magic_validation.validate", DeprecationWarning, stacklevel=2)
+    from pmagpy import magic_validation
+    problems = magic_validation.validate(the_con)
+    magic_validation.print_problems(problems)
+    return problems
 
 
 ## Utilities

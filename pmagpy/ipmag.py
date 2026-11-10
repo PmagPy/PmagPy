@@ -33,7 +33,6 @@ from pmag_env import set_env
 from . import pmag
 from . import pmagplotlib
 from . import data_model3 as data_model
-from . import validate_upload3 as val_up3
 from numpy.linalg import inv, eig
 import requests
 encoding = "ISO-8859-1"
@@ -5619,6 +5618,17 @@ def validate_with_public_endpoint(contribution_file,verbose=False):
     return response
 
 
+# columns whose values upload_magic puts in the range 0 to 360 degrees
+_DEGREE_COLUMNS = ['lon_w', 'lon_e', 'lat_lon_precision', 'pole_lon', 'paleolon', 'paleolon_sigma',
+                   'lon', 'lon_sigma', 'vgp_lon', 'paleo_lon', 'paleo_lon_sigma', 'azimuth',
+                   'azimuth_dec_correction', 'dir_dec', 'geographic_precision', 'bed_dip_direction']
+
+
+def _degree_columns(df):
+    """The columns of df whose values should be between 0 and 360 degrees."""
+    return list(set(_DEGREE_COLUMNS).intersection(df.columns))
+
+
 def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,verbose=True):
     """
     Finds all magic files in a given directory, and compiles them into an
@@ -5746,7 +5756,7 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
                 except ValueError:
                     "-W- Non numeric values found in int_b_beta column.\n   Could not apply absolute value."
             # make all declinations/azimuths/longitudes in range 0=>360.
-            relevant_cols = val_up3.get_degree_cols(df)
+            relevant_cols = _degree_columns(df)
             for col in relevant_cols:
                 df[col] = df[col].apply(pmag.adjust_val_to_360)
             # get list of location names

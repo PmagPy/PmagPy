@@ -13,7 +13,6 @@ import sys
 import os
 from pmagpy import data_model3
 from pmag_env import set_env
-from pmagpy import validate_upload3 as val_up3
 from pmagpy import pmag
 from pmagpy import ipmag
 

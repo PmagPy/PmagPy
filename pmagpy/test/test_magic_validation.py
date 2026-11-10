@@ -107,9 +107,12 @@ class TestMagicValidationPortedTests(unittest.TestCase):
                           ["a1", " 2* ", "a", "1-2", "1..2", "1.2.2", "1.2,2"], r'is not of type "Number"')
 
     def test_timestamp(self):
-        good = ["2013-02-08", "20130208", "2013-02-08T09", "2013-02-08 09:30:26.123", "20130208T080910,123",
-                "2013-02-08 09+07:00", "2013-02-08 09Z", "2013-02-08 09:30:26.123+07:00"]
-        bad = ["2013-13-08", "a", ":", "Invalid date"]
+        # MagIC's list, with the forms that have a space before the time moved to the
+        # bad ones: the EarthRef API rejects them (see test_timestamps_as_the_api)
+        good = ["2013-02-08", "20130208", "2013-02-08T09", "2013-02-08T09:30:26.123", "20130208T080910,123",
+                "2013-02-08T09+07:00", "2013-02-08T09Z", "2013-02-08T09:30:26.123+07:00"]
+        bad = ["2013-13-08", "a", ":", "Invalid date", "2013-02-08 09:30:26.123", "2013-02-08 09+07:00",
+               "2013-02-08 09Z"]
         self.check_values("samples", "timestamp", good, bad, r'is not of type "Timestamp"')
 
     def test_measurements_timestamp(self):
@@ -120,7 +123,7 @@ class TestMagicValidationPortedTests(unittest.TestCase):
         required = [c for c, spec in RULES["tables"]["measurements"]["columns"].items()
                     if "required()" in (spec.get("validations") or [])]
         self.assertTrue(set(required) <= set(columns), required)
-        for value, is_good in [("2013-02-08 09:30:26.123", True), ("2013-13-08", False), ("a", False)]:
+        for value, is_good in [("2013-02-08T09:30:26.123", True), ("2013-13-08", False), ("a", False)]:
             json = {"measurements": {"columns": columns,
                                      "rows": [[value, "1", "a", "b", "1", "g", "u", "LP-PI", "This study"]]}}
             if is_good:
@@ -183,6 +186,29 @@ class TestMagicValidationPortedTests(unittest.TestCase):
 
 
 class TestMagicValidation(unittest.TestCase):
+
+    def test_timestamps_as_the_api(self):
+        """
+        The verdicts of the EarthRef API (api.earthref.org/v1/MagIC/validate) on
+        samples.timestamp values, 2026-11-10
+        """
+        api = {"2013-02-08": True, "20130208": True, "2013-02-08T09": True, "2013-02-08T09:30": True,
+               "2013-02-08T09:30:26": True, "2013-02-08T09:30:26.123": True, "2013-02-08T09:30:26Z": True,
+               "2013-02-08T09:30:26.123Z": True, "2013-02-08T09:30:26+07:00": True,
+               "2013-02-08T09:30:26.123+07:00": True, "2013-02-08 09:30": False, "2013-02-08 09:30:26": False,
+               "2013-02-08 09Z": False, "2013-02-08 09+07:00": False, "20130208T080910,123": True,
+               "2013-02": True, "2013": True, "2013-039": True, "2013-W06-5": True, "2013/02/08": False,
+               "02/08/2013": False, "2013-02-08T24:00": True, "2013-02-30": False}
+        self.assertEqual({v: mv.is_timestamp(v) for v in api}, api)
+
+    def test_controlled_vocabulary_case(self):
+        # the EarthRef API accepts "igneous" for "Igneous"; the website compares
+        # exactly, and so does this module, so that a value passes both
+        json = valid_contribution()
+        json["sites"][0]["geologic_classes"] = "igneous"
+        found = errors(json)
+        self.assertIn('The sites table column "geologic_classes" value "igneous" is not in the '
+                      '"Geologic Classifications" controlled vocabulary.', list(found["message"]))
 
     def test_required_tables(self):
         found = errors({"samples": [{"sample": "a"}]})
@@ -253,7 +279,35 @@ class TestMagicValidation(unittest.TestCase):
         self.assertEqual(mv._read_js_object(text), {"a": [{"item": "x // not a comment"}, {"item": "y"}]})
 
 
-class TestValidateUpload3Vocabulary(unittest.TestCase):
+class TestValidateUpload3(unittest.TestCase):
+    """the deprecated module validate_upload3"""
+
+    def test_validate_contribution_uses_magic_validation(self):
+        import warnings
+        tmp = tempfile.mkdtemp()
+        try:
+            json = valid_contribution()
+            json["sites"][0]["method_codes"] = "LP-NOT-A-CODE"
+            for name, df in tables(json).items():
+                pmag.magic_write(os.path.join(tmp, name + ".txt"), df, name, dataframe=True)
+            con = cb.Contribution(tmp)
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter("always")
+                problems = validate_upload3.validate_contribution(con)
+            self.assertTrue(any(issubclass(w.category, DeprecationWarning) for w in caught))
+            self.assertIn('The sites table column "method_codes" value "LP-NOT-A-CODE" is an unknown method code.',
+                          list(problems["message"]))
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter("always")
+                validate_upload3.validate_table(con, "sites", output_dir=tmp)
+            self.assertTrue(any(issubclass(w.category, DeprecationWarning) for w in caught))
+        finally:
+            shutil.rmtree(tmp)
+
+    def test_degree_columns_moved_to_ipmag(self):
+        df = pd.DataFrame(columns=["dir_dec", "lon", "dir_inc"])
+        self.assertEqual(sorted(ipmag._degree_columns(df)), ["dir_dec", "lon"])
+
 
     def test_column_without_vocabulary(self):
         # a column whose vocabulary was not loaded is skipped (it raised KeyError)

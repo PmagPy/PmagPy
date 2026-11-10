@@ -9,6 +9,14 @@ contribution that passes here passes the validation run on MagIC:
         lib/modules/magic/validate_contribution.js   the validation
     (ported from commit 6b6f229, 2026-11-10)
 
+MagIC validates in two places: the website (the code above, which validates a
+private contribution) and the EarthRef API (api.earthref.org/v1/MagIC/validate,
+used by ipmag.upload_magic). Compared on the same files on 2026-11-10, they
+report the same messages, except that the API ignores case in controlled
+vocabularies and accepts a Timestamp only as ISO 8601 with "T" before the time.
+Where they differ this module follows the stricter: vocabularies are compared
+exactly, and timestamps must be ISO 8601 with "T".
+
 The rules come from the MagIC data model, the method codes and the controlled
 vocabularies. load_rules() reads them from EarthRef and from the MagIC source
 on GitHub and falls back to the copies in pmagpy/data_model, which
@@ -20,7 +28,8 @@ The checks, as on MagIC (validate_contribution.js):
       requiredUnless() and requiredUnlessTable()
     - the type of every value: Integer, Number and Timestamp
     - method codes in columns with type("method_codes")
-    - controlled vocabularies (cv), compared exactly (case matters)
+    - controlled vocabularies (cv), compared exactly (case matters, as on the
+      website; the API ignores case)
     - min() and max() with a number
     - in("table.column"): references between tables
 Rules of the data model that MagIC does not check are not checked here either
@@ -34,9 +43,6 @@ Where this module differs from MagIC, it reports more:
       the upload tool asks for it to be matched to a data model column or left out)
     - a table that is not in the data model, an empty column name and a
       malformed table are reported as errors, and the rest of the file is still read
-One check is approximate: a Timestamp that is not in an ISO 8601 form is
-accepted if it is an RFC 2822 date or dateutil can read it, where MagIC
-(moment.js) falls back to the JavaScript Date parser.
 MagIC's controlled-vocabulary check of Matrix and Dictionary columns never
 reports a value (the comparison in validate_contribution.js always succeeds),
 so those values are not checked here either.
@@ -47,7 +53,6 @@ Typical use:
     magic_validation.print_problems(problems)
 """
 import datetime
-import email.utils
 import json
 import os
 import re
@@ -58,10 +63,6 @@ try:
     import requests
 except ImportError:
     requests = None
-try:
-    from dateutil import parser as dateutil_parser
-except ImportError:
-    dateutil_parser = None
 
 from pmag_env import set_env
 
@@ -386,11 +387,13 @@ def read_contribution(contribution):
 INTEGER = re.compile(r"^[+-]?[0-9]+$")
 NUMBER = re.compile(r"^[+-]?([0-9]*\.?[0-9]+|[0-9]+\.)(e[+-]?[0-9]*\.?[0-9]+)?$", re.I)
 _FLOAT_PREFIX = re.compile(r"^\s*([+-]?(?:[0-9]+\.?[0-9]*|\.[0-9]+)(?:[eE][+-]?[0-9]+)?|[+-]?Infinity)")
-# the ISO 8601 forms accepted by moment.js, which MagIC uses
+# ISO 8601 dates and times as both MagIC validators accept them: the forms of
+# moment.js (the MagIC website), with "T" between date and time, which the
+# EarthRef API requires (it rejects "2013-02-08 09:30")
 _ISO_DATE = (r"(?P<date>[+-][0-9]{6}|[0-9]{4})(?:-(?P<ext>[0-9]{2}-[0-9]{2}|W[0-9]{2}-[0-9]|W[0-9]{2}|[0-9]{3}|[0-9]{2})"
              r"|(?P<basic>[0-9]{4}|W[0-9]{3}|W[0-9]{2}|[0-9]{3}|[0-9]{2})?)")
-_ISO_TIME = (r"(?:[T ](?P<time>[0-9]{2}(?::?[0-9]{2}(?::?[0-9]{2}(?:[.,][0-9]+)?)?)?)"
-             r"(?P<zone>[+-][0-9]{2}(?::?[0-9]{2})?|\s*Z)?)?")
+_ISO_TIME = (r"(?:T(?P<time>[0-9]{2}(?::?[0-9]{2}(?::?[0-9]{2}(?:[.,][0-9]+)?)?)?)"
+             r"(?P<zone>[+-][0-9]{2}(?::?[0-9]{2})?|Z)?)?")
 ISO_8601 = re.compile(r"^\s*" + _ISO_DATE + _ISO_TIME + r"$")
 
 
@@ -426,27 +429,16 @@ def _valid_iso(match):
 
 def is_timestamp(value):
     """
-    True if moment.js, which MagIC uses, reads the text as a valid date.
+    True if both MagIC validators accept the text as a Timestamp: a valid
+    ISO 8601 date, optionally with a time after "T" and a time zone
+    (e.g. 2013-02-08, 20130208, 2013-W06-5, 2013-02-08T09:30:26.123+07:00).
 
-    ISO 8601 forms are checked as moment.js checks them; other text is accepted
-    if it is an RFC 2822 date or dateutil can read it, an approximation of the
-    JavaScript Date parser that moment.js falls back to.
+    The MagIC website (moment.js) also accepts a space before the time and
+    other date formats; the EarthRef API (api.earthref.org, used by
+    ipmag.upload_magic) does not, and neither does this check.
     """
     match = ISO_8601.match(value)
-    if match:
-        return _valid_iso(match)
-    try:
-        if email.utils.parsedate_to_datetime(value):
-            return True
-    except (TypeError, ValueError, IndexError):
-        pass
-    if dateutil_parser is None or not re.search(r"[0-9]", value):
-        return False
-    try:
-        dateutil_parser.parse(value)
-        return True
-    except (ValueError, OverflowError):
-        return False
+    return bool(match) and _valid_iso(match)
 
 
 def split_outside_quotes(text, delimiter):
