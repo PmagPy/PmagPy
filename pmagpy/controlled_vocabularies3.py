@@ -10,6 +10,7 @@ except ImportError:
     requests = None
 from . import find_pmag_dir
 from . import data_model3 as data_model
+from . import magic_validation
 from pmag_env import set_env
 
 pmag_dir = find_pmag_dir.get_pmag_dir()
@@ -187,23 +188,14 @@ class Vocabulary(object):
         if len(VOCAB):
             self.set_vocabularies()
             return
-        data = []
         controlled_vocabularies = []
-        # try to get online
-        if not set_env.OFFLINE:
-            url = 'https://www2.earthref.org/vocabularies/controlled.json'
-            try:
-                raw = self.get_json_online(url)
-                data = pd.DataFrame(raw.json())
-                print('-I- Importing controlled vocabularies from https://earthref.org')
-            except Exception as ex:
-                pass
-                #print(ex, type(ex))
-        # used cached
-        if not len(data):
+        # the vocabularies the MagIC website validates with, downloaded or cached
+        raw, source = magic_validation.get_resource('vocabularies')
+        data = pd.DataFrame(raw)
+        if source == 'online':
+            print('-I- Importing controlled vocabularies from the MagIC source')
+        else:
             print('-I- Using cached vocabularies')
-            fname = os.path.join(data_model_dir, "controlled_vocabularies_October_3_2019.json")
-            data = pd.io.json.read_json(fname, encoding='utf-8-sig')
         # parse data
         possible_vocabularies = data.columns
         ## this line means, grab every single controlled vocabulary
@@ -277,21 +269,11 @@ class Vocabulary(object):
         Get all non-method suggested vocabularies
         """
         suggested_vocabularies = []
-        data = []
-        # try to get suggested vocabularies online
-        if not set_env.OFFLINE:
-            url = 'https://www2.earthref.org/vocabularies/suggested.json'
-            try:
-                raw = self.get_json_online(url)
-                data = pd.DataFrame(raw.json())
-            except Exception as ex:
-                #print(ex, type(ex))
-                data = []
-        # if not available online, use cached
-        if not len(data):
+        # the suggested vocabularies of the MagIC website, downloaded or cached
+        raw, source = magic_validation.get_resource('suggested_vocabularies')
+        data = pd.DataFrame(raw)
+        if source != 'online':
             print('-I- Using cached suggested vocabularies')
-            fname = os.path.join(data_model_dir, "suggested_vocabularies_December_10_2018.json")
-            data = pd.io.json.read_json(fname, encoding='utf-8-sig')
         # parse data
         possible_vocabularies = data.columns
         ## this line means, grab every single controlled vocabulary

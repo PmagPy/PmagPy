@@ -1,4 +1,11 @@
 #!/usr/bin/env python
+"""
+Validation of MagIC tables against the data model, by column, with the
+failures kept in the table (used for the Pmag GUI grids).
+
+To check whether a contribution will pass the validation run on MagIC, use
+pmagpy.magic_validation.validate, which applies the rules of the MagIC website.
+"""
 
 import math
 import os
@@ -189,6 +196,9 @@ def cv(row, col_name, arg, current_data_model, df, con):
     row[col_name] must contain only values from the appropriate controlled vocabulary
     """
     vocabulary = con.vocab.vocabularies
+    # a column whose vocabulary was not loaded cannot be checked
+    if col_name not in vocabulary.index:
+        return None
     cell_value = str(row[col_name])
     col_type = current_data_model.loc[col_name].type
     if not cell_value:

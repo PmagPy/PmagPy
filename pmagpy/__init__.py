@@ -31,6 +31,7 @@ _SUBMODULES = {
     'controlled_vocabularies': 'controlled_vocabularies2',
     'data_model3': 'data_model3',
     'contribution_builder': 'contribution_builder',
+    'magic_validation': 'magic_validation',
     'mapping': 'mapping',
 }
 

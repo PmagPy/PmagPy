@@ -1,6 +1,7 @@
-﻿{
+{
 	"anisotropy_type": {
 		"label": "Anisotropy Types",
+		"database_column": "aniso_type",
 		"items": [
 			{
 				"item": "AMS",
@@ -20,8 +21,46 @@
 			}
 		]
 	},
+	"file_type": {
+		"label": "File/Image Type",
+		"database_column": "file_type",
+		"items": [
+			{
+				"item": "qdm_context_image",
+				"label": "Quantum Diamond Magnetometer (QDM) Context Image"
+			},
+			{
+				"item": "qdm_b111_map",
+				"label": "Quantum Diamond Magnetometer (QDM) B(1,1,1) Map"
+			},
+			{
+				"item": "qdm_bz_map",
+				"label": "Quantum Diamond Magnetometer (QDM) BZ Map"
+			},
+			{
+				"item": "qdm_fitted_map",
+				"label": "Quantum Diamond Magnetometer (QDM) Fitted Map"
+			}
+		]
+	},
+	"feature_type": {
+		"label": "Feature Type",
+		"database_column": "feature_type",
+		"items": [
+			{
+				"item": "Dike"
+			},
+			{
+				"item": "Sill"
+			},
+			{
+				"item": "Lineation"
+			}
+		]
+	},
 	"state_province": {
 		"label": "State or Province Names",
+		"database_column": "state_province",
 		"items": [
 			{
 				"item": "Alabama"
@@ -11169,6 +11208,7 @@
 	},
 	"anisotropy_tensor_unit": {
 		"label": "Anisotropy Tensor Units",
+		"database_column": "anisotropy_s_unit",
 		"items": [
 			{
 				"item": "SI"
@@ -11189,6 +11229,7 @@
 	},
 	"data_type": {
 		"label": "Data Types",
+		"database_column": "result_type",
 		"items": [
 			{
 				"item": "a",
@@ -11209,7 +11250,8 @@
 		]
 	},
 	"data_correction": {
-		"label": "Data Corrections",
+		"label": "Paleointensity Data Corrections",
+		"database_column": "data_correction",
 		"items": [
 			{
 				"item": "c",
@@ -11223,6 +11265,7 @@
 	},
 	"data_quality": {
 		"label": "Data Qualities",
+		"database_column": "(multiple_columns)",
 		"items": [
 			{
 				"item": "b",
@@ -11231,11 +11274,58 @@
 			{
 				"item": "g",
 				"label": "Good"
+			},
+			{
+				"item": "u",
+				"label": "Not determined/Unknown"
+			}
+		]
+	},
+	"derived_value": {
+		"label": "Derived Value Types",
+		"database_column": "derived_value",
+		"items": [
+			{
+				"item": "QDM GF Factor",
+				"label": "Quantum Diamond Magnetometer GF Factor. Fu, Lima, Volk and Trubko (2020), doi:10.1029/2020GC009147"
+			},
+			{
+				"item": "XPEEM",
+				"label": "X-ray photoemission electron microscopy. Bryson, Herrero-Albillos et al. (2014), doi:10.1016/j.epsl.2014.04.016"
+			},
+			{
+				"item": "SQUID Microscopy Model Height Lima And Weiss 2016",
+				"label": "SQUID microscopy model height. Lima And Weiss (2016), doi:10.1002/2016GC006487"
+			},
+			{
+				"item": "SQUID Microscopy Model Residuals Lima And Weiss 2016",
+				"label": "SQUID microscopy model residuals. Lima And Weiss (2016), doi:10.1002/2016GC006487"
+			},
+			{
+				"item": "SQUID Microscopy Model Height Lima et al. 2023",
+				"label": "SQUID microscopy model height. Lima et al. (2023), doi:10.1029/2022GC010724"
+			},
+			{
+				"item": "SQUID Microscopy Model Residuals Lima et al. 2023",
+				"label": "SQUID microscopy model residuals. Lima et al. (2023), doi:10.1029/2022GC010724"
+			},
+			{
+				"item": "SQUID Microscopy Model Regularization Parameter Lima et al. 2023",
+				"label": "SQUID microscopy model regularization (lreg) parameter. Lima et al. (2023), doi:10.1029/2022GC010724"
+			},
+			{
+				"item": "SQUID Microscopy Model Order Lima et al. 2023",
+				"label": "SQUID microscopy model order. Lima et al. (2023), doi:10.1029/2022GC010724"
+			},
+			{
+				"item": "SQUID Microscopy Model Upward Continuation Height Lima et al. 2023",
+				"label": "SQUID microscopy model upward continuation height (upcont). Lima et al. (2023), doi:10.1029/2022GC010724"
 			}
 		]
 	},
 	"rotation_type": {
 		"label": "Rotation Type",
+		"database_column": "rotation_sequence",
 		"items": [
 			{
 				"item": "DD",
@@ -11261,6 +11351,7 @@
 	},
 	"contact_test": {
 		"label": "Contact Test Codes",
+		"database_column": "contact_test",
 		"items": [
 			{
 				"item": "+",
@@ -11300,6 +11391,7 @@
 	},
 	"timescale_stage": {
 		"label": "Timescale Stages",
+		"database_column": "timescale_stage",
 		"items": [
 			{
 				"item": "Aalenian"
@@ -11557,6 +11649,7 @@
 	},
 	"timescale_period": {
 		"label": "Timescale Periods",
+		"database_column": "timescale_period",
 		"items": [
 			{
 				"item": "Calymmian"
@@ -11628,6 +11721,7 @@
 	},
 	"timescale_era": {
 		"label": "Timescale Eras",
+		"database_column": "timescale_era",
 		"items": [
 			{
 				"item": "Cenozoic"
@@ -11663,45 +11757,19 @@
 	},
 	"image_type": {
 		"label": "Image Types",
+		"database_column": "type",
 		"items": [
-			{
-				"item": "Bitter"
-			},
-			{
-				"item": "Hologram"
-			},
-			{
-				"item": "Landscape"
-			},
-			{
-				"item": "MFM Image"
-			},
-			{
-				"item": "Moke"
-			},
-			{
-				"item": "Outcrop"
-			},
-			{
-				"item": "Person(s)"
-			},
-			{
-				"item": "Sample"
-			},
-			{
-				"item": "Scanning Squid"
-			},
-			{
-				"item": "Thin Section"
-			},
-			{
-				"item": "ARAI Plot"
-			},
 			{
 				"item": "Anisotropy Confidence Plot"
 			},
 			{
 				"item": "Anisotropy Data Plot"
+			},
+			{
+				"item": "ARAI Plot"
+			},
+			{
+				"item": "Bitter"
 			},
 			{
 				"item": "Coercivity of Remanence Plot"
@@ -11719,7 +11787,37 @@
 				"item": "Equal Area Plot"
 			},
 			{
+				"item": "FORC"
+			},
+			{
+				"item": "Hologram"
+			},
+			{
 				"item": "Hysteresis Loop"
+			},
+			{
+				"item": "Landscape"
+			},
+			{
+				"item": "MFM Image"
+			},
+			{
+				"item": "Moke"
+			},
+			{
+				"item": "Outcrop"
+			},
+			{
+				"item": "Person(s)"
+			},
+			{
+				"item": "Pole Map"
+			},
+			{
+				"item": "Sample"
+			},
+			{
+				"item": "Scanning SQUID Microscopy"
 			},
 			{
 				"item": "Squareness-BCR Plot"
@@ -11731,12 +11829,19 @@
 				"item": "Thermal Remanent Magnetization Plot"
 			},
 			{
+				"item": "Thin Section"
+			},
+			{
+				"item": "VGP Map"
+			},
+			{
 				"item": "Zijderveld Plot"
 			}
 		]
 	},
 	"texture": {
 		"label": "Sample Textures",
+		"database_column": "texture",
 		"items": [
 			{
 				"item": "Agmatitic"
@@ -12125,7 +12230,8 @@
 		]
 	},
 	"instrument_atmosphere": {
-		"label": "Instrument Applied Atmosphere",
+		"label": "Instrument Applied Atmosphere (Deprecated)",
+		"database_column": "",
 		"items": [
 			{
 				"item": "Air"
@@ -12149,6 +12255,7 @@
 	},
 	"mineral_class": {
 		"label": "Mineral Classification Names",
+		"database_column": "(multiple_columns)",
 		"items": [
 			{
 				"item": "Actinolite"
@@ -12383,6 +12490,9 @@
 			},
 			{
 				"item": "Cinnabar"
+			},
+			{
+				"item": "Clinopyroxene"
 			},
 			{
 				"item": "Clinozoisite"
@@ -12826,6 +12936,9 @@
 				"item": "Pyrophyllite"
 			},
 			{
+				"item": "Pyroxene"
+			},
+			{
 				"item": "Pyrrhotite"
 			},
 			{
@@ -13006,6 +13119,7 @@
 	},
 	"country": {
 		"label": "Countries",
+		"database_column": "country",
 		"items": [
 			{
 				"item": "Afghanistan"
@@ -13155,9 +13269,6 @@
 				"item": "Colombia"
 			},
 			{
-				"item": "Comores"
-			},
-			{
 				"item": "Comoros"
 			},
 			{
@@ -13302,7 +13413,7 @@
 				"item": "Haiti"
 			},
 			{
-				"item": "Heard Island and Mcdonald Islands"
+				"item": "Heard Island and McDonald Islands"
 			},
 			{
 				"item": "Holy See"
@@ -13758,12 +13869,6 @@
 				"item": "Tuvalu"
 			},
 			{
-				"item": "U.K."
-			},
-			{
-				"item": "U.S.A."
-			},
-			{
 				"item": "US Virgin Islands"
 			},
 			{
@@ -13780,9 +13885,6 @@
 			},
 			{
 				"item": "United Republic of Tanzania"
-			},
-			{
-				"item": "United States"
 			},
 			{
 				"item": "United States of America"
@@ -13836,6 +13938,7 @@
 	},
 	"fold_test": {
 		"label": "Fold Test Codes",
+		"database_column": "fold_test",
 		"items": [
 			{
 				"item": "+",
@@ -13884,22 +13987,27 @@
 	},
 	"measurement_type": {
 		"label": "Measurement Type",
+		"database_column": "standard",
 		"items": [
 			{
 				"item": "s",
-				"label": "Standard"
+				"label": "Calibration Standard"
 			},
 			{
 				"item": "u",
-				"label": "Unknown"
+				"label": "Sample With Unknown Value"
 			}
 		]
 	},
 	"temp_type": {
 		"label": "Critical Temperature Types",
+		"database_column": "critical_temp_type",
 		"items": [
 			{
 				"item": "Alteration"
+			},
+			{
+				"item": "Besnus"
 			},
 			{
 				"item": "Blocking"
@@ -13908,7 +14016,7 @@
 				"item": "Curie"
 			},
 			{
-				"item": "Ferrimagnetic Pyrrhotite"
+				"item": "Ferrimagnetic Pyrrhotite (deprecated - use Besnus)"
 			},
 			{
 				"item": "Hopkinson"
@@ -13938,12 +14046,13 @@
 				"item": "Unknown"
 			},
 			{
-				"item": "Verway"
+				"item": "Verwey"
 			}
 		]
 	},
 	"nrm": {
 		"label": "NRM Origins",
+		"database_column": "dir_nrm_origin",
 		"items": [
 			{
 				"item": "p",
@@ -13957,6 +14066,7 @@
 	},
 	"lithology": {
 		"label": "Lithologies",
+		"database_column": "lithologies",
 		"items": [
 			{
 				"item": "Acapulcoite Primitive Achondrite"
@@ -14157,6 +14267,9 @@
 				"item": "Arenite"
 			},
 			{
+				"item": "Ash"
+			},
+			{
 				"item": "Ash Breccia"
 			},
 			{
@@ -14170,6 +14283,9 @@
 			},
 			{
 				"item": "Baked Earths"
+			},
+			{
+				"item": "Baked Sediment"
 			},
 			{
 				"item": "Banded Bright Coal"
@@ -14286,6 +14402,9 @@
 				"item": "Brown Lignite"
 			},
 			{
+				"item": "Burnt Sediment"
+			},
+			{
 				"item": "CB Chondrite"
 			},
 			{
@@ -14397,6 +14516,9 @@
 				"item": "Calcite Wackestone"
 			},
 			{
+				"item": "Calcium-Aluminum-Rich Inclusion"
+			},
+			{
 				"item": "Calcsilicate Rock"
 			},
 			{
@@ -14422,6 +14544,9 @@
 			},
 			{
 				"item": "Carbonaceous Siltstone"
+			},
+			{
+				"item": "Carbonate"
 			},
 			{
 				"item": "Carbonatite"
@@ -14478,6 +14603,9 @@
 				"item": "Clayey Sand"
 			},
 			{
+				"item": "Clinker"
+			},
+			{
 				"item": "Clinopyroxene Norite"
 			},
 			{
@@ -14503,6 +14631,9 @@
 			},
 			{
 				"item": "Comenditic Trachyte"
+			},
+			{
+				"item": "Concretions"
 			},
 			{
 				"item": "Conglomerate"
@@ -14554,6 +14685,9 @@
 			},
 			{
 				"item": "Dolerite"
+			},
+			{
+				"item": "Dolomite"
 			},
 			{
 				"item": "Dolomite Boundstone"
@@ -14659,6 +14793,9 @@
 			},
 			{
 				"item": "Feldspathic Wacke"
+			},
+			{
+				"item": "Felsic Dike"
 			},
 			{
 				"item": "Felsic Lava"
@@ -14847,6 +14984,9 @@
 				"item": "Granite"
 			},
 			{
+				"item": "Granitoid"
+			},
+			{
 				"item": "Granodiorite"
 			},
 			{
@@ -15018,7 +15158,16 @@
 				"item": "Ilmenitite"
 			},
 			{
+				"item": "Impact Melt Crystalline"
+			},
+			{
+				"item": "Impact Melt Glassy"
+			},
+			{
 				"item": "Impact Melt Lunar Anorthosite Breccia"
+			},
+			{
+				"item": "Impact Melt Lunar Basalt"
 			},
 			{
 				"item": "Impure Coal"
@@ -15100,6 +15249,9 @@
 			},
 			{
 				"item": "Jasperoid"
+			},
+			{
+				"item": "Jotunite"
 			},
 			{
 				"item": "Kainite-Stone"
@@ -15190,6 +15342,9 @@
 			},
 			{
 				"item": "Leucomonzogranite"
+			},
+			{
+				"item": "Leuconorite"
 			},
 			{
 				"item": "Lherzolite"
@@ -15765,6 +15920,9 @@
 				"item": "Micro Orthopyroxenite"
 			},
 			{
+				"item": "Microbialite"
+			},
+			{
 				"item": "Microclinopyroxene Norite"
 			},
 			{
@@ -15910,6 +16068,9 @@
 			},
 			{
 				"item": "Nakhlite"
+			},
+			{
+				"item": "Nannofossil Ooze"
 			},
 			{
 				"item": "Natrocarbonatite"
@@ -16122,6 +16283,9 @@
 				"item": "Paragranofels"
 			},
 			{
+				"item": "Paralava"
+			},
+			{
 				"item": "Paraschist"
 			},
 			{
@@ -16273,6 +16437,9 @@
 			},
 			{
 				"item": "Pumice"
+			},
+			{
+				"item": "Pyroclastite"
 			},
 			{
 				"item": "Pyroclastic Breccia"
@@ -16626,6 +16793,12 @@
 				"item": "Silty Clay"
 			},
 			{
+				"item": "Silty Claystone"
+			},
+			{
+				"item": "Silty Mud"
+			},
+			{
 				"item": "Silty Mudstone"
 			},
 			{
@@ -16677,6 +16850,9 @@
 				"item": "Stony Meteorite"
 			},
 			{
+				"item": "Stromatolite"
+			},
+			{
 				"item": "Structurally Clasified Iron Meteorite"
 			},
 			{
@@ -16687,6 +16863,9 @@
 			},
 			{
 				"item": "Submarine Basaltic Glass"
+			},
+			{
+				"item": "Subglacial Basaltic Glass"
 			},
 			{
 				"item": "Suevite"
@@ -16716,7 +16895,13 @@
 				"item": "Talc Rock"
 			},
 			{
+				"item": "Tektite"
+			},
+			{
 				"item": "Telaginite"
+			},
+			{
+				"item": "Tephra"
 			},
 			{
 				"item": "Tephrite"
@@ -16830,6 +17015,9 @@
 				"item": "Uncategorized Achondrite"
 			},
 			{
+				"item": "Ungrouped Iron Meteorite"
+			},
+			{
 				"item": "Ureilite Primitive Achondrite"
 			},
 			{
@@ -16846,6 +17034,9 @@
 			},
 			{
 				"item": "Vogesite"
+			},
+			{
+				"item": "Volcanic Glass"
 			},
 			{
 				"item": "Volcaniclastic"
@@ -16888,23 +17079,12 @@
 			}
 		]
 	},
-	"database_name": {
+	"external_database_names": {
 		"label": "External Database Names",
+		"database_column": "external_database_ids",
 		"items": [
 			{
-				"item": "20D"
-			},
-			{
-				"item": "ARCHEO00"
-			},
-			{
-				"item": "ARCHEOINTB"
-			},
-			{
 				"item": "ARCH_AU"
-			},
-			{
-				"item": "ARCH_BU"
 			},
 			{
 				"item": "ARCH_ES"
@@ -16925,22 +17105,13 @@
 				"item": "CALS7K.2"
 			},
 			{
-				"item": "DRAGON"
-			},
-			{
 				"item": "GEOMAGIA50"
-			},
-			{
-				"item": "GLOPIS"
 			},
 			{
 				"item": "GPMDB"
 			},
 			{
-				"item": "NAPIS"
-			},
-			{
-				"item": "NWUS"
+				"item": "ICEPMAG"
 			},
 			{
 				"item": "PALEOMAGIA"
@@ -16949,37 +17120,7 @@
 				"item": "PINT"
 			},
 			{
-				"item": "PINT03"
-			},
-			{
-				"item": "PINT06"
-			},
-			{
-				"item": "PINT08"
-			},
-			{
 				"item": "PSVRL"
-			},
-			{
-				"item": "SAPIS"
-			},
-			{
-				"item": "SECVR"
-			},
-			{
-				"item": "SEDPI"
-			},
-			{
-				"item": "SINT200"
-			},
-			{
-				"item": "SINT2000"
-			},
-			{
-				"item": "SINT800"
-			},
-			{
-				"item": "SWUS"
 			},
 			{
 				"item": "TAFI"
@@ -16991,6 +17132,7 @@
 	},
 	"external_result": {
 		"label": "External Results Type",
+		"database_column": "external_results",
 		"items": [
 			{
 				"item": "DELTA-C13-PDB"
@@ -17006,11 +17148,48 @@
 			},
 			{
 				"item": "DELTA-S34-VCDT"
+			},
+			{
+				"item": "GRA",
+				"label": "Gamma Ray Attenuation bulk density"
+			},
+			{
+				"item": "MAD",
+				"label": "Moisture And Density"
+			},
+			{
+				"item": "NGR",
+				"label": "Natural Gamma Radiation data total counts (cps)"
+			},
+			{
+				"item": "RSC-A",
+				"label": "Reflectance Spectroscopy and Colorimetry (RSC) reflectance a* channel"
+			},
+			{
+				"item": "RSC-B",
+				"label": "Reflectance Spectroscopy and Colorimetry (RSC) reflectance b* channel"
+			},
+			{
+				"item": "RSC-L",
+				"label": "Reflectance Spectroscopy and Colorimetry (RSC) reflectance L* channel"
+			},
+			{
+				"item": "RGB-B",
+				"label": "Red Blue Green channels - Blue"
+			},
+			{
+				"item": "RGB-G",
+				"label": "Red Blue Green channels - Green"
+			},
+			{
+				"item": "RGB-R",
+				"label": "Red Blue Green channels - Red"
 			}
 		]
 	},
 	"continent_ocean": {
 		"label": "Continents and Oceans",
+		"database_column": "continent_ocean",
 		"items": [
 			{
 				"item": "Africa"
@@ -17050,37 +17229,49 @@
 			},
 			{
 				"item": "South America"
+			},
+			{
+				"item": "Southern Ocean"
 			}
 		]
 	},
 	"age_unit": {
 		"label": "Age Units",
+		"database_column": "age_unit",
 		"items": [
 			{
-				"item": "Ga"
+				"item": "Ga",
+				"label": "Giga-annum (Billions of Years Ago)"
 			},
 			{
-				"item": "ka"
+				"item": "Ma",
+				"label": "Mega-annum (Millions of Years Ago)"
 			},
 			{
-				"item": "Ma"
+				"item": "Years AD (+/-)",
+				"label": "Uncalibrated Years Anno Domini"
 			},
 			{
-				"item": "Years AD (+/-)"
+				"item": "ka",
+				"label": "Kilo-annum (Thousands of Years Ago)"
 			},
 			{
-				"item": "Years BP"
+				"item": "Years BP",
+				"label": "Uncalibrated Years Before Present (1950)"
 			},
 			{
-				"item": "Years Cal AD (+/-)"
+				"item": "Years Cal AD (+/-)",
+				"label": "Calibrated Years Anno Domini"
 			},
 			{
-				"item": "Years Cal BP"
+				"item": "Years Cal BP",
+				"label": "Calibrated Years Before Present (1950)"
 			}
 		]
 	},
 	"location_type": {
 		"label": "Location Type",
+		"database_column": "location_type",
 		"items": [
 			{
 				"item": "Archeological Ashes"
@@ -17128,6 +17319,7 @@
 	},
 	"alteration_type": {
 		"label": "Sample Alteration Types",
+		"database_column": "alteration_type",
 		"items": [
 			{
 				"item": "Acid Leaching"
@@ -17271,6 +17463,7 @@
 	},
 	"mineral_type": {
 		"label": "Mineral Types",
+		"database_column": "(multiple_columns)",
 		"items": [
 			{
 				"item": "Alteration"
@@ -17324,6 +17517,7 @@
 	},
 	"type": {
 		"label": "Sample Material Types",
+		"database_column": "geologic_types",
 		"items": [
 			{
 				"item": "Amphora"
@@ -17342,6 +17536,9 @@
 			},
 			{
 				"item": "Bath"
+			},
+			{
+				"item": "Bed Sediment"
 			},
 			{
 				"item": "Bell Mould"
@@ -17416,6 +17613,9 @@
 				"item": "Furnace Slag"
 			},
 			{
+				"item": "Glacial Drift"
+			},
+			{
 				"item": "Glassy Margin"
 			},
 			{
@@ -17431,6 +17631,9 @@
 				"item": "Impact Melt"
 			},
 			{
+				"item": "Intrusion"
+			},
+			{
 				"item": "Kamadogu"
 			},
 			{
@@ -17443,13 +17646,22 @@
 				"item": "Lacustrine"
 			},
 			{
+				"item": "Lahar"
+			},
+			{
 				"item": "Lava"
 			},
 			{
 				"item": "Lava Flow"
 			},
 			{
+				"item": "Layered Intrusion"
+			},
+			{
 				"item": "Metallurgical Slag"
+			},
+			{
+				"item": "Meteorite"
 			},
 			{
 				"item": "Mixed Archeological Objects"
@@ -17494,6 +17706,9 @@
 				"item": "Pottery"
 			},
 			{
+				"item": "Pyroclastic Flow"
+			},
+			{
 				"item": "Pyroclastite"
 			},
 			{
@@ -17530,10 +17745,16 @@
 				"item": "Soil"
 			},
 			{
+				"item": "Speleothem"
+			},
+			{
 				"item": "Sun-Dried Object"
 			},
 			{
 				"item": "Sun-Dried Object"
+			},
+			{
+				"item": "Suspended Sediment"
 			},
 			{
 				"item": "Synthetic"
@@ -17595,7 +17816,8 @@
 		]
 	},
 	"class": {
-		"label": "Geologic Classes",
+		"label": "Geologic Classifications",
+		"database_column": "geologic_classes",
 		"items": [
 			{
 				"item": "Archeologic"
@@ -17608,6 +17830,9 @@
 			},
 			{
 				"item": "Igneous"
+			},
+			{
+				"item": "Impact"
 			},
 			{
 				"item": "Intrusive"
@@ -17643,6 +17868,7 @@
 	},
 	"polarity": {
 		"label": "Magnetic Polarities",
+		"database_column": "dir_polarity",
 		"items": [
 			{
 				"item": "e",
@@ -17663,11 +17889,16 @@
 			{
 				"item": "t",
 				"label": "Transitional"
+			},
+			{
+				"item": "u",
+				"label": "Unknown"
 			}
 		]
 	},
 	"plate_block": {
 		"label": "Tectonic Plates and Blocks",
+		"database_column": "plate_blocks",
 		"items": [
 			{
 				"item": "Adriatic Plate"
@@ -18201,6 +18432,7 @@
 	},
 	"tectonic_setting": {
 		"label": "Tectonic Settings",
+		"database_column": "tectonic_settings",
 		"items": [
 			{
 				"item": "Accreted Terrain"
@@ -18347,6 +18579,7 @@
 	},
 	"alteration": {
 		"label": "Sample Alteration",
+		"database_column": "alteration_grade",
 		"items": [
 			{
 				"item": "Altered"
@@ -18370,6 +18603,7 @@
 	},
 	"ocean_sea": {
 		"label": "Oceans and Seas",
+		"database_column": "ocean_sea",
 		"items": [
 			{
 				"item": "Adriatic Sea"
@@ -18606,6 +18840,7 @@
 	},
 	"timescale_epoch": {
 		"label": "Timescale Epochs",
+		"database_column": "timescale_epoch",
 		"items": [
 			{
 				"item": "Cisuralian"
@@ -18710,6 +18945,7 @@
 	},
 	"assemblage": {
 		"label": "Mineral Assemblages",
+		"database_column": "(multiple_columns)",
 		"items": [
 			{
 				"item": "Aggregate"
@@ -18730,6 +18966,7 @@
 	},
 	"conglomerate_test": {
 		"label": "Conglomerate Test Codes",
+		"database_column": "conglomerate_test",
 		"items": [
 			{
 				"item": "+",
@@ -18769,6 +19006,7 @@
 	},
 	"synthetic_type": {
 		"label": "Synthetic Material Types",
+		"database_column": "material_type",
 		"items": [
 			{
 				"item": "Annealed"
@@ -18837,6 +19075,7 @@
 	},
 	"reversal_test": {
 		"label": "Reversal Test Codes",
+		"database_column": "reversal_test",
 		"items": [
 			{
 				"item": "+",
@@ -18873,6 +19112,7 @@
 	},
 	"timescale_eon": {
 		"label": "Timescale Eons",
+		"database_column": "timescale_eon",
 		"items": [
 			{
 				"item": "Archean"
@@ -18887,6 +19127,7 @@
 	},
 	"rock_magnetic_test": {
 		"label": "Rock Magnetic Test Codes",
+		"database_column": "rock_magnetic_test",
 		"items": [
 			{
 				"item": "M",
@@ -18900,6 +19141,7 @@
 	},
 	"criterion_operation": {
 		"label": "Criterion Operations",
+		"database_column": "criterion_operation",
 		"items": [
 			{
 				"item": "<",
@@ -18945,6 +19187,7 @@
 	},
 	"magic_version": {
 		"label": "MagIC Data Model Versions",
+		"database_column": "data_model_version",
 		"items": [
 			{
 				"item": "2.2"
@@ -18963,16 +19206,432 @@
 			}
 		]
 	},
-	"boolean": {
-		"label": "Boolean Flags",
+	"lab_names": {
+		"label": "Laboratory Names",
+		"database_column": "lab_names",
 		"items": [
 			{
-				"item": "t",
-				"label": "True"
+				"item": "Department of Geomagnetism (Academy of Sciences, Czech Republic)"
 			},
 			{
-				"item": "f",
-				"label": "False"
+				"item": "Paleomagnetic Laboratory (AGICO Inc., Czech Republic)"
+			},
+			{
+				"item": "Centre Européen de Recherche et d’Enseignement des Géosciences de l’Environnement (CEREGE) (Aix en Provence, France)"
+			},
+			{
+				"item": "Alpine Laboratory of Paleomagnetism (ALP, Italy)"
+			},
+			{
+				"item": "Black Mountain Palaeomagnetic Laboratory (Australian National University, Australia)"
+			},
+			{
+				"item": "Paleomagnetic Laboratory (Berkeley Geochronology Center, USA)"
+			},
+			{
+				"item": "Geomagnetism (British Geological Survey, UK)"
+			},
+			{
+				"item": "Paleomagnetics Laboratory (California Institute of Technology, USA)"
+			},
+			{
+				"item": "Archeomagnetism Laboratory (CENIEH Burgos, Spain)"
+			},
+			{
+				"item": "Laboratory of Rock Magnetism (Charles University, Czech Republic)"
+			},
+			{
+				"item": "Paleomagnetism and Geochronology Lab Beijing (Chinese Academy of Sciences, China)"
+			},
+			{
+				"item": "MLR Key Laboratory of Paleomagnetism and Paleostructure Reconstruction (Chinese Academy of Geological Sciences, China)"
+			},
+			{
+				"item": "Paléomagnétisme CEREGE Aix en Provence (CNRS-Aix Marseille University, France)"
+			},
+			{
+				"item": "Paléomagnétisme Géosciences Montpellier (CNRS-Montpellier University, France)"
+			},
+			{
+				"item": "Paléomagnétisme Géosciences Rennes (CNRS-Rennes 1 University, France)"
+			},
+			{
+				"item": "Paléomagnétisme IPG Paris (CNRS-Paris Cité University, France)"
+			},
+			{
+				"item": "Paléomagnétisme IPG Paris (CNRS-Sorbonne Paris Cité University, France)"
+			},
+			{
+				"item": "Paléomagnétisme LSCE Gif sur Yvette (CNRS-Versailles St Quentin University, France)"
+			},
+			{
+				"item": "Paléomagnétisme Géosciences Environnement (CNRS-Toulouse University, France)"
+			},
+			{
+				"item": "GeoRessources (CNRS-Université de Lorraine, France)"
+			},
+			{
+				"item": "Geosciences Montpellier (CNRS-Université de Montpellier, France)"
+			},
+			{
+				"item": "Magnetics & Gravity Team (Commonwealth Scientific and Industrial Research Organisation (CSIRO), Australia)"
+			},
+			{
+				"item": "Laboratory of Paleomagnetism (CSIC-ICTJA and Universitat de Barcelona, Spain)"
+			},
+			{
+				"item": "Laboratory of Paleomagnetism (CSIC-IPNA, Spain)"
+			},
+			{
+				"item": "Magnetics Laboratory (Dartmouth College, USA)"
+			},
+			{
+				"item": "Geophysics (Eberhard Karls Universität Tuebingen, Germany)"
+			},
+			{
+				"item": "Paleomagnetism Laboratory (Geological Survey of Canada, Ottawa, Canada)"
+			},
+			{
+				"item": "Paleomagnetism and Petrophysics Laboratory (Geological Survey of Canada, Pacific Geoscience Centre, Canada)"
+			},
+			{
+				"item": "Geophysical Laboratory (Geological Survey of Finland, Finland)"
+			},
+			{
+				"item": "University Paleomagnetism Lab (Florida State University, USA)"
+			},
+			{
+				"item": "Rock-magnetism and Paleomagnetism Laboratory (Geological Survey of Japan, Japan)"
+			},
+			{
+				"item": "Geodynamics (Geological Survey of Norway, Norway)"
+			},
+			{
+				"item": "Laboratory for Paleo- and Rock Magnetism (GFZ German Research Centre for Geosciences, Potsdam, Germany)"
+			},
+			{
+				"item": "Paleomagnetic Lab (Harvard University, USA)"
+			},
+			{
+				"item": "Paleomagnetic Lab (Hebrew University of Jerusalem, Israel)"
+			},
+			{
+				"item": "Solid Earth Geophysics Research Laboratory (Helsinki University, Finland)"
+			},
+			{
+				"item": "Laboratory of AMS (Paleomagnetism) and Geophysical Prospection (IGME-Universidad de Zaragoza, Spain)"
+			},
+			{
+				"item": "Natural Magnetism Group (Imperial College London, UK)"
+			},
+			{
+				"item": "Paleomagnetic Laboratory (INGV, Italy)"
+			},
+			{
+				"item": "Earth and Planetary Magnetism (Institute of Geophysics Zurich, Germany)"
+			},
+			{
+				"item": "Laboratory of the Main Geomagnetic Field and Petromagnetism (Institute of Physics of the Earth (Moscow), Russia)"
+			},
+			{
+				"item": "Geomechanics Laboratory, GEOLAB-CERENA (Instituto Superior Técnico, Portugal)"
+			},
+			{
+				"item": "Department of Planetology (Kobe University, Japan)"
+			},
+			{
+				"item": "KCC Paleomagnetism and Rock Magnetism Laboratory (Kochi University, Japan)"
+			},
+			{
+				"item": "Paleomagnetism and Rock Magnetism (Kyoto University, Japan)"
+			},
+			{
+				"item": "Laboratory for Environmental Magnetism (KMI, Belgium)"
+			},
+			{
+				"item": "The Australian Archaeomagnetism Laboratory & Melbourne Human Origins Network (La Trobe University, Australia)"
+			},
+			{
+				"item": "Rock Magnetism Laboratory (Lakehead University, Canada)"
+			},
+			{
+				"item": "LDEO Paleomagnetics Lab (Lamont-Doherty Earth Observatory, Columbia University, USA)"
+			},
+			{
+				"item": "Environmental Magnetism and Palaeomagnetism (Lancaster University, UK)"
+			},
+			{
+				"item": "Advanced Light Source (Lawrence Berkeley National Laboratory, USA)"
+			},
+			{
+				"item": "Paleomagnetism Laboratory (Lehigh University, USA)"
+			},
+			{
+				"item": "Paleomagnetic Lab (Lund University, Sweden)"
+			},
+			{
+				"item": "Department of Earth and Environmental Sciences Magnetism (Ludwigs-Maximilians-Universität Muenchen, Germany)"
+			},
+			{
+				"item": "Paleomagnetism Laboratory (Massachusetts Institute of Technology, USA)"
+			},
+			{
+				"item": "Paleomagnetics Laboratory (Memorial University of Newfoundland, Canada)"
+			},
+			{
+				"item": "Earth Magnetism Laboratory (Michigan Tech, USA)"
+			},
+			{
+				"item": "Paleomagnetism Laboratory (Montanuniversität Leoben, Austria)"
+			},
+			{
+				"item": "Institute of Magnetism (National Academy of Sciences of Ukraine Kiev, Ukraine)"
+			},
+			{
+				"item": "Paleomagnetism and Rock Magnetism Laboratory (New Mexico Highlands University, USA)"
+			},
+			{
+				"item": "Environmental and Paleomagnetism Laboratory (Montclair State University, USA)"
+			},
+			{
+				"item": "Paleomagnetic Laboratory (NIGGG - BAS, Bulgaria)"
+			},
+			{
+				"item": "Paleomagnetism Laboratory (Occidental College, USA)"
+			},
+			{
+				"item": "Paleomagnetic and Environmental Magnetic Research Laboratory (Oregon State University, USA)"
+			},
+			{
+				"item": "Paleomagnetism Laboratory (Nanjing University, China)"
+			},
+			{
+				"item": "Applied Magnetics Laboratory (Oregon State University, USA)"
+			},
+			{
+				"item": "Institute of Geophysics (Polish Academy of Sciences, Poland)"
+			},
+			{
+				"item": "Paleomagnetic laboratory (Polish Geological Institute, Poland)"
+			},
+			{
+				"item": "Laboratory of Earth’s Magnetism (Saint-Petersburg State University, Russia)"
+			},
+			{
+				"item": "Paleomagnetic Lab (Scripps Institution of Oceanography, UCSD, USA)"
+			},
+			{
+				"item": "Joint International Research Laboratory for Environmental and Social Archaeology (Shandong University, China)"
+			},
+			{
+				"item": "Stanford Paleomagnetism Laboratory (Stanford University, USA)"
+			},
+			{
+				"item": "School of Earth Science and Engineering (Sun Yat-sen University, China)"
+			},
+			{
+				"item": "JOIDES Resolution (Texas A&M University, USA)"
+			},
+			{
+				"item": "Paleo & Planetary Magnetism Lab (Tokyo Institute of Technology, Japan)"
+			},
+			{
+				"item": "Geomagnetism Group (UNAM, Mexico)"
+			},
+			{
+				"item": "Interinstitutional Laboratory of Natural Magnetism (UNAM Morelia, Mexico)"
+			},
+			{
+				"item": "Paleomagnetism and Rock Magnetism Laboratory (UNAM Queretaro, Mexico)"
+			},
+			{
+				"item": "Paleomagnetic Laboratory (USGS Ames, USA)"
+			},
+			{
+				"item": "Rock Magnetism Laboratory (USGS Denver, USA)"
+			},
+			{
+				"item": "Paleomagnetic Laboratory (USGS Flagstaff, USA)"
+			},
+			{
+				"item": "Paleomagnetic Laboratory (USGS Menlo Park, USA)"
+			},
+			{
+				"item": "Department of Geoscience (University of Aarhus, Denmark)"
+			},
+			{
+				"item": "Paleomagnetism Lab (University of Alaska Fairbanks, USA)"
+			},
+			{
+				"item": "Laboratory of Paleomagnetism and Petromagnetism (University of Alberta, Canada)"
+			},
+			{
+				"item": "Paleomagnetics Laboratory (University of Arizona, USA)"
+			},
+			{
+				"item": "Group of Magnetic Applications (Universitat AutÃ²noma de Barcelona (UAB), Spain)"
+			},
+			{
+				"item": "Laboratori de Paleomagnetisme (Universidad de Barcelona, Spain)"
+			},
+			{
+				"item": "Marine Geophysics (Universitaet Bremen, Germany)"
+			},
+			{
+				"item": "Paleomagnetic Laboratory (University of Bucharest, Romania)"
+			},
+			{
+				"item": "Paleomagnetic and Rock Magnetic Laboratory (Universidad de Burgos, Spain)"
+			},
+			{
+				"item": "Paleomagnetism Laboratory (University of California, Berkeley, USA)"
+			},
+			{
+				"item": "Paleomagnetism Lab (University of California, Davis, USA)"
+			},
+			{
+				"item": "Paleomagnetic Laboratory (University of California, Santa Cruz, USA)"
+			},
+			{
+				"item": "Nanopaleomagnetism (University of Cambridge, UK)"
+			},
+			{
+				"item": "Laboratory of Paleomagnetism (Universidad Complutense de Madrid (UCM) and CSIC-IGEO, Spain)"
+			},
+			{
+				"item": "Earth Science (University of Edinburgh, UK)"
+			},
+			{
+				"item": "Paleomagnetism and Environmental Magnetism (University of Florida, USA)"
+			},
+			{
+				"item": "Paleomagnetics Lab (University of Hawai'i, USA)"
+			},
+			{
+				"item": "Paleomagnetic Lab (University of Iceland, Iceland)"
+			},
+			{
+				"item": "Deep Earth Research (University of Leeds, UK)"
+			},
+			{
+				"item": "Paleomagnetic Laboratory (University of Leoben, Austria)"
+			},
+			{
+				"item": "Geomagnetism Laboratory (University of Liverpool, UK)"
+			},
+			{
+				"item": "Paleomagnetics Lab (University of Luleå, Sweden)"
+			},
+			{
+				"item": "Paleomagnetics Lab (University of Massachusetts Amherst, USA)"
+			},
+			{
+				"item": "Paleomagnetism, Structure and Tectonics (University of Michigan, USA)"
+			},
+			{
+				"item": "Institute for Rock Magnetism (University of Minnesota, USA)"
+			},
+			{
+				"item": "IFAS (Universidad Nacional del Centro de la Provincia de Buenos Aires, Brazil)"
+			},
+			{
+				"item": "Paleomagnetics Lab (University of New Hampshire, USA)"
+			},
+			{
+				"item": "Paleomagnetism Laboratory (University of New Mexico, USA)"
+			},
+			{
+				"item": "School of Geosciences Paleomagnetic Lab (University of Oklahoma, USA)"
+			},
+			{
+				"item": "Geomagnetic Laboratory (University of Oslo, Norway)"
+			},
+			{
+				"item": "Paleomagnetic Research Facility (University of Otago, New Zealand)"
+			},
+			{
+				"item": "Palaeomagnetism and Rock Magnetism (University of Oxford, UK)"
+			},
+			{
+				"item": "Geodynamics and Palaeomagnetism (University of Plymouth, UK)"
+			},
+			{
+				"item": "Paleomagnetism and Marine Geology Laboratory (University of Quebec at Rimouski, Canada)"
+			},
+			{
+				"item": "Paleomagnetic Research Group (University of Rochester, USA)"
+			},
+			{
+				"item": "Paleomagnetic Laboratory (Università di Roma TRE, Italy)"
+			},
+			{
+				"item": "Paleomagnetic Laboratory (Universidade de São Paulo, Brazil)"
+			},
+			{
+				"item": "Paleomagnetism and Rock Magnetism Laboratory (University of Southern California, USA)"
+			},
+			{
+				"item": "Paleomagnetism Laboratory (University of Texas, Austin, USA)"
+			},
+			{
+				"item": "Paleomagnetic Laboratory (Atmosphere and Ocean Research Institute, University of Tokyo, Japan)"
+			},
+			{
+				"item": "Paleomagnetism Laboratory (University of Toronto Mississauga, Canada)"
+			},
+			{
+				"item": "Departamento de Geologia, Facultad de Ciencias Físicas y Matemáticas (Universidad de Chile, Santiago, Chile)"
+			},
+			{
+				"item": "Laboratory of Paleomagnetism (Universidad de Vigo, Spain)"
+			},
+			{
+				"item": "Palaeomagnetism Laboratory (University of Western Australia, Australia)"
+			},
+			{
+				"item": "Paleomagnetic Laboratory (University of Windsor, Canada)"
+			},
+			{
+				"item": "Paleomagnetic Laboratory (University of Wisconsin-Milwaukee, USA)"
+			},
+			{
+				"item": "Paleomagnetic Laboratory (Universtiy of Utah, USA)"
+			},
+			{
+				"item": "Paleomagnetic Laboratory Fort Hoofddijk (Utrecht University, The Netherlands)"
+			},
+			{
+				"item": "School of Geography Environment and Earth Sciences (Victoria University of Wellington, New Zealand)"
+			},
+			{
+				"item": "Western Paleomagnetic & Petrophysical Laboratory (Western Science, Canada)"
+			},
+			{
+				"item": "Pacific Northwest Paleomagnetism Lab (Western Washington University, USA)"
+			},
+			{
+				"item": "Western Paleomagnetic & Petrophysical Laboratory (WPPL) (Western University, Canada)"
+			},
+			{
+				"item": "Paleomagnetic Laboratory (Yale, USA)"
+			},
+			{
+				"item": "Not Specified"
+			},
+			{
+				"item": "Not Determined (For Legacy Datasets Only)"
+			}
+		]
+	},
+	"boolean": {
+		"label": "Boolean Flags",
+		"database_column": "(multiple_columns)",
+		"items": [
+			{
+				"item": "True"
+			},
+			{
+				"item": "False"
 			}
 		]
 	}
