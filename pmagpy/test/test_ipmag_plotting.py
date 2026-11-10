@@ -455,3 +455,91 @@ class TestPoleEllipseZorder:
         ipmag.equi(self.map_axis, self.plon, self.plat, self.A95 * 111.32, 'k')
         assert len(self.map_axis.lines) == 1
         assert len(other_map_axis.lines) == 0
+
+
+# ---------------------------------------------------------------------------
+# Panels of a multi-panel figure: an axis for plot_di and plot_di_mean, and a
+# figure and subplot position for the map functions
+# ---------------------------------------------------------------------------
+
+class TestPlotOnExistingAxis:
+    """plot_di and plot_di_mean draw on an axis that is passed to them."""
+
+    def teardown_method(self):
+        plt.close('all')
+
+    def test_plot_di_on_axis(self):
+        fig, (ax_left, ax_right) = plt.subplots(1, 2)
+        ipmag.plot_net(ax=ax_left)
+        ipmag.plot_net(ax=ax_right)
+        n_net_collections = len(ax_right.collections)
+        position = ax_left.get_position().bounds
+        # two lower-hemisphere directions and one upper-hemisphere direction
+        ipmag.plot_di(dec=[10, 20, 30], inc=[40, 50, -60], ax=ax_left,
+                      legend='yes', label='directions', title='left')
+        assert len(ax_left.collections) == n_net_collections + 2
+        assert len(ax_right.collections) == n_net_collections
+        assert ax_left.get_title() == 'left'
+        assert ax_left.get_legend() is not None
+        assert ax_right.get_legend() is None
+        # the layout of the figure is not changed when an axis is passed
+        assert ax_left.get_position().bounds == position
+
+    def test_plot_di_uses_current_axis_by_default(self):
+        fig, (ax_left, ax_right) = plt.subplots(1, 2)
+        plt.sca(ax_right)
+        ipmag.plot_di(dec=10, inc=40)
+        assert len(ax_left.collections) == 0
+        assert len(ax_right.collections) == 1
+
+    def test_plot_di_mean_on_axis(self):
+        fig, (ax_left, ax_right) = plt.subplots(1, 2)
+        position = ax_left.get_position().bounds
+        ipmag.plot_di_mean(dec=10, inc=40, a95=5, ax=ax_left)
+        assert len(ax_left.collections) == 1  # the mean
+        assert len(ax_left.lines) == 1  # the a95 circle
+        assert len(ax_right.collections) == 0
+        assert len(ax_right.lines) == 0
+        assert ax_left.get_position().bounds == position
+        plt.sca(ax_right)
+        ipmag.plot_di_mean(dec=10, inc=-40, a95=5)
+        assert len(ax_right.collections) == 1
+        assert len(ax_right.lines) == 1
+
+
+@pytest.mark.skipif(not ipmag.has_cartopy, reason='requires cartopy')
+@pytest.mark.parametrize("make_map", [ipmag.make_orthographic_map, ipmag.make_mollweide_map,
+                                      ipmag.make_robinson_map])
+class TestMapOnExistingFigure:
+    """The map functions make a figure, or add the map to a figure that is passed."""
+
+    def teardown_method(self):
+        plt.close('all')
+
+    def test_makes_figure_by_default(self, make_map):
+        n_figures = len(plt.get_fignums())
+        map_axis = make_map(central_longitude=200, figsize=(6, 5))
+        assert len(plt.get_fignums()) == n_figures + 1
+        assert len(map_axis.figure.axes) == 1
+        assert tuple(map_axis.figure.get_size_inches()) == (6, 5)
+        assert map_axis.get_subplotspec().get_geometry()[:2] == (1, 1)
+
+    def test_on_existing_figure(self, make_map):
+        fig = plt.figure(figsize=(6, 3))
+        net_axis = fig.add_subplot(1, 2, 1)
+        n_figures = len(plt.get_fignums())
+        map_axis = make_map(central_longitude=200, fig=fig, subplot=(1, 2, 2))
+        assert len(plt.get_fignums()) == n_figures
+        assert map_axis.figure is fig
+        assert fig.axes == [net_axis, map_axis]
+        assert map_axis.get_subplotspec().get_geometry() == (1, 2, 1, 1)
+        assert map_axis.projection.proj4_params['lon_0'] == 200
+
+    def test_subplot_as_integer_or_gridspec_cell(self, make_map):
+        fig = plt.figure()
+        map_axis = make_map(fig=fig, subplot=121)
+        assert map_axis.get_subplotspec().get_geometry() == (1, 2, 0, 0)
+        grid = fig.add_gridspec(2, 2)
+        map_axis = make_map(fig=fig, subplot=grid[1, 1])
+        assert map_axis.get_subplotspec().get_geometry() == (2, 2, 3, 3)
+
