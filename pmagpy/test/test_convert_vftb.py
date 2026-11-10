@@ -96,6 +96,55 @@ class TestVftbMagic(unittest.TestCase):
         self.assertAlmostEqual(float(df.iloc[0]['treat_dc_field']), 84e-4)
         self.assertAlmostEqual(float(df.iloc[0]['magn_mass']), 0.1803644476)
 
+    def test_vftb_measurement_names(self):
+        # every measurement has a name, from its experiment and step number
+        df = self.convert('PRG1-2.irm')
+        self.assertEqual(df['measurement'].iloc[0], 'PRG1-2_LP-IRM-1')
+        self.assertEqual(df['measurement'].iloc[-1], 'PRG1-2_LP-IRM-13')
+        self.assertEqual(df['measurement'].nunique(), len(df))
+
+    def test_vftb_fields_without_residue(self):
+        # -55.2 Oe is written as -0.00552 T (the file as the converter writes it;
+        # self.convert reads it with MagicDataFrame, which writes it again)
+        import pandas as pd
+        program_ran, outfile = convert.vftb('PRG1-2.coe', dir_path=WD, input_dir_path=self.input_dir,
+                                            meas_outfile='measurements.txt', spec_outfile='specimens.txt',
+                                            samp_outfile='samples.txt', site_outfile='sites.txt',
+                                            loc_outfile='locations.txt', samp_con='2')
+        self.assertTrue(program_ran)
+        raw = pd.read_csv(outfile, sep='\t', header=1, dtype=str)
+        self.assertEqual(raw['treat_dc_field'].iloc[1], '-0.00552')
+
+    def test_vftb_units(self):
+        """
+        the units of the column names are used; without column names, units
+        decides the field unit, and temperatures are in kelvin either way
+        """
+        import shutil
+        import tempfile
+        with open(os.path.join(self.input_dir, 'PRG1-2.irm'), encoding='latin-1') as f:
+            lines = f.read().splitlines()
+        self.assertTrue(lines[3].startswith(' field / Oe'))
+        tmp_dir = tempfile.mkdtemp()
+        try:
+            def convert_copy(lines, **kwargs):
+                with open(os.path.join(tmp_dir, 'PRG1-2.irm'), 'w', encoding='latin-1') as f:
+                    f.write('\n'.join(lines) + '\n')
+                self.input_dir = tmp_dir
+                return self.convert('PRG1-2.irm', **kwargs)
+            # field in mT in the column names; units is not used
+            df = convert_copy(lines[:3] + [lines[3].replace('field / Oe', 'field / mT')] + lines[4:],
+                              units='SI')
+            self.assertAlmostEqual(float(df.iloc[-1]['treat_dc_field']), 9.830)
+            # no column names: the field in tesla with units='SI', in Oe otherwise
+            df = convert_copy(lines[:3] + lines[4:], units='SI')
+            self.assertAlmostEqual(float(df.iloc[-1]['treat_dc_field']), 9830)
+            self.assertAlmostEqual(float(df.iloc[0]['meas_temp']), 22 + 273)
+            df = convert_copy(lines[:3] + lines[4:])
+            self.assertAlmostEqual(float(df.iloc[-1]['treat_dc_field']), 0.983)
+        finally:
+            shutil.rmtree(tmp_dir)
+
     def test_vftb_experiment_type(self):
         # the kind of curve given, not taken from the extension
         df = self.convert('PRG1-2.coe', experiment_type='irm')

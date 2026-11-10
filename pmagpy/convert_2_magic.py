@@ -9491,8 +9491,16 @@ def _rs3_read_file(rs3_file):
         second limit: O, A or OA), note, and the same direction fields as
         steps, with Prec holding the MAD
     """
-    with open(rs3_file, 'r', encoding='latin-1') as f:
-        lines = [line.rstrip('\r\n') for line in f]
+    # Remasoft writes a single-byte Windows encoding; a file saved again as
+    # UTF-8 is read as UTF-8, so that the degree sign stays one character and
+    # the fixed-width columns line up
+    with open(rs3_file, 'rb') as f:
+        raw = f.read()
+    try:
+        text = raw.decode('utf-8')
+    except UnicodeDecodeError:
+        text = raw.decode('latin-1')
+    lines = [line.rstrip('\r\n') for line in text.lstrip('\ufeff').splitlines()]
     if len(lines) < 3 or not lines[0].startswith('Name') or not lines[2].startswith('ID'):
         raise ValueError('{} is not a Remasoft .rs3 file'.format(rs3_file))
     # header values are left-aligned under the field names of the first line
@@ -9550,13 +9558,61 @@ def _rs3_limit(label):
     """
     if label == 'NRM':
         return 0., None, ''
-    if label.endswith('mT'):
-        number = float(label[:-2])
-        return number, number * 1e-3, 'T'
-    if label.endswith('C'):
-        number = float(label[:-1].rstrip('\xb0'))
-        return number, number + 273., 'K'
+    try:
+        if label.endswith('mT'):
+            number = float(label[:-2])
+            return number, number * 1e-3, 'T'
+        if label.endswith('C'):
+            # the degree sign, or the ordinal sign some encodings put in its place
+            number = float(label[:-1].rstrip('\xb0\xba '))
+            return number, number + 273., 'K'
+    except ValueError:
+        pass
     raise ValueError('fit limit {} not understood'.format(label))
+
+
+def _rs3_average_repeats(rows):
+    """
+    Average consecutive measurement records of the same step (same treatment
+    code, temperature and field) as a vector mean.
+
+    Parameters
+    ----------
+    rows : list of dicts
+        measurement records of one specimen, with method_codes holding the
+        treatment code only, and dir_dec, dir_inc and magn_volume
+
+    Returns
+    ---------
+    list of dicts : the records, with each run of repeats replaced by its
+        last record carrying the mean direction, the mean magnitude, dir_csd,
+        a description and averaged=True (for the DE-VM method code)
+    """
+    def step_key(row):
+        return row['method_codes'], row['treat_temp'], row['treat_ac_field']
+    out, k = [], 0
+    while k < len(rows):
+        j = k
+        while j + 1 < len(rows) and step_key(rows[j + 1]) == step_key(rows[k]):
+            j += 1
+        if j == k:
+            out.append(rows[k])
+        else:
+            group = rows[k:j + 1]
+            vectors = [[float(r['dir_dec']), float(r['dir_inc']), float(r['magn_volume'])] for r in group]
+            mean_dir, R = pmag.vector_mean(vectors)
+            fpars = pmag.fisher_mean([v[:2] for v in vectors])
+            rec = dict(group[-1])
+            rec['dir_dec'] = '%7.1f' % (mean_dir[0])
+            rec['dir_inc'] = '%7.1f' % (mean_dir[1])
+            rec['magn_volume'] = '%8.3e' % (R / len(group))
+            rec['dir_csd'] = '%7.1f' % (fpars['csd'])
+            rec['description'] = '; '.join(
+                [d for d in (rec.get('description', ''), 'average of {} measurements'.format(len(group))) if d])
+            rec['averaged'] = True
+            out.append(rec)
+        k = j + 1
+    return out
 
 
 def rs3(mag_file="", dir_path=".", input_dir_path="",
@@ -9653,7 +9709,9 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
         line (azimuth + 180, dip of opposite sign). With P1 = 3 or 9 the X axis
         is horizontal and the specimen Y axis is not, which azimuth and dip
         cannot describe; the declinations in specimen coordinates are then
-        rotated by 30 * P1 so that they refer to the 12 o'clock line.
+        rotated by 30 * P1 so that they refer to the 12 o'clock line, and the
+        descriptions of the measurements and of the fits in specimen
+        coordinates say so.
         The directions rotated with the converted values are compared with the
         geographic and tilt-corrected directions stored in the file, and the
         conversion stops if they differ by more than tolerance. The settings
@@ -9664,7 +9722,12 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
     Measurements:
         Rows with ID N are the NRM, T thermal steps in degrees C and A
         alternating field steps in mT. The moment is volume normalized (A/m)
-        and the directions written are in specimen coordinates.
+        and the directions written are in specimen coordinates. Each row
+        keeps its own treatment: an A row at 0 mT after a heating is LT-AF-Z,
+        not LT-NO. The experiment of a specimen is LP-DIR-T, LP-DIR-AF, or
+        LP-DIR-T:LP-DIR-AF when it has both kinds of steps, and is written to
+        every measurement and to the specimens table (experiments and, for a
+        specimen without stored fits, method_codes).
 
     Interpretations:
         Each stored fit is written to the specimens table in specimen,
@@ -9702,14 +9765,15 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
     samp_con = str(samp_con)
     version_num = pmag.get_version()
 
-    if "4" in samp_con:
+    # the convention is the number before the hyphen ("7-4" is convention 7)
+    if samp_con.startswith("4"):
         if "-" not in samp_con:
             print("naming convention option [4] must be in form 4-Z where Z is an integer")
             return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
         else:
             Z = samp_con.split("-")[1]
             samp_con = "4"
-    elif "7" in samp_con:
+    elif samp_con.startswith("7"):
         if "-" not in samp_con:
             print("option [7] must be in form 7-Z where Z is an integer")
             return False, "naming convention option [7] must be in form 7-Z where Z is an integer"
@@ -9780,6 +9844,7 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
 
         # sample orientation and bedding, checked against the directions in the file
         azimuth, dip, bed_dip_direction, bed_dip = "", "", "", ""
+        rotation_note = ""
         if head.get('SDec') and head.get('SInc'):
             try:
                 P1, P2, P3 = int(head['P1']), int(head['P2']), int(head['P3'])
@@ -9803,8 +9868,10 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
                 azimuth, dip = (azimuth + 180.) % 360., -dip
             elif P1 in (3, 9):
                 dec_rotation = 30. * P1
-                print('-W- {}: P1 = {}; declinations in specimen coordinates are rotated by {:.0f} '
-                      'degrees to refer to the 12 o\'clock line'.format(file_name, P1, dec_rotation))
+                rotation_note = ('declination in specimen coordinates rotated by {:.0f} degrees from the '
+                                 'fiducial mark to the 12 o\'clock line of the core (Remasoft P1 = {})').format(
+                                     dec_rotation, P1)
+                print('-W- {}: {}'.format(file_name, rotation_note))
                 for row in steps + fits:
                     if row['Dsp'] is not None:
                         row['Dsp'] = (row['Dsp'] + dec_rotation) % 360.
@@ -9881,11 +9948,16 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
         if any(step['K'] for step in steps):
             print('-W- {}: the susceptibility column (K) is not converted'.format(file_name))
 
-        # measurements
+        # measurements: each row keeps the treatment of its own label (an A row at
+        # 0 mT after a heating is an AF step, not an NRM), so the method codes are
+        # set here rather than worked out again by pmag.measurements_methods3
+        rows = []
         for k, step in enumerate(steps):
             try:
                 treat = float(step['Step'])
                 float(step['M'])
+                if step['Dsp'] is None or step['Isp'] is None:
+                    raise ValueError
             except ValueError:
                 message = '{}: step {} {} could not be read'.format(file_name, step['Step'], step['M'])
                 print(message)
@@ -9899,7 +9971,6 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
             MeasRec["treat_ac_field"] = '0'
             MeasRec["quality"] = 'g'
             MeasRec["standard"] = 'u'
-            MeasRec["treat_step_num"] = 0
             if step['ID'] == 'N' or (k == 0 and treat == 0):
                 meas_type = "LT-NO"
             elif step['ID'] == 'T':
@@ -9916,21 +9987,41 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
             MeasRec["dir_dec"] = '%7.1f' % (step['Dsp'])
             MeasRec["dir_inc"] = '%7.1f' % (step['Isp'])
             MeasRec['method_codes'] = meas_type
+            if rotation_note:
+                MeasRec['description'] = rotation_note
             if instrument:
                 MeasRec['instrument_codes'] = instrument
             if user:
                 MeasRec['analysts'] = user
+            rows.append(MeasRec)
+        if not noave:
+            rows = _rs3_average_repeats(rows)
+        # the experiment: thermal, alternating field, or both (e.g. one heating
+        # followed by AF steps)
+        types = [row['method_codes'] for row in rows]
+        protocols = [code for meas_type, code in (('LT-T-Z', 'LP-DIR-T'), ('LT-AF-Z', 'LP-DIR-AF'))
+                     if meas_type in types] or ['LP-NO']  # LP-NO: the NRM only
+        experiment = specimen + '_' + '_'.join(protocols)
+        for k, MeasRec in enumerate(rows):
+            MeasRec['method_codes'] = ':'.join([MeasRec['method_codes']] + protocols + (
+                ['DE-VM'] if MeasRec.pop('averaged', False) else []))
+            MeasRec['experiment'] = experiment
+            MeasRec['measurement'] = '{}-{}'.format(experiment, k + 1)
+            MeasRec['treat_step_num'] = str(k + 1)
+            MeasRec['sequence'] = str(len(MeasRecs) + 1)
             MeasRecs.append(MeasRec)
 
         # specimens: one record, or one per stored fit and coordinate system
         if not (interpretations and fits):
-            SpecRec = {'specimen': specimen, 'sample': sample, 'citations': 'This study'}
+            SpecRec = {'specimen': specimen, 'sample': sample, 'citations': 'This study',
+                       'experiments': experiment, 'method_codes': ':'.join(protocols)}
             if user:
                 SpecRec['analysts'] = user
             SpecRecs.append(SpecRec)
             continue
         for fit in fits:
             FitRec = {'specimen': specimen, 'sample': sample, 'citations': 'This study',
+                      'experiments': experiment,
                       'dir_comp': fit['name'], 'result_quality': 'g', 'software_packages': 'Remasoft'}
             if user:
                 FitRec['analysts'] = user
@@ -9983,12 +10074,15 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
                 if is_last:
                     last = k
             if first is not None and last is not None and last >= first:
-                FitRec['dir_n_measurements'] = last - first + 1
+                n_steps = last - first + 1
+                if not noave:
+                    # repeated rows of a step are one averaged measurement
+                    n_steps -= sum(1 for k in range(first + 1, last + 1)
+                                   if (steps[k]['ID'], steps[k]['Step']) == (steps[k - 1]['ID'], steps[k - 1]['Step']))
+                FitRec['dir_n_measurements'] = str(n_steps)
             else:
                 print('-W- {}: the limits of fit {} ({} to {}) were not found among the steps'.format(
                     file_name, fit['name'], fit['Limit1'], fit['Limit2']))
-            if descriptions:
-                FitRec['description'] = '; '.join(descriptions)
             # one record per coordinate system
             coordinates = [(-1, 'Dsp', 'Isp', 'DA-DIR')]
             if azimuth != "":
@@ -9999,9 +10093,12 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
                 if fit[dec_key] is None or fit[inc_key] is None:
                     continue
                 SpecRec = dict(FitRec)
+                notes = descriptions + ([rotation_note] if rotation_note and tilt_correction == -1 else [])
+                if notes:
+                    SpecRec['description'] = '; '.join(notes)
                 SpecRec['dir_dec'] = '%7.1f' % (fit[dec_key])
                 SpecRec['dir_inc'] = '%7.1f' % (fit[inc_key])
-                SpecRec['dir_tilt_correction'] = tilt_correction
+                SpecRec['dir_tilt_correction'] = str(tilt_correction)
                 SpecRec['method_codes'] = ':'.join(
                     code for code in (fit_code, lab_code, coordinate_code) if code)
                 SpecRecs.append(SpecRec)
@@ -10024,14 +10121,7 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
     con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
     con.add_magic_table_from_data(dtype='locations', data=LocRecs)
-    # measurements_methods3 averages repeated steps with magn_moment; the files
-    # give volume-normalized moments, which are passed through it under that name
-    for MeasRec in MeasRecs:
-        MeasRec['magn_moment'] = MeasRec.pop('magn_volume')
-    MeasOuts = pmag.measurements_methods3(MeasRecs, noave)
-    for MeasRec in MeasOuts:
-        MeasRec['magn_volume'] = MeasRec.pop('magn_moment')
-    con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
+    con.add_magic_table_from_data(dtype='measurements', data=MeasRecs)
 
     con.tables['specimens'].write_magic_file(custom_name=spec_file, dir_path=dir_path)
     con.tables['samples'].write_magic_file(custom_name=samp_file, dir_path=dir_path)
@@ -11989,8 +12079,11 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                 if "END" in line:
                     break
 
+                # an empty line, or one of tabs or spaces as exported from a
+                # spreadsheet, is skipped: it must not end the file in the middle
+                # of the data
                 if line.strip() == "":
-                    break
+                    continue
 
                 this_line = line.strip('\n').split()
 
@@ -12026,8 +12119,15 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                 # ---------------------------------------------------
                 if line_number == 0:
 
-                    for i in range(min(len(this_line), len(header_codes))):
-                        tmp_header_data[header_codes[i]] = this_line[i]
+                    # the header fields are separated by tabs and can be empty
+                    # (40, two tabs, 0 0 0): split on the tabs so that each value
+                    # stays under its own name
+                    if '\t' in line:
+                        fields = [field.strip() for field in line.rstrip('\r\n').split('\t')]
+                    else:
+                        fields = this_line
+                    for i in range(min(len(fields), len(header_codes))):
+                        tmp_header_data[header_codes[i]] = fields[i]
                     try:
                         float(tmp_header_data['labfield'])
                     except (KeyError, ValueError):
@@ -12046,6 +12146,17 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                     tmp_data = {}
                     for i in range(min(len(this_line), len(body_codes))):
                         tmp_data[body_codes[i]] = this_line[i]
+                    # the step is a ThellierTool treatment code (e.g. 125.00, 125.11);
+                    # a label such as NRM or 125C stops the conversion with a message
+                    try:
+                        for key in ('treatment', 'moment', 'dec', 'inc'):
+                            float(tmp_data[key])
+                    except (KeyError, ValueError):
+                        message = ("{}: data row not understood; the step should be a ThellierTool "
+                                   "treatment code such as 125.00 or 125.11, and the moment, declination "
+                                   "and inclination numbers: {}").format(files, line.strip())
+                        print(message)
+                        return False, message
                     tmp_body.append(tmp_data)
 
                     # ------------
@@ -13090,7 +13201,10 @@ def vftb(vftb_file, dir_path=".", input_dir_path="",
     syntype : str
        synthetic type, default ""
     units : str
-       units, ['cgs','SI']  default "cgs"
+       units, ['cgs','SI']  default "cgs": the field in Oe ('cgs') or tesla
+       ('SI'); used only when the column names of the file do not give the
+       units (e.g. "field / Oe", "temp / centigrade"). Temperatures are in
+       degrees C unless the column names say kelvin.
     user : user name
     experiment_type : str
        kind of curve in the file, one of
@@ -13203,6 +13317,19 @@ def vftb(vftb_file, dir_path=".", input_dir_path="",
     mass=0
     if lines and 'mg' in lines[0].split(':')[-1]:
         mass=float(lines[0].split(':')[-1].split()[0])
+    # the units of field and temperature, from the column names when they give
+    # them (e.g. "field / Oe", "temp / centigrade"), otherwise from units
+    field_factor = 1e-4 if units != 'SI' else 1.  # Oe or tesla to tesla
+    temperature_offset = 273.  # degrees C to kelvin
+    column_names = [line for line in lines if 'field' in line and '/' in line]
+    if column_names:
+        columns = [name.split('/', 1)[-1].strip() for name in column_names[0].split('\t')]
+        field_unit = columns[0] if columns else ''
+        temperature_unit = columns[2].lower() if len(columns) > 2 else ''
+        if field_unit in ('Oe', 'mT', 'T'):
+            field_factor = {'Oe': 1e-4, 'mT': 1e-3, 'T': 1.}[field_unit]
+        if temperature_unit in ('k', 'kelvin'):
+            temperature_offset = 0.
     # drop the header lines (name and weight, set number, column names) and empty lines
     lines = [line for line in lines if line.strip() and 'name' not in line
              and 'Set' not in line and 'field' not in line]
@@ -13210,12 +13337,10 @@ def vftb(vftb_file, dir_path=".", input_dir_path="",
     df.columns=['B','M','T','t','std','slope']
     meas_df=pd.DataFrame(columns=['specimen','quality','method_codes','citations'])
     meas_df['magn_mass']=df['M'].values # emu/g, numerically equal to Am^2/kg
-    if units=='SI':
-        field=df['B'].values
-        temperature=df['T'].values
-    else:
-        field=df['B'].values*1e-4 # convert field from Oe to tesla
-        temperature=df['T'].values+273 # convert temps to Kelvin
+    # field in tesla, rounded to remove the binary residue of the conversion
+    # (-55.2 Oe is -0.00552 T, not -0.005520000000000001)
+    field=np.round(df['B'].values*field_factor, 10)
+    temperature=np.round(df['T'].values+temperature_offset, 10) # temperature in kelvin
     #if mass:
     #    meas_df['magn_moment']=meas_df['magn_mass']*mass
     if user:
@@ -13251,7 +13376,7 @@ def vftb(vftb_file, dir_path=".", input_dir_path="",
         meas_df['description'] = "IRM acquisition" if experiment_type == 'irm' else "Back-field demagnetization of an IRM"
     meas_df['standard'] = 'u'
     meas_df['treat_step_num'] = np.round(range(1,len(meas_df)+1),0)
-    #meas_df['measurement'] = range(1,len(meas_df)+1) 
+    meas_df['measurement'] = [specimen + '_' + meth + '-' + str(k) for k in range(1, len(meas_df) + 1)]
     meas_df['software_packages'] = version_num
     meas_df['quality']='g'
     MeasRecs=meas_df.to_dict('records')

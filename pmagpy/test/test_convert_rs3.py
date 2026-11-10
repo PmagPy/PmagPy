@@ -27,7 +27,7 @@ class TestRs3Magic(unittest.TestCase):
         self.input_dir = os.path.join(WD, 'data_files', 'convert_2_magic', 'rs3_magic')
         self.filelist = ['specimens.txt', 'samples.txt', 'sites.txt', 'locations.txt',
                          'measurements.txt', 'custom_meas.txt', 'changed_P2.rs3',
-                         'agico_6_0_6_0.rs3']
+                         'agico_6_0_6_0.rs3', 'fiducial_3.rs3']
 
     def tearDown(self):
         pmag.remove_files(self.filelist, WD)
@@ -35,6 +35,11 @@ class TestRs3Magic(unittest.TestCase):
 
     def read(self, table):
         return cb.MagicDataFrame(os.path.join(WD, table + '.txt')).df
+
+    def raw(self, table):
+        """a table as written, every value as text"""
+        import pandas as pd
+        return pd.read_csv(os.path.join(WD, table + '.txt'), sep='\t', header=1, dtype=str)
 
     def fit(self, specimen, component, tilt_correction):
         """one row of the specimens table"""
@@ -110,6 +115,113 @@ class TestRs3Magic(unittest.TestCase):
         self.assertIn('DE-VM', averaged.iloc[0]['method_codes'])
         self.assertIn('magn_volume', meas_df.columns)
         self.assertNotIn('magn_moment', meas_df.columns)
+        # the fit from 30 to 90 mT has six rows in the file and five averaged steps
+        self.assertEqual(self.raw('specimens')['dir_n_measurements'].iloc[0], '5')
+
+    def test_rs3_mixed_treatments(self):
+        """
+        PRG6-2A: one heating to 480 C, then alternating field steps from 0 mT.
+        Each row keeps its own treatment, and the experiment has both protocols.
+        """
+        options = {'input_dir_path': self.input_dir, 'mag_file': 'PRG6-2A.rs3'}
+        program_ran, outfile = convert.rs3(**options)
+        self.assertTrue(program_ran)
+        meas_df = self.raw('measurements')
+        self.assertEqual(set(meas_df['experiment']), {'PRG6-2A_LP-DIR-T_LP-DIR-AF'})
+        self.assertEqual(meas_df['method_codes'].iloc[0], 'LT-T-Z:LP-DIR-T:LP-DIR-AF')
+        self.assertAlmostEqual(float(meas_df['treat_temp'].iloc[0]), 480 + 273)
+        # the 0 mT step after the heating is an AF step, not an untreated NRM
+        self.assertEqual(meas_df['method_codes'].iloc[1], 'LT-AF-Z:LP-DIR-T:LP-DIR-AF')
+        self.assertAlmostEqual(float(meas_df['treat_ac_field'].iloc[1]), 0)
+        self.assertEqual(set(meas_df['method_codes'].iloc[1:]), {'LT-AF-Z:LP-DIR-T:LP-DIR-AF'})
+        self.assertEqual(list(meas_df['measurement'][:2]),
+                         ['PRG6-2A_LP-DIR-T_LP-DIR-AF-1', 'PRG6-2A_LP-DIR-T_LP-DIR-AF-2'])
+        self.assertEqual(list(meas_df['treat_step_num']), [str(k) for k in range(1, len(meas_df) + 1)])
+        self.assertEqual(meas_df['measurement'].nunique(), len(meas_df))
+        # the fit is over alternating field steps; the specimen names its experiment
+        spec_df = self.raw('specimens')
+        self.assertEqual(set(spec_df['experiments']), {'PRG6-2A_LP-DIR-T_LP-DIR-AF'})
+        self.assertEqual(self.fit('PRG6-2A', 'CA', 0)['method_codes'], 'DE-BFL-A:LP-DIR-AF:DA-DIR-GEO')
+
+    def test_rs3_specimens_without_fits(self):
+        # the record of a specimen without stored fits names its experiment and protocol
+        program_ran, outfile = convert.rs3(input_dir_path=self.input_dir)
+        self.assertTrue(program_ran)
+        spec_df = self.raw('specimens')
+        row = spec_df[spec_df['specimen'] == 'BO14-9-3'].iloc[0]
+        self.assertEqual(row['method_codes'], 'LP-DIR-T')
+        self.assertEqual(row['experiments'], 'BO14-9-3_LP-DIR-T')
+        # also with interpretations=False: every record has its method codes
+        program_ran, outfile = convert.rs3(input_dir_path=self.input_dir, interpretations=False)
+        self.assertTrue(program_ran)
+        spec_df = self.raw('specimens')
+        self.assertFalse(spec_df['method_codes'].isnull().any())
+        self.assertEqual(spec_df.set_index('specimen').loc['PRG2-1C', 'method_codes'], 'LP-DIR-AF')
+
+    def test_rs3_whole_numbers(self):
+        # integer columns are written without a decimal point, also when some
+        # records (here of BO14-9-3, which has no stored fits) leave them empty
+        program_ran, outfile = convert.rs3(input_dir_path=self.input_dir)
+        self.assertTrue(program_ran)
+        spec_df = self.raw('specimens')
+        rows = spec_df[spec_df['specimen'] == 'PRG2-1C']
+        self.assertEqual(sorted(set(rows['dir_n_measurements'])), ['11', '3'])
+        self.assertEqual(sorted(set(spec_df['dir_tilt_correction'].dropna())), ['-1', '0'])
+        self.assertTrue(spec_df['dir_tilt_correction'].isnull().any())
+
+    def test_rs3_naming_convention_7(self):
+        # 7-Z is convention 7 (site = first Z characters), not convention 4
+        program_ran, outfile = convert.rs3(input_dir_path=self.input_dir, mag_file='BO14-9-3.rs3',
+                                           samp_con='7-4')
+        self.assertTrue(program_ran)
+        self.assertEqual(self.read('samples').loc['BO14-9-3', 'site'], 'BO14')
+
+    def test_rs3_utf8(self):
+        """
+        a file saved again as UTF-8: the degree sign of the thermal limits takes
+        two bytes, and the result is the same as for the file as written
+        """
+        import shutil
+        import tempfile
+        program_ran, outfile = convert.rs3(input_dir_path=self.input_dir, mag_file='PRG1-6B.rs3')
+        self.assertTrue(program_ran)
+        expected = self.raw('specimens')
+        with open(os.path.join(self.input_dir, 'PRG1-6B.rs3'), encoding='latin-1') as f:
+            text = f.read()
+        self.assertIn('\xb0C', text)
+        tmp_dir = tempfile.mkdtemp()
+        try:
+            with open(os.path.join(tmp_dir, 'PRG1-6B.rs3'), 'w', encoding='utf-8', newline='') as f:
+                f.write(text)
+            program_ran, outfile = convert.rs3(input_dir_path=tmp_dir, dir_path=WD)
+            self.assertTrue(program_ran)
+            self.assertTrue(self.raw('specimens').equals(expected))
+        finally:
+            shutil.rmtree(tmp_dir)
+
+    def test_rs3_fiducial_at_3_oclock(self):
+        """
+        P1 = 3: a copy of PRG2-1C with the fiducial mark at 3 o'clock, its
+        declinations in specimen coordinates 90 degrees smaller. They are
+        rotated back to the 12 o'clock line, which the descriptions say.
+        """
+        with open(os.path.join(self.input_dir, 'PRG2-1C.rs3'), encoding='latin-1') as f:
+            lines = f.read().splitlines()
+        self.assertIn('12 90 12 90', lines[1])
+        changed = lines[:1] + [lines[1].replace('12 90 12 90', '3  90 12 90'), lines[2]]
+        for line in lines[3:]:
+            dsp = float(line[27:33])
+            changed.append(line[:27] + '%6.1f' % ((dsp - 90) % 360) + line[33:])
+        with open(os.path.join(WD, 'fiducial_3.rs3'), 'w', encoding='latin-1') as f:
+            f.write('\n'.join(changed) + '\n')
+        program_ran, outfile = convert.rs3(mag_file='fiducial_3.rs3', input_dir_path=WD)
+        self.assertTrue(program_ran)
+        meas_df = self.raw('measurements')
+        self.assertAlmostEqual(float(meas_df['dir_dec'].iloc[0]), 146.9)
+        self.assertTrue(all('P1 = 3' in d for d in meas_df['description']))
+        self.assertIn('P1 = 3', self.fit('PRG2-1C', 'CA', -1)['description'])
+        self.assertAlmostEqual(float(self.fit('PRG2-1C', 'CA', -1)['dir_dec']), 153.7)
+        self.assertTrue(self.raw('specimens').query("dir_tilt_correction == '0'")['description'].isnull().all())
 
     def test_rs3_orientation(self):
         """
