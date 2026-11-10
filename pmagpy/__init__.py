@@ -28,7 +28,7 @@ _SUBMODULES = {
     'pmagplotlib': 'pmagplotlib',
     'find_pmag_dir': 'find_pmag_dir',
     'version': 'version',
-    'controlled_vocabularies': 'controlled_vocabularies2',
+    'controlled_vocabularies': 'controlled_vocabularies3',
     'data_model3': 'data_model3',
     'contribution_builder': 'contribution_builder',
     'magic_validation': 'magic_validation',

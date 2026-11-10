@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import json
 import os
 
 import pandas as pd
@@ -167,13 +166,6 @@ class Vocabulary(object):
         categories = Series(code_types[code_types[mtype] == True].index)
         codes = {cat: list(self.get_one_meth_type(cat, all_codes).index) for cat in categories}
         return codes
-
-    def get_tiered_meth_category_offline(self):
-        path = os.path.join(data_model_dir, 'er_methods.txt')
-        dfile = open(path)
-        json_data = json.load(dfile)
-        dfile.close()
-        return json_data
 
 
     ## Get non-method-code controlled vocabularies
@@ -350,20 +342,9 @@ class Vocabulary(object):
         ## i.e. er_codes = {'anisotropy_codes': ['code1', 'code2'], ...}
         ##def get_tiered_meth_category(mtype, all_codes, code_types):
 
-        if any(all_codes):
-            methods = self.get_tiered_meth_category('other', all_codes, code_types)
-            age_methods = self.get_tiered_meth_category('age', all_codes, code_types)
-        else:
-            methods = self.get_tiered_meth_category_offline()
-            age_methods = self.get_tiered_meth_category_offline()
-            path = os.path.join(data_model_dir, 'code_types.txt')
-            with open(path, 'r') as type_file:
-                raw_code_types = json.load(type_file)
-            code_types = pd.read_json(raw_code_types, encoding='utf-8-sig')
-            path = os.path.join(data_model_dir, 'all_codes.txt')
-            with open(path, 'r') as code_file:
-                raw_all_codes = json.load(code_file)
-            all_codes = pd.read_json(raw_all_codes, encoding='utf-8-sig')
+        # the method codes come from earthref.org or the cached method_codes.json
+        methods = self.get_tiered_meth_category('other', all_codes, code_types)
+        age_methods = self.get_tiered_meth_category('age', all_codes, code_types)
 
         vocabularies = self.get_controlled_vocabularies()
         suggested = self.get_suggested_vocabularies()
