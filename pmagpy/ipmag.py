@@ -2382,7 +2382,7 @@ def plot_net(fignum=None, tick_spacing=10, ax=None, label_directions=False,
         ax.axis((-1.05, 1.05, -1.05, 1.05))
 
 
-def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label='', connect_points=False, lw=0.25, lc='k', la=0.5, title=None, edge=None, alpha=1, zorder=2):
+def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label='', connect_points=False, lw=0.25, lc='k', la=0.5, title=None, edge=None, alpha=1, zorder=2, ax=None):
     """
     Plot declination, inclination data on an equal area plot.
 
@@ -2391,6 +2391,11 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
     >fignum = 1
     >plt.figure(num=fignum,figsize=(10,10),dpi=160)
     >ipmag.plot_net(fignum)
+
+    To plot on a panel of a multi-panel figure, pass its axis to both functions:
+    >fig, axes = plt.subplots(1, 2)
+    >ipmag.plot_net(ax=axes[0])
+    >ipmag.plot_di(dec, inc, ax=axes[0])
 
     Parameters:
         dec : declination being plotted
@@ -2409,7 +2414,13 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
         edge : marker edge color - if blank, is color of marker
         alpha : opacity
         zorder : zorder of marker
+        ax : matplotlib axis to plot on. If None (the default), the current axis
+            is used and plt.tight_layout() is applied to its figure. If an axis
+            is provided, the layout of its figure is left unchanged.
     """
+    use_current_axis = ax is None
+    if use_current_axis:
+        ax = plt.gca()
     X_down = []
     X_up = []
     Y_down = []
@@ -2454,22 +2465,23 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
 
     if len(X_up) > 0:
         if connect_points:
-            plt.plot(X_up, Y_up, ls = '-', linewidth=lw, color =lc, alpha = la, zorder=1)
-        plt.scatter(X_up, Y_up, facecolors='none', edgecolors=color_up,
-                    s=markersize, marker=marker, label=label,alpha=alpha, zorder=zorder)
+            ax.plot(X_up, Y_up, ls = '-', linewidth=lw, color =lc, alpha = la, zorder=1)
+        ax.scatter(X_up, Y_up, facecolors='none', edgecolors=color_up,
+                   s=markersize, marker=marker, label=label,alpha=alpha, zorder=zorder)
     if len(X_down) > 0:
         if connect_points:
-            plt.plot(X_down, Y_down, ls = '-', linewidth=lw, color =lc, alpha = la, zorder=1)
-        plt.scatter(X_down, Y_down, facecolors=color_down, edgecolors=edge,
-                    s=markersize, marker=marker, label=label,alpha=alpha, zorder=zorder)
+            ax.plot(X_down, Y_down, ls = '-', linewidth=lw, color =lc, alpha = la, zorder=1)
+        ax.scatter(X_down, Y_down, facecolors=color_down, edgecolors=edge,
+                   s=markersize, marker=marker, label=label,alpha=alpha, zorder=zorder)
     if legend == 'yes':
-        plt.legend(loc=2)
-    plt.tight_layout()
+        ax.legend(loc=2)
+    if use_current_axis:
+        plt.tight_layout()
     if title is not None:
-        plt.title(title)
+        ax.set_title(title)
 
 
-def plot_di_mean(dec, inc, a95, color='k', marker='o', markersize=20, label='', legend='no', zorder=2):
+def plot_di_mean(dec, inc, a95, color='k', marker='o', markersize=20, label='', legend='no', zorder=2, ax=None):
     """
     Plot a mean direction (declination, inclination) with alpha_95 ellipse on
     an equal area plot.
@@ -2479,6 +2491,11 @@ def plot_di_mean(dec, inc, a95, color='k', marker='o', markersize=20, label='', 
     >fignum = 1
     >plt.figure(num=fignum,figsize=(10,10),dpi=160)
     >ipmag.plot_net(fignum)
+
+    To plot on a panel of a multi-panel figure, pass its axis to both functions:
+    >fig, axes = plt.subplots(1, 2)
+    >ipmag.plot_net(ax=axes[0])
+    >ipmag.plot_di_mean(dec, inc, a95, ax=axes[0])
 
     Parameters:
         dec : declination of mean being plotted
@@ -2490,26 +2507,33 @@ def plot_di_mean(dec, inc, a95, color='k', marker='o', markersize=20, label='', 
         label : the default is no label. Labels can be assigned.
         legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
         zorder : zorder of marker
+        ax : matplotlib axis to plot on. If None (the default), the current axis
+            is used and plt.tight_layout() is applied to its figure. If an axis
+            is provided, the layout of its figure is left unchanged.
     """
+    use_current_axis = ax is None
+    if use_current_axis:
+        ax = plt.gca()
     DI_dimap = pmag.dimap(dec, inc)
     if inc < 0:
-        plt.scatter(DI_dimap[0], DI_dimap[1],
-                    edgecolors=color, facecolors='white',
-                    marker=marker, s=markersize, label=label, zorder=zorder)
+        ax.scatter(DI_dimap[0], DI_dimap[1],
+                   edgecolors=color, facecolors='white',
+                   marker=marker, s=markersize, label=label, zorder=zorder)
     if inc >= 0:
-        plt.scatter(DI_dimap[0], DI_dimap[1],
-                    edgecolors=color, facecolors=color,
-                    marker=marker, s=markersize, label=label, zorder=zorder)
+        ax.scatter(DI_dimap[0], DI_dimap[1],
+                   edgecolors=color, facecolors=color,
+                   marker=marker, s=markersize, label=label, zorder=zorder)
     Xcirc, Ycirc = [], []
     Da95, Ia95 = pmag.circ(dec, inc, a95)
     if legend == 'yes':
-        plt.legend(loc=2)
+        ax.legend(loc=2)
     for k in range(len(Da95)):
         XY = pmag.dimap(Da95[k], Ia95[k])
         Xcirc.append(XY[0])
         Ycirc.append(XY[1])
-    plt.plot(Xcirc, Ycirc, c=color)
-    plt.tight_layout()
+    ax.plot(Xcirc, Ycirc, c=color)
+    if use_current_axis:
+        plt.tight_layout()
 
 
 def plot_di_mean_bingham(bingham_dictionary, fignum=1, color='k', marker='o', markersize=20, label='', legend='no'):
@@ -2587,14 +2611,15 @@ def make_orthographic_map(central_longitude=0, central_latitude=0, figsize=(8, 8
                           add_ocean=False, ocean_color='lightblue', grid_lines=True,
                           lat_grid=[-80.,  -60.,  -30.,
                                     0.,   30.,   60., 80.],
-                          lon_grid=[-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.]):
+                          lon_grid=[-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.],
+                          fig=None, subplot=(1, 1, 1)):
     '''
     Function creates and returns an orthographic map projection using cartopy
 
     Parameters:
         central_longitude : central longitude of projection (default is 0)
         central_latitude : central latitude of projection (default is 0)
-        figsize : size of the figure (default is 8x8)
+        figsize : size of the figure (default is 8x8; not used if fig is provided)
         add_land : chose whether land is plotted on map (default is true)
         land_color : specify land color (default is 'tan')
         add_ocean : chose whether land is plotted on map (default is False, change to True to plot)
@@ -2602,9 +2627,23 @@ def make_orthographic_map(central_longitude=0, central_latitude=0, figsize=(8, 8
         grid_lines : chose whether grid lines are plotted on map (default is true)
         lat_grid : specify the latitude grid (default is 30 degree spacing)
         lon_grid : specify the longitude grid (default is 30 degree spacing)
-    
+        fig : existing matplotlib figure to add the map to, so that the map can
+            be a panel of a multi-panel figure (default is None, which creates
+            a new figure of size figsize)
+        subplot : position of the map within the figure, as the
+            (nrows, ncols, index) tuple, three-digit integer or
+            matplotlib SubplotSpec accepted by fig.add_subplot
+            (default is (1, 1, 1), a map that fills the figure)
+
     Examples:
         >>> map_axis = make_orthographic_map(central_longitude=200,central_latitude=30)
+
+        A map as the second panel of an existing figure:
+
+        >>> fig = plt.figure(figsize=(8, 4))
+        >>> net_axis = fig.add_subplot(1, 2, 1)
+        >>> map_axis = make_orthographic_map(central_longitude=200, central_latitude=30,
+        ...                                  fig=fig, subplot=(1, 2, 2))
 
     '''
     # wrapper class to change the default resolution of the orthographic projection
@@ -2616,10 +2655,14 @@ def make_orthographic_map(central_longitude=0, central_latitude=0, figsize=(8, 8
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.make_orthographic_map')
         return
-    fig = plt.figure(figsize=figsize)
+    if fig is None:
+        fig = plt.figure(figsize=figsize)
     map_projection = ccrs.Orthographic(
         central_longitude=central_longitude, central_latitude=central_latitude)
-    ax = plt.axes(projection=map_projection)
+    if isinstance(subplot, (tuple, list)):
+        ax = fig.add_subplot(*subplot, projection=map_projection)
+    else:
+        ax = fig.add_subplot(subplot, projection=map_projection)
     ax.set_global()
     if add_ocean:
         ax.add_feature(cartopy.feature.OCEAN, zorder=0, facecolor=ocean_color)
@@ -2637,14 +2680,15 @@ def make_mollweide_map(central_longitude=0, figsize=(8, 8),
                        add_ocean=False, ocean_color='lightblue', grid_lines=True,
                        lat_grid=[-180., -150., -120.,  -90.,  -60.,  -30.,
                                  0.,   30.,   60., 90.,  120.,  150.,  180.],
-                       lon_grid=[-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.]):
+                       lon_grid=[-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.],
+                       fig=None, subplot=(1, 1, 1)):
     '''
     Function creates and returns a Mollweide map projection using cartopy
 
     Parameters:
         central_longitude : central longitude of projection (default is 0)
         central_latitude : central latitude of projection (default is 0)
-        figsize : size of the figure (default is 8x8)
+        figsize : size of the figure (default is 8x8; not used if fig is provided)
         add_land : chose whether land is plotted on map (default is True)
         land_color : specify land color (default is 'tan')
         add_ocean : chose whether land is plotted on map (default is False, change to True to plot)
@@ -2652,16 +2696,33 @@ def make_mollweide_map(central_longitude=0, figsize=(8, 8),
         grid_lines : chose whether grid lines are plotted on map (default is true)
         lat_grid : specify the latitude grid (default is 30 degree spacing)
         lon_grid : specify the longitude grid (default is 30 degree spacing)
-    
+        fig : existing matplotlib figure to add the map to, so that the map can
+            be a panel of a multi-panel figure (default is None, which creates
+            a new figure of size figsize)
+        subplot : position of the map within the figure, as the
+            (nrows, ncols, index) tuple, three-digit integer or
+            matplotlib SubplotSpec accepted by fig.add_subplot
+            (default is (1, 1, 1), a map that fills the figure)
+
     Examples:
         >>> map_axis = make_mollweide_map(central_longitude=200)
+
+        A map as the second panel of an existing figure:
+
+        >>> fig = plt.figure(figsize=(8, 4))
+        >>> net_axis = fig.add_subplot(1, 2, 1)
+        >>> map_axis = make_mollweide_map(central_longitude=200, fig=fig, subplot=(1, 2, 2))
     '''
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.make_molleweide_map')
         return
-    fig = plt.figure(figsize=figsize)
+    if fig is None:
+        fig = plt.figure(figsize=figsize)
     map_projection = ccrs.Mollweide(central_longitude=central_longitude)
-    ax = plt.axes(projection=map_projection)
+    if isinstance(subplot, (tuple, list)):
+        ax = fig.add_subplot(*subplot, projection=map_projection)
+    else:
+        ax = fig.add_subplot(subplot, projection=map_projection)
     if add_ocean:
         ax.add_feature(cartopy.feature.OCEAN, zorder=0, facecolor=ocean_color)
     if add_land:
@@ -2677,14 +2738,15 @@ def make_robinson_map(central_longitude=0, figsize=(8, 8),
                       add_land=True, land_color='tan', add_ocean=False, ocean_color='lightblue', grid_lines=True,
                       lat_grid=[-180., -150., -120.,  -90.,  -60.,  -30.,
                                 0.,   30.,   60., 90.,  120.,  150.,  180.],
-                      lon_grid=[-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.]):
+                      lon_grid=[-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.],
+                      fig=None, subplot=(1, 1, 1)):
     '''
     Function creates and returns a Robinson map projection using cartopy
 
     Parameters:
         central_longitude : central longitude of projection (default is 0)
         central_latitude : central latitude of projection (default is 0)
-        figsize : size of the figure (default is 8x8)
+        figsize : size of the figure (default is 8x8; not used if fig is provided)
         add_land : chose whether land is plotted on map (default is True)
         land_color : specify land color (default is 'tan')
         add_ocean : chose whether land is plotted on map (default is False, change to True to plot)
@@ -2692,16 +2754,33 @@ def make_robinson_map(central_longitude=0, figsize=(8, 8),
         grid_lines : chose whether grid lines are plotted on map (default is true)
         lat_grid : specify the latitude grid (default is 30 degree spacing)
         lon_grid : specify the longitude grid (default is 30 degree spacing)
+        fig : existing matplotlib figure to add the map to, so that the map can
+            be a panel of a multi-panel figure (default is None, which creates
+            a new figure of size figsize)
+        subplot : position of the map within the figure, as the
+            (nrows, ncols, index) tuple, three-digit integer or
+            matplotlib SubplotSpec accepted by fig.add_subplot
+            (default is (1, 1, 1), a map that fills the figure)
 
     Examples:
-        >>> map_axis = make_Robinson_map(central_longitude=200)
+        >>> map_axis = make_robinson_map(central_longitude=200)
+
+        A map as the second panel of an existing figure:
+
+        >>> fig = plt.figure(figsize=(8, 4))
+        >>> net_axis = fig.add_subplot(1, 2, 1)
+        >>> map_axis = make_robinson_map(central_longitude=200, fig=fig, subplot=(1, 2, 2))
     '''
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.make_robinson_map')
         return
-    fig = plt.figure(figsize=figsize)
+    if fig is None:
+        fig = plt.figure(figsize=figsize)
     map_projection = ccrs.Robinson(central_longitude=central_longitude)
-    ax = plt.axes(projection=map_projection)
+    if isinstance(subplot, (tuple, list)):
+        ax = fig.add_subplot(*subplot, projection=map_projection)
+    else:
+        ax = fig.add_subplot(subplot, projection=map_projection)
     if add_ocean:
         ax.add_feature(cartopy.feature.OCEAN, zorder=0, facecolor=ocean_color)
     if add_land:
