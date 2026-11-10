@@ -2,7 +2,8 @@
 Tests for pmag.domean — the core direction-fitting function.
 
 Covers Fisher mean (DE-FM), best-fit line (DE-BFL), anchored line (DE-BFL-A),
-origin-line (DE-BFL-O), and best-fit plane (DE-BFP) calculation types.
+origin-line (DE-BFL-O), vector mean (DE-VM) and best-fit plane (DE-BFP)
+calculation types.
 
 Data format: [[treatment, dec, inc, intensity, quality], ...]
 where quality flag 'g' = good, 'b' = bad.
@@ -22,6 +23,34 @@ def _make_datablock(decs, incs, intensities=None, treatments=None):
         treatments = list(range(n))
     return [[treatments[i], decs[i], incs[i], intensities[i], 'g']
             for i in range(n)]
+
+
+def _block(steps):
+    """Data block from (dec, inc, intensity) steps."""
+    decs, incs, intensities = zip(*steps)
+    return _make_datablock(decs, incs, intensities)
+
+
+def _angle(mpars, dec, inc):
+    """Angle (degrees) between a fit and a direction."""
+    fit = pmag.dir2cart([mpars['specimen_dec'], mpars['specimen_inc'], 1.])
+    direction = pmag.dir2cart([dec, inc, 1.])
+    return np.degrees(np.arccos(np.clip(np.dot(fit, direction), -1., 1.)))
+
+
+def _noisy_steps():
+    """Two-component demagnetization data with measurement noise.
+
+    Returns the steps as (dec, inc, intensity) and as an array of x, y, z.
+    """
+    rng = np.random.default_rng(963)
+    chrm = np.array(pmag.dir2cart([20., 40., 1.]))
+    overprint = np.array(pmag.dir2cart([355., 70., 1.]))
+    temps = np.array([300, 350, 400, 450, 500, 525, 550, 565, 580])
+    steps = [3e-5 * np.clip((585 - t) / 235, 0, 1) * chrm +
+             1.2e-5 * np.clip((470 - t) / 370, 0, 1) * overprint +
+             rng.normal(0, 4e-7, 3) for t in temps]
+    return [pmag.cart2dir(x) for x in steps], np.array(steps)
 
 
 # ---------------------------------------------------------------------------
@@ -108,6 +137,21 @@ class TestDomeanBFL:
         assert mpars_bad['specimen_mad'] > mpars_good['specimen_mad']
 
 
+class TestDomeanBFLEigenvector:
+    """The free line against an independent eigen-decomposition."""
+
+    def test_matches_eigenvector_about_centre_of_mass(self):
+        """Direction equals the principal axis about the centre of mass,
+        pointing along the vector removed between the first and last steps."""
+        directions, X = _noisy_steps()
+        mpars = pmag.domean(_block(directions), 0, len(X) - 1, 'DE-BFL')
+        Xc = X - X.mean(axis=0)
+        tau, V = np.linalg.eigh(Xc.T @ Xc)
+        v1 = V[:, -1] * np.sign(V[:, -1] @ (X[0] - X[-1]))
+        expected = pmag.cart2dir(v1)
+        assert _angle(mpars, expected[0], expected[1]) < 1e-6
+
+
 # ---------------------------------------------------------------------------
 # DE-BFL-A: anchored best-fit line
 # ---------------------------------------------------------------------------
@@ -127,6 +171,77 @@ class TestDomeanBFLA:
         data = _make_datablock([10, 10, 10], [45, 45, 45], [1.0, 0.5, 0.1])
         mpars = pmag.domean(data, 0, 2, 'DE-BFL-A')
         assert mpars['specimen_direction_type'] == 'l'
+
+    def test_analytic_two_steps(self):
+        """The anchored line is the principal axis about the origin (issue #963).
+
+        For steps (1, 0, 0) and (0, 0.5, 0) the orientation tensor about the
+        origin is diag(1, 0.25, 0): the anchored axis is x (dec 0), whereas the
+        vector mean of the two steps is at dec atan(0.5) = 26.57.
+        """
+        mpars = pmag.domean(_block([(0., 0., 1.), (90., 0., 0.5)]), 0, 1, 'DE-BFL-A')
+        assert _angle(mpars, 0., 0.) < 1e-6
+        assert_allclose(mpars['specimen_mad'], np.degrees(np.arctan(0.5)), atol=1e-6)
+
+    def test_collinear_with_origin(self):
+        """Steps decaying along one direction give that direction, not its antipode."""
+        steps = [(30., 45., m) for m in (5., 4., 2.5, 1., 0.2)]
+        mpars = pmag.domean(_block(steps), 0, 4, 'DE-BFL-A')
+        assert _angle(mpars, 30., 45.) < 1e-6
+        assert mpars['specimen_mad'] < 1e-6
+
+    def test_points_toward_steps(self):
+        """An anchored line points toward its steps, whichever of the first and
+        last steps is the larger; a free line points along the vector removed."""
+        rising = [(30., 45., m) for m in (1.0, 1.1, 1.2)]
+        assert _angle(pmag.domean(_block(rising), 0, 2, 'DE-BFL-A'), 30., 45.) < 1e-6
+        assert _angle(pmag.domean(_block(rising), 0, 2, 'DE-BFL'), 210., -45.) < 1e-6
+        # weak steps near the origin, the last one the largest
+        weak = [(30., 45., 0.05), (25., 50., 0.04), (36., 41., 0.06)]
+        anchored = pmag.domean(_block(weak), 0, 2, 'DE-BFL-A')
+        assert _angle(anchored, 30., 45.) < 5.
+        vector_mean = pmag.domean(_block(weak), 0, 2, 'DE-VM')
+        assert _angle(anchored, vector_mean['specimen_dec'],
+                      vector_mean['specimen_inc']) < 90.
+
+    def test_single_step(self):
+        """A single step gives its own direction."""
+        mpars = pmag.domean(_block([(30., 45., 5.), (200., -10., 2.)]), 0, 0, 'DE-BFL-A')
+        assert _angle(mpars, 30., 45.) < 1e-6
+
+    def test_matches_eigenvector_about_origin(self):
+        """Direction and MAD equal an independent eigen-decomposition about the origin."""
+        directions, X = _noisy_steps()
+        mpars = pmag.domean(_block(directions), 0, len(X) - 1, 'DE-BFL-A')
+        tau, V = np.linalg.eigh(X.T @ X)
+        v1 = V[:, -1] * np.sign(V[:, -1] @ X.sum(axis=0))  # toward the steps
+        expected = pmag.cart2dir(v1)
+        assert _angle(mpars, expected[0], expected[1]) < 1e-6
+        tau = tau[::-1] / tau.sum()
+        mad = np.degrees(np.arctan(np.sqrt(tau[1] + tau[2]) / np.sqrt(tau[0])))
+        assert_allclose(mpars['specimen_mad'], mad, atol=1e-6)
+        assert 'specimen_dang' not in mpars
+
+
+# ---------------------------------------------------------------------------
+# DE-VM: vector mean
+# ---------------------------------------------------------------------------
+
+class TestDomeanVM:
+    """Tests for domean with calculation_type='DE-VM'."""
+
+    def test_direction_of_vector_sum(self):
+        """The vector mean of (1, 0, 0) and (0, 0.5, 0) is at dec atan(0.5)."""
+        mpars = pmag.domean(_block([(0., 0., 1.), (90., 0., 0.5)]), 0, 1, 'DE-VM')
+        assert _angle(mpars, np.degrees(np.arctan(0.5)), 0.) < 1e-6
+        assert mpars['specimen_direction_type'] == 'l'
+        assert mpars['specimen_n'] == 2
+
+    def test_no_mad_or_dang(self):
+        """A vector mean has no MAD, and its DANG is the placeholder -1."""
+        mpars = pmag.domean(_block([(0., 0., 1.), (90., 0., 0.5)]), 0, 1, 'DE-VM')
+        assert 'specimen_mad' not in mpars
+        assert mpars['specimen_dang'] == -1
 
 
 # ---------------------------------------------------------------------------

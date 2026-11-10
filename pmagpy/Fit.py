@@ -1,3 +1,18 @@
+# The kinds of directional fit of Demag GUI, in the order of its fit type box:
+# the name shown to the user, and the MagIC method code, which is the
+# calculation_type of pmag.domean
+PCA_TYPE_CODES = {
+    'line': 'DE-BFL',
+    'line-anchored': 'DE-BFL-A',
+    'line-with-origin': 'DE-BFL-O',
+    'vector mean': 'DE-VM',
+    'plane': 'DE-BFP',
+    'Fisher': 'DE-FM',
+}
+# the name of each method code
+PCA_TYPE_NAMES = {code: name for name, code in PCA_TYPE_CODES.items()}
+
+
 class Fit(object):
 
     meas_data = None
@@ -34,11 +49,8 @@ class Fit(object):
         if PCA_type == None:
             if GUI!=None: calculation_type=GUI.PCA_type_box.GetValue()
             else: calculation_type = None
-        if calculation_type=="line": PCA_type="DE-BFL"
-        elif calculation_type=="line-anchored": PCA_type="DE-BFL-A"
-        elif calculation_type=="line-with-origin": PCA_type="DE-BFL-O"
-        elif calculation_type=="Fisher": PCA_type="DE-FM"
-        elif calculation_type=="plane": PCA_type="DE-BFP"
+        if calculation_type in PCA_TYPE_CODES:
+            PCA_type = PCA_TYPE_CODES[calculation_type]
         self.PCA_type = PCA_type
         if GUI!=None:
             self.lines = [None,None]
