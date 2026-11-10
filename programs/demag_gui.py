@@ -600,8 +600,7 @@ class Demag_GUI(wx.Frame):
         # Interpretation Type and Display window
     # ----------------------------------------------------------------------
 
-        self.PCA_type_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25), value='line', choices=[
-                                        'line', 'line-anchored', 'line-with-origin', 'vector mean', 'plane', 'Fisher'], style=wx.CB_DROPDOWN | wx.TE_READONLY, name="coordinates")
+        self.PCA_type_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25), value='line', choices=list(PCA_TYPE_CODES), style=wx.CB_DROPDOWN | wx.TE_READONLY, name="coordinates")
         self.Bind(wx.EVT_COMBOBOX,
                   self.on_select_specimen_mean_type_box, self.PCA_type_box)
         self.PCA_type_box.SetHelpText(dgh.PCA_type_help)
@@ -4584,9 +4583,8 @@ class Demag_GUI(wx.Frame):
                 fmin = fdict[i]['meas_step_min']
                 fmax = fdict[i]['meas_step_max']
 
-            PCA_types = ["DE-BFL", "DE-BFL-A", "DE-BFL-O", "DE-VM", "DE-FM", "DE-BFP"]
             PCA_type_list = [x for x in str(fdict[i]['method_codes']).split(
-                ':') if x.strip() in PCA_types]
+                ':') if x.strip() in PCA_TYPE_NAMES]
             if len(PCA_type_list) > 0:
                 PCA_type = PCA_type_list[0].strip()
             else:
@@ -6511,18 +6509,8 @@ class Demag_GUI(wx.Frame):
                 PCA_type = "None"
 
             # update calculation type windows
-            if calculation_type == "DE-BFL":
-                PCA_type = "line"
-            elif calculation_type == "DE-BFL-A":
-                PCA_type = "line-anchored"
-            elif calculation_type == "DE-BFL-O":
-                PCA_type = "line-with-origin"
-            elif calculation_type == "DE-VM":
-                PCA_type = "vector mean"
-            elif calculation_type == "DE-FM":
-                PCA_type = "Fisher"
-            elif calculation_type == "DE-BFP":
-                PCA_type = "plane"
+            if calculation_type in PCA_TYPE_NAMES:
+                PCA_type = PCA_TYPE_NAMES[calculation_type]
             else:
                 print("no PCA type found setting to line")
                 PCA_type = "line"
@@ -8452,19 +8440,7 @@ class Demag_GUI(wx.Frame):
             self.on_btn_add_fit(event)
             return
 
-        PCA_type = self.PCA_type_box.GetValue()
-        if PCA_type == "line":
-            calculation_type = "DE-BFL"
-        elif PCA_type == "line-anchored":
-            calculation_type = "DE-BFL-A"
-        elif PCA_type == "line-with-origin":
-            calculation_type = "DE-BFL-O"
-        elif PCA_type == "vector mean":
-            calculation_type = "DE-VM"
-        elif PCA_type == "Fisher":
-            calculation_type = "DE-FM"
-        elif PCA_type == "plane":
-            calculation_type = "DE-BFP"
+        calculation_type = PCA_TYPE_CODES[self.PCA_type_box.GetValue()]
         coordinate_system = self.COORDINATE_SYSTEM
         if self.current_fit:
             self.current_fit.put(self.s, coordinate_system, self.get_PCA_parameters(
