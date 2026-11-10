@@ -4535,9 +4535,12 @@ class Demag_GUI(wx.Frame):
             self.spec_data["result_quality"] = "g"
         if "dir_tilt_correction" not in self.spec_data.columns:
             self.spec_data["dir_tilt_correction"] = ""
-        fdict = self.spec_data[['specimen', fnames, 'meas_step_min', 'meas_step_max', 'meas_step_unit',
-                                'dir_tilt_correction', 'method_codes', 'result_quality']].to_dict("records")
+        columns = ['specimen', fnames, 'meas_step_min', 'meas_step_max', 'meas_step_unit',
+                   'dir_tilt_correction', 'method_codes', 'result_quality']
+        columns += [col for col in ['dir_dec', 'dir_inc'] if col in self.spec_data.columns]
+        fdict = self.spec_data[columns].to_dict("records")
         unnamed_fits = []
+        anchored_fits = []
         for i in range(len(fdict)):
             spec = fdict[i]['specimen']
             if spec not in self.specimens:
@@ -4591,6 +4594,8 @@ class Demag_GUI(wx.Frame):
                 PCA_type = "DE-BFL"
             if "DE-BLANKET" not in str(fdict[i]['method_codes']):
                 fit = self.add_fit(spec, fname, fmin, fmax, PCA_type)
+                if fit is not None and PCA_type == "DE-BFL-A":
+                    anchored_fits.append((spec, fit, fdict[i]))
 
             if fdict[i]['result_quality'] == 'b':
                 self.bad_fits.append(fit)
@@ -4598,6 +4603,65 @@ class Demag_GUI(wx.Frame):
         if unnamed_fits:
             print(("-W- skipped %i directional fit(s) with no component name in specimens.txt, for specimens: %s"
                    % (len(unnamed_fits), ", ".join(sorted(set(unnamed_fits))))))
+        if anchored_fits:
+            self.check_anchored_fits(anchored_fits)
+
+    def check_anchored_fits(self, anchored_fits):
+        """
+        Finds anchored lines (DE-BFL-A) read from specimens.txt whose stored
+        directions are the vector means of their steps, as earlier versions
+        of PmagPy computed anchored lines (#963). Demag GUI refits them as
+        anchored principal components, so saving would replace the stored
+        directions; the user can instead relabel them as vector means
+        (DE-VM), which keeps the stored directions.
+
+        Parameters
+        ----------
+        anchored_fits : list of (specimen, fit, record) for each anchored
+            line read, with record the row of specimens.txt it was read from
+        """
+        blocks = {-1: 'zijdblock', 0: 'zijdblock_geo', 100: 'zijdblock_tilt'}
+        vector_means, shifts = [], []
+        for spec, fit, rec in anchored_fits:
+            try:
+                tilt = int(float(rec['dir_tilt_correction']))
+                dec, inc = float(rec['dir_dec']), float(rec['dir_inc'])
+            except (KeyError, TypeError, ValueError):
+                continue
+            if tilt not in blocks or np.isnan(dec) or np.isnan(inc):
+                continue
+            block = self.Data[spec][blocks[tilt]]
+            if len(block) == 0:
+                continue
+            start, end = self.get_indices(fit, fit.tmin, fit.tmax, spec)
+            shift = pmag.anchored_line_stored_as_vector_mean(block, start, end, dec, inc)
+            if shift is not None:
+                vector_means.append((spec, fit))
+                shifts.append(shift)
+        if not vector_means:
+            return
+        message = ("%i of the %i anchored line (DE-BFL-A) interpretations in specimens.txt store the "
+                   "vector mean of their steps rather than an anchored line. Earlier versions of PmagPy "
+                   "computed anchored lines as vector means. Refit as anchored lines, their directions "
+                   "change by a median of %.1f and up to %.1f degrees, and saving would replace the stored "
+                   "directions.\n\nRelabel them as vector means (DE-VM), which keeps their stored "
+                   "directions?\n\nYes: relabel as vector means.\nNo: refit as anchored lines."
+                   % (len(vector_means), len(anchored_fits), np.median(shifts), max(shifts)))
+        print("-W- " + message.replace("\n\n", " ").replace("\n", " "))
+        dlg = wx.MessageDialog(self, message, "Anchored lines stored as vector means",
+                               wx.YES_NO | wx.ICON_WARNING)
+        relabel = self.show_dlg(dlg) == wx.ID_YES
+        dlg.Destroy()
+        if not relabel:
+            return
+        for spec, fit in vector_means:
+            for coordinate_system, block in [('specimen', 'zijdblock'), ('geographic', 'zijdblock_geo'),
+                                             ('tilt-corrected', 'zijdblock_tilt')]:
+                if len(self.Data[spec][block]) > 0:
+                    fit.put(spec, coordinate_system, self.get_PCA_parameters(
+                        spec, fit, fit.tmin, fit.tmax, coordinate_system, 'DE-VM'))
+            fit.PCA_type = 'DE-VM'
+        print("-I- relabelled %i anchored line(s) as vector means (DE-VM)" % len(vector_means))
 
     def get_data_info(self):
         """

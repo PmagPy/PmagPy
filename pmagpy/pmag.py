@@ -3084,6 +3084,39 @@ def domean(data, start, end, calculation_type):
     return mpars
 
 
+def anchored_line_stored_as_vector_mean(data, start, end, dec, inc, tolerance=0.1):
+    """
+    Checks whether a direction stored as an anchored line (DE-BFL-A) is the
+    vector mean of its steps, as PmagPy computed anchored lines until they
+    became anchored principal components (#963).
+
+    Parameters
+    ----------
+    data : nested list of demagnetization data, as for domean
+    start : index of the first step of the fit
+    end : index of the last step of the fit
+    dec : stored declination of the fit
+    inc : stored inclination of the fit
+    tolerance : angle in degrees within which the stored direction matches
+        a fit (default 0.1, for directions stored to one decimal place)
+
+    Returns
+    -------
+    float or None
+        if the stored direction is the vector mean of the steps (DE-VM) and
+        not their anchored line, the angle in degrees between the stored
+        direction and the anchored line refit to the steps; otherwise None
+    """
+    anchored = domean(data, start, end, 'DE-BFL-A')
+    vector_mean = domean(data, start, end, 'DE-VM')
+    stored = [float(dec), float(inc), 1.]
+    to_anchored = angle(stored, [anchored['specimen_dec'], anchored['specimen_inc'], 1.])[0]
+    to_vector_mean = angle(stored, [vector_mean['specimen_dec'], vector_mean['specimen_inc'], 1.])[0]
+    if to_vector_mean <= tolerance < to_anchored:
+        return to_anchored
+    return None
+
+
 def circ(dec, dip, alpha,npts=201):
     """
     Calculates points on an circle about dec and dip with angle alpha.
