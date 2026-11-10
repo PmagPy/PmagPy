@@ -5,8 +5,7 @@ The first group ports lib/modules/magic/tests/validate_contribution.tests.js
 of https://github.com/earthref/MagIC (commit 6b6f229). Some expectations there
 are older than the validator or the data model they test, and are updated here:
 the messages for required columns ("is missing data in required column"); the
-spelling of a controlled-vocabulary value ("Archeologic", which the validator
-compares exactly); the valid contribution, given without a contribution table
+valid contribution, given without a contribution table
 (which now requires reference and lab_names) and without three columns that
 have left the data model; and requiredIfGroup, which the current data model no
 longer uses and is tested with a rule added. The rules
@@ -51,7 +50,7 @@ def valid_contribution():
     # samples.location, specimens.location and specimens.site, no longer in the data model
     json = {
         "locations": [{"location": "location 1", "sites": "site 1", "location_type": "Archeological Ashes",
-                       "geologic_classes": "Archeologic", "lithologies": ":Achondrite:Agate:", "lat_s": 0,
+                       "geologic_classes": "archeologic", "lithologies": ":Achondrite:Agate:", "lat_s": 0,
                        "lat_n": 0, "lon_w": 0, "lon_e": 0, "age": 0, "age_unit": "Ma"}],
         "sites": [{"location": "location 1", "site": "site 1", "result_quality": "g", "result_type": "a",
                    "method_codes": ":LP-PI", "citations": "this study", "geologic_classes": "Archeologic",
@@ -164,8 +163,10 @@ class TestMagicValidationPortedTests(unittest.TestCase):
     def test_controlled_vocabulary(self):
         self.assertError({"locations": [{"age_unit": "?"}]}, "locations", "age_unit",
                          r'not in the .* controlled vocabulary')
-        # the comparison is exact
-        self.assertError({"locations": [{"geologic_classes": "archeologic"}]}, "locations", "geologic_classes",
+        # case is ignored, as by the EarthRef API
+        self.assertNoError({"locations": [{"geologic_classes": "ARCHEOLOGIC"}]}, "locations", "geologic_classes",
+                           r'not in the .* controlled vocabulary')
+        self.assertError({"locations": [{"geologic_classes": "Archeologicc"}]}, "locations", "geologic_classes",
                          r'not in the .* controlled vocabulary')
 
     def test_method_code(self):
@@ -202,13 +203,16 @@ class TestMagicValidation(unittest.TestCase):
         self.assertEqual({v: mv.is_timestamp(v) for v in api}, api)
 
     def test_controlled_vocabulary_case(self):
-        # the EarthRef API accepts "igneous" for "Igneous"; the website compares
-        # exactly, and so does this module, so that a value passes both
+        # as the EarthRef API: "igneous", "IGNEOUS" and " Igneous " for "Igneous";
+        # a value that is not in the vocabulary in any case is reported
         json = valid_contribution()
-        json["sites"][0]["geologic_classes"] = "igneous"
-        found = errors(json)
-        self.assertIn('The sites table column "geologic_classes" value "igneous" is not in the '
-                      '"Geologic Classifications" controlled vocabulary.', list(found["message"]))
+        json["sites"][0]["geologic_classes"] = "igneous:IGNEOUS: Igneous "
+        json["sites"][0]["age_unit"] = "ma"
+        self.assertEqual(list(errors(json)["message"]), [])
+        json["sites"][0]["geologic_classes"] = "Igneouss"
+        self.assertEqual(list(errors(json)["message"]),
+                         ['The sites table column "geologic_classes" value "Igneouss" is not in the '
+                          '"Geologic Classifications" controlled vocabulary.'])
 
     def test_required_tables(self):
         found = errors({"samples": [{"sample": "a"}]})

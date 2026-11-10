@@ -14,8 +14,8 @@ private contribution) and the EarthRef API (api.earthref.org/v1/MagIC/validate,
 used by ipmag.upload_magic). Compared on the same files on 2026-11-10, they
 report the same messages, except that the API ignores case in controlled
 vocabularies and accepts a Timestamp only as ISO 8601 with "T" before the time.
-Where they differ this module follows the stricter: vocabularies are compared
-exactly, and timestamps must be ISO 8601 with "T".
+Where they differ this module follows the API for vocabularies (case is
+ignored) and the stricter rule for timestamps (ISO 8601 with "T").
 
 The rules come from the MagIC data model, the method codes and the controlled
 vocabularies. load_rules() reads them from EarthRef and from the MagIC source
@@ -28,8 +28,8 @@ The checks, as on MagIC (validate_contribution.js):
       requiredUnless() and requiredUnlessTable()
     - the type of every value: Integer, Number and Timestamp
     - method codes in columns with type("method_codes")
-    - controlled vocabularies (cv), compared exactly (case matters, as on the
-      website; the API ignores case)
+    - controlled vocabularies (cv), ignoring case as the API does (the website
+      code compares exactly)
     - min() and max() with a number
     - in("table.column"): references between tables
 Rules of the data model that MagIC does not check are not checked here either
@@ -245,7 +245,8 @@ def load_rules(online=None, timeout=10):
     data_model, method_codes, vocabularies = (loaded[n][0] for n in ("data_model", "method_codes", "vocabularies"))
     rules = {"tables": data_model["tables"],
              "updated_day": data_model.get("updated_day", ""),
-             "vocabularies": {name: {"label": v.get("label", name), "items": {i["item"] for i in v["items"]}}
+             "vocabularies": {name: {"label": v.get("label", name), "items": {i["item"] for i in v["items"]},
+                                     "lower": {str(i["item"]).lower() for i in v["items"]}}
                               for name, v in vocabularies.items()},
              "method_codes": {c["code"] for codes in method_codes.values() for c in codes["codes"]},
              "source": " and ".join(sources)}
@@ -599,7 +600,7 @@ class _Validator(object):
                 self.add(table, column, '{} column "{}" value "{}" is an unknown method code.'
                          .format(label, column, v), n)
             # MagIC's check of Matrix and Dictionary values never fails (see the module docstring)
-            if vocabulary and kind not in ("Matrix", "Dictionary") and v not in vocabulary["items"]:
+            if vocabulary and kind not in ("Matrix", "Dictionary") and v.lower() not in vocabulary["lower"]:
                 self.add(table, column, '{} column "{}" value "{}" is not in the "{}" controlled vocabulary.'
                          .format(label, column, v, vocabulary["label"]), n)
             if low and parse_float(v) < parse_float(low.group(1)):
