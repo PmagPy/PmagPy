@@ -2783,7 +2783,7 @@ def plot_xbt(fignum, XB, T, e, f):
 
     .. deprecated:: 4.6.0
        ``pmagplotlib.plot_xbt`` is deprecated and will be removed in a
-       future release. It is only used by the MagIC 2 program
+       future release. It was used by the retired MagIC 2 program
        ``chi_magic2.py``.
 
     Parameters
