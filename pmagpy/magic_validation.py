@@ -553,7 +553,12 @@ def is_timestamp(value):
     neither does this check.
     """
     value = _trim(value)
-    match = _ISO_EXTENDED.match(value) or _ISO_BASIC.match(value)
+    match = _ISO_EXTENDED.match(value)
+    if not match:
+        match = _ISO_BASIC.match(value)
+        # moment reads a signed six-digit year in the basic form only in a full date
+        if match and match.group("year")[0] in "+-" and len(match.group("rest")) != 4:
+            return False
     if not match:
         return False
     year, rest, time = int(match.group("year")), match.group("rest").replace("-", ""), match.group("time")
