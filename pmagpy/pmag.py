@@ -2728,34 +2728,6 @@ def Tmatrix(X):
     return T
 
 
-def vspec(data):
-    """
-    Takes the vector mean of replicate measurements at a given step.
-    """
-    vdata, Dirdata, step_meth = [], [], []
-    tr0 = data[0][0]  # set beginning treatment
-    data.append("Stop")
-    k, R = 1, 0
-    for i in range(k, len(data)):
-        Dirdata = []
-        if data[i][0] != tr0:
-            if i == k:  # sample is unique
-                vdata.append(data[i - 1])
-                step_meth.append(" ")
-            else:  # sample is not unique
-                for l in range(k - 1, i):
-                    Dirdata.append([data[l][1], data[l][2], data[l][3]])
-                dir, R = vector_mean(Dirdata)
-                vdata.append([data[i - 1][0], dir[0], dir[1], R / (i - k + 1), '1', 'g'])
-                step_meth.append("DE-VM")
-            tr0 = data[i][0]
-            k = i + 1
-            if tr0 == "stop":
-                break
-    del data[-1]
-    return step_meth, vdata
-
-
 def dir2cart(d):
     """
     Converts a list or array of vector directions in degrees (declination,
