@@ -2728,34 +2728,6 @@ def Tmatrix(X):
     return T
 
 
-def vspec(data):
-    """
-    Takes the vector mean of replicate measurements at a given step. Used in zeq_magic2.py.
-    """
-    vdata, Dirdata, step_meth = [], [], []
-    tr0 = data[0][0]  # set beginning treatment
-    data.append("Stop")
-    k, R = 1, 0
-    for i in range(k, len(data)):
-        Dirdata = []
-        if data[i][0] != tr0:
-            if i == k:  # sample is unique
-                vdata.append(data[i - 1])
-                step_meth.append(" ")
-            else:  # sample is not unique
-                for l in range(k - 1, i):
-                    Dirdata.append([data[l][1], data[l][2], data[l][3]])
-                dir, R = vector_mean(Dirdata)
-                vdata.append([data[i - 1][0], dir[0], dir[1], R / (i - k + 1), '1', 'g'])
-                step_meth.append("DE-VM")
-            tr0 = data[i][0]
-            k = i + 1
-            if tr0 == "stop":
-                break
-    del data[-1]
-    return step_meth, vdata
-
-
 def dir2cart(d):
     """
     Converts a list or array of vector directions in degrees (declination,
@@ -6214,8 +6186,7 @@ def dobingham(di_block):
 
 def scoreit(pars, PmagSpecRec, accept, text, verbose):
     """
-    This function produces a grade for a given set of data. Used in thellier_magic2.py and
-    microwave_magic.py.
+    This function produces a grade for a given set of data. Used in microwave_magic.py.
     """
     s = PmagSpecRec["er_specimen_name"]
     PmagSpecRec["measurement_step_min"] = '%8.3e' % (
@@ -7431,29 +7402,11 @@ def adjust_ages(AgesIn):
     return AgesOut, age_unit
 
 
-def Dir_anis_corr(InDir, AniSpec):
-    """
-    This function takes the 6 element 's' vector and the Dec,Inc 'InDir' data and performs a
-    simple anisotropy correction, returning corrected Dec, Inc. Used in thellier_magic2.py. 
-    """
-    Dir = np.zeros((3), 'f')
-    Dir[0] = InDir[0]
-    Dir[1] = InDir[1]
-    Dir[2] = 1.
-    chi, chi_inv = check_F(AniSpec)
-    if chi[0][0] == 1.:
-        return Dir  # isotropic
-    X = dir2cart(Dir)
-    M = np.array(X)
-    H = np.dot(M, chi_inv)
-    return cart2dir(H)
-
-
 def doaniscorr(PmagSpecRec, AniSpec):
     """
     This function takes the 6 element 's' vector and the Dec,Inc, Int 'Dir' data,
     performs simple anisotropy correction, and returns corrected Dec, Inc, Int. This
-    is used in thellier_magic2.py. 
+    is used in thellier_magic_redo.py (deprecated). 
     """
     AniSpecRec = {}
     for key in list(PmagSpecRec.keys()):
