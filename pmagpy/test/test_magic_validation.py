@@ -13,6 +13,7 @@ come from the cached copies in pmagpy/data_model, so the tests do not need a
 network connection.
 """
 import os
+import pathlib
 import re
 import shutil
 import tempfile
@@ -201,6 +202,12 @@ class TestMagicValidation(unittest.TestCase):
                "2013-02": True, "2013": True, "2013-039": True, "2013-W06-5": True, "2013/02/08": False,
                "02/08/2013": False, "2013-02-08T24:00": True, "2013-02-30": False}
         self.assertEqual({v: mv.is_timestamp(v) for v in api}, api)
+        # moment.js 2.30.1 (the MagIC website) on ranges and mixed forms
+        moment = {"2013-02-08T24:30": False, "2013-W60-1": False, "2013-W00-1": False, "2013-W06-8": False,
+                  "2015-W53-1": True, "2013-W53-1": False, "2013-366": False, "2016-366": True, "2013-000": False,
+                  "2013T09": False, "2013-02T09": False, "2013-02-08T0930": False, "20130208T09:30": False,
+                  "2016-02-29": True, "2013-02-29": False}
+        self.assertEqual({v: mv.is_timestamp(v) for v in moment}, moment)
 
     def test_controlled_vocabulary_case(self):
         # as the EarthRef API: "igneous", "IGNEOUS" and " Igneous " for "Igneous";
@@ -223,10 +230,16 @@ class TestMagicValidation(unittest.TestCase):
         json = valid_contribution()
         json["sites"][0]["not_a_column"] = "x"
         json["other"] = [{"a": 1}]
+        json["measurements"]["columns"].append("not_a_column")
+        for row in json["measurements"]["rows"]:
+            row.append("x")
         problems = mv.validate(tables(json), rules=RULES)
         warning = problems[problems["level"] == "warning"]
         self.assertEqual(list(zip(warning["table"], warning["column"])), [("sites", "not_a_column")])
         self.assertIn('Table "other" is not in the MagIC data model.', list(problems["message"]))
+        # the EarthRef API fails on a measurements column that is not in the data model
+        found = errors(json)
+        self.assertIn(("measurements", "not_a_column"), list(zip(found["table"], found["column"])))
 
     def test_parser(self):
         # a trailing tab gives a column without a name, which MagIC allows
@@ -245,7 +258,28 @@ class TestMagicValidation(unittest.TestCase):
                                                         "More values found than columns on line 16."])
         json = valid_contribution()
         json["locations"][0][""] = "x"
-        self.assertIn("The locations table has data in a column missing a name.", list(errors(json)["message"]))
+        problems = mv.validate(tables(json), rules=RULES)
+        self.assertEqual([(p.level, p.rows) for p in problems.itertuples() if "without a name" in p.message],
+                         [("warning", [1])])
+
+    def test_repeated_tables(self):
+        # as on MagIC: a table given again adds its rows (with any new columns), except the
+        # measurements table, whose last block replaces the earlier ones
+        meas = ["measurement", "experiment", "specimen", "sequence", "standard", "quality", "method_codes",
+                "citations"]
+
+        def block(experiment):
+            return ["tab\tmeasurements", "\t".join(meas),
+                    "\t".join(["m" + experiment, experiment, "s1", "1", "s", "g", "LP-PI", "This study"])]
+        text = "\n".join(block("e0") + [">>>"] + block("e1") + [">>>", "tab\tsites", "site", "a", ">>>",
+                         "﻿tab\tsites", "site\tlat", "b\t1"])
+        parsed, parse_errors = mv.parse_magic_text(text)
+        self.assertEqual([r[1] for r in parsed["measurements"].rows], ["e1"])
+        self.assertEqual(parsed["sites"].columns, ["site", "lat"])
+        self.assertEqual(parsed["sites"].rows, [["a", ""], ["b", "1"]])
+        self.assertEqual([m for _, m in parse_errors], [
+            "The measurements table is given again on line 6; MagIC keeps only the last measurements table "
+            "and drops the rows before it."])
 
     def test_split_outside_quotes(self):
         self.assertEqual(mv.split_outside_quotes('a:"b:c":d', ":"), ['a', '"b:c"', 'd'])
@@ -271,10 +305,15 @@ class TestMagicValidation(unittest.TestCase):
                 text = f.read()
             with open(upload, "w") as f:
                 f.write(text.replace("LP-PI", "LP-PI-NOT-A-CODE").replace("\t1\t", "\t1.0\t"))
-            problems = mv.validate(upload, rules=RULES)
+            problems = mv.validate(pathlib.Path(upload), rules=RULES)
             messages = " ".join(problems["message"])
             self.assertIn('"LP-PI-NOT-A-CODE" is an unknown method code', messages)
             self.assertIn('"1.0" is not of type "Integer"', messages)
+            # a table file that cannot be read as MagIC reads it is reported, not passed to upload_magic
+            with open(os.path.join(tmp, "sites.txt"), "a") as f:
+                f.write("site 2\tlocation 1\tx\tx\tx\tx\tx\tx\tx\tx\tx\tx\tx\tx\tx\tx\n")
+            problems = mv.validate(tmp, rules=RULES)
+            self.assertIn("sites.txt: More values found than columns on line 4.", list(problems["message"]))
         finally:
             shutil.rmtree(tmp)
 
@@ -288,8 +327,8 @@ class TestMagicValidation(unittest.TestCase):
 
     def test_read_js_object(self):
         text = ('export const x = {\n  "a": [{"item": "x // not a comment"}, // a comment\n'
-                '  /* another */ {"item": "y",},\n  ],\n};\n')
-        self.assertEqual(mv._read_js_object(text), {"a": [{"item": "x // not a comment"}, {"item": "y"}]})
+                '  /* another */ {"item": "y, ]",},\n  ],\n};\n')
+        self.assertEqual(mv._read_js_object(text), {"a": [{"item": "x // not a comment"}, {"item": "y, ]"}]})
 
 
 class TestValidateUpload3(unittest.TestCase):
