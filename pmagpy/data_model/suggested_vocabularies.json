@@ -1,6 +1,7 @@
-﻿{
+{
 	"terrane": {
 		"label": "Terranes",
+		"database_name": "terrane",
 		"items": [
 			{
 				"item": "Acadian Orogen"
@@ -243,6 +244,7 @@
 	},
 	"age_recalculation_data": {
 		"label": "Age Recalculation Data",
+		"database_name": "age_recalculation_data",
 		"items": [
 			{
 				"item": "Reference"
@@ -269,6 +271,7 @@
 	},
 	"oxygen_stage": {
 		"label": "Oxygen Stages",
+		"database_name": "oxygen_stage",
 		"items": [
 			{
 				"item": "1"
@@ -958,6 +961,7 @@
 	},
 	"region": {
 		"label": "Regions",
+		"database_name": "region",
 		"items": [
 			{
 				"item": "Alps"
@@ -987,6 +991,7 @@
 	},
 	"fossil_class": {
 		"label": "Fossil Classes",
+		"database_name": "fossil_class",
 		"items": [
 			{
 				"item": "Acanthodii"
@@ -1247,6 +1252,7 @@
 	},
 	"fossil_family": {
 		"label": "Fossil Families",
+		"database_name": "fossil_family",
 		"items": [
 			{
 				"item": "Aceraceae"
@@ -1267,6 +1273,7 @@
 	},
 	"fossil_genus": {
 		"label": "Fossil Genae",
+		"database_name": "fossil_genus",
 		"items": [
 			{
 				"item": "Acer"
@@ -1287,6 +1294,7 @@
 	},
 	"age_culture_name": {
 		"label": "Age Culture Names",
+		"database_name": "age_culture_name",
 		"items": [
 			{
 				"item": "Halaf"
@@ -1295,6 +1303,7 @@
 	},
 	"biostrat_zone": {
 		"label": "Biostratigraphical Zones",
+		"database_name": "biostrat_zone",
 		"items": [
 			{
 				"item": "NN10"
@@ -1306,6 +1315,7 @@
 	},
 	"geological_province_section": {
 		"label": "Geological Province and Section Names",
+		"database_name": "geological_province_section",
 		"items": [
 			{
 				"item": "Absaroka Range, Montana and Wyoming"
@@ -2808,6 +2818,7 @@
 	},
 	"fossil_preservation": {
 		"label": "Fossil Preservation Modes",
+		"database_name": "fossil_preservation",
 		"items": [
 			{
 				"item": "Carbonitization"
@@ -2849,6 +2860,7 @@
 	},
 	"village_city": {
 		"label": "Village and City Names",
+		"database_name": "village_city",
 		"items": [
 			{
 				"item": "Aarhus"
@@ -4825,6 +4837,7 @@
 	},
 	"magnetic_reversal_chron": {
 		"label": "Magnetic Reversal Chrons",
+		"database_name": "magnetic_reversal_chron",
 		"items": [
 			{
 				"item": "Blake"
@@ -5432,7 +5445,8 @@
 		]
 	},
 	"fossil_phylum": {
-		"label": "Fossil Phyla",
+		"label": "Fossil Phyla)",
+		"database_name": "fossil_phylum",
 		"items": [
 			{
 				"item": "Chlorophyta"
@@ -5453,6 +5467,7 @@
 	},
 	"fossil_species": {
 		"label": "Fossil Species",
+		"database_name": "fossil_species",
 		"items": [
 			{
 				"item": "A. Saccharum"
@@ -5473,6 +5488,7 @@
 	},
 	"conodont_zone": {
 		"label": "Conodont Zone",
+		"database_name": "conodont_zone",
 		"items": [
 			{
 				"item": "B. Triangularis"
@@ -5481,6 +5497,7 @@
 	},
 	"fossil_order": {
 		"label": "Fossil Orders",
+		"database_name": "fossil_order",
 		"items": [
 			{
 				"item": "Acanthochitonida"

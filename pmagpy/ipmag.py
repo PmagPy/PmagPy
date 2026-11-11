@@ -33,7 +33,6 @@ from pmag_env import set_env
 from . import pmag
 from . import pmagplotlib
 from . import data_model3 as data_model
-from . import validate_upload3 as val_up3
 from numpy.linalg import inv, eig
 import requests
 encoding = "ISO-8859-1"
@@ -5619,6 +5618,17 @@ def validate_with_public_endpoint(contribution_file,verbose=False):
     return response
 
 
+# columns whose values upload_magic puts in the range 0 to 360 degrees
+_DEGREE_COLUMNS = ['lon_w', 'lon_e', 'lat_lon_precision', 'pole_lon', 'paleolon', 'paleolon_sigma',
+                   'lon', 'lon_sigma', 'vgp_lon', 'paleo_lon', 'paleo_lon_sigma', 'azimuth',
+                   'azimuth_dec_correction', 'dir_dec', 'geographic_precision', 'bed_dip_direction']
+
+
+def _degree_columns(df):
+    """The columns of df whose values should be between 0 and 360 degrees."""
+    return list(set(_DEGREE_COLUMNS).intersection(df.columns))
+
+
 def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,verbose=True):
     """
     Finds all magic files in a given directory, and compiles them into an
@@ -5681,7 +5691,14 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
 
     dmodel = data_model.DataModel()
     for file_type in file_names:
-        df = pd.read_csv(file_type,sep='\t',header=1)
+        # read every value as the text in the file: type guessing would turn
+        # "001" into 1 and "NA" into a blank
+        try:
+            df = pd.read_csv(file_type, sep='\t', header=1, dtype=str, keep_default_na=False,
+                             encoding='utf-8-sig', encoding_errors='replace')
+        except (pd.errors.ParserError, pd.errors.EmptyDataError) as ex:
+            print("-W- Could not read {}, skipping it: {}".format(file_type, ex))
+            continue
         df = df.astype(object).fillna("")
         if len(df):
             print("-I- {} file successfully read in".format(file_type))
@@ -5700,11 +5717,12 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
                     print(
                         '-I- dropping these columns: {} from the {} table'.format(', '.join(DropKeys), file_type))
                     df.drop(DropKeys, axis=1, inplace=True)
-            # Strip ".0" off integer-valued floats (e.g. "10.0" -> "10") in
-            # count columns that pandas may have read as float when NaNs were
-            # present. Earlier versions used str.strip(".0"), which also
-            # stripped any leading/trailing '.' or '0' chars and silently
-            # truncated values like "10" -> "1" or "100" -> "1" (issue #848).
+            # Strip ".0" off integer-valued floats (e.g. "10.0" -> "10") in the
+            # data model's Integer columns, which PmagPy may have written as
+            # floats when NaNs were present. Earlier versions used
+            # str.strip(".0"), which also stripped any leading/trailing '.' or
+            # '0' chars and silently truncated values like "10" -> "1" or
+            # "100" -> "1" (issue #848).
             def _drop_trailing_dot_zero(s):
                 s = str(s).strip()
                 if s == '' or s.lower() in ('nan', 'none'):
@@ -5716,42 +5734,31 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
                 if f.is_integer():
                     return str(int(f))
                 return s
-            n_cols=df.filter(like='_n',axis=1)
-            if 'lat_n' in n_cols.columns:
-                n_cols=n_cols.drop(columns=['lat_n']) # lat_n is a float coord, not a count
-            other_int_cols=['contribution_id','pole_w_q','pole_bc_q','order','sequence','hyst_loop','treat_step_num']
-            for col in list(n_cols.columns) + other_int_cols:
-                if col in df.columns:
-                    df[col]=df[col].astype('str').map(_drop_trailing_dot_zero)
+            model_cols = dmodel.dm[ftype] if ftype in dmodel.dm else pd.DataFrame(columns=['type'])
+            int_cols = [col for col in df.columns
+                        if col in model_cols.index and model_cols.loc[col, 'type'] == 'Integer']
+            for col in int_cols:
+                df[col]=df[col].astype('str').map(_drop_trailing_dot_zero)
 
             # convert int_scat to True/False
             if 'int_scat' in df.columns:
                 df.loc[df['int_scat']=='t','int_scat']='True'
                 df.loc[df['int_scat']=='f','int_scat']='False'
-            # make sure int_md is positive
+            # remove negative int_md values
             if 'int_md' in df.columns:
-                try:
-                    df['int_md'] = df['int_md'].replace('', np.nan)
-                    df.loc[df['int_md'].astype('float')<0,'int_md']=np.nan
-                except Exception as ex:
-                    print("-W-", ex)
-            # make sure int_b_beta is positive
+                md = pd.to_numeric(df['int_md'], errors='coerce')
+                df.loc[md < 0, 'int_md'] = ''
+            # make sure int_b_beta is positive (non-numeric values are left for validation to report)
             if 'int_b_beta' in df.columns:
-                # get rid of empty strings
-                df = df.replace(r'\s+( +\.)|#', np.nan,
-                                regex=True).replace('', np.nan)
-                try:
-                    df['int_b_beta'] = df['int_b_beta'].astype(
-                        float).apply(abs)
-                except ValueError:
-                    "-W- Non numeric values found in int_b_beta column.\n   Could not apply absolute value."
+                beta = pd.to_numeric(df['int_b_beta'], errors='coerce')
+                df.loc[beta < 0, 'int_b_beta'] = beta[beta < 0].abs().astype(str)
             # make all declinations/azimuths/longitudes in range 0=>360.
-            relevant_cols = val_up3.get_degree_cols(df)
+            relevant_cols = _degree_columns(df)
             for col in relevant_cols:
                 df[col] = df[col].apply(pmag.adjust_val_to_360)
             # get list of location names
-            if 'locations' in file_type:
-                locations = sorted(df['location'].unique())
+            if ftype == 'locations' and 'location' in df.columns:
+                locations = sorted(name for name in df['location'].unique() if str(name).strip())
     # write out the data
             if len(df):
                 df.replace('-9999','',inplace=True)
