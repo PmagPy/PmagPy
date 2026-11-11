@@ -2730,7 +2730,7 @@ def Tmatrix(X):
 
 def vspec(data):
     """
-    Takes the vector mean of replicate measurements at a given step. Used in zeq_magic2.py.
+    Takes the vector mean of replicate measurements at a given step.
     """
     vdata, Dirdata, step_meth = [], [], []
     tr0 = data[0][0]  # set beginning treatment
