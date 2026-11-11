@@ -1,23 +1,8 @@
 #!/usr/bin/env python
-import os
-
 import pandas as pd
 from pandas import Series
-try:
-    import requests
-except ImportError:
-    requests = None
-from . import find_pmag_dir
 from . import data_model3 as data_model
 from . import magic_validation
-from pmag_env import set_env
-
-pmag_dir = find_pmag_dir.get_pmag_dir()
-data_model_dir = os.path.join(pmag_dir, 'pmagpy', 'data_model')
-# if using with py2app, the directory structure is flat,
-# so check to see where the resource actually is
-if not os.path.exists(data_model_dir):
-    data_model_dir = os.path.join(pmag_dir, 'data_model')
 
 
 VOCAB = {}
@@ -66,45 +51,14 @@ class Vocabulary(object):
 
     ## Get method codes
 
-    def get_json_online(self, url):
-        """
-        Use requests module to json from Earthref.
-        If this fails or times out, return false.
-
-        Returns
-        ---------
-        result : requests.models.Response, or [] if unsuccessful
-        """
-        if not requests:
-            return False
-        try:
-            req = requests.get(url, timeout=3)
-            if not req.ok:
-                return []
-            return req
-        except (requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError,
-                requests.exceptions.ReadTimeout):
-            return []
-
-
     def get_meth_codes(self):
         if len(VOCAB):
             self.set_vocabularies()
             return
-        raw_codes = []
-        # try to get meth codes online
-        if not set_env.OFFLINE:
-            try:
-                raw = self.get_json_online('https://www2.earthref.org/MagIC/method-codes.json')
-                raw_codes = pd.DataFrame(raw.json())
-                print('-I- Getting method codes from earthref.org')
-            except Exception as ex:
-                #print(ex, type(ex))
-                print("-I- Couldn't connect to earthref.org, using cached method codes")
-        # if you couldn't get them online, use the cache
-        if not len(raw_codes):
-            print("-I- Using cached method codes")
-            raw_codes = pd.io.json.read_json(os.path.join(data_model_dir, "method_codes.json"), encoding='utf-8-sig')
+        # the cached copy, which magic_validation.update_cache() refreshes:
+        # downloading it would slow the start of every program
+        print("-I- Using cached method codes")
+        raw_codes = pd.DataFrame(magic_validation.get_resource('method_codes', online=False)[0])
         # parse codes
         code_types = raw_codes.loc['label']
         all_codes = []
@@ -181,13 +135,9 @@ class Vocabulary(object):
             self.set_vocabularies()
             return
         controlled_vocabularies = []
-        # the vocabularies the MagIC website validates with, downloaded or cached
-        raw, source = magic_validation.get_resource('vocabularies')
-        data = pd.DataFrame(raw)
-        if source == 'online':
-            print('-I- Importing controlled vocabularies from the MagIC source')
-        else:
-            print('-I- Using cached vocabularies')
+        # the cached copy of the vocabularies the MagIC website validates with
+        print('-I- Using cached vocabularies')
+        data = pd.DataFrame(magic_validation.get_resource('vocabularies', online=False)[0])
         # parse data
         possible_vocabularies = data.columns
         ## this line means, grab every single controlled vocabulary
@@ -261,11 +211,9 @@ class Vocabulary(object):
         Get all non-method suggested vocabularies
         """
         suggested_vocabularies = []
-        # the suggested vocabularies of the MagIC website, downloaded or cached
-        raw, source = magic_validation.get_resource('suggested_vocabularies')
-        data = pd.DataFrame(raw)
-        if source != 'online':
-            print('-I- Using cached suggested vocabularies')
+        # the cached copy of the suggested vocabularies of the MagIC website
+        print('-I- Using cached suggested vocabularies')
+        data = pd.DataFrame(magic_validation.get_resource('suggested_vocabularies', online=False)[0])
         # parse data
         possible_vocabularies = data.columns
         ## this line means, grab every single controlled vocabulary
@@ -342,7 +290,6 @@ class Vocabulary(object):
         ## i.e. er_codes = {'anisotropy_codes': ['code1', 'code2'], ...}
         ##def get_tiered_meth_category(mtype, all_codes, code_types):
 
-        # the method codes come from earthref.org or the cached method_codes.json
         methods = self.get_tiered_meth_category('other', all_codes, code_types)
         age_methods = self.get_tiered_meth_category('age', all_codes, code_types)
 

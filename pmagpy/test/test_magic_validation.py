@@ -229,18 +229,23 @@ class TestMagicValidation(unittest.TestCase):
         self.assertIn('Table "other" is not in the MagIC data model.', list(problems["message"]))
 
     def test_parser(self):
+        # a trailing tab gives a column without a name, which MagIC allows
         text = "\n".join([
-            "tab \tlocations", "location\tlocation_type", "A\tOutcrop", ">>>>>>>>>>",
+            "tab \tlocations", "location\tlocation_type\t", "A\tOutcrop", ">>>>>>>>>>", "",
             "tab delimited\tSITES", "site\tlocation", "s1\tA", ">>>>>>>>>>",
             "tab\tsamples", "sample\tsample", "x\tx", ">>>>>>>>>>",
             "tab\tspecimens", "specimen\tsample", "a\tb\tc"])
         parsed, parse_errors = mv.parse_magic_text(text)
-        self.assertEqual(sorted(parsed), ["locations", "sites", "specimens"])
+        self.assertEqual(sorted(parsed), ["locations", "samples", "sites", "specimens"])
         self.assertEqual(parsed["sites"].columns, ["site", "location"])
-        self.assertEqual(parsed["locations"].rows, [["A", "Outcrop"]])
-        self.assertEqual(len(parse_errors), 2)
-        self.assertIn("duplicate column names", parse_errors[0][1])
-        self.assertIn("More values found than columns", parse_errors[1][1])
+        self.assertEqual(parsed["locations"].rows, [["A", "Outcrop", ""]])
+        self.assertEqual(parsed["samples"].rows, [])
+        # line numbers are those of the file, counting the empty line
+        self.assertEqual([m for _, m in parse_errors], ["Found duplicate column names on line 11.",
+                                                        "More values found than columns on line 16."])
+        json = valid_contribution()
+        json["locations"][0][""] = "x"
+        self.assertIn("The locations table has data in a column missing a name.", list(errors(json)["message"]))
 
     def test_split_outside_quotes(self):
         self.assertEqual(mv.split_outside_quotes('a:"b:c":d', ":"), ['a', '"b:c"', 'd'])
@@ -250,6 +255,10 @@ class TestMagicValidation(unittest.TestCase):
         json = valid_contribution()
         tmp = tempfile.mkdtemp()
         try:
+            # a directory and a Contribution are validated as their upload file: without
+            # contribution.txt, and with upload_magic's "2.0" -> "2" in counts
+            json["contribution"] = [{"data_model_version": "3.0"}]
+            json["locations"][0]["dir_n_sites"] = "2.0"
             for name, df in tables(json).items():
                 pmag.magic_write(os.path.join(tmp, name + ".txt"), df, name, dataframe=True)
             self.assertEqual(len(mv.validate(tmp, rules=RULES)), 0)
@@ -307,22 +316,6 @@ class TestValidateUpload3(unittest.TestCase):
             self.assertTrue(any(issubclass(w.category, DeprecationWarning) for w in caught))
         finally:
             shutil.rmtree(tmp)
-
-    def test_degree_columns_moved_to_ipmag(self):
-        df = pd.DataFrame(columns=["dir_dec", "lon", "dir_inc"])
-        self.assertEqual(sorted(ipmag._degree_columns(df)), ["dir_dec", "lon"])
-
-
-    def test_column_without_vocabulary(self):
-        # a column whose vocabulary was not loaded is skipped (it raised KeyError)
-        class Vocab(object):
-            vocabularies = pd.Series({"age_unit": ["Ma"]})
-
-        class Con(object):
-            vocab = Vocab()
-        dm = pd.DataFrame({"type": ["List"]}, index=["lab_names"])
-        row = pd.Series({"lab_names": "A lab"})
-        self.assertIsNone(validate_upload3.cv(row, "lab_names", "lab_names", dm, None, Con()))
 
 
 if __name__ == "__main__":

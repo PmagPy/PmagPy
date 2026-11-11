@@ -41,8 +41,10 @@ Where this module differs from MagIC, it reports more:
       for its empty required values
     - a column that is not in the data model is reported as a warning (on MagIC
       the upload tool asks for it to be matched to a data model column or left out)
-    - a table that is not in the data model, an empty column name and a
-      malformed table are reported as errors, and the rest of the file is still read
+    - a table that is not in the data model is reported as an error, and so
+      is data in a column without a name in any table (MagIC reports it only
+      in the measurements table)
+    - after a malformed table the rest of the file is still read (MagIC stops)
 MagIC's controlled-vocabulary check of Matrix and Dictionary columns never
 reports a value (the comparison in validate_contribution.js always succeeds),
 so those values are not checked here either.
@@ -52,10 +54,14 @@ Typical use:
     problems = magic_validation.validate('upload_file.txt')
     magic_validation.print_problems(problems)
 """
+import contextlib
 import datetime
+import io
 import json
 import os
 import re
+import shutil
+import tempfile
 
 import pandas as pd
 
@@ -82,7 +88,8 @@ RESOURCES = {
 }
 
 MEASUREMENTS = "measurements"
-_RESOURCES = {}
+_RESOURCES = {}  # (name, "online" or "cache") -> data
+_FAILED = set()  # resources whose download failed
 _RULES = {}
 
 
@@ -93,7 +100,7 @@ def cache_dir():
     here = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data_model")
     if os.path.isdir(here):
         return here
-    # a py2app build has a flat directory structure
+    # otherwise (e.g. a frozen build) look where find_pmag_dir puts PmagPy's files
     from . import find_pmag_dir
     pmag_dir = find_pmag_dir.get_pmag_dir()
     for path in (os.path.join(pmag_dir, "pmagpy", "data_model"), os.path.join(pmag_dir, "data_model")):
@@ -170,7 +177,7 @@ def get_resource(name, online=None, timeout=10):
     online : bool or None
         True to download it, False to use the cached copy; None (default)
         downloads it unless PmagPy is set to work offline, and uses the cached
-        copy if the download fails
+        copy if the download fails (and from then on)
 
     Returns
     -------
@@ -178,22 +185,22 @@ def get_resource(name, online=None, timeout=10):
     """
     fall_back = online is None
     if online is None:
-        online = not set_env.OFFLINE
-    key = (name, bool(online))
-    if key not in _RESOURCES:
-        data, source = None, "cache"
-        if online:
-            try:
-                data, source = download_resource(name, timeout), "online"
-            except Exception as ex:
-                if not fall_back:
-                    raise
-                print("-W- Could not download the MagIC {} ({}); using the cached copy".format(
-                    name.replace("_", " "), ex))
-        if data is None:
-            data = read_cached_resource(name)
-        _RESOURCES[key] = (data, source)
-    return _RESOURCES[key]
+        # a download that failed is not tried again when falling back is allowed
+        online = not set_env.OFFLINE and name not in _FAILED
+    if online and (name, "online") not in _RESOURCES:
+        try:
+            _RESOURCES[(name, "online")] = download_resource(name, timeout)
+        except Exception as ex:
+            if not fall_back:
+                raise
+            _FAILED.add(name)
+            print("-W- Could not download the MagIC {} ({}); using the cached copy".format(
+                name.replace("_", " "), ex))
+    if online and (name, "online") in _RESOURCES:
+        return _RESOURCES[(name, "online")], "online"
+    if (name, "cache") not in _RESOURCES:
+        _RESOURCES[(name, "cache")] = read_cached_resource(name)
+    return _RESOURCES[(name, "cache")], "cache"
 
 
 def update_cache(directory=None, timeout=30):
@@ -215,6 +222,7 @@ def update_cache(directory=None, timeout=30):
             f.write("\n")
         written[name] = path
     _RESOURCES.clear()
+    _FAILED.clear()
     _RULES.clear()
     return written
 
@@ -237,11 +245,11 @@ def load_rules(online=None, timeout=10):
         source: "online", "cache" or "online and cache"
         updated_day: date of the data model
     """
-    key = online if online is not None else not set_env.OFFLINE
-    if key in _RULES and online is not None:
-        return _RULES[key]
     loaded = {name: get_resource(name, online, timeout) for name in ("data_model", "method_codes", "vocabularies")}
-    sources = sorted({source for _, source in loaded.values()})
+    key = tuple(source for _, source in loaded.values())
+    if key in _RULES:
+        return _RULES[key]
+    sources = sorted(set(key))
     data_model, method_codes, vocabularies = (loaded[n][0] for n in ("data_model", "method_codes", "vocabularies"))
     rules = {"tables": data_model["tables"],
              "updated_day": data_model.get("updated_day", ""),
@@ -277,11 +285,15 @@ def parse_magic_text(text):
     Returns
     -------
     (tables, errors): tables maps a table name to a _Table; errors is a list of
-    (table, message)
+    (table, message). Line numbers in the messages are those of the file.
+
+    As on MagIC, a column without a name is allowed (e.g. after a trailing tab);
+    validate() reports data in it. A table whose column names cannot be read is
+    kept with no rows, as MagIC keeps it.
     """
     tables, errors = {}, []
     table, columns, table_line, skip = None, [], 0, False
-    for number, line in enumerate(re.split(r"[\n\v\f\r\x85  ]+", text), start=1):
+    for number, line in enumerate(re.split(r"\r\n|[\n\v\f\r\x85\u2028\u2029]", text), start=1):
         if line.strip() == "":
             continue
         if re.match(r"^>+$", line.strip()):
@@ -304,10 +316,7 @@ def parse_magic_text(text):
                 tables.setdefault(table, None)
         elif table_line == 2:
             columns = [x.strip().lower() for x in line.split("\t")]
-            if "" in columns:
-                errors.append((table, "Empty column names are not allowed on line {}.".format(number)))
-                skip = True
-            elif len(columns) != len(set(columns)):
+            if len(columns) != len(set(columns)):
                 errors.append((table, "Found duplicate column names on line {}.".format(number)))
                 skip = True
             elif tables[table] is None:
@@ -323,7 +332,7 @@ def parse_magic_text(text):
                 skip = True
                 continue
             tables[table].rows.append(values + [""] * (len(columns) - len(values)))
-    return {name: t for name, t in tables.items() if t is not None}, errors
+    return {name: t if t is not None else _Table([]) for name, t in tables.items()}, errors
 
 
 def _cell_text(value):
@@ -343,6 +352,25 @@ def _from_dataframe(df):
     return _Table(columns, rows)
 
 
+def _read_upload_file(directory):
+    """
+    The tables of the upload file that ipmag.upload_magic makes from the table
+    files in a directory: what would be sent to MagIC, after upload_magic's
+    clean-up and without contribution.txt.
+    """
+    from . import ipmag  # ipmag imports contribution_builder, which imports this module
+    tmp = tempfile.mkdtemp(prefix="magic-validation-")
+    try:
+        with contextlib.redirect_stdout(io.StringIO()):
+            upload = ipmag.upload_magic(dir_path=tmp, input_dir_path=directory, validate=False, verbose=False)[0]
+        if not upload:
+            return {}, [("", "No MagIC table files to upload were found in {}.".format(directory))]
+        with open(upload, encoding="utf-8-sig", errors="replace") as f:
+            return parse_magic_text(f.read())
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
 def read_contribution(contribution):
     """
     The tables of a contribution, read as MagIC reads them.
@@ -352,28 +380,32 @@ def read_contribution(contribution):
     contribution : str, dict or contribution_builder.Contribution
         a MagIC text file (e.g. written by ipmag.upload_magic); a directory
         holding table files named after their table (sites.txt, ...); a dict
-        of table name to DataFrame; or a Contribution
+        of table name to DataFrame; or a Contribution. A directory or a
+        Contribution is read as the file ipmag.upload_magic would make from
+        it; a dict is read as given.
 
     Returns
     -------
     (tables, errors) as from parse_magic_text
     """
     if isinstance(contribution, str) and os.path.isdir(contribution):
-        tables, errors = {}, []
-        for name in sorted(os.listdir(contribution)):
-            table = os.path.splitext(name)[0]
-            if not name.endswith(".txt") or table not in read_cached_resource("data_model")["tables"]:
-                continue
-            with open(os.path.join(contribution, name), encoding="utf-8-sig", errors="replace") as f:
-                parsed, parse_errors = parse_magic_text(f.read())
-            tables.update(parsed)
-            errors += parse_errors
-        return tables, errors
+        return _read_upload_file(contribution)
     if isinstance(contribution, str):
         with open(contribution, encoding="utf-8-sig", errors="replace") as f:
             return parse_magic_text(f.read())
     if hasattr(contribution, "tables") and not isinstance(contribution, dict):
-        contribution = {name: table.df for name, table in contribution.tables.items()}
+        # written here rather than with write_magic_file, which writes to the
+        # table's own file and reorders its columns
+        tmp = tempfile.mkdtemp(prefix="magic-validation-")
+        try:
+            for name, table in contribution.tables.items():
+                with open(os.path.join(tmp, name + ".txt"), "w", encoding="utf-8") as f:
+                    f.write("tab\t{}\n".format(name))
+                    # "num" is a working column that write_magic_file leaves out
+                    table.df.drop(columns=["num"], errors="ignore").to_csv(f, sep="\t", index=False)
+            return _read_upload_file(tmp)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
     tables = {}
     for name, df in contribution.items():
         name = name.lower()
@@ -520,15 +552,23 @@ class _Validator(object):
                 for i, values in enumerate(data.rows):
                     row = dict(zip(data.columns, values))
                     for column, value in zip(data.columns, values):
-                        if column in model_columns:
+                        if column == "" and value != "":
+                            self.unnamed(table, i)
+                        elif column in model_columns:
                             self.column(table, column, data.columns, i, value, row)
                 continue
             for i, values in enumerate(data.rows):
                 row = {c: v for c, v in zip(data.columns, values) if v != ""}
+                if "" in row:
+                    self.unnamed(table, i)
                 present = list(row)
                 for column in model_columns:
                     self.column(table, column, present, i, row.get(column), row)
         return self.errors
+
+    def unnamed(self, table, i):
+        """data in a column without a name (MagIC reports it only in the measurements table)"""
+        self.add(table, "", "The {} table has data in a column missing a name.".format(table), i + 1)
 
     def column(self, table, column, columns, i, val, row):
         """validate_contribution.js, _validateColumn"""
@@ -623,9 +663,11 @@ def validate(contribution, rules=None, online=None):
     contribution : str, dict or contribution_builder.Contribution
         a MagIC text file (e.g. as written by ipmag.upload_magic), a directory
         of table files, a dict of table name to DataFrame, or a Contribution.
-        Values are checked as text, as they would be written: validate the
-        file to be uploaded where possible (a float column read into pandas,
-        for example, gives "6.0" where the file has "6")
+        A directory or a Contribution is validated as the upload file that
+        ipmag.upload_magic would make from it (contribution.txt is not
+        uploaded, and upload_magic tidies some values, e.g. "6.0" to "6" in
+        counts). A dict is validated as given, its values as text: a float
+        column gives "6.0" where a file would have "6"
     rules : dict, optional
         from load_rules(); by default load_rules(online)
     online : bool or None
@@ -647,7 +689,7 @@ def validate(contribution, rules=None, online=None):
             problems.append(("error", table, "", 'Table "{}" is not in the MagIC data model.'.format(table), []))
             continue
         for column in data.columns:
-            if column not in rules["tables"][table]["columns"]:
+            if column and column not in rules["tables"][table]["columns"]:
                 problems.append(("warning", table, column, 'Column "{}" in table "{}" is not in the MagIC data '
                                  'model.'.format(column, table), []))
     known = {name: data for name, data in tables.items() if name in rules["tables"]}
