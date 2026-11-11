@@ -6214,8 +6214,7 @@ def dobingham(di_block):
 
 def scoreit(pars, PmagSpecRec, accept, text, verbose):
     """
-    This function produces a grade for a given set of data. Used in thellier_magic2.py and
-    microwave_magic.py.
+    This function produces a grade for a given set of data. Used in microwave_magic.py.
     """
     s = PmagSpecRec["er_specimen_name"]
     PmagSpecRec["measurement_step_min"] = '%8.3e' % (
@@ -7431,29 +7430,11 @@ def adjust_ages(AgesIn):
     return AgesOut, age_unit
 
 
-def Dir_anis_corr(InDir, AniSpec):
-    """
-    This function takes the 6 element 's' vector and the Dec,Inc 'InDir' data and performs a
-    simple anisotropy correction, returning corrected Dec, Inc. Used in thellier_magic2.py. 
-    """
-    Dir = np.zeros((3), 'f')
-    Dir[0] = InDir[0]
-    Dir[1] = InDir[1]
-    Dir[2] = 1.
-    chi, chi_inv = check_F(AniSpec)
-    if chi[0][0] == 1.:
-        return Dir  # isotropic
-    X = dir2cart(Dir)
-    M = np.array(X)
-    H = np.dot(M, chi_inv)
-    return cart2dir(H)
-
-
 def doaniscorr(PmagSpecRec, AniSpec):
     """
     This function takes the 6 element 's' vector and the Dec,Inc, Int 'Dir' data,
     performs simple anisotropy correction, and returns corrected Dec, Inc, Int. This
-    is used in thellier_magic2.py. 
+    is used in thellier_magic_redo.py (deprecated). 
     """
     AniSpecRec = {}
     for key in list(PmagSpecRec.keys()):
