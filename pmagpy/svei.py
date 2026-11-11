@@ -1397,6 +1397,19 @@ def GGPrand(GGPmodel, lat, n,degree=8,random_seed=None):
     return DI
 
 
+def _seed_and_rng(random_seed):
+    """Return the seed to report and the Generator for a run.
+
+    Without a seed, one is drawn from fresh entropy and used, so that every
+    run reports a seed with which it can be repeated. A Generator passed in
+    is used as it is, and no seed is reported for it.
+    """
+    if random_seed is None:
+        random_seed = int(np.random.SeedSequence().generate_state(1)[0])
+    seed = int(random_seed) if isinstance(random_seed, (int, np.integer)) else None
+    return seed, pmag._resolve_rng(random_seed)
+
+
 def _cdf_grid_counts(values, lower, upper):
     """Return empirical CDF values on an integer-degree grid."""
     grid_size = upper - lower + 1
@@ -2110,7 +2123,9 @@ def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50
         random_seed (None, int, or numpy.random.Generator, optional): Seed for
             reproducible random number generation (default is None). A single
             Generator is shared across every unflattening factor, so one seed
-            plus unchanged inputs reproduces the whole scan.
+            plus unchanged inputs reproduces the whole scan. If None, a seed
+            is drawn and reported in the random_seed column, so that the scan
+            can be repeated.
 
     Returns:
         pandas.DataFrame: A DataFrame containing the following columns:
@@ -2129,6 +2144,11 @@ def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50
             - E (float): Elongation (tau2/tau3) of data set 
             - Esim_min, Esim_max (floats): Bounds on elongation from Monte Carlo simulation
             - E_result (integer): 0 if V2dec not in bounds, 1 if in bounds (consistent)
+            - random_seed (integer): the seed of the scan; passing it as
+              random_seed repeats the scan (None if a Generator was passed).
+        If the data are consistent with the model before unflattening, the
+        result of svei_test is returned instead, in a list, with random_seed
+        among its keys.
     """
     model=GGPmodels(model=model_name) # set model to the 'best' one
     print ('using model: ',model_name)
@@ -2174,7 +2194,8 @@ def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50
         save_svei = summary_path.with_name(
             summary_path.stem + '_svei_test' + summary_path.suffix
         )
-    rng = pmag._resolve_rng(random_seed)
+    seed, rng = _seed_and_rng(random_seed)
+    if verbose: print ('random_seed: ', seed)
     res_dict=svei_test(
         rot_block,kappa=kappa,num_sims=num_sims,plot=make_plot,
         model_name=model_name,saveto=save_svei,cdf_samples=cdf_samples,
@@ -2248,6 +2269,7 @@ def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50
 
     As_df['V2_results']=V2_results
     As_df['E_results']=E_results
+    As_df['random_seed']=seed
     goodflats=As_df[(As_df['H']==0)&(As_df['V2_results']==1)&(As_df['E_results']==1)]['flat'].values
     goodlats=As_df[(As_df['H']==0)&(As_df['V2_results']==1)&(As_df['E_results']==1)]['lat'].values
     goodincs=As_df[(As_df['H']==0)&(As_df['V2_results']==1)&(As_df['E_results']==1)]['inc'].values
@@ -2363,6 +2385,7 @@ def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50
         else:
             plt.close(fig)
     if fast_path:
+        res_dict['random_seed']=seed
         return [res_dict]
     return(As_df) 
 
@@ -2391,7 +2414,9 @@ def svei_test(di_block,model_name='TK03_GAD',degree=8,lat=False,kappa=-1,plot=Fa
             requested with ``saveto`` when show is False.
         random_seed (None, int, or numpy.random.Generator): Seed for reproducible
             random number generation (default is None). A single Generator is
-            shared by the CDF estimation and the Monte Carlo simulations.
+            shared by the CDF estimation and the Monte Carlo simulations. If
+            None, a seed is drawn and reported as random_seed in the results,
+            so that the test can be repeated.
 
     Returns:
         res_dict (dict): Dictionary with the following parameters:
@@ -2407,6 +2432,8 @@ def svei_test(di_block,model_name='TK03_GAD',degree=8,lat=False,kappa=-1,plot=Fa
             E (float): Elongation (tau2/tau3) of data set 
             Esim_min, Esim_max (floats): Bounds on elongation from Monte Carlo simulation
             E_result (integer): 0 if V2dec not in bounds, 1 if in bounds (consistent)
+            random_seed (integer): the seed of the test; passing it as
+                random_seed repeats the test (None if a Generator was passed).
     """    
     ###INPUTS###
     #Ds = array of observed declinations (degrees)
@@ -2467,7 +2494,8 @@ def svei_test(di_block,model_name='TK03_GAD',degree=8,lat=False,kappa=-1,plot=Fa
     if n<5:
         raise ValueError("Insufficient data, N must be 5 or greater")
     
-    rng = pmag._resolve_rng(random_seed)
+    seed, rng = _seed_and_rng(random_seed)
+    if verbose: print ('random_seed: ', seed)
     Icdf, Dcdf = GGP_vMF_cdfs(
         GGPmodel, lat, degree, kappa=kappa, n=cdf_samples, random_seed=rng
     ) #find marginal distributions
@@ -2666,7 +2694,8 @@ def svei_test(di_block,model_name='TK03_GAD',degree=8,lat=False,kappa=-1,plot=Fa
 
     res_dict={'kappa':kappa,'lat':_real(lat,1),'A2D':_real(A2D,4),'A2I':_real(A2I,4),'pID':_real(pID,4),'H':H,'V2dec':_real(V2dec,1)
                   ,'V2sim_min':_real(V2sim_min,1),'V2sim_max':_real(V2sim_max,1),
-                   'E':_real(E,4),'Esim_min':_real(Esim_min,4),'Esim_max':_real(Esim_max,4),'V2_result':V2_result,'E_result':E_result}
+                   'E':_real(E,4),'Esim_min':_real(Esim_min,4),'Esim_max':_real(Esim_max,4),'V2_result':V2_result,'E_result':E_result,
+                   'random_seed':seed}
         
     
     return res_dict
@@ -2691,7 +2720,8 @@ def svei_test_varkap(di_block,model_name='THG24',degree=8,lat=False,plot=False,c
         random_seed (None, int, or numpy.random.Generator): Seed for reproducible
             random number generation (default is None). A single Generator is
             shared across the kappa escalation, so one seed reproduces every
-            attempt in the ladder.
+            attempt in the ladder. If None, a seed is drawn and reported as
+            random_seed in the results, so that the test can be repeated.
 
     Returns:
         res_dict (dict): Dictionary with the following parameters:
@@ -2707,6 +2737,8 @@ def svei_test_varkap(di_block,model_name='THG24',degree=8,lat=False,plot=False,c
             E (float): Elongation (tau2/tau3) of data set 
             Esim_min, Esim_max (floats): Bounds on elongation from Monte Carlo simulation
             E_result (integer): 0 if V2dec not in bounds, 1 if in bounds (consistent)
+            random_seed (integer): the seed of the test; passing it as
+                random_seed repeats the test (None if a Generator was passed).
     """    
     
     n = len(di_block)
@@ -2714,7 +2746,7 @@ def svei_test_varkap(di_block,model_name='THG24',degree=8,lat=False,plot=False,c
         raise ValueError("Insufficient data, N must be 5 or greater")
         return {}
     else:
-        rng = pmag._resolve_rng(random_seed)
+        seed, rng = _seed_and_rng(random_seed)
         kappa = -1 # infinite kappa
         res_dict=svei_test(di_block,num_sims=num_sims,plot=plot, kappa=kappa,
                               model_name=model_name,saveto=saveto,random_seed=rng)
@@ -2733,4 +2765,5 @@ def svei_test_varkap(di_block,model_name='THG24',degree=8,lat=False,plot=False,c
         res_dict['kappa']=kappa
         res_dict['N']=len(di_block)
         res_dict['model']=model_name
+        res_dict['random_seed']=seed
     return res_dict

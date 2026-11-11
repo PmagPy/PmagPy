@@ -208,6 +208,17 @@ class TestRandomSeed:
         second = svei.svei_test(model_directions, **kwargs)
         assert first == second
 
+    def test_unseeded_svei_test_reports_its_seed(self):
+        model_directions = svei.GGPrand(
+            svei.GGPmodels('THG24'), 35, 30, random_seed=1)[:, :2]
+        kwargs = dict(model_name='THG24', num_sims=50, cdf_samples=5000,
+                      kappa=50)
+        first = svei.svei_test(model_directions, **kwargs)
+        assert isinstance(first['random_seed'], int)
+        repeat = svei.svei_test(model_directions,
+                                random_seed=first['random_seed'], **kwargs)
+        assert repeat == first
+
     def test_unseeded_calls_differ(self):
         """Default behaviour stays non-deterministic, as before."""
         model = svei.GGPmodels('THG24')
@@ -262,6 +273,7 @@ def test_find_flat_saves_both_figures_and_reuses_initial_result(
     assert all(call['random_seed'] is calls[0]['random_seed']
                for call in calls)
     assert_allclose(result['V2max'], 210.0)
+    assert (result['random_seed'] == 5).all()
     plt.close('all')
 
 
@@ -301,4 +313,5 @@ def test_find_flat_saves_summary_when_initial_result_passes(
     assert len(calls) == 1
     assert isinstance(result, list)
     assert result[0]['flat'] == 1
+    assert result[0]['random_seed'] == 5
     plt.close('all')
