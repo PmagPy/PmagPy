@@ -30,7 +30,7 @@ def main():
         -N ; do not normalize by last point - use original units
         -fmt [png,jpg,eps,pdf] set plot file format [default is svg]
         -sav save plot[s] and quit
-        -DM MagIC data model number, default is 3
+        -DM 3 (the only supported data model)
     NOTE
         loc: location (study); sit: site; sam: sample; spc: specimen
     """
@@ -46,7 +46,12 @@ def main():
         if '-h' in sys.argv:
             print(main.__doc__)
             sys.exit()
-        data_model = int(pmag.get_named_arg("-DM", 3))
+        data_model = int(float(pmag.get_named_arg("-DM", 3)))
+        if data_model != 3:
+            raise SystemExit(
+                "-E- irmaq_magic supports MagIC Data Model 3 only. "
+                "Convert Data Model 2 files to Data Model 3 before plotting."
+            )
         if '-N' in sys.argv:
             norm = 0
         if '-sav' in sys.argv:
@@ -54,10 +59,7 @@ def main():
         if '-fmt' in sys.argv:
             ind = sys.argv.index("-fmt")
             fmt = sys.argv[ind + 1]
-        if data_model == 3:
-            in_file = pmag.get_named_arg("-f", 'measurements.txt')
-        else:
-            in_file = pmag.get_named_arg("-f", 'magic_measurements.txt')
+        in_file = pmag.get_named_arg("-f", 'measurements.txt')
         if '-WD' in sys.argv:
             ind = sys.argv.index('-WD')
             dir_path = sys.argv[ind + 1]
@@ -66,30 +68,18 @@ def main():
         if '-WD' not in sys.argv:
             dir_path = os.path.split(in_file)[0]
         plot_by = pmag.get_named_arg("-obj", "loc")
-        if data_model == 3:
-            plot_key = 'location'
-            if plot_by == 'sit':
-                plot_key = 'site'
-            if plot_by == 'sam':
-                plot_key = 'sample'
-            if plot_by == 'spc':
-                plot_key = 'specimen'
-        else:
-            plot_key = 'er_location_name'
-            if plot_by == 'sit':
-                plot_key = 'er_site_name'
-            if plot_by == 'sam':
-                plot_key = 'er_sample_name'
-            if plot_by == 'spc':
-                plot_key = 'er_specimen_name'
+        plot_key = 'location'
+        if plot_by == 'sit':
+            plot_key = 'site'
+        if plot_by == 'sam':
+            plot_key = 'sample'
+        if plot_by == 'spc':
+            plot_key = 'specimen'
 
     # set defaults and get more information if needed
-    if data_model == 3:
-        dmag_key = 'treat_dc_field'
-    else:
-        dmag_key = 'treatment_dc_field'
+    dmag_key = 'treat_dc_field'
     #
-    if data_model == 3 and plot_key != 'specimen':
+    if plot_key != 'specimen':
         # gonna need to read in more files
         print('-W- You are trying to plot measurements by {}'.format(plot_key))
         print('    By default, this information is not available in your measurement file.')
@@ -121,19 +111,12 @@ def main():
     # get plotlist
     #
     plotlist = []
-    if data_model == 3:
-        intlist = ['magn_moment', 'magn_volume', 'magn_mass', 'magnitude']
-    else:
-        intlist = ['measurement_magnitude', 'measurement_magn_moment',
-                    'measurement_magn_volume', 'measurement_magn_mass']
+    intlist = ['magn_moment', 'magn_volume', 'magn_mass', 'magnitude']
     IntMeths = []
     # get all the records with this lab protocol
     #print('data', len(data))
     #print('data[0]', data[0])
-    if data_model == 3:
-        data = pmag.get_dictitem(data, 'method_codes', LP, 'has')
-    else:
-        data = pmag.get_dictitem(data, 'magic_method_codes', LP, 'has')
+    data = pmag.get_dictitem(data, 'method_codes', LP, 'has')
     Ints = {}
     NoInts, int_key = 1, ""
     for key in intlist:
@@ -162,10 +145,7 @@ def main():
         for s in sids:
             INTblock = []
             # get data for each specimen
-            if data_model == 3:
-                sdata = pmag.get_dictitem(data, 'specimen', s, 'T')
-            else:
-                sdata = pmag.get_dictitem(data, 'er_specimen_name', s, 'T')
+            sdata = pmag.get_dictitem(data, 'specimen', s, 'T')
             for rec in sdata:
                 INTblock.append([float(rec[dmag_key]), 0, 0,
                                  float(rec[int_key]), 1, 'g'])

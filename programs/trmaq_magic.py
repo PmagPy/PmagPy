@@ -24,7 +24,7 @@ def main():
         -F OUT, sets output for non-linear TRM acquisition corrected data
         -sav save figures and quit
         -fmt [png, svg, pdf]
-        -DM [2, 3] MagIC data model, default 3
+        -DM 3 (the only supported data model)
 
 
     DEFAULTS
@@ -35,10 +35,15 @@ def main():
     meas_file = 'trmaq_measurements.txt'
     tspec = "thellier_specimens.txt"
     output = 'NLT_specimens.txt'
-    data_model_num = int(float(pmag.get_named_arg("-DM", 3)))
     if '-h' in sys.argv:
         print(main.__doc__)
         sys.exit()
+    data_model_num = int(float(pmag.get_named_arg("-DM", 3)))
+    if data_model_num != 3:
+        raise SystemExit(
+            "-E- trmaq_magic supports MagIC Data Model 3 only. "
+            "Convert Data Model 2 files to Data Model 3 before correcting."
+        )
     if '-i' in sys.argv:
         meas_file = input(
             "Input magic_measurements file name? [trmaq_measurements.txt] ")
@@ -81,24 +86,14 @@ def main():
         print(file_type, "This is not a valid measurements file ")
         sys.exit()
 
-    if data_model_num == 2:
-        spec_col = "er_specimen_name"
-        lab_field_dc_col = "specimen_lab_field_dc"
-        int_col = "specimen_int"
-        meth_col = "magic_method_codes"
-        treat_dc_col = "treatment_dc_field"
-        magn_moment_col = "measurement_magn_moment"
-        experiment_col = "magic_experiment_name"
-        outfile_type = "pmag_specimens"
-    else:
-        spec_col = "specimen"
-        lab_field_dc_col = "int_treat_dc_field"
-        int_col = "int_abs"
-        meth_col = "method_codes"
-        treat_dc_col = "treat_dc_field"
-        magn_moment_col = "magn_moment"
-        experiment_col = "experiment"
-        outfile_type = "specimens"
+    spec_col = "specimen"
+    lab_field_dc_col = "int_treat_dc_field"
+    int_col = "int_abs"
+    meth_col = "method_codes"
+    treat_dc_col = "treat_dc_field"
+    magn_moment_col = "magn_moment"
+    experiment_col = "experiment"
+    outfile_type = "specimens"
 
     sids = pmag.get_specs(meas_data)
     specimen = 0

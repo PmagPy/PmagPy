@@ -38,7 +38,7 @@ def main():
         -b MIN, MAX, set bounds for untilting, default is -10, 150
         -fmt FMT, specify format - default is svg
         -sav saves plots and quits
-        -DM NUM MagIC data model number (2 or 3, default 3)
+        -DM NUM MagIC data model number 3
 
     OUTPUT
         Geographic: is an equal area projection of the input data in
@@ -70,26 +70,20 @@ def main():
     nboot = int(float(pmag.get_named_arg("-n", 1000)))     # number of bootstraps
     fmt = pmag.get_named_arg("-fmt", "svg")
     data_model_num = int(float(pmag.get_named_arg("-DM", 3)))
-    if data_model_num == 3:
-        infile = pmag.get_named_arg("-f", 'sites.txt')
-        orfile = 'samples.txt'
-        site_col = 'site'
-        dec_col = 'dir_dec'
-        inc_col = 'dir_inc'
-        tilt_col = 'dir_tilt_correction'
-        dipkey, azkey = 'bed_dip', 'bed_dip_direction'
-        crit_col = 'criterion'
-        critfile = 'criteria.txt'
-    else:
-        infile = pmag.get_named_arg("-f", 'pmag_sites.txt')
-        orfile = 'er_samples.txt'
-        site_col = 'er_site_name'
-        dec_col = 'site_dec'
-        inc_col = 'site_inc'
-        tilt_col = 'site_tilt_correction'
-        dipkey, azkey = 'sample_bed_dip', 'sample_bed_dip_direction'
-        crit_col = 'pmag_criteria_code'
-        critfile = 'pmag_criteria.txt'
+    if data_model_num != 3:
+        raise SystemExit(
+            "-E- foldtest_magic supports MagIC Data Model 3 only. "
+            "Convert Data Model 2 files to Data Model 3 before plotting."
+        )
+    infile = pmag.get_named_arg("-f", 'sites.txt')
+    orfile = 'samples.txt'
+    site_col = 'site'
+    dec_col = 'dir_dec'
+    inc_col = 'dir_inc'
+    tilt_col = 'dir_tilt_correction'
+    dipkey, azkey = 'bed_dip', 'bed_dip_direction'
+    crit_col = 'criterion'
+    critfile = 'criteria.txt'
     if '-sav' in sys.argv:
         plot = 1
     else:
@@ -104,15 +98,8 @@ def main():
         orfile = pmag.get_named_arg("-fsa", "")
     elif '-fsi' in sys.argv:
         orfile = pmag.get_named_arg("-fsi", "")
-        if data_model_num == 3:
-            dipkey, azkey = 'bed_dip', 'bed_dip_direction'
-        else:
-            dipkey, azkey = 'site_bed_dip', 'site_bed_dip_direction'
     else:
-        if data_model_num == 3:
-            orfile = 'sites.txt'
-        else:
-            orfile = 'pmag_sites.txt'
+        orfile = 'sites.txt'
     orfile = pmag.resolve_file_name(orfile, dir_path)
     infile = pmag.resolve_file_name(infile, dir_path)
     critfile = pmag.resolve_file_name(critfile, dir_path)
@@ -124,18 +111,14 @@ def main():
     # turn into pmag data list
     data = list(data.T.apply(dict))
     # get orientation data
-    if data_model_num == 3:
-        # often orientation will be in infile (sites table)
-        if os.path.split(orfile)[1] == os.path.split(infile)[1]:
-            ordata = df[df[azkey].notnull()]
-            ordata = ordata[ordata[dipkey].notnull()]
-            ordata = list(ordata.T.apply(dict))
-        # sometimes orientation might be in a sample file instead
-        else:
-            ordata = pd.read_csv(orfile, sep='\t', header=1)
-            ordata = list(ordata.T.apply(dict))
+    # often orientation will be in infile (sites table)
+    if os.path.split(orfile)[1] == os.path.split(infile)[1]:
+        ordata = df[df[azkey].notnull()]
+        ordata = ordata[ordata[dipkey].notnull()]
+        ordata = list(ordata.T.apply(dict))
     else:
-        ordata, file_type = pmag.magic_read(orfile)
+        ordata = pd.read_csv(orfile, sep='\t', header=1)
+        ordata = list(ordata.T.apply(dict))
 
     if '-exc' in sys.argv:
         crits, file_type = pmag.magic_read(critfile)
@@ -152,10 +135,7 @@ def main():
         pmagplotlib.plot_init(PLTS['geo'], 5, 5)
         pmagplotlib.plot_init(PLTS['strat'], 5, 5)
         pmagplotlib.plot_init(PLTS['taus'], 5, 5)
-    if data_model_num == 2:
-        GEOrecs = pmag.get_dictitem(data, tilt_col, '0', 'T')
-    else:
-        GEOrecs = data
+    GEOrecs = data
     if len(GEOrecs) > 0:  # have some geographic data
         num_dropped = 0
         DIDDs = []  # set up list for dec inc  dip_direction, dip

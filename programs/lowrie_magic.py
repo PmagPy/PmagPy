@@ -23,11 +23,11 @@ def main():
 
     OPTIONS
         -h prints help message and quits
-        -f FILE: specify input file, default is magic_measurements.txt
+        -f FILE: specify input file, default is measurements.txt
         -N do not normalize by maximum magnetization
         -fmt [svg, pdf, eps, png] specify fmt, default is svg
         -sav saves plots and quits
-        -DM [2, 3] MagIC data model number
+        -DM [3] MagIC data model number
     """
     if '-h' in sys.argv:
         print(main.__doc__)
@@ -36,6 +36,12 @@ def main():
         print(main.__doc__)
         print('you must supply a file name')
         sys.exit()
+    data_model = int(float(pmag.get_named_arg("-DM", 3)))
+    if data_model != 3:
+        raise SystemExit(
+            "-E- lowrie_magic supports MagIC Data Model 3 only. "
+            "Convert Data Model 2 files to Data Model 3 before plotting."
+        )
     FIG = {}  # plot dictionary
     FIG['lowrie'] = 1  # demag is figure 1
     pmagplotlib.plot_init(FIG['lowrie'], 6, 6)
@@ -43,8 +49,6 @@ def main():
     in_file = pmag.get_named_arg("-f", "measurements.txt")
     dir_path = pmag.get_named_arg("-WD", ".")
     in_file = pmag.resolve_file_name(in_file, dir_path)
-    data_model = pmag.get_named_arg("-DM", 3)
-    data_model = int(float(data_model))
     fmt = pmag.get_named_arg("-fmt", "svg")
     if '-N' in sys.argv:
         norm = 0  # don't normalize
@@ -55,27 +59,16 @@ def main():
     print(in_file)
     # read in data
     PmagRecs, file_type = pmag.magic_read(in_file)
-    if data_model == 2 and file_type != "magic_measurements":
-        print('bad input file', file_type)
-        sys.exit()
-    if data_model == 3 and file_type != "measurements":
+    if file_type != "measurements":
         print('bad input file', file_type)
         sys.exit()
 
-    if data_model == 2:
-        meth_code_col = 'magic_method_codes'
-        spec_col = 'er_specimen_name'
-        dec_col = "measurement_dec"
-        inc_col = 'measurement_inc'
-        moment_col = 'measurement_magn_moment'
-        temp_col = 'treatment_temp'
-    else:
-        meth_code_col = 'method_codes'
-        spec_col = 'specimen'
-        dec_col = 'dir_dec'
-        inc_col = 'dir_inc'
-        moment_col = 'magn_moment'
-        temp_col = "treat_temp"
+    meth_code_col = 'method_codes'
+    spec_col = 'specimen'
+    dec_col = 'dir_dec'
+    inc_col = 'dir_inc'
+    moment_col = 'magn_moment'
+    temp_col = "treat_temp"
 
     PmagRecs = pmag.get_dictitem(
         PmagRecs, meth_code_col, 'LP-IRM-3D', 'has')  # get all 3D IRM records

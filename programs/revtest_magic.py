@@ -34,7 +34,7 @@ def main():
        -exc use criteria file to set acceptance criteria (only available for data model 3)
        -fmt [svg,png,jpg], sets format for image output
        -sav saves plot and quits
-       -DM [2, 3] MagIC data model num, default is 3
+       -DM 3 (the only supported data model)
 
     """
     if '-h' in sys.argv:  # check if help is needed
@@ -51,21 +51,18 @@ def main():
     fmt = pmag.get_named_arg("-fmt", "svg")
     if '-sav' in sys.argv:
         plot = 1
-    data_model = int(float(pmag.get_named_arg("-DM")))
-    if data_model == 2:
-        infile = pmag.get_named_arg("-f", "pmag_sites.txt")
-        critfile = "pmag_criteria.txt"
-        tilt_corr_col = 'site_tilt_correction'
-        dec_col = "site_dec"
-        inc_col = "site_inc"
-        crit_code_col = "pmag_criteria_code"
-    else:
-        infile = pmag.get_named_arg("-f", "sites.txt")
-        critfile = "criteria.txt"
-        tilt_corr_col = "dir_tilt_correction"
-        dec_col = "dir_dec"
-        inc_col = "dir_inc"
-        crit_code_col = "criterion"
+    data_model = int(float(pmag.get_named_arg("-DM", 3)))
+    if data_model != 3:
+        raise SystemExit(
+            "-E- revtest_magic supports MagIC Data Model 3 only. "
+            "Convert Data Model 2 files to Data Model 3 before testing."
+        )
+    infile = pmag.get_named_arg("-f", "sites.txt")
+    critfile = "criteria.txt"
+    tilt_corr_col = "dir_tilt_correction"
+    dec_col = "dir_dec"
+    inc_col = "dir_inc"
+    crit_code_col = "criterion"
     D = []
 
 #
@@ -73,29 +70,24 @@ def main():
     dir_path = os.path.split(infile)[0]
     critfile = pmag.resolve_file_name(critfile, dir_path)
     #
-    if data_model == 2:
-        Accept = ['site_k', 'site_alpha95', 'site_n', 'site_n_lines']
-    else:
-        Accept = ['dir_k', 'dir_alpha95', 'dir_n_samples', 'dir_n_specimens_line']
+    Accept = ['dir_k', 'dir_alpha95', 'dir_n_samples', 'dir_n_specimens_line']
     data, file_type = pmag.magic_read(infile)
     if 'sites' not in file_type:
         print("Error opening file", file_type)
         sys.exit()
 #    ordata,file_type=pmag.magic_read(orfile)
     SiteCrits = []
-    if '-exc' in sys.argv and data_model != 2:
+    if '-exc' in sys.argv:
         crits, file_type = pmag.magic_read(critfile)
         for crit in crits:
             if crit[crit_code_col] == "DE-SITE":
                 SiteCrit = crit
                 SiteCrits.append(SiteCrit)
-    elif '-exc' in sys.argv and data_model == 2:
-        print('-W- You have selected the -exc option, which is not available with MagIC data model 2.')
     for rec in data:
         if rec[tilt_corr_col] == coord:
             Dec = float(rec[dec_col])
             Inc = float(rec[inc_col])
-            if '-exc' in sys.argv and data_model != 2:
+            if '-exc' in sys.argv:
                 fail = False
                 for SiteCrit in SiteCrits:
                     for key in Accept:
