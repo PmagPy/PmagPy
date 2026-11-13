@@ -124,14 +124,14 @@ def test_magic_select_uses_dm3_age(model_args, tmp_path, monkeypatch):
     from pmagpy import pmag
 
     (tmp_path / "sites.txt").write_text(
-        "tab\tsites\nsite\tage\tage_unit\nS1\t1000\tka\nS2\t5000\tka\n",
+        "tab\tsites\nsite\tage\tage_unit\nS1\t2500\tka\nS2\t2900\tka\n",
         encoding="utf-8",
     )
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(
         sys, "argv",
         ["magic_select", "-f", "sites.txt", "-F", "selected.txt",
-         "-key", "age", "1", "eval", *model_args],
+         "-key", "age", "2.5", "eval", *model_args],
     )
 
     magic_select.main()
@@ -139,6 +139,7 @@ def test_magic_select_uses_dm3_age(model_args, tmp_path, monkeypatch):
     records, table = pmag.magic_read("selected.txt")
     assert table == "sites"
     assert [record["site"] for record in records] == ["S1"]
+    assert float(records[0]["age"]) == 2.5
     assert records[0]["age_unit"] == "Ma"
 
 

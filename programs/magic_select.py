@@ -81,7 +81,7 @@ def main():
     # get data read in
     Data, file_type = pmag.magic_read(magic_file)
     if grab_key == 'age':
-        Data = pmag.convert_ages(Data, data_model=3)
+        Data = pmag.convert_ages(Data, data_model=3, precision=15)
     if grab_key == 'model_lat':
         for rec in Data:
             if rec.get('age') or (rec.get('age_low') and rec.get('age_high')):
@@ -91,7 +91,7 @@ def main():
         Data = pmag.convert_lat(Data, data_model=3)
     #print(Data[0])
     Selection = pmag.get_dictitem(
-        Data, grab_key, v, flag, float_to_int=(grab_key != 'model_lat')
+        Data, grab_key, v, flag, float_to_int=(grab_key not in ('age', 'model_lat'))
     )
     if len(Selection) > 0:
         pmag.magic_write(outfile, Selection, file_type)
