@@ -336,3 +336,28 @@ def test_download_magic_dm3(interactive, tmp_path, monkeypatch):
     records, table = pmag.magic_read("sites.txt")
     assert table == "sites"
     assert records[0]["site"] == "S1"
+
+
+def test_download_magic_interactive_directories(tmp_path, monkeypatch):
+    from programs import download_magic
+
+    input_dir = tmp_path / "input"
+    output_dir = tmp_path / "output"
+    input_dir.mkdir()
+    output_dir.mkdir()
+    (input_dir / "download.txt").write_text(
+        "tab\tsites\nsite\tmethod_codes\nS1\tLP-DIR-AF\n>>>>>>>>>>\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("builtins.input", lambda prompt: "download.txt")
+    monkeypatch.setattr(
+        sys, "argv",
+        ["download_magic", "-i", "-ID", str(input_dir), "-WD", str(output_dir)],
+    )
+
+    download_magic.main()
+
+    records = pd.read_csv(output_dir / "sites.txt", sep="\t", header=1)
+    assert records["site"].tolist() == ["S1"]
+    assert not (tmp_path / "sites.txt").exists()
