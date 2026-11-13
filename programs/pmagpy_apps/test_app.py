@@ -12,7 +12,7 @@ pn = pytest.importorskip("panel")
 
 from pmagpy_panel import datasets  # noqa: E402
 from pmagpy import magic_project as mp  # noqa: E402
-from pmagpy_apps import APP, app, convert, download, home, launch, metadata, upload, validation  # noqa: E402
+from pmagpy_apps import APP, app, convert, download, home, inspector, launch, metadata, upload, validation  # noqa: E402
 from pmagpy_apps.inventory import take_inventory  # noqa: E402
 
 MCMURDO = datasets.example_dir("McMurdo")
@@ -1608,3 +1608,61 @@ class TestValidation:
         assert '<table class="vsum">' in view.validation.object
         assert view.validation_btn.visible                                            # the full edition has the page
 
+
+
+class TestInspect:
+    """The Inspect page: one specimen in PmagPy's plots, its steps and fits, and where it sits."""
+
+    COL = os.path.join(os.path.dirname(CIT), "..", "col_magic")
+
+    def converted(self, tmp_path):
+        from pmagpy import convert_registry as reg
+        out = tmp_path / "study"
+        out.mkdir()
+        result = reg.convert_files(reg.FORMATS["col"], [os.path.join(self.COL, "28E.col")], {}, str(out))
+        assert result.ok, result.log
+        return str(out)
+
+    def test_the_data_of_a_specimen(self, tmp_path):
+        tables = inspector.read_tables(self.converted(tmp_path))
+        assert inspector.specimen_names(tables) == {"28E": ["28E1A", "28E2B", "28E4A", "28E5B"]}
+        assert inspector.available_coords(tables, "28E1A") == ["specimen", "geographic", "tilt-corrected"]
+        block, units = inspector.steps(tables, "28E1A", "geographic")
+        assert units == "T" and len(block) == 15 and [r[5] for r in block[:3]] == ["b", "b", "g"]
+        fits = inspector.fits(tables, "28E1A", "geographic")
+        assert list(fits["component"]) == ["ChRM"] and fits.iloc[0]["type"] == "DE-BFL"
+        info = inspector.context(tables, "28E1A")
+        assert info["site"] == "28E" and info["lithologies"] == "Andesite"
+        table = inspector.steps_table(tables, "28E1A")
+        assert list(table.columns[:2]) == ["step mT", "dec"] and table.iloc[-1]["step mT"] == 140
+        fig = inspector.figure(tables, "28E1A", "geographic")
+        assert len(fig.axes) == 3 and fig.axes[2].get_xlabel() == "Step (mT)"
+
+    def test_the_page_follows_the_study_and_steps_through_specimens(self, tmp_path):
+        session = home.HubSession(self.converted(tmp_path))
+        body = app.build_body(session)
+        view = body.tools["inspect"]
+        button = next(b for b in body.pages["home"][1][0] if getattr(b, "name", "") == "Inspect…")
+        assert button.visible
+        button.clicks += 1
+        assert body.pages["inspect"].visible and view.specimen.value == "28E1A"
+        assert view.plot.object is not None and len(view.steps_pane.value) == 15
+        view.next_btn.clicks += 1
+        assert view.specimen.value == "28E2B" and len(view.fits_pane.value) == 0
+        view.coord.value = "tilt-corrected"
+        assert "bedding" in view.context_pane.object
+
+    def test_a_preview_converts_into_a_scratch_folder_and_writes_nothing(self, tmp_path):
+        lab = tmp_path / "lab"
+        lab.mkdir()
+        shutil.copy(os.path.join(self.COL, "28E.col"), lab)
+        session = home.HubSession(str(lab))
+        body = app.build_body(session)
+        view = body.convert
+        view.format.value = "col"
+        assert asyncio.run(view._preview()) is True
+        inspect_view = body.tools["inspect"]
+        assert body.pages["inspect"].visible and inspect_view.preview
+        assert inspect_view.banner.visible and inspect_view.home_btn.name == "← Convert"
+        assert inspect_view.specimen.value == "28E1A" and inspect_view.directory != str(lab)
+        assert not any(name.endswith(".txt") for name in os.listdir(lab))          # nothing written into the study

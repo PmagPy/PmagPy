@@ -48,6 +48,9 @@ def build_body(session: HubSession, chooser_stub: str = "", edition: Optional[Ed
     if edition.has_page("validation"):
         from .validation import ValidationView
         tools["validation"] = ValidationView(session, open_table=lambda table: open_in_metadata(table))
+    if edition.has_page("inspect"):
+        from .inspector import InspectorView
+        tools["inspect"] = InspectorView(session)
     if edition.has_page("upload"):
         from .upload import UploadView
         tools["upload"] = UploadView(session)
@@ -107,6 +110,20 @@ def build_body(session: HubSession, chooser_stub: str = "", edition: Optional[Ed
     view.validation_btn.on_click(lambda e: turn_to("validation"))
     convert.validation_btn.on_click(lambda e: turn_to("validation"))
     convert.offer_validation = "validation" in tools
+    view.inspect_btn.on_click(lambda e: open_inspect())
+
+    def open_inspect() -> None:
+        tools["inspect"].preview = False
+        turn_to("inspect")
+
+    def preview(directory: str, note: str) -> None:
+        """A conversion made in a scratch folder, shown on the Inspect page before anything is written."""
+        turn_to("inspect")
+        tools["inspect"].show_directory(directory, preview=True, note=note)
+
+    if "inspect" in tools:
+        convert.on_preview = preview
+        tools["inspect"].home_btn.on_click(lambda e: turn_to("convert") if tools["inspect"].preview else None)
 
     def open_in_metadata(table: str) -> None:
         """The Metadata page on one table, its cells painted where the validator objects."""

@@ -635,6 +635,8 @@ class HomeView:
                                             margin=(30, 10, 0, 0))
         self.validation_btn = pn.widgets.Button(name="Validation…", button_type="default", width=120,
                                                 margin=(30, 10, 0, 0))
+        self.inspect_btn = pn.widgets.Button(name="Inspect…", button_type="default", width=110,
+                                             margin=(30, 10, 0, 0))
         self.start_btn = pn.widgets.Button(name="Start page", button_type="light", width=100, margin=(30, 0, 0, 10))
         self.start_btn.on_click(lambda e: self.go_start())
         self.fresh_btn = pn.widgets.Button(name="Start a fresh copy", button_type="warning", width=200,
@@ -648,7 +650,7 @@ class HomeView:
                                self.recent_pane, sizing_mode="stretch_width")
         self.work = pn.Column(
             pn.Row(self.heading, self.convert_btn, self.metadata_btn, self.upload_btn, self.validation_btn,
-                   self.download_btn, self.change_btn,
+                   self.inspect_btn, self.download_btn, self.change_btn,
                    self.start_btn, sizing_mode="stretch_width"),
             self.ref, self.fresh_btn, self.bring_btn, self.facts, self.strip,
             pn.Row(self.bars, self.spacer, self.aside, sizing_mode="stretch_width", margin=(28, 0, 0, 0)),
@@ -733,6 +735,7 @@ class HomeView:
             self.metadata_btn.visible = inv.is_magic and self.edition.has_page("metadata")
             self.upload_btn.visible = inv.is_magic and self.edition.has_page("upload")
             self.validation_btn.visible = inv.is_magic and self.edition.has_page("validation")
+            self.inspect_btn.visible = inv.is_magic and "measurements" in inv.tables and self.edition.has_page("inspect")
             self.download_btn.visible = self.edition.has_page("download")
 
     def panel(self) -> pn.Column:

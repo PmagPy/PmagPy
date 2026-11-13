@@ -54,7 +54,7 @@ class Edition:
         doors: the start page's doors, by :class:`~pmagpy_apps.home.HomeView`
             attribute, in order.
         pages: the directory page's tools beyond Convert: any of ``"download"``,
-            ``"metadata"``, ``"validation"``, ``"upload"``.
+            ``"metadata"``, ``"validation"``, ``"inspect"``, ``"upload"``.
     """
     key: str
     title: str
@@ -72,7 +72,8 @@ class Edition:
 
 ALL_DOORS = ("open_btn", "download_start_btn", "convert_start_btn", "example_btn")
 EDITIONS = {
-    "full": Edition("full", APP_NAME, "", None, ALL_DOORS, ("download", "metadata", "validation", "upload")),
+    "full": Edition("full", APP_NAME, "", None, ALL_DOORS, ("download", "metadata", "validation", "inspect",
+                                                             "upload")),
     "directions": Edition("directions", "PmagPy Directions",
                           "Convert measurement files into MagIC tables, then interpret the directions.",
                           ("pmagpy_directions",), ("open_btn", "convert_start_btn", "example_btn"), ()),

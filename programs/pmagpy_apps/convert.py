@@ -111,6 +111,12 @@ class ConvertView:
         self.validation = pn.pane.HTML("", stylesheets=[VALIDATION_CSS], sizing_mode="stretch_width", visible=False)
         self.validation_btn = pn.widgets.Button(name="Validation…", button_type="default", width=130, visible=False)
         self.offer_validation = False          # the hub has a Validation page to turn to
+        # what a conversion would make, converted into a scratch folder and shown on the Inspect page
+        self.on_preview: Optional[Callable[[str, str], None]] = None
+        self.preview_btn = pn.widgets.Button(name="Preview", button_type="default", width=110, margin=(5, 10, 5, 0),
+                                             description="Convert into a scratch folder and look at the result "
+                                                         "first; nothing is written into the study.")
+        self.preview_btn.on_click(self._preview)
         self._confirming = False
         self._running = 0                       # the conversion whose progress lines may still be shown
         self._held = False                      # the tables folder has tables a conversion could add to
@@ -408,6 +414,40 @@ class ConvertView:
         self.validation.visible = True
         self.validation_btn.visible = self.offer_validation
 
+    async def _preview(self, event=None) -> bool:
+        """Convert the chosen files into a scratch folder and hand it to the Inspect page."""
+        fmt = self.fmt
+        if fmt is None or self.on_preview is None:
+            self._say("Choose the format of the files first." if fmt is None else "There is no Inspect page here.",
+                      FAIL_COLOR)
+            return False
+        if not fmt.takes_directory and not self.files.value:
+            self._say("Choose the files to convert.", FAIL_COLOR)
+            return False
+        missing = self.form.missing()
+        if missing:
+            self._say(f"Fill in {', '.join(missing)}.", FAIL_COLOR)
+            return False
+        import tempfile
+        scratch = tempfile.mkdtemp(prefix="pmagpy_preview_")
+        inputs = [self.folder] if fmt.takes_directory else [os.path.join(self.folder, n) for n in self.files.value]
+        values = self.form.values()
+        self.preview_btn.disabled = True
+        self._say(f"Converting with {html.escape(fmt.label)} into a scratch folder …")
+        try:
+            result = await asyncio.get_running_loop().run_in_executor(
+                None, lambda: self.run(fmt, inputs, values, scratch, record=False))
+        finally:
+            self.preview_btn.disabled = False
+        self._show_log(result.log)
+        if not result.ok:
+            self._say(html.escape(result.message), FAIL_COLOR)
+            return False
+        self._say(f"Preview: {html.escape(result.message)} · nothing written into the study yet", OK_COLOR)
+        await self._validate(scratch)
+        self.on_preview(scratch, result.message)
+        return True
+
     @staticmethod
     def _forget(target: str, folder: str) -> None:
         """Remove the dated folder a conversion that wrote nothing had made (only while it is empty)."""
@@ -479,7 +519,7 @@ class ConvertView:
             pn.Row(self.format, self.files, sizing_mode="stretch_width", margin=(10, 0, 0, 0)),
             self.notes,
             self.form.panel(),
-            pn.Row(self.run_btn, self.append, sizing_mode="stretch_width", margin=(8, 0, 0, 0)),
+            pn.Row(self.run_btn, self.preview_btn, self.append, sizing_mode="stretch_width", margin=(8, 0, 0, 0)),
             self.done_note, self.again, self.where,
             self.message, self.validation, self.validation_btn, self.log,
             # room under the form for an open pick-list (protocols, orientation codes): the page
