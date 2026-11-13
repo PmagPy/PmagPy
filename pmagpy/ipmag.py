@@ -13167,6 +13167,371 @@ def criteria_extract(crit_file='criteria.txt', output_file='criteria.xlsx',
     return True, [out_file]
 
 
+_MEAN_FIT_CODES = ('DE-BFL', 'DE-BFL-A', 'DE-BFL-O', 'DE-BFP', 'DE-FM')
+# the columns of a site or location row that hold results rather than what the row describes
+_RESULT_PREFIXES = ('dir_', 'vgp_', 'pole_', 'int_', 'paleolat')
+_RESULT_COLUMNS = ('specimens', 'samples', 'sites', 'result_type', 'result_quality', 'method_codes',
+                   'software_packages', 'description', 'criteria')
+
+
+def _mean_number(value):
+    """value as a float, or None when it is empty or not a number"""
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return None if np.isnan(number) else number
+
+
+def _mean_codes(values):
+    """the distinct method codes in a list of colon-delimited strings, in order"""
+    codes = []
+    for value in values:
+        for code in str(value if value is not None else '').split(':'):
+            code = code.strip()
+            if code and code != 'nan' and code not in codes:
+                codes.append(code)
+    return codes
+
+
+def _mean_read(path, dtype):
+    """a MagIC table as a DataFrame of text (empty cells ""), or None if there is no such file"""
+    if not os.path.isfile(path):
+        return None
+    df = cb.MagicDataFrame(path, dtype=dtype).df.reset_index(drop=True)
+    return df.astype(object).where(df.notna(), '')
+
+
+def _mean_is_result(row):
+    """True if a row of a sites or locations table holds a result (a direction, VGP, pole or intensity)"""
+    return any(str(row.get(col, '')).strip() not in ('', 'nan')
+               for col in row.index if col.startswith(_RESULT_PREFIXES))
+
+
+def _mean_key(row, key_columns):
+    """the component and coordinate system of a row, with 0, "0" and "0.0" alike"""
+    key = []
+    for col in key_columns:
+        value = str(row.get(col, '')).strip()
+        number = _mean_number(value)
+        key.append(str(int(number)) if col == 'dir_tilt_correction' and number is not None else value)
+    return tuple(key)
+
+
+def _mean_merge(existing, new, level, key_columns):
+    """
+    The table with the new result rows of each name in place of its rows of the same component and
+    coordinate system, and of its rows that hold no result: the new rows take the values of those
+    rows that describe the site or location (position, ages, geology ...).
+    """
+    if existing is None or not len(existing):
+        return new
+    rows = []
+    names = set(new[level])
+    for name, group in existing.groupby(level, sort=False):
+        if name not in names:
+            rows.append(group)
+            continue
+        described = group[~group.apply(_mean_is_result, axis=1)]
+        source = described if len(described) else group
+        carried = {col: value for col, value in source.iloc[0].items()
+                   if not col.startswith(_RESULT_PREFIXES) and col not in _RESULT_COLUMNS
+                   and str(value).strip() not in ('', 'nan')}
+        field_codes = [code for code in _mean_codes(source['method_codes'] if 'method_codes' in source else [])
+                       if not code.startswith(('DE-', 'LP-'))]
+        mine = new[new[level] == name].copy()
+        for col, value in carried.items():
+            if col not in mine or (mine[col].astype(str).str.strip() == '').all():
+                mine[col] = value
+        mine['method_codes'] = [':'.join(_mean_codes([codes] + field_codes)) for codes in mine['method_codes']]
+        keys = {_mean_key(row, key_columns) for _, row in mine.iterrows()}
+        kept = group[group.apply(_mean_is_result, axis=1)]
+        if len(kept):
+            kept = kept[[_mean_key(row, key_columns) not in keys for _, row in kept.iterrows()]]
+        rows.extend([kept, mine])
+    rows.append(new[~new[level].isin(set(existing[level]))])
+    out = pd.concat([r for r in rows if len(r)], ignore_index=True, sort=False)
+    return out.astype(object).where(out.notna(), '')
+
+
+def site_means_magic(dir_path=".", input_dir_path="", spec_file="specimens.txt", samp_file="samples.txt",
+                     site_file="sites.txt", out_file="", coords=(0, 100), components=None,
+                     include_bad=False, write=True):
+    """
+    Average the directions of the specimens table into the site means of the sites table.
+
+    The specimen directions (lines and planes, e.g. from Demag GUI, from a
+    lab-format converter or from a Paleomagnetism.org .col file) are taken as
+    they are in the specimens table, without fitting again. For each site,
+    component (dir_comp) and coordinate system, the mean is that of McFadden
+    and McElhinny (1988) for lines and planes (pmag.dolnp); a site with a
+    single plane has no mean direction. Where the sites table gives the site
+    latitude and longitude, the VGP is calculated with pmag.dia_vgp.
+
+    Parameters
+    ----------
+    dir_path : str
+        output directory, default "."
+    input_dir_path : str
+        input directory IF different from dir_path, default ""
+    spec_file : str
+        specimens table, default "specimens.txt"
+    samp_file : str
+        samples table, which gives the site of each sample, default "samples.txt"
+    site_file : str
+        sites table that the means are added to, default "sites.txt"
+    out_file : str
+        output sites table, default "": site_file in dir_path
+    coords : sequence of int
+        coordinate systems averaged: 0 geographic, 100 tilt-corrected, -1
+        specimen; default (0, 100)
+    components : sequence of str
+        the components (dir_comp) averaged, default None: every component
+    include_bad : bool
+        include specimen directions with result_quality "b", default False
+    write : bool
+        write the sites table, default True
+
+    Returns
+    -------
+    DataFrame of the site means (empty when there are none). Each row has
+    dir_comp_name, dir_tilt_correction, dir_dec, dir_inc, dir_alpha95, dir_k,
+    dir_r, dir_n_specimens (with dir_n_specimens_lines and
+    dir_n_specimens_planes), dir_n_samples, the specimens and samples
+    averaged, the VGP (vgp_lat, vgp_lon, vgp_dp, vgp_dm) where the site has a
+    position, and method_codes DE-FM (or DE-FM-LP with planes), DE-DI with a
+    VGP, and the lab protocol codes of the specimens.
+
+    Info
+    ----
+    The sites table written keeps every row of the sites without new means.
+    For a site with new means, a row of the same component and coordinate
+    system is replaced, and so is a row that holds no result: its values
+    (position, ages, geology, lithology ...) are copied to the new rows.
+    Other result rows of the site (e.g. intensities) are kept.
+    """
+    input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
+    specimens = _mean_read(pmag.resolve_file_name(spec_file, input_dir_path), 'specimens')
+    if specimens is None or not len(specimens):
+        print('-W- no specimens table in', input_dir_path)
+        return pd.DataFrame()
+    samples = _mean_read(pmag.resolve_file_name(samp_file, input_dir_path), 'samples')
+    site_path = pmag.resolve_file_name(site_file, input_dir_path)
+    sites = _mean_read(site_path, 'sites')
+
+    # the site of each specimen, from the samples table (or the specimens table)
+    site_of = {}
+    if samples is not None and {'sample', 'site'} <= set(samples.columns):
+        site_of = {s: t for s, t in zip(samples['sample'], samples['site']) if str(t).strip()}
+    rows = []
+    for _, row in specimens.iterrows():
+        codes = _mean_codes([row.get('method_codes', '')])
+        fit = [code for code in codes if code in _MEAN_FIT_CODES]
+        dec, inc = _mean_number(row.get('dir_dec')), _mean_number(row.get('dir_inc'))
+        tilt = _mean_number(row.get('dir_tilt_correction'))
+        if not fit or dec is None or inc is None or tilt is None or int(tilt) not in [int(c) for c in coords]:
+            continue
+        if any(code.startswith('LP-PI') for code in codes):
+            continue
+        if not include_bad and str(row.get('result_quality', '')).strip() == 'b':
+            continue
+        component = str(row.get('dir_comp', '')).strip()
+        if components is not None and component not in components:
+            continue
+        site = str(row.get('site', '')).strip() or site_of.get(row.get('sample'), '')
+        if not site:
+            continue
+        rows.append({'site': site, 'dir_comp_name': component, 'dir_tilt_correction': int(tilt),
+                     'dir_dec': dec, 'dir_inc': inc, 'dir_type': 'p' if 'DE-BFP' in fit else 'l',
+                     'specimen': row['specimen'], 'sample': row.get('sample', ''),
+                     'codes': [code for code in codes if code.startswith('LP-')]})
+    if not rows:
+        print('-W- no specimen directions to average in', spec_file)
+        return pd.DataFrame()
+
+    position, location = {}, {}
+    if sites is not None and 'site' in sites:
+        for _, row in sites.iterrows():
+            lat, lon = _mean_number(row.get('lat')), _mean_number(row.get('lon'))
+            if lat is not None and lon is not None:
+                position.setdefault(row['site'], (lat, lon))
+            if str(row.get('location', '')).strip():
+                location.setdefault(row['site'], row['location'])
+
+    means = []
+    directions = pd.DataFrame(rows).drop_duplicates(subset=['specimen', 'dir_comp_name', 'dir_tilt_correction'])
+    for (site, component, tilt), group in directions.groupby(['site', 'dir_comp_name', 'dir_tilt_correction'],
+                                                            sort=False):
+        records = group[['dir_dec', 'dir_inc', 'dir_tilt_correction', 'dir_type']].to_dict('records')
+        lnp = pmag.dolnp(records, 'dir_type')
+        n_lines, n_planes = int(lnp['n_lines']), int(lnp['n_planes'])
+        if n_lines == 0 and n_planes == 1:
+            continue  # the pole of a single plane is not a direction
+        mean = {'site': site, 'dir_comp_name': component, 'dir_tilt_correction': str(tilt),
+                'dir_dec': round(float(lnp['dec']), 1), 'dir_inc': round(float(lnp['inc']), 1),
+                'dir_n_specimens': str(n_lines + n_planes), 'dir_n_specimens_lines': str(n_lines),
+                'dir_n_specimens_planes': str(n_planes),
+                'dir_n_samples': str(len(set(group['sample']) - {''})),
+                'specimens': ':'.join(group['specimen']),
+                'samples': ':'.join(dict.fromkeys(s for s in group['sample'] if s)),
+                'result_type': 'a', 'result_quality': 'g', 'citations': 'This study',
+                'software_packages': pmag.get_version()}
+        for key, col, digits in (('alpha95', 'dir_alpha95', 1), ('K', 'dir_k', 1), ('R', 'dir_r', 4)):
+            value = _mean_number(lnp.get(key))
+            if value is not None and np.isfinite(value):
+                mean[col] = round(value, digits)
+        codes = _mean_codes([':'.join(c) for c in group['codes']]) + ['DE-FM-LP' if n_planes else 'DE-FM']
+        if site in location:
+            mean['location'] = location[site]
+        if site in position:
+            lat, lon = position[site]
+            plon, plat, dp, dm = pmag.dia_vgp(mean['dir_dec'], mean['dir_inc'], mean.get('dir_alpha95', 0.),
+                                              lat, lon)
+            mean.update(vgp_lat=round(plat, 1), vgp_lon=round(plon % 360., 1))
+            if 'dir_alpha95' in mean:
+                mean.update(vgp_dp=round(dp, 1), vgp_dm=round(dm, 1))
+            codes.append('DE-DI')
+        mean['method_codes'] = ':'.join(codes)
+        means.append(mean)
+    means = pd.DataFrame(means)
+    if not len(means):
+        print('-W- no site means: each site has a single plane only')
+        return means
+    if write:
+        merged = _mean_merge(sites, means, 'site', ('dir_comp_name', 'dir_tilt_correction'))
+        out = pmag.resolve_file_name(out_file or os.path.basename(site_file), dir_path)
+        cb.MagicDataFrame(dtype='sites', df=merged).write_magic_file(custom_name=out, dir_path=dir_path)
+    return means
+
+
+def location_means_magic(dir_path=".", input_dir_path="", site_file="sites.txt", loc_file="locations.txt",
+                         out_file="", coords=(0, 100), components=None, common_polarity=True,
+                         include_bad=False, write=True):
+    """
+    Average the site means of the sites table into the mean directions and poles of the locations table.
+
+    For each location, component (dir_comp_name) and coordinate system, the
+    mean direction is the Fisher mean of the site mean directions and the
+    pole the Fisher mean of their VGPs (pmag.fisher_mean). Site means are
+    made with site_means_magic or another program (e.g. Demag GUI).
+
+    Parameters
+    ----------
+    dir_path : str
+        output directory, default "."
+    input_dir_path : str
+        input directory IF different from dir_path, default ""
+    site_file : str
+        sites table with the site means, default "sites.txt"
+    loc_file : str
+        locations table that the means are added to, default "locations.txt"
+    out_file : str
+        output locations table, default "": loc_file in dir_path
+    coords : sequence of int
+        coordinate systems averaged: 0 geographic, 100 tilt-corrected, -1
+        specimen; default (0, 100)
+    components : sequence of str
+        the components (dir_comp_name) averaged, default None: every component
+    common_polarity : bool
+        bring the directions (and VGPs) to a common polarity before averaging,
+        about their principal axis (pmag.flip), default True. The share of
+        VGPs inverted is written to pole_reversed_perc.
+    include_bad : bool
+        include site means with result_quality "b", default False
+    write : bool
+        write the locations table, default True
+
+    Returns
+    -------
+    DataFrame of the location means (empty when there are none). Each row has
+    dir_tilt_correction, dir_dec, dir_inc, dir_alpha95, dir_k, dir_r,
+    dir_n_sites, dir_n_specimens, the sites averaged and, with two or more
+    VGPs, the pole (pole_lat, pole_lon, pole_alpha95, pole_k, pole_r,
+    pole_n_sites, pole_reversed_perc); pole_comp_name and the description name
+    the component. Method codes: DE-FM, DE-VGP with a pole, and the lab
+    protocol codes of the sites.
+
+    Info
+    ----
+    The locations table written keeps every row of the locations without new
+    means. For a location with new means, a row of the same component and
+    coordinate system is replaced, and so is a row that holds no result: its
+    values (bounds, location type, ages, geology ...) are copied to the new
+    rows.
+    """
+    input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
+    sites = _mean_read(pmag.resolve_file_name(site_file, input_dir_path), 'sites')
+    if sites is None or not {'site', 'location', 'dir_dec', 'dir_inc'} <= set(sites.columns):
+        print('-W- no site means in', site_file)
+        return pd.DataFrame()
+    locations = _mean_read(pmag.resolve_file_name(loc_file, input_dir_path), 'locations')
+
+    rows = []
+    for _, row in sites.iterrows():
+        dec, inc = _mean_number(row.get('dir_dec')), _mean_number(row.get('dir_inc'))
+        tilt = _mean_number(row.get('dir_tilt_correction'))
+        if dec is None or inc is None or tilt is None or int(tilt) not in [int(c) for c in coords]:
+            continue
+        if not str(row.get('location', '')).strip():
+            continue
+        if not include_bad and str(row.get('result_quality', '')).strip() == 'b':
+            continue
+        component = str(row.get('dir_comp_name', '')).strip()
+        if components is not None and component not in components:
+            continue
+        rows.append({'location': row['location'], 'component': component, 'tilt': int(tilt), 'site': row['site'],
+                     'dir': [dec, inc], 'vgp': [_mean_number(row.get('vgp_lon')), _mean_number(row.get('vgp_lat'))],
+                     'n_specimens': _mean_number(row.get('dir_n_specimens')) or 0,
+                     'codes': [c for c in _mean_codes([row.get('method_codes', '')]) if c.startswith('LP-')]})
+    if not rows:
+        print('-W- no site means to average in', site_file)
+        return pd.DataFrame()
+
+    def unify(block):
+        """the directions brought to the polarity of the majority, and the number inverted"""
+        if not common_polarity or len(block) < 2:
+            return block, 0
+        normal, reverse = pmag.flip(block)
+        if len(reverse) > len(normal):  # pmag.flip takes the sign of the principal axis
+            return [[(d + 180.) % 360., -i] for d, i in normal + reverse], len(normal)
+        return normal + reverse, len(reverse)
+
+    means = []
+    frame = pd.DataFrame(rows).drop_duplicates(subset=['location', 'component', 'tilt', 'site'])
+    for (location, component, tilt), group in frame.groupby(['location', 'component', 'tilt'], sort=False):
+        block, _ = unify([list(d) for d in group['dir']])
+        fpars = pmag.fisher_mean(block)
+        mean = {'location': location, 'dir_tilt_correction': str(tilt),
+                'dir_dec': round(fpars['dec'], 1), 'dir_inc': round(fpars['inc'], 1),
+                'dir_n_sites': str(len(block)), 'dir_n_specimens': str(int(group['n_specimens'].sum())),
+                'sites': ':'.join(group['site']), 'result_type': 'a', 'result_quality': 'g',
+                'citations': 'This study', 'software_packages': pmag.get_version(),
+                'description': '{} component'.format(component) if component else ''}
+        if len(block) > 1:
+            mean.update(dir_alpha95=round(fpars['alpha95'], 1), dir_k=round(fpars['k'], 1),
+                        dir_r=round(fpars['r'], 4))
+        codes = _mean_codes([':'.join(c) for c in group['codes']]) + ['DE-FM']
+        vgps = [list(v) for v in group['vgp'] if v[0] is not None and v[1] is not None]
+        if len(vgps) > 1:
+            vgps, inverted = unify(vgps)
+            ppars = pmag.fisher_mean(vgps)
+            mean.update(pole_lat=round(ppars['inc'], 1), pole_lon=round(ppars['dec'] % 360., 1),
+                        pole_alpha95=round(ppars['alpha95'], 1), pole_k=round(ppars['k'], 1),
+                        pole_r=round(ppars['r'], 4), pole_n_sites=str(len(vgps)), pole_comp_name=component,
+                        pole_reversed_perc=round(100. * inverted / len(vgps), 1))
+            codes.append('DE-VGP')
+        elif component:
+            mean['pole_comp_name'] = component
+        mean['method_codes'] = ':'.join(codes)
+        means.append(mean)
+    means = pd.DataFrame(means)
+    if write:
+        merged = _mean_merge(locations, means, 'location', ('pole_comp_name', 'dir_tilt_correction'))
+        out = pmag.resolve_file_name(out_file or os.path.basename(loc_file), dir_path)
+        cb.MagicDataFrame(dtype='locations', df=merged).write_magic_file(custom_name=out, dir_path=dir_path)
+    return means
+
+
 def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
             spec_file="specimens.txt", samp_file="samples.txt",
             site_file="sites.txt", loc_file="locations.txt",
