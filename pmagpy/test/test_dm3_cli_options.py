@@ -120,13 +120,16 @@ def test_magic_select_uses_dm3_age(model_args, tmp_path, monkeypatch):
 def test_combine_magic_dm3(interactive, tmp_path, monkeypatch):
     from programs import combine_magic
 
+    input_dir = tmp_path / "input files" if interactive else tmp_path
+    input_dir.mkdir(exist_ok=True)
     for name in ("S1", "S2"):
-        (tmp_path / (name + ".txt")).write_text(
+        (input_dir / (name + ".txt")).write_text(
             f"tab\tsites\nsite\n{name}\n", encoding="utf-8"
         )
     monkeypatch.chdir(tmp_path)
     if interactive:
-        answers = iter(["S1.txt", "S2.txt", "", "combined.txt"])
+        answers = iter([str(input_dir / "S1.txt"), str(input_dir / "S2.txt"),
+                        "", "combined.txt"])
         monkeypatch.setattr("builtins.input", lambda prompt: next(answers))
         args = ["-i", "-dm", "3.0"]
     else:
@@ -135,7 +138,8 @@ def test_combine_magic_dm3(interactive, tmp_path, monkeypatch):
 
     combine_magic.main()
 
-    assert (tmp_path / "combined.txt").read_text(encoding="utf-8").splitlines()[0].split()[-1] == "sites"
+    header = (tmp_path / "combined.txt").read_text(encoding="utf-8").splitlines()[0]
+    assert header.split()[-1] == "sites"
     records = pd.read_csv("combined.txt", sep="\t", header=1)
     assert set(records["site"]) == {"S1", "S2"}
 

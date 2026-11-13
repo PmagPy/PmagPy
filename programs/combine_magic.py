@@ -25,8 +25,10 @@ import pmagpy.command_line_extractor as extractor
 
 
 def combine(filenames, outfile, dir_path='.', data_model=2.5):
+    if isinstance(filenames, str):
+        filenames = filenames.split()
     files = []
-    for f in filenames.split():
+    for f in filenames:
         files.append(os.path.join(dir_path, f))
     outfile = (os.path.join(dir_path, outfile))
     ipmag.combine_magic(files, outfile, data_model=data_model)
@@ -55,7 +57,6 @@ def main():
             else:
                 print("-W- You have not provided a valid filename.\nIf the file is not in your current working directory, you will need to provide the full path to the file")
         outfile = input('\n\n Enter name for new combined file: ')
-        filenames = " ".join(filenames)
         if not outfile:
             return False
     else:  # non-interactive
