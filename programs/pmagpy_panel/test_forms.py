@@ -114,3 +114,26 @@ class TestOrientationCodes:
         for key in ("orient", "azdip", "2g_bin"):
             w = Form(FORMATS[key].fields).widgets["gmeths"]
             assert isinstance(w, pn.widgets.MultiChoice) and w.value and all(v[:3] in ("FS-", "SO-") for v in w.value)
+
+
+class TestVocabularies:
+    def test_a_field_offers_the_vocabulary_of_its_column(self):
+        fields = (Field("lithologies", "codes", "Lithologies", vocabulary="sites.lithologies"),
+                  Field("location_type", "choice", "Type", default="", choices=(("", "from the data"),),
+                        vocabulary="locations.location_type"))
+        form = Form(fields)
+        lithologies = form.widgets["lithologies"]
+        assert "Basalt" in lithologies.options.values() and len(lithologies.options) > 900
+        types = list(form.widgets["location_type"].options.values())
+        assert types[0] == "" and "Outcrop" in types and form.values()["location_type"] == ""
+        form.widgets["lithologies"].value = ["Basalt", "Andesite"]
+        assert form.values()["lithologies"] == ["Basalt", "Andesite"]
+
+    def test_a_naming_field_may_offer_its_own_choice_first(self):
+        form = Form((Field("samp_con", "naming", "Sites from", default="",
+                           choices=(("", "each file is a site"),)),))
+        assert list(form.widgets["samp_con"].options)[0] == "each file is a site"
+        assert form.values()["samp_con"] == ""
+        form.widgets["samp_con"].value = "4"
+        form.extras["samp_con"].value = 2
+        assert form.values()["samp_con"] == "4-2"

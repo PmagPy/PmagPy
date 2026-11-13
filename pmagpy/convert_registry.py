@@ -107,7 +107,11 @@ class Field:
         required: the form insists on a value.
         choices: for ``choice`` — ``(value, label)`` pairs. A ``bool`` may give
             two, ``(True, label)`` and ``(False, label)``, when the form should
-            spell out both ways rather than show one checkbox.
+            spell out both ways rather than show one checkbox. For ``naming``,
+            choices offered before the sample-naming conventions.
+        vocabulary: ``"table.column"`` of the MagIC data model: a ``choice`` or
+            ``codes`` field offers the controlled vocabulary of that column
+            (after any ``choices``), read when the form is built.
     """
     name: str
     kind: str
@@ -116,6 +120,7 @@ class Field:
     default: object = None
     required: bool = False
     choices: tuple = ()
+    vocabulary: str = ""
 
 
 @dataclass(frozen=True)
@@ -153,6 +158,12 @@ class Format:
         examples: paths under ``data_files`` that must convert, each
             ``(relative path, {canonical values})``; the registry's tests run them.
         notes: a line for the form about the format or the files it wants beside the input.
+        together: the chosen files go to one call of the converter, as a list: they
+            are one study (a site may span files, one location holds them all).
+        finish_fields: what the form also asks for ``finish`` (not passed to the converter).
+        finish: run on the combined tables before they are written, as
+            ``finish(directory, values)``; returns lines for the log. The
+            directory holds every table the conversion writes.
     """
     key: str
     label: str
@@ -173,6 +184,9 @@ class Format:
     replaces: Tuple[str, ...] = ()
     examples: Tuple[Tuple[str, dict], ...] = ()
     notes: str = ""
+    together: bool = False
+    finish_fields: Tuple[Field, ...] = ()
+    finish: Optional[Callable[[str, dict], List[str]]] = None
 
     def keyword(self, name: str) -> str:
         return self.kwargs.get(name, name)
@@ -277,7 +291,14 @@ def build_kwargs(fmt: Format, values: dict, input_path: str, out_dir: str, magic
     for table, kw in fmt.needs.items():
         kwargs[kw] = os.path.join(magic_dir or out_dir, f"{table}.txt")
     file_kw = fmt.keyword(fmt.file_kw)
-    if fmt.takes_directory:
+    if isinstance(input_path, (list, tuple)):        # a format that takes its files together
+        folders = {os.path.dirname(p) for p in input_path}
+        if fmt.input_dir_kw and fmt.input_dir_kw in params and len(folders) == 1:
+            kwargs[fmt.input_dir_kw] = folders.pop()
+            kwargs[file_kw] = [os.path.basename(p) for p in input_path]
+        else:
+            kwargs[file_kw] = list(input_path)
+    elif fmt.takes_directory:
         kwargs[file_kw] = input_path
     elif fmt.input_dir_kw and fmt.input_dir_kw in params:
         kwargs[fmt.input_dir_kw] = os.path.dirname(input_path)
@@ -385,9 +406,12 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
             for name in only:
                 shutil.copy2(os.path.join(source, name), os.path.join(picked, name))
             inputs = [picked]
-        for i, path in enumerate(inputs):
-            name = os.path.basename(path.rstrip(os.sep))
-            say(f"Converting {name} ({i + 1} of {len(inputs)}) …")
+        # a format that takes its files together converts them in one call
+        units = [list(inputs)] if fmt.together and only is None else inputs
+        for i, path in enumerate(units):
+            names = [os.path.basename(p.rstrip(os.sep)) for p in (path if isinstance(path, list) else [path])]
+            name = names[0] if len(names) == 1 else f"{len(names)} files together"
+            say(f"Converting {name} ({i + 1} of {len(units)}) …" if len(units) > 1 else f"Converting {name} …")
             out = os.path.join(scratch, f"{i:03d}")
             os.makedirs(out)
             ok, message, log = run_one(fmt, path, values, out, magic_dir)
@@ -400,12 +424,12 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
                     log = log.replace(prefix, source)
             logs.append(f"── {name}\n{log.rstrip()}\n" if log.strip() else f"── {name}\n")
             if not ok:
-                failed.append((name, message or "the converter reported failure"))
+                failed.extend((n, message or "the converter reported failure") for n in names)
                 continue
             produced = [os.path.join(out, f"{t}.txt") for t in MAGIC_TABLES if os.path.exists(os.path.join(out, f"{t}.txt"))]
             if not produced:
                 # a directory format with none of its files there, or a file with no records: not a conversion
-                failed.append((name, "no MagIC tables were written (no data the converter could read)"))
+                failed.extend((n, "no MagIC tables were written (no data the converter could read)") for n in names)
                 continue
             for written in produced:
                 per_table[os.path.basename(written)[:-4]].append(written)
@@ -423,6 +447,11 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
             notes: List[str] = []
             with StagedExport(dir_path, backup=backup, originals=True, replace_tables=replace) as stage:
                 tables = combine_tables(per_table, stage.dir, replaces=fmt.replaces, warnings=notes)
+                if fmt.finish:
+                    say("Finishing the tables …")
+                    notes.extend(fmt.finish(stage.dir, values) or [])
+                    tables = {t: _rows(os.path.join(stage.dir, f"{t}.txt")) for t in MAGIC_TABLES
+                              if os.path.exists(os.path.join(stage.dir, f"{t}.txt"))}
             removed = stage.removed
             if removed:
                 notes.append(f"removed, as the new tables do not have them: {', '.join(removed)}")
@@ -449,6 +478,11 @@ def convert_files(fmt: Format, inputs: Sequence[str], values: dict, dir_path: st
         record_conversion(dir_path, fmt.key, names, values, append=append, tables=tables,
                           failed=[f for f, _ in failed], label=fmt.label)
     return result
+
+
+def _rows(path: str) -> int:
+    """The number of rows of a MagIC table file."""
+    return len(pd.read_csv(path, sep="\t", header=1, dtype=str, keep_default_na=False))
 
 
 def directory_inputs(fmt: Format, directory: str) -> List[str]:
@@ -809,7 +843,7 @@ def guess_format(names: Sequence[str], directory: str = "") -> Tuple[str, Dict[s
                 orient_files.append(n)
     if orient_files:
         return "orient", roles
-    for key in ("jr6_jr6", "pmd", "tdt", "livdb", "agm", "utrecht", "2g_asc", "2g_bin"):
+    for key in ("col", "jr6_jr6", "pmd", "tdt", "livdb", "agm", "utrecht", "2g_asc", "2g_bin"):
         fmt = FORMATS[key]
         hits = [n for n in names if fmt.accepts(n) and fmt.extensions]
         if hits:
@@ -1285,3 +1319,78 @@ _add(Format(
     notes="Space-delimited 'sample azimuth dip strike dip' lines, azimuths already true north; the converter "
           "applies orientation convention 3 (lab arrow dip = 90 − dip) and takes bedding as strike and dip "
           "with the right-hand rule (dip direction = strike + 90). Writes samples only."))
+
+
+# ----- Paleomagnetism.org collections --------------------------------------------------------
+
+def _col_means(directory: str, values: dict) -> List[str]:
+    """Site and location means of the fits the .col files hold, as Paleomagnetism.org made them
+    (``ipmag.site_means_magic`` and ``ipmag.location_means_magic``: the stored directions, not fitted again)."""
+    if not (values.get("site_means") or values.get("location_means")):
+        return []
+    from pmagpy import ipmag                     # heavy: only when asked for
+    notes = []
+    with contextlib.redirect_stdout(io.StringIO()) as printed:
+        sites = ipmag.site_means_magic(dir_path=directory)
+    if not len(sites):
+        return ["no site means: no site has a line, or more than one plane, in geographic or tilt-corrected "
+                "coordinates" + ("; " + printed.getvalue().strip() if printed.getvalue().strip() else "")]
+    notes.append(f"site means: {len(sites)} (of {sites['site'].nunique()} sites, "
+                 f"{sites['dir_comp_name'].nunique()} components), with VGPs where the site has a position")
+    if values.get("location_means"):
+        with contextlib.redirect_stdout(io.StringIO()):
+            locations = ipmag.location_means_magic(dir_path=directory)
+        poles = int(locations["pole_lat"].notna().sum()) if "pole_lat" in locations else 0
+        notes.append(f"location means: {len(locations)}, {poles} with a pole")
+    return notes
+
+
+COL_SITES = Field("samp_con", "naming", "Sites from",
+                  "Each .col file (collection) as a site, or the site read from the sample names.", default="",
+                  choices=(("", "each .col file is a site"),))
+NOT_SPECIFIED = "Not Specified"
+
+_add(Format(
+    "col", "Paleomagnetism.org (.col)", convert.col,
+    fields=(
+        Field("location", "text", "Location name", "The one location that holds every site of the study.",
+              default="unknown"),
+        COL_SITES,
+        Field("demag", "choice", "Demagnetization type", "For specimens whose file gives none and whose step "
+              "labels (20mT, 350C) do not show it.", default="",
+              choices=(("", "the files say (stop if not)"), ("AF", "alternating field"), ("T", "thermal"))),
+        Field("location_type", "choice", "Location type", "Of the study's location.", default="",
+              choices=(("", "from the specimens (outcrop, section or region)"),),
+              vocabulary="locations.location_type"),
+        Field("lat", "float", "Latitude", "Of the specimens whose file gives no position."),
+        Field("lon", "float", "Longitude", "Of the specimens whose file gives no position, east positive."),
+        Field("age", "float", "Age (Ma)", "Of the specimens whose file gives no age."),
+        Field("age_low", "float", "Age, lower bound (Ma)", "With the age."),
+        Field("age_high", "float", "Age, upper bound (Ma)", "With the age."),
+        Field("geologic_classes", "codes", "Geologic classes", "Of the samples and sites whose specimens give none.",
+              default=NOT_SPECIFIED, vocabulary="sites.geologic_classes"),
+        Field("geologic_types", "codes", "Geologic types", "Of the sites (Paleomagnetism.org has none).",
+              default=NOT_SPECIFIED, vocabulary="sites.geologic_types"),
+        Field("lithologies", "codes", "Lithologies", "Of the samples and sites whose specimens give none; "
+              "left empty, MagIC asks for them at upload.", vocabulary="sites.lithologies"),
+        Field("citations", "text", "Citation", "\"This study\", or the DOI of the publication.", default="This study"),
+        Field("meth_code", "codes", "Sampling and orientation codes", "Added to the samples' method codes.",
+              choices=SAMPLING_CODES),
+        USER),
+    finish_fields=(
+        Field("site_means", "bool", "Site means",
+              "Average the fits of each site, component and coordinate system (McFadden and McElhinny, 1988), "
+              "with their VGPs, into sites.txt.", default=False),
+        Field("location_means", "bool", "Location means and poles",
+              "Average the site means into the location, with the pole of the VGPs (writes the site means too).",
+              default=False)),
+    finish=_col_means,
+    together=True,
+    extensions=(".col",),
+    examples=(("col_magic/28E.col", {}), ("col_magic/NE02-Circ_subset.col", {"samp_con": "5", "site_means": True,
+                                                                         "location_means": True})),
+    notes="The collection files Paleomagnetism.org saves. Choose every file of the study: they are converted "
+          "together, so a site can span files and one location holds them all. The fits made in "
+          "Paleomagnetism.org become the specimens table; the site and location means are made from them "
+          "as they are, not fitted again."))
+

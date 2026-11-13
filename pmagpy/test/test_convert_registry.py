@@ -708,3 +708,63 @@ def test_magic_2_5_tables_are_no_format_of_the_registry():
     names = ["magic_measurements.txt", "er_samples.txt", "pmag_criteria.txt", "rmag_anisotropy.txt", "magic_methods.txt"]
     assert reg.guess_format(names) == ("", {})
     assert "legacy" not in reg.FORMATS and not any("2.5" in fmt.label for fmt in reg.FORMATS.values())
+
+
+# ----- Paleomagnetism.org collections: one study in several files ------------------------------------
+
+class TestCol:
+    FILES = [example_path("col_magic/28E.col"), example_path("col_magic/NE02-Circ_subset.col")]
+
+    def test_the_files_are_converted_together(self, tmp_path):
+        result = reg.convert_files(reg.FORMATS["col"], self.FILES, {"location": "Study"}, str(tmp_path))
+        assert result.ok, result.log
+        assert "2 files together" in result.log
+        # one location holds the sites of both files: the converter saw them in one call
+        locations = read_table(tmp_path / "locations.txt")
+        assert len(locations) == 1 and locations.iloc[0]["location"] == "Study"
+        assert float(locations.iloc[0]["lat_s"]) == pytest.approx(18.0307222, abs=1e-6)
+        assert set(read_table(tmp_path / "sites.txt")["site"]) == {"28E", "NE02-Circ_subset"}
+        assert result.message.startswith("2 files converted")
+
+    def test_a_failure_names_every_file(self, tmp_path):
+        files = self.FILES + [example_path("col_magic/21E.col")]     # 21E has no demagnetization type
+        result = reg.convert_files(reg.FORMATS["col"], files, {}, str(tmp_path))
+        assert not result.ok and len(result.failed) == 3
+        assert "no demagnetization type" in result.failed[0][1]
+        result = reg.convert_files(reg.FORMATS["col"], files, {"demag": "AF"}, str(tmp_path))
+        assert result.ok and not result.failed
+
+    def test_the_metadata_of_the_form(self, tmp_path):
+        values = {"location": "Study", "samp_con": "5", "lithologies": ["Andesite", "Basalt"],
+                  "geologic_types": ["Lava Flow"], "meth_code": ["FS-FD", "SO-MAG"], "location_type": "Outcrop",
+                  "citations": "10.5281/zenodo.7791447"}
+        kwargs = reg.build_kwargs(reg.FORMATS["col"], values, self.FILES, str(tmp_path))
+        assert kwargs["mag_file"] == ["28E.col", "NE02-Circ_subset.col"]
+        assert kwargs["input_dir_path"] == os.path.dirname(self.FILES[0])
+        assert kwargs["lithologies"] == "Andesite:Basalt" and kwargs["meth_code"] == "FS-FD:SO-MAG"
+        assert "site_means" not in kwargs                       # for the finishing step, not the converter
+        result = reg.convert_files(reg.FORMATS["col"], self.FILES, values, str(tmp_path))
+        assert result.ok, result.log
+        sites = read_table(tmp_path / "sites.txt")
+        assert len(sites) == 10 and set(sites["geologic_types"]) == {"Lava Flow"}
+        assert read_table(tmp_path / "locations.txt").iloc[0]["location_type"] == "Outcrop"
+
+    def test_site_and_location_means_of_the_stored_fits(self, tmp_path):
+        values = {"location": "Study", "samp_con": "5", "site_means": True, "location_means": True}
+        result = reg.convert_files(reg.FORMATS["col"], self.FILES, values, str(tmp_path))
+        assert result.ok, result.log
+        assert "site means:" in result.log and "location means:" in result.log
+        sites = read_table(tmp_path / "sites.txt")
+        means = sites[sites["dir_dec"] != ""]
+        assert len(means) and set(means["method_codes"].str.contains("DE-FM"))
+        assert result.tables["sites"] == len(sites)              # counted after the means were added
+        # a site mean of one line is that line, as the .col file stores it
+        row = means[(means["site"] == "28E1A") & (means["dir_tilt_correction"] == "0")].iloc[0]
+        specimens = read_table(tmp_path / "specimens.txt")
+        fit = specimens[(specimens["specimen"] == "28E1A") & (specimens["dir_tilt_correction"] == "0")].iloc[0]
+        assert float(row["dir_dec"]) == pytest.approx(float(fit["dir_dec"]), abs=0.06)
+        locations = read_table(tmp_path / "locations.txt")
+        assert (locations["dir_dec"] != "").all() and set(locations["location_type"]) == {"Region"}
+
+    def test_the_format_is_guessed_from_the_extension(self):
+        assert reg.guess_format(["28E.col", "NE02.col"])[0] == "col"

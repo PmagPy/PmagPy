@@ -197,7 +197,7 @@ class ConvertView:
                        "the tables here; where there are tables already, the page asks first.")
             return
         self.append.visible = self._held
-        self.form.set_fields(fmt.fields)
+        self.form.set_fields(fmt.fields + fmt.finish_fields)
         if fmt.takes_directory:
             self._offer(names, [])
             self.files.disabled = True

@@ -14,6 +14,11 @@ The widget for each kind:
 - ``codes``: a multi-choice; the value is the list of codes chosen.
 - ``naming``: a select of the sample-naming conventions and, for the two that
   need a character count, a number beside it; the value is ``'1'``, ``'4-2'`` …
+  (or a value of the field's own ``choices``, offered first).
+
+A ``choice`` or ``codes`` field with a ``vocabulary`` offers MagIC's controlled
+values for that column (from :mod:`pmagpy.magic_metadata`, which reads the
+vocabularies cached with PmagPy), after its own ``choices``.
 """
 from __future__ import annotations
 
@@ -78,13 +83,13 @@ class Form:
         if f.kind == "bool":
             return pn.widgets.Checkbox(name=f.label, value=bool(start), width=self.width, margin=(20, 10, 5, 10))
         if f.kind == "choice":
-            options = {label: value for value, label in f.choices}
+            options = {label: value for value, label in _choices(f)}
             if f.default is None:                    # no default: the blank line comes first, so a required choice is a choice
                 options = {"—": "", **options}
             value = start if start in options.values() else next(iter(options.values()), None)
             return pn.widgets.Select(options=options, value=value, **kw)
         if f.kind == "codes":
-            options = {label: value for value, label in f.choices}
+            options = {label: value for value, label in _choices(f)}
             chosen = list(start) if isinstance(start, (list, tuple)) else ([c for c in str(start).split(":") if c] if start else [])
             # a code remembered from an earlier conversion that the list does not offer is offered too
             for code in chosen:
@@ -94,10 +99,12 @@ class Form:
             return pn.widgets.MultiChoice(options=options, value=chosen, placeholder=hint, **kw)
         if f.kind == "naming":
             # the select shows the pattern; the full wording of every convention is the tooltip
-            options = {f"{code} · {label.split(' — ')[0]}": code for code, label in NAMING_CONVENTIONS}
+            options = {label: code for code, label in f.choices}
+            options.update({f"{code} · {label.split(' — ')[0]}": code for code, label in NAMING_CONVENTIONS})
             legend = "\n".join(f"{code}: {label}" for code, label in NAMING_CONVENTIONS)
-            code = str(start or "1").split("-")[0]
-            return pn.widgets.Select(options=options, value=code if code in options.values() else "1",
+            code = str(start if start is not None else "1").split("-")[0]
+            first = next(iter(options.values()))
+            return pn.widgets.Select(options=options, value=code if code in options.values() else first,
                                      name=kw["name"], width=self.width - Z_WIDTH - 10,
                                      description=f"{f.help}\n{legend}" if f.help else legend)
         if f.kind == "int":
@@ -124,6 +131,17 @@ class Form:
 
     def panel(self) -> pn.FlexBox:
         return self.box
+
+
+def _choices(f: Field) -> tuple:
+    """The (value, label) pairs a field offers: its own choices, then the vocabulary of its MagIC column."""
+    if not f.vocabulary:
+        return tuple(f.choices)
+    from pmagpy import magic_metadata as mm
+    table, name = f.vocabulary.split(".", 1)
+    column = mm.column(table, name)
+    own = {value for value, _ in f.choices}
+    return tuple(f.choices) + tuple((v, v) for v in (column.vocabulary if column else ()) if v not in own)
 
 
 def _needs_z(code) -> bool:
