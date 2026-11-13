@@ -15,11 +15,17 @@ PROGRAMS = [
     ("strip_magic", "-DM"),
     ("trmaq_magic", "-DM"),
     ("scalc_magic", "-dm"),
+    ("azdip_magic", "-DM"),
+    ("orientation_magic", "-DM"),
+    ("core_depthplot", "-DM"),
+    ("pt_rot", "-dm"),
 ]
 
 
 @pytest.mark.parametrize(("program", "model_option"), PROGRAMS)
 def test_dm2_is_rejected_before_io(program, model_option, tmp_path, monkeypatch):
+    if program == "core_depthplot":
+        pytest.importorskip("wx")
     module = importlib.import_module(f"programs.{program}")
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(sys, "argv", [program + ".py", model_option, "2"])
@@ -29,4 +35,18 @@ def test_dm2_is_rejected_before_io(program, model_option, tmp_path, monkeypatch)
 
     assert f"{program} supports MagIC Data Model 3 only" in str(error.value)
     assert "Convert Data Model 2 files to Data Model 3" in str(error.value)
+    assert not list(tmp_path.iterdir())
+
+
+@pytest.mark.parametrize(("program", "model_option"), PROGRAMS[-4:])
+def test_dm25_is_rejected_before_io(program, model_option, tmp_path, monkeypatch):
+    if program == "core_depthplot":
+        pytest.importorskip("wx")
+    module = importlib.import_module(f"programs.{program}")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(sys, "argv", [program + ".py", model_option, "2.5"])
+
+    with pytest.raises(SystemExit, match="supports MagIC Data Model 3 only"):
+        module.main()
+
     assert not list(tmp_path.iterdir())
