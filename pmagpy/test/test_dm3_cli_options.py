@@ -142,6 +142,68 @@ def test_magic_select_uses_dm3_age(model_args, tmp_path, monkeypatch):
     assert records[0]["age_unit"] == "Ma"
 
 
+def test_magic_select_uses_dm3_model_lat(tmp_path, monkeypatch):
+    from programs import magic_select
+
+    (tmp_path / "sites.txt").write_text(
+        "tab\tsites\nsite\tage\tage_unit\tlat\tpaleolat\tdir_inc\tage_low\tage_high\n"
+        "young\t1000\tka\t33.25\t20\t\t\t\n"
+        "old\t10\tMa\t15\t42\t\t\t\n"
+        "inclination\t6\tMa\t\t\t45\t\t\n"
+        "no_age\t\t\t\t-12\t\t\t\n"
+        "boundary\t5000\tka\t10\t50\t\t\t\n"
+        "near_boundary\t4999.99\tka\t11.5\t50\t\t\t\n"
+        "range\t\tka\t45.25\t\t\t1000\t3000\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        sys, "argv",
+        ["magic_select", "-f", "sites.txt", "-F", "selected.txt",
+         "-key", "model_lat", "-90", "min"],
+    )
+
+    magic_select.main()
+
+    records = pd.read_csv("selected.txt", sep="\t", header=1).set_index("site")
+    assert records["model_lat"].to_dict() == {
+        "young": 33.25, "old": 42, "inclination": 26.6, "no_age": -12,
+        "boundary": 50, "near_boundary": 11.5, "range": 45.25,
+    }
+    assert records.loc["young", "age"] == 1
+    assert records.loc["young", "age_unit"] == "Ma"
+    assert records.loc["range", "age"] == 2
+
+
+def test_magic_select_rejects_unknown_age_unit_for_model_lat(tmp_path, monkeypatch):
+    from programs import magic_select
+
+    (tmp_path / "sites.txt").write_text(
+        "tab\tsites\nsite\tage\tage_unit\tlat\nS1\t1000\tunknown\t33\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        sys, "argv",
+        ["magic_select", "-f", "sites.txt", "-F", "selected.txt",
+         "-key", "model_lat", "0", "min"],
+    )
+
+    with pytest.raises(ValueError, match="Unsupported or missing age unit"):
+        magic_select.main()
+
+    assert not (tmp_path / "selected.txt").exists()
+
+
+def test_convert_lat_preserves_legacy_fields_and_handles_dm3_zeroes():
+    from pmagpy import pmag
+
+    legacy = {"average_age": "1", "site_lat": "12"}
+    assert pmag.convert_lat([legacy])[0]["model_lat"] == "12"
+    records = [{"age": 0, "lat": 0}, {"paleolat": 0}, {"dir_inc": 0}]
+    assert [float(rec["model_lat"]) for rec in pmag.convert_lat(records, 3)] == [0, 0, 0]
+
+
 @pytest.mark.parametrize("interactive", [False, True])
 def test_combine_magic_dm3(interactive, tmp_path, monkeypatch):
     from programs import combine_magic
