@@ -281,8 +281,14 @@ class TestExport:
         session.set_bounds(0, 6)
         session.export_tables()
         report = session.validate_output()
-        for table, failure in report.items():
-            assert not (failure or {}).get("bad_rows"), f"{table}: {failure}"
+        assert report
+        # the export brings in no problem the study did not have: the study is a measurements
+        # table alone (so the specimens' samples are not known), with columns MagIC does not know
+        from pmagpy import magic_project as mp
+        kinds = lambda d: {(t, c, m) for t, c, m, l in zip(*[mp.validation_problems(d)[k] for k in
+                                                               ("table", "column", "message", "level")]) if l == "error"}
+        new = {k for k in kinds(out) - kinds(src) if not (k[0] == "specimens" and k[1] == "sample")}
+        assert not new, sorted(new)[:3]
 
     def test_the_redo_file_round_trips(self, workdir):
         src, out = workdir

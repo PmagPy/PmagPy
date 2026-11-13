@@ -937,7 +937,7 @@ def sites_rows(results: Sequence[BicepResult], analysts: str = "") -> List[dict]
             "int_abs": result.b_site * 1e-6,
             "int_abs_sigma": half * 1e-6 if np.isfinite(half) else None,
             "int_n_specimens": len(result.specimens),
-            "method_codes": "IE-SPEC:LP-PI-TRM:DE-BS",
+            "method_codes": "LP-PI-TRM:IE-BICEP",
             "description": (f"BiCEP (Cych et al. 2021), {result.method} sampler, "
                             f"95% credible interval {result.ci_low:.1f}-{result.ci_high:.1f} uT"),
             "citations": "This study; " + DOI,

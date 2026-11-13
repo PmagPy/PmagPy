@@ -242,7 +242,7 @@ class TestReporting:
         assert row["site"] == "LV6"
         assert "specimen" not in row
         assert row["int_abs"] == pytest.approx(result.b_site * 1e-6)
-        assert "DE-BS" in row["method_codes"]
+        assert row["method_codes"] == "LP-PI-TRM:IE-BICEP"     # MagIC's code for BiCEP (DE-BS is Bingham statistics)
         assert bicep.DOI in row["citations"]
 
 

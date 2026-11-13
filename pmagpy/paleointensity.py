@@ -2273,7 +2273,7 @@ class PintData:
                 if not stat:
                     continue
                 if column == "int_scat":
-                    row[column] = "t" if stat.value else "f"
+                    row[column] = "True" if stat.value else "False"     # MagIC's Boolean Flags
                 else:
                     row[column] = float(stat.value)
             for name, corr in res.corrections.items():
@@ -2325,13 +2325,17 @@ class PintData:
         A measurements table whose specimens are not all in the specimens table
         is an invalid contribution -- the MagIC validator's cross-table check
         fails on every measurement row -- so a specimen with no interpretation
-        keeps a minimal row carrying only its place in the hierarchy.
+        keeps a minimal row: its place in the hierarchy, its experiments and the
+        lab protocols of its measurements (MagIC requires method codes).
         """
         present = set(specimens["specimen"].astype(str)) if len(specimens) else set()
         missing = [name for name in self.specimens if name not in present]
         if not missing:
             return specimens
         stubs = pd.DataFrame([{"specimen": name, "sample": self.specimens[name].sample,
+                               "experiments": ":".join(self.specimens[name].experiments),
+                               "method_codes": join_codes(sorted(c for c in self.specimens[name].method_codes
+                                                                 if c.startswith("LP-"))) or "LP-NO",
                                "citations": "This study"} for name in missing])
         stubs = carry_metadata(stubs, self._table("specimens"), "specimen")
         return pd.concat([specimens, stubs], ignore_index=True, sort=False)
@@ -2375,7 +2379,7 @@ class PintData:
                    "int_n_specimens": int(g["n"]),
                    # the members of this mean (a replaced row's lists are not carried)
                    "specimens": g["specimens"],
-                   "method_codes": "IE-SPEC:LP-PI-TRM",
+                   "method_codes": "LP-PI-TRM",   # MagIC has no method code for a mean or a VADM
                    "result_quality": "g" if g["passed"] is not False else "b",
                    "result_type": "a",          # an average of the specimens below it
                    "description": note,
@@ -2388,7 +2392,6 @@ class PintData:
                     row["vadm_n_samples"] = int(g["n_samples"])
                     if np.isfinite(g.get("vadm_sigma", np.nan)):
                         row["vadm_sigma"] = g["vadm_sigma"]
-                    row["method_codes"] += ":IE-VADM"
                 if np.isfinite(g.get("vdm", np.nan)):
                     row["vdm"] = g["vdm"]
                     row["vdm_n_samples"] = int(g["n_samples"])

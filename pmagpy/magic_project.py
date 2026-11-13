@@ -466,7 +466,9 @@ def intensity_rows(existing: pd.DataFrame) -> pd.Series:
 
     Paleointensity specimen rows also carry ``dir_dec`` (the direction of the
     NRM segment) and a ``DE-BFL`` code, so a directional application must not
-    mistake them for its own rows -- and vice versa.
+    mistake them for its own rows -- and vice versa. A row that only names a
+    specimen and its lab protocols (an ``LP-PI`` code, but no value, direction or
+    step range) holds no result, and is no application's.
     """
     mask = pd.Series(False, index=existing.index)
     for col in ("int_abs", "int_rel", "int_abs_sigma", "int_b", "vadm", "vdm"):
@@ -474,7 +476,11 @@ def intensity_rows(existing: pd.DataFrame) -> pd.Series:
             mask |= pd.to_numeric(existing[col], errors="coerce").notna()
     if "method_codes" in existing.columns:
         codes = existing["method_codes"].fillna("").astype(str)
-        mask |= codes.str.contains("LP-PI", regex=False)
+        holds = pd.Series(False, index=existing.index)
+        for col in ("dir_dec", "meas_step_min", "meas_step_max"):
+            if col in existing.columns:
+                holds |= pd.to_numeric(existing[col], errors="coerce").notna()
+        mask |= codes.str.contains("LP-PI", regex=False) & holds
     return mask
 
 
@@ -559,46 +565,97 @@ def stamp(df: pd.DataFrame, tag: str, analysts: Optional[str] = None,
     return df
 
 
+#: the MagIC tables a directory may hold, which the validator reads together
+MAGIC_TABLE_NAMES = ("locations", "sites", "samples", "specimens", "measurements", "ages", "criteria", "images")
+#: the column naming a row of each table
+_ROW_NAME = {"measurements": "measurement", "specimens": "specimen", "samples": "sample", "sites": "site",
+             "locations": "location", "criteria": "criterion", "ages": "site"}
+
+
+def validation_problems(dir_path: str, tables=("specimens", "samples", "sites", "locations", "measurements")
+                        ) -> pd.DataFrame:
+    """The problems MagIC's validator finds in the tables of a directory, with the names of the rows.
+
+    The tables are validated with ``pmagpy.magic_validation`` -- the rules of the
+    MagIC website, offline (the data model, method codes and vocabularies cached
+    with PmagPy) -- as they are written in the files, together with the other MagIC
+    tables of the directory, so that the references between tables (a sample's
+    site, a specimen's experiments in the measurements) are checked.
+
+    Returns:
+        DataFrame with one row per problem and row of a table: ``level`` ("error" or
+        "warning"), ``table``, ``column``, ``message``, ``row`` (the row's number in the
+        file, counted from 1, or 0 for a problem of the whole table or column) and
+        ``name`` (the row's specimen, sample ... or measurement name; "" for the table).
+        Only problems of the tables asked for.
+    """
+    from pmagpy import magic_validation
+    asked = [t for t in tables if os.path.exists(os.path.join(dir_path, t + ".txt"))]
+    wanted = asked + [t for t in MAGIC_TABLE_NAMES if t not in asked and os.path.exists(os.path.join(dir_path, t + ".txt"))]
+    columns = ["level", "table", "column", "message", "row", "name"]
+    frames = {}
+    for table in wanted:
+        try:
+            frames[table] = pd.read_csv(os.path.join(dir_path, table + ".txt"), sep="\t", header=1, dtype=str,
+                                        keep_default_na=False, quoting=3)
+        except (OSError, ValueError, pd.errors.ParserError) as exc:
+            return pd.DataFrame([("error", table, "", f"{table}.txt could not be read: {exc}", 0, "")],
+                                columns=columns)
+    if not frames:
+        return pd.DataFrame(columns=columns)
+    found = magic_validation.validate(frames, online=False)
+    out = []
+    for p in found.itertuples():
+        if p.table not in asked:
+            continue
+        frame = frames.get(p.table)
+        key = _ROW_NAME.get(p.table)
+        rows = list(p.rows) if p.rows is not None and len(p.rows) else [0]
+        if p.column and frame is not None and p.column not in frame.columns:
+            # MagIC names every row of a required column the table lacks: it is one problem of the table
+            rows = [0]
+        for row in rows:
+            name = ""
+            if row and frame is not None and key in frame and row <= len(frame):
+                name = str(frame.iloc[row - 1][key])
+            out.append((p.level, p.table, p.column, p.message, int(row), name))
+    return pd.DataFrame(out, columns=columns)
+
+
 def validate_directory(dir_path: str,
                        tables=("specimens", "samples", "sites", "locations", "measurements")) -> dict:
-    """Run pmagpy's MagIC validator on the tables in a directory.
+    """Run MagIC's validator (:func:`validation_problems`) on the tables in a directory.
 
     Returns:
         dict table -> None when the table passes (or is absent), otherwise a
         dict with ``bad_rows``, ``bad_cols``, ``missing_cols``,
         ``missing_groups`` and ``failing_items``: one entry per failing *cell*,
         ``{"row": name, "column": column, "problem": text}``, so a caller can
-        point at the cell rather than at the table.
+        point at the cell rather than at the table. A required column the table
+        lacks is in ``missing_cols``; warnings (e.g. a column MagIC does not know)
+        are left out.
     """
-    import tempfile
-    import warnings as _warnings
-    from pmagpy import validate_upload3
     present = [t for t in tables if os.path.exists(os.path.join(dir_path, t + ".txt"))]
-    # read as the applications read (cb.Contribution would rewrite an unnamed measurements.txt)
-    try:
-        con = read_contribution(dir_path, tables=present)
-    except MagicReadError as exc:
-        return {"measurements": {"bad_rows": [], "bad_cols": [], "missing_cols": [], "missing_groups": [],
-                                 "failing_items": [{"row": "", "column": "", "problem": str(exc)}]}}
+    problems = validation_problems(dir_path, present)
+    problems = problems[problems["level"] == "error"]
     report = {}
-    # the validator drops a <table>_errors.txt beside whatever it is given; the
-    # failures come back from here as cells, so it is not allowed to litter the
-    # study directory to say so
-    scratch = tempfile.mkdtemp(prefix="magic-validate-")
     for table in present:
-        if table not in con.tables:
-            continue
-        with _warnings.catch_warnings():   # the validator's pandas chatter is not ours to fix here
-            _warnings.simplefilter("ignore")
-            fail = validate_upload3.validate_table(con, table, output_dir=scratch)
-        if not fail:
+        mine = problems[problems["table"] == table]
+        if not len(mine):
             report[table] = None
-        else:
-            _, bad_rows, bad_cols, missing_cols, missing_groups, failing_items = fail
-            report[table] = {"bad_rows": list(bad_rows), "bad_cols": list(bad_cols),
-                             "missing_cols": list(missing_cols), "missing_groups": list(missing_groups),
-                             "failing_items": failing_cells(failing_items)}
-    shutil.rmtree(scratch, ignore_errors=True)
+            continue
+        whole = mine[mine["row"] == 0]
+        missing = whole["message"].str.contains("required column", regex=False) & (whole["column"] != "")
+        cells = mine[mine["row"] > 0]
+        report[table] = {
+            "bad_rows": sorted({(int(r) - 1, n) for r, n in zip(cells["row"], cells["name"])}),
+            "bad_cols": sorted(set(cells["column"]) - {""}),
+            "missing_cols": list(dict.fromkeys(whole.loc[missing, "column"])),
+            "missing_groups": [],
+            "failing_items": [{"row": n, "column": c, "problem": m} for n, c, m in
+                              zip(cells["name"], cells["column"], cells["message"])] +
+                             [{"row": "", "column": c, "problem": m} for c, m in
+                              zip(whole.loc[~missing, "column"], whole.loc[~missing, "message"])]}
     return report
 
 

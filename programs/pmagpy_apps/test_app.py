@@ -1487,7 +1487,7 @@ class TestUpload:
         findings = asyncio.run(view.check())
         assert any(f.row == "Z12" and f.column == "lat" for f in findings["sites"])
         assert "fix them on the Metadata page" in view.check_msg.object
-        assert "<b>Z12</b> · <b>lat</b>: 95.0 (lat) must be &lt;= 90.0" in view.check_pane.object
+        assert '<b>Z12</b> · <b>lat</b>: The sites table column &quot;lat&quot; value &quot;95' in view.check_pane.object
         assert "<h4>sites <span>" in view.check_pane.object
         assert upload.findings_html({"sites": []}) == '<div class="report"><h4>sites <span class="ok">passes</span></h4></div>'
 
