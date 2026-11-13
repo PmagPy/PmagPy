@@ -338,7 +338,12 @@ class InspectorView:
             self.context_pane.object = '<div style="font-size:.92rem">' + " · ".join(parts) + note + "</div>"
             self.plot.object = figure(self.tables, name, coord)
             self.steps_pane.value = steps_table(self.tables, name, coord)
-            self.fits_pane.value = fits(self.tables, name, coord).drop(columns=["unit"])
+            shown = fits(self.tables, name, coord)
+            for col in ("min", "max"):           # in mT or degrees C, as the steps are listed
+                shown[col] = [_step_value(v, u) if v is not None else None for v, u in zip(shown[col], shown["unit"])]
+            unit = {"T": "mT", "K": "°C"}.get(next(iter(shown["unit"]), ""), "")
+            self.fits_pane.value = shown.drop(columns=["unit"]).rename(
+                columns={"min": f"from {unit}".strip(), "max": f"to {unit}".strip()})
 
     def panel(self) -> pn.Column:
         return pn.Column(
