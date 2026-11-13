@@ -45,6 +45,9 @@ def build_body(session: HubSession, chooser_stub: str = "", edition: Optional[Ed
     if edition.has_page("metadata"):
         from .metadata import MetadataView
         tools["metadata"] = MetadataView(session)
+    if edition.has_page("validation"):
+        from .validation import ValidationView
+        tools["validation"] = ValidationView(session, open_table=lambda table: open_in_metadata(table))
     if edition.has_page("upload"):
         from .upload import UploadView
         tools["upload"] = UploadView(session)
@@ -101,6 +104,17 @@ def build_body(session: HubSession, chooser_stub: str = "", edition: Optional[Ed
     view.convert_btn.on_click(lambda e: turn_to("convert"))
     view.metadata_btn.on_click(lambda e: turn_to("metadata"))
     view.upload_btn.on_click(lambda e: turn_to("upload"))
+    view.validation_btn.on_click(lambda e: turn_to("validation"))
+    convert.validation_btn.on_click(lambda e: turn_to("validation"))
+    convert.offer_validation = "validation" in tools
+
+    def open_in_metadata(table: str) -> None:
+        """The Metadata page on one table, its cells painted where the validator objects."""
+        if "metadata" not in tools:
+            return
+        turn_to("metadata")
+        tools["metadata"].show(table)
+        tools["metadata"].check()
     convert.home_btn.on_click(lambda e: turn_to("home"))
     for tool in tools.values():
         tool.home_btn.on_click(lambda e: turn_to("home"))
@@ -108,6 +122,7 @@ def build_body(session: HubSession, chooser_stub: str = "", edition: Optional[Ed
     chooser.on_loaded = chooser_loaded
     download.on_loaded = lambda: body.close_modal()
     body.pages = pages           # for the tests and any host that wants to turn the page
+    body.tools, body.convert = tools, convert
     body.turn_to = turn_to
     body.chooser, body.downloader = chooser, download
     return body

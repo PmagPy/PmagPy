@@ -11,7 +11,8 @@ import pytest
 pn = pytest.importorskip("panel")
 
 from pmagpy_panel import datasets  # noqa: E402
-from pmagpy_apps import APP, app, convert, download, home, launch, metadata, upload  # noqa: E402
+from pmagpy import magic_project as mp  # noqa: E402
+from pmagpy_apps import APP, app, convert, download, home, launch, metadata, upload, validation  # noqa: E402
 from pmagpy_apps.inventory import take_inventory  # noqa: E402
 
 MCMURDO = datasets.example_dir("McMurdo")
@@ -448,7 +449,8 @@ class TestDownloadFromMagic:
         shown = []
         body.open_modal = lambda: shown.append(True)
         heading_row = body.pages["home"][1][0]                  # the directory page's heading row
-        for btn, visible in ((heading_row[4], (False, True)), (heading_row[5], (True, False))):     # Download…, Change directory…
+        by_name = {getattr(b, "name", ""): b for b in heading_row}
+        for btn, visible in ((by_name["Download from MagIC…"], (False, True)), (by_name["Change directory…"], (True, False))):
             btn.clicks += 1
             assert (chooser.visible, downloader.visible) == visible
         assert shown == [True, True]
@@ -1560,3 +1562,49 @@ class TestLauncher:
                       for kw in n.keywords if kw.arg == "extras_require")
         apps = ast.literal_eval(extras)["apps"]
         assert {a.split(">")[0] for a in apps} == {"panel", "bokeh", "param", "requests"}   # Download/Upload need requests
+
+
+class TestValidation:
+    """The Validation page: MagIC's validator over the study's tables, drawn as a summary, a grid and a list."""
+
+    def test_the_drawings(self, tmp_path):
+        study = small_study(tmp_path)
+        problems = mp.validation_problems(study)
+        rows = validation.summary(problems, study)
+        sites = next(r for r in rows if r["table"] == "sites")
+        assert sites["rows"] == 2 and sites["error_rows"] >= 1           # Z12's latitude of 95
+        assert "MagIC's validator finds" in validation.verdict(rows)
+        grid = validation.grid_html(problems)
+        assert '<table class="vgrid">' in grid and ">lat<" in grid
+        listed = validation.problems_html(problems, table="sites")
+        assert "Z12" in listed and "<h4>sites" in listed and "<h4>samples" not in listed
+        assert validation.verdict([{"table": "sites", "error_rows": 0, "table_errors": 0, "warnings": 0}]) == \
+            "The tables pass MagIC's validator."
+
+    def test_the_page_is_reached_from_home_and_opens_a_table_in_metadata(self, tmp_path):
+        session = home.HubSession(small_study(tmp_path))
+        body = app.build_body(session)
+        home_page, page = body.pages["home"], body.pages["validation"]
+        button = home_page[1][0][4]
+        assert button.name == "Validation…" and button.visible
+        button.clicks += 1
+        assert page.visible is True and home_page.visible is False
+        view = body.tools["validation"]
+        assert "validator finds" in view.message.object                             # checked on arrival
+        assert "sites" in view.summary_pane.object and "Z12" in view.problems_pane.object
+        names = [b.name for b in view.open_btns.objects]
+        assert "Show sites in Metadata" in names
+        view.open_btns.objects[names.index("Show sites in Metadata")].clicks += 1
+        assert body.pages["metadata"].visible is True and page.visible is False
+
+    def test_the_convert_page_says_what_the_validator_finds(self, tmp_path):
+        lab = jr6_lab(tmp_path)
+        session = home.HubSession(lab)
+        body = app.build_body(session)
+        view = body.convert
+        choose(view, "jr6_jr6")
+        assert asyncio.run(view._convert()) is True
+        assert view.validation.visible and "validator" in view.validation.object
+        assert '<table class="vsum">' in view.validation.object
+        assert view.validation_btn.visible                                            # the full edition has the page
+

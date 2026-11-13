@@ -50,6 +50,7 @@ from pmagpy_panel.theme import MUTED_STYLE
 from pmagpy_panel.widgets import LayoutHold
 from .home import CSS, shorten_home
 from .inventory import Inventory, take_inventory
+from .validation import TABLES as VALIDATED_TABLES, VALIDATION_CSS, summary, summary_html, verdict
 
 FAIL_COLOR = "#c0392b"
 OK_COLOR = "#1a7f5a"
@@ -106,6 +107,10 @@ class ConvertView:
         self.where = pn.widgets.RadioBoxGroup(options={}, inline=False, visible=False, margin=(0, 10, 5, 10))
         self.message = pn.pane.HTML("", sizing_mode="stretch_width", min_height=24)
         self.log = pn.pane.HTML("", sizing_mode="stretch_width", visible=False)
+        # the tables just written, as MagIC's validator sees them (the Validation page has the whole story)
+        self.validation = pn.pane.HTML("", stylesheets=[VALIDATION_CSS], sizing_mode="stretch_width", visible=False)
+        self.validation_btn = pn.widgets.Button(name="Validation…", button_type="default", width=130, visible=False)
+        self.offer_validation = False          # the hub has a Validation page to turn to
         self._confirming = False
         self._running = 0                       # the conversion whose progress lines may still be shown
         self._held = False                      # the tables folder has tables a conversion could add to
@@ -166,6 +171,7 @@ class ConvertView:
         self.refresh()
         self.message.object = ""
         self.log.visible = False
+        self.validation.visible = self.validation_btn.visible = False
         self.home_btn.button_type = "default"
 
     def _format_changed(self) -> None:
@@ -383,7 +389,24 @@ class ConvertView:
                          f"({datasets.copy_remedy(copy)})")
         self._say(" · ".join(lines), OK_COLOR if not (result.failed or copy) else WARN_COLOR)
         self.home_btn.button_type = "primary"
+        await self._validate(target)
         return True
+
+    async def _validate(self, directory: str) -> None:
+        """What MagIC's validator says of the tables in ``directory``, under the conversion's message."""
+        try:
+            problems = await asyncio.get_running_loop().run_in_executor(
+                None, lambda: mp.validation_problems(directory, VALIDATED_TABLES))
+        except Exception as err:                      # the conversion stands; say why there is no verdict
+            self.validation.object = f'<div style="{MUTED_STYLE}">Not validated: {html.escape(str(err))}</div>'
+            self.validation.visible = True
+            return
+        rows = summary(problems, directory)
+        failing = any(r["error_rows"] or r["table_errors"] for r in rows)
+        self.validation.object = (f'<div style="margin-top:10px;color:{FAIL_COLOR if failing else OK_COLOR}">'
+                                  f'{html.escape(verdict(rows))}</div>' + summary_html(rows))
+        self.validation.visible = True
+        self.validation_btn.visible = self.offer_validation
 
     @staticmethod
     def _forget(target: str, folder: str) -> None:
@@ -458,7 +481,7 @@ class ConvertView:
             self.form.panel(),
             pn.Row(self.run_btn, self.append, sizing_mode="stretch_width", margin=(8, 0, 0, 0)),
             self.done_note, self.again, self.where,
-            self.message, self.log,
+            self.message, self.validation, self.validation_btn, self.log,
             # room under the form for an open pick-list (protocols, orientation codes): the page
             # would otherwise end just below it and cut the list off
             sizing_mode="stretch_width", max_width=1100, min_height=720, margin=(18, 40, 40, 40),
