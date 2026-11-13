@@ -27,11 +27,19 @@ def main():
         -f FILE specifies input file name
         -sep write location data to separate subdirectories (Location_*), (default False)
         -O do not overwrite duplicate Location_* directories while downloading
-        -DM data model (2 or 3, default 3)
+        -DM 3: MagIC Data Model 3 is the only supported model
     """
     if '-h' in sys.argv:
         print(main.__doc__)
         sys.exit()
+    if float(pmag.get_named_arg("-DM", 3)) != 3:
+        raise SystemExit(
+            "-E- download_magic supports MagIC Data Model 3 only. "
+            "Convert Data Model 2 files to Data Model 3 before unpacking."
+        )
+    overwrite = pmag.get_flag_arg_from_sys("-O", true=False, false=True)
+    sep = pmag.get_flag_arg_from_sys("-sep", true=True, false=False)
+    data_model = 3
     if '-WD' in sys.argv:
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
@@ -43,11 +51,6 @@ def main():
     # non-interactive
     else:
         infile = pmag.get_named_arg("-f", reqd=True)
-        # if -O flag is present, overwrite is False
-        overwrite = pmag.get_flag_arg_from_sys("-O", true=False, false=True)
-        # if -sep flag is present, sep is True
-        sep = pmag.get_flag_arg_from_sys("-sep", true=True, false=False)
-        data_model = pmag.get_named_arg("-DM", default_val=3, reqd=False)
         dir_path = pmag.get_named_arg("-WD", default_val=".", reqd=False)
         input_dir_path = pmag.get_named_arg("-ID", default_val=".", reqd=False)
 
