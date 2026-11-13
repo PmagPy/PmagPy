@@ -86,8 +86,6 @@ def main():
     if is_model_lat:
         for rec in Data:
             if rec.get('age') or (rec.get('age_low') and rec.get('age_high')):
-                if rec.get('age_unit') not in ('Ma', 'ka', 'Ka', 'Years AD (+/-)', 'Years BP'):
-                    raise ValueError("Unsupported or missing age unit: {}".format(rec.get('age_unit', '')))
                 pmag.convert_ages([rec], data_model=3, precision=15)
         Data = pmag.convert_lat(Data, data_model=3)
         for rec in Data:

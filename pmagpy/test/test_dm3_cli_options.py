@@ -143,6 +143,42 @@ def test_magic_select_uses_dm3_age(model_args, tmp_path, monkeypatch):
     assert records[0]["age_unit"] == "Ma"
 
 
+def test_magic_select_converts_age_units_and_ranges(tmp_path, monkeypatch):
+    from programs import magic_select
+
+    (tmp_path / "sites.txt").write_text(
+        "tab\tsites\nsite\tage\tage_unit\tage_low\tage_high\tage_sigma\n"
+        "ga\t1\tGa\t0.9\t1.1\t0.1\n"
+        "ka_alias\t2500\tKa\t2000\t3000\t100\n"
+        "bp\t2000\tYears BP\t1000\t3000\t200\n"
+        "cal_bp\t2000\tYears Cal BP\t1000\t3000\t200\n"
+        "ad\t2000\tYears AD (+/-)\t1900\t2005\t10\n"
+        "cal_ad\t2000\tYears Cal AD (+/-)\t1900\t2005\t10\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        sys, "argv",
+        ["magic_select", "-f", "sites.txt", "-F", "selected.txt",
+         "-key", "age", "-1", "min"],
+    )
+
+    magic_select.main()
+
+    records = pd.read_csv("selected.txt", sep="\t", header=1).set_index("site")
+    assert set(records["age_unit"]) == {"Ma"}
+    for site, values in {
+        "ga": [1000, 900, 1100, 100],
+        "ka_alias": [2.5, 2, 3, 0.1],
+        "bp": [0.002, 0.001, 0.003, 0.0002],
+        "cal_bp": [0.002, 0.001, 0.003, 0.0002],
+        "ad": [0.000011, 0.000111, 0.000006, 0.00001],
+        "cal_ad": [0.000011, 0.000111, 0.000006, 0.00001],
+    }.items():
+        converted = records.loc[site, ["age", "age_low", "age_high", "age_sigma"]]
+        assert converted.astype(float).tolist() == pytest.approx(values)
+
+
 def test_magic_select_uses_dm3_model_lat(tmp_path, monkeypatch):
     from programs import magic_select
 
@@ -154,6 +190,8 @@ def test_magic_select_uses_dm3_model_lat(tmp_path, monkeypatch):
         "no_age\t\t\t\t-12\t\t\t\n"
         "boundary\t5000\tka\t10\t50\t\t\t\n"
         "near_boundary\t4999.99\tka\t11.5\t50\t\t\t\n"
+        "ga\t1\tGa\t15\t42\t\t\t\n"
+        "cal_bp\t2000\tYears Cal BP\t35\t20\t\t\t\n"
         "range\t\tka\t45.25\t\t\t1000\t3000\n",
         encoding="utf-8",
     )
@@ -170,11 +208,14 @@ def test_magic_select_uses_dm3_model_lat(tmp_path, monkeypatch):
     assert "model_lat" not in records.columns
     assert records["paleolat"].to_dict() == {
         "young": 33.25, "old": 42, "inclination": 26.6, "no_age": -12,
-        "boundary": 50, "near_boundary": 11.5, "range": 45.25,
+        "boundary": 50, "near_boundary": 11.5, "ga": 42, "cal_bp": 35,
+        "range": 45.25,
     }
     assert records.loc["young", "age"] == 1
     assert records.loc["young", "age_unit"] == "Ma"
     assert records.loc["range", "age"] == 2
+    assert records.loc["range", "age_low"] == 1
+    assert records.loc["range", "age_high"] == 3
 
     monkeypatch.setattr(
         sys, "argv",
@@ -187,7 +228,8 @@ def test_magic_select_uses_dm3_model_lat(tmp_path, monkeypatch):
     assert selected.loc[0, "paleolat"] == 33.25
 
 
-def test_magic_select_rejects_unknown_age_unit_for_model_lat(tmp_path, monkeypatch):
+@pytest.mark.parametrize("key", ["age", "model_lat"])
+def test_magic_select_rejects_unknown_age_unit(key, tmp_path, monkeypatch):
     from programs import magic_select
 
     (tmp_path / "sites.txt").write_text(
@@ -198,7 +240,7 @@ def test_magic_select_rejects_unknown_age_unit_for_model_lat(tmp_path, monkeypat
     monkeypatch.setattr(
         sys, "argv",
         ["magic_select", "-f", "sites.txt", "-F", "selected.txt",
-         "-key", "model_lat", "0", "min"],
+         "-key", key, "0", "min"],
     )
 
     with pytest.raises(ValueError, match="Unsupported or missing age unit"):
