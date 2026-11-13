@@ -1725,10 +1725,12 @@ def find_dmag_rec(s, data, **kwargs):
     units : list of units found ['T','K','J'] for tesla, kelvin or joules
     """
     if 'version' in list(kwargs.keys()) and kwargs['version'] == 3:
+        # data model 3 keeps the good/bad flag of a measurement in 'quality'
+        flag_key = 'quality' if 'quality' in data.columns else 'flag'
         # convert dataframe to list of dictionaries
         data = data.to_dict('records')
         spec_key, dec_key, inc_key = 'specimen', 'dir_dec', 'dir_inc'
-        flag_key, temp_key, ac_key = 'flag', 'treat_temp', 'treat_ac_field'
+        temp_key, ac_key = 'treat_temp', 'treat_ac_field'
         meth_key = 'method_codes'
         power_key, time_key = 'treat_mw_power', 'treat_mw_time'
         Mkeys = ['magn_moment', 'magn_volume', 'magn_mass', 'magnitude']
@@ -1753,7 +1755,7 @@ def find_dmag_rec(s, data, **kwargs):
     units = []
     spec_meas = get_dictitem(data, spec_key, s, 'T')
     for rec in spec_meas:
-        if flag_key not in list(rec.keys()):
+        if flag_key not in list(rec.keys()) or rec[flag_key] != 'b':
             rec[flag_key] = 'g'
         skip = 1
         tr = ""
