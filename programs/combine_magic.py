@@ -14,19 +14,20 @@ OPTIONS
     -dm 3: MagIC Data Model 3 is the only supported model
     -i allows interactive  entry of input and output filenames
     -WD specifies a directory to input and output files
-    -F specify output file name [must come BEFORE input file names]
-    -f specify input file names [ must come last]
+    -F specify output file name
+    -f specify input file names (quote names containing spaces)
 """
+import argparse
 import sys
 import os
 import pmagpy.ipmag as ipmag
 import pmagpy.pmag as pmag
-import pmagpy.command_line_extractor as extractor
 
 
 def combine(filenames, outfile, dir_path='.', data_model=2.5):
+    """Combine a list of filenames, or a single filename."""
     if isinstance(filenames, str):
-        filenames = filenames.split()
+        filenames = [filenames]
     files = []
     for f in filenames:
         files.append(os.path.join(dir_path, f))
@@ -60,11 +61,13 @@ def main():
         if not outfile:
             return False
     else:  # non-interactive
-        dataframe = extractor.command_line_dataframe(
-            [["F", True, ''], ["dm", False, 3]])
-        args = extractor.extract_and_check_args(sys.argv, dataframe)
-        dir_path, outfile, filenames = extractor.get_vars(
-            ["WD", "F", "f"], args)
+        parser = argparse.ArgumentParser(description="Combine MagIC files of the same type.")
+        parser.add_argument("-WD", default=".")
+        parser.add_argument("-F", required=True)
+        parser.add_argument("-f", nargs="+", required=True)
+        parser.add_argument("-dm", default="3")
+        args = parser.parse_args()
+        dir_path, outfile, filenames = args.WD, args.F, args.f
         data_model = 3
     combine(filenames, outfile, dir_path, data_model)
 

@@ -170,6 +170,44 @@ def test_combine_magic_dm3(interactive, tmp_path, monkeypatch):
     assert set(records["site"]) == {"S1", "S2"}
 
 
+@pytest.mark.parametrize("absolute", [False, True])
+def test_combine_magic_noninteractive_paths_with_spaces(absolute, tmp_path, monkeypatch):
+    from programs import combine_magic
+
+    input_dir = tmp_path / "input files"
+    input_dir.mkdir()
+    filenames = []
+    for name in ("S1", "S2"):
+        filename = input_dir / f"{name} file.txt"
+        filename.write_text(f"tab\tsites\nsite\n{name}\n", encoding="utf-8")
+        filenames.append(str(filename) if absolute else filename.name)
+    monkeypatch.setattr(
+        sys, "argv",
+        ["combine_magic", "-WD", str(input_dir), "-F", "combined output.txt",
+         "-f", *filenames],
+    )
+
+    combine_magic.main()
+
+    records = pd.read_csv(input_dir / "combined output.txt", sep="\t", header=1)
+    assert set(records["site"]) == {"S1", "S2"}
+
+
+def test_combine_magic_helper_accepts_single_path_with_spaces(tmp_path, monkeypatch):
+    from programs import combine_magic
+
+    calls = []
+    monkeypatch.setattr(
+        combine_magic.ipmag, "combine_magic",
+        lambda filenames, outfile, data_model: calls.append((filenames, outfile, data_model)),
+    )
+
+    combine_magic.combine("input file.txt", "output file.txt", str(tmp_path), 3)
+
+    assert calls == [([str(tmp_path / "input file.txt")],
+                      str(tmp_path / "output file.txt"), 3)]
+
+
 @pytest.mark.parametrize("interactive", [False, True])
 def test_download_magic_dm3(interactive, tmp_path, monkeypatch):
     from programs import download_magic
