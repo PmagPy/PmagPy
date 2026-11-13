@@ -52,6 +52,32 @@ def test_pt_rot_writes_dm3_locations(model_args, tmp_path, monkeypatch):
     assert {"pole_lon", "pole_lat"} <= set(lines[1].split("\t"))
 
 
+@pytest.mark.parametrize(
+    ("point", "sequential", "expected_lon"),
+    [
+        ("10 20", True, 40),
+        ("10 20 eur 10", False, 40),
+        ("10 20 saf 10 eur", False, 340),
+        ("10 20 saf 10", False, 10),
+    ],
+)
+def test_pt_rot_location_coordinates(point, sequential, expected_lon, tmp_path, monkeypatch):
+    from programs import pt_rot
+
+    (tmp_path / "points.txt").write_text(point + "\n", encoding="utf-8")
+    (tmp_path / "poles.txt").write_text("90 0 30\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(pt_rot.frp, "get_pole", lambda plate, age: [90, 0, 30])
+    input_args = ["-ff", "points.txt", "poles.txt"] if sequential else ["-f", "points.txt"]
+    monkeypatch.setattr(sys, "argv", ["pt_rot", *input_args, "-F", "out.txt"])
+
+    pt_rot.main()
+
+    records = pd.read_csv("out.txt", sep="\t", header=1)
+    assert records.loc[0, "pole_lon"] == pytest.approx(expected_lon)
+    assert records.loc[0, "pole_lat"] == pytest.approx(20)
+
+
 @pytest.mark.parametrize("model_args", [[], ["-DM", "3"], ["-DM", "3.0"]])
 def test_core_depthplot_passes_dm3(model_args, tmp_path, monkeypatch):
     pytest.importorskip("wx")
