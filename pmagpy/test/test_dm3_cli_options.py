@@ -167,13 +167,24 @@ def test_magic_select_uses_dm3_model_lat(tmp_path, monkeypatch):
     magic_select.main()
 
     records = pd.read_csv("selected.txt", sep="\t", header=1).set_index("site")
-    assert records["model_lat"].to_dict() == {
+    assert "model_lat" not in records.columns
+    assert records["paleolat"].to_dict() == {
         "young": 33.25, "old": 42, "inclination": 26.6, "no_age": -12,
         "boundary": 50, "near_boundary": 11.5, "range": 45.25,
     }
     assert records.loc["young", "age"] == 1
     assert records.loc["young", "age_unit"] == "Ma"
     assert records.loc["range", "age"] == 2
+
+    monkeypatch.setattr(
+        sys, "argv",
+        ["magic_select", "-f", "sites.txt", "-F", "selected.txt",
+         "-key", "model_lat", "33.25", "eval"],
+    )
+    magic_select.main()
+    selected = pd.read_csv("selected.txt", sep="\t", header=1)
+    assert selected["site"].tolist() == ["young"]
+    assert selected.loc[0, "paleolat"] == 33.25
 
 
 def test_magic_select_rejects_unknown_age_unit_for_model_lat(tmp_path, monkeypatch):
@@ -202,7 +213,39 @@ def test_convert_lat_preserves_legacy_fields_and_handles_dm3_zeroes():
     legacy = {"average_age": "1", "site_lat": "12"}
     assert pmag.convert_lat([legacy])[0]["model_lat"] == "12"
     records = [{"age": 0, "lat": 0}, {"paleolat": 0}, {"dir_inc": 0}]
-    assert [float(rec["model_lat"]) for rec in pmag.convert_lat(records, 3)] == [0, 0, 0]
+    assert [float(rec["paleolat"]) for rec in pmag.convert_lat(records, 3)] == [0, 0, 0]
+
+
+@pytest.mark.parametrize(
+    ("methods", "args", "expected"),
+    [
+        (("DE-BFL", "DE-FM"), [], [[1.0, 10.0], [2.0, 20.0]]),
+        (("LP-IRM", "LP-TRM"), ["-mcd", "LP-TRM"], [[2.0, 20.0]]),
+    ],
+)
+def test_strip_magic_plots_dm3_method_codes(methods, args, expected, tmp_path, monkeypatch):
+    from programs import strip_magic
+
+    (tmp_path / "sites.txt").write_text(
+        "tab\tsites\nsite\tcore_depth\tdir_dec\tmethod_codes\n"
+        f"S1\t1\t10\t{methods[0]}\nS2\t2\t20\t{methods[1]}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        sys, "argv",
+        ["strip_magic", "-f", "sites.txt", "-x", "pos", "-y", "dec", "-sav", *args],
+    )
+    plotted = []
+    monkeypatch.setattr(strip_magic.pmagplotlib, "isServer", False)
+    monkeypatch.setattr(strip_magic.pmagplotlib, "plot_init", lambda *args: None)
+    monkeypatch.setattr(strip_magic.pmagplotlib, "plot_strat",
+                        lambda fig, data, labels: plotted.append(data))
+    monkeypatch.setattr(strip_magic.pmagplotlib, "save_plots", lambda *args: None)
+
+    strip_magic.main()
+
+    assert plotted == [expected]
 
 
 @pytest.mark.parametrize("interactive", [False, True])
