@@ -69,7 +69,7 @@ def main():
     dir_path = pmag.get_named_arg("-WD", ".")
     nboot = int(float(pmag.get_named_arg("-n", 1000)))     # number of bootstraps
     fmt = pmag.get_named_arg("-fmt", "svg")
-    data_model_num = int(float(pmag.get_named_arg("-DM", 3)))
+    data_model_num = float(pmag.get_named_arg("-DM", 3))
     if data_model_num != 3:
         raise SystemExit(
             "-E- foldtest_magic supports MagIC Data Model 3 only. "

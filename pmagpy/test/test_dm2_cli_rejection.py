@@ -55,6 +55,19 @@ def test_dm25_is_rejected_before_io(program, model_option, tmp_path, monkeypatch
     assert not list(tmp_path.iterdir())
 
 
+@pytest.mark.parametrize("model", ["3.1", "3.5", "3.9"])
+def test_foldtest_rejects_nonintegral_models_before_io(model, tmp_path, monkeypatch):
+    from programs import foldtest_magic
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(sys, "argv", ["foldtest_magic", "-DM", model])
+
+    with pytest.raises(SystemExit, match="supports MagIC Data Model 3 only"):
+        foldtest_magic.main()
+
+    assert not list(tmp_path.iterdir())
+
+
 @pytest.mark.parametrize(("program", "model_option"), [
     ("combine_magic", "-dm"), ("download_magic", "-DM"),
 ])
