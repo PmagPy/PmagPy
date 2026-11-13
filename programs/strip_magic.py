@@ -265,7 +265,7 @@ def main():
     for rec in Results:
         if method_col_name in rec:
             meths = rec[method_col_name].split(":")
-            if method in meths and rec[Xkey].strip() != "":
+            if (method == "" or method in meths) and rec[Xkey].strip() != "":
                 XY.append([isign*float(rec[Xkey]), float(rec[Ykey])])
         elif method == "" and rec[Xkey].strip() != "":
             XY.append([isign*float(rec[Xkey]), float(rec[Ykey])])
