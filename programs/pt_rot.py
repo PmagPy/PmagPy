@@ -85,7 +85,7 @@ def main():
             if ofile=="":
                 print(ptrot[1][0], ptrot[0][0])
             else:
-                ResRec={polelonkey: '%7.1f'%(ptrot[0][0]),polelatkey:'%7.1f'%( ptrot[1][0])}
+                ResRec={polelonkey: '%7.1f'%(ptrot[1][0]),polelatkey:'%7.1f'%( ptrot[0][0])}
                 ResRecs.append(ResRec)
         else:
             PtRec['cont']=rec[2]
@@ -119,7 +119,7 @@ def main():
                 if ofile=="":
                     print(ptrot[1][0], ptrot[0][0])
                 else:
-                    ResRec={polelonkey: '%7.1f'%(ptrot[0][0]),polelatkey:'%7.1f'%( ptrot[1][0])}
+                    ResRec={polelonkey: '%7.1f'%(ptrot[1][0]),polelatkey:'%7.1f'%( ptrot[0][0])}
                     ResRecs.append(ResRec)
             else:
                 if 'dcont' in list(pt.keys()):
@@ -130,13 +130,13 @@ def main():
                     if ofile=="":
                         print(ptrot[1][0], ptrot[0][0]) 
                     else:
-                        ResRec={polelonkey: '%7.1f'%(ptrot[0][0]),polelatkey:'%7.1f'%( ptrot[1][0])}
+                        ResRec={polelonkey: '%7.1f'%(ptrot[1][0]),polelatkey:'%7.1f'%( ptrot[0][0])}
                         ResRecs.append(ResRec)
                 else:
                     if ofile=="":
                         print(ptrot[1][0], ptrot[0][0])
                     else:
-                        ResRec={polelonkey: '%7.1f'%(ptrot[0][0]),polelatkey:'%7.1f'%( ptrot[1][0])}
+                        ResRec={polelonkey: '%7.1f'%(ptrot[1][0]),polelatkey:'%7.1f'%( ptrot[0][0])}
                         ResRecs.append(ResRec)
     if len(ResRecs)>0:
         pmag.magic_write(ofile,ResRecs,'locations')
