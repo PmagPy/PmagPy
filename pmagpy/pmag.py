@@ -422,7 +422,7 @@ def cooling_rate(SpecRec, SampRecs, crfrac, crtype):
 
 def convert_lat(Recs, data_model=2.5):
     """
-    Derive model_lat from latitude, an existing paleolatitude, or inclination.
+    Derive paleolatitude from latitude, an existing value, or inclination.
     
     Parameters
     ----------
@@ -433,20 +433,20 @@ def convert_lat(Recs, data_model=2.5):
     
     Returns
     -------
-    New : list of dictionaries with plat estimate
+    New : list of dictionaries with the estimate in paleolat (DM3) or model_lat
     """
     New = []
     for rec in Recs:
         if data_model == 3:
             if (rec.get('age') not in ('', None) and float(rec['age']) < 5.
                     and rec.get('lat') not in ('', None)):
-                rec['model_lat'] = rec['lat']
+                rec['paleolat'] = rec['lat']
             elif rec.get('paleolat') not in ('', None):
-                rec['model_lat'] = rec['paleolat']
-            elif rec.get('model_lat') not in ('', None):
                 pass
+            elif rec.get('model_lat') not in ('', None):
+                rec['paleolat'] = rec['model_lat']
             elif rec.get('dir_inc') not in ('', None):
-                rec['model_lat'] = '%7.1f' % plat(float(rec['dir_inc']))
+                rec['paleolat'] = '%7.1f' % plat(float(rec['dir_inc']))
             else:
                 continue
             New.append(rec)
