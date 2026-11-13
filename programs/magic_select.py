@@ -34,7 +34,7 @@ def main():
          for paleolat:
              use KEY: model_lat (uses lat if age < 5 Ma; otherwise uses
              paleolat or model_lat, or estimates from dir_inc). Returns the
-             estimate in the model_lat key.
+             estimate in the paleolat key.
 
       EXAMPLE:
          # here I want to output all records where the site column exactly matches "MC01"
@@ -80,18 +80,22 @@ def main():
     #
     # get data read in
     Data, file_type = pmag.magic_read(magic_file)
+    is_model_lat = grab_key == 'model_lat'
     if grab_key == 'age':
         Data = pmag.convert_ages(Data, data_model=3, precision=15)
-    if grab_key == 'model_lat':
+    if is_model_lat:
         for rec in Data:
             if rec.get('age') or (rec.get('age_low') and rec.get('age_high')):
                 if rec.get('age_unit') not in ('Ma', 'ka', 'Ka', 'Years AD (+/-)', 'Years BP'):
                     raise ValueError("Unsupported or missing age unit: {}".format(rec.get('age_unit', '')))
                 pmag.convert_ages([rec], data_model=3, precision=15)
         Data = pmag.convert_lat(Data, data_model=3)
+        for rec in Data:
+            rec.pop('model_lat', None)
+        grab_key = 'paleolat'
     #print(Data[0])
     Selection = pmag.get_dictitem(
-        Data, grab_key, v, flag, float_to_int=(grab_key not in ('age', 'model_lat'))
+        Data, grab_key, v, flag, float_to_int=(grab_key != 'age' and not is_model_lat)
     )
     if len(Selection) > 0:
         pmag.magic_write(outfile, Selection, file_type)
