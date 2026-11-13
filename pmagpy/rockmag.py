@@ -2261,13 +2261,17 @@ def plot_hyst_loop(field, magnetization, specimen_name, p=None, interactive=True
 
     Returns
     -------
-    p : bokeh.plotting.figure
+    p : bokeh.plotting.figure or None
+        When interactive is True and return_figure is True.
+    (fig, ax) : tuple of matplotlib Figure and Axes or None
+        When interactive is False and return_figure is True. Bokeh is not
+        required on this path.
     
     '''
-    _check_bokeh()
     assert len(field) == len(magnetization), 'Field and magnetization arrays must be the same length'
     magn_unit = _normalize_magn_unit(magn_unit)
     if interactive:
+        _check_bokeh()
         if p is None:
             p = figure(title=f'{specimen_name} hysteresis loop',
                     x_axis_label='Field (T)',
@@ -5706,9 +5710,10 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
         DataFrame with hysteresis results including 'specimen' and
         'experiment' columns, as output from rmag.process_hyst_loops.
         Has a numeric index (one row per experiment). The 'magn_unit'
-        column selects the MagIC columns that receive Ms and Mr:
-        Am²/kg -> hyst_ms_mass/hyst_mr_mass, A/m -> hyst_ms_volume/
-        hyst_mr_volume, Am² -> hyst_ms_moment/hyst_mr_moment. Results
+        column selects the MagIC columns that receive Ms, Mr and chi_HF:
+        Am²/kg -> hyst_ms_mass/hyst_mr_mass/hyst_xhf_mass (m³/kg),
+        A/m -> hyst_ms_volume/hyst_mr_volume/hyst_xhf_volume (SI),
+        Am² -> hyst_ms_moment/hyst_mr_moment/hyst_xhf (m³). Results
         without this column (written by earlier versions) are taken to be
         mass-normalized.
         A single loop's results dict from rmag.process_hyst_loop is accepted
@@ -5752,13 +5757,11 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
         one.setdefault('processed_by', pmagpy_version)
         hyst_results = pd.DataFrame([one])
 
-    # the MagIC columns for Ms and Mr depend on the magnetization unit of
-    # each result row (see _MAGN_UNIT_MAGIC_SUFFIX); Bc is always in tesla.
-    # hyst_xhf is the only high-field slope column MagIC provides and is
-    # declared in m^3 (moment-based); there is no normalized alternative, so
-    # chi_HF is written to it in the susceptibility unit that matches the
-    # processed magnetization (m³/kg for mass-normalized data) and the unit
-    # is recorded alongside the other stats in the description payload.
+    # the MagIC columns for Ms, Mr and chi_HF depend on the magnetization
+    # unit of each result row (see _MAGN_UNIT_MAGIC_SUFFIX); Bc is always in
+    # tesla. The data model holds the high-field susceptibility in
+    # hyst_xhf_mass (m³/kg), hyst_xhf_volume (SI) and hyst_xhf (m³,
+    # moment-based), matching the units of _HYST_CHI_UNITS.
     hyst_results = hyst_results.copy()
     if 'magn_unit' not in hyst_results.columns:
         hyst_results['magn_unit'] = _DEFAULT_MAGN_UNIT
@@ -5773,7 +5776,9 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
 
     def magic_columns(magn_unit):
         suffix = _MAGN_UNIT_MAGIC_SUFFIX[magn_unit]
-        return [f'hyst_ms_{suffix}', f'hyst_mr_{suffix}', 'hyst_bc', 'hyst_xhf']
+        # the moment-based susceptibility column carries no suffix
+        xhf_col = 'hyst_xhf' if suffix == 'moment' else f'hyst_xhf_{suffix}'
+        return [f'hyst_ms_{suffix}', f'hyst_mr_{suffix}', 'hyst_bc', xhf_col]
 
     result_keys_MagIC = ['Ms', 'Mr', 'Bc', 'chi_HF']
     MagIC_columns = sorted({col for unit in set(hyst_results['magn_unit'])
@@ -6174,7 +6179,9 @@ def plot_chi_T(
     Parameters:
         experiment (pandas.DataFrame): MagIC-formatted experiment DataFrame.
         temperature_column (str): Name of temperature column.
-        magnetic_column (str): Name of susceptibility column.
+        magnetic_column (str): Name of susceptibility column. The y-axis
+            unit follows its MagIC normalization: m³ kg⁻¹ for
+            'susc_chi_mass', SI for 'susc_chi_volume'.
         temp_unit (str): "C" or "K" for the plotted temperatures (input
             temperatures are assumed to be in Kelvin, the MagIC convention).
         smooth_window (int): Window for smoothing, if 0, no smoothing is applied.
@@ -6219,7 +6226,7 @@ def plot_chi_T(
     scX = cooling["y"] if cooling else empty
     title = experiment["specimen"].unique()[0]
     is_susceptibility = _resolve_thermomag_data_type(None, magnetic_column) == "susceptibility"
-    y_label = "χ (m³ kg⁻¹)" if is_susceptibility else "M (Am² kg⁻¹)"
+    y_label = _thermomag_y_label(magnetic_column, is_susceptibility)
     y_symbol = "χ" if is_susceptibility else "M"
     figs = []
 
@@ -7406,6 +7413,32 @@ def _temp_unit_label(temp_unit):
     return "K" if temp_unit == "K" else f"°{temp_unit}"
 
 
+# Units of thermomagnetic data keyed by the normalization suffix of the MagIC
+# measurements column: mass-normalized susceptibility (susc_chi_mass) is in
+# m³/kg while volume susceptibility (susc_chi_volume, the usual Kappabridge
+# K-T output) is the dimensionless SI value.
+_THERMOMAG_CHI_UNITS = {"_mass": "m³ kg⁻¹", "_volume": "SI"}
+_THERMOMAG_MAGN_UNITS = {"_mass": "Am² kg⁻¹", "_volume": "A m⁻¹",
+                         "_moment": "Am²"}
+
+
+def _thermomag_y_label(magnetic_column, is_susceptibility):
+    """
+    Axis label for thermomagnetic data, with the unit implied by the MagIC
+    normalization suffix of ``magnetic_column`` (e.g. 'χ (m³ kg⁻¹)' for
+    susc_chi_mass, 'χ (SI)' for susc_chi_volume, 'M (A m⁻¹)' for
+    magn_volume). A column without a recognized suffix gets the bare symbol
+    rather than a unit that may be wrong.
+    """
+    symbol = "χ" if is_susceptibility else "M"
+    units = _THERMOMAG_CHI_UNITS if is_susceptibility else _THERMOMAG_MAGN_UNITS
+    column = magnetic_column.lower()
+    for suffix, unit in units.items():
+        if column.endswith(suffix):
+            return f"{symbol} ({unit})"
+    return symbol
+
+
 def _branch_shade(color, branch):
     """
     Branch-dependent shade of a method color: the heating branch keeps the
@@ -7876,7 +7909,7 @@ def plot_curie_estimates(
         "cooling": {"data_color": "#dddddd", "line_color": "#888888",
                     "linestyle": "--", "label": "cooling"},
     }
-    y_label = ("χ (m³ kg⁻¹)" if is_susceptibility else "M (Am² kg⁻¹)")
+    y_label = _thermomag_y_label(magnetic_column, is_susceptibility)
     unit_label = _temp_unit_label(temp_unit)
 
     for branch in branches:
@@ -12465,7 +12498,9 @@ def unmix_backfield_experiments(measurements, experiments=None,
     field, magnetization : str
         Column names in the measurements table.
     random_seed : None, int, or numpy.random.Generator
-        Seed for reproducible bootstraps.
+        Seed for reproducible bootstraps, MAX UnMix resampling and
+        Bayesian nested sampling. A random_seed given in method_kwargs
+        takes precedence.
     verbose : bool
         Print progress and failures.
     **method_kwargs
@@ -12537,6 +12572,9 @@ def unmix_backfield_experiments(measurements, experiments=None,
             if method == 'maxunmix':
                 method_kwargs.setdefault('n_boot', n_boot if n_boot > 0
                                          else 100)
+            # the stochastic methods draw from the batch generator, so a
+            # seeded batch is reproducible end to end
+            if method in ('maxunmix', 'bayes'):
                 method_kwargs.setdefault('random_seed', rng)
             result = unmix_coercivity(
                 x_fit, M_fit, method=method, n_components=n_components,

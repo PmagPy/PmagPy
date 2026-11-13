@@ -1,5 +1,6 @@
 """
-Tests for the axis limits of pmagplotlib.plot_zij.
+Tests for pmagplotlib.plot_zij: the axis limits, and the optional arguments
+(an existing axis, frame, labels, colors and fits).
 
 The frame of the Zijderveld plot used to be set exactly at the extremes of
 the data. With all of the data on one side of the origin, the axis lines then
@@ -129,3 +130,154 @@ class TestPlotZijLimits:
         bottom, top = axis.get_ylim()
         assert bottom > top
         assert axis.get_aspect() in ("equal", 1.0)
+
+
+# ---------------------------------------------------------------------------
+# Optional arguments: an existing axis, frame, labels, colors and fits
+# ---------------------------------------------------------------------------
+
+# [step, dec, inc, moment, quality]
+STEPS = [[273., 10., 45., 4e-5, 'g'], [373., 12., 44., 3e-5, 'g'],
+         [473., 15., 42., 2e-5, 'g'], [573., 14., 43., 1e-5, 'g']]
+
+
+class TestPlotZijOptions:
+    """The default diagram, and the optional axis, frame, labels, colors and fits."""
+
+    def teardown_method(self):
+        plt.close("all")
+
+    def test_default_draws_on_numbered_figure(self):
+        pmagplotlib.plot_zij(7, STEPS, 0, 'spc01')
+        fig = plt.figure(num=7)
+        assert len(fig.axes) == 1
+        assert fig.axes[0].get_title() == 'spc01: NRM =  4.00e-05'
+        assert len(fig.axes[0].lines) == 6  # 4 plot calls and the 2 axis lines
+
+    def test_default_artists(self):
+        """The diagram made without any of the options."""
+        fig, ax = plt.subplots()
+        pmagplotlib.plot_zij(None, STEPS, 0, 'spc01', ax=ax)
+        assert ax.axison
+        assert ax.get_xlabel() == 'X: rotated to Dec =     0.0'
+        assert ax.get_ylabel() == 'Circles: Y; Squares: Z'
+        assert [text.get_text() for text in ax.texts] == ['0', '1', '2', '3']
+        # the only collections are those of the steps flagged bad (none here)
+        assert all(len(c.get_offsets()) == 0 for c in ax.collections)
+        assert len(ax.patches) == 0
+        styles = [(line.get_marker(), line.get_linestyle(), line.get_color())
+                  for line in ax.lines[:4]]
+        assert styles == [('o', 'None', 'r'), ('s', 'None', 'w'),
+                          ('None', '-', 'r'), ('None', '-', 'b')]
+        assert ax.lines[1].get_markeredgecolor() == 'blue'
+        # Y and Z increase downward
+        assert ax.get_ylim()[0] > ax.get_ylim()[1]
+
+    def test_axis_of_multipanel_figure(self):
+        fig, (ax_left, ax_right) = plt.subplots(1, 2)
+        ax_left.plot([0, 1], [0, 1])
+        n_figures = len(plt.get_fignums())
+        pmagplotlib.plot_zij(None, STEPS, 0, 'spc01', ax=ax_right)
+        # the diagram is on the axis passed; no figure is made or cleared
+        assert len(plt.get_fignums()) == n_figures
+        assert len(fig.axes) == 2
+        assert len(ax_left.lines) == 1
+        assert len(ax_right.lines) == 6
+        assert ax_right.get_title() == 'spc01: NRM =  4.00e-05'
+
+    def test_frame_and_axis_labels(self):
+        fig, ax = plt.subplots()
+        pmagplotlib.plot_zij(None, STEPS, 90, 'spc01', ax=ax, frame=False,
+                             axis_labels={'right': 'E', 'top': 'N, Up'}, step_labels=False)
+        assert not ax.axison
+        assert [text.get_text() for text in ax.texts] == ['E', 'N, Up']
+        with pytest.raises(ValueError):
+            pmagplotlib.plot_zij(None, STEPS, 0, 'spc01', ax=ax, axis_labels={'east': 'E'})
+
+    def test_step_labels(self):
+        fig, ax = plt.subplots()
+        pmagplotlib.plot_zij(None, STEPS, 0, 'spc01', ax=ax,
+                             step_labels=['NRM', '', '', '300 C'])
+        assert [text.get_text() for text in ax.texts] == ['NRM', '300 C']
+        with pytest.raises(ValueError):
+            pmagplotlib.plot_zij(None, STEPS, 0, 'spc01', ax=ax, step_labels=['NRM', '300 C'])
+
+    def test_step_and_line_colors(self):
+        from matplotlib.colors import to_rgba
+        fig, ax = plt.subplots()
+        step_colors = ['0.5', 'C0', 'C0', 'C0']
+        pmagplotlib.plot_zij(None, STEPS, 0, 'spc01', ax=ax,
+                             step_colors=step_colors, line_color='0.8')
+        horizontal, vertical = ax.collections[-2:]
+        for k, color in enumerate(step_colors):
+            assert tuple(horizontal.get_facecolors()[k]) == to_rgba(color)
+            assert tuple(vertical.get_edgecolors()[k]) == to_rgba(color)
+        assert tuple(vertical.get_facecolors()[0]) == to_rgba('w')
+        assert [line.get_color() for line in ax.lines[:2]] == ['0.8', '0.8']
+
+    def test_fits(self):
+        from matplotlib.patches import FancyArrowPatch
+        # steps on a line toward the origin, declination 30 and inclination 40
+        datablock = [[step, 30., 40., moment, 'g'] for step, moment in
+                     zip([0., 10., 20., 30., 40.], [5e-5, 4e-5, 3e-5, 2e-5, 1e-5])]
+        fit = pmag.domean(datablock, 1, 3, 'DE-BFL')
+        fit.update(color='C1', label='component')
+        plane = dict(fit, calculation_type='DE-BFP')
+        fig, ax = plt.subplots()
+        pmagplotlib.plot_zij(None, datablock, 0, 'spc01', ax=ax, fits=[fit, plane])
+        arrows = [patch for patch in ax.patches if isinstance(patch, FancyArrowPatch)]
+        assert len(arrows) == 2  # X,Y and X,Z projections of the line; no plane
+        assert ax.get_legend_handles_labels()[1] == ['component']
+        # a step of the fit that is not among the good steps
+        with pytest.raises(ValueError):
+            pmagplotlib.plot_zij(None, datablock, 0, 'spc01', ax=ax,
+                                 fits=[dict(fit, measurement_step_max=35.)])
+
+    def test_fit_ends(self):
+        # steps on a line toward the origin, declination 30 and inclination 40
+        treatments = [0., 10., 20., 30., 40.]
+        XYZ = pmag.dir2cart([[30., 40., moment] for moment in [5., 4., 3., 2., 1.]])
+        fit = dict(specimen_dec=30., specimen_inc=40., measurement_step_min=10.,
+                   measurement_step_max=30.)
+        # the arrow runs along the steps, from beyond the last step of the fit
+        # (30) to beyond the first (10): 8% of the length of the fit past each
+        tail, tip = pmagplotlib._zij_fit_ends(treatments, XYZ, fit, 0)
+        extension = 0.08 * (XYZ[1] - XYZ[3])
+        np.testing.assert_allclose(tail, XYZ[3] - extension)
+        np.testing.assert_allclose(tip, XYZ[1] + extension)
+        # the diagram rotated by 30 puts the line along X
+        rotated = pmag.dir2cart([[0., 40., moment] for moment in [5., 4., 3., 2., 1.]])
+        tail, tip = pmagplotlib._zij_fit_ends(treatments, rotated, fit, 30)
+        np.testing.assert_allclose([tail[1], tip[1]], [0., 0.], atol=1e-12)
+        # a plane has no line
+        plane = dict(fit, calculation_type='DE-BFP')
+        assert pmagplotlib._zij_fit_ends(treatments, XYZ, plane, 0) == (None, None)
+        # bounds that are not among the treatments
+        for key in ('measurement_step_min', 'measurement_step_max'):
+            with pytest.raises(ValueError):
+                pmagplotlib._zij_fit_ends(treatments, XYZ, dict(fit, **{key: 35.}), 0)
+
+    @pytest.mark.parametrize("calculation_type, through_origin", [
+        ('DE-BFL', False), ('DE-BFL-O', False), ('DE-BFL-A', True), ('DE-FM', True)])
+    def test_fit_ends_anchored_and_free(self, calculation_type, through_origin):
+        """A free line passes through the center of mass of its steps (with the
+        origin, for a line with origin), an anchored line through the origin."""
+        treatments = [0., 10., 20., 30.]
+        XYZ = pmag.dir2cart([[dec, 40., moment] for dec, moment in
+                             zip([30., 32., 35., 40.], [4., 3., 2., 1.])])
+        fit = dict(specimen_dec=30., specimen_inc=40., measurement_step_min=0.,
+                   measurement_step_max=30., calculation_type=calculation_type)
+        direction = pmag.dir2cart([30., 40., 1.])
+        if through_origin:
+            through = np.zeros(3)
+        elif calculation_type == 'DE-BFL-O':
+            through = np.vstack([XYZ, np.zeros(3)]).mean(axis=0)
+        else:
+            through = XYZ.mean(axis=0)
+        tail, tip = pmagplotlib._zij_fit_ends(treatments, XYZ, fit, 0)
+        for end in (tail, tip):
+            offset = through - end
+            assert np.linalg.norm(offset - (offset @ direction) * direction) < 1e-9
+        # the arrow points along the direction of the fit
+        np.testing.assert_allclose((tip - tail) / np.linalg.norm(tip - tail), direction)
+

@@ -148,7 +148,13 @@ def column(table: str, name: str) -> Optional[Column]:
 
 
 def required_columns(table: str) -> List[str]:
-    return [c.name for c in columns(table).values() if c.required]
+    """The columns a row of ``table`` must fill in: the data model's required ones and, for criteria,
+    the four that read as a sentence (MagIC's current model no longer requires ``table_column``, but a
+    criterion without the column it judges cannot be applied)."""
+    required = [c.name for c in columns(table).values() if c.required]
+    if table == "criteria":
+        required = list(CRITERION_SENTENCE) + [c for c in required if c not in CRITERION_SENTENCE]
+    return required
 
 
 def groups(table: str) -> List[str]:

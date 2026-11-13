@@ -668,7 +668,8 @@ class TestFieldNotebook:
         samples = read_table(tmp_path / "samples.txt")
         mc123a = samples[samples["sample"] == "mc123a"]
         assert mc123a["method_codes"].tolist() == ["FS-FD:SO-MAG", "FS-FD:SO-CMD-NORTH", "FS-FD:SO-SUN"]
-        assert [float(a) for a in mc123a["azimuth"]] == [258.0, 48.3, 200.1]
+        # the sun compass azimuth as pmag.dosundec gives it since #961 (it gave 200.1 before)
+        assert [float(a) for a in mc123a["azimuth"]] == [258.0, 48.3, 207.7]
         sites = read_table(tmp_path / "sites.txt")
         assert sites["site"].tolist() == ["mc123", "mc137"] and (sites["location"] == "McMurdo").all()
 

@@ -11,7 +11,7 @@ from io import StringIO
 import numpy as np
 from numpy.testing import assert_allclose
 
-from pmagpy import ipmag
+from pmagpy import ipmag, pmag
 
 
 # ---------------------------------------------------------------------------
@@ -90,6 +90,44 @@ class TestCommonMeanBootstrapH23:
         )
         assert isinstance(result, tuple)
         assert len(result) == 4
+
+    @staticmethod
+    def run_with_eigenvector_sign(monkeypatch, sign, data1, data2):
+        """Run the test with np.linalg.eig returning eigenvectors multiplied by sign."""
+        eig = np.linalg.eig
+
+        def signed_eig(A):
+            D, V = eig(A)
+            return D, sign * V
+
+        monkeypatch.setattr(np.linalg, "eig", signed_eig)
+        result = ipmag.common_mean_bootstrap_H23(
+            data1, data2, num_sims=200, plot=False, random_seed=42)
+        monkeypatch.setattr(np.linalg, "eig", eig)
+        return np.array(result, dtype=float)
+
+    def test_independent_of_eigenvector_sign(self, monkeypatch):
+        """Regression: the eigenvector for the common mean has an arbitrary sign. When
+        it came back antipodal to the data, each sample was rotated by ~180 degrees
+        onto it, which changed the bootstrap critical value and p-value."""
+        data1 = ipmag.fishrot(k=20, n=20, dec=30, inc=50, random_seed=8)
+        data2 = ipmag.fishrot(k=25, n=15, dec=40, inc=58, random_seed=9)
+        as_returned = self.run_with_eigenvector_sign(monkeypatch, 1, data1, data2)
+        flipped = self.run_with_eigenvector_sign(monkeypatch, -1, data1, data2)
+        assert_allclose(flipped, as_returned, rtol=1e-12)
+
+    def test_nearly_identical_datasets(self, monkeypatch):
+        """Regression: for a dataset compared with itself after a round trip through
+        Cartesian coordinates, an antipodal eigenvector gave nearly antiparallel
+        vectors to form_Q, whose output was not a rotation, and a critical value
+        many times too large. The result should match comparing the dataset with
+        itself exactly."""
+        data1 = np.array(ipmag.fishrot(k=20, n=20, dec=30, inc=50, random_seed=8))
+        data2 = pmag.cart2dir(pmag.dir2cart(data1))[:, :2]
+        exact = self.run_with_eigenvector_sign(monkeypatch, 1, data1, data1)
+        for sign in [1, -1]:
+            round_trip = self.run_with_eigenvector_sign(monkeypatch, sign, data1, data2)
+            assert_allclose(round_trip, exact, rtol=1e-6, atol=1e-9)
 
 
 # ---------------------------------------------------------------------------

@@ -3058,15 +3058,31 @@
 			},
 			{
 				"code": "DA-DIR-FLAT-EI",
-				"definition": "Direction correction: Flattening correction: Elongation/Inclination based - Tauxe and Kent (2004); DOI:10.1029/145GM08 "
+				"definition": "Direction correction: Flattening correction: Elongation/Inclination based - Tauxe and Kent (2004); DOI:10.1029/145GM08",
+				"urls": [
+					"https://doi.org/10.1029/145GM08"
+				]
 			},
 			{
 				"code": "DA-DIR-FLAT-EMP",
-				"definition": "Direction correction: Flattening correction: Empirical - Jackson et al. (1991); DOI:10.1111/j.1365-246X.1991.tb02496.x"
+				"definition": "Direction correction: Flattening correction: Empirical - Jackson et al. (1991); DOI:10.1111/j.1365-246X.1991.tb02496.x",
+				"urls": [
+					"https://doi.org/10.1111/j.1365-246X.1991.tb02496.x"
+				]
 			},
 			{
 				"code": "DA-DIR-FLAT-EST",
-				"definition": "Direction correction: Flattening correction: Estimated - Domeier et al. (2011); DOI:10.1016/j.tecto.2011.08.016"
+				"definition": "Direction correction: Flattening correction: Estimated - Domeier et al. (2011); DOI:10.1016/j.tecto.2011.08.016",
+				"urls": [
+					"https://doi.org/10.1016/j.tecto.2011.08.016"
+				]
+			},
+			{
+				"code": "DA-DIR-FLAT-SVEI",
+				"definition": "Direction correction: Flattening correction: Paleosecular variation-based elongation/inclination (SVEI) - Tauxe et al. (2024); DOI:10.1029/2024JB029502",
+				"urls": [
+					"https://doi.org/10.1029/2024JB029502"
+				]
 			},
 			{
 				"code": "DA-DIR-GEO",

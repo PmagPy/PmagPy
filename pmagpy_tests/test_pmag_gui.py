@@ -7,7 +7,6 @@ import wx
 #import wx.lib.inspection
 from programs import pmag_gui
 from pmagpy import pmag
-from pmagpy import validate_upload2 as validate_upload
 from pmagpy import data_model3 as data_model
 from pmagpy import contribution_builder as cb
 

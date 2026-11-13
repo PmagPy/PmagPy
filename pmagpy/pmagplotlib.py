@@ -730,19 +730,137 @@ def plot_circ(fignum, pole, ang, col):
     plt.plot(X_c_up, Y_c_up, 'c.', ms=2)
 
 
-def plot_zij(fignum, datablock, angle, s, norm=True):
+def _zij_fit_ends(treatments, XYZ, fit, angle):
+    """
+    Finds the two ends of the arrow that shows a line fit on a Zijderveld
+    diagram (see plot_zij).
+
+    Parameters
+    __________
+    treatments : treatment of each good step of the diagram
+    XYZ : array of the X, Y, Z coordinates of each good step, as plotted
+    fit : dictionary of fit parameters (see plot_zij)
+    angle : declination by which the diagram is rotated
+
+    Returns
+    _______
+    tail, tip : X, Y, Z coordinates of the two ends of the arrow, which runs
+        from just beyond the last step of the fit (tail) to just beyond the
+        first (tip); or None, None for a plane (calculation_type 'DE-BFP'),
+        which has no line to draw
+    """
+    calculation_type = fit.get('calculation_type', 'DE-BFL')
+    if calculation_type == 'DE-BFP':
+        return None, None
+    treatments = np.asarray(treatments, dtype=float)
+    starts = np.where(np.isclose(treatments, fit['measurement_step_min']))[0]
+    if len(starts) == 0:
+        raise ValueError("no good step with treatment measurement_step_min = "
+                         "{}".format(fit['measurement_step_min']))
+    start = starts[0]
+    ends = np.where(np.isclose(treatments[start:], fit['measurement_step_max']))[0]
+    if len(ends) == 0:
+        raise ValueError("no good step with treatment measurement_step_max = "
+                         "{} at or after measurement_step_min = {}".format(
+                             fit['measurement_step_max'], fit['measurement_step_min']))
+    steps = XYZ[start:start + ends[0] + 1]
+    # a point on the line: the origin for anchored lines and for means,
+    # otherwise the center of mass of the steps of the fit
+    if calculation_type in ('DE-BFL-A', 'DE-FM', 'DE-VM'):
+        center = np.zeros(3)
+    elif calculation_type == 'DE-BFL-O':
+        center = np.vstack([steps, np.zeros(3)]).mean(axis=0)
+    else:
+        center = steps.mean(axis=0)
+    direction = pmag.dir2cart(
+        [fit['specimen_dec'] - angle, fit['specimen_inc'], 1.])
+    along = (steps - center) @ direction
+    sense = np.sign(along[0] - along[-1]) or 1.
+    extension = 0.08 * np.ptp(along)
+    tail = center + (along[-1] - sense * extension) * direction
+    tip = center + (along[0] + sense * extension) * direction
+    return tail, tip
+
+
+def _plot_zij_fits(ax, treatments, XYZ, fits, angle):
+    """
+    Draws line fits as arrows on a Zijderveld diagram (see plot_zij).
+
+    Parameters
+    __________
+    ax : matplotlib axis of the diagram
+    treatments : treatment of each good step of the diagram
+    XYZ : array of the X, Y, Z coordinates of each good step, as plotted
+    fits : list of dictionaries of fit parameters (see plot_zij)
+    angle : declination by which the diagram is rotated
+    """
+    from matplotlib.patches import FancyArrowPatch
+    linewidth = 1.5 * plt.rcParams['lines.linewidth']
+    head_size = 3. * plt.rcParams['lines.markersize']
+    for fit in fits:
+        tail, tip = _zij_fit_ends(treatments, XYZ, fit, angle)
+        if tail is None:  # a plane has no line to draw
+            continue
+        color = fit.get('color', 'g')
+        # solid on the X,Y projection and dashed on the X,Z projection
+        for column, linestyle in ((1, '-'), (2, (0, (3, 1.5)))):
+            ax.add_patch(FancyArrowPatch(
+                (tail[0], tail[column]), (tip[0], tip[column]), arrowstyle='-|>',
+                mutation_scale=head_size, color=color, linewidth=linewidth,
+                linestyle=linestyle, shrinkA=0, shrinkB=0, zorder=4))
+        if fit.get('label'):  # an entry for a legend
+            ax.plot([], [], color=color, linewidth=linewidth, label=fit['label'])
+
+
+def plot_zij(fignum, datablock, angle, s, norm=True, ax=None, frame=True,
+             axis_labels=None, step_labels=None, step_colors=None,
+             line_color=None, fits=None):
     """
     function to make Zijderveld diagrams
 
     Parameters
     __________
-    fignum : matplotlib figure number
+    fignum : matplotlib figure number (not used if ax is provided)
     datablock : nested list of [step, dec, inc, M (Am2), type, quality]
                 (type indicates the IZZI step for paleointensity experiments —
                 'ZI'/'IZ' or 1/0; empty string for pure demagnetization data)
     angle : desired rotation in the horizontal plane (0 puts X on X axis)
     s : specimen name
     norm : if True, normalize to initial magnetization = unity
+    ax : matplotlib axis on which to draw the diagram, for use as a panel of a
+         multi-panel figure. If None (the default), the figure with number
+         fignum is cleared and the diagram is drawn on it.
+    frame : if True (the default), the diagram has a bounding box with tick
+         marks and axis labels. If False, these are not drawn, which leaves
+         the axis lines through the origin and the title.
+    axis_labels : dictionary of labels to write at the ends of the axis lines
+         through the origin, with any of the keys 'right', 'left', 'top' and
+         'bottom'. X is plotted to the right and Y and Z downward, so that
+         for data in geographic coordinates {'right': 'N', 'bottom': 'E, Down'}
+         applies with angle=0 and {'right': 'E', 'top': 'N, Up'} with angle=90.
+         The default is None (no labels).
+    step_labels : labels of the good steps, written at their X,Z points. The
+         default (None) numbers the good steps in order. A list with one label
+         for each good step (an empty string leaves a step without a label)
+         writes those labels instead, and False writes none.
+    step_colors : color, or list with one color for each good step, of the
+         symbols of both projections (solid circles for X,Y and open squares
+         for X,Z). The default (None) is red circles and blue squares.
+    line_color : color of the lines that connect the steps in both
+         projections. The default (None) is red for X,Y and blue for X,Z.
+    fits : list of line fits to draw as arrows, each a dictionary with the
+         keys of the dictionary returned by pmag.domean: 'specimen_dec' and
+         'specimen_inc' (the direction of the fit, in the coordinates of
+         datablock), 'measurement_step_min' and 'measurement_step_max' (the
+         treatments of its first and last steps) and, optionally,
+         'calculation_type' (default 'DE-BFL'). The arrow is drawn along the
+         direction of the fit, from its last step toward its first, through
+         the origin for anchored lines and means ('DE-BFL-A', 'DE-FM', 'DE-VM')
+         and through the center of mass of its steps otherwise; it is solid on
+         the X,Y projection and dashed on the X,Z projection. Planes ('DE-BFP')
+         are not drawn. The optional key 'color' sets the color of the arrows
+         (default 'g') and the optional key 'label' adds an entry for
+         ax.legend(). The default is None (no fits).
 
     Effects
     _______
@@ -750,10 +868,12 @@ def plot_zij(fignum, datablock, angle, s, norm=True):
 
     """
     global globals
-    plt.figure(num=fignum)
-    plt.clf()
-    if not isServer:
-        plt.figtext(.02, .01, version_num)
+    if ax is None:
+        plt.figure(num=fignum)
+        plt.clf()
+        if not isServer:
+            plt.figtext(.02, .01, version_num)
+        ax = plt.gca()
     amin, amax = 0., -100.
     if norm == 0:
         fact = 1.
@@ -797,36 +917,77 @@ def plot_zij(fignum, datablock, angle, s, norm=True):
         globals.Zlisty = gXYZ['y'].tolist()
         globals.Zlistz = gXYZ['z'].tolist()
     if len(bXYZ) > 0:
-        plt.scatter(bXYZ[0], bXYZ[1], marker='d', c='y', s=30)
-        plt.scatter(bXYZ[0], bXYZ[2], marker='d', c='y', s=30)
-    plt.plot(gXYZ['X'].values, gXYZ['Y'].values, 'ro')
-    plt.plot(gXYZ['X'].values, gXYZ['Z'].values, 'ws', markeredgecolor='blue')
-    plt.plot(gXYZ['X'].values, gXYZ['Y'].values, 'r-')
-    plt.plot(gXYZ['X'].values, gXYZ['Z'].values, 'b-')
-    
+        ax.scatter(bXYZ[0], bXYZ[1], marker='d', c='y', s=30)
+        ax.scatter(bXYZ[0], bXYZ[2], marker='d', c='y', s=30)
+    if step_colors is None and line_color is None:
+        ax.plot(gXYZ['X'].values, gXYZ['Y'].values, 'ro')
+        ax.plot(gXYZ['X'].values, gXYZ['Z'].values, 'ws', markeredgecolor='blue')
+        ax.plot(gXYZ['X'].values, gXYZ['Y'].values, 'r-')
+        ax.plot(gXYZ['X'].values, gXYZ['Z'].values, 'b-')
+    else:
+        marker_area = plt.rcParams['lines.markersize'] ** 2
+        ax.plot(gXYZ['X'].values, gXYZ['Y'].values, '-', zorder=1,
+                color='r' if line_color is None else line_color)
+        ax.plot(gXYZ['X'].values, gXYZ['Z'].values, '-', zorder=1,
+                color='b' if line_color is None else line_color)
+        ax.scatter(gXYZ['X'].values, gXYZ['Y'].values, marker='o', s=marker_area,
+                   c='r' if step_colors is None else step_colors, zorder=2)
+        ax.scatter(gXYZ['X'].values, gXYZ['Z'].values, marker='s', s=marker_area,
+                   facecolors='w', zorder=2,
+                   edgecolors='blue' if step_colors is None else step_colors)
 
-    for k in range(len(gXYZ)):
-        plt.annotate(str(k), (gXYZ['X'][k], gXYZ['Z']
-                              [k]), ha='left', va='bottom')
+    if step_labels is None:
+        step_labels = [str(k) for k in range(len(gXYZ))]
+    elif isinstance(step_labels, bool) or len(step_labels) == 0:
+        step_labels = []
+    elif len(step_labels) != len(gXYZ):
+        raise ValueError("step_labels must have one label for each good step: "
+                         "got {} labels for {} good steps".format(
+                             len(step_labels), len(gXYZ)))
+    for k, step_label in enumerate(step_labels):
+        if step_label:
+            ax.annotate(step_label, (gXYZ['X'][k], gXYZ['Z'][k]),
+                        ha='left', va='bottom')
+    if fits:
+        _plot_zij_fits(ax, gdata['treat'].values, gXYZ.values, fits, angle)
     if amin > 0 and amax >0:amin=0 # include the origin
     if amin < 0 and amax <0:amax=0 # include the origin
     # axis lines through the origin that span the full frame
-    plt.axhline(0, color='k')
-    plt.axvline(0, color='k')
+    ax.axhline(0, color='k')
+    ax.axvline(0, color='k')
     if angle != 0:
         xlab = "X: rotated to Dec = " + '%7.1f' % (angle)
     if angle == 0:
         xlab = "X: rotated to Dec = " + '%7.1f' % (angle)
-    plt.xlabel(xlab)
-    plt.ylabel('Circles: Y; Squares: Z')
+    ax.set_xlabel(xlab)
+    ax.set_ylabel('Circles: Y; Squares: Z')
     tstring = s + ': NRM = ' + '%9.2e' % (datablock[0][3])
     # pad the frame beyond the extent of the data so that the points at the
     # extremes are not clipped and so that the axis lines do not fall on the
     # frame when the data are all on one side of the origin (issue #922)
     pad = 0.08 * (amax - amin)
-    plt.axis([amin - pad, amax + pad, amax + pad, amin - pad])
-    plt.gca().set_aspect("equal")
-    plt.title(tstring)
+    ax.axis([amin - pad, amax + pad, amax + pad, amin - pad])
+    ax.set_aspect("equal")
+    ax.set_title(tstring)
+    if not frame:
+        ax.axis('off')
+    if axis_labels:
+        # at the ends of the axis lines, just outside of the plot
+        label_at = {
+            'right': dict(xy=(1, 0), xycoords=('axes fraction', 'data'),
+                          xytext=(3, 0), ha='left', va='center'),
+            'left': dict(xy=(0, 0), xycoords=('axes fraction', 'data'),
+                         xytext=(-3, 0), ha='right', va='center'),
+            'top': dict(xy=(0, 1), xycoords=('data', 'axes fraction'),
+                        xytext=(0, 3), ha='center', va='bottom'),
+            'bottom': dict(xy=(0, 0), xycoords=('data', 'axes fraction'),
+                           xytext=(0, -3), ha='center', va='top')}
+        for end, axis_label in axis_labels.items():
+            if end not in label_at:
+                raise ValueError("axis_labels keys must be 'right', 'left', "
+                                 "'top' or 'bottom', got '{}'".format(end))
+            ax.annotate(axis_label, textcoords='offset points',
+                        annotation_clip=False, **label_at[end])
 
 
 def plot_mag(fignum, datablock, s, num, units, norm):
@@ -2622,7 +2783,7 @@ def plot_xbt(fignum, XB, T, e, f):
 
     .. deprecated:: 4.6.0
        ``pmagplotlib.plot_xbt`` is deprecated and will be removed in a
-       future release. It is only used by the MagIC 2 program
+       future release. It was used by the retired MagIC 2 program
        ``chi_magic2.py``.
 
     Parameters

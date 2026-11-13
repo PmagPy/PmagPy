@@ -53,17 +53,18 @@ class TestPresentAndCheck:
         assert any(f.row == "Z12" and f.column == "lat" for f in sites)              # 95 is beyond the pole
         assert capsys.readouterr().out == ""                                          # the validator's narration is kept in
 
-    def test_validate_contribution_returns_what_it_computes(self, study, tmp_path, capsys):
+    def test_validate_table_returns_what_it_computes(self, study, tmp_path):
+        # validate_contribution now runs magic_validation (master); validate_table, which
+        # validate_directory uses, keeps its return value
         from pmagpy import contribution_builder as cb
         from pmagpy import validate_upload3
         con = cb.Contribution(study, read_tables=["locations", "sites"], dmodel=mp.data_model(True))
         out = tmp_path / "scratch_out"
         out.mkdir()
-        passing, failures = validate_upload3.validate_contribution(con, output_dir=str(out))
-        assert passing is False and "sites" in failures
-        dtype, bad_rows, bad_cols, missing_cols, missing_groups, failing_items = failures["sites"]
+        with pytest.warns(DeprecationWarning):
+            failure = validate_upload3.validate_table(con, "sites", output_dir=str(out))
+        dtype, bad_rows, bad_cols, missing_cols, missing_groups, failing_items = failure
         assert dtype == "sites" and bad_cols == ["lat"] and bad_rows == [(1, "Z12")]     # (index, site)
-        assert "validating sites" in capsys.readouterr().out
 
 
     def test_a_value_pointing_to_another_table_is_looked_up_once_per_column(self, tmp_path, monkeypatch):

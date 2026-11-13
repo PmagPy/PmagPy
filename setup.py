@@ -81,7 +81,7 @@ for notebook in notebooks:
 # skip the html header at the top of README.md
 with open('README.md', encoding='utf-8') as f:
     lines = f.readlines()[14:]
-    long_description = "\n".join(lines)
+    long_description = "".join(lines)
 
 
 setup(
@@ -89,6 +89,7 @@ setup(
     version=version_num,
     description='Analysis tools for paleo/rock magnetic data',
     long_description=long_description,
+    long_description_content_type='text/markdown',
     url='https://github.com/PmagPy/PmagPy',
     author='PmagPy team',
     author_email='ltauxe@ucsd.edu',
@@ -116,6 +117,7 @@ setup(
         'pandas',
         'pytz',
         'packaging',
+        'requests',  # downloading from and uploading to MagIC
     ],
 
     # cartopy and shapely are only needed for map-making.

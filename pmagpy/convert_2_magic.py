@@ -2,6 +2,7 @@
 
 import copy
 import datetime
+import io
 from functools import reduce
 import math
 import os
@@ -5495,7 +5496,7 @@ def irm(mag_file, output_dir_path="./", input_dir_path="./", citation="This stud
             SpecRecs['hyst_mr_mass']=info['Mr [Am/kg]']
             SpecRecs['hyst_bc']=[element*1e-3 for element in info['Bc [mT]']]
             SpecRecs['hyst_bcr']=[element*1e-3 for element in info['Bcr [mT]']]
-            SpecRecs['hyst_xhf']=info['Xhf [m3/kg]']
+            SpecRecs['hyst_xhf_mass']=info['Xhf [m3/kg]']
             SpecRecs['meas_temp']=info['T [K]']
             SpecRecs['hyst_bc_offset']=info['loop offset [Am/kg]']
             SpecRecs['instrument_codes']=info['Instrument']
@@ -9487,6 +9488,681 @@ def pmd(mag_file, dir_path=".", input_dir_path="",
     return True, meas_file
 
 
+### RS3_magic conversion
+
+def _rs3_number(text):
+    """
+    Return a fixed-width field of an .rs3 file as a float, or None if it is blank.
+    """
+    text = text.strip()
+    return float(text) if text else None
+
+
+def _rs3_read_file(rs3_file):
+    """
+    Read one Remasoft .rs3 file (one specimen).
+
+    Parameters
+    ----------
+    rs3_file : str
+        full path of the file
+
+    Returns
+    ---------
+    head : dict
+        header fields as strings, keyed by the names in the first line of the
+        file (Name, Site, Latitude, Longitude, Height, Rock, Age, Fm, SDec,
+        SInc, BDec, BInc, FDec, FInc, P1, P2, P3, P4, Note); empty where blank
+    steps : list of dicts
+        measurement rows: ID (N, T or A), Step and M (as written in the file),
+        and Dsp, Isp, Dge, Ige, Dtc, Itc, Dfc, Ifc, Prec as floats or None
+    fits : list of dicts
+        interpretations stored by Remasoft: ID (C for a line, G for a great
+        circle), name, Limit1, Limit2, flag (the letters written after the
+        second limit: O, A or OA), note, and the same direction fields as
+        steps, with Prec holding the MAD
+    """
+    # Remasoft writes a single-byte Windows encoding; a file saved again as
+    # UTF-8 is read as UTF-8, so that the degree sign stays one character and
+    # the fixed-width columns line up
+    with open(rs3_file, 'rb') as f:
+        raw = f.read()
+    try:
+        text = raw.decode('utf-8')
+    except UnicodeDecodeError:
+        text = raw.decode('latin-1')
+    lines = [line.rstrip('\r\n') for line in text.lstrip('\ufeff').splitlines()]
+    if len(lines) < 3 or not lines[0].startswith('Name') or not lines[2].startswith('ID'):
+        raise ValueError('{} is not a Remasoft .rs3 file'.format(rs3_file))
+    # header values are left-aligned under the field names of the first line
+    names = lines[0].split()
+    starts, position = [], 0
+    for name in names:
+        position = lines[0].index(name, position)
+        starts.append(position)
+        position += len(name)
+    head = {}
+    for k, name in enumerate(names):
+        end = starts[k + 1] if k + 1 < len(names) else None
+        head[name] = lines[1][starts[k]:end].strip()
+    # data rows are fixed width: label and moment end at column 27, followed by
+    # nine fields of six characters, the susceptibility, and the limits and
+    # note under their names in the third line
+    direction_keys = ['Dsp', 'Isp', 'Dge', 'Ige', 'Dtc', 'Itc', 'Dfc', 'Ifc', 'Prec']
+    limit1_start, limit2_start = lines[2].index('Limit1'), lines[2].index('Limit2')
+    note_start = lines[2].index('Note')
+    steps, fits = [], []
+    for line in lines[3:]:
+        if not line.strip():
+            continue
+        row = {'ID': line[:2].strip()}
+        label = line[2:27].split()
+        for k, key in enumerate(direction_keys):
+            row[key] = _rs3_number(line[27 + 6 * k:33 + 6 * k])
+        row['K'] = line[81:limit1_start].strip()
+        if row['ID'] in ('C', 'G'):
+            row['name'] = ' '.join(label[:-1]) if len(label) > 1 else ' '.join(label)
+            limit1 = line[limit1_start:limit2_start].split()
+            limit2 = line[limit2_start:note_start].split()
+            if len(limit1) != 1 or not limit2:
+                raise ValueError('{}: interpretation without limits: {}'.format(rs3_file, line))
+            row['Limit1'], row['Limit2'] = limit1[0], limit2[0]
+            row['flag'] = ''.join(limit2[1:])
+            row['note'] = line[note_start:].strip()
+            fits.append(row)
+        else:
+            if len(label) != 2:
+                raise ValueError('{}: unexpected measurement row: {}'.format(rs3_file, line))
+            row['Step'], row['M'] = label
+            steps.append(row)
+    return head, steps, fits
+
+
+def _rs3_limit(label):
+    """
+    Convert a Remasoft fit limit ('NRM', '35mT', '300°C') to MagIC units.
+
+    Returns
+    ---------
+    Tuple : (number as written, value in tesla or kelvin, 'T' or 'K');
+        (0, None, '') for 'NRM'
+    """
+    if label == 'NRM':
+        return 0., None, ''
+    try:
+        if label.endswith('mT'):
+            number = float(label[:-2])
+            return number, number * 1e-3, 'T'
+        if label.endswith('C'):
+            # the degree sign, or the ordinal sign some encodings put in its place
+            number = float(label[:-1].rstrip('\xb0\xba '))
+            return number, number + 273., 'K'
+    except ValueError:
+        pass
+    raise ValueError('fit limit {} not understood'.format(label))
+
+
+def _rs3_average_repeats(rows):
+    """
+    Average consecutive measurement records of the same step (same treatment
+    code, temperature and field) as a vector mean.
+
+    Parameters
+    ----------
+    rows : list of dicts
+        measurement records of one specimen, with method_codes holding the
+        treatment code only, and dir_dec, dir_inc and magn_volume
+
+    Returns
+    ---------
+    list of dicts : the records, with each run of repeats replaced by its
+        last record carrying the mean direction, the mean magnitude, dir_csd,
+        a description and averaged=True (for the DE-VM method code)
+    """
+    def step_key(row):
+        return row['method_codes'], row['treat_temp'], row['treat_ac_field']
+    out, k = [], 0
+    while k < len(rows):
+        j = k
+        while j + 1 < len(rows) and step_key(rows[j + 1]) == step_key(rows[k]):
+            j += 1
+        if j == k:
+            out.append(rows[k])
+        else:
+            group = rows[k:j + 1]
+            vectors = [[float(r['dir_dec']), float(r['dir_inc']), float(r['magn_volume'])] for r in group]
+            mean_dir, R = pmag.vector_mean(vectors)
+            fpars = pmag.fisher_mean([v[:2] for v in vectors])
+            rec = dict(group[-1])
+            rec['dir_dec'] = '%7.1f' % (mean_dir[0])
+            rec['dir_inc'] = '%7.1f' % (mean_dir[1])
+            rec['magn_volume'] = '%8.3e' % (R / len(group))
+            rec['dir_csd'] = '%7.1f' % (fpars['csd'])
+            rec['description'] = '; '.join(
+                [d for d in (rec.get('description', ''), 'average of {} measurements'.format(len(group))) if d])
+            rec['averaged'] = True
+            out.append(rec)
+        k = j + 1
+    return out
+
+
+def rs3(mag_file="", dir_path=".", input_dir_path="",
+        meas_file="measurements.txt", spec_file="specimens.txt",
+        samp_file="samples.txt", site_file="sites.txt", loc_file="locations.txt",
+        specnum=0, samp_con='1', location="unknown", lat="", lon="",
+        noave=True, meth_code="", instrument="", user="",
+        interpretations=True, tolerance=0.5):
+    """
+    Convert Remasoft .rs3 files to MagIC format files.
+
+    Remasoft 3.0 (Chadima and Hrouda, 2006) is the AGICO program for viewing and
+    analyzing demagnetization data. It was written for the JR5 and JR6 spinner
+    magnetometers and also imports other formats (e.g. 2G binary, PMD). An
+    .rs3 file holds one specimen: the sample orientation, the demagnetization
+    steps in specimen and geographic (and, with bedding, tilt-corrected)
+    coordinates, and any line and great-circle fits that were saved in the
+    program.
+
+    Parameters
+    ----------
+    mag_file : str or list of str
+        input file name, or a list of file names; default "" converts every
+        .rs3 file in input_dir_path
+    dir_path : str
+        working directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    meas_file : str
+        output measurement file name, default "measurements.txt"
+    spec_file : str
+        output specimen file name, default "specimens.txt"
+    samp_file: str
+        output sample file name, default "samples.txt"
+    site_file : str
+        output site file name, default "sites.txt"
+    loc_file : str
+        output location file name, default "locations.txt"
+    specnum : int
+        number of characters to designate a specimen, default 0
+    samp_con : str
+        sample/site naming convention, default '1', see info below
+    location : str
+        location name, default "unknown"
+    lat : float or str
+        latitude, used for sites whose file gives none, default ""
+    lon : float or str
+        longitude, used for sites whose file gives none, default ""
+    noave : bool
+        do not average repeated measurements of a step, default True: unlike in
+        the other converters, every row of a file is kept, because the limits
+        of the stored fits refer to them
+    meth_code : str
+        colon-delimited sample orientation method codes, default "" (written as SO-NO)
+        e.g. SO-MAG, SO-SUN, SO-POM, SO-CMD-NORTH
+    instrument : str
+        instrument code for the measurements, default ""
+    user : str
+        analyst, default ""
+    interpretations : bool
+        write the fits stored in the files to the specimens table, default True
+    tolerance : float
+        largest angle in degrees allowed between the geographic (or
+        tilt-corrected) directions stored in a file and those calculated from
+        the converted orientation (or bedding), default 0.5
+
+    Returns
+    ---------
+    Tuple : (True or False indicating if conversion was successful, file name written)
+
+    Info
+    --------
+    Files:
+        A file without measurements is skipped. When two files hold the same
+        specimen with identical headers and measurements, the one with more
+        stored fits is used; if they differ, the conversion stops.
+
+    Orientation:
+        The header gives the sample orientation (SDec, SInc), the bedding
+        (BDec, BInc) and the AGICO orientation parameters, defined in the
+        Remasoft manual as clock positions on the frontal (top) side of the core:
+            P1  clock value (12, 3, 6, 9) of the fiducial mark, which is the X axis
+                of the specimen
+            P2  0 if SInc is the dip of the frontal side, 90 if it is the plunge
+                of the core axis
+            P3  clock value of the direction whose azimuth, SDec, was measured
+            P4  0 if BDec is the dip direction of the bedding, 90 if it is the
+                strike (right-hand rule)
+        They are converted to the MagIC convention (azimuth and dip of the
+        specimen X axis; bedding dip direction and dip). For the 12 o'clock line,
+            azimuth = SDec - 30 * P3
+            dip = SInc - 90 if P2 is 90; dip = -SInc if P2 is 0
+        With P1 = 12 this is the X axis. With P1 = 6 the X axis is the opposite
+        line (azimuth + 180, dip of opposite sign). With P1 = 3 or 9 the X axis
+        is horizontal and the specimen Y axis is not, which azimuth and dip
+        cannot describe; the declinations in specimen coordinates are then
+        rotated by 30 * P1 so that they refer to the 12 o'clock line, and the
+        descriptions of the measurements and of the fits in specimen
+        coordinates say so.
+        The directions rotated with the converted values are compared with the
+        geographic and tilt-corrected directions stored in the file, and the
+        conversion stops if they differ by more than tolerance. The settings
+        P1-P3 = 12 90 12, 12 0 12 and 6 0 6 have been checked against files in
+        this way. Other settings and the bedding conversion have not been run
+        on real files and rely on this comparison.
+
+    Measurements:
+        Rows with ID N are the NRM, T thermal steps in degrees C and A
+        alternating field steps in mT. The moment is volume normalized (A/m)
+        and the directions written are in specimen coordinates. Each row
+        keeps its own treatment: an A row at 0 mT after a heating is LT-AF-Z,
+        not LT-NO. The experiment of a specimen is LP-DIR-T, LP-DIR-AF, or
+        LP-DIR-T:LP-DIR-AF when it has both kinds of steps, and is written to
+        every measurement and to the specimens table (experiments and, for a
+        specimen without stored fits, method_codes).
+
+    Interpretations:
+        Each stored fit is written to the specimens table in specimen,
+        geographic and (with bedding) tilt-corrected coordinates:
+            C row              DE-BFL    (MAD in dir_mad_free)
+            C row flagged OA   DE-BFL-A  (anchored to the origin; MAD in dir_mad_anc)
+            C row flagged O    DE-BFL-O  (origin included as a point)
+            C row flagged A    DE-BFL    (anchored to the last step; said in the description)
+            G row              DE-BFP    (direction is the pole of the plane)
+        Remasoft offers "Include ORIGIN" and "Anchor to last point" for a line,
+        and both together anchor it to the origin. Files with the flag OA have
+        been checked by re-fitting; the flags O and A alone are read by analogy
+        and have not been seen in a file. The great-circle window can also save
+        the Fisher mean of the selected steps; how the file marks that is not
+        known, and every G row is written as a plane.
+        The file records only the first and last step of a fit, as labels.
+        dir_n_measurements is the number of steps between them, which is wrong
+        if steps inside the range were left out of the fit. A note saved with a
+        fit is written to the description.
+        The susceptibility column (K) is not converted.
+
+    Sample naming convention:
+        [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+            is the single character sample designation.  e.g., TG001a is the
+            first sample from site TG001.    [default]
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+        [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+        [5] site name = sample name
+        [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
+        A site name in the Site field of a file takes precedence.
+    """
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
+    specnum = - int(specnum)
+    samp_con = str(samp_con)
+    version_num = pmag.get_version()
+
+    # the convention is the number before the hyphen ("7-4" is convention 7)
+    if samp_con.startswith("4"):
+        if "-" not in samp_con:
+            print("naming convention option [4] must be in form 4-Z where Z is an integer")
+            return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
+        else:
+            Z = samp_con.split("-")[1]
+            samp_con = "4"
+    elif samp_con.startswith("7"):
+        if "-" not in samp_con:
+            print("option [7] must be in form 7-Z where Z is an integer")
+            return False, "naming convention option [7] must be in form 7-Z where Z is an integer"
+        else:
+            Z = samp_con.split("-")[1]
+            samp_con = "7"
+    else:
+        Z = 1
+
+    # input files
+    if isinstance(mag_file, (list, tuple)):
+        mag_files = [pmag.resolve_file_name(f, input_dir_path) for f in mag_file]
+    elif mag_file:
+        mag_files = [pmag.resolve_file_name(mag_file, input_dir_path)]
+    elif os.path.isdir(input_dir_path):
+        mag_files = sorted(os.path.join(input_dir_path, f) for f in os.listdir(input_dir_path)
+                           if f.lower().endswith('.rs3'))
+    else:
+        mag_files = []
+    if not mag_files:
+        print('no .rs3 files found in', input_dir_path)
+        return False, 'no .rs3 files found'
+
+    # output files
+    meas_file = pmag.resolve_file_name(meas_file, output_dir_path)
+    spec_file = pmag.resolve_file_name(spec_file, output_dir_path)
+    samp_file = pmag.resolve_file_name(samp_file, output_dir_path)
+    site_file = pmag.resolve_file_name(site_file, output_dir_path)
+    loc_file = pmag.resolve_file_name(loc_file, output_dir_path)
+
+    SpecRecs, SampRecs, SiteRecs, MeasRecs = [], [], [], []
+    orientations, site_names = {}, []
+    # read the files; copies of a specimen (same header and measurements) are used once
+    contents = {}
+    for rs3_file in mag_files:
+        try:
+            head, steps, fits = _rs3_read_file(rs3_file)
+        except (IOError, ValueError) as ex:
+            print(ex)
+            return False, str(ex)
+        file_name = os.path.split(rs3_file)[1]
+        specimen = head['Name']
+        if not steps:
+            print('-W- {} has no measurements, skipped'.format(file_name))
+            continue
+        if specimen in contents:
+            other_name, other_head, other_steps, other_fits = contents[specimen]
+            if head != other_head or steps != other_steps:
+                message = '{} and {} both hold specimen {}, with different headers or measurements'.format(
+                    other_name, file_name, specimen)
+                print(message)
+                return False, message
+            print('-W- {} and {} hold the same measurements of specimen {}; the file with more '
+                  'stored fits is used'.format(other_name, file_name, specimen))
+            if len(fits) <= len(other_fits):
+                continue
+        contents[specimen] = (file_name, head, steps, fits)
+
+    for specimen, (file_name, head, steps, fits) in contents.items():
+        if specnum != 0:
+            sample = specimen[:specnum]
+        else:
+            sample = specimen
+        if head.get('Site'):
+            site = head['Site']
+        else:
+            site = pmag.parse_site(sample, samp_con, Z)
+
+        # sample orientation and bedding, checked against the directions in the file
+        azimuth, dip, bed_dip_direction, bed_dip = "", "", "", ""
+        rotation_note = ""
+        if head.get('SDec') and head.get('SInc'):
+            try:
+                P1, P2, P3 = int(head['P1']), int(head['P2']), int(head['P3'])
+            except (KeyError, ValueError):
+                message = '{}: orientation parameters P1-P3 are missing'.format(file_name)
+                print(message)
+                return False, message
+            if P1 not in (12, 3, 6, 9) or P3 not in (12, 3, 6, 9) or P2 not in (0, 90):
+                message = '{}: orientation parameters P1-P3 = {} {} {} are not supported'.format(
+                    file_name, P1, P2, P3)
+                print(message)
+                return False, message
+            # the 12 o'clock line of the frontal side of the core
+            azimuth = (float(head['SDec']) - 30. * P3) % 360.
+            if P2 == 90:
+                dip = float(head['SInc']) - 90.
+            else:
+                dip = -float(head['SInc'])
+            # the specimen X axis (fiducial mark) is at P1 o'clock
+            if P1 == 6:
+                azimuth, dip = (azimuth + 180.) % 360., -dip
+            elif P1 in (3, 9):
+                dec_rotation = 30. * P1
+                rotation_note = ('declination in specimen coordinates rotated by {:.0f} degrees from the '
+                                 'fiducial mark to the 12 o\'clock line of the core (Remasoft P1 = {})').format(
+                                     dec_rotation, P1)
+                print('-W- {}: {}'.format(file_name, rotation_note))
+                for row in steps + fits:
+                    if row['Dsp'] is not None:
+                        row['Dsp'] = (row['Dsp'] + dec_rotation) % 360.
+            oriented = [s for s in steps if s['Dge'] is not None and s['Dsp'] is not None]
+            if oriented:
+                calculated = [pmag.dogeo(s['Dsp'], s['Isp'], azimuth, dip) for s in oriented]
+                stored = [[s['Dge'], s['Ige']] for s in oriented]
+                misfit = np.max(pmag.angle(np.array(calculated), np.array(stored)))
+                if misfit > tolerance:
+                    message = ('{}: geographic directions calculated from the sample orientation differ '
+                               'from those in the file by up to {:.1f} degrees (P1-P4 = {} {} {} {})').format(
+                                   file_name, misfit, head['P1'], head['P2'], head['P3'], head.get('P4', ''))
+                    print(message)
+                    return False, message
+        if head.get('BDec') and head.get('BInc'):
+            try:
+                P4 = int(head['P4'])
+            except (KeyError, ValueError):
+                P4 = None
+            if P4 == 0:
+                bed_dip_direction = float(head['BDec']) % 360.
+            elif P4 == 90:
+                bed_dip_direction = (float(head['BDec']) + 90.) % 360.
+            else:
+                message = '{}: orientation parameter P4 = {} is not supported'.format(
+                    file_name, head.get('P4', ''))
+                print(message)
+                return False, message
+            bed_dip = float(head['BInc'])
+            tilted = [s for s in steps if s['Dtc'] is not None and s['Dge'] is not None]
+            if tilted:
+                calculated = [pmag.dotilt(s['Dge'], s['Ige'], bed_dip_direction, bed_dip) for s in tilted]
+                stored = [[s['Dtc'], s['Itc']] for s in tilted]
+                misfit = np.max(pmag.angle(np.array(calculated), np.array(stored)))
+                if misfit > tolerance:
+                    message = ('{}: tilt-corrected directions calculated from the bedding differ from '
+                               'those in the file by up to {:.1f} degrees (P4 = {})').format(
+                                   file_name, misfit, head['P4'])
+                    print(message)
+                    return False, message
+            else:
+                print('-W- {} gives bedding but no tilt-corrected directions to check it against'.format(
+                    file_name))
+
+        # samples and sites
+        if sample not in orientations:
+            orientations[sample] = (azimuth, dip, bed_dip_direction, bed_dip)
+            SampRec = {'sample': sample, 'site': site, 'citations': 'This study'}
+            if azimuth != "":
+                SampRec['azimuth'] = '%7.1f' % (azimuth)
+                SampRec['dip'] = '%7.1f' % (dip)
+            if bed_dip_direction != "":
+                SampRec['bed_dip_direction'] = '%7.1f' % (bed_dip_direction)
+                SampRec['bed_dip'] = '%7.1f' % (bed_dip)
+            SampRec['method_codes'] = meth_code if meth_code else 'SO-NO'
+            if user:
+                SampRec['analysts'] = user
+            SampRecs.append(SampRec)
+        elif orientations[sample] != (azimuth, dip, bed_dip_direction, bed_dip):
+            print('-W- specimen {} has a different orientation or bedding from an earlier specimen of '
+                  'sample {}; the sample keeps the first'.format(specimen, sample))
+        if site not in site_names:
+            site_names.append(site)
+            SiteRec = {'site': site, 'location': location, 'citations': 'This study'}
+            SiteRec['lat'] = head.get('Latitude') or lat
+            SiteRec['lon'] = head.get('Longitude') or lon
+            if head.get('Height'):
+                SiteRec['height'] = head['Height']
+            notes = ['{}: {}'.format(key, head[key]) for key in ('Rock', 'Age', 'Fm', 'Note') if head.get(key)]
+            if notes:
+                SiteRec['description'] = '; '.join(notes)
+            SiteRecs.append(SiteRec)
+
+        if any(step['K'] for step in steps):
+            print('-W- {}: the susceptibility column (K) is not converted'.format(file_name))
+
+        # measurements: each row keeps the treatment of its own label (an A row at
+        # 0 mT after a heating is an AF step, not an NRM), so the method codes are
+        # set here rather than worked out again by pmag.measurements_methods3
+        rows = []
+        for k, step in enumerate(steps):
+            try:
+                treat = float(step['Step'])
+                float(step['M'])
+                if step['Dsp'] is None or step['Isp'] is None:
+                    raise ValueError
+            except ValueError:
+                message = '{}: step {} {} could not be read'.format(file_name, step['Step'], step['M'])
+                print(message)
+                return False, message
+            MeasRec = {}
+            MeasRec["specimen"] = specimen
+            MeasRec["citations"] = "This study"
+            MeasRec['software_packages'] = version_num
+            MeasRec["treat_temp"] = '%8.3e' % (273)  # room temp in kelvin
+            MeasRec["meas_temp"] = '%8.3e' % (273)  # room temp in kelvin
+            MeasRec["treat_ac_field"] = '0'
+            MeasRec["quality"] = 'g'
+            MeasRec["standard"] = 'u'
+            if step['ID'] == 'N' or (k == 0 and treat == 0):
+                meas_type = "LT-NO"
+            elif step['ID'] == 'T':
+                meas_type = "LT-T-Z"
+                MeasRec["treat_temp"] = '%8.3e' % (treat + 273.)  # temp in kelvin
+            elif step['ID'] == 'A':
+                meas_type = "LT-AF-Z"
+                MeasRec["treat_ac_field"] = '%8.3e' % (treat * 1e-3)  # convert from mT to tesla
+            else:
+                message = '{}: measurement type {} unknown'.format(file_name, step['ID'])
+                print(message)
+                return False, message
+            MeasRec["magn_volume"] = step['M']  # A/m
+            MeasRec["dir_dec"] = '%7.1f' % (step['Dsp'])
+            MeasRec["dir_inc"] = '%7.1f' % (step['Isp'])
+            MeasRec['method_codes'] = meas_type
+            if rotation_note:
+                MeasRec['description'] = rotation_note
+            if instrument:
+                MeasRec['instrument_codes'] = instrument
+            if user:
+                MeasRec['analysts'] = user
+            rows.append(MeasRec)
+        if not noave:
+            rows = _rs3_average_repeats(rows)
+        # the experiment: thermal, alternating field, or both (e.g. one heating
+        # followed by AF steps)
+        types = [row['method_codes'] for row in rows]
+        protocols = [code for meas_type, code in (('LT-T-Z', 'LP-DIR-T'), ('LT-AF-Z', 'LP-DIR-AF'))
+                     if meas_type in types] or ['LP-NO']  # LP-NO: the NRM only
+        experiment = specimen + '_' + '_'.join(protocols)
+        for k, MeasRec in enumerate(rows):
+            MeasRec['method_codes'] = ':'.join([MeasRec['method_codes']] + protocols + (
+                ['DE-VM'] if MeasRec.pop('averaged', False) else []))
+            MeasRec['experiment'] = experiment
+            MeasRec['measurement'] = '{}-{}'.format(experiment, k + 1)
+            MeasRec['treat_step_num'] = str(k + 1)
+            MeasRec['sequence'] = str(len(MeasRecs) + 1)
+            MeasRecs.append(MeasRec)
+
+        # specimens: one record, or one per stored fit and coordinate system
+        if not (interpretations and fits):
+            SpecRec = {'specimen': specimen, 'sample': sample, 'citations': 'This study',
+                       'experiments': experiment, 'method_codes': ':'.join(protocols)}
+            if user:
+                SpecRec['analysts'] = user
+            SpecRecs.append(SpecRec)
+            continue
+        for fit in fits:
+            FitRec = {'specimen': specimen, 'sample': sample, 'citations': 'This study',
+                      'experiments': experiment,
+                      'dir_comp': fit['name'], 'result_quality': 'g', 'software_packages': 'Remasoft'}
+            if user:
+                FitRec['analysts'] = user
+            descriptions = []
+            if fit['ID'] == 'G':
+                fit_code = 'DE-BFP'
+                FitRec['dir_mad_free'] = fit['Prec']
+            elif fit['flag'] == 'OA':
+                fit_code = 'DE-BFL-A'
+                FitRec['dir_mad_anc'] = fit['Prec']
+            elif fit['flag'] == 'O':
+                fit_code = 'DE-BFL-O'
+                FitRec['dir_mad_free'] = fit['Prec']
+            else:
+                fit_code = 'DE-BFL'
+                FitRec['dir_mad_free'] = fit['Prec']
+                if fit['flag'] == 'A':
+                    descriptions.append('line anchored to the last step of the fit')
+            if fit['flag'] and (fit['ID'] == 'G' or fit['flag'] not in ('OA', 'O', 'A')):
+                descriptions.append('Remasoft flag: {}'.format(fit['flag']))
+            if fit['note']:
+                descriptions.append(fit['note'])
+            # limits of the fit, in tesla or kelvin
+            try:
+                number1, value1, unit1 = _rs3_limit(fit['Limit1'])
+                number2, value2, unit2 = _rs3_limit(fit['Limit2'])
+            except ValueError as ex:
+                message = '{}: {}'.format(file_name, ex)
+                print(message)
+                return False, message
+            unit = unit2 or unit1
+            lab_code = {'T': 'LP-DIR-AF', 'K': 'LP-DIR-T', '': ''}[unit]
+            if unit1 and unit2 and unit1 != unit2:
+                descriptions.append('fit from {} to {}'.format(fit['Limit1'], fit['Limit2']))
+                lab_code = 'LP-DIR-T:LP-DIR-AF'
+            elif unit:
+                room = 0. if unit == 'T' else 273.
+                FitRec['meas_step_min'] = '%8.3e' % (room if value1 is None else value1)
+                FitRec['meas_step_max'] = '%8.3e' % (room if value2 is None else value2)
+                FitRec['meas_step_unit'] = unit
+            # number of steps from the first limit to the last
+            first, last = None, None
+            for k, step in enumerate(steps):
+                is_first = (fit['Limit1'] == 'NRM' and k == 0) or (
+                    unit1 and step['ID'] == {'T': 'A', 'K': 'T'}[unit1] and float(step['Step']) == number1)
+                is_last = (fit['Limit2'] == 'NRM' and k == 0) or (
+                    unit2 and step['ID'] == {'T': 'A', 'K': 'T'}[unit2] and float(step['Step']) == number2)
+                if is_first and first is None:
+                    first = k
+                if is_last:
+                    last = k
+            if first is not None and last is not None and last >= first:
+                n_steps = last - first + 1
+                if not noave:
+                    # repeated rows of a step are one averaged measurement
+                    n_steps -= sum(1 for k in range(first + 1, last + 1)
+                                   if (steps[k]['ID'], steps[k]['Step']) == (steps[k - 1]['ID'], steps[k - 1]['Step']))
+                FitRec['dir_n_measurements'] = str(n_steps)
+            else:
+                print('-W- {}: the limits of fit {} ({} to {}) were not found among the steps'.format(
+                    file_name, fit['name'], fit['Limit1'], fit['Limit2']))
+            # one record per coordinate system
+            coordinates = [(-1, 'Dsp', 'Isp', 'DA-DIR')]
+            if azimuth != "":
+                coordinates.append((0, 'Dge', 'Ige', 'DA-DIR-GEO'))
+            if bed_dip_direction != "":
+                coordinates.append((100, 'Dtc', 'Itc', 'DA-DIR-TILT'))
+            for tilt_correction, dec_key, inc_key, coordinate_code in coordinates:
+                if fit[dec_key] is None or fit[inc_key] is None:
+                    continue
+                SpecRec = dict(FitRec)
+                notes = descriptions + ([rotation_note] if rotation_note and tilt_correction == -1 else [])
+                if notes:
+                    SpecRec['description'] = '; '.join(notes)
+                SpecRec['dir_dec'] = '%7.1f' % (fit[dec_key])
+                SpecRec['dir_inc'] = '%7.1f' % (fit[inc_key])
+                SpecRec['dir_tilt_correction'] = str(tilt_correction)
+                SpecRec['method_codes'] = ':'.join(
+                    code for code in (fit_code, lab_code, coordinate_code) if code)
+                SpecRecs.append(SpecRec)
+
+    if not MeasRecs:
+        print('no measurements found in the .rs3 files')
+        return False, 'no measurements found in the .rs3 files'
+
+    LocRec = {'location': location, 'citations': 'This study'}
+    site_lats = [float(rec['lat']) for rec in SiteRecs if str(rec['lat']).strip() != ""]
+    site_lons = [float(rec['lon']) for rec in SiteRecs if str(rec['lon']).strip() != ""]
+    if site_lats and site_lons:
+        LocRec['lat_n'], LocRec['lat_s'] = max(site_lats), min(site_lats)
+        LocRec['lon_e'], LocRec['lon_w'] = max(site_lons), min(site_lons)
+    LocRecs = [LocRec]
+
+    con = cb.Contribution(output_dir_path, read_tables=[])
+
+    con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
+    con.add_magic_table_from_data(dtype='samples', data=SampRecs)
+    con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
+    con.add_magic_table_from_data(dtype='locations', data=LocRecs)
+    con.add_magic_table_from_data(dtype='measurements', data=MeasRecs)
+
+    con.tables['specimens'].write_magic_file(custom_name=spec_file, dir_path=dir_path)
+    con.tables['samples'].write_magic_file(custom_name=samp_file, dir_path=dir_path)
+    con.tables['sites'].write_magic_file(custom_name=site_file, dir_path=dir_path)
+    con.tables['locations'].write_magic_file(custom_name=loc_file, dir_path=dir_path)
+    con.tables['measurements'].write_magic_file(custom_name=meas_file, dir_path=dir_path)
+
+    return True, meas_file
+
+
 ### SIO_magic conversion
 
 def sio(mag_file, dir_path=".", input_dir_path="",
@@ -11423,20 +12099,28 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
             tmp_header_data = {}
             line_number = 0
             continue_reading = True
-            line = fin.readline()  # ignore first line
             lines = fin.readlines()
             fin.close()
+            # skip empty lines at the top of the file, then ignore the first line (the title)
+            while lines and lines[0].strip() == "":
+                lines = lines[1:]
+            lines = lines[1:]
             for line in lines:
 
                 if "END" in line:
                     break
 
-                if line.strip('\n') == "":
-                    break
+                # an empty line, or one of tabs or spaces as exported from a
+                # spreadsheet, is skipped: it must not end the file in the middle
+                # of the data
+                if line.strip() == "":
+                    continue
 
                 this_line = line.strip('\n').split()
 
-                if len(this_line) < 5:
+                # the header line can have empty fields (e.g. 40, two tabs, 0 0 0),
+                # so it is the first line after the title however many fields it has
+                if len(this_line) < 5 and line_number != 0:
                     continue
 
                 # ---------------------------------------------------
@@ -11466,8 +12150,22 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                 # ---------------------------------------------------
                 if line_number == 0:
 
-                    for i in range(len(this_line)):
-                        tmp_header_data[header_codes[i]] = this_line[i]
+                    # the header fields are separated by tabs and can be empty
+                    # (40, two tabs, 0 0 0): split on the tabs so that each value
+                    # stays under its own name
+                    if '\t' in line:
+                        fields = [field.strip() for field in line.rstrip('\r\n').split('\t')]
+                    else:
+                        fields = this_line
+                    for i in range(min(len(fields), len(header_codes))):
+                        tmp_header_data[header_codes[i]] = fields[i]
+                    try:
+                        float(tmp_header_data['labfield'])
+                    except (KeyError, ValueError):
+                        message = "{}: the line after the title should start with the lab field in microtesla, found: {}".format(
+                            files, line.strip())
+                        print(message)
+                        return False, message
 
                     line_number += 1
 
@@ -11479,6 +12177,17 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                     tmp_data = {}
                     for i in range(min(len(this_line), len(body_codes))):
                         tmp_data[body_codes[i]] = this_line[i]
+                    # the step is a ThellierTool treatment code (e.g. 125.00, 125.11);
+                    # a label such as NRM or 125C stops the conversion with a message
+                    try:
+                        for key in ('treatment', 'moment', 'dec', 'inc'):
+                            float(tmp_data[key])
+                    except (KeyError, ValueError):
+                        message = ("{}: data row not understood; the step should be a ThellierTool "
+                                   "treatment code such as 125.00 or 125.11, and the moment, declination "
+                                   "and inclination numbers: {}").format(files, line.strip())
+                        print(message)
+                        return False, message
                     tmp_body.append(tmp_data)
 
                     # ------------
@@ -11486,10 +12195,8 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                     if spec_name_con==1:
                         specimen = tmp_body[0]['specimen_name']
                     else:
-                        if 'TDT' in fname:
-                            specimen=fname.split("/")[-1].strip('.TDT')
-                        elif 'tdt' in fname:
-                            specimen=fname.split("/")[-1].strip('.tdt')
+                        # the file name without its extension
+                        specimen = os.path.splitext(os.path.basename(fname))[0]
                     line_number += 1
 
             if specimen not in list(Data.keys()):
@@ -12496,7 +13203,7 @@ def vftb(vftb_file, dir_path=".", input_dir_path="",
         specimen="", specnum=0, samp_con="5", location="",
         instrument="", syn=False, syntype="",
         units="cgs", user='',lat="",lon="",age="",age_unit="",
-        lith="",classes="",types=""):
+        lith="",classes="",types="", experiment_type=""):
     """
     Convert VFTB format file to MagIC file(s)
 
@@ -12543,8 +13250,20 @@ def vftb(vftb_file, dir_path=".", input_dir_path="",
     syntype : str
        synthetic type, default ""
     units : str
-       units, ['cgs','SI']  default "cgs"
+       units, ['cgs','SI']  default "cgs": the field in Oe ('cgs') or tesla
+       ('SI'); used only when the column names of the file do not give the
+       units (e.g. "field / Oe", "temp / centigrade"). Temperatures are in
+       degrees C unless the column names say kelvin.
     user : user name
+    experiment_type : str
+       kind of curve in the file, one of
+           'thermomagnetic' : induced magnetization against temperature (LP-IMT)
+           'irm' : IRM acquisition (LP-IRM)
+           'backfield' : DC demagnetization of an IRM (LP-IRM-DCD)
+           'hysteresis' : hysteresis loop (LP-HYS)
+       default "" takes it from the file extension as written by the VFTB
+       software (.rmp, .irm, .coe, .hys) and is 'thermomagnetic' for any other
+       extension
     required metadata for MagIC contributions:
         age, age_unit, lat,lon,lithologies,geologic_classes,geologic_types 
         see https://www2.earthref.org/MagIC/data-models/3.0 
@@ -12582,7 +13301,7 @@ def vftb(vftb_file, dir_path=".", input_dir_path="",
     specnum = - int(specnum)
     if not specimen:
         # grab the specimen name from the input file name
-        specimen = vftb_file.split('.')[0]
+        specimen = os.path.basename(vftb_file).split('.')[0]
     if meas_outfile=="":
         meas_outfile = specimen + '.magic'
     if spec_outfile=="":
@@ -12620,41 +13339,57 @@ def vftb(vftb_file, dir_path=".", input_dir_path="",
         Samps, file_type = pmag.magic_read(samp_infile)
     if spec_infile:
         Specs, file_type = pmag.magic_read(spec_infile)
-    if vftb_file:
-        vftb = pmag.resolve_file_name(vftb_file, input_dir_path)
-        Data = pmag.open_file(vftb_file)
-        if not Data:
-            print("you must provide a valid vftb_file")
-            return False, "you must provide a valid vftb_file"
     if not vftb_file:
         print(__doc__)
         print("vftb_file field is required option")
         return False, "vftb_file field is required option"
+    vftb = pmag.resolve_file_name(vftb_file, input_dir_path)
+    if not os.path.isfile(vftb):
+        print("-W- You are trying to open a file: {} that does not exist".format(vftb))
+        print("you must provide a valid vftb_file")
+        return False, "you must provide a valid vftb_file"
+    # the kind of curve, from the extension the VFTB software gives the file
+    experiment_types = {'thermomagnetic': 'LP-IMT', 'irm': 'LP-IRM',
+                        'backfield': 'LP-IRM-DCD', 'hysteresis': 'LP-HYS'}
+    if not experiment_type:
+        extension = os.path.splitext(vftb)[1].lower()
+        experiment_type = {'.rmp': 'thermomagnetic', '.irm': 'irm', '.coe': 'backfield',
+                           '.hys': 'hysteresis'}.get(extension, 'thermomagnetic')
+    if experiment_type not in experiment_types:
+        message = "experiment_type must be one of: " + ", ".join(experiment_types)
+        print(message)
+        return False, message
+    meth = experiment_types[experiment_type]
 # read in file:
-    df=pd.read_csv(vftb,header=None)
+    with open(vftb, 'r', encoding='latin-1') as f:
+        lines = [line.rstrip('\r\n') for line in f]
     mass=0
-    info=df.iloc[0].astype('str').str.split(':',expand=True)
-    if 'mg' in info.values[0][-1]:
-        mass=float(info.values[0][-1].split()[0])
-    df=df[df[0].str.contains('name')==False]    
-    df=df[df[0].str.contains('Set')==False]
-    df=df[df[0].str.contains('field')==False]
-    df.dropna(subset=[0],inplace=True)
-# write out cleaned file:
-    df.to_csv(vftb_file+'.tmp',index=None,header=None)
-    df=pd.read_csv(vftb_file+'.tmp',sep='\t',header=None)
-    os.remove(vftb_file+'.tmp')
+    if lines and 'mg' in lines[0].split(':')[-1]:
+        mass=float(lines[0].split(':')[-1].split()[0])
+    # the units of field and temperature, from the column names when they give
+    # them (e.g. "field / Oe", "temp / centigrade"), otherwise from units
+    field_factor = 1e-4 if units != 'SI' else 1.  # Oe or tesla to tesla
+    temperature_offset = 273.  # degrees C to kelvin
+    column_names = [line for line in lines if 'field' in line and '/' in line]
+    if column_names:
+        columns = [name.split('/', 1)[-1].strip() for name in column_names[0].split('\t')]
+        field_unit = columns[0] if columns else ''
+        temperature_unit = columns[2].lower() if len(columns) > 2 else ''
+        if field_unit in ('Oe', 'mT', 'T'):
+            field_factor = {'Oe': 1e-4, 'mT': 1e-3, 'T': 1.}[field_unit]
+        if temperature_unit in ('k', 'kelvin'):
+            temperature_offset = 0.
+    # drop the header lines (name and weight, set number, column names) and empty lines
+    lines = [line for line in lines if line.strip() and 'name' not in line
+             and 'Set' not in line and 'field' not in line]
+    df=pd.read_csv(io.StringIO('\n'.join(lines)),sep='\t',header=None)
     df.columns=['B','M','T','t','std','slope']
     meas_df=pd.DataFrame(columns=['specimen','quality','method_codes','citations'])
-    if not specimen:
-        specimen=vftb_file.split('.')[0]
-    meas_df['magn_mass']=df['M'].values # convert field to tesla
-    if units=='SI':
-        meas_df['treat_dc_field']=df['B'] # convert field to tesla
-        meas_df['treat_temp']=df['T'].values # convert temps to Kelvin
-    else:
-        meas_df['treat_dc_field']=df['B'].values*1e-4 # convert field from Oe to tesla
-        meas_df['treat_temp']=df['T'].values+273 # convert temps to Kelvin
+    meas_df['magn_mass']=df['M'].values # emu/g, numerically equal to Am^2/kg
+    # field in tesla, rounded to remove the binary residue of the conversion
+    # (-55.2 Oe is -0.00552 T, not -0.005520000000000001)
+    field=np.round(df['B'].values*field_factor, 10)
+    temperature=np.round(df['T'].values+temperature_offset, 10) # temperature in kelvin
     #if mass:
     #    meas_df['magn_moment']=meas_df['magn_mass']*mass
     if user:
@@ -12662,19 +13397,36 @@ def vftb(vftb_file, dir_path=".", input_dir_path="",
     if instrument:
         meas_df['instrument_codes']=instrument
     meas_df['citations']='This study'
-    meas_df['method_codes']='LP-IMT'# induced magnetization as a function of temperature
-    meas_df['experiment'] = specimen + '_LP-IMT'
+    meas_df['method_codes']=meth
+    meas_df['experiment'] = specimen + '_' + meth
     meas_df['specimen']=specimen
-    Ts=meas_df['treat_temp'].values
-    maxT=Ts.max()
-    Tmax_indices=np.where(Ts==maxT)
-    meas_df.at[0:Tmax_indices[0][0],'method_codes']='LP-IMT:LP-MW'
-    meas_df.at[Tmax_indices[0][-1]:len(meas_df),'method_codes']='LP-IMT:LP-MC'
+    if experiment_type == 'thermomagnetic':
+        # induced magnetization as a function of temperature
+        meas_df['treat_dc_field']=field
+        meas_df['treat_temp']=temperature
+        Ts=meas_df['treat_temp'].values
+        maxT=Ts.max()
+        Tmax_indices=np.where(Ts==maxT)
+        meas_df.loc[0:Tmax_indices[0][0],'method_codes']='LP-IMT:LP-MW'
+        meas_df.loc[Tmax_indices[0][-1]:len(meas_df),'method_codes']='LP-IMT:LP-MC'
+        meas_df['description'] = "Variable field temperature measurements"
+    elif experiment_type == 'hysteresis':
+        # magnetization measured in the field
+        meas_df['meas_field_dc']=field
+        meas_df['treat_dc_field']=0
+        meas_df['meas_temp']=temperature
+        meas_df['description'] = "Hysteresis loop"
+    else:
+        # remanence measured after the field was applied: IRM acquisition, or
+        # DC demagnetization (back field) of a saturation IRM
+        meas_df['treat_dc_field']=field
+        meas_df['meas_field_dc']=0
+        meas_df['meas_temp']=temperature
+        meas_df['description'] = "IRM acquisition" if experiment_type == 'irm' else "Back-field demagnetization of an IRM"
     meas_df['standard'] = 'u'
     meas_df['treat_step_num'] = np.round(range(1,len(meas_df)+1),0)
-    #meas_df['measurement'] = range(1,len(meas_df)+1) 
+    meas_df['measurement'] = [specimen + '_' + meth + '-' + str(k) for k in range(1, len(meas_df) + 1)]
     meas_df['software_packages'] = version_num
-    meas_df['description'] = "Variable field temperature measurements"
     meas_df['quality']='g'
     MeasRecs=meas_df.to_dict('records')
     SpecRecs, SampRecs, SiteRecs, LocRecs = [], [], [], []
@@ -12706,7 +13458,7 @@ def vftb(vftb_file, dir_path=".", input_dir_path="",
             if site != '' and site not in [x['site'] if 'site' in list(x.keys()) else '' for x in SiteRecs]:
                 SiteRec['location'] = location
                 SiteRec['site'] = site
-                SiteRec['method_codes']='LP-IMT'
+                SiteRec['method_codes']=meth
                 SiteRec['citations']='This Study'
                 SiteRec['lat']=lat
                 SiteRec['lon']=lon
@@ -12721,14 +13473,16 @@ def vftb(vftb_file, dir_path=".", input_dir_path="",
             if sample != '' and sample not in [x['sample'] if 'sample' in list(x.keys()) else '' for x in SampRecs]:
                 SampRec['site'] = site
                 SampRec['sample'] = sample
-                SampRec['method_codes'] = 'LP-IMT'
+                SampRec['method_codes'] = meth
                 SampRec['citations'] = 'This study'
                 SampRecs.append(SampRec)
             if specimen != '' and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else '' for x in SpecRecs]:
                 SpecRec["specimen"] = specimen
                 SpecRec['sample'] = sample
-                SpecRec['method_codes'] = 'LP-IMT'
+                SpecRec['method_codes'] = meth
                 SpecRec['citations'] = 'This study'
+                if mass:
+                    SpecRec['weight'] = '%8.3e' % (mass * 1e-6)  # mg to kg
                 SpecRecs.append(SpecRec)
        if syn:
             SampRec["material_type"] = syntype
@@ -12743,13 +13497,13 @@ def vftb(vftb_file, dir_path=".", input_dir_path="",
             if site != '' and site not in [x['site'] if 'site' in list(x.keys()) else '' for x in SiteRecs]:
                 SiteRec['location'] = location
                 SiteRec['site'] = site
-                SiteRec['method_codes'] = 'LP-IMT'
+                SiteRec['method_codes'] = meth
                 SiteRec['citations'] = 'This Study'
                 SiteRecs.append(SiteRec)
             if sample != '' and sample not in [x['sample'] if 'sample' in list(x.keys()) else '' for x in SampRecs]:
                 SampRec['site'] = site
                 SampRec['sample'] = sample
-                SampRec['method_codes'] = 'LP-IMT'
+                SampRec['method_codes'] = meth
                 SampRec['citations'] = 'This Study'
                 SampRecs.append(SampRec)
             if specimen != '' and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else '' for x in SpecRecs]:
@@ -12757,6 +13511,7 @@ def vftb(vftb_file, dir_path=".", input_dir_path="",
                 SpecRec['sample'] = sample
             MeasRecs.append(MeasRec)
 #
+    meas_outfile = pmag.resolve_file_name(meas_outfile, output_dir_path)
     pmag.magic_write(meas_outfile,meas_df,file_type='measurements',dataframe=True)
     con = cb.Contribution(output_dir_path, read_tables=[])
     # create MagIC tables

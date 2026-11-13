@@ -1,9 +1,9 @@
-import codecs
 import math
 import os
 import sys
 import time
 import importlib
+import warnings
 
 import numpy as np
 from numpy import linalg
@@ -1676,7 +1676,7 @@ def get_curve(araiblock,**kwargs):
     y_Arai=first_Z[3]/first_Z[3][0]
     krv_data=lib_k.AraiCurvature(x=x_Arai,y=y_Arai)
     pars['int_k']=krv_data[0]
-    pars['int_k_sse']=krv_data[1]
+    pars['int_k_sse']=krv_data[3]
     # segment
     if 'start' in kwargs.keys() and 'end' in kwargs.keys():
         start=kwargs['start']
@@ -1685,7 +1685,7 @@ def get_curve(araiblock,**kwargs):
         y_Arai_segment = y_Arai[start:end + 1]  # chosen segent in the Arai plot
         krv_data=lib_k.AraiCurvature(x=x_Arai_segment,y=y_Arai_segment)
         pars['int_k_prime']=krv_data[0]
-        pars['int_k_prime_sse']=krv_data[1]
+        pars['int_k_prime_sse']=krv_data[3]
     return pars
 
 def dovds(data):
@@ -2077,7 +2077,7 @@ def open_file(infile, verbose=True):
         all lines in the file
     """
     try:
-        with codecs.open(infile, "r", "utf-8") as f:
+        with open(infile, "r", encoding="utf-8") as f:
             lines = list(f.readlines())
     # file might not exist
     except FileNotFoundError:
@@ -2088,7 +2088,7 @@ def open_file(infile, verbose=True):
     # encoding might be wrong
     except UnicodeDecodeError:
         try:
-            with codecs.open(infile, "r", "Latin-1") as f:
+            with open(infile, "r", encoding="Latin-1") as f:
                 print(
                     '-I- Using less strict decoding for {}, output may have formatting errors'.format(infile))
                 lines = list(f.readlines())
@@ -2099,9 +2099,10 @@ def open_file(infile, verbose=True):
     except Exception as ex:
         print("-W- ", type(ex), ex)
         return []
-    # don't leave a blank line at the end
+    # don't leave a blank line at the end; an empty file (e.g. one left by
+    # an interrupted write) gives an empty list, not an IndexError
     i = 0
-    while i < 10:
+    while i < 10 and lines:
         if not len(lines[-1].strip("\n").strip("\t")):
             lines = lines[:-1]
             i += 1
@@ -2784,19 +2785,32 @@ def angle(D1, D2):
     ----------
     D1 : Direction 1 as an array of [declination, inclination] pair or pairs
     D2 : Direction 2 as an array of [declination, inclination] pair or pairs
+        Any third column (intensity) is ignored. D1 and D2 must have the same
+        number of directions, or one of them must be a single direction that
+        is compared against every direction in the other.
 
     Returns
     -------
-    angle : single-element array 
-        angle between the input directions
+    angles : array
+        angle in degrees between each pair of directions, with one element
+        per pair
+
+    Raises
+    ------
+    ValueError
+        if D1 and D2 contain different numbers of directions and neither is
+        a single direction
 
     Examples
     --------
     >>> pmag.angle([350.0,10.0],[320.0,20.0])
     array([ 30.59060998])
-    
+
     >>> pmag.angle([[350.0,10.0],[320.0,20.0]],[[345,13],[340,14]])
     array([ 5.744522410794302, 20.026413431433475])
+
+    >>> pmag.angle([[350.0,10.0],[320.0,20.0]],[345,13])
+    array([ 5.744522410794302, 24.938515705411056])
     """
     D1 = np.array(D1)
     if len(D1.shape) > 1:
@@ -2810,13 +2824,13 @@ def angle(D1, D2):
         D2 = D2[:2]
     X1 = dir2cart(D1)  # convert to cartesian from polar
     X2 = dir2cart(D2)
-    angles = []  # set up a list for angles
-    for k in range(X1.shape[0]):  # single vector
-        angle = np.arccos(np.dot(X1[k], X2[k])) * \
-            180. / np.pi  # take the dot product
-        angle = angle % 360.
-        angles.append(angle)
-    return np.array(angles)
+    if X1.shape[0] != X2.shape[0] and 1 not in (X1.shape[0], X2.shape[0]):
+        raise ValueError("D1 and D2 must contain the same number of directions "
+                         "or one of them must be a single direction, got "
+                         f"{X1.shape[0]} and {X2.shape[0]}")
+    # dot products of unit vectors, clipped because roundoff can push them past +/-1
+    cos_angles = np.clip(np.sum(X1 * X2, axis=1), -1., 1.)
+    return np.degrees(np.arccos(cos_angles))
 
 
 def cart2dir(cart):
@@ -2954,34 +2968,6 @@ def Tmatrix(X):
             for l in range(3):
                 T[k][l] += row[k] * row[l]
     return T
-
-
-def vspec(data):
-    """
-    Takes the vector mean of replicate measurements at a given step. Used in zeq_magic2.py.
-    """
-    vdata, Dirdata, step_meth = [], [], []
-    tr0 = data[0][0]  # set beginning treatment
-    data.append("Stop")
-    k, R = 1, 0
-    for i in range(k, len(data)):
-        Dirdata = []
-        if data[i][0] != tr0:
-            if i == k:  # sample is unique
-                vdata.append(data[i - 1])
-                step_meth.append(" ")
-            else:  # sample is not unique
-                for l in range(k - 1, i):
-                    Dirdata.append([data[l][1], data[l][2], data[l][3]])
-                dir, R = vector_mean(Dirdata)
-                vdata.append([data[i - 1][0], dir[0], dir[1], R / (i - k + 1), '1', 'g'])
-                step_meth.append("DE-VM")
-            tr0 = data[i][0]
-            k = i + 1
-            if tr0 == "stop":
-                break
-    del data[-1]
-    return step_meth, vdata
 
 
 def dir2cart(d):
@@ -3577,6 +3563,22 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
     xi, yi, diffcum = [], [], 0
     xiz, xzi, yiz, yzi = [], [], [], []
     Nptrm, dmax = 0, -1e-22
+    # A check after heating above the fit range cannot assess that range.
+    # Retain the heating history across consecutive lower-temperature checks.
+    ptrm_starts, zptrm_starts = {}, {}
+    if len(ptrm_check) or len(zptrm_check):
+        peak_temp = float('-inf')
+        for rec in datablock:
+            temperature = rec.get(temp_key)
+            if temperature is None or temperature == "":
+                continue
+            temperature = float(temperature)
+            methods = [m.strip() for m in rec.get(meth_key, "").split(":")]
+            if "LT-PTRM-I" in methods:
+                ptrm_starts.setdefault(temperature, peak_temp)
+            if "LT-PTRM-Z" in methods:
+                zptrm_starts.setdefault(temperature, peak_temp)
+            peak_temp = max(peak_temp, temperature)
 # check if even zero and infield steps
     if len(first_Z) > len(first_I):
         maxe = len(first_I) - 1
@@ -3690,6 +3692,10 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
     pars[z_key] = ZigZag
     pars[meth_key] = methcode
 # do drats
+    # A repeat check needs an original in-field step at the same temperature.
+    infield_steps = {rec[0] for rec in first_I}
+    ptrm_check = [rec for rec in ptrm_check if rec[0] in infield_steps]
+    zptrm_check = [rec for rec in zptrm_check if rec[0] in infield_steps]
     if len(ptrm_check) != 0:
         diffcum, drat_max = 0, 0
         for prec in ptrm_check:
@@ -3698,7 +3704,9 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
             zend = end
             while zend > len(zijdblock) - 1:
                 zend = zend - 2  # don't count alteration that happens after this step
-            if step < zijdblock[zend][0]:
+            # Preprocessed callers may not supply raw check records.
+            if (step < zijdblock[zend][0]
+                    and ptrm_starts.get(step, step) <= zijdblock[zend][0]):
                 Nptrm += 1
                 for irec in first_I:
                     if irec[0] == step:
@@ -3716,7 +3724,8 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
             zend = end
             while zend > len(zijdblock) - 1:
                 zend = zend - 1
-            if step < zijdblock[zend][0]:
+            if (step < zijdblock[zend][0]
+                    and zptrm_starts.get(step, step) <= zijdblock[zend][0]):
                 Nptrm += 1
                 for irec in first_I:
                     if irec[0] == step:
@@ -4557,7 +4566,8 @@ def dosundec(sundata):
     ----------
     sundata : dictionary with these keys:
         date: time string with the format 'yyyy:mm:dd:hr:min'
-        delta_u: time to SUBTRACT from local time for Universal time
+        delta_u: hours to SUBTRACT from local time for Universal time
+            (fractional offsets such as 5.5 are allowed)
         lat: latitude of location (negative for south)
         lon: longitude of location (negative for west)
         shadow_angle: shadow angle of the desired direction with respect to the sun.
@@ -4566,13 +4576,24 @@ def dosundec(sundata):
     -------
     sunaz : the declination of the desired direction with respect to true north
     
+    Notes
+    -----
+    The azimuth of the sun is calculated from its local hour angle and
+    declination with atan2, which gives the correct quadrant at any time of
+    day. The azimuth of the shadow (the sun's azimuth + 180) plus the shadow
+    angle is returned.
+    
+    A UserWarning is issued if the sun is more than 1 degree below the
+    horizon at the given time, when it cannot cast a shadow. This usually
+    means that the time, the date or delta_u is wrong. The azimuth is still
+    returned.
+
     Examples
     --------
     >>> sundata={'date':'1994:05:23:16:9','delta_u':3,'lat':35,'lon':33,'shadow_angle':68}
     >>> pmag.dosundec(sundata)
-    154.24420046668928
+    154.13766831762484
     """
-    iday = 0
     timedate = sundata["date"]
     timedate = timedate.split(":")
     year = int(timedate[0])
@@ -4580,7 +4601,7 @@ def dosundec(sundata):
     day = int(timedate[2])
     hours = float(timedate[3])
     min = float(timedate[4])
-    du = int(sundata["delta_u"])
+    du = float(sundata["delta_u"])
     hrs = hours - du
     if hrs > 24:
         day += 1
@@ -4591,28 +4612,32 @@ def dosundec(sundata):
     julian_day = julian(mon, day, year)
     utd = (hrs + (min / 60)) / 24
     greenwich_hour_angle, delta = gha(julian_day, utd)
-    H = greenwich_hour_angle + float(sundata["lon"])
-    if H > 360:
-        H = H - 360
-    lat = float(sundata["lat"])
-    if H > 90 and H < 270:
-        lat = -lat
-# now do spherical trig to get azimuth to sun
-    lat = np.radians(lat)
+    # local hour angle of the sun: zero at local apparent noon, increasing
+    # westward through the afternoon
+    H = np.radians(greenwich_hour_angle + float(sundata["lon"]))
+    lat = np.radians(float(sundata["lat"]))
     delta = np.radians(delta)
-    H = np.radians(H)
-    ctheta = np.sin(lat) * np.sin(delta) + np.cos(lat) * \
-        np.cos(delta) * np.cos(H)
-    theta = np.arccos(ctheta)
-    beta = np.cos(delta) * np.sin(H) / np.sin(theta)
-#
-#       check which beta
-#
-    beta = np.degrees(np.arcsin(beta))
-    if delta < lat:
-        beta = 180 - beta
-    sunaz = 180 - beta
-    sunaz = (sunaz + float(sundata["shadow_angle"])) % 360.  # mod 360
+    # a shadow is impossible once the center of the sun is more than about
+    # 0.83 degrees (refraction + semidiameter) below the geometric horizon
+    sun_altitude = np.degrees(np.arcsin(np.sin(lat) * np.sin(delta) +
+                                        np.cos(lat) * np.cos(delta) * np.cos(H)))
+    if sun_altitude < -1:
+        warnings.warn('the sun is {:.1f} degrees below the horizon at {} (local time, '
+                      'delta_u = {}), so no sun compass reading is possible; check the '
+                      'time, date and delta_u'.format(-sun_altitude, sundata["date"],
+                                                      sundata["delta_u"]),
+                      UserWarning, stacklevel=2)
+# now do spherical trig to get azimuth to sun (clockwise from true north).
+# atan2 resolves the quadrant, including when the sun is on the poleward side of
+# the east-west line in the early morning and late afternoon. The previous
+# arcsin solution chose the quadrant by comparing delta with lat, which is only
+# correct near local noon.
+    sun_azimuth = np.degrees(np.arctan2(-np.sin(H) * np.cos(delta),
+                                        np.cos(lat) * np.sin(delta) -
+                                        np.sin(lat) * np.cos(delta) * np.cos(H)))
+    # the shadow points away from the sun
+    shadow_azimuth = sun_azimuth + 180.
+    sunaz = (shadow_azimuth + float(sundata["shadow_angle"])) % 360.  # mod 360
     return sunaz
 
 
@@ -4622,25 +4647,27 @@ def gha(julian_day, f):
     
     Parameters
     ----------
-    julian_day : int, julian day
-    f : int 
+    julian_day : int, julian day number of the date (as returned by julian,
+        which is the julian day at noon)
+    f : float
         fraction of the day in Universal Time, (hrs + (min/60))/24
     
     Returns
     -------
-    H: int, hour
-    delta: int, angle
+    H: float, Greenwich hour angle of the sun in degrees
+    delta: float, declination of the sun in degrees
     
     Examples
     --------
     >>> julianday = pmag.julian(10,20,2000)
-    >>> pmag.gha(julianday, 33)
-    (183.440612472039, -20.255315389871825)
-    >>> pmag.gha(2451838, 33)
-    (183.440612472039, -20.255315389871825)
+    >>> pmag.gha(julianday, 0.5)
+    (3.8138097463153713, -10.54983694801999)
     """
     rad = np.pi/180.
-    d = julian_day - 2451545.0 + f
+    # days since J2000.0 (2000-01-01 12:00 UT). julian_day is the julian day at
+    # noon, so the julian date at 0 h UT, from which f is counted, is
+    # julian_day - 0.5
+    d = julian_day - 0.5 + f - 2451545.0
     L = 280.460 + 0.9856474 * d
     g = 357.528 + 0.9856003 * d
     L = L % 360.
@@ -6401,8 +6428,7 @@ def dobingham(di_block):
 
 def scoreit(pars, PmagSpecRec, accept, text, verbose):
     """
-    This function produces a grade for a given set of data. Used in thellier_magic2.py and
-    microwave_magic.py.
+    This function produces a grade for a given set of data. Used in microwave_magic.py.
     """
     s = PmagSpecRec["er_specimen_name"]
     PmagSpecRec["measurement_step_min"] = '%8.3e' % (
@@ -7618,29 +7644,11 @@ def adjust_ages(AgesIn):
     return AgesOut, age_unit
 
 
-def Dir_anis_corr(InDir, AniSpec):
-    """
-    This function takes the 6 element 's' vector and the Dec,Inc 'InDir' data and performs a
-    simple anisotropy correction, returning corrected Dec, Inc. Used in thellier_magic2.py. 
-    """
-    Dir = np.zeros((3), 'f')
-    Dir[0] = InDir[0]
-    Dir[1] = InDir[1]
-    Dir[2] = 1.
-    chi, chi_inv = check_F(AniSpec)
-    if chi[0][0] == 1.:
-        return Dir  # isotropic
-    X = dir2cart(Dir)
-    M = np.array(X)
-    H = np.dot(M, chi_inv)
-    return cart2dir(H)
-
-
 def doaniscorr(PmagSpecRec, AniSpec):
     """
     This function takes the 6 element 's' vector and the Dec,Inc, Int 'Dir' data,
     performs simple anisotropy correction, and returns corrected Dec, Inc, Int. This
-    is used in thellier_magic2.py. 
+    is used in thellier_magic_redo.py (deprecated). 
     """
     AniSpecRec = {}
     for key in list(PmagSpecRec.keys()):
@@ -9595,7 +9603,9 @@ def sortarai(datablock, s, Zdiff, **kwargs):
     GammaChecks = []  # comparison of pTRM direction acquired and lab field
     rec = datablock[0]
     for key in Mkeys:
-        if key in list(rec.keys()) and rec[key] != "":
+        # the first magnitude column that holds a value: a table of several
+        # experiments can have a magnitude column that is empty for this specimen
+        if key in list(rec.keys()) and not pd.isnull(rec[key]) and str(rec[key]).strip() != "":
             momkey = key
             break
 # first find all the steps
@@ -14243,8 +14253,11 @@ def form_Ghat(X,Mhat):
 
 def form_Q(a,b):
     """
-    Creates the rotation matrix Q so that Qb = a 
+    Creates the rotation matrix Q so that Qb = a
     (according to equations (9) and (10)Heslop et al., 2023)
+
+    If a and b are parallel, Q is the identity. If they are antiparallel, the
+    rotation is not unique and Q is a half turn about one axis perpendicular to a.
 
     Parameters:
         a (ndarray): Destination direction (unit vector).
@@ -14252,6 +14265,9 @@ def form_Q(a,b):
 
     Returns:
         ndarray: Rotation matrix Q.
+
+    Raises:
+        ValueError: If a or b is a zero vector.
 
     """
 
@@ -14263,10 +14279,26 @@ def form_Q(a,b):
     a = np.asarray(a, dtype=float).reshape(3,1)
     b = np.asarray(b, dtype=float).reshape(3,1)
 
-    c = b - a @ (a.T @ b)
+    n = np.cross(a[:, 0], b[:, 0])
+    cos_ab = (a.T @ b).item()
+    if not np.any(n):
+        if cos_ab > 0:
+            return np.eye(3)
+        if cos_ab == 0:
+            # a x b and a.b both vanish only when a or b is a zero vector
+            raise ValueError("form_Q requires nonzero direction vectors")
+        # A half turn may use any axis perpendicular to the antipodal pair.
+        axis = np.cross(a[:, 0], np.eye(3)[np.argmin(np.abs(a))])
+        axis /= np.linalg.norm(axis)
+        return 2 * np.outer(axis, axis) - np.eye(3)
+
+    # (a x b) x a is the part of b perpendicular to a. Unlike b - a(a.b), it stays
+    # perpendicular to a to working precision when b is nearly parallel or antiparallel to a.
+    c = np.cross(n, a[:, 0]).reshape(3,1)
     c /= np.linalg.norm(c)
 
-    alpha = np.arccos(a.T @ b)
+    # arctan2 is accurate near 0 and 180 degrees, where arccos of a rounded dot product is not
+    alpha = np.arctan2(np.linalg.norm(n), cos_ab)
     A = a @ c.T - c @ a.T
 
     Q = np.eye(3)+np.multiply(np.sin(alpha),A)+np.multiply(np.cos(alpha)-1, a @ a.T + c @ c.T)

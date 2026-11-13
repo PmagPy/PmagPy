@@ -7,7 +7,6 @@ try:
 except ImportError:
     requests = None
 import pandas as pd
-from pmagpy import find_pmag_dir
 from pmag_env import set_env
 
 DM = []
@@ -21,7 +20,14 @@ class DataModel():
     self.crit_map is a DataFrame with all of the columns validations.
     """
 
-    def __init__(self, offline=False):
+    def __init__(self, offline=True):
+        """
+        offline : bool, default True
+            use the data model cached in pmagpy/data_model (refreshed with
+            magic_validation.update_cache()); False downloads it from EarthRef
+            and uses the cached copy if that fails. Downloading would slow the
+            start of every program.
+        """
         global DM, CRIT_MAP
         self.offline = offline
         if not len(DM):
@@ -35,14 +41,14 @@ class DataModel():
 
     def get_data_model(self):
         """
-        Try to download the data model from Earthref.
-        If that fails, grab the cached data model.
+        The cached data model, or with offline=False the one from EarthRef
+        if it can be downloaded.
         """
         if len(DM):
             self.dm = DM
             self.crit_map = CRIT_MAP
             return
-        if not set_env.OFFLINE:
+        if not self.offline and not set_env.OFFLINE:
             dm = self.get_dm_online()
             if dm:
                 print('-I- Using online data model')
@@ -110,18 +116,9 @@ class DataModel():
         ----------
         data_model : dictionary of DataFrames
         crit_map : DataFrame
+            as from the downloaded data model (parse)
         """
-        data_model = {}
-        levels = ['specimens', 'samples', 'sites', 'locations',
-                  'ages', 'measurements', 'criteria', 'contribution',
-                  'images']
-        criteria_map = pd.DataFrame(full_df['criteria_map'])
-        for level in levels:
-            df = pd.DataFrame(full_df['tables'][level]['columns'])
-            data_model[level] = df.transpose()
-        # replace np.nan with None
-        data_model[level] = data_model[level].where((pd.notnull(data_model[level])), None)
-        return data_model, criteria_map
+        return self.parse(full_df['tables'].dropna().to_dict(), full_df['criteria_map'].dropna().to_dict())
 
 
     def parse(self, data_model, crit):
@@ -190,20 +187,9 @@ class DataModel():
         model_file : str
             data model json file location
         """
-        pmag_dir = find_pmag_dir.get_pmag_dir()
-        if pmag_dir is None:
-            pmag_dir = '.'
-        model_file = os.path.join(pmag_dir, 'pmagpy',
-                                  'data_model', 'data_model.json')
-        # for py2app:
-        if not os.path.isfile(model_file):
-            model_file = os.path.join(pmag_dir, 'data_model',
-                                      'data_model.json')
-        if not os.path.isfile(model_file):
-            model_file = os.path.join(os.path.split(os.path.dirname(__file__))[0],'pmagpy', 'data_model','data_model.json')
-        if not os.path.isfile(model_file):
-            model_file = os.path.join(os.path.split(os.path.dirname(__file__))[0], 'data_model','data_model.json')
-        return model_file
+        # the copy beside this module, which magic_validation also reads
+        from pmagpy import magic_validation
+        return os.path.join(magic_validation.cache_dir(), 'data_model.json')
 
 
     def cache_data_model(self, raw):
