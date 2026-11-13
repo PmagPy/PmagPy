@@ -48,7 +48,7 @@ def main():
         print(main.__doc__)
         sys.exit()
     dir_path = pmag.get_named_arg("-WD", ".")
-    data_model = int(float(pmag.get_named_arg("-DM", 3)))
+    data_model = float(pmag.get_named_arg("-DM", 3))
     if data_model != 3:
         raise SystemExit(
             "-E- lnp_magic supports MagIC Data Model 3 only. "

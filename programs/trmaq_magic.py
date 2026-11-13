@@ -38,7 +38,7 @@ def main():
     if '-h' in sys.argv:
         print(main.__doc__)
         sys.exit()
-    data_model_num = int(float(pmag.get_named_arg("-DM", 3)))
+    data_model_num = float(pmag.get_named_arg("-DM", 3))
     if data_model_num != 3:
         raise SystemExit(
             "-E- trmaq_magic supports MagIC Data Model 3 only. "
