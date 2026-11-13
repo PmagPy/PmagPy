@@ -15,6 +15,9 @@ PROGRAMS = [
     ("strip_magic", "-DM"),
     ("trmaq_magic", "-DM"),
     ("scalc_magic", "-dm"),
+    ("magic_select", "-dm"),
+    ("combine_magic", "-dm"),
+    ("download_magic", "-DM"),
     ("azdip_magic", "-DM"),
     ("orientation_magic", "-DM"),
     ("core_depthplot", "-DM"),
@@ -38,7 +41,7 @@ def test_dm2_is_rejected_before_io(program, model_option, tmp_path, monkeypatch)
     assert not list(tmp_path.iterdir())
 
 
-@pytest.mark.parametrize(("program", "model_option"), PROGRAMS[-4:])
+@pytest.mark.parametrize(("program", "model_option"), PROGRAMS[-7:])
 def test_dm25_is_rejected_before_io(program, model_option, tmp_path, monkeypatch):
     if program == "core_depthplot":
         pytest.importorskip("wx")
@@ -50,3 +53,15 @@ def test_dm25_is_rejected_before_io(program, model_option, tmp_path, monkeypatch
         module.main()
 
     assert not list(tmp_path.iterdir())
+
+
+@pytest.mark.parametrize(("program", "model_option"), [
+    ("combine_magic", "-dm"), ("download_magic", "-DM"),
+])
+def test_interactive_dm2_is_rejected_before_prompt(program, model_option, monkeypatch):
+    module = importlib.import_module(f"programs.{program}")
+    monkeypatch.setattr(sys, "argv", [program, "-i", model_option, "2"])
+    monkeypatch.setattr("builtins.input", lambda prompt: pytest.fail("unexpected prompt"))
+
+    with pytest.raises(SystemExit, match="supports MagIC Data Model 3 only"):
+        module.main()

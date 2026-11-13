@@ -4,6 +4,7 @@ import importlib
 import sys
 from pathlib import Path
 
+import pandas as pd
 import pytest
 
 
@@ -89,3 +90,75 @@ def test_core_depthplot_saves_dm3_plot(tmp_path, monkeypatch):
     plots = list(tmp_path.glob("*.png"))
     assert len(plots) == 1
     assert plots[0].stat().st_size > 0
+
+
+@pytest.mark.parametrize("model_args", [[], ["-dm", "3"], ["-dm", "3.0"]])
+def test_magic_select_uses_dm3_age(model_args, tmp_path, monkeypatch):
+    from programs import magic_select
+    from pmagpy import pmag
+
+    (tmp_path / "sites.txt").write_text(
+        "tab\tsites\nsite\tage\tage_unit\nS1\t1000\tka\nS2\t5000\tka\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        sys, "argv",
+        ["magic_select", "-f", "sites.txt", "-F", "selected.txt",
+         "-key", "age", "1", "eval", *model_args],
+    )
+
+    magic_select.main()
+
+    records, table = pmag.magic_read("selected.txt")
+    assert table == "sites"
+    assert [record["site"] for record in records] == ["S1"]
+    assert records[0]["age_unit"] == "Ma"
+
+
+@pytest.mark.parametrize("interactive", [False, True])
+def test_combine_magic_dm3(interactive, tmp_path, monkeypatch):
+    from programs import combine_magic
+
+    for name in ("S1", "S2"):
+        (tmp_path / (name + ".txt")).write_text(
+            f"tab\tsites\nsite\n{name}\n", encoding="utf-8"
+        )
+    monkeypatch.chdir(tmp_path)
+    if interactive:
+        answers = iter(["S1.txt", "S2.txt", "", "combined.txt"])
+        monkeypatch.setattr("builtins.input", lambda prompt: next(answers))
+        args = ["-i", "-dm", "3.0"]
+    else:
+        args = ["-dm", "3.0", "-F", "combined.txt", "-f", "S1.txt", "S2.txt"]
+    monkeypatch.setattr(sys, "argv", ["combine_magic", *args])
+
+    combine_magic.main()
+
+    assert (tmp_path / "combined.txt").read_text(encoding="utf-8").splitlines()[0].split()[-1] == "sites"
+    records = pd.read_csv("combined.txt", sep="\t", header=1)
+    assert set(records["site"]) == {"S1", "S2"}
+
+
+@pytest.mark.parametrize("interactive", [False, True])
+def test_download_magic_dm3(interactive, tmp_path, monkeypatch):
+    from programs import download_magic
+    from pmagpy import pmag
+
+    (tmp_path / "download.txt").write_text(
+        "tab\tsites\nsite\tmethod_codes\nS1\tLP-DIR-AF\n>>>>>>>>>>\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    if interactive:
+        monkeypatch.setattr("builtins.input", lambda prompt: "download.txt")
+        args = ["-i", "-DM", "3.0"]
+    else:
+        args = ["-f", "download.txt", "-DM", "3.0"]
+    monkeypatch.setattr(sys, "argv", ["download_magic", *args])
+
+    download_magic.main()
+
+    records, table = pmag.magic_read("sites.txt")
+    assert table == "sites"
+    assert records[0]["site"] == "S1"
