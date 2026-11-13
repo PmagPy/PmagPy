@@ -420,21 +420,37 @@ def cooling_rate(SpecRec, SampRecs, crfrac, crtype):
         return []
 
 
-def convert_lat(Recs):
+def convert_lat(Recs, data_model=2.5):
     """
-    Uses lat, for age<5Ma, model_lat if present, else tries to use average_inc to estimate plat.
+    Derive paleolatitude from latitude, an existing value, or inclination.
     
     Parameters
     ----------
-    Recs : list of dictionaries in data model by data_model
-        This list of dictionaries must only include data with ages less than 5 Ma
+    Recs : list of dictionaries
+        Ages used for latitude selection must be in Ma.
+    data_model : float
+        Use 3 for DM3 fields; the default preserves legacy field behavior.
     
     Returns
     -------
-    New : list of dictionaries with plat estimate
+    New : list of dictionaries with the estimate in paleolat (DM3) or model_lat
     """
     New = []
     for rec in Recs:
+        if data_model == 3:
+            if (rec.get('age') not in ('', None) and float(rec['age']) < 5.
+                    and rec.get('lat') not in ('', None)):
+                rec['paleolat'] = rec['lat']
+            elif rec.get('paleolat') not in ('', None):
+                pass
+            elif rec.get('model_lat') not in ('', None):
+                rec['paleolat'] = rec['model_lat']
+            elif rec.get('dir_inc') not in ('', None):
+                rec['paleolat'] = '%7.1f' % plat(float(rec['dir_inc']))
+            else:
+                continue
+            New.append(rec)
+            continue
         if 'model_lat' in list(rec.keys()) and rec['model_lat'] != "":
             New.append(rec)
         elif 'average_age' in list(rec.keys()) and rec['average_age'] != "" and float(rec['average_age']) <= 5.:
@@ -447,14 +463,21 @@ def convert_lat(Recs):
     return New
 
 
-def convert_ages(Recs, data_model=3):
+def convert_ages(Recs, data_model=3, precision=4):
     r"""
-    Converts ages in a list of dictionaries to units of Millions of years ago, Ma. 
+    Converts ages and their bounds and uncertainties to Millions of years ago, Ma.
+    AD dates use 2011 as the reference year, as in the original conversion.
     
     Parameters
     ----------
     Recs : list of dictionaries in data model by data_model
     data_model : MagIC data model (default is 3)
+    precision : number of digits after the decimal in scientific notation
+
+    Raises
+    ------
+    ValueError
+        If an age has a missing or unsupported unit.
     
     Returns
     -------
@@ -494,24 +517,31 @@ def convert_ages(Recs, data_model=3):
         if agekey != "":
             keybase = agekey.split('_')[0] + '_'
 
+    unit_scales = {
+        'Ga': 1000., 'Ma': 1., 'ka': 0.001, 'Ka': 0.001,
+        'Years AD (+/-)': 1e-6, 'Years Cal AD (+/-)': 1e-6,
+        'Years BP': 1e-6, 'Years Cal BP': 1e-6,
+    }
+    ad_units = ('Years AD (+/-)', 'Years Cal AD (+/-)')
     New = []
     for rec in Recs:
         age = ''
-        if rec[keybase + 'age'] != "":
+        if rec.get(keybase + 'age', '') != "":
             age = float(rec[keybase + "age"])
-        elif rec[keybase + 'age_low'] != "" and rec[keybase + 'age_high'] != '':
-            age = np.mean([rec[keybase + 'age_high'],
-                           rec[keybase + "age_low"]])
+        elif rec.get(keybase + 'age_low', '') != "" and rec.get(keybase + 'age_high', '') != '':
+            age = np.mean([float(rec[keybase + 'age_high']),
+                           float(rec[keybase + "age_low"])])
         if age != '':
-            rec[keybase + 'age_unit']
-            if rec[keybase + 'age_unit'] == 'Ma':
-                rec[keybase + 'age'] = '%10.4e' % (age)
-            elif rec[keybase + 'age_unit'] == 'ka' or rec[keybase + 'age_unit'] == 'Ka':
-                rec[keybase + 'age'] = '%10.4e' % (age * .001)
-            elif rec[keybase + 'age_unit'] == 'Years AD (+/-)':
-                rec[keybase + 'age'] = '%10.4e' % ((2011 - age) * 1e-6)
-            elif rec[keybase + 'age_unit'] == 'Years BP':
-                rec[keybase + 'age'] = '%10.4e' % ((age) * 1e-6)
+            unit = rec.get(keybase + 'age_unit', '')
+            if unit not in unit_scales:
+                raise ValueError("Unsupported or missing age unit: {}".format(unit))
+            for field in ('age', 'age_low', 'age_high', 'age_sigma'):
+                value = age if field == 'age' else rec.get(keybase + field, '')
+                if value != '':
+                    value = float(value)
+                    if unit in ad_units and field != 'age_sigma':
+                        value = 2011 - value
+                    rec[keybase + field] = '%10.*e' % (precision, value * unit_scales[unit])
             rec[keybase + 'age_unit'] = 'Ma'
             New.append(rec)
         else:

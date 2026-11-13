@@ -18,7 +18,7 @@ def main():
 
     OPTIONS
         -f FILE: specify input file
-        -Fsa FILE: specify output file, default is: er_samples.txt/samples.txt
+        -Fsa FILE: specify output file, default is: samples.txt
         -ncn NCON:  specify naming convention: default is #1 below
         -mcd: specify sampling method codes as a colon delimited string:  [default is: FS-FD]
              FS-FD field sampling done with a drill
@@ -30,6 +30,7 @@ def main():
              SO-MAG   orientation with magnetic compass
         -loc: location name, default="unknown"
         -app appends to existing samples file, default is to overwrite
+        -DM 3: MagIC Data Model 3 is the only supported output model
 
     INPUT FORMAT
         Input files must be space delimited:
@@ -67,6 +68,12 @@ def main():
     checked_args = extractor.extract_and_check_args(args, dataframe)
     #print('checked_args:', checked_args)
     orient_file, samp_file, samp_con, method_codes, location_name, append, output_dir, input_dir, data_model = extractor.get_vars(['f', 'Fsa', 'ncn', 'mcd', 'loc', 'app', 'WD', 'ID', 'DM'], checked_args)
+    if float(data_model) != 3:
+        raise SystemExit(
+            "-E- azdip_magic supports MagIC Data Model 3 only. "
+            "Convert Data Model 2 files to Data Model 3 before use."
+        )
+    data_model = 3
 
     if len(str(samp_con)) > 1:
         samp_con, Z = samp_con.split('-')
