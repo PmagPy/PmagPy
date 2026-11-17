@@ -12851,12 +12851,48 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
         return True, [spec_file]
 
 
-def sites_extract(site_file='sites.txt', directions_file='directions.xls',
-                  intensity_file='intensity.xls', info_file='site_info.xls',
+def _excel_file_name(file_name):
+    """
+    Get the name to write an Excel table to, switching a legacy .xls name to .xlsx.
+
+    pandas (2.0 and later) can no longer write the old .xls format, so a .xls
+    name is changed to .xlsx, which pandas writes with openpyxl.
+
+    Args:
+        file_name (str): requested output file name
+
+    Returns:
+        str: file_name, with a .xls extension replaced by .xlsx
+    """
+    root, ext = os.path.splitext(file_name)
+    if ext.lower() == '.xls':
+        print('pandas cannot write .xls files; writing', root + '.xlsx', 'instead')
+        return root + '.xlsx'
+    return file_name
+
+
+def _latex_file_name(file_name):
+    """
+    Get the name to write a LaTeX table to, switching an Excel extension to .tex.
+
+    Args:
+        file_name (str): requested output file name
+
+    Returns:
+        str: file_name, with a .xls or .xlsx extension replaced by .tex
+    """
+    root, ext = os.path.splitext(file_name)
+    if ext.lower() in ('.xls', '.xlsx'):
+        return root + '.tex'
+    return file_name
+
+
+def sites_extract(site_file='sites.txt', directions_file='directions.xlsx',
+                  intensity_file='intensity.xlsx', info_file='site_info.xlsx',
                   output_dir_path='.', input_dir_path='', latex=False):
     """
     Extracts directional and/or intensity data from a MagIC 3.0 format sites.txt file.
-    Default output format is an Excel file.
+    Default output format is an Excel (.xlsx) file, written with openpyxl.
     Optional latex format longtable file which can be uploaded to Overleaf or
     typeset with latex on your own computer.
 
@@ -12895,8 +12931,7 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
     dir_file = pmag.resolve_file_name(directions_file, output_dir_path)
     if len(dir_df):
         if latex:
-            if dir_file.endswith('.xls'):
-                dir_file = dir_file[:-4] + ".tex"
+            dir_file = _latex_file_name(dir_file)
             directions_out = open(dir_file, 'w+', errors="backslashreplace")
             directions_out.write(r'\documentclass{article}\n')
             directions_out.write('\\usepackage{booktabs}\n')
@@ -12907,6 +12942,7 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
             directions_out.write(r'\end{document}\n')
             directions_out.close()
         else:
+            dir_file = _excel_file_name(dir_file)
             dir_df.to_excel(dir_file, index=False)
     else:
         print("No directional data for output.")
@@ -12915,8 +12951,7 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
     int_df = map_magic.convert_site_dm3_table_intensity(sites_df)
     if len(int_df):
         if latex:
-            if intensity_file.endswith('.xls'):
-                intensity_file = intensity_file[:-4] + ".tex"
+            intensity_file = _latex_file_name(intensity_file)
             intensities_out = open(intensity_file, 'w+',
                                    errors="backslashreplace")
             intensities_out.write(r'\documentclass{article}\n')
@@ -12928,6 +12963,7 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
             intensities_out.write(r'\end{document}\n')
             intensities_out.close()
         else:
+            intensity_file = _excel_file_name(intensity_file)
             int_df.to_excel(intensity_file, index=False)
     else:
         print("No intensity data for output.")
@@ -12954,8 +12990,7 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
         nfo_df.columns = SiteCols
         nfo_df = nfo_df.astype(object).fillna("")
         if latex:
-            if info_file.endswith('.xls'):
-                info_file = info_file[:-4] + ".tex"
+            info_file = _latex_file_name(info_file)
             info_out = open(info_file, 'w+', errors="backslashreplace")
             info_out.write(r'\documentclass{article}\n')
             info_out.write('\\usepackage{booktabs}\n')
@@ -12966,6 +13001,7 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
             info_out.write(r'\end{document}\n')
             info_out.close()
         else:
+            info_file = _excel_file_name(info_file)
             nfo_df.to_excel(info_file, index=False)
     else:
         print("No location information for output.")
@@ -12973,18 +13009,18 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
     return True, [fname for fname in [info_file, intensity_file, dir_file] if fname]
 
 
-def specimens_extract(spec_file='specimens.txt', output_file='specimens.xls', landscape=False,
+def specimens_extract(spec_file='specimens.txt', output_file='specimens.xlsx', landscape=False,
                       longtable=False, output_dir_path='.', input_dir_path='', latex=False):
     """
     Extracts specimen results  from a MagIC 3.0 format specimens.txt file.
-    Default output format is an Excel file.
+    Default output format is an Excel (.xlsx) file, written with openpyxl.
     typeset with latex on your own computer.
 
     Parameters
     ___________
     spec_file : str, default "specimens.txt"
          input file name
-    output_file : str, default "specimens.xls"
+    output_file : str, default "specimens.xlsx"
          output file name
     landscape : boolean, default False
            if True output latex landscape table
@@ -13001,7 +13037,7 @@ def specimens_extract(spec_file='specimens.txt', output_file='specimens.xls', la
         [True,False],  data table error type : True if successful
 
     Effects :
-        writes xls or latex formatted tables for use in publications
+        writes Excel (.xlsx) or latex formatted tables for use in publications
     """
     input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, output_dir_path)
     try:
@@ -13017,8 +13053,7 @@ def specimens_extract(spec_file='specimens.txt', output_file='specimens.xls', la
         table_df = map_magic.convert_specimen_dm3_table(spec_df)
         out_file = pmag.resolve_file_name(output_file, output_dir_path)
         if latex:
-            if out_file.endswith('.xls'):
-                out_file = out_file.rsplit('.')[0] + ".tex"
+            out_file = _latex_file_name(out_file)
             info_out = open(out_file, 'w+', errors="backslashreplace")
             info_out.write(r'\documentclass{article}\n')
             info_out.write('\\usepackage{booktabs}\n')
@@ -13036,6 +13071,7 @@ def specimens_extract(spec_file='specimens.txt', output_file='specimens.xls', la
             info_out.write(r'\end{document}\n')
             info_out.close()
         else:
+            out_file = _excel_file_name(out_file)
             table_df.to_excel(out_file, index=False)
 
     else:
@@ -13043,17 +13079,17 @@ def specimens_extract(spec_file='specimens.txt', output_file='specimens.xls', la
     return True, [out_file]
 
 
-def criteria_extract(crit_file='criteria.txt', output_file='criteria.xls',
+def criteria_extract(crit_file='criteria.txt', output_file='criteria.xlsx',
                      output_dir_path='.', input_dir_path='', latex=False):
     """
     Extracts criteria  from a MagIC 3.0 format criteria.txt file.
-    Default output format is an Excel file.
+    Default output format is an Excel (.xlsx) file, written with openpyxl.
     typeset with latex on your own computer.
 
     Parameters:
         crit_file : str, default "criteria.txt"
             input file name
-        output_file : str, default "criteria.xls"
+        output_file : str, default "criteria.xlsx"
             output file name
         output_dir_path : str, default "."
             output file directory
@@ -13066,7 +13102,7 @@ def criteria_extract(crit_file='criteria.txt', output_file='criteria.xls',
         [True,False],  data table error type : True if successful
 
     Notes:
-        writes xls or latex formatted tables for use in publications
+        writes Excel (.xlsx) or latex formatted tables for use in publications
     """
     input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, output_dir_path)
     try:
@@ -13087,8 +13123,7 @@ def criteria_extract(crit_file='criteria.txt', output_file='criteria.xls',
         crit_df.columns = ['Table', 'Statistic', 'Threshold', 'Operation']
 
         if latex:
-            if out_file.endswith('.xls'):
-                out_file = out_file.rsplit('.')[0] + ".tex"
+            out_file = _latex_file_name(out_file)
             crit_df.loc[crit_df['Operation'].str.contains(
                 '<'), 'operation'] = 'maximum'
             crit_df.loc[crit_df['Operation'].str.contains(
@@ -13106,6 +13141,7 @@ def criteria_extract(crit_file='criteria.txt', output_file='criteria.xls',
             info_out.write(r'\end{document}\n')
             info_out.close()
         else:
+            out_file = _excel_file_name(out_file)
             crit_df.to_excel(out_file, index=False)
 
     else:
