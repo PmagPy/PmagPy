@@ -45,11 +45,17 @@ class TestOptionsFromFields:
         cit = reg.FORMATS["cit"]
         assert cli.option_name(next(f for f in cit.fields if f.name == "samp_con")) == "--samp-con"
         assert cli.option_name(next(f for f in cit.fields if f.name == "noave")) == "--no-noave"      # default True
-        assert cli.option_name(next(f for f in reg.FORMATS["sio"].fields if f.name == "noave")) == "--noave"
+        # every format keeps replicate measurements by default, so the flag averages them
+        assert cli.option_name(next(f for f in reg.FORMATS["sio"].fields if f.name == "noave")) == "--no-noave"
         ns = cli.build_parser(cit).parse_args(["x.sam", "--no-noave"])
         assert cli.field_values(cit, ns) == {"noave": False}
-        ns = cli.build_parser(reg.FORMATS["sio"]).parse_args(["x.dat", "--noave"])
-        assert cli.field_values(reg.FORMATS["sio"], ns) == {"noave": True}
+        ns = cli.build_parser(reg.FORMATS["sio"]).parse_args(["x.dat", "--no-noave"])
+        assert cli.field_values(reg.FORMATS["sio"], ns) == {"noave": False}
+        # a bool off by default is turned on by its own name
+        specname = next(f for f in reg.FORMATS["2g_bin"].fields if f.name == "specname")
+        assert cli.option_name(specname) == "--specname"
+        ns = cli.build_parser(reg.FORMATS["2g_bin"]).parse_args(["x.dat", "--specname"])
+        assert cli.field_values(reg.FORMATS["2g_bin"], ns) == {"specname": True}
 
     def test_values_are_typed_and_only_the_given_ones_are_passed(self):
         sio = reg.FORMATS["sio"]
@@ -70,8 +76,9 @@ class TestOptionsFromFields:
         assert "--samp-con CODE" in text and "4 = XXXX[YYY]" in text and "Default 1." in text
         codelist = next(f for f in reg.FORMATS["sio"].fields if f.name == "codelist")
         assert "AF = AF demagnetization" in cli.field_help(codelist)
-        assert "--noave" in text and "Keep replicate measurements. Without this: average replicate measurements." in " ".join(text.split())
-        cit = cli.build_parser(reg.FORMATS["cit"]).format_help()          # CIT keeps them by default, so the flag is the other way
+        # replicate measurements are kept by default, so the flag averages them
+        assert "--no-noave" in text and "Average replicate measurements. Without this: keep replicate measurements." in " ".join(text.split())
+        cit = cli.build_parser(reg.FORMATS["cit"]).format_help()
         assert "--no-noave" in cit and "Average replicate measurements. Without this: keep replicate measurements." in " ".join(cit.split())
         plain = next(f for f in reg.FORMATS["2g_bin"].fields if f.kind == "bool" and not f.choices)   # a one-way checkbox
         assert "unless this is given." in cli.field_help(plain)

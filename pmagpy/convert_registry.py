@@ -229,8 +229,11 @@ SPECNUM = Field("specnum", "int", "Specimen characters",
 LAT = Field("lat", "float", "Latitude", "Of the sites, in decimal degrees; leave blank to fill in later.")
 LON = Field("lon", "float", "Longitude", "Of the sites, in decimal degrees, east positive.")
 REPLICATES = ((True, "Keep replicate measurements"), (False, "Average replicate measurements"))
+# Measurements are brought in as they are in the file: replicates are kept unless the analyst
+# chooses to average them
 NOAVE = Field("noave", "bool", "Replicate measurements", "Repeated measurements at the same step: kept as separate "
-              "rows, or averaged into one.", default=False, choices=REPLICATES)
+              "rows (the default, so every measurement in the file is brought in), or averaged into one.",
+              default=True, choices=REPLICATES)
 USER = Field("user", "text", "Analyst", "Goes in the analysts column.")
 LABFIELD = Field("labfield", "float", "Lab field (μT)", "DC field of the paleointensity or ARM steps; 0 for none.",
                  default=0)
