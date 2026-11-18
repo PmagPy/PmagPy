@@ -210,6 +210,34 @@ class TestColMagic(unittest.TestCase):
         self.assertEqual(list(rows['quality'][:7]), ['b', 'b', 'g', 'g', 'g', 'b', 'g'])
         self.assertEqual(int(self.fit('28E1A', -1)['dir_n_measurements']), 11)
 
+    def test_col_quality_of_a_repeat_after_the_fit(self):
+        # a visible repeat of 60 mT measured after the last step: within the treatment range of
+        # the fit (20 to 140 mT) but not used by it, so b, as the fit is given by that range
+        def repeat(specimens):
+            steps = specimens[0]['steps']
+            steps.append(dict(steps[9], step='60 rep', visible=True))
+        self.convert(mag_file=self.changed('28E.col', repeat))
+        rows = self.measurements('28E1A')
+        self.assertEqual(len(rows), 16)
+        self.assertEqual(rows.iloc[-1]['quality'], 'b')
+        self.assertAlmostEqual(float(rows.iloc[-1]['treat_ac_field']), 0.06)
+        fit = self.fit('28E1A', -1)
+        in_range = rows[(rows['treat_ac_field'].astype(float) >= float(fit['meas_step_min']) - 1e-9) &
+                        (rows['treat_ac_field'].astype(float) <= float(fit['meas_step_max']) + 1e-9) &
+                        (rows['quality'] == 'g')]
+        self.assertEqual(len(in_range), int(fit['dir_n_measurements']))
+        self.assertEqual(int(fit['dir_n_measurements']), 11)
+
+    def test_col_fit_step_not_among_the_measurements(self):
+        # a step of the fit relabelled: the fit counts the steps found, with a warning
+        def relabel(specimens):
+            for step in specimens[0]['steps']:
+                if step['step'] == '140':
+                    step['step'] = '140mT'
+        printed = self.convert(mag_file=self.changed('28E.col', relabel))
+        self.assertIn('in 1 specimen(s) a step stored with a fit is not among the measurements', printed)
+        self.assertEqual(int(self.fit('28E1A', -1)['dir_n_measurements']), 10)
+
     def test_col_skipped_step_used_by_another_fit(self):
         def second_fit(specimens):
             fit = dict(specimens[0]['interpretations'][0], steps=['30', '40', '50'], group='second')
@@ -229,7 +257,11 @@ class TestColMagic(unittest.TestCase):
             specimens[1].update(volume=10, volumeAssumed=True)
             # Utrecht files imported by 2.0.0-2.0.1 hold moments (pAm2)
             specimens[2].update(format='UTRECHT', version='2.0.1', volume=10.5)
+            # an assumed volume that cannot be read: neither the moment nor the magnetization
+            specimens[3].update(volume=' ', volumeAssumed=True)
         self.convert(mag_file=self.changed('28E.col', assumed))
+        self.assertTrue(self.measurements('28E5B')['magn_moment'].isna().all())
+        self.assertTrue(self.measurements('28E5B')['magn_volume'].isna().all())
         steps = self.stored('28E.col')
         length = pmag.cart2dir([steps['28E1A']['steps'][0][k] for k in 'xyz'])[2]
         nrm = self.measurements('28E1A').iloc[0]
@@ -274,6 +306,11 @@ class TestColMagic(unittest.TestCase):
         self.assertFalse(program_ran)
         self.assertIn('28E1A (changed): a fit rotated with the converted orientation differs from the '
                       'geographic direction stored in the file by 8.1 degrees', error_message)
+        # without interpretations the fits are neither written nor checked
+        self.convert(mag_file=path, interpretations=False)
+        self.assertTrue(self.read('specimens')['dir_dec'].isna().all() if 'dir_dec' in self.read('specimens')
+                        else True)
+        self.assertEqual(len(self.measurements('28E1A')), 15)
 
     def test_col_fits(self):
         self.convert()
@@ -432,11 +469,22 @@ class TestColMagic(unittest.TestCase):
         def remeasured(specimens):
             for step in specimens[0]['steps']:
                 step['x'] *= 2
-        self.convert(mag_file=['28E.col', self.changed('28E.col', remeasured)])
+        printed = self.convert(mag_file=['28E.col', self.changed('28E.col', remeasured)])
         meas = self.measurements('28E1A')
         self.assertEqual(sorted(set(meas['experiment'])), ['28E1A_LP-DIR-AF', '28E1A_LP-DIR-AF_2'])
         self.assertEqual(len(self.read('measurements')), 59 + 15)
         self.assertEqual(len(self.read('measurements')['measurement'].unique()), 59 + 15)
+        # ... and since the copy is in another collection, its sample is in two sites: written in
+        # the first, with a warning
+        self.assertIn('-W- 1 sample(s) belong to more than one site: 28E1A (28E, changed)', printed)
+        self.assertEqual(list(self.read('sites')['site']), ['28E'])
+        # the same names in another collection with other measurements: every sample is in two sites
+        def all_remeasured(specimens):
+            for spec in specimens:
+                for step in spec['steps']:
+                    step['x'] *= 2
+        printed = self.convert(mag_file=['28E.col', self.changed('28E.col', all_remeasured)])
+        self.assertIn('-W- 4 sample(s) belong to more than one site', printed)
 
 
 if __name__ == '__main__':

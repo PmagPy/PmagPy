@@ -2839,10 +2839,12 @@ def _col_fit_steps(steps, fit):
 
 def _col_excluded_steps(steps, fits):
     """the steps (indices) written with quality b, so that the fits can be re-made from the
-    measurements: hidden steps, and steps between the first and last step of a fit that it does
-    not use. A step that a fit uses is not excluded; if another fit leaves it out (or the steps
-    of a fit are ambiguous), the specimen is returned as a conflict."""
+    measurements: hidden steps, and steps that a fit does not use although they are between its
+    first and last step, or have a treatment within its range (a repeated step measured after
+    the fit, for example). A step that a fit uses is not excluded; if another fit leaves it out
+    (or the steps of a fit are ambiguous), the specimen is returned as a conflict."""
     skipped, used, conflict = set(), set(), False
+    values = [_col_step_value(step['step']) for step in steps]
     for fit in fits:
         indices, ambiguous = _col_fit_steps(steps, fit)
         conflict = conflict or ambiguous
@@ -2850,6 +2852,11 @@ def _col_excluded_steps(steps, fits):
             continue
         used.update(indices)
         skipped.update(k for k in range(min(indices), max(indices) + 1) if k not in indices)
+        in_fit = [values[k] for k in indices if values[k] is not None]
+        if in_fit:
+            low, high = min(in_fit), max(in_fit)
+            skipped.update(k for k, value in enumerate(values)
+                           if k not in indices and value is not None and low <= value <= high)
     hidden = {k for k, step in enumerate(steps) if step.get('visible') is False}
     return (skipped | hidden) - used, conflict or bool(skipped & used)
 
@@ -2917,8 +2924,15 @@ def _col_magnetization(spec, length):
     """magn_moment (Am^2) and magn_volume (A/m) of a step whose vector has the given length"""
     volume = _col_volume(spec)
     moment_scale, volume_scale = None, None
-    if spec.get('volumeAssumed') and float(spec.get('volume') or 0) > 0:
-        moment_scale = 1e-12 * float(spec['volume'])  # moments read with an assumed volume
+    if spec.get('volumeAssumed'):
+        # moments read with an assumed volume: the moment follows from that volume, and without
+        # a readable one neither the moment nor the magnetization is known
+        try:
+            assumed = float(spec.get('volume'))
+        except (TypeError, ValueError):
+            assumed = 0.
+        if assumed > 0:
+            moment_scale = 1e-12 * assumed
     elif _col_utrecht_intensity_bug(spec):
         moment_scale = 1e-12
         if volume:
@@ -3030,7 +3044,8 @@ def col(mag_file="", dir_path=".", input_dir_path="",
     citations : str
         citations of every row, default "This study"
     interpretations : bool
-        write the fits stored in the files to the specimens table, default True
+        write the fits stored in the files to the specimens table (and check
+        them against the orientation), default True
     tolerance : float
         largest angle in degrees allowed between the geographic (or tectonic)
         directions of the stored fits and those calculated from the converted
@@ -3059,17 +3074,21 @@ def col(mag_file="", dir_path=".", input_dir_path="",
         where the file gives the specimen volume (in cm^3). Volumes that the
         Paleomagnetism.org importers set because the lab file has none (10 cm^3
         for Black Mountain, JR5, JR6, Cenieh, Munich and Xi'an files, 1 cm^3
-        for RS3) are not used, nor written to the specimens table.
+        for RS3) are not used, nor written to the specimens table. The volume
+        is recognized by its value, so a specimen of that format that really
+        has that volume also gets magn_volume only.
         Specimens marked volumeAssumed were read from moments with an assumed
-        volume and get magn_moment only; specimens imported from the Utrecht
-        format by Paleomagnetism.org 2.0.0-2.0.1 hold moments (pAm^2).
-        MagIC gives a fit by its first and last step, so steps between them
-        that the fit leaves out, and hidden steps that no fit uses, get
-        quality b. A step label stored with a fit is matched to the next
-        visible step with that label. A warning names the specimens in which a
-        step left out of one fit is used by another, or steps with the same
-        label cannot be told apart: their fits cannot be re-made from the
-        measurements.
+        volume and get magn_moment only (neither, if the volume cannot be
+        read); specimens imported from the Utrecht format by
+        Paleomagnetism.org 2.0.0-2.0.1 hold moments (pAm^2).
+        MagIC gives a fit by its first and last step, so steps that the fit
+        leaves out although they are between them in the sequence or in
+        treatment (a repeated step measured after the fit, for example), and
+        hidden steps that no fit uses, get quality b. A step label stored with
+        a fit is matched to the next visible step with that label. A warning
+        names the specimens in which a step left out of one fit is used by
+        another, or steps with the same label cannot be told apart: their fits
+        cannot be re-made from the measurements.
 
     Orientation:
         Paleomagnetism.org gives the azimuth of the core (coreAzimuth) and the
@@ -3082,7 +3101,8 @@ def col(mag_file="", dir_path=".", input_dir_path="",
             bed_dip = beddingDip
         The fits are rotated with pmag.dogeo and pmag.dotilt and compared with
         the geographic and tectonic directions stored in the file; the
-        conversion stops if they differ by more than tolerance.
+        conversion stops if they differ by more than tolerance. With
+        interpretations=False the fits are not checked.
 
     Interpretations:
         Each stored fit is written to the specimens table in specimen,
@@ -3095,7 +3115,9 @@ def col(mag_file="", dir_path=".", input_dir_path="",
         (anchored) or the center of mass of its steps; pmag.domean fits planes
         through the origin. dir_comp is the group of the fit (e.g. ChRM),
         numbered when a specimen has more than one fit of a group.
-        dir_n_measurements is the number of steps in the fit. A plane that was
+        dir_n_measurements is the number of steps in the fit that are among
+        the measurements; a warning names the specimens with a fit step that
+        is not. A plane that was
         fitted to a mean direction (McFadden and McElhinny, 1988) has a second,
         "fitted" line in the file; it is not written as a fit, and the
         description of the plane gives its direction.
@@ -3106,7 +3128,9 @@ def col(mag_file="", dir_path=".", input_dir_path="",
         geology and lithology, and the protocol codes; the sample has the
         orientation, bedding and stratigraphic level (height) of its first
         specimen, the site the ages. A warning names the samples whose
-        specimens have different orientations. All sites are in one location,
+        specimens have different orientations, and the samples that belong to
+        more than one site (the same name in two collections, for example):
+        their specimens are written in the first site. All sites are in one location,
         with the bounds (longitudes 0-360, across 0 when that spans less),
         ages, geology and lithology of all specimens.
 
@@ -3263,6 +3287,7 @@ def col(mag_file="", dir_path=".", input_dir_path="",
 
     SpecRecs, MeasRecs = [], []
     samples, sites, sample_orientations, conflicts, skip_conflicts = {}, {}, {}, [], []
+    site_conflicts, unmatched = {}, []
     experiments = {}
     for entry in copies:
         spec, fits, demag_type = entry['spec'], entry['fits'], entry['type']
@@ -3275,12 +3300,13 @@ def col(mag_file="", dir_path=".", input_dir_path="",
             site = pmag.parse_site(sample, samp_con, Z) or sample
 
         # orientation and bedding; the directions of the fits in each frame, as stored (checked
-        # against those rotated with the converted orientation and bedding) or else rotated
+        # against those rotated with the converted orientation and bedding) or else rotated.
+        # Without interpretations the fits are neither written nor checked.
         azimuth, dip, bed_dip_direction, bed_dip = orientation(spec)
         oriented = azimuth != "" and dip != ""
         tilted = oriented and bed_dip_direction != "" and bed_dip != ""
         directions = []
-        for fit in fits:
+        for fit in (fits if interpretations else []):
             plane = fit['type'] == 'TAU3'
             frames = {'specimen': _col_direction(fit['specimen']['coordinates'])[:2]}
             if oriented:
@@ -3310,8 +3336,11 @@ def col(mag_file="", dir_path=".", input_dir_path="",
         if sample not in samples:
             samples[sample] = {'site': site, 'specimens': []}
             sample_orientations[sample] = (azimuth, dip, bed_dip_direction, bed_dip)
-        elif sample_orientations[sample] != (azimuth, dip, bed_dip_direction, bed_dip) and sample not in conflicts:
-            conflicts.append(sample)
+        else:
+            if sample_orientations[sample] != (azimuth, dip, bed_dip_direction, bed_dip) and sample not in conflicts:
+                conflicts.append(sample)
+            if samples[sample]['site'] != site and sample not in site_conflicts:
+                site_conflicts[sample] = (samples[sample]['site'], site)
         site = samples[sample]['site']
         samples[sample]['specimens'].append((spec, protocol))
         sites.setdefault(site, []).append((spec, protocol))
@@ -3390,10 +3419,13 @@ def col(mag_file="", dir_path=".", input_dir_path="",
                 fit_code = 'DE-BFL-A'
             else:
                 fit_code = 'DE-BFL'
+            indices = _col_fit_steps(spec['steps'], fit)[0]
+            if len(indices) < len(fit['steps']) and name not in unmatched:
+                unmatched.append(name)
             FitRec = dict(base, dir_comp=group if count == 0 else '{}_{}'.format(group, count + 1),
-                          dir_n_measurements=str(len(fit['steps'])), result_quality='g',
+                          dir_n_measurements=str(len(indices)), result_quality='g',
                           software_packages='Paleomagnetism.org {}'.format(fit.get('version') or '').strip(),
-                          **step_range(_col_fit_steps(spec['steps'], fit)[0]))
+                          **step_range(indices))
             if _col_is_set(fit.get('MAD')):
                 FitRec['dir_mad_anc' if fit['anchored'] else 'dir_mad_free'] = round(float(fit['MAD']), 4)
             center = fit['specimen'].get('centerMass')
@@ -3435,6 +3467,16 @@ def col(mag_file="", dir_path=".", input_dir_path="",
               'bedding: {}{}. The samples table holds the orientation of the first, so the geographic '
               'and tilt-corrected directions of the others do not follow from it.'.format(
                   len(conflicts), ', '.join(conflicts[:5]), ', ...' if len(conflicts) > 5 else ''))
+    if site_conflicts:
+        listed = ['{} ({}, {})'.format(sample, *pair) for sample, pair in site_conflicts.items()]
+        print('-W- {} sample(s) belong to more than one site: {}{}. The samples table holds the first '
+              'site, so the specimens from the others are written in it. Give samp_con, or rename the '
+              'specimens, to keep them apart.'.format(
+                  len(listed), ', '.join(listed[:5]), ', ...' if len(listed) > 5 else ''))
+    if unmatched:
+        print('-W- in {} specimen(s) a step stored with a fit is not among the measurements, so the fit '
+              'counts only the steps found: {}{}'.format(
+                  len(unmatched), ', '.join(unmatched[:5]), ', ...' if len(unmatched) > 5 else ''))
     if skip_conflicts:
         print('-W- in {} specimen(s) a fit cannot be re-made from the measurements, because a step left '
               'out of one fit is used by another, or steps with the same label cannot be told apart: '
