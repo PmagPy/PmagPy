@@ -2837,14 +2837,18 @@ def _col_fit_steps(steps, fit):
     return indices, ambiguous
 
 
-def _col_excluded_steps(steps, fits):
+def _col_excluded_steps(steps, fits, demag_type=None):
     """the steps (indices) written with quality b, so that the fits can be re-made from the
     measurements: hidden steps, and steps that a fit does not use although they are between its
     first and last step, or have a treatment within its range (a repeated step measured after
     the fit, for example). A step that a fit uses is not excluded; if another fit leaves it out
-    (or the steps of a fit are ambiguous), the specimen is returned as a conflict."""
+    (or the steps of a fit are ambiguous), the specimen is returned as a conflict. The treatments
+    are compared as in the measurements table: the NRM (a step of 0, or a first thermal step at
+    or below 25 degrees C) is 0."""
     skipped, used, conflict = set(), set(), False
     values = [_col_step_value(step['step']) for step in steps]
+    if values and demag_type == 'thermal' and values[0] is not None and values[0] <= 25:
+        values[0] = 0.
     for fit in fits:
         indices, ambiguous = _col_fit_steps(steps, fit)
         conflict = conflict or ambiguous
@@ -3377,7 +3381,7 @@ def col(mag_file="", dir_path=".", input_dir_path="",
         if experiments[experiment] > 1:
             experiment += '_{}'.format(experiments[experiment])
         written = [fit for fit in fits if not (fit.get('fitted') and fit['type'] == 'TAU1')]
-        excluded, conflict = _col_excluded_steps(spec['steps'], fits if interpretations else [])
+        excluded, conflict = _col_excluded_steps(spec['steps'], fits if interpretations else [], demag_type)
         if conflict:
             skip_conflicts.append(name)
         treatments = []
