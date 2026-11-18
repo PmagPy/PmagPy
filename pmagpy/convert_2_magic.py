@@ -20,9 +20,13 @@ import pmagpy.contribution_builder as cb
 _2G_BIN_DATE = re.compile(r'[A-Z][a-z]{2} [ 0-9][0-9] [0-9]{4}')
 # a step record: its number (one to three digits), a NUL (or a space), then 0xCD
 _2G_BIN_STEP = re.compile('(?<=[0-9])[\x00 ]\xcd[\x00 ]')
-# a header record: after a 0x02 separator, "0" and a version byte (0x84 in nearly all
-# files; 0x85 in a few; 0x88 in the variant described in _2g_bin_read)
+# a header record: after a 0x02 separator, "0", a byte that is 0x84 in nearly all files, and
+# the specimen name from byte 5; the record is 137 bytes long
 _2G_BIN_HEADER = re.compile('\x02(?=[\x00 ]0[\x00 ][\x80-\x8f][\x00\x01 ])')
+
+
+class _TwoGBinHeaderError(ValueError):
+    """a 2G binary header whose fields are not where they are in other 2G files"""
 
 
 def _2g_bin_read(mag_file_path):
@@ -32,14 +36,14 @@ def _2g_bin_read(mag_file_path):
     The header and each measurement step are records whose fields are strings
     at fixed offsets, each ending at a NUL (bytes after it can be left over
     from an earlier value); some files have spaces in place of the NULs.
-    A variant header, with version byte 0x88 and 141 bytes rather than 137,
-    has been seen in one file (160-1, attached to Paleomagnetism.org issue
-    72, dated 2018); what software writes it is not known. In that file the
-    volume field is two bytes longer and every later field starts two bytes
-    later, which is how it is read here; its orientation is all zero, so
-    reading a real orientation from this variant is untested. A step record is found by its number followed by a 0xCD byte,
-    outside the header records. A file can hold more than one header, when
-    measurements were added in another session.
+    The header record is 137 bytes long, with the date at byte 27. A header
+    whose date is elsewhere is not read: its fields cannot be placed with
+    confidence, so a _TwoGBinHeaderError is raised. (One such file is known,
+    160-1, attached to Paleomagnetism.org issue 72 as an example of a file
+    with a broken step record; its header is 141 bytes long.) A step record
+    is found by its number followed by a 0xCD byte, outside the header
+    records. A file can hold more than one header, when measurements were
+    added in another session.
 
     Returns
     -------
@@ -67,22 +71,24 @@ def _2g_bin_read(mag_file_path):
     headers = []
     for match in _2G_BIN_HEADER.finditer(data):
         start = match.end()
-        shift = 2 if data[start + 3] == '\x88' else 0
-        date = _2G_BIN_DATE.match(data, start + 27 + shift)
-        if date is None and _2G_BIN_DATE.match(data, start + 29 - shift):
-            # the layout that the version byte does not give, but the date does
-            shift = 2 - shift
-            date = _2G_BIN_DATE.match(data, start + 27 + shift)
-        head = data[start:start + 137 + 2 * shift]
-        headers.append({'name': text(head, 5, 14), 'volume': token(head, 14, 19 + shift),
-                        'azimuth': token(head, 101 + shift, 106 + shift),
-                        'dip': token(head, 106 + shift, 110 + shift),
-                        'bed_dip_direction': token(head, 110 + shift, 115 + shift),
-                        'bed_dip': token(head, 115 + shift, 119 + shift),
-                        'overturned': head[119 + shift:120 + shift] == '\x01',
-                        'fold_azimuth': token(head, 120 + shift, 128 + shift),
-                        'fold_plunge': token(head, 128 + shift, 132 + shift),
-                        'dec_corr': token(head, 132 + shift, 137 + shift),
+        head = data[start:start + 137]
+        date = _2G_BIN_DATE.match(head, 27)
+        if date is None and _2G_BIN_DATE.search(head[:60]):
+            # a date, but not where other 2G files have it: the other fields are not
+            # where they are expected either (a header without a date is read as usual)
+            raise _TwoGBinHeaderError(
+                'the header of this file is not laid out as in other 2G binary files (its date is not '
+                'at byte 27), so its volume and orientation cannot be read with confidence; please '
+                'report the file to PmagPy')
+        headers.append({'name': text(head, 5, 14), 'volume': token(head, 14, 19),
+                        'azimuth': token(head, 101, 106),
+                        'dip': token(head, 106, 110),
+                        'bed_dip_direction': token(head, 110, 115),
+                        'bed_dip': token(head, 115, 119),
+                        'overturned': head[119:120] == '\x01',
+                        'fold_azimuth': token(head, 120, 128),
+                        'fold_plunge': token(head, 128, 132),
+                        'dec_corr': token(head, 132, 137),
                         'date': date.group(0) if date else '',
                         'start': start, 'end': start + len(head)})
     if not headers:
@@ -354,6 +360,10 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
     SpecRecs, SiteRecs, LocRecs = [], [], []
     try:
         header, steps = _2g_bin_read(mag_file_path)
+    except _TwoGBinHeaderError as ex:
+        message = '{}: {}'.format(mag_file, ex)
+        print(message)
+        return False, message
     except Exception as ex:
         print('ex', ex)
         print("bad mag file")
