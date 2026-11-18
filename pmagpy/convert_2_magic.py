@@ -20,8 +20,8 @@ import pmagpy.contribution_builder as cb
 _2G_BIN_DATE = re.compile(r'[A-Z][a-z]{2} [ 0-9][0-9] [0-9]{4}')
 # a step record: its number (one to three digits), a NUL (or a space), then 0xCD
 _2G_BIN_STEP = re.compile('(?<=[0-9])[\x00 ]\xcd[\x00 ]')
-# a header record: after a 0x02 separator, "0" and the version byte (0x84, or 0x88 in
-# files written by later versions of the 2G software)
+# a header record: after a 0x02 separator, "0" and a version byte (0x84 in nearly all
+# files; 0x85 in a few; 0x88 in the variant described in _2g_bin_read)
 _2G_BIN_HEADER = re.compile('\x02(?=[\x00 ]0[\x00 ][\x80-\x8f][\x00\x01 ])')
 
 
@@ -32,9 +32,12 @@ def _2g_bin_read(mag_file_path):
     The header and each measurement step are records whose fields are strings
     at fixed offsets, each ending at a NUL (bytes after it can be left over
     from an earlier value); some files have spaces in place of the NULs.
-    In headers written by later versions of the 2G software (version byte
-    0x88) the volume field is two bytes longer and every later field moves
-    with it. A step record is found by its number followed by a 0xCD byte,
+    A variant header, with version byte 0x88 and 141 bytes rather than 137,
+    has been seen in one file (160-1, attached to Paleomagnetism.org issue
+    72, dated 2018); what software writes it is not known. In that file the
+    volume field is two bytes longer and every later field starts two bytes
+    later, which is how it is read here; its orientation is all zero, so
+    reading a real orientation from this variant is untested. A step record is found by its number followed by a 0xCD byte,
     outside the header records. A file can hold more than one header, when
     measurements were added in another session.
 

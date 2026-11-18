@@ -196,14 +196,15 @@ class Test2gBin(unittest.TestCase):
         self.assertEqual(steps[-1]['session'], 1)
         self.assertEqual(len(steps), len(convert._2g_bin_read(MN001)[1]))
 
-    def test_newer_layout(self):
-        # header version byte 0x88: the volume field is two bytes longer and the later
+    def test_variant_header_0x88(self):
+        # the variant header with version byte 0x88 (seen in one file, 160-1 of PMAG2 issue 72):
+        # the volume field is two bytes longer and the later
         # fields move with it
         data = read_bytes(MN001)
         start = header_start(data)
         head = data[start:start + 137]
-        newer = head[:3] + b'\x88' + head[4:19] + b'\x00\x00' + head[19:] + b'\x00\x00'
-        self.write(data[:start] + newer + data[start + 137:])
+        variant = head[:3] + b'\x88' + head[4:19] + b'\x00\x00' + head[19:] + b'\x00\x00'
+        self.write(data[:start] + variant + data[start + 137:])
         header, steps = convert._2g_bin_read(os.path.join(self.out, 'changed.dat'))
         self.assertEqual([header[k] for k in ('azimuth', 'dip', 'bed_dip_direction', 'bed_dip', 'dec_corr')],
                          ['17', '42', '341', '7', '-0.9'])
