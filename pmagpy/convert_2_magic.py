@@ -17,47 +17,74 @@ import pmagpy.contribution_builder as cb
 
 ### _2g_bin_magic conversion
 
+_2G_BIN_DATE = re.compile(r'[A-Z][a-z]{2} [ 0-9][0-9] [0-9]{4}')
+# a step record: its number (one to three digits), a NUL (or a space), then 0xCD
+_2G_BIN_STEP = re.compile('(?<=[0-9])[\x00 ]\xcd[\x00 ]')
+# a header record: after a 0x02 separator, "0" and the version byte (0x84, or 0x88 in
+# files written by later versions of the 2G software)
+_2G_BIN_HEADER = re.compile('\x02(?=[\x00 ]0[\x00 ][\x80-\x8f][\x00\x01 ])')
+
+
 def _2g_bin_read(mag_file_path):
     """
     Read a 2G binary (.dat) file.
 
-    The header and each measurement step are records whose fields are
-    NUL-terminated strings at fixed offsets (bytes after the terminator can
-    hold leftovers of an earlier value). Step records start three bytes
-    before a 0xCD marker. In headers written by later versions of the 2G
-    software the volume field is two bytes longer and every later field
-    moves with it; the position of the date tells the two layouts apart.
+    The header and each measurement step are records whose fields are strings
+    at fixed offsets, each ending at a NUL (bytes after it can be left over
+    from an earlier value); some files have spaces in place of the NULs.
+    In headers written by later versions of the 2G software (version byte
+    0x88) the volume field is two bytes longer and every later field moves
+    with it. A step record is found by its number followed by a 0xCD byte,
+    outside the header records. A file can hold more than one header, when
+    measurements were added in another session.
 
     Returns
     -------
     header : dict of str (name, volume, azimuth, dip, bed_dip_direction,
-        bed_dip, overturned, dec_corr)
+        bed_dip, overturned, fold_azimuth, fold_plunge, dec_corr, date) from
+        the first header, with 'headers', the list of all headers in the file
     steps : list of dict of str, one per step: treatment label, directions in
         specimen, geographic and tilt-corrected coordinates, moment (emu),
         moment/volume (emu/cc), the x, y and z components and their standard
-        deviations (emu), and the number of readings
+        deviations (emu), the number of readings, and 'session', the index of
+        the header the step follows
     """
     with open(mag_file_path, 'rb') as f:
         data = f.read().decode('latin-1')
 
-    def field(rec, start, end):
-        return re.split('[\x00 ]', rec[start:end].strip(' \x00'))[0]
+    def text(rec, start, end):
+        """a text field: up to its first NUL, without surrounding spaces"""
+        return rec[start:end].split('\x00')[0].strip()
 
-    first_step = data.find('\xcd') - 3
-    date = re.search(r'[A-Z][a-z]{2} [ 0-9][0-9] [0-9]{4}', data[:first_step])
-    if first_step < 0 or date is None:
-        raise ValueError('not a 2G binary file')
-    start = data.rfind('\x02', 0, date.start()) + 1
-    head = data[start:first_step]
-    s = date.start() - start - 27  # 0, or 2 in the later layout
-    header = {'name': field(head, 5, 14), 'volume': field(head, 14, 19 + s),
-              'azimuth': field(head, 101 + s, 106 + s),
-              'dip': field(head, 106 + s, 110 + s),
-              'bed_dip_direction': field(head, 110 + s, 115 + s),
-              'bed_dip': field(head, 115 + s, 119 + s),
-              'overturned': head[119 + s:120 + s] == '\x01',
-              'dec_corr': field(head, 132 + s, 137 + s)}
-    offsets = {'treatment': (5, 13), 'dec': (13, 19), 'inc': (19, 25),
+    def token(rec, start, end):
+        """a number or code field: its first word, up to the first NUL"""
+        words = rec[start:end].split('\x00')[0].split()
+        return words[0] if words else ''
+
+    headers = []
+    for match in _2G_BIN_HEADER.finditer(data):
+        start = match.end()
+        shift = 2 if data[start + 3] == '\x88' else 0
+        date = _2G_BIN_DATE.match(data, start + 27 + shift)
+        if date is None and _2G_BIN_DATE.match(data, start + 29 - shift):
+            # the layout that the version byte does not give, but the date does
+            shift = 2 - shift
+            date = _2G_BIN_DATE.match(data, start + 27 + shift)
+        head = data[start:start + 137 + 2 * shift]
+        headers.append({'name': text(head, 5, 14), 'volume': token(head, 14, 19 + shift),
+                        'azimuth': token(head, 101 + shift, 106 + shift),
+                        'dip': token(head, 106 + shift, 110 + shift),
+                        'bed_dip_direction': token(head, 110 + shift, 115 + shift),
+                        'bed_dip': token(head, 115 + shift, 119 + shift),
+                        'overturned': head[119 + shift:120 + shift] == '\x01',
+                        'fold_azimuth': token(head, 120 + shift, 128 + shift),
+                        'fold_plunge': token(head, 128 + shift, 132 + shift),
+                        'dec_corr': token(head, 132 + shift, 137 + shift),
+                        'date': date.group(0) if date else '',
+                        'start': start, 'end': start + len(head)})
+    if not headers:
+        raise ValueError('not a 2G binary file: no header record')
+    offsets = {'dec': (13, 19), 'inc': (19, 25),
                'geo_dec': (25, 31), 'geo_inc': (31, 37),
                'tilt_dec': (37, 43), 'tilt_inc': (43, 49),
                'moment': (49, 59), 'moment_volume': (59, 69),
@@ -65,13 +92,49 @@ def _2g_bin_read(mag_file_path):
                'y': (101, 112), 'y_sigma': (112, 122),
                'z': (133, 144), 'z_sigma': (144, 154)}
     steps = []
-    for marker in re.finditer('\xcd', data):
-        rec = data[marker.start() - 3:]
-        step = {key: field(rec, a, b) for key, (a, b) in offsets.items()}
+    for match in _2G_BIN_STEP.finditer(data):
+        marker = match.start() + 1
+        if any(h['start'] <= marker < h['end'] for h in headers):
+            continue
+        rec = data[marker - 3:marker - 3 + 154]
+        step = {'treatment': token(rec, 5, 13)}
+        step.update({key: token(rec, a, b) for key, (a, b) in offsets.items()})
         if step['dec'] == '':
             continue  # an interrupted record; the step is repeated later
+        step['session'] = sum(1 for h in headers if h['start'] < marker) - 1
         steps.append(step)
+    header = dict(headers[0], headers=headers)
     return header, steps
+
+
+def _2g_bin_treatment(label, experiment):
+    """
+    The treatment of a 2G step label: (kind, value, code), with kind 'NRM',
+    'AF' (value in mT) or 'T' (value in degrees C), or None for a label
+    without a value. For experiments other than Demag, the decimal part of
+    the label is the step code (e.g. 450.1 is code 1 at 450), as in
+    convert_2_magic.generic.
+    """
+    label = label.strip()
+    if label.upper() == 'NRM':
+        return 'NRM', 0., 0
+    match = re.match(r'([0-9]+)(?:\.([0-9]+))?\s*(mT|MT|C)?$', label)
+    if match is None:
+        return None
+    number, decimals, unit = match.groups()
+    if unit in ('mT', 'MT'):
+        kind = 'AF'
+    elif unit == 'C':
+        kind = 'T'
+    else:  # a number without a unit: thermal, but alternating field in an AARM experiment
+        kind = 'AF' if 'AARM' in experiment else 'T'
+    if experiment == 'Demag':
+        value, code = float(number + ('.' + decimals if decimals else '')), 0
+    else:
+        value, code = float(number), int(decimals) if decimals else 0
+    if value == 0:
+        return 'NRM', 0., code
+    return kind, value, code
 
 
 def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt',
@@ -90,9 +153,17 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
     in the file is added to the azimuth and to the bedding dip direction; an
     overturned bed (flagged in the file) is written with dip direction + 180
     and dip 180 - dip. With these, the samples table reproduces the
-    geographic and tilt-corrected directions stored with every step. The
-    specimen name is the one in the file, as written. Steps whose label has
-    no treatment value are left out, with a warning.
+    geographic and tilt-corrected directions stored with every step. A
+    header field that is empty is left empty (an orientation is not taken
+    as 0), and a fold axis in the header is reported but not applied. A
+    file with more than one header (measurements added in another session)
+    is converted with the orientation of the first, with a warning. The
+    specimen name is the one in the file, as written; the 2G software keeps
+    8 characters, so a warning suggests specname=True when the name in the
+    file is the start of the file name. Steps whose label has no treatment
+    value are left out, with a warning. magn_volume is the moment divided by
+    the volume of the header, with a warning when the moment per volume
+    stored with a step was computed with another volume.
 
     Parameters
     ----------
@@ -123,7 +194,7 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
     samp_con : str
         (specimen/)sample/site naming convention, default '2', see info below
     corr: str
-        default '1'
+        not used
     gmeths : str
         sampling method codes, default "FS-FD:SO-POM", see info below
     location : str
@@ -143,20 +214,24 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
     lon : float
         longitude, default ""
     labfield : float
-        dc lab field (in micro tesla)
+        dc lab field in microtesla, for the in-field steps of PI, ATRM,
+        AARM and CR experiments
     labfield_phi : float
-        declination 0-360
+        declination of the lab field in specimen coordinates, 0-360
+        (PI and CR; anisotropy positions give their own)
     labfield_theta : float
-        inclination -90 - 90
+        inclination of the lab field in specimen coordinates, -90 - 90
     experiment : str
         experiment type, see info below;  default is Demag
     cooling_times_list : list
-        cooling times in [K/minutes] seperated by comma,
-        ordered at the same order as XXX.10,XXX.20 ...XX.70
+        cooling rates in K/minute (a list, or a string separated by
+        commas), in the order of the steps XXX.1, XXX.2, ... (or XXX.10,
+        XXX.20, ...); the last is used for the alteration check XXX.7
 
     Returns
     ---------
-    Tuple : (True or False indicating if conversion was successful, meas_file name written)
+    Tuple : (True or False indicating if conversion was successful, path of
+        the measurements file written, or an error message)
 
 
     Info
@@ -196,81 +271,84 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
          SO-MAG   orientation with magnetic compass
          SO-SUN   orientation with sun compass
 
-    Experiment type:
+    Experiment type and step labels:
+        The 2G software labels a step NRM, with a temperature (350C), or with
+        an alternating field (20mT); a number without a unit is a
+        temperature, or a field in an AARM experiment.
         Demag:
-            AF and/or Thermal
+            AF and/or thermal demagnetization; a decimal is part of the value
+            (2.5mT is 2.5 mT)
         PI:
-            paleointenisty thermal experiment (ZI/IZ/IZZI)
-        ATRM n:
-
-            ATRM in n positions (n=6)
-
-        AARM n:
-            AARM in n positions
+            thermal paleointensity (ZI/IZ/IZZI). The decimal is the step code:
+            XXX.0 zero field, XXX.1 in field, XXX.2 pTRM check, XXX.3 tail
+            check, XXX.4 additivity check (XXX.10, XXX.20 ... also work)
+        ATRM 6, AARM 6:
+            anisotropy of TRM (thermal) or ARM (alternating field) in 6
+            positions: XXX.0 baseline in zero field, XXX.1 to XXX.6 the lab
+            field along +x, +y, +z, -x, -y, -z, and for ATRM XXX.7 the
+            alteration check (along +x)
         CR:
-            cooling rate experiment
-            The treatment coding of the measurement file should be: XXX.00,XXX.10, XXX.20 ...XX.70 etc. (XXX.00 is optional)
-            where XXX in the temperature and .10,.20... are running numbers of the cooling rates steps.
-            XXX.00 is optional zerofield baseline. XXX.70 is alteration check.
-            if using this type, you must also provide cooling rates in [K/minutes] in cooling_times_list
-            separated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70
-
-            No need to specify the cooling rate for the zerofield
-            But users need to make sure that there are no duplicate meaurements in the file
-
-        NLT:
-            non-linear-TRM experiment
+            cooling rate experiment: XXX.0 baseline in zero field (optional),
+            XXX.1, XXX.2 ... in field with the cooling rates of
+            cooling_times_list in that order, XXX.7 the alteration check
+        NLT (non-linear TRM) is not supported.
+        Replicate steps (the same label one after another) are averaged
+        unless noave is True, or the last is kept with savelast.
 
 
 
     """
 
-    #
-    # initialize variables
-    #
-    bed_dip, bed_dip_dir = "", ""
-    sclass, lithology, _type = "", "", ""
-    DecCorr = 0.
-    months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-
     # format and fix variables
-    specnum = int(specnum)
-    specnum = -specnum
+    specnum = -int(specnum)
     input_dir_path, dir_path = pmag.fix_directories(input_dir, dir_path)
-
-    if samp_con:
-        samp_con=str(samp_con)
-        Z = 1
-        if "4" in samp_con:
-            if "-" not in samp_con:
-                print("option [4] must be in form 4-Z where Z is an integer")
-                return False, "option [4] must be in form 4-Z where Z is an integer"
-            else:
-                Z = samp_con.split("-")[1]
-                samp_con = "4"
-        if "7" in samp_con:
-            if "-" not in samp_con:
-                print("option [7] must be in form 7-Z where Z is an integer")
-                return False, "option [7] must be in form 7-Z where Z is an integer"
-            else:
-                Z = samp_con.split("-")[1]
-                samp_con = "7"
-        if "6" in samp_con:
-            print('Naming convention option [6] not currently supported')
-            False, 'Naming convention option [6] not currently supported'
+    output_dir_path = dir_path
+    Z = 1
+    samp_con = str(samp_con) if samp_con else '2'
+    if samp_con.startswith('4') or samp_con.startswith('7'):
+        if "-" not in samp_con:
+            message = "option [{}] must be in form {}-Z where Z is an integer".format(samp_con[0], samp_con[0])
+            print(message)
+            return False, message
+        samp_con, Z = samp_con.split("-")[:2]
+    if samp_con == '6':
+        print('Naming convention option [6] not currently supported')
+        return False, 'Naming convention option [6] not currently supported'
+    experiment = str(experiment or 'Demag').strip()
+    n_positions = 6
+    if experiment.split()[0] in ('ATRM', 'AARM'):
+        if len(experiment.split()) > 1:
+            n_positions = int(experiment.split()[1])
+        experiment = experiment.split()[0]
+        if n_positions != 6:
+            message = '{} in {} positions is not supported (6 positions only)'.format(experiment, n_positions)
+            print(message)
+            return False, message
+    if experiment not in ('Demag', 'PI', 'ATRM', 'AARM', 'CR'):
+        message = 'experiment {} is not supported (Demag, PI, ATRM 6, AARM 6 or CR)'.format(experiment)
+        print(message)
+        return False, message
+    if experiment == 'CR':
+        if isinstance(cooling_times_list, str):
+            cooling_times_list = cooling_times_list.split(',')
+        cooling_times_list = [str(x).strip() for x in cooling_times_list if str(x).strip()]
+        if not cooling_times_list:
+            print('the CR experiment needs cooling_times_list')
+            return False, 'the CR experiment needs cooling_times_list'
     if not mag_file:
         print("mag file is required input")
         return False, "mag file is required input"
-    output_dir_path = dir_path
     mag_file_path = pmag.resolve_file_name(mag_file, input_dir_path)
 
-    samplist = []
+    # samples already in the samples file of the output directory are kept (the sample of
+    # this file replaces its earlier row)
     try:
-        SampRecs, file_type = pmag.magic_read(samp_file)
-    except:
+        SampRecs, file_type = pmag.magic_read(os.path.join(output_dir_path, samp_file))
+        if file_type != 'samples':
+            SampRecs = []
+    except Exception:
         SampRecs = []
-    MeasRecs, SpecRecs, SiteRecs, LocRecs = [], [], [], []
+    SpecRecs, SiteRecs, LocRecs = [], [], []
     try:
         header, steps = _2g_bin_read(mag_file_path)
     except Exception as ex:
@@ -280,6 +358,8 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
     if not steps:
         print("no measurements in", mag_file)
         return False, "no measurements in " + mag_file
+
+    # specimen name
     spec = header['name']
     stem = os.path.splitext(os.path.basename(mag_file))[0]
     if specname:
@@ -295,236 +375,228 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
             print('-W- {}: the specimen name in the file, {}, is the start of the file name; '
                   'use specname=True to name the specimen after the file'.format(mag_file, spec))
     print('importing ', specname)
-    vol = float(header['volume']) * 1e-6 if header['volume'] else None  # m^3 from cc
-    deccorr = float(header['dec_corr'] or 0) if dec_corr else 0
-    az = (float(header['azimuth'] or 0) + deccorr) % 360
-    pl = float(header['dip'] or 0)
-    bed_dip_dir = (float(header['bed_dip_direction'] or 0) + deccorr) % 360
-    bed_dip = float(header['bed_dip'] or 0)
-    if header['overturned']:
-        # MagIC: overturned beds have a dip greater than 90 towards the
-        # opposite direction
-        bed_dip_dir = (bed_dip_dir + 180) % 360
-        bed_dip = 180. - bed_dip
-    if specnum != 0:
-        sample = specname[:specnum]
+
+    # a file with more than one header holds measurements of more than one session
+    if len(header['headers']) > 1:
+        described = ['{} {}'.format(h['date'] or 'no date',
+                                    '/'.join([h['azimuth'], h['dip']]) if h['azimuth'] and h['dip']
+                                    else 'no orientation') for h in header['headers']]
+        print('-W- {}: the file holds {} headers (measurement sessions): {}. The orientation of the '
+              'first is used for all steps; check the steps after the first session.'.format(
+                  mag_file, len(described), '; '.join(described)))
+
+    # orientation and bedding, from the first header. Empty fields are missing values,
+    # not 0; the declination correction stored in the file is added to the azimuth and
+    # the bedding dip direction
+    def number(key):
+        value = header[key]
+        if value == '':
+            return None
+        try:
+            return float(value)
+        except ValueError:
+            print('-W- {}: the {} field of the header, {}, is not a number'.format(mag_file, key, value))
+            return None
+    vol_cc = number('volume')
+    vol = vol_cc * 1e-6 if vol_cc else None  # m^3 from cc
+    deccorr = (number('dec_corr') or 0.) if dec_corr else 0.
+    az, pl = number('azimuth'), number('dip')
+    bed_dip_dir, bed_dip = number('bed_dip_direction'), number('bed_dip')
+    if az is None or pl is None:
+        print('-W- {}: the header gives no sample orientation; azimuth and dip are left '
+              'empty'.format(mag_file))
     else:
-        sample = specname
+        az = (az + deccorr) % 360
+    if bed_dip_dir is not None and bed_dip is not None:
+        bed_dip_dir = (bed_dip_dir + deccorr) % 360
+        if header['overturned']:
+            # MagIC: overturned beds have a dip greater than 90 towards the
+            # opposite direction
+            bed_dip_dir = (bed_dip_dir + 180) % 360
+            bed_dip = 180. - bed_dip
+    if (number('fold_azimuth') or 0) != 0 or (number('fold_plunge') or 0) != 0:
+        print('-W- {}: the header gives a fold axis ({}/{}), which is not applied'.format(
+            mag_file, header['fold_azimuth'], header['fold_plunge']))
+
+    # specimen, sample, site, location
+    sample = specname[:specnum] if specnum != 0 else specname
+    if samp_con == '8':
+        if specname.count('_') < 2:
+            message = '{}: naming convention 8 needs names of the form site_sample_specimen'.format(specname)
+            print(message)
+            return False, message
+        sample, site = pmag.parse_site(specname, samp_con, Z)[1:]
+    else:
+        site = pmag.parse_site(sample, samp_con, Z)
     methods = gmeths.split(':')
     if deccorr != 0:
         if 'SO-MAG' in methods:
             del methods[methods.index('SO-MAG')]
         methods.append('SO-CMD-NORTH')
-    meths = reduce(lambda x, y: x+':'+y, methods)
-    method_codes = meths
-    # parse out the site name
-    if samp_con=='8':
-        sss = pmag.parse_site(specname, samp_con, Z)
-        sample=sss[1]
-        site=sss[2]
-    else:
-        site = pmag.parse_site(sample, samp_con, Z)
-    SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}
-    SpecRec["specimen"] = specname
-    SpecRec["sample"] = sample
-    SpecRec["volume"] = '%10.3e' % (vol) if vol else ""
-    SpecRec["geologic_classes"] = sclass
-    SpecRec["lithologies"] = lithology
-    SpecRec["geologic_types"] = _type
-    SpecRec["citations"] = "This study"
-    SpecRec["method_codes"] = ""
-    SpecRecs.append(SpecRec)
-
-    if sample != "" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
-        SampRec["sample"] = sample
-        SampRec["site"] = site
-        # convert to labaz, labpl
-        labaz, labdip = pmag.orient(az, pl, or_con)
-        SampRec["bed_dip"] = '%7.1f' % (bed_dip)
-        SampRec["bed_dip_direction"] = '%7.1f' % (bed_dip_dir)
-        SampRec["dip"] = '%7.1f' % (labdip)
-        SampRec["azimuth"] = '%7.1f' % (labaz)
-        SampRec["azimuth_dec_correction"] = '%7.1f' % (deccorr)
-        SampRec["geologic_classes"] = sclass
-        SampRec["lithologies"] = lithology
-        SampRec["geologic_types"] = _type
-        SampRec["method_codes"] = method_codes
-        SampRec["citations"] = "This study"
+    method_codes = ':'.join(methods)
+    SpecRecs.append({'specimen': specname, 'sample': sample,
+                     'volume': '%10.3e' % (vol) if vol else "",
+                     'citations': "This study", 'method_codes': ""})
+    if sample != "":
+        SampRecs = [x for x in SampRecs if x.get('sample', "") != sample]
+        SampRec = {'sample': sample, 'site': site, 'method_codes': method_codes,
+                   'citations': "This study", 'azimuth_dec_correction': '%7.1f' % (deccorr)}
+        if az is not None and pl is not None:
+            labaz, labdip = pmag.orient(az, pl, or_con)
+            SampRec['azimuth'], SampRec['dip'] = '%7.1f' % (labaz), '%7.1f' % (labdip)
+        if bed_dip_dir is not None and bed_dip is not None:
+            SampRec['bed_dip_direction'], SampRec['bed_dip'] = '%7.1f' % (bed_dip_dir), '%7.1f' % (bed_dip)
         SampRecs.append(SampRec)
-    if site != "" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
-        SiteRec['site'] = site
-        SiteRec['location'] = location
-        SiteRec['lat'] = lat
-        SiteRec['lon'] = lon
-        SiteRec["geologic_classes"] = sclass
-        SiteRec["lithologies"] = lithology
-        SiteRec["geologic_types"] = _type
-        SiteRec["age"] =""
-        SiteRec["age_low"] =""
-        SiteRec["age_high"] =""
-        SiteRec["age_unit"] =""
-        SiteRec["method_codes"] =""
-        SiteRec["citations"] ="This study"
-        SiteRecs.append(SiteRec)
+    SiteRecs.append({'site': site, 'location': location, 'lat': lat, 'lon': lon,
+                     'method_codes': "", 'citations': "This study"})
+    LocRecs.append({'location': location, 'lat_n': lat, 'lon_e': lon, 'lat_s': lat, 'lon_w': lon,
+                    'method_codes': "", 'citations': "This study", 'location_type': ""})
 
-    if location != "" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
-        LocRec['location'] = location
-        LocRec['lat_n'] = lat
-        LocRec['lon_e'] = lon
-        LocRec['lat_s'] = lat
-        LocRec['lon_w'] = lon
-        LocRec["geologic_classes"]=sclass
-        LocRec["lithologies"]=lithology
-        LocRec["age"]=""
-        LocRec["age_high"]=""
-        LocRec["age_low"]=""
-        LocRec["age_unit"]=""
-        LocRec["citations"]="This study"
-        LocRec["method_codes"]=""
-        LocRec["location_type"]=""
-        LocRecs.append(LocRec)
-
-    input_df = pd.DataFrame(steps)
-    # columns used below by position: 0 treatment, 1 dec, 2 inc, 7 moment
-    input_df = input_df.rename(columns={'treatment': 0, 'dec': 1, 'inc': 2,
-                                        'moment': 7, 'moment_volume': 8})
-    # a step whose label has no treatment value (e.g. 'mT') cannot be placed in the
-    # sequence: it is left out, with a warning
-    readable = [t == 'NRM' or re.search(r'\d', t) is not None for t in input_df[0]]
-    if not all(readable):
-        unreadable = [str(k + 1) + " ('" + t + "')" for k, t in enumerate(input_df[0]) if not readable[k]]
+    # measurements: the treatment of each step from its label (see Info)
+    tdec = [0, 90, 0, 180, 270, 0]   # lab field of anisotropy positions 1-6:
+    tinc = [0, 0, 90, 0, 0, -90]     # +x, +y, +z, -x, -y, -z
+    MeasRecs, unreadable, mismatch = [], [], 0
+    for k, step in enumerate(steps):
+        treatment = _2g_bin_treatment(step['treatment'], experiment)
+        if treatment is None:
+            unreadable.append("{} ('{}')".format(k + 1, step['treatment']))
+            continue
+        kind, value, code = treatment
+        code = code // 10 if code >= 10 else code  # XX.10 and XX.1 are the same code
+        rec = {'specimen': specname, 'quality': 'g', 'standard': 'u', 'meas_temp': '273',
+               'treat_temp': '273', 'treat_ac_field': '0', 'treat_dc_field': '0',
+               'treat_dc_field_phi': '0', 'treat_dc_field_theta': '0',
+               'dir_dec': step['dec'], 'dir_inc': step['inc'],
+               'magn_moment': '%10.3e' % (float(step['moment']) * 1e-3),  # Am^2 from emu
+               'citations': 'This study', 'analysts': user, 'instrument_codes': inst}
+        for axis in 'xyz':
+            if step[axis + '_sigma']:
+                rec['magn_{}_sigma'.format(axis)] = '%10.3e' % (float(step[axis + '_sigma']) * 1e-3)
+        if vol and step['moment_volume']:
+            # the moment per volume stored with the step should follow from the header volume
+            try:
+                stored = float(step['moment_volume'])
+                if stored and abs(float(step['moment']) / stored / vol_cc - 1) > 0.01:
+                    mismatch += 1
+            except ValueError:
+                pass
+        if kind == 'AF':
+            rec['treat_ac_field'] = '%10.3e' % (value * 1e-3)  # tesla from mT
+        elif kind == 'T':
+            rec['treat_temp'] = '%.2f' % (value + 273.)  # kelvin
+        field = '%10.3e' % (float(labfield) * 1e-6)  # tesla from microtesla
+        if kind == 'NRM':
+            lt, lp = 'LT-NO', ''
+        elif experiment == 'Demag':
+            lt, lp = ('LT-AF-Z', 'LP-DIR-AF') if kind == 'AF' else ('LT-T-Z', 'LP-DIR-T')
+        elif experiment == 'PI':
+            lp = 'LP-PI-TRM'
+            lt = {0: 'LT-T-Z', 1: 'LT-T-I', 2: 'LT-PTRM-I', 3: 'LT-PTRM-MD', 4: 'LT-PTRM-AC'}.get(code)
+            if lt is None:
+                print('-W- {}: step {} has an unknown paleointensity code and is left out'.format(
+                    specname, step['treatment']))
+                continue
+            if code in (1, 2, 4):
+                rec.update(treat_dc_field=field, treat_dc_field_phi=str(labfield_phi),
+                           treat_dc_field_theta=str(labfield_theta))
+        elif experiment in ('ATRM', 'AARM'):
+            lp = 'LP-AN-TRM' if experiment == 'ATRM' else 'LP-AN-ARM'
+            if code == 0:
+                lt = 'LT-T-Z' if experiment == 'ATRM' else 'LT-AF-Z'
+            elif experiment == 'ATRM' and code == 7:  # alteration check, in the +x position
+                lt = 'LT-PTRM-I'
+                rec.update(treat_dc_field=field, treat_dc_field_phi='0', treat_dc_field_theta='0')
+            elif 1 <= code <= 6:
+                lt = 'LT-T-I' if experiment == 'ATRM' else 'LT-AF-I'
+                rec.update(treat_dc_field=field, treat_dc_field_phi=str(tdec[code - 1]),
+                           treat_dc_field_theta=str(tinc[code - 1]))
+            else:
+                print('-W- {}: step {} has an unknown anisotropy position and is left out'.format(
+                    specname, step['treatment']))
+                continue
+        else:  # CR
+            lp = 'LP-CR-TRM'
+            if code == 0:
+                lt = 'LT-T-Z'
+            else:
+                lt = 'LT-PTRM-I' if code == 7 else 'LT-T-I'
+                rec.update(treat_dc_field=field, treat_dc_field_phi=str(labfield_phi),
+                           treat_dc_field_theta=str(labfield_theta))
+                rate = cooling_times_list[-1] if code == 7 else (
+                    cooling_times_list[code - 1] if code <= len(cooling_times_list) else None)
+                if rate is None:
+                    print('-W- {}: step {} has no cooling rate in cooling_times_list and is left '
+                          'out'.format(specname, step['treatment']))
+                    continue
+                rec['description'] = 'cooling rate: {} K/min'.format(rate)
+        if experiment != 'Demag' and lt not in ('LT-NO', 'LT-T-Z', 'LT-AF-Z', 'LT-PTRM-MD') and not labfield:
+            message = 'labfield is needed for the in-field steps of a {} experiment'.format(experiment)
+            print(message)
+            return False, message
+        rec['method_codes'], rec['protocol'], rec['label'] = lt, lp, step['treatment']
+        MeasRecs.append(rec)
+    if unreadable:
         print('-W- {}: step(s) {} have no treatment value and are left out'.format(
             specname, ', '.join(unreadable)))
-        input_df = input_df[readable].reset_index(drop=True)
-    columns=['treat_temp','treat_ac_field','treat_dc_field','treat_dc_field_phi',
-             'treat_dc_field_theta','method_codes','treat_type','aniso_type']
-    meas_df=pd.DataFrame()
-    treat_df=pd.DataFrame(columns=columns)
+    if mismatch:
+        print('-W- {}: the moment per volume stored with {} step(s) was not computed with the '
+              'volume of the header ({} cc); magn_volume is computed with the header volume'.format(
+                  mag_file, mismatch, header['volume']))
+    if not MeasRecs:
+        print("no measurements in", mag_file)
+        return False, "no measurements in " + mag_file
 
-    meas_df['treat_step_num']=range(len(input_df))
-    meas_df['specimen']=specname
-    meas_df['quality']='g'
-    meas_df['standard']='u'
-
-    treatments=input_df[0].tolist()
-
-    for t in treatments:
-        this_treat_df=pd.DataFrame(columns=columns)
-        this_treat_df['method_codes']=['LT-NO']
-        this_treat_df['treat_ac_field']=[0]
-        this_treat_df['treat_temp']=[273]
-        this_treat_df['treat_type']=0
-        this_treat_df['treat_dc_field']=0
-        this_treat_df['treat_dc_field_phi']=0
-        this_treat_df['treat_dc_field_theta']=0
-        this_treat_df['aniso_type']=""
-        if 'mT' in t:        
-            treat_code=t.strip('mT').split('.')
-            this_treat_df['treat_ac_field']=[float(treat_code[0])*1e-3] # convert to tesla
-            if len(treat_code)>1:this_treat_df['treat_type']=int(treat_code[1])
-            this_treat_df['treat_temp']=[273]
-            if int(treat_code[0])==0:
-                this_treat_df['method_codes']=['LT-NO']
-            elif labfield==0:
-                this_treat_df['method_codes']=['LT-AF-Z']
-            elif labfield:
-                this_treat_df['method_codes']=['LT-AF-I']
-                this_treat_df['treat_dc_field']=labfield*1e-3 # convert to tesla
-                this_treat_df['treat_dc_field_phi']=labfield_phi
-                this_treat_df['treat_dc_field_theta']=labfield_theta
-
-
-
-
-        elif 'C' in t or t!='NRM' and float(t.split('.')[0])!=0: # assume thermal
-            treat_code=t.strip('C').split('.')
-            if len(treat_code)>1:this_treat_df['treat_type']=int(treat_code[1])
-            this_treat_df['method_codes']=['LT-T-Z']
-            this_treat_df['treat_ac_field']=0 # convert to tesla
-            this_treat_df['treat_temp']=[float(treat_code[0])+273] # convert to kelvin
-            if labfield:
-                LPcode='LP-PI-TRM'
-                if int(treat_code[1])==3:
-                    this_treat_df['method_codes']=['LT-T-Z:LT-PTRM-MD']
-                elif int(treat_code[1])==1: 
-                    this_treat_df['method_codes']=['LT-T-I']
-                    this_treat_df['treat_dc_field']=labfield*1e-3 # convert to tesla
-                    this_treat_df['treat_dc_field_phi']=labfield_phi
-                    this_treat_df['treat_dc_field_theta']=labfield_theta
-
-
-                elif int(treat_code[1])==2: 
-                    this_treat_df['method_codes']=['LT-T-I:LT-PTRM-I']
-                    this_treat_df['treat_dc_field']=labfield*1e-3 # convert to tesla
-                    this_treat_df['treat_dc_field_phi']=labfield_phi
-                    this_treat_df['treat_dc_field_theta']=labfield_theta
-            else:
-                LPcode='LP-DIR-T'
-
-        treat_df=pd.concat([treat_df,this_treat_df])
-    
-    treat_df['treat_step_num']=range(len(input_df))
-    meths=treat_df['method_codes'].unique()
-    LPcode=""
-    if 'LT-AF-Z' in meths:
-        if labfield:
-            LPcode='LP-PI-ARM'
-            treat_df['aniso_type']='AARM'
+    # the protocol of the experiment: for Demag, thermal, alternating field or both
+    protocols = [p for p in ('LP-DIR-T', 'LP-DIR-AF', 'LP-PI-TRM', 'LP-AN-TRM', 'LP-AN-ARM', 'LP-CR-TRM')
+                 if p in {rec['protocol'] for rec in MeasRecs}]
+    experiment_name = '_'.join([specname] + protocols)
+    # replicates (the same label one after another): averaged as vectors (DE-VM), unless
+    # noave is True; with savelast the last one is kept. The order of the file is kept.
+    MeasOuts = []
+    for rec in MeasRecs:
+        same = (MeasOuts and MeasOuts[-1]['label'] == rec['label']
+                and MeasOuts[-1]['method_codes'] == rec['method_codes'])
+        if same and savelast:
+            MeasOuts[-1] = rec
+        elif same and not noave:
+            MeasOuts[-1].setdefault('replicates', [MeasOuts[-1].copy()]).append(rec)
         else:
-            LPcode='LP-DIR-AF'
-    elif 'LT-T-Z' in meths:
-        if labfield:
-            LPcode='LP-PI-TRM'
-        else:
-            LPcode='LP-DIR-T'
-        
-    if experiment:
-        if 'ATRM' in experiment:
-            LPcode='LP-AN-TRM'
-            treat_df['aniso_type']='ATRM'
-        if 'AARM' in experiment:
-            LPcode='LP-AN-AARM'
-        if experiment == 'CR':
-            if command_line:
-                cooling_times = sys.argv[ind+1]
-                cooling_times_list = cooling_times.split(',')
-            noave = True
-            
-    meas_df=pd.merge(meas_df,treat_df,on='treat_step_num')
-    meas_df['dir_dec']=input_df[1].values # specimen coordinates
-    meas_df['dir_inc']=input_df[2].values
-    meas_df['magn_moment']=input_df[7].astype('float').values*1e-3 # moment in Am^2 (from emu)
-    if vol:
-        meas_df['magn_volume']=input_df[8].astype('float').values*1e3 # A/m (from emu/cc)
-    meas_df['magn_x_sigma']=input_df['x_sigma'].astype('float').values*1e-3 # Am^2 (from emu)
-    meas_df['magn_y_sigma']=input_df['y_sigma'].astype('float').values*1e-3 # Am^2 (from emu)
-    meas_df['magn_z_sigma']=input_df['z_sigma'].astype('float').values*1e-3 # Am^2 (from emu)
-    meas_df['citations']='This study'
-    meas_df['analysts']=user
-    meas_df['instrument_codes']=inst
-    meas_df['method_codes']=meas_df['method_codes']+':'+LPcode
-    meas_df['measurement']=meas_df['treat_step_num'].astype('str')
-    meas_df['experiment']=specname+'_'+LPcode
-    meas_df.drop(columns=['treat_type'],inplace=True)
-    meas_df = meas_df.astype(object).fillna("")
-    meas_dicts = meas_df.to_dict('records')                                              
-    pmag.magic_write(output_dir_path+'/'+meas_file, meas_dicts, 'measurements')
+            MeasOuts.append(rec)
+    for k, rec in enumerate(MeasOuts):
+        replicates = rec.pop('replicates', None)
+        if replicates:
+            vectors = [pmag.dir2cart([float(r['dir_dec']), float(r['dir_inc']), float(r['magn_moment'])])
+                       for r in replicates]
+            dec, inc, moment = pmag.cart2dir(np.mean(vectors, axis=0))
+            rec.update(dir_dec='%.1f' % dec, dir_inc='%.1f' % inc, magn_moment='%10.3e' % moment,
+                       description='mean of {} measurements'.format(len(replicates)))
+            rec['method_codes'] += ':DE-VM'
+            for axis in 'xyz':  # no single standard deviation for a mean
+                rec.pop('magn_{}_sigma'.format(axis), None)
+        if vol:
+            rec['magn_volume'] = '%10.3e' % (float(rec['magn_moment']) / vol)  # A/m
+        rec['method_codes'] = ':'.join([rec['method_codes']] + protocols)
+        rec['experiment'] = experiment_name
+        rec['measurement'] = '{}-{}'.format(experiment_name, k + 1)
+        rec['sequence'] = str(k + 1)
+        rec['treat_step_num'] = str(k + 1)
+        rec['software_packages'] = pmag.get_version()
+        del rec['protocol'], rec['label']
+    SpecRecs[0]['method_codes'] = ':'.join(protocols)
 
-# save to files
+    # save to files
     con = cb.Contribution(output_dir_path, read_tables=[])
-
+    con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
     con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
     con.add_magic_table_from_data(dtype='locations', data=LocRecs)
-    #MeasOuts = pmag.measurements_methods3(meas_dicts, noave,savelast=False)
-    #con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
+    con.write_table_to_file('measurements', custom_name=meas_file)
     con.write_table_to_file('specimens', custom_name=spec_file)
     con.write_table_to_file('samples', custom_name=samp_file)
     con.write_table_to_file('sites', custom_name=site_file)
     con.write_table_to_file('locations', custom_name=loc_file)
-    #con.write_table_to_file('measurements', custom_name=meas_file)
-    return True, meas_file
+    return True, os.path.join(output_dir_path, meas_file)
 
 # 2G ascii file conversion
 
@@ -674,10 +746,6 @@ def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
     output_dir_path = dir_path
     mag_file_path = pmag.resolve_file_name(mag_file, input_dir_path)
     version_num=pmag.get_version()
-    try:
-        SampRecs, file_type = pmag.magic_read(samp_file)
-    except:
-        SampRecs = []
     meas_reqd_columns=['specimen','quality','method_codes',\
                        'citations','standard',\
                        'treat_temp','treat_ac_field','treat_dc_field',\
@@ -718,27 +786,32 @@ def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
         print("bad asc file")
         return False, "bad asc file"
 
-    if specnum != 0:
-        sample = specname[:specnum]
-    else:
-        sample = specname
-    methods = gmeths.split(':')
-    # parse out the site name
-    sample=specname
+    sample = specname[:specnum] if specnum != 0 else specname
     if samp_con=='8':
-        sss = pmag.parse_site(specname, samp_con, Z)
-        sample=sss[1]
-        site=sss[2]
-    else: 
+        if specname.count('_') < 2:
+            message = '{}: naming convention 8 needs names of the form site_sample_specimen'.format(specname)
+            print(message)
+            return False, message
+        sample, site = pmag.parse_site(specname, samp_con, Z)[1:]
+    else:
         site = pmag.parse_site(sample, samp_con, Z)
-        if specnum!=0:
-            sample=specname[:specnum]
-    if meta_dict and meta_dict['GM']!='0': # declination correction provided
-        if 'SO-MAG' in methods:
-            del methods[methods.index('SO-MAG')]
-        methods.append('SO-CMD-NORTH')
-        meths = reduce(lambda x, y: x+':'+y, methods)
-        method_codes = meths
+    # the header columns follow those of the binary file: core azimuth and plunge (CA, CP),
+    # bedding dip direction and dip (DA, DP), the overturned flag (O), the fold axis (FA, FP)
+    # and the declination correction (MD), which is added to the azimuths
+    def header_number(key):
+        try:
+            return float(meta_dict.get(key, '').strip())
+        except ValueError:
+            return None
+    deccorr = header_number('MD') or 0.
+    samp_methods = gmeths.split(':')
+    if deccorr != 0:
+        if 'SO-MAG' in samp_methods:
+            del samp_methods[samp_methods.index('SO-MAG')]
+        samp_methods.append('SO-CMD-NORTH')
+    if (header_number('FA') or 0) != 0 or (header_number('FP') or 0) != 0:
+        print('-W- {}: the header gives a fold axis ({}/{}), which is not applied'.format(
+            mag_file, meta_dict['FA'], meta_dict['FP']))
 # start by creating the measurements table
     meas_magic_df=pd.DataFrame(columns=meas_reqd_columns)
     meas_magic_df['dir_dec']=meas_df['CD'].values
@@ -759,25 +832,28 @@ def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
     meas_magic_df['DEMAG']=meas_df['DEMAG'].values
     meas_magic_df['method_codes']=""
     meas_magic_df['software_packages']=pmag.get_version()
-    meas_magic_df.loc[meas_magic_df['DEMAG'].str.contains('NRM'),'method_codes']='LT-NO' # NRM step
-    meas_magic_df.loc[meas_magic_df['DEMAG'].str.contains('NRM'),'treat_temp']=273
-    if experiment=='Demag':
-        # pick out thermal demag
-        therm_df=meas_magic_df[meas_magic_df['DEMAG'].str.contains('C')]
-        meas_magic_df=meas_magic_df[meas_magic_df['DEMAG'].str.contains('C')==False]
-        therm_df['method_codes']='LT-T-Z'
-        temps=therm_df['DEMAG'].str.strip('C')
-        therm_df['treat_temp']=temps.astype('float')+273 # convert to Kelvin
-        meas_magic_df=pd.concat([meas_magic_df,therm_df])
-        # pick out AF demag
-        af_df=meas_magic_df[meas_magic_df['DEMAG'].str.contains('mT')]
-        meas_magic_df=meas_magic_df[meas_magic_df['DEMAG'].str.contains('mT')==False]
-        af_df['method_codes']='LT-AF-Z'
-        afs=af_df['DEMAG'].str.strip('mT')
-        af_df['treat_ac_field']=afs.astype('float')*1e-3 # convert to tesla
-        meas_magic_df=pd.concat([meas_magic_df,af_df])
-    else:
-        print ('experiment ',experiment,' not supported yet - email ltauxe@ucsd.edu for support')
+    if experiment != 'Demag':
+        print('experiment', experiment, 'is not supported for 2G ascii files (Demag only)')
+        return False, 'experiment {} is not supported for 2G ascii files (Demag only)'.format(experiment)
+    # the treatment of each step from its label, as for the binary files (NRM, 350C, 20mT,
+    # or a temperature without a unit); steps without a value are left out
+    keep, unreadable = [], []
+    for k, label in enumerate(meas_magic_df['DEMAG'].astype(str)):
+        treatment = _2g_bin_treatment(label, 'Demag')
+        if treatment is None:
+            unreadable.append("{} ('{}')".format(k + 1, label.strip()))
+            keep.append(False)
+            continue
+        keep.append(True)
+        kind, value, code = treatment
+        row = meas_magic_df.index[k]
+        meas_magic_df.loc[row, 'treat_temp'] = value + 273. if kind == 'T' else 273.
+        meas_magic_df.loc[row, 'treat_ac_field'] = value * 1e-3 if kind == 'AF' else 0.
+        meas_magic_df.loc[row, 'method_codes'] = {'NRM': 'LT-NO', 'T': 'LT-T-Z', 'AF': 'LT-AF-Z'}[kind]
+    if unreadable:
+        print('-W- {}: step(s) {} have no treatment value and are left out'.format(
+            specname, ', '.join(unreadable)))
+    meas_magic_df = meas_magic_df[keep]
     meths=list(meas_magic_df['method_codes'].unique())
     if 'LT-T-Z' in meths and experiment=='Demag':
         meths.append('LP-DIR-T')
@@ -793,8 +869,8 @@ def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
     meas_magic_df['experiment']=specname+exp_methods
     meas_magic_df.drop(columns=['DEMAG'],inplace=True)
     meas_dicts=meas_magic_df.to_dict('records')
-    dicts=pmag.measurements_methods3(meas_dicts,noave)
-    
+    dicts=pmag.measurements_methods3(meas_dicts,noave,savelast=savelast)
+
     pmag.magic_write(dir_path+'/'+meas_file,dicts,'measurements')
 # now do specimens table
     spec_dict={}
@@ -813,14 +889,22 @@ def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
         samp_dict[col]="" # initialize specimen dictionary
     samp_dict['site']=site
     samp_dict['sample']=sample
-    samp_dict['method_codes']=methods
+    samp_dict['method_codes']=':'.join(samp_methods)
     samp_dict['citations']='This study'
     if meta_dict:
-        labaz, labdip = pmag.orient(float(meta_dict['CA']), float(meta_dict['CP']), or_con)
-        samp_dict['azimuth']=labaz
-        samp_dict['dip']=labdip
-        samp_dict['bed_dip_direction']=meta_dict['DA']
-        samp_dict['bed_dip']=meta_dict['DP']
+        samp_dict['azimuth_dec_correction'] = deccorr
+        azimuth, plunge = header_number('CA'), header_number('CP')
+        if azimuth is not None and plunge is not None:
+            labaz, labdip = pmag.orient((azimuth + deccorr) % 360, plunge, or_con)
+            samp_dict['azimuth']=labaz
+            samp_dict['dip']=labdip
+        bed_dip_direction, bed_dip = header_number('DA'), header_number('DP')
+        if bed_dip_direction is not None and bed_dip is not None:
+            bed_dip_direction = (bed_dip_direction + deccorr) % 360
+            if (header_number('O') or 0) != 0:  # overturned: dip direction + 180, dip 180 - dip
+                bed_dip_direction, bed_dip = (bed_dip_direction + 180) % 360, 180. - bed_dip
+            samp_dict['bed_dip_direction']=bed_dip_direction
+            samp_dict['bed_dip']=bed_dip
     pmag.magic_write(dir_path+'/'+samp_file,[samp_dict],'samples')
     # sites table
     site_dict={}
