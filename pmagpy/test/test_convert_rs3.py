@@ -27,7 +27,11 @@ class TestRs3Magic(unittest.TestCase):
         self.input_dir = os.path.join(WD, 'data_files', 'convert_2_magic', 'rs3_magic')
         self.filelist = ['specimens.txt', 'samples.txt', 'sites.txt', 'locations.txt',
                          'measurements.txt', 'custom_meas.txt', 'changed_P2.rs3',
-                         'agico_6_0_6_0.rs3', 'fiducial_3.rs3']
+                         'agico_6_0_6_0.rs3', 'fiducial_3.rs3', 'OL01-2B.rs3',
+                         'no_units.rs3', 'coordinates.rs3', 'PRG2-1C (2).rs3']
+        # files of Vernet et al. (2026) in a folder of their own, so that the
+        # conversions of the whole rs3_magic folder above leave them out
+        self.garrotxa_dir = os.path.join(self.input_dir, 'garrotxa')
 
     def tearDown(self):
         pmag.remove_files(self.filelist, WD)
@@ -40,6 +44,19 @@ class TestRs3Magic(unittest.TestCase):
         """a table as written, every value as text"""
         import pandas as pd
         return pd.read_csv(os.path.join(WD, table + '.txt'), sep='\t', header=1, dtype=str)
+
+    def changed_copy(self, source, name, changes):
+        """
+        write a copy of a test file to the working directory, with each
+        (old, new) pair of changes replaced in every line
+        """
+        with open(source, encoding='latin-1', newline='') as f:
+            text = f.read()
+        for old, new in changes:
+            self.assertIn(old, text)
+            text = text.replace(old, new)
+        with open(os.path.join(WD, name), 'w', encoding='latin-1', newline='') as f:
+            f.write(text)
 
     def fit(self, specimen, component, tilt_correction):
         """one row of the specimens table"""
@@ -389,3 +406,161 @@ class TestRs3Magic(unittest.TestCase):
         self.assertAlmostEqual(float(site_df.loc['PRG1', 'lon']), 10)
         meas_df = cb.MagicDataFrame(os.path.join(WD, 'custom_meas.txt')).df
         self.assertEqual(set(meas_df['instrument_codes']), {'instrument'})
+
+    def test_rs3_m_rows(self):
+        """
+        OL01-2B (Vernet et al., 2026): steps with ID M and a blank heading of the
+        step column (Step[]), and fit limits without a unit (100 250, 250 560).
+        The site was demagnetized thermally.
+        """
+        import pandas as pd
+        options = {'input_dir_path': self.garrotxa_dir, 'mag_file': 'OL01-2B.rs3'}
+        # the type of step is not guessed
+        program_ran, error_message = convert.rs3(**options)
+        self.assertFalse(program_ran)
+        self.assertIn('ID M', error_message)
+        self.assertIn('m_rows', error_message)
+        self.assertFalse(os.path.exists(os.path.join(WD, 'measurements.txt')))
+        program_ran, error_message = convert.rs3(m_rows='C', **options)
+        self.assertFalse(program_ran)
+        self.assertIn('m_rows', error_message)
+        # thermal steps in degrees C
+        program_ran, outfile = convert.rs3(m_rows='T', **options)
+        self.assertTrue(program_ran)
+        meas_df = self.raw('measurements')
+        self.assertEqual(len(meas_df), 12)
+        self.assertEqual(meas_df['method_codes'].iloc[0], 'LT-NO:LP-DIR-T')
+        self.assertEqual(set(meas_df['method_codes'].iloc[1:]), {'LT-T-Z:LP-DIR-T'})
+        self.assertEqual([float(t) - 273 for t in meas_df['treat_temp']],
+                         [0, 100, 150, 200, 250, 300, 350, 400, 450, 490, 530, 560])
+        self.assertTrue(pd.isnull(meas_df['description'].iloc[0]))
+        self.assertTrue(all('ID M' in d and 'm_rows' in d for d in meas_df['description'].iloc[1:]))
+        # the limits are in degrees C, like the steps
+        geo = self.fit('OL01-2B', 'CLowT', 0)
+        self.assertEqual(geo['method_codes'], 'DE-BFL:LP-DIR-T:DA-DIR-GEO')
+        self.assertAlmostEqual(float(geo['dir_dec']), 341.5)
+        self.assertAlmostEqual(float(geo['dir_inc']), 31.9)
+        self.assertAlmostEqual(float(geo['meas_step_min']), 100 + 273)
+        self.assertAlmostEqual(float(geo['meas_step_max']), 250 + 273)
+        self.assertEqual(geo['meas_step_unit'], 'K')
+        self.assertEqual(int(float(geo['dir_n_measurements'])), 4)
+        geo = self.fit('OL01-2B', 'CHighT', 0)
+        self.assertEqual(geo['method_codes'], 'DE-BFL-A:LP-DIR-T:DA-DIR-GEO')
+        self.assertAlmostEqual(float(geo['dir_mad_anc']), 2.8)
+        self.assertAlmostEqual(float(geo['meas_step_min']), 250 + 273)
+        self.assertAlmostEqual(float(geo['meas_step_max']), 560 + 273)
+        self.assertEqual(int(float(geo['dir_n_measurements'])), 8)
+        # or alternating field steps in mT, if that is what they were
+        program_ran, outfile = convert.rs3(m_rows='a', **options)
+        self.assertTrue(program_ran)
+        meas_df = self.raw('measurements')
+        self.assertEqual(set(meas_df['method_codes'].iloc[1:]), {'LT-AF-Z:LP-DIR-AF'})
+        self.assertAlmostEqual(float(meas_df['treat_ac_field'].iloc[4]), 0.25)
+        self.assertAlmostEqual(float(self.fit('OL01-2B', 'CHighT', 0)['meas_step_max']), 0.56)
+
+    def test_rs3_m_rows_with_unit(self):
+        """
+        M rows in a file whose step column gives a unit take that unit, also
+        when m_rows says otherwise
+        """
+        source = os.path.join(self.garrotxa_dir, 'OL01-2B.rs3')
+        self.changed_copy(source, 'OL01-2B.rs3', [('Step[]  ', 'Step[\xb0C]')])
+        program_ran, outfile = convert.rs3(mag_file='OL01-2B.rs3', input_dir_path=WD, m_rows='A')
+        self.assertTrue(program_ran)
+        meas_df = self.raw('measurements')
+        self.assertEqual(set(meas_df['method_codes'].iloc[1:]), {'LT-T-Z:LP-DIR-T'})
+        self.assertAlmostEqual(float(meas_df['treat_temp'].iloc[4]), 250 + 273)
+        self.assertIn('Step[\xb0C]', meas_df['description'].iloc[1])
+        self.changed_copy(source, 'OL01-2B.rs3', [('Step[]  ', 'Step[mT]')])
+        program_ran, outfile = convert.rs3(mag_file='OL01-2B.rs3', input_dir_path=WD)
+        self.assertTrue(program_ran)
+        meas_df = self.raw('measurements')
+        self.assertEqual(set(meas_df['method_codes'].iloc[1:]), {'LT-AF-Z:LP-DIR-AF'})
+
+    def test_rs3_limits_without_unit(self):
+        """
+        fit limits written as numbers alone take the unit of the steps: a copy
+        of PRG2-1C with the units of the limits left out gives the same fits
+        """
+        program_ran, outfile = convert.rs3(input_dir_path=self.input_dir, mag_file='PRG2-1C.rs3')
+        self.assertTrue(program_ran)
+        expected = self.raw('specimens')
+        self.changed_copy(os.path.join(self.input_dir, 'PRG2-1C.rs3'), 'no_units.rs3',
+                          [('8mT       90mT OA', '8         90   OA'), ('NRM       8mT ', 'NRM       8   ')])
+        program_ran, outfile = convert.rs3(mag_file='no_units.rs3', input_dir_path=WD)
+        self.assertTrue(program_ran)
+        self.assertTrue(self.raw('specimens').equals(expected))
+        self.assertAlmostEqual(float(self.fit('PRG2-1C', 'CA', 0)['meas_step_min']), 0.008)
+        # PRG6-2A has thermal and AF steps: the heading of the step column (mT) gives the unit
+        source = os.path.join(self.input_dir, 'PRG6-2A.rs3')
+        self.changed_copy(source, 'no_units.rs3', [('2mT       90mT', '2         90  ')])
+        program_ran, outfile = convert.rs3(mag_file='no_units.rs3', input_dir_path=WD)
+        self.assertTrue(program_ran)
+        self.assertAlmostEqual(float(self.fit('PRG6-2A', 'CA', 0)['meas_step_max']), 0.09)
+        # and without it, the unit is not clear
+        self.changed_copy(source, 'no_units.rs3', [('2mT       90mT', '2         90  '),
+                                                   ('Step[mT]', 'Step[  ]')])
+        program_ran, error_message = convert.rs3(mag_file='no_units.rs3', input_dir_path=WD)
+        self.assertFalse(program_ran)
+        self.assertIn('fit limit 2 not understood', error_message)
+
+    def test_rs3_coordinates_not_decimal(self):
+        # site coordinates in degrees, minutes and decimals of minutes go to the description
+        import pandas as pd
+        with open(os.path.join(self.input_dir, 'PRG2-1C.rs3'), encoding='latin-1', newline='') as f:
+            header = f.read().split('\n')[1]
+        self.assertEqual(header[20:40].strip(), '')
+        self.changed_copy(os.path.join(self.input_dir, 'PRG2-1C.rs3'), 'coordinates.rs3',
+                          [(header, header[:20] + '41.12.044 32.21.069 ' + header[40:])])
+        program_ran, outfile = convert.rs3(mag_file='coordinates.rs3', input_dir_path=WD)
+        self.assertTrue(program_ran)
+        site = self.raw('sites').iloc[0]
+        self.assertTrue(pd.isnull(site['lat']))
+        self.assertIn('Latitude in the file: 41.12.044', site['description'])
+        self.assertIn('Longitude in the file: 32.21.069', site['description'])
+        self.assertNotIn('lat_n', self.raw('locations').columns)
+
+    def test_rs3_specname(self):
+        """
+        GTX080101A and GTX080102A (Vernet et al., 2026): Remasoft kept 8
+        characters of the names it read from the 2G files, so both files name
+        the specimen GTX08010
+        """
+        import contextlib
+        import io
+        options = {'input_dir_path': self.garrotxa_dir, 'mag_file': ['GTX080101A.rs3', 'GTX080102A.rs3']}
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            program_ran, error_message = convert.rs3(**options)
+        self.assertFalse(program_ran)
+        self.assertIn('both hold specimen GTX08010', error_message)
+        self.assertIn('specname=True', error_message)
+        self.assertIn('-W- GTX080101A.rs3: the specimen name in the file, GTX08010, is the start of '
+                      'the file name; use specname=True', output.getvalue())
+        # named after the files
+        program_ran, outfile = convert.rs3(specname=True, **options)
+        self.assertTrue(program_ran)
+        meas_df = self.raw('measurements')
+        self.assertEqual(sorted(meas_df['specimen'].unique()), ['GTX080101A', 'GTX080102A'])
+        self.assertEqual(len(meas_df[meas_df['specimen'] == 'GTX080101A']), 15)
+        self.assertAlmostEqual(float(meas_df['treat_temp'].iloc[-1]), 540 + 273)
+        geo = self.fit('GTX080102A', 'C8', 0)
+        self.assertAlmostEqual(float(geo['meas_step_min']), 390 + 273)
+        self.assertAlmostEqual(float(geo['dir_dec']), 38.2)
+        self.assertEqual(sorted(self.raw('samples')['sample']), ['GTX080101A', 'GTX080102A'])
+        # one file alone converts under the name in the file, with the warning
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            program_ran, outfile = convert.rs3(input_dir_path=self.garrotxa_dir, mag_file='GTX080101A.rs3')
+        self.assertTrue(program_ran)
+        self.assertEqual(set(self.raw('measurements')['specimen']), {'GTX08010'})
+        self.assertIn('specname=True', output.getvalue())
+        # no warning for a file named after its specimen, nor for a copy such as 'PRG2-1C (2).rs3'
+        self.changed_copy(os.path.join(self.input_dir, 'PRG2-1C.rs3'), 'PRG2-1C (2).rs3', [])
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            program_ran, outfile = convert.rs3(
+                input_dir_path=WD, mag_file=[os.path.join(self.input_dir, 'PRG2-1C.rs3'), 'PRG2-1C (2).rs3'])
+        self.assertTrue(program_ran)
+        self.assertNotIn('specname', output.getvalue())
+        self.assertEqual(set(self.raw('measurements')['specimen']), {'PRG2-1C'})
