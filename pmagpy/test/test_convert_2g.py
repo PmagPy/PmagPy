@@ -277,8 +277,8 @@ class Test2gBin(unittest.TestCase):
         self.assertEqual(meas.experiment[0], 'MN001-1A_LP-DIR-T_LP-DIR-AF')
 
     def test_replicates(self):
-        # mn004-2b measures the NRM twice: averaged by default, all kept with noave, the
-        # last kept with savelast
+        # mn004-2b measures the NRM twice: all kept by default (noave=True), averaged with
+        # noave=False, the last kept with savelast
         name = 'mn004-2b.dat'
         shutil.copy(os.path.join(BIN, 'mn1', name), self.out)
         header, steps = convert._2g_bin_read(os.path.join(self.out, name))
@@ -286,12 +286,14 @@ class Test2gBin(unittest.TestCase):
         moments = [float(s['moment']) * 1e-3 for s in steps[:2]]
         self.run_2g(name)
         meas = table(self.out, 'measurements')
+        self.assertEqual(len(meas), len(steps))
+        self.assertFalse(meas.method_codes.str.contains('DE-VM').any())
+        self.run_2g(name, noave=False)
+        meas = table(self.out, 'measurements')
         self.assertIn('DE-VM', meas.method_codes[0])
         self.assertTrue(min(moments) < meas.magn_moment[0] < max(moments))
         self.assertAlmostEqual(meas.magn_volume[0] / (meas.magn_moment[0] / 10e-6), 1, places=6)
         self.assertTrue('magn_x_sigma' not in meas or pd.isna(meas.magn_x_sigma[0]))
-        self.run_2g(name, noave=True)
-        self.assertEqual(len(table(self.out, 'measurements')), len(steps))
         self.run_2g(name, savelast=True)
         meas = table(self.out, 'measurements')
         self.assertAlmostEqual(meas.magn_moment[0], moments[1])

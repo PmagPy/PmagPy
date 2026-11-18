@@ -153,7 +153,7 @@ def _2g_bin_treatment(label, experiment):
 def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt',
             spec_file="specimens.txt", samp_file="samples.txt", site_file="sites.txt",
             loc_file="locations.txt", or_con='5', specnum=0, samp_con='2', corr='1',specname=False,
-            gmeths="FS-FD:SO-POM", location="unknown", inst="", user="", noave=False, input_dir="",
+            gmeths="FS-FD:SO-POM", location="unknown", inst="", user="", noave=True, input_dir="",
             savelast=False,lat="", lon="",labfield=0, labfield_phi=0, labfield_theta=0,
             experiment="Demag", cooling_times_list=[]):
 
@@ -217,7 +217,7 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
     user : str
         user name, default ""
     noave : bool
-       do not average duplicate measurements, default False (so by default, DO average)
+       do not average replicate measurements, default True (every measurement is kept)
     savelast : bool
        take the last measurement if replicates at treatment step, default is False
     input_dir : str
@@ -305,8 +305,9 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
             XXX.1, XXX.2 ... in field with the cooling rates of
             cooling_times_list in that order, XXX.7 the alteration check
         NLT (non-linear TRM) is not supported.
-        Replicate steps (the same label one after another) are averaged
-        unless noave is True, or the last is kept with savelast.
+        Replicate steps (the same label one after another) are all kept by
+        default (noave=True); with noave=False they are averaged (DE-VM), and
+        with savelast the last is kept.
 
 
 
@@ -568,8 +569,8 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
     protocols = [p for p in ('LP-DIR-T', 'LP-DIR-AF', 'LP-PI-TRM', 'LP-AN-TRM', 'LP-AN-ARM', 'LP-CR-TRM')
                  if p in {rec['protocol'] for rec in MeasRecs}]
     experiment_name = '_'.join([specname] + protocols)
-    # replicates (the same label one after another): averaged as vectors (DE-VM), unless
-    # noave is True; with savelast the last one is kept. The order of the file is kept.
+    # replicates (the same label one after another): all kept (noave, the default), averaged
+    # as vectors (DE-VM) with noave=False, or the last kept with savelast. The order of the file is kept.
     MeasOuts = []
     for rec in MeasRecs:
         same = (MeasOuts and MeasOuts[-1]['label'] == rec['label']
@@ -622,7 +623,7 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
 def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
             spec_file="specimens.txt", samp_file="samples.txt", site_file="sites.txt",
             loc_file="locations.txt", lat="",lon="",or_con='5', specnum=0, samp_con='2',
-            gmeths="FS-FD:SO-POM", location="Not Specified", inst="", user="", noave=False, input_dir="",
+            gmeths="FS-FD:SO-POM", location="Not Specified", inst="", user="", noave=True, input_dir="",
             savelast=False,experiment="Demag"):
 
     """
@@ -664,7 +665,7 @@ def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
     user : str
         user name, default ""
     noave : bool
-       do not average duplicate measurements, default False (so by default, DO average)
+       do not average replicate measurements, default True (every measurement is kept)
     savelast : bool
        take the last measurement if replicates at treatment step, default is False
     input_dir : str

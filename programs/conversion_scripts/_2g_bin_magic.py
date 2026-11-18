@@ -36,8 +36,9 @@ OPTIONS
     -lon longitude of site (also used as bounding longitude for location)
     -spc NUM : specify number of characters to designate a  specimen, default = 0
     -ins INST : specify instsrument name
-    -A: do not average replicate measurements (by default they are averaged)
-    -sav: keep the last of replicate measurements instead of averaging them
+    -A: do not average replicate measurements (the default: every measurement is kept)
+    -ave: average replicate measurements (the same step one after another)
+    -sav: keep only the last of replicate measurements
     -fn: name each specimen after its file (the 2G software keeps 8 characters
          of a name, so longer names are cut and can be shared by specimens)
     -exp EXP: experiment type: Demag [default], PI, ATRM 6, AARM 6 or CR
@@ -150,6 +151,8 @@ def main():
         kwargs['inst'] = sys.argv[ind+1]
     if "-A" in sys.argv:
         kwargs['noave'] = True
+    if "-ave" in sys.argv:
+        kwargs['noave'] = False
     if "-sav" in sys.argv:
         kwargs['savelast'] = True
     if "-fn" in sys.argv:
