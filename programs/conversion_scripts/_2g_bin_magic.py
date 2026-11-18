@@ -36,36 +36,58 @@ OPTIONS
     -lon longitude of site (also used as bounding longitude for location)
     -spc NUM : specify number of characters to designate a  specimen, default = 0
     -ins INST : specify instsrument name
-    -A: average replicate measurements
+    -A: do not average replicate measurements (the default: every measurement is kept)
+    -ave: average replicate measurements (the same step one after another)
+    -sav: keep only the last of replicate measurements
+    -fn: name each specimen after its file (the 2G software keeps 8 characters
+         of a name, so longer names are cut and can be shared by specimens)
+    -exp EXP: experiment type: Demag [default], PI, ATRM 6, AARM 6 or CR
+         (put ATRM 6 and AARM 6 in quotes); see the step labels below
+    -dc B PHI THETA: lab field in microtesla, and its declination and
+         inclination in specimen coordinates (PI, ATRM, AARM, CR)
+    -cr RATES: cooling rates in K/min separated by commas, in the order of the
+         in-field steps XXX.1, XXX.2, ... (CR)
 
 INPUT FORMAT
     Input files are horrible mag binary format (who knows why?)
     Orientation convention:
         [1] Lab arrow azimuth= mag_azimuth; Lab arrow dip=-field_dip
-            i.e., field_dip is degrees from vertical down - the hade [default]
+            i.e., field_dip is degrees from vertical down - the hade
         [2] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = -field_dip
             i.e., mag_azimuth is strike and field_dip is hade
         [3] Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip
             i.e.,  lab arrow same as field arrow, but field_dip was a hade.
         [4] lab azimuth and dip are same as mag_azimuth, field_dip
-        [5] lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90
+        [5] lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90 [default]
+            (the convention of the 2G software)
         [6] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip
         [7] all others you will have to either customize your
             self or e-mail ltauxe@ucsd.edu for help.
 
      Magnetic declination convention:
-         Az will use supplied declination to correct azimuth
+         the declination correction stored in the file is added to the
+         azimuth and to the bedding dip direction
+
+   Step labels:
+        NRM, a temperature (350C, or 350) or an alternating field (20mT). For
+        PI, ATRM 6, AARM 6 and CR the decimal is the step code: PI XXX.0 zero
+        field, .1 in field, .2 pTRM check, .3 tail check, .4 additivity check;
+        ATRM/AARM XXX.0 baseline, .1 to .6 the lab field along +x, +y, +z, -x,
+        -y, -z (for AARM a baseline before each, e.g. 80.0 80.1 80.0 80.2 ...),
+        ATRM .7 alteration check; CR XXX.0 baseline, .1, .2, ... in
+        field with the cooling rates of -cr, .7 alteration check.
 
    Sample naming convention:
     [1] XXXXY: where XXXX is an arbitrary length site designation and Y
         is the single character sample designation.  e.g., TG001a is the
-        first sample from site TG001.    [default]
-    [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        first sample from site TG001.
+    [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length) [default]
     [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
     [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
     [5] site name = sample name
     [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
     [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
+    [8] site_sample_specimen: the three are separated by '_'
     NB: all others you will have to either customize your
         self or e-mail ltauxe@ucsd.edu for help.
 
@@ -129,10 +151,27 @@ def main():
         ind = sys.argv.index("-ins")
         kwargs['inst'] = sys.argv[ind+1]
     if "-A" in sys.argv:
-        kwargs['noave'] = 1
+        kwargs['noave'] = True
+    if "-ave" in sys.argv:
+        kwargs['noave'] = False
+    if "-sav" in sys.argv:
+        kwargs['savelast'] = True
+    if "-fn" in sys.argv:
+        kwargs['specname'] = True
+    if "-exp" in sys.argv:
+        ind = sys.argv.index("-exp")
+        kwargs['experiment'] = sys.argv[ind+1]
+    if "-dc" in sys.argv:
+        ind = sys.argv.index("-dc")
+        kwargs['labfield'] = float(sys.argv[ind+1])
+        kwargs['labfield_phi'] = float(sys.argv[ind+2])
+        kwargs['labfield_theta'] = float(sys.argv[ind+3])
+    if "-cr" in sys.argv:
+        ind = sys.argv.index("-cr")
+        kwargs['cooling_times_list'] = sys.argv[ind+1]
     if '-ID' in sys.argv:
         ind = sys.argv.index('-ID')
-        kwargs['ID'] = sys.argv[ind+1]
+        kwargs['input_dir'] = sys.argv[ind+1]
     if "-lat" in sys.argv:
         ind = sys.argv.index("-lat")
         kwargs['lat'] = sys.argv[ind+1]
@@ -140,7 +179,10 @@ def main():
         ind = sys.argv.index("-lon")
         kwargs['lon'] = sys.argv[ind+1]
 
-    convert._2g_bin(**kwargs)
+    program_ran, message = convert._2g_bin(**kwargs)
+    if not program_ran:
+        print("-E-", message)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
