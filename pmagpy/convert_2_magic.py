@@ -3065,7 +3065,9 @@ def col(mag_file="", dir_path=".", input_dir_path="",
 
     Measurements:
         The treatment of a step is the first number in its label, in degrees C
-        (thermal) or mT (alternating field); NRM is 0. A step of 0, or a first
+        (thermal) or mT (alternating field); NRM is 0. Steps whose label gives
+        no treatment (e.g. 'nrn', 'CHT') are left out, with a warning and a
+        note in the description of the specimen. A step of 0, or a first
         thermal step at or below 25 degrees C, is the NRM (LT-NO); the other
         steps are LT-T-Z or LT-AF-Z, and every step has LP-DIR-T or LP-DIR-AF.
         Steps without heating have treat_temp 273 K. The vectors are in
@@ -3089,6 +3091,13 @@ def col(mag_file="", dir_path=".", input_dir_path="",
         names the specimens in which a step left out of one fit is used by
         another, or steps with the same label cannot be told apart: their fits
         cannot be re-made from the measurements.
+
+    Warnings:
+        Each warning lists the first five names. Every row concerned is also
+        noted in its description: the fits that cannot be re-made or that have
+        steps not among the measurements, the specimens with steps left out,
+        and the samples with specimens of different orientations or in more
+        than one site.
 
     Orientation:
         Paleomagnetism.org gives the azimuth of the core (coreAzimuth) and the
@@ -3224,7 +3233,7 @@ def col(mag_file="", dir_path=".", input_dir_path="",
                 copies.append({'collection': collection, 'spec': spec, 'fits': fits, 'has_fits': bool(fits)})
 
     # the demagnetization type of each specimen, and the values given for what the files lack
-    untyped, unlikely = [], []
+    untyped, unlikely, unreadable = [], [], {}
     for entry in copies:
         spec, name = entry['spec'], entry['spec']['name']
         demag_type = _col_demag_type(spec.get('demagnetizationType')) or _col_type_from_labels(spec['steps'])
@@ -3241,6 +3250,12 @@ def col(mag_file="", dir_path=".", input_dir_path="",
             untyped.append(name)
         entry['type'] = demag_type
         filled = dict(spec)
+        # steps whose label gives no treatment (e.g. 'nrn', 'CHT') are left out, with a note
+        readable = [step for step in spec['steps'] if _col_step_value(step['step']) is not None]
+        if len(readable) < len(spec['steps']):
+            unreadable[name] = [str(step['step']) for step in spec['steps']
+                                if _col_step_value(step['step']) is None]
+            filled['steps'] = readable
         if not (_col_is_set(spec.get('latitude')) and _col_is_set(spec.get('longitude'))) and \
                 _col_is_set(lat) and _col_is_set(lon):
             filled['latitude'], filled['longitude'] = float(lat), float(lon)
@@ -3258,6 +3273,15 @@ def col(mag_file="", dir_path=".", input_dir_path="",
     if unlikely:
         print('-W- check the type given with demag of {} specimen(s): {}{}'.format(
             len(unlikely), ', '.join(unlikely[:5]), ', ...' if len(unlikely) > 5 else ''))
+    if unreadable:
+        listed = ['{} ({})'.format(name, ', '.join(labels)) for name, labels in unreadable.items()]
+        print('-W- in {} specimen(s) steps whose label gives no treatment are left out (each is noted in '
+              'the description of the specimen): {}{}'.format(
+                  len(listed), '; '.join(listed[:5]), '; ...' if len(listed) > 5 else ''))
+        empty = [entry['spec']['name'] for entry in copies if not entry['spec']['steps']]
+        if empty:
+            print('-W- {} specimen(s) have no readable steps and are skipped: {}'.format(len(empty), ', '.join(empty)))
+            copies = [entry for entry in copies if entry['spec']['steps']]
 
     def classes(values):
         return _col_join(values) or geologic_classes
@@ -3339,8 +3363,10 @@ def col(mag_file="", dir_path=".", input_dir_path="",
         else:
             if sample_orientations[sample] != (azimuth, dip, bed_dip_direction, bed_dip) and sample not in conflicts:
                 conflicts.append(sample)
-            if samples[sample]['site'] != site and sample not in site_conflicts:
-                site_conflicts[sample] = (samples[sample]['site'], site)
+            if samples[sample]['site'] != site:
+                in_sites = site_conflicts.setdefault(sample, [samples[sample]['site']])
+                if site not in in_sites:
+                    in_sites.append(site)
         site = samples[sample]['site']
         samples[sample]['specimens'].append((spec, protocol))
         sites.setdefault(site, []).append((spec, protocol))
@@ -3404,8 +3430,14 @@ def col(mag_file="", dir_path=".", input_dir_path="",
             base['lithologies'] = _col_join([spec.get('lithology')]) or lithologies
         if user:
             base['analysts'] = user
+        specimen_notes = []
+        if name in unreadable:
+            specimen_notes.append('steps left out, as their labels give no treatment: ' + ', '.join(unreadable[name]))
         if not (interpretations and written):
-            SpecRecs.append(dict(base, method_codes=protocol, **step_range(range(len(treatments)))))
+            SpecRec = dict(base, method_codes=protocol, **step_range(range(len(treatments))))
+            if specimen_notes:
+                SpecRec['description'] = '; '.join(specimen_notes)
+            SpecRecs.append(SpecRec)
             continue
         components = []
         for fit in written:
@@ -3420,8 +3452,16 @@ def col(mag_file="", dir_path=".", input_dir_path="",
             else:
                 fit_code = 'DE-BFL'
             indices = _col_fit_steps(spec['steps'], fit)[0]
-            if len(indices) < len(fit['steps']) and name not in unmatched:
-                unmatched.append(name)
+            fit_notes = list(specimen_notes)
+            if len(indices) < len(fit['steps']):
+                if name not in unmatched:
+                    unmatched.append(name)
+                fit_notes.append('{} of the {} steps stored with the fit are not among the measurements'.format(
+                    len(fit['steps']) - len(indices), len(fit['steps'])))
+            if conflict:
+                fit_notes.append('the fits of this specimen cannot be re-made from the measurements: a step '
+                                 'left out of one fit is used by another, or steps with the same label cannot '
+                                 'be told apart')
             FitRec = dict(base, dir_comp=group if count == 0 else '{}_{}'.format(group, count + 1),
                           dir_n_measurements=str(len(indices)), result_quality='g',
                           software_packages='Paleomagnetism.org {}'.format(fit.get('version') or '').strip(),
@@ -3455,6 +3495,7 @@ def col(mag_file="", dir_path=".", input_dir_path="",
                                  '(McFadden and McElhinny, 1988): {:.1f} / {:.1f}'.format(fdec, finc))
                 if fit.get('comment'):
                     notes.append(str(fit['comment']))
+                notes += fit_notes
                 if notes:
                     SpecRec['description'] = '; '.join(notes)
                 SpecRecs.append(SpecRec)
@@ -3465,22 +3506,23 @@ def col(mag_file="", dir_path=".", input_dir_path="",
     if conflicts:
         print('-W- {} sample(s) have specimens (or copies of a specimen) with different orientations or '
               'bedding: {}{}. The samples table holds the orientation of the first, so the geographic '
-              'and tilt-corrected directions of the others do not follow from it.'.format(
+              'and tilt-corrected directions of the others do not follow from it (each sample is noted '
+              'in its description).'.format(
                   len(conflicts), ', '.join(conflicts[:5]), ', ...' if len(conflicts) > 5 else ''))
     if site_conflicts:
-        listed = ['{} ({}, {})'.format(sample, *pair) for sample, pair in site_conflicts.items()]
+        listed = ['{} ({})'.format(sample, ', '.join(in_sites)) for sample, in_sites in site_conflicts.items()]
         print('-W- {} sample(s) belong to more than one site: {}{}. The samples table holds the first '
-              'site, so the specimens from the others are written in it. Give samp_con, or rename the '
-              'specimens, to keep them apart.'.format(
+              'site, so the specimens from the others are written in it (each sample is noted in its '
+              'description). Give samp_con, or rename the specimens, to keep them apart.'.format(
                   len(listed), ', '.join(listed[:5]), ', ...' if len(listed) > 5 else ''))
     if unmatched:
         print('-W- in {} specimen(s) a step stored with a fit is not among the measurements, so the fit '
-              'counts only the steps found: {}{}'.format(
+              'counts only the steps found (each fit is noted in its description): {}{}'.format(
                   len(unmatched), ', '.join(unmatched[:5]), ', ...' if len(unmatched) > 5 else ''))
     if skip_conflicts:
         print('-W- in {} specimen(s) a fit cannot be re-made from the measurements, because a step left '
-              'out of one fit is used by another, or steps with the same label cannot be told apart: '
-              '{}{}'.format(len(skip_conflicts), ', '.join(skip_conflicts[:5]),
+              'out of one fit is used by another, or steps with the same label cannot be told apart '
+              '(each fit is noted in its description): {}{}'.format(len(skip_conflicts), ', '.join(skip_conflicts[:5]),
                             ', ...' if len(skip_conflicts) > 5 else ''))
 
     SampRecs = []
@@ -3504,6 +3546,15 @@ def col(mag_file="", dir_path=".", input_dir_path="",
             SampRec['lithologies'] = _col_join([spec.get('lithology') for spec in members]) or lithologies
         if user:
             SampRec['analysts'] = user
+        notes = []
+        if sample in conflicts:
+            notes.append('its specimens (or copies of a specimen) have different orientations or bedding; '
+                         'this row has those of the first')
+        if sample in site_conflicts:
+            notes.append('also in site(s) {}, whose specimens of this sample are written in this site'.format(
+                ', '.join(site_conflicts[sample][1:])))
+        if notes:
+            SampRec['description'] = '; '.join(notes)
         SampRecs.append(SampRec)
 
     SiteRecs = []

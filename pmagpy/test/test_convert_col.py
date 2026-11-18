@@ -145,12 +145,24 @@ class TestColMagic(unittest.TestCase):
         self.assertAlmostEqual(float(last['treat_temp']), 140 + 273)
 
     def test_col_unreadable_step_label(self):
+        # a step whose label gives no treatment is left out, with a warning and a note
         def label(specimens):
-            specimens[0]['steps'][3]['step'] = 'x'
-        path = self.changed('28E.col', label)
-        program_ran, error_message = convert.col(mag_file=path)
-        self.assertFalse(program_ran)
-        self.assertEqual(error_message, '28E1A (changed): the treatment of step x could not be read')
+            specimens[0]['steps'][3]['step'] = 'x'      # 15, outside the fit of 28E1A
+            specimens[1]['steps'][6]['step'] = 'nrn'
+        printed = self.convert(mag_file=self.changed('28E.col', label))
+        self.assertIn('in 2 specimen(s) steps whose label gives no treatment are left out', printed)
+        self.assertIn('28E1A (x)', printed)
+        self.assertEqual(len(self.measurements('28E1A')), 14)
+        specimens = self.read('specimens')
+        rows = specimens[specimens['specimen'] == '28E1A']
+        self.assertTrue(rows['description'].str.contains('steps left out, as their labels give no treatment: x').all())
+        # a specimen with no readable step is skipped
+        def unreadable(specimens):
+            for step in specimens[0]['steps']:
+                step['step'] = 'x'
+        printed = self.convert(mag_file=self.changed('28E.col', unreadable))
+        self.assertIn('1 specimen(s) have no readable steps and are skipped: 28E1A', printed)
+        self.assertNotIn('28E1A', list(self.read('specimens')['specimen']))
 
     def test_col_measurements(self):
         with contextlib.redirect_stdout(io.StringIO()):
@@ -237,6 +249,8 @@ class TestColMagic(unittest.TestCase):
         printed = self.convert(mag_file=self.changed('28E.col', relabel))
         self.assertIn('in 1 specimen(s) a step stored with a fit is not among the measurements', printed)
         self.assertEqual(int(self.fit('28E1A', -1)['dir_n_measurements']), 10)
+        self.assertIn('1 of the 11 steps stored with the fit are not among the measurements',
+                      self.fit('28E1A', -1)['description'])
 
     def test_col_skipped_step_used_by_another_fit(self):
         def second_fit(specimens):
@@ -248,6 +262,8 @@ class TestColMagic(unittest.TestCase):
         self.assertIn('28E1A', printed)
         # the step is used by the second fit, so it stays good
         self.assertTrue((self.measurements('28E1A')['quality'][2:] == 'g').all())
+        # every fit of the specimen is noted, so the full list is in the tables
+        self.assertTrue(self.fits('28E1A')['description'].str.contains('cannot be re-made').all())
 
     def test_col_assumed_volumes(self):
         def assumed(specimens):
@@ -459,6 +475,8 @@ class TestColMagic(unittest.TestCase):
         printed = self.convert(mag_file=self.changed('28E.col', same_sample))
         self.assertIn('1 sample(s) have specimens (or copies of a specimen) with different orientations', printed)
         self.assertEqual(len(self.read('samples')), 3)
+        samples = self.read('samples').set_index('sample')
+        self.assertIn('different orientations', samples.loc['28E1A', 'description'])
 
     def test_col_same_specimen_in_two_files(self):
         # the same file twice: each specimen and fit is written once
@@ -478,6 +496,8 @@ class TestColMagic(unittest.TestCase):
         # the first, with a warning
         self.assertIn('-W- 1 sample(s) belong to more than one site: 28E1A (28E, changed)', printed)
         self.assertEqual(list(self.read('sites')['site']), ['28E'])
+        samples = self.read('samples').set_index('sample')
+        self.assertIn('also in site(s) changed', samples.loc['28E1A', 'description'])
         # the same names in another collection with other measurements: every sample is in two sites
         def all_remeasured(specimens):
             for spec in specimens:
