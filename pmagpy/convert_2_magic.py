@@ -10345,9 +10345,11 @@ def _rs3_read_file(rs3_file):
     head : dict
         header fields as strings, keyed by the names in the first line of the
         file (Name, Site, Latitude, Longitude, Height, Rock, Age, Fm, SDec,
-        SInc, BDec, BInc, FDec, FInc, P1, P2, P3, P4, Note); empty where blank
+        SInc, BDec, BInc, FDec, FInc, P1, P2, P3, P4, Note); empty where blank;
+        and 'Step unit', the unit in the heading of the step column of the
+        third line (Step[mT], Step[°C]), empty when it is blank (Step[ ])
     steps : list of dicts
-        measurement rows: ID (N, T or A), Step and M (as written in the file),
+        measurement rows: ID (N, T, A or M), Step and M (as written in the file),
         and Dsp, Isp, Dge, Ige, Dtc, Itc, Dfc, Ifc, Prec as floats or None
     fits : list of dicts
         interpretations stored by Remasoft: ID (C for a line, G for a great
@@ -10382,6 +10384,10 @@ def _rs3_read_file(rs3_file):
     # nine fields of six characters, the susceptibility, and the limits and
     # note under their names in the third line
     direction_keys = ['Dsp', 'Isp', 'Dge', 'Ige', 'Dtc', 'Itc', 'Dfc', 'Ifc', 'Prec']
+    # the unit of the steps, in the heading of the step column; the ordinal
+    # sign some encodings put in place of the degree sign is read as one
+    unit = re.match(r'ID\s+Step\[([^\]]*)\]', lines[2])
+    head['Step unit'] = unit.group(1).replace('\xba', '\xb0').strip() if unit else ''
     limit1_start, limit2_start = lines[2].index('Limit1'), lines[2].index('Limit2')
     note_start = lines[2].index('Note')
     steps, fits = [], []
@@ -10411,9 +10417,17 @@ def _rs3_read_file(rs3_file):
     return head, steps, fits
 
 
-def _rs3_limit(label):
+def _rs3_limit(label, bare_unit=''):
     """
     Convert a Remasoft fit limit ('NRM', '35mT', '300°C') to MagIC units.
+
+    Parameters
+    ----------
+    label : str
+        the limit as written in the file
+    bare_unit : str
+        unit ('mT' or 'C') of a limit written as a number alone ('35'),
+        default '': such a limit is not understood
 
     Returns
     ---------
@@ -10422,6 +10436,8 @@ def _rs3_limit(label):
     """
     if label == 'NRM':
         return 0., None, ''
+    if bare_unit and re.match(r'(\d+\.?\d*|\.\d+)$', label):
+        label += bare_unit
     try:
         if label.endswith('mT'):
             number = float(label[:-2])
@@ -10484,7 +10500,7 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
         samp_file="samples.txt", site_file="sites.txt", loc_file="locations.txt",
         specnum=0, samp_con='1', location="unknown", lat="", lon="",
         noave=True, meth_code="", instrument="", user="",
-        interpretations=True, tolerance=0.5):
+        interpretations=True, tolerance=0.5, m_rows="", specname=False):
     """
     Convert Remasoft .rs3 files to MagIC format files.
 
@@ -10542,6 +10558,14 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
         largest angle in degrees allowed between the geographic (or
         tilt-corrected) directions stored in a file and those calculated from
         the converted orientation (or bedding), default 0.5
+    m_rows : str
+        type of the steps in rows with ID M when the heading of the step
+        column gives no unit (Step[ ]): 'T' for thermal steps in degrees C,
+        'A' for alternating field steps in mT; default "", with which such
+        files are not converted (see Measurements below)
+    specname : bool
+        if True, name each specimen after its file name without the extension;
+        if False (default), use the name in the file (see Files below)
 
     Returns
     ---------
@@ -10553,6 +10577,14 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
         A file without measurements is skipped. When two files hold the same
         specimen with identical headers and measurements, the one with more
         stored fits is used; if they differ, the conversion stops.
+        The specimen name is the Name field of the file, unless specname is
+        True. Remasoft keeps the first 8 characters of a name it read from a
+        2G file, so specimens whose names differ only after the 8th character
+        (GTX080101A and GTX080102A) can share a name in their .rs3 files; a
+        warning suggests specname=True when the name in a file is a shorter
+        start of its file name (leaving out a copy suffix such as ' (2)').
+        With specname=True, copies of a file under
+        another name are different specimens.
 
     Orientation:
         The header gives the sample orientation (SDec, SInc), the bedding
@@ -10585,13 +10617,19 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
 
     Measurements:
         Rows with ID N are the NRM, T thermal steps in degrees C and A
-        alternating field steps in mT. The moment is volume normalized (A/m)
-        and the directions written are in specimen coordinates. Each row
-        keeps its own treatment: an A row at 0 mT after a heating is LT-AF-Z,
-        not LT-NO. The experiment of a specimen is LP-DIR-T, LP-DIR-AF, or
-        LP-DIR-T:LP-DIR-AF when it has both kinds of steps, and is written to
-        every measurement and to the specimens table (experiments and, for a
-        specimen without stored fits, method_codes).
+        alternating field steps in mT. Remasoft writes ID M when the type of
+        step was not set (e.g. for steps labelled with numbers only), and then
+        usually leaves the heading of the step column blank (Step[ ]). M rows
+        are thermal steps if the heading reads Step[°C], alternating field
+        steps if it reads Step[mT], and otherwise of the type given by m_rows;
+        without it, the conversion stops. The description of each such
+        measurement says how its type was set. The moment is volume
+        normalized (A/m) and the directions written are in specimen
+        coordinates. Each row keeps its own treatment: an A row at 0 mT after
+        a heating is LT-AF-Z, not LT-NO. The experiment of a specimen is
+        LP-DIR-T, LP-DIR-AF, or LP-DIR-T:LP-DIR-AF when it has both kinds of
+        steps, and is written to every measurement and to the specimens table
+        (experiments and, for a specimen without stored fits, method_codes).
 
     Interpretations:
         Each stored fit is written to the specimens table in specimen,
@@ -10608,6 +10646,8 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
         the Fisher mean of the selected steps; how the file marks that is not
         known, and every G row is written as a plane.
         The file records only the first and last step of a fit, as labels.
+        A limit written as a number alone (250) is in the unit of the steps
+        of the file (degrees C for T rows, mT for A rows).
         dir_n_measurements is the number of steps between them, which is wrong
         if steps inside the range were left out of the fit. A note saved with a
         fit is written to the description.
@@ -10622,12 +10662,19 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
         [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
         [5] site name = sample name
         [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
-        A site name in the Site field of a file takes precedence.
+        A site name in the Site field of a file takes precedence. Latitude
+        and longitude in a file that are not decimal degrees (41.12.044) are
+        written to the description of the site instead, with a warning.
     """
     input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
     specnum = - int(specnum)
     samp_con = str(samp_con)
     version_num = pmag.get_version()
+    m_rows = str(m_rows).strip().upper()
+    if m_rows not in ('', 'T', 'A'):
+        message = "m_rows must be 'T' (thermal steps in degrees C) or 'A' (alternating field steps in mT)"
+        print(message)
+        return False, message
 
     # the convention is the number before the hyphen ("7-4" is convention 7)
     if samp_con.startswith("4"):
@@ -10679,15 +10726,33 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
             print(ex)
             return False, str(ex)
         file_name = os.path.split(rs3_file)[1]
-        specimen = head['Name']
+        stem = os.path.splitext(file_name)[0]
         if not steps:
             print('-W- {} has no measurements, skipped'.format(file_name))
             continue
+        # specimen name: the name in the file, or the file name
+        specimen = head['Name']
+        shortened = False
+        if specname:
+            specimen = stem
+        elif not specimen:
+            print('-W- {} gives no specimen name; the file name is used'.format(file_name))
+            specimen = stem
+        else:
+            # Remasoft keeps 8 characters of a name read from a 2G file; a
+            # copy suffix such as ' (2)' in the file name is not part of the name
+            copy_stem = re.sub(r'\s*\(\d+\)$', '', stem)
+            shortened = len(copy_stem) > len(specimen) and copy_stem.upper().startswith(specimen.upper())
+        if shortened:
+            print('-W- {}: the specimen name in the file, {}, is the start of the file name; '
+                  'use specname=True to name the specimen after the file'.format(file_name, specimen))
         if specimen in contents:
             other_name, other_head, other_steps, other_fits = contents[specimen]
             if head != other_head or steps != other_steps:
                 message = '{} and {} both hold specimen {}, with different headers or measurements'.format(
                     other_name, file_name, specimen)
+                if shortened:
+                    message += '; use specname=True to name the specimens after their files'
                 print(message)
                 return False, message
             print('-W- {} and {} hold the same measurements of specimen {}; the file with more '
@@ -10705,6 +10770,37 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
             site = head['Site']
         else:
             site = pmag.parse_site(sample, samp_con, Z)
+
+        # rows with ID M: the type of step from the unit of the step column, or from m_rows
+        if any(step['ID'] == 'M' for step in steps):
+            unit = head.get('Step unit', '')
+            m_type = {'\xb0C': 'T', 'C': 'T', 'mT': 'A'}.get(unit, '')
+            if m_type:
+                m_note = 'Remasoft ID M; {} step from the unit of the step column (Step[{}])'.format(
+                    {'T': 'thermal', 'A': 'alternating field'}[m_type], unit)
+            elif m_rows:
+                m_type = m_rows
+                m_note = 'Remasoft ID M; {} step as set by m_rows'.format(
+                    {'T': 'thermal', 'A': 'alternating field'}[m_type])
+            else:
+                message = ("{}: the heading of the step column (Step[{}]) does not give the type of "
+                           "the steps with ID M; set m_rows to 'T' (degrees C) or 'A' (mT)").format(
+                               file_name, unit)
+                print(message)
+                return False, message
+            print('-W- {}: {} rows with ID M read as {} steps'.format(
+                file_name, sum(step['ID'] == 'M' for step in steps),
+                {'T': 'thermal (degrees C)', 'A': 'alternating field (mT)'}[m_type]))
+            for step in steps:
+                if step['ID'] == 'M':
+                    step['ID'] = m_type
+                    step['note'] = m_note
+        # fit limits written as numbers alone are in the unit of the steps
+        step_types = set(step['ID'] for step in steps) - set(['N'])
+        if len(step_types) == 1:
+            bare_unit = {'T': 'C', 'A': 'mT'}.get(step_types.pop(), '')
+        else:
+            bare_unit = {'\xb0C': 'C', 'C': 'C', 'mT': 'mT'}.get(head.get('Step unit', ''), '')
 
         # sample orientation and bedding, checked against the directions in the file
         azimuth, dip, bed_dip_direction, bed_dip = "", "", "", ""
@@ -10805,6 +10901,16 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
             if head.get('Height'):
                 SiteRec['height'] = head['Height']
             notes = ['{}: {}'.format(key, head[key]) for key in ('Rock', 'Age', 'Fm', 'Note') if head.get(key)]
+            # coordinates that are not decimal degrees (41.12.044) go to the description
+            for key, column in (('Latitude', 'lat'), ('Longitude', 'lon')):
+                try:
+                    if str(SiteRec[column]).strip():
+                        float(SiteRec[column])
+                except ValueError:
+                    print('-W- {}: {} {} is not in decimal degrees and is written to the description '
+                          'of site {}'.format(file_name, key, SiteRec[column], site))
+                    notes.append('{} in the file: {}'.format(key, SiteRec[column]))
+                    SiteRec[column] = ''
             if notes:
                 SiteRec['description'] = '; '.join(notes)
             SiteRecs.append(SiteRec)
@@ -10851,8 +10957,9 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
             MeasRec["dir_dec"] = '%7.1f' % (step['Dsp'])
             MeasRec["dir_inc"] = '%7.1f' % (step['Isp'])
             MeasRec['method_codes'] = meas_type
-            if rotation_note:
-                MeasRec['description'] = rotation_note
+            notes = [note for note in (step.get('note', ''), rotation_note) if note]
+            if notes:
+                MeasRec['description'] = '; '.join(notes)
             if instrument:
                 MeasRec['instrument_codes'] = instrument
             if user:
@@ -10910,10 +11017,12 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
                 descriptions.append(fit['note'])
             # limits of the fit, in tesla or kelvin
             try:
-                number1, value1, unit1 = _rs3_limit(fit['Limit1'])
-                number2, value2, unit2 = _rs3_limit(fit['Limit2'])
+                number1, value1, unit1 = _rs3_limit(fit['Limit1'], bare_unit)
+                number2, value2, unit2 = _rs3_limit(fit['Limit2'], bare_unit)
             except ValueError as ex:
                 message = '{}: {}'.format(file_name, ex)
+                if not bare_unit and any(re.match(r'(\d+\.?\d*|\.\d+)$', fit[key]) for key in ('Limit1', 'Limit2')):
+                    message += '; a limit without a unit takes the unit of the steps, which is not clear in this file'
                 print(message)
                 return False, message
             unit = unit2 or unit1
