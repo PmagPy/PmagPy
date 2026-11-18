@@ -189,12 +189,30 @@ class Test2gBin(unittest.TestCase):
         self.write(data[:last - 1] + second + data[last - 1:])
         ok, msg, printed = self.run_2g('changed.dat', noave=True)
         self.assertTrue(ok, msg)
-        self.assertIn('the file holds 2 headers (measurement sessions)', printed)
+        self.assertIn('the file holds 2 headers (measurement sessions, or a header repeated)', printed)
         self.assertIn('17/42', printed)
         self.assertIn('99/42', printed)
         header, steps = convert._2g_bin_read(os.path.join(self.out, 'changed.dat'))
         self.assertEqual(steps[-1]['session'], 1)
         self.assertEqual(len(steps), len(convert._2g_bin_read(MN001)[1]))
+
+    def test_full_header_after_the_steps(self):
+        # the first header record holds only the name, and the full header follows the steps (as in
+        # MA05-4A of Durán-Oreja et al.): the full header is read
+        data = read_bytes(MN001)
+        start = header_start(data)
+        full = data[start - 1:start + 137]
+        name_only = data[start:start + 14] + b'\x00' * 123
+        self.write(data[:start] + name_only + data[start + 137:] + full)
+        header, steps = convert._2g_bin_read(os.path.join(self.out, 'changed.dat'))
+        self.assertEqual(len(header['headers']), 2)
+        self.assertEqual((header['azimuth'], header['dip'], header['date']), ('17', '42', 'Apr 23 2006'))
+        self.assertEqual(len(steps), len(convert._2g_bin_read(MN001)[1]))
+        ok, msg, printed = self.run_2g('changed.dat', noave=True)
+        self.assertTrue(ok, msg)
+        self.assertIn('The orientation of the first complete header (with a date) is used', printed)
+        samp = table(self.out, 'samples').iloc[0]
+        self.assertAlmostEqual(samp.azimuth, (17 - 0.9) % 360, places=5)
 
     def test_unusual_header(self):
         # a header whose fields are not where they are in other 2G files (here two bytes are

@@ -42,14 +42,16 @@ def _2g_bin_read(mag_file_path):
     160-1, attached to Paleomagnetism.org issue 72 as an example of a file
     with a broken step record; its header is 141 bytes long.) A step record
     is found by its number followed by a 0xCD byte, outside the header
-    records. A file can hold more than one header, when measurements were
-    added in another session.
+    records. A file can hold more than one header record: when measurements
+    were added in another session, or when the first holds only the name and
+    the full header is repeated after the steps. The header returned is the
+    first complete one (with a date).
 
     Returns
     -------
     header : dict of str (name, volume, azimuth, dip, bed_dip_direction,
         bed_dip, overturned, fold_azimuth, fold_plunge, dec_corr, date) from
-        the first header, with 'headers', the list of all headers in the file
+        the first complete header, with 'headers', the list of all headers in the file
     steps : list of dict of str, one per step: treatment label, directions in
         specimen, geographic and tilt-corrected coordinates, moment (emu),
         moment/volume (emu/cc), the x, y and z components and their standard
@@ -112,7 +114,9 @@ def _2g_bin_read(mag_file_path):
             continue  # an interrupted record; the step is repeated later
         step['session'] = sum(1 for h in headers if h['start'] < marker) - 1
         steps.append(step)
-    header = dict(headers[0], headers=headers)
+    # the header read is the first complete one (with a date): some files begin with a header
+    # record that holds only the name, and repeat the full header after the steps
+    header = dict(next((h for h in headers if h['date']), headers[0]), headers=headers)
     return header, steps
 
 
@@ -394,8 +398,9 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
         described = ['{} {}'.format(h['date'] or 'no date',
                                     '/'.join([h['azimuth'], h['dip']]) if h['azimuth'] and h['dip']
                                     else 'no orientation') for h in header['headers']]
-        print('-W- {}: the file holds {} headers (measurement sessions): {}. The orientation of the '
-              'first is used for all steps; check the steps after the first session.'.format(
+        print('-W- {}: the file holds {} headers (measurement sessions, or a header repeated): {}. '
+              'The orientation of the first complete header (with a date) is used for all steps; '
+              'check the steps after the first session.'.format(
                   mag_file, len(described), '; '.join(described)))
 
     # orientation and bedding, from the first header. Empty fields are missing values,
