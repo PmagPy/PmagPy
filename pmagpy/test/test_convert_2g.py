@@ -330,15 +330,25 @@ class Test2gBin(unittest.TestCase):
                          ['LT-T-Z'] + ['LT-T-I'] * 6 + ['LT-PTRM-I'])
         self.assertEqual(list(meas.treat_dc_field_phi[1:7]), [0, 90, 0, 180, 270, 0])
         self.assertEqual(list(meas.treat_dc_field_theta[1:7]), [0, 0, 90, 0, 0, -90])
+        # AARM: a baseline before each in-field step, as ipmag.aarm_magic and thellier_gui pair them
+        labels = [b'%d.%dmT' % (field, code) for field in (80, 90) for k in range(1, 7) for code in (0, k)]
+        self.assertEqual(len(labels), len(step_starts(read_bytes(MN001))))
+        self.write(relabel(read_bytes(MN001), labels))
+        ok, msg, printed = self.run_2g('changed.dat', experiment='AARM 6', labfield=50, noave=True)
+        self.assertTrue(ok, msg)
+        self.assertNotIn('needs a baseline', printed)
+        meas = table(self.out, 'measurements')
+        self.assertEqual([c.split(':')[0] for c in meas.method_codes[:12]], ['LT-AF-Z', 'LT-AF-I'] * 6)
+        self.assertTrue(meas.method_codes[:12].str.contains('LP-AN-ARM').all())
+        self.assertAlmostEqual(meas.treat_ac_field[3], 0.08)
+        self.assertAlmostEqual(meas.treat_dc_field[3], 50e-6)
+        self.assertEqual(list(meas.treat_dc_field_phi[1:12:2]), [0, 90, 0, 180, 270, 0])
+        # a single baseline: a warning
         labels = [b'80.0mT', b'80.1mT', b'80.2mT', b'80.3mT', b'80.4mT', b'80.5mT', b'80.6mT']
         self.write(relabel(read_bytes(MN001), labels))
         ok, msg, printed = self.run_2g('changed.dat', experiment='AARM 6', labfield=50, noave=True)
         self.assertTrue(ok, msg)
-        meas = table(self.out, 'measurements')
-        self.assertEqual([c.split(':')[0] for c in meas.method_codes[:7]], ['LT-AF-Z'] + ['LT-AF-I'] * 6)
-        self.assertTrue(meas.method_codes[:7].str.contains('LP-AN-ARM').all())
-        self.assertAlmostEqual(meas.treat_ac_field[3], 0.08)
-        self.assertAlmostEqual(meas.treat_dc_field[3], 50e-6)
+        self.assertIn('an AARM experiment needs a baseline (XXX.0) before each in-field step', printed)
         # other numbers of positions are not supported
         ok, msg, printed = self.run_2g('changed.dat', experiment='AARM 9', labfield=50)
         self.assertFalse(ok)
@@ -354,8 +364,18 @@ class Test2gBin(unittest.TestCase):
         meas = table(self.out, 'measurements')
         self.assertEqual([c.split(':')[0] for c in meas.method_codes[:4]],
                          ['LT-T-Z', 'LT-T-I', 'LT-T-I', 'LT-PTRM-I'])
+        # the form thellier_gui reads (cooling_rate:<rate>:K/min)
         self.assertEqual(list(meas.description[1:4]),
-                         ['cooling rate: 10 K/min', 'cooling rate: 1 K/min', 'cooling rate: 1 K/min'])
+                         ['cooling_rate:10:K/min', 'cooling_rate:1:K/min', 'cooling_rate:1:K/min'])
+        # averaged replicates keep the rate at the end of the description
+        self.write(relabel(read_bytes(MN001), [b'500.0C', b'500.1C', b'500.1C', b'500.7C']))
+        ok, msg, printed = self.run_2g('changed.dat', experiment='CR', labfield=40,
+                                       cooling_times_list='10,1', noave=False)
+        self.assertTrue(ok, msg)
+        meas = table(self.out, 'measurements')
+        self.assertEqual(meas.description[1], 'mean of 2 measurements; cooling_rate:10:K/min')
+        description = meas.description[1].split(':')
+        self.assertEqual(float(description[description.index('K/min') - 1]), 10)
         # non-linear TRM is not supported
         ok, msg, printed = self.run_2g('changed.dat', experiment='NLT', labfield=40)
         self.assertFalse(ok)
@@ -378,25 +398,79 @@ class Test2gBin(unittest.TestCase):
         shutil.copy(MN001, self.out)
         self.run_2g('mn001-1a.dat')
         self.assertEqual(sorted(table(self.out, 'samples')['sample']), ['MN001-1A', 'MN017-1B'])
-        # a sample converted again replaces its row (here with the orientation left empty)
+        # a sample converted again: the fields the file gives are updated, its other columns kept
+        samples = table(self.out, 'samples')
+        samples['lat'], samples['lithologies'] = 45.5, 'Basalt'
+        samples.loc[samples['sample'] == 'MN001-1A', 'azimuth'] = 999
+        with open(os.path.join(self.out, 'samples.txt'), 'w') as f:
+            f.write('tab\tsamples\n')
+            samples.to_csv(f, sep='\t', index=False)
+        self.run_2g('mn001-1a.dat')
+        samples = table(self.out, 'samples').set_index('sample')
+        self.assertEqual(len(samples), 2)
+        self.assertAlmostEqual(samples.loc['MN001-1A', 'azimuth'], (17 - 0.9) % 360, places=5)
+        self.assertEqual((samples.loc['MN001-1A', 'lat'], samples.loc['MN001-1A', 'lithologies']), (45.5, 'Basalt'))
+        # a file without an orientation leaves the orientation of the row as it is
         data = read_bytes(MN001)
         start = header_start(data)
         self.write(set_field(data, start + 101, start + 106, b''), 'mn001-1a.dat')
         self.run_2g('mn001-1a.dat')
         samples = table(self.out, 'samples').set_index('sample')
-        self.assertEqual(len(samples), 2)
-        self.assertTrue(pd.isna(samples.loc['MN001-1A', 'azimuth']))
+        self.assertAlmostEqual(samples.loc['MN001-1A', 'azimuth'], (17 - 0.9) % 360, places=5)
+
+    def test_rejected_remeasurement(self):
+        # a step whose stored geographic direction does not follow from the header orientation,
+        # unlike the other steps, is marked b with a note
+        data = read_bytes(MN001)
+        third = step_starts(data)[2]
+        geo_dec = float(data[third + 25:third + 31].split(b'\x00')[0])
+        self.write(set_field(data, third + 25, third + 31, b'%.1f' % ((geo_dec + 30) % 360)))
+        ok, msg, printed = self.run_2g('changed.dat')
+        self.assertTrue(ok, msg)
+        self.assertIn('1 step(s) have a stored geographic direction that does not follow from the header', printed)
+        meas = table(self.out, 'measurements')
+        self.assertEqual(list(meas.quality[:4]), ['g', 'g', 'b', 'g'])
+        self.assertIn('probably a rejected remeasurement', meas.description[2])
+        # when most steps do not follow from it, the orientation is in doubt: a warning, no b
+        start = header_start(data)
+        self.write(set_field(data, start + 101, start + 106, b'47'))
+        ok, msg, printed = self.run_2g('changed.dat')
+        self.assertIn('the orientation may have been changed after the measurements', printed)
+        self.assertTrue((table(self.out, 'measurements').quality == 'g').all())
+
+    def cli(self, *args):
+        script = os.path.join(WD, 'programs', 'conversion_scripts', '_2g_bin_magic.py')
+        return subprocess.run([sys.executable, script, '-ID', self.out, '-WD', self.out] + list(args),
+                              capture_output=True, text=True, env=dict(os.environ, PYTHONPATH=WD))
 
     def test_command_line(self):
         shutil.copy(MN001, self.out)
-        script = os.path.join(WD, 'programs', 'conversion_scripts', '_2g_bin_magic.py')
-        result = subprocess.run([sys.executable, script, '-f', 'mn001-1a.dat', '-ID', self.out,
-                                 '-WD', self.out, '-A', '-fn'], capture_output=True, text=True,
-                                env=dict(os.environ, PYTHONPATH=WD))
+        result = self.cli('-f', 'mn001-1a.dat', '-fn')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         meas = table(self.out, 'measurements')
         self.assertEqual(meas.specimen[0], 'mn001-1a')
         self.assertEqual(len(meas), len(convert._2g_bin_read(MN001)[1]))
+        # replicates: all kept by default (and with -A), averaged with -ave, the last kept with -sav
+        shutil.copy(os.path.join(BIN, 'mn1', 'mn004-2b.dat'), self.out)
+        labels = [s['treatment'] for s in convert._2g_bin_read(os.path.join(self.out, 'mn004-2b.dat'))[1]]
+        n_steps = len(labels)
+        n_runs = sum(1 for k, label in enumerate(labels) if k == 0 or labels[k - 1] != label)
+        self.assertLess(n_runs, n_steps)
+        for flags, n in (([], n_steps), (['-A'], n_steps), (['-ave'], n_runs), (['-sav'], n_runs)):
+            result = self.cli('-f', 'mn004-2b.dat', *flags)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(len(table(self.out, 'measurements')), n, flags)
+        # an experiment with a lab field and cooling rates; without the rates it fails with status 1
+        self.write(relabel(read_bytes(MN001), [b'500.0C', b'500.1C', b'500.2C', b'500.7C']))
+        result = self.cli('-f', 'changed.dat', '-exp', 'CR', '-dc', '40', '0', '90', '-cr', '10,1')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        meas = table(self.out, 'measurements')
+        self.assertAlmostEqual(meas.treat_dc_field[1], 40e-6)
+        self.assertEqual(meas.treat_dc_field_theta[1], 90)
+        self.assertEqual(meas.description[1], 'cooling_rate:10:K/min')
+        result = self.cli('-f', 'changed.dat', '-exp', 'CR', '-dc', '40', '0', '90')
+        self.assertEqual(result.returncode, 1)
+        self.assertIn('cooling_times_list', result.stdout)
 
 
 class Test2gAsc(unittest.TestCase):
@@ -423,9 +497,25 @@ class Test2gAsc(unittest.TestCase):
             self.assertLess(angle(tilt, (r.RD, r.RI)), 0.2)
         # NRM: M is the moment in emu
         self.assertAlmostEqual(meas.magn_moment[0], raw.M[0] * 1e-3)
+        self.assertEqual(os.path.realpath(msg), os.path.realpath(os.path.join(self.out, 'measurements.txt')))
         # sampling method codes on the samples, lab protocols on the specimens
         self.assertEqual(samp.method_codes, 'FS-FD:SO-POM')
         self.assertIn('LP-DIR', table(self.out, 'specimens').method_codes[0])
+
+    def test_alternating_field_and_savelast(self):
+        name = 'OK3_15af.asc'
+        shutil.copy(os.path.join(ASC, name), self.out)
+        ok, msg = convert._2g_asc(dir_path=self.out, input_dir=self.out, mag_file=name)
+        self.assertTrue(ok, msg)
+        meas = table(self.out, 'measurements')
+        self.assertTrue(meas.method_codes[1:].str.startswith('LT-AF-Z').all())
+        self.assertTrue((meas.treat_ac_field[1:] > 0).all())
+        # the last of replicate steps
+        name = 'DR3B.asc'
+        shutil.copy(os.path.join(ASC, name), self.out)
+        ok, msg = convert._2g_asc(dir_path=self.out, input_dir=self.out, mag_file=name, savelast=True)
+        self.assertTrue(ok, msg)
+        self.assertGreater(len(table(self.out, 'measurements')), 0)
 
     def test_declination_and_overturned_bed(self):
         # MD is added to the azimuths; O flags an overturned bed

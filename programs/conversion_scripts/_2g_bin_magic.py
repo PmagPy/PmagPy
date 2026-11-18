@@ -73,7 +73,8 @@ INPUT FORMAT
         PI, ATRM 6, AARM 6 and CR the decimal is the step code: PI XXX.0 zero
         field, .1 in field, .2 pTRM check, .3 tail check, .4 additivity check;
         ATRM/AARM XXX.0 baseline, .1 to .6 the lab field along +x, +y, +z, -x,
-        -y, -z, ATRM .7 alteration check; CR XXX.0 baseline, .1, .2, ... in
+        -y, -z (for AARM a baseline before each, e.g. 80.0 80.1 80.0 80.2 ...),
+        ATRM .7 alteration check; CR XXX.0 baseline, .1, .2, ... in
         field with the cooling rates of -cr, .7 alteration check.
 
    Sample naming convention:

@@ -265,8 +265,8 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
    Sample naming convention:
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
-            first sample from site TG001.    [default]
-        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+            first sample from site TG001.
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length) [default]
         [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
         [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
         [5] site name = sample name
@@ -299,7 +299,9 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
             anisotropy of TRM (thermal) or ARM (alternating field) in 6
             positions: XXX.0 baseline in zero field, XXX.1 to XXX.6 the lab
             field along +x, +y, +z, -x, -y, -z, and for ATRM XXX.7 the
-            alteration check (along +x)
+            alteration check (along +x). For AARM a baseline precedes each
+            in-field step (80.0, 80.1, 80.0, 80.2, ...), as ipmag.aarm_magic
+            and thellier_gui pair them; a warning is printed otherwise
         CR:
             cooling rate experiment: XXX.0 baseline in zero field (optional),
             XXX.1, XXX.2 ... in field with the cooling rates of
@@ -308,6 +310,12 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
         Replicate steps (the same label one after another) are all kept by
         default (noave=True); with noave=False they are averaged (DE-VM), and
         with savelast the last is kept.
+        Each step also stores its direction in geographic coordinates. A step
+        whose stored direction is more than 1 degree from the one given by the
+        header orientation, while most steps of the specimen agree with it, was
+        probably remeasured and rejected: it is written with quality b and a
+        note, and is not averaged with its replicates. When most steps disagree,
+        the orientation itself is in doubt and a warning is printed.
 
 
 
@@ -456,16 +464,21 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
     SpecRecs.append({'specimen': specname, 'sample': sample,
                      'volume': '%10.3e' % (vol) if vol else "",
                      'citations': "This study", 'method_codes': ""})
+    labaz, labdip = pmag.orient(az, pl, or_con) if az is not None and pl is not None else (None, None)
     if sample != "":
-        SampRecs = [x for x in SampRecs if x.get('sample', "") != sample]
+        # the fields that the file gives; a sample already in the samples file of the output
+        # directory keeps its other columns (e.g. position, lithology)
         SampRec = {'sample': sample, 'site': site, 'method_codes': method_codes,
-                   'citations': "This study", 'azimuth_dec_correction': '%7.1f' % (deccorr)}
-        if az is not None and pl is not None:
-            labaz, labdip = pmag.orient(az, pl, or_con)
+                   'azimuth_dec_correction': '%7.1f' % (deccorr)}
+        if labaz is not None:
             SampRec['azimuth'], SampRec['dip'] = '%7.1f' % (labaz), '%7.1f' % (labdip)
         if bed_dip_dir is not None and bed_dip is not None:
             SampRec['bed_dip_direction'], SampRec['bed_dip'] = '%7.1f' % (bed_dip_dir), '%7.1f' % (bed_dip)
-        SampRecs.append(SampRec)
+        existing = next((x for x in SampRecs if x.get('sample', "") == sample), None)
+        if existing is None:
+            SampRecs.append(dict(SampRec, citations="This study"))
+        else:
+            existing.update(SampRec)
     SiteRecs.append({'site': site, 'location': location, 'lat': lat, 'lon': lon,
                      'method_codes': "", 'citations': "This study"})
     LocRecs.append({'location': location, 'lat_n': lat, 'lon_e': lon, 'lat_s': lat, 'lon_w': lon,
@@ -486,6 +499,7 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
                'treat_temp': '273', 'treat_ac_field': '0', 'treat_dc_field': '0',
                'treat_dc_field_phi': '0', 'treat_dc_field_theta': '0',
                'dir_dec': step['dec'], 'dir_inc': step['inc'],
+               'geo_dec': step['geo_dec'], 'geo_inc': step['geo_inc'],
                'magn_moment': '%10.3e' % (float(step['moment']) * 1e-3),  # Am^2 from emu
                'citations': 'This study', 'analysts': user, 'instrument_codes': inst}
         for axis in 'xyz':
@@ -547,7 +561,7 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
                     print('-W- {}: step {} has no cooling rate in cooling_times_list and is left '
                           'out'.format(specname, step['treatment']))
                     continue
-                rec['description'] = 'cooling rate: {} K/min'.format(rate)
+                rec['description'] = 'cooling_rate:{}:K/min'.format(rate)  # as thellier_gui reads it
         if experiment != 'Demag' and lt not in ('LT-NO', 'LT-T-Z', 'LT-AF-Z', 'LT-PTRM-MD') and not labfield:
             message = 'labfield is needed for the in-field steps of a {} experiment'.format(experiment)
             print(message)
@@ -565,6 +579,40 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
         print("no measurements in", mag_file)
         return False, "no measurements in " + mag_file
 
+    # each step stores its direction in geographic coordinates too. A step whose stored direction
+    # does not follow from the header orientation, while most steps of the specimen do, was
+    # probably remeasured and rejected: it is marked b. When most steps do not follow from it,
+    # the orientation itself is in doubt (e.g. changed after the measurements), and it is reported.
+    if labaz is not None:
+        misfits = []
+        for rec in MeasRecs:
+            try:
+                geo = pmag.dogeo(float(rec['dir_dec']), float(rec['dir_inc']), labaz, labdip)
+                stored = (float(rec['geo_dec']), float(rec['geo_inc']))
+                misfits.append(float(pmag.angle(geo, stored)[0]))
+            except (KeyError, ValueError):
+                misfits.append(None)
+        checked = [m for m in misfits if m is not None]
+        off = [k for k, m in enumerate(misfits) if m is not None and m > 1.]
+        if off and len(off) <= len(checked) / 2.:
+            for k in off:
+                MeasRecs[k]['quality'] = 'b'
+                MeasRecs[k]['description'] = '; '.join(
+                    [x for x in ('the geographic direction stored with this step is {:.1f} degrees from the one '
+                                 'given by the header orientation (probably a rejected remeasurement)'.format(misfits[k]),
+                                 MeasRecs[k].get('description')) if x])
+            print('-W- {}: {} step(s) have a stored geographic direction that does not follow from the header '
+                  'orientation, unlike the other steps, and are marked b: {}'.format(
+                      mag_file, len(off), ', '.join(MeasRecs[k]['label'] for k in off)))
+        elif off:
+            print('-W- {}: the geographic directions stored with {} of {} steps do not follow from the header '
+                  'orientation (up to {:.0f} degrees); the orientation may have been changed after the '
+                  'measurements'.format(mag_file, len(off), len(checked), max(misfits[k] for k in off)))
+    if experiment == 'AARM' and (sum(r['method_codes'] == 'LT-AF-Z' for r in MeasRecs) !=
+                                 sum(r['method_codes'] == 'LT-AF-I' for r in MeasRecs)):
+        print('-W- {}: an AARM experiment needs a baseline (XXX.0) before each in-field step (XXX.1 to '
+              'XXX.6); ipmag.aarm_magic and thellier_gui pair them'.format(mag_file))
+
     # the protocol of the experiment: for Demag, thermal, alternating field or both
     protocols = [p for p in ('LP-DIR-T', 'LP-DIR-AF', 'LP-PI-TRM', 'LP-AN-TRM', 'LP-AN-ARM', 'LP-CR-TRM')
                  if p in {rec['protocol'] for rec in MeasRecs}]
@@ -574,7 +622,8 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
     MeasOuts = []
     for rec in MeasRecs:
         same = (MeasOuts and MeasOuts[-1]['label'] == rec['label']
-                and MeasOuts[-1]['method_codes'] == rec['method_codes'])
+                and MeasOuts[-1]['method_codes'] == rec['method_codes']
+                and MeasOuts[-1]['quality'] == rec['quality'] == 'g')
         if same and savelast:
             MeasOuts[-1] = rec
         elif same and not noave:
@@ -587,8 +636,10 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
             vectors = [pmag.dir2cart([float(r['dir_dec']), float(r['dir_inc']), float(r['magn_moment'])])
                        for r in replicates]
             dec, inc, moment = pmag.cart2dir(np.mean(vectors, axis=0))
+            # the note goes first, so that a cooling rate stays readable at the end
             rec.update(dir_dec='%.1f' % dec, dir_inc='%.1f' % inc, magn_moment='%10.3e' % moment,
-                       description='mean of {} measurements'.format(len(replicates)))
+                       description='; '.join([x for x in ('mean of {} measurements'.format(len(replicates)),
+                                                          rec.get('description')) if x]))
             rec['method_codes'] += ':DE-VM'
             for axis in 'xyz':  # no single standard deviation for a mean
                 rec.pop('magn_{}_sigma'.format(axis), None)
@@ -600,7 +651,7 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
         rec['sequence'] = str(k + 1)
         rec['treat_step_num'] = str(k + 1)
         rec['software_packages'] = pmag.get_version()
-        del rec['protocol'], rec['label']
+        del rec['protocol'], rec['label'], rec['geo_dec'], rec['geo_inc']
     SpecRecs[0]['method_codes'] = ':'.join(protocols)
 
     # save to files
@@ -655,7 +706,7 @@ def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
     gmeths : str
         sampling method codes, default "FS-FD:SO-POM", see info below
     location : str
-        location name, default "unknown"
+        location name, default "Not Specified"
     lat : float
         latitude of site
     lon : float
@@ -672,13 +723,11 @@ def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
         input file directory IF different from dir_path, default ""
     experiment : str
         experiment type, see info below;  default is Demag
-    cooling_times_list : list
-        cooling times in [K/minutes] seperated by comma,
-        ordered at the same order as XXX.10,XXX.20 ...XX.70
 
     Returns
     ---------
-    Tuple : (True or False indicating if conversion was successful, meas_file name written)
+    Tuple : (True or False indicating if conversion was successful, path of
+        the measurements file written, or an error message)
 
 
     Info
@@ -699,8 +748,8 @@ def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
    Sample naming convention:
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
-            first sample from site TG001.    [default]
-        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+            first sample from site TG001.
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length) [default]
         [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
         [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
         [5] site name = sample name
@@ -840,7 +889,8 @@ def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
     meas_magic_df['treat_dc_field']=0
     meas_magic_df['treat_dc_field_phi']=0
     meas_magic_df['treat_dc_field_theta']=0
-    meas_magic_df['treat_ac_field']=0
+    meas_magic_df['treat_ac_field']=0.
+    meas_magic_df['treat_temp']=273.
     meas_magic_df['meas_temp']=273
     meas_magic_df['specimen']=specname
     meas_magic_df['standard']='u'
@@ -888,7 +938,13 @@ def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
     meas_magic_df['experiment']=specname+exp_methods
     meas_magic_df.drop(columns=['DEMAG'],inplace=True)
     meas_dicts=meas_magic_df.to_dict('records')
-    dicts=pmag.measurements_methods3(meas_dicts,noave,savelast=savelast)
+    if savelast:
+        # keep the last of replicate steps (the same treatment one after another)
+        key = lambda r: (r['method_codes'], r['treat_temp'], r['treat_ac_field'])
+        meas_dicts = [r for k, r in enumerate(meas_dicts)
+                      if k == len(meas_dicts) - 1 or key(meas_dicts[k + 1]) != key(r)]
+        noave = True
+    dicts=pmag.measurements_methods3(meas_dicts,noave)
 
     pmag.magic_write(dir_path+'/'+meas_file,dicts,'measurements')
 # now do specimens table
@@ -942,7 +998,7 @@ def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
     loc_dict['method_codes']=methods
     loc_dict['citations']='This study'
     pmag.magic_write(dir_path+'/'+loc_file,[loc_dict],'locations')
-    return True, meas_file
+    return True, os.path.join(dir_path, meas_file)
 
 
     
