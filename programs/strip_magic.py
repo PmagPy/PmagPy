@@ -51,7 +51,7 @@ def main():
     supported = ["specimens", "samples", "sites", "locations"]
     Depth_keys = ["height", "core_depth", "elevation", "composite_depth"]
     Age_keys = ["age"]
-    Unit_keys = {"age": "age"}
+    Unit_keys = {"age": "age_unit"}
     Chi_keys = ["susc_chi_volume", "susc_chi_mass"]
     Int_keys = ["magn_moment", "magn_volume", "magn_mass", "int_abs", "int_rel"]
     Inc_keys = ["dir_inc"]

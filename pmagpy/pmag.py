@@ -466,7 +466,10 @@ def convert_lat(Recs, data_model=2.5):
 def convert_ages(Recs, data_model=3, precision=4):
     r"""
     Converts ages and their bounds and uncertainties to Millions of years ago, Ma.
-    AD dates use 2011 as the reference year, as in the original conversion.
+    AD dates are converted to years before present with present as 1950,
+    the BP convention also used by age_to_BP. Converting an AD range reverses
+    its order, so age_low and age_high are swapped to keep age_low the younger
+    bound.
     
     Parameters
     ----------
@@ -500,11 +503,11 @@ def convert_ages(Recs, data_model=3, precision=4):
     9    800.0
     Name: age, dtype: float64
     CONVERTED AGES FILE: 
-     0    1.9110e-03
-    1    1.3860e-03
-    2    1.3860e-03
-    3    1.2610e-03
-    4    1.2110e-03
+     0    1.8500e-03
+    1    1.3250e-03
+    2    1.3250e-03
+    3    1.2000e-03
+    4    1.1500e-03
     Name: age, dtype: object
     """
     if data_model == 3:
@@ -535,13 +538,23 @@ def convert_ages(Recs, data_model=3, precision=4):
             unit = rec.get(keybase + 'age_unit', '')
             if unit not in unit_scales:
                 raise ValueError("Unsupported or missing age unit: {}".format(unit))
+            converted = {}
             for field in ('age', 'age_low', 'age_high', 'age_sigma'):
                 value = age if field == 'age' else rec.get(keybase + field, '')
                 if value != '':
                     value = float(value)
                     if unit in ad_units and field != 'age_sigma':
-                        value = 2011 - value
-                    rec[keybase + field] = '%10.*e' % (precision, value * unit_scales[unit])
+                        value = age_to_BP(value, unit)
+                    converted[field] = value * unit_scales[unit]
+            if unit in ad_units and ('age_low' in converted or 'age_high' in converted):
+                # a later AD year is a younger age, so the bounds swap
+                converted['age_low'], converted['age_high'] = (
+                    converted.get('age_high', ''), converted.get('age_low', ''))
+            for field, value in converted.items():
+                if value != '':
+                    rec[keybase + field] = '%10.*e' % (precision, value)
+                else:
+                    rec[keybase + field] = ''
             rec[keybase + 'age_unit'] = 'Ma'
             New.append(rec)
         else:

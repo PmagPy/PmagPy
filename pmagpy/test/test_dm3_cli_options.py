@@ -172,11 +172,38 @@ def test_magic_select_converts_age_units_and_ranges(tmp_path, monkeypatch):
         "ka_alias": [2.5, 2, 3, 0.1],
         "bp": [0.002, 0.001, 0.003, 0.0002],
         "cal_bp": [0.002, 0.001, 0.003, 0.0002],
-        "ad": [0.000011, 0.000111, 0.000006, 0.00001],
-        "cal_ad": [0.000011, 0.000111, 0.000006, 0.00001],
+        # AD dates are relative to 1950, and the bounds swap: 2005 AD is the
+        # younger bound (-55 years BP) and 1900 AD the older (50 years BP)
+        "ad": [-0.00005, -0.000055, 0.00005, 0.00001],
+        "cal_ad": [-0.00005, -0.000055, 0.00005, 0.00001],
     }.items():
         converted = records.loc[site, ["age", "age_low", "age_high", "age_sigma"]]
         assert converted.astype(float).tolist() == pytest.approx(values)
+
+
+def test_convert_ages_ad_and_bp_share_1950_present():
+    from pmagpy import pmag
+
+    ad, bp, bce = pmag.convert_ages([
+        {"age": "1950", "age_unit": "Years AD (+/-)"},
+        {"age": "0", "age_unit": "Years BP"},
+        {"age": "-50", "age_unit": "Years Cal AD (+/-)"},
+    ])
+    assert float(ad["age"]) == 0
+    assert float(bp["age"]) == 0
+    # there is no year 0, so 50 BCE is 1999 years before 1950
+    assert float(bce["age"]) == pytest.approx(1999e-6)
+
+
+def test_convert_ages_ad_single_bound_swaps():
+    from pmagpy import pmag
+
+    rec, = pmag.convert_ages([
+        {"age": "1500", "age_unit": "Years AD (+/-)", "age_low": "1450"},
+    ])
+    # an AD lower bound is the older bound once converted to Ma
+    assert rec["age_low"] == ""
+    assert float(rec["age_high"]) == pytest.approx(500e-6)
 
 
 def test_magic_select_uses_dm3_model_lat(tmp_path, monkeypatch):
