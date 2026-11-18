@@ -6,6 +6,7 @@ import io
 from functools import reduce
 import math
 import os
+import re
 import sys
 import pytz
 import numpy as np
@@ -16,15 +17,82 @@ import pmagpy.contribution_builder as cb
 
 ### _2g_bin_magic conversion
 
+def _2g_bin_read(mag_file_path):
+    """
+    Read a 2G binary (.dat) file.
+
+    The header and each measurement step are records whose fields are
+    NUL-terminated strings at fixed offsets (bytes after the terminator can
+    hold leftovers of an earlier value). Step records start three bytes
+    before a 0xCD marker. In headers written by later versions of the 2G
+    software the volume field is two bytes longer and every later field
+    moves with it; the position of the date tells the two layouts apart.
+
+    Returns
+    -------
+    header : dict of str (name, volume, azimuth, dip, bed_dip_direction,
+        bed_dip, overturned, dec_corr)
+    steps : list of dict of str, one per step: treatment label, directions in
+        specimen, geographic and tilt-corrected coordinates, moment (emu),
+        moment/volume (emu/cc), the x, y and z components and their standard
+        deviations (emu), and the number of readings
+    """
+    with open(mag_file_path, 'rb') as f:
+        data = f.read().decode('latin-1')
+
+    def field(rec, start, end):
+        return re.split('[\x00 ]', rec[start:end].strip(' \x00'))[0]
+
+    first_step = data.find('\xcd') - 3
+    date = re.search(r'[A-Z][a-z]{2} [ 0-9][0-9] [0-9]{4}', data[:first_step])
+    if first_step < 0 or date is None:
+        raise ValueError('not a 2G binary file')
+    start = data.rfind('\x02', 0, date.start()) + 1
+    head = data[start:first_step]
+    s = date.start() - start - 27  # 0, or 2 in the later layout
+    header = {'name': field(head, 5, 14), 'volume': field(head, 14, 19 + s),
+              'azimuth': field(head, 101 + s, 106 + s),
+              'dip': field(head, 106 + s, 110 + s),
+              'bed_dip_direction': field(head, 110 + s, 115 + s),
+              'bed_dip': field(head, 115 + s, 119 + s),
+              'overturned': head[119 + s:120 + s] == '\x01',
+              'dec_corr': field(head, 132 + s, 137 + s)}
+    offsets = {'treatment': (5, 13), 'dec': (13, 19), 'inc': (19, 25),
+               'geo_dec': (25, 31), 'geo_inc': (31, 37),
+               'tilt_dec': (37, 43), 'tilt_inc': (43, 49),
+               'moment': (49, 59), 'moment_volume': (59, 69),
+               'x': (69, 80), 'x_sigma': (80, 90), 'n': (90, 93),
+               'y': (101, 112), 'y_sigma': (112, 122),
+               'z': (133, 144), 'z_sigma': (144, 154)}
+    steps = []
+    for marker in re.finditer('\xcd', data):
+        rec = data[marker.start() - 3:]
+        step = {key: field(rec, a, b) for key, (a, b) in offsets.items()}
+        if step['dec'] == '':
+            continue  # an interrupted record; the step is repeated later
+        steps.append(step)
+    return header, steps
+
+
 def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt',
             spec_file="specimens.txt", samp_file="samples.txt", site_file="sites.txt",
-            loc_file="locations.txt", or_con='3', specnum=0, samp_con='2', corr='1',specname=False,
+            loc_file="locations.txt", or_con='5', specnum=0, samp_con='2', corr='1',specname=False,
             gmeths="FS-FD:SO-POM", location="unknown", inst="", user="", noave=False, input_dir="",
             savelast=False,lat="", lon="",labfield=0, labfield_phi=0, labfield_theta=0,
             experiment="Demag", cooling_times_list=[]):
 
     """
     Convert 2G binary format file to MagIC file(s)
+
+    The header fields are read at their fixed positions. The stored sample
+    orientation is converted with or_con (the 2G software stores the plunge
+    of the core axis + 90, convention 5); the declination correction stored
+    in the file is added to the azimuth and to the bedding dip direction; an
+    overturned bed (flagged in the file) is written with dip direction + 180
+    and dip 180 - dip. With these, the samples table reproduces the
+    geographic and tilt-corrected directions stored with every step. The
+    specimen name is the one in the file, as written. Steps whose label has
+    no treatment value are left out, with a warning.
 
     Parameters
     ----------
@@ -33,7 +101,8 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
     mag_file : str
         input file name
     dec_corr : bool
-        if True, declination correction to true north provided
+        if True (default), add the declination correction stored in the file
+        to the azimuth and bedding dip direction
     meas_file : str
         output measurement file name, default "measurements.txt"
     spec_file : str
@@ -45,7 +114,8 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
     loc_file : str
         output location file name, default "locations.txt"
     or_con : number
-        orientation convention, default '3', see info below
+        orientation convention, default '5' (the convention of the 2G
+        software), see info below
     specnum : int
         number of characters to designate a specimen, default 0
     specname : bool
@@ -93,13 +163,13 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
     ----------
     Orientation convention:
         [1] Lab arrow azimuth= mag_azimuth; Lab arrow dip=-field_dip
-            i.e., field_dip is degrees from vertical down - the hade [default]
+            i.e., field_dip is degrees from vertical down - the hade
         [2] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = -field_dip
             i.e., mag_azimuth is strike and field_dip is hade
         [3] Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip
             i.e.,  lab arrow same as field arrow, but field_dip was a hade.
         [4] lab azimuth and dip are same as mag_azimuth, field_dip
-        [5] lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90
+        [5] lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90 [default]
         [6] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip
         [7] all others you will have to either customize your
             self or e-mail ltauxe@ucsd.edu for help.
@@ -202,199 +272,130 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
         SampRecs = []
     MeasRecs, SpecRecs, SiteRecs, LocRecs = [], [], [], []
     try:
-        f = open(mag_file_path, 'br')
-        input = str(f.read()).strip("b '")
-        f.close()
+        header, steps = _2g_bin_read(mag_file_path)
     except Exception as ex:
         print('ex', ex)
         print("bad mag file")
         return False, "bad mag file"
-    firstline, date,firststep = 1, "",1
-    d = input.split('\\xcd')
-    for line in d:
-        rec = line.split('\\x00')
-        # skip nearly empty lines
-        rec_not_null = [i for i in rec if i]
-        if len(rec_not_null) < 5:
-            continue
-        LPcode=""
-        if firstline == 1:
-            firstline = 0
-            spec, vol = "", 1
-            el = 51
-            #while line[el:el+1] != "\\":
-            #    spec = spec+line[el]
-            #    el += 1
-            spec = rec[7]
-            # check for bad sample name
-            test = spec.split('.')
-            date = ""
-            if len(test) > 1:
-                spec = test[0]
-                kk = 24
-                while line[kk] != '\\x01' and line[kk] != '\\x00':
-                    kk += 1
-                vcc = line[24:kk]
-                el = 10
-                while rec[el].strip() != '':
-                    el += 1
-                date, comments = rec[el+7], []
-            else:
-                el = 9
-                while rec[el] != '\\x01':
-                    el += 1
-                vcc, date, comments = rec[el-3], rec[el+7], []
-            if specname:
-                specname=mag_file.split('.')[0]
-            else:
-                specname = spec.lower()
-            print('importing ', specname)
-            el += 8
-            while rec[el].isdigit() == False:
-                comments.append(rec[el])
-                el += 1
-            if dec_corr: # ADDED 3/3/21
-                if rec[el].isdigit(): 
-                    deccorr=float(rec[el])
-            else:
-                deccorr=0
-            el+=1
-            while rec[el] == "":
-                el += 1
-            az = float(rec[el])
-            el += 1
-            while rec[el] == "":
-                el += 1
-            pl = float(rec[el])
-            el += 1
-            while rec[el] == "":
-                el += 1
-            bed_dip_dir = float(rec[el])
-            el += 1
-            while rec[el] == "":
-                el += 1
-            bed_dip = float(rec[el])
-            el += 1
-            while rec[el] == "":
-                el += 1
-            if rec[el] == '\\x01':
-                bed_dip = 180.-bed_dip
-                el += 1
-                while rec[el] == "":
-                    el += 1
-            fold_az = float(rec[el])
-            el += 1
-            while rec[el] == "":
-                el += 1
-            fold_pl = rec[el]
-            el += 1
-            while rec[el] == "":
-                el += 1
-            #if rec[el] != "" and rec[el] != '\\x02' and rec[el] != '\\x01':
-            #if deccorr!=0:
-               # #deccorr = float(rec[el])
-               # az += deccorr
-               # if bed_dip!=0:bed_dip_dir += deccorr
-               # fold_az += deccorr
-               # if bed_dip_dir >= 360:
-               #     bed_dip_dir = bed_dip_dir-360.
-               # if az >= 360.:
-               #     az = az-360.
-               # if fold_az >= 360.:
-               #     fold_az = fold_az-360.
-            #else:
-            #    deccorr = 0
-            if specnum != 0:
-                sample = specname[:specnum]
-            else:
-                sample = specname
-            methods = gmeths.split(':')
-            if deccorr != "0":
-                if 'SO-MAG' in methods:
-                    del methods[methods.index('SO-MAG')]
-                methods.append('SO-CMD-NORTH')
-            meths = reduce(lambda x, y: x+':'+y, methods)
-            method_codes = meths
-            # parse out the site name
-            if samp_con=='8':
-                sss = pmag.parse_site(specname, samp_con, Z)
-                sample=sss[1]
-                site=sss[2]
-            else: 
-                site = pmag.parse_site(sample, samp_con, Z)
-            SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}
-            SpecRec["specimen"] = specname
-            SpecRec["sample"] = sample
-            if vcc.strip() != "":
-                vol = float(vcc)*1e-6  # convert to m^3 from cc
-            SpecRec["volume"] = '%10.3e' % (vol)
-            SpecRec["geologic_classes"] = sclass
-            SpecRec["lithologies"] = lithology
-            SpecRec["geologic_types"] = _type
-            SpecRec["citations"] = "This study"
-            SpecRec["method_codes"] = ""
-            SpecRecs.append(SpecRec)
+    if not steps:
+        print("no measurements in", mag_file)
+        return False, "no measurements in " + mag_file
+    spec = header['name']
+    stem = os.path.splitext(os.path.basename(mag_file))[0]
+    if specname:
+        specname = stem
+    elif not spec:
+        print('-W- {}: the file gives no specimen name; the file name is used'.format(mag_file))
+        specname = stem
+    else:
+        specname = spec
+        # the 2G software keeps 8 characters of a name, so longer names are cut, and
+        # specimens whose names differ only after the 8th character share a name
+        if len(stem) > len(spec) and stem.upper().startswith(spec.upper()):
+            print('-W- {}: the specimen name in the file, {}, is the start of the file name; '
+                  'use specname=True to name the specimen after the file'.format(mag_file, spec))
+    print('importing ', specname)
+    vol = float(header['volume']) * 1e-6 if header['volume'] else None  # m^3 from cc
+    deccorr = float(header['dec_corr'] or 0) if dec_corr else 0
+    az = (float(header['azimuth'] or 0) + deccorr) % 360
+    pl = float(header['dip'] or 0)
+    bed_dip_dir = (float(header['bed_dip_direction'] or 0) + deccorr) % 360
+    bed_dip = float(header['bed_dip'] or 0)
+    if header['overturned']:
+        # MagIC: overturned beds have a dip greater than 90 towards the
+        # opposite direction
+        bed_dip_dir = (bed_dip_dir + 180) % 360
+        bed_dip = 180. - bed_dip
+    if specnum != 0:
+        sample = specname[:specnum]
+    else:
+        sample = specname
+    methods = gmeths.split(':')
+    if deccorr != 0:
+        if 'SO-MAG' in methods:
+            del methods[methods.index('SO-MAG')]
+        methods.append('SO-CMD-NORTH')
+    meths = reduce(lambda x, y: x+':'+y, methods)
+    method_codes = meths
+    # parse out the site name
+    if samp_con=='8':
+        sss = pmag.parse_site(specname, samp_con, Z)
+        sample=sss[1]
+        site=sss[2]
+    else:
+        site = pmag.parse_site(sample, samp_con, Z)
+    SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}
+    SpecRec["specimen"] = specname
+    SpecRec["sample"] = sample
+    SpecRec["volume"] = '%10.3e' % (vol) if vol else ""
+    SpecRec["geologic_classes"] = sclass
+    SpecRec["lithologies"] = lithology
+    SpecRec["geologic_types"] = _type
+    SpecRec["citations"] = "This study"
+    SpecRec["method_codes"] = ""
+    SpecRecs.append(SpecRec)
 
-            if sample != "" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
-                SampRec["sample"] = sample
-                SampRec["site"] = site
-                # convert to labaz, labpl
-                labaz, labdip = pmag.orient(az, pl, or_con)
-                SampRec["bed_dip"] = '%7.1f' % (bed_dip)
-                SampRec["bed_dip_direction"] = '%7.1f' % (bed_dip_dir)
-                SampRec["dip"] = '%7.1f' % (labdip)
-                SampRec["azimuth"] = '%7.1f' % (labaz)
-                SampRec["azimuth_dec_correction"] = '%7.1f' % (deccorr)
-                SampRec["geologic_classes"] = sclass
-                SampRec["lithologies"] = lithology
-                SampRec["geologic_types"] = _type
-                SampRec["method_codes"] = method_codes
-                SampRec["citations"] = "This study"
-                SampRecs.append(SampRec)
-            if site != "" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
-                SiteRec['site'] = site
-                SiteRec['location'] = location
-                SiteRec['lat'] = lat
-                SiteRec['lon'] = lon
-                SiteRec["geologic_classes"] = sclass
-                SiteRec["lithologies"] = lithology
-                SiteRec["geologic_types"] = _type
-                SiteRec["age"] ="" 
-                SiteRec["age_low"] ="" 
-                SiteRec["age_high"] ="" 
-                SiteRec["age_unit"] ="" 
-                SiteRec["method_codes"] ="" 
-                SiteRec["citations"] ="This study" 
-                SiteRecs.append(SiteRec)
+    if sample != "" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
+        SampRec["sample"] = sample
+        SampRec["site"] = site
+        # convert to labaz, labpl
+        labaz, labdip = pmag.orient(az, pl, or_con)
+        SampRec["bed_dip"] = '%7.1f' % (bed_dip)
+        SampRec["bed_dip_direction"] = '%7.1f' % (bed_dip_dir)
+        SampRec["dip"] = '%7.1f' % (labdip)
+        SampRec["azimuth"] = '%7.1f' % (labaz)
+        SampRec["azimuth_dec_correction"] = '%7.1f' % (deccorr)
+        SampRec["geologic_classes"] = sclass
+        SampRec["lithologies"] = lithology
+        SampRec["geologic_types"] = _type
+        SampRec["method_codes"] = method_codes
+        SampRec["citations"] = "This study"
+        SampRecs.append(SampRec)
+    if site != "" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
+        SiteRec['site'] = site
+        SiteRec['location'] = location
+        SiteRec['lat'] = lat
+        SiteRec['lon'] = lon
+        SiteRec["geologic_classes"] = sclass
+        SiteRec["lithologies"] = lithology
+        SiteRec["geologic_types"] = _type
+        SiteRec["age"] =""
+        SiteRec["age_low"] =""
+        SiteRec["age_high"] =""
+        SiteRec["age_unit"] =""
+        SiteRec["method_codes"] =""
+        SiteRec["citations"] ="This study"
+        SiteRecs.append(SiteRec)
 
-            if location != "" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
-                LocRec['location'] = location
-                LocRec['lat_n'] = lat
-                LocRec['lon_e'] = lon
-                LocRec['lat_s'] = lat
-                LocRec['lon_w'] = lon
-                LocRec["geologic_classes"]=sclass
-                LocRec["lithologies"]=lithology
-                LocRec["age"]=""
-                LocRec["age_high"]=""
-                LocRec["age_low"]=""
-                LocRec["age_unit"]=""
-                LocRec["citations"]="This study"
-                LocRec["method_codes"]=""
-                LocRec["location_type"]=""
-                LocRecs.append(LocRec)
+    if location != "" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
+        LocRec['location'] = location
+        LocRec['lat_n'] = lat
+        LocRec['lon_e'] = lon
+        LocRec['lat_s'] = lat
+        LocRec['lon_w'] = lon
+        LocRec["geologic_classes"]=sclass
+        LocRec["lithologies"]=lithology
+        LocRec["age"]=""
+        LocRec["age_high"]=""
+        LocRec["age_low"]=""
+        LocRec["age_unit"]=""
+        LocRec["citations"]="This study"
+        LocRec["method_codes"]=""
+        LocRec["location_type"]=""
+        LocRecs.append(LocRec)
 
-        else:
-            rec_no_spaces=[]
-            for k in range(len(rec)):
-                if rec[k]!="":
-                    rec_no_spaces.append(rec[k])
-            if firststep:               
-                input_df=pd.DataFrame([rec_no_spaces])
-                firststep=0
-            else:
-                tmp_df=pd.DataFrame([rec_no_spaces])
-                input_df=pd.concat([input_df,tmp_df])
+    input_df = pd.DataFrame(steps)
+    # columns used below by position: 0 treatment, 1 dec, 2 inc, 7 moment
+    input_df = input_df.rename(columns={'treatment': 0, 'dec': 1, 'inc': 2,
+                                        'moment': 7, 'moment_volume': 8})
+    # a step whose label has no treatment value (e.g. 'mT') cannot be placed in the
+    # sequence: it is left out, with a warning
+    readable = [t == 'NRM' or re.search(r'\d', t) is not None for t in input_df[0]]
+    if not all(readable):
+        unreadable = [str(k + 1) + " ('" + t + "')" for k, t in enumerate(input_df[0]) if not readable[k]]
+        print('-W- {}: step(s) {} have no treatment value and are left out'.format(
+            specname, ', '.join(unreadable)))
+        input_df = input_df[readable].reset_index(drop=True)
     columns=['treat_temp','treat_ac_field','treat_dc_field','treat_dc_field_phi',
              'treat_dc_field_theta','method_codes','treat_type','aniso_type']
     meas_df=pd.DataFrame()
@@ -493,11 +494,11 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
     meas_df['dir_dec']=input_df[1].values # specimen coordinates
     meas_df['dir_inc']=input_df[2].values
     meas_df['magn_moment']=input_df[7].astype('float').values*1e-3 # moment in Am^2 (from emu)
-    meas_df['magn_volume']=input_df[8].astype('float').values*1e-3/vol # moment in A/m (from emu)
-    meas_df['magn_x_sigma']=input_df[9].astype('float').values*1e-3 # moment in Am^2 (from emu)
-    meas_df['magn_y_sigma']=input_df[10].astype('float').values*1e-3 # moment in Am^2 (from emu)
-    meas_df['magn_z_sigma']=input_df[11].astype('float').values*1e-3 # moment in Am^2 (from emu
-    meas_df['meas_n_orient']=input_df[19].values
+    if vol:
+        meas_df['magn_volume']=input_df[8].astype('float').values*1e3 # A/m (from emu/cc)
+    meas_df['magn_x_sigma']=input_df['x_sigma'].astype('float').values*1e-3 # Am^2 (from emu)
+    meas_df['magn_y_sigma']=input_df['y_sigma'].astype('float').values*1e-3 # Am^2 (from emu)
+    meas_df['magn_z_sigma']=input_df['z_sigma'].astype('float').values*1e-3 # Am^2 (from emu)
     meas_df['citations']='This study'
     meas_df['analysts']=user
     meas_df['instrument_codes']=inst
@@ -530,7 +531,7 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
 
 def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
             spec_file="specimens.txt", samp_file="samples.txt", site_file="sites.txt",
-            loc_file="locations.txt", lat="",lon="",or_con='3', specnum=0, samp_con='2',
+            loc_file="locations.txt", lat="",lon="",or_con='5', specnum=0, samp_con='2',
             gmeths="FS-FD:SO-POM", location="Not Specified", inst="", user="", noave=False, input_dir="",
             savelast=False,experiment="Demag"):
 
@@ -554,7 +555,8 @@ def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
     loc_file : str
         output location file name, default "locations.txt"
     or_con : number
-        orientation convention, default '3', see info below
+        orientation convention, default '5' (the convention of the 2G
+        software), see info below
     specnum : int
         number of characters to designate a specimen, default 0
     samp_con : str
@@ -592,13 +594,13 @@ def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
     ----------
     Orientation convention:
         [1] Lab arrow azimuth= mag_azimuth; Lab arrow dip=-field_dip
-            i.e., field_dip is degrees from vertical down - the hade [default]
+            i.e., field_dip is degrees from vertical down - the hade
         [2] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = -field_dip
             i.e., mag_azimuth is strike and field_dip is hade
         [3] Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip
             i.e.,  lab arrow same as field arrow, but field_dip was a hade.
         [4] lab azimuth and dip are same as mag_azimuth, field_dip
-        [5] lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90
+        [5] lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90 [default]
         [6] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip
         [7] all others you will have to either customize your
             self or e-mail ltauxe@ucsd.edu for help.
@@ -741,7 +743,7 @@ def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
     meas_magic_df=pd.DataFrame(columns=meas_reqd_columns)
     meas_magic_df['dir_dec']=meas_df['CD'].values
     meas_magic_df['dir_inc']=meas_df['CI'].values
-    meas_magic_df['magn_moment']=meas_df['J'].astype('float')*1e-3 # convert from emu to Am2
+    meas_magic_df['magn_moment']=meas_df['M'].astype('float')*1e-3 # convert from emu to Am2
     meas_magic_df = meas_magic_df.astype(object).fillna("")
     meas_magic_df['treat_dc_field']=0
     meas_magic_df['treat_dc_field_phi']=0
