@@ -5884,25 +5884,24 @@ def create_private_contribution(username="",password=""):
     response={}
     response['status_code']=False
     response['errors']='Failed to contact database'
-    response['status_code']=False
     response['method']='POST'
+    response['id']='None'
     try:
         create_response = requests.post(api.format('private'), auth=(username, password))
-        if create_response.status_code==201:
-            response['status_code']=True
-            response['errors']=None
-            response['method']='POST'
-            response['url']=create_response.request.url
+    except requests.exceptions.RequestException as e:
+        response['errors'] = str(e)
+        return response
+    response['url']=create_response.request.url
+    if create_response.status_code==201:
+        try:
             response['id']=create_response.json()['id']
-        else:
-            response['status_code']=False
-            response['method']='POST'
-            response['url']=create_response.request.url
-            response['id']='None'
-            response['errors']=create_response.json()['errors'][0]['message']
-    except Exception as e:
-        print("Error creating private contribution:", e)
-        pass
+        except (ValueError, KeyError, TypeError):
+            response['errors']='Contribution created, but its ID could not be read from the response'
+            return response
+        response['status_code']=True
+        response['errors']=None
+    else:
+        response['errors']=_earthref_error(create_response)
     return response
 
 
@@ -5936,36 +5935,40 @@ def delete_private_contribution(contribution_id,username="",password=""):
     response['status_code']=False
     response['errors']='Failed to contact database'
     response['method']='DELETE'
+    response['id']='None'
     try:
         delete_response = requests.delete(api.format('private'),
                                           params={'id':contribution_id},
                                           auth=(username, password))
-        if delete_response.status_code==200:
-            response['status_code']=True
-            response['url']=delete_response.request.url
-            response['id']=contribution_id
-            response['errors']='None'
-        else:
-            response['status_code']=False
-            response['url']=delete_response.request.url
-            response['id']='None'
-            response['errors']=delete_response.json()['errors'][0]['message']
-    except Exception as e:
-        print("Error deleting private contribution:", e)
-        pass
+    except requests.exceptions.RequestException as e:
+        response['errors'] = str(e)
+        return response
+    response['url']=delete_response.request.url
+    if delete_response.status_code==200:
+        response['status_code']=True
+        response['id']=contribution_id
+        response['errors']='None'
+    else:
+        response['errors']=_earthref_error(delete_response)
     return response
 
 
 def upload_to_private_contribution(contribution_id, upload_file,username="",password=""):
     """
-    Upload to a private contribution on earthref.org/MagIC.
+    Upload a file to a private contribution on earthref.org/MagIC, replacing
+    the contribution's tables with those of the file.
+
+    The EarthRef API (https://api.earthref.org/v1/openapi.yaml) takes the file
+    as multipart/form-data in a field named "file"; a text/plain body is
+    rejected with HTTP 500. The upload is processed asynchronously, so allow a
+    few seconds before validating the contribution.
 
     Parameters
     ----------
     contribution_id: int
-        ID of MagIC contribution to delete
+        ID of the private MagIC contribution to upload to
     upload_file: str
-        file to upload (complete path)
+        file to upload (complete path), e.g. one written by ipmag.upload_magic
     username : str
         personal username for MagIC
     password : str
@@ -5973,9 +5976,9 @@ def upload_to_private_contribution(contribution_id, upload_file,username="",pass
 
     Returns
     ---------
-    response: API requests.models.Response
-        response.status_code: bool
-            True : successful creation of private workspace
+    response: dict
+        response['status_code']: bool
+            True : successful upload
         response['url'] : str
             URL of request
         response['method']='PUT'
@@ -5989,81 +5992,116 @@ def upload_to_private_contribution(contribution_id, upload_file,username="",pass
     response['method']='PUT'
     response['upload_file']=upload_file
     try:
-        with open(upload_file, 'rb', encoding="utf-8") as f:
+        with open(upload_file, 'rb') as f:
             upload_response = requests.put(api.format('private'),
-                                          params={'id':contribution_id},
-                                          auth=(username, password),
-                                          headers={'Content-Type': 'text/plain'},
-                                          data=f)
-        if upload_response.status_code==202:
-            response['status_code']=True
-            response['url']=upload_response.request.url
-            response['errors']='None'
-        else:
-            response['status_code']=False
-            response['url']=upload_response.request.url
-            #response['errors']=upload_response.json()['errors'][0]['message']
-    except Exception as e:
-        print ('trouble uploading:', e)
-        print (upload_response.json()['errors'])
+                                           params={'id': contribution_id},
+                                           auth=(username, password),
+                                           files={'file': (os.path.basename(upload_file), f, 'text/plain')})
+    except (OSError, requests.exceptions.RequestException) as e:
+        response['errors'] = str(e)
+        return response
+    response['url']=upload_response.request.url
+    if upload_response.status_code==202:
+        response['status_code']=True
+        response['errors']='None'
+    else:
+        response['errors']=_earthref_error(upload_response)
     return response
+
+
+def _earthref_error(api_response):
+    """
+    Get the error message from a failed EarthRef API response.
+
+    Args:
+        api_response (requests.models.Response): response from the EarthRef API
+
+    Returns:
+        str: the first message in the response's JSON "errors" list, or
+        "HTTP <status code>" if the body has no such message (e.g. it is
+        empty or not JSON)
+    """
+    try:
+        return api_response.json()['errors'][0]['message']
+    except (ValueError, KeyError, IndexError, TypeError):
+        return 'HTTP {}'.format(api_response.status_code)
 
 
 def validate_private_contribution(contribution_id,username="",password="",verbose=True):
     """
-    validate private contribution in MagIC
+    Validate a private contribution on earthref.org/MagIC.
+
+    Uploads are processed asynchronously and the EarthRef API does not report
+    when processing has finished, so validating right after
+    upload_to_private_contribution can check the contribution's previous
+    tables. Wait a few seconds after an upload (longer for large files).
 
     Parameters
     ----------
     contribution_id: int
-        ID of MagIC contribution to delete
+        ID of the private MagIC contribution to validate
     username : str
         personal username for MagIC
     password : str
         password for username
     verbose : bool
-        if True, print error messages
+        if True, print the validation errors and warnings, or the reason
+        validation failed
 
     Returns
     ---------
-    response: API requests.models.Response
-        response.status_code: bool
+    response: dict
+        response['status_code']: bool
             True : successful validation of private workspace
         response['url'] : str
             URL of request
-        response['results'] : dictionary of validation results
-        response['method']='POST'
+        response['validation_results'] : list of validation errors
+            (None if validation did not run)
+        response['validation_warnings'] : list of validation warnings
+            (None if validation did not run)
+        response['method']='PUT'
         response['errors'] : str
             if unsuccessful, error message
     """
     api = 'https://api.earthref.org/v1/MagIC/{}'
-    import json
     response={}
     response['status_code']=False
     response['errors']='Failed to contact database'
-    response['method']='POST'
+    response['method']='PUT'
     response['contribution_id']=contribution_id
+    response['validation_results']=None
+    response['validation_warnings']=None
     try:
-        create_response = requests.put(api.format('private/validate'),
-                                          params={'id':contribution_id},
-                                          auth=(username, password))
-        if create_response.status_code==200:
-            response['status_code']=True
-            response['url']=create_response.request.url
-            response['errors']='None'
-            errors_dict=json.loads(create_response.text)
-            response['validation_results']=errors_dict['validation']['errors']
-            if verbose:
-                print('Validated contribution with ID', contribution_id, ':\n', response['validation_results'])
+        validate_response = requests.put(api.format('private/validate'),
+                                         params={'id': contribution_id},
+                                         auth=(username, password))
+    except requests.exceptions.RequestException as e:
+        response['errors'] = str(e)
+    else:
+        response['url']=validate_response.request.url
+        if validate_response.status_code==200:
+            try:
+                validation=validate_response.json()['validation']
+                response['validation_results']=validation.get('errors', [])
+                response['validation_warnings']=validation.get('warnings', [])
+            except (ValueError, KeyError, TypeError, AttributeError):
+                response['validation_results']=None
+                response['validation_warnings']=None
+                response['errors']='Validation result could not be read from the response (HTTP 200)'
+            else:
+                response['status_code']=True
+                response['errors']='None'
+        elif validate_response.status_code==204:
+            response['errors']='No private contribution with ID {} in your private workspace'.format(contribution_id)
         else:
-            response['status_code']=False
-            response['url']=create_response.request.url
-            response['errors']=create_response.json()['errors'][0]['message']
-            response['validation_results']='None'
-            print('A private contribution with ID', contribution_id,
-                  ' could not be found in your private workspace for validation\n')
-    except Exception as e:
-        print ('trouble validating:', e)
+            response['errors']=_earthref_error(validate_response)
+    if verbose:
+        if response['status_code']:
+            print('Validated contribution with ID', contribution_id)
+            print('Errors:', response['validation_results'])
+            print('Warnings:', response['validation_warnings'])
+        else:
+            print('Trouble validating contribution with ID', contribution_id, ':', response['errors'])
     return response
 
 
