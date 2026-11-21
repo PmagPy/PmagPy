@@ -317,6 +317,39 @@ def test_strip_magic_plots_dm3_method_codes(methods, args, expected, tmp_path, m
     assert plotted == [expected]
 
 
+@pytest.mark.parametrize(
+    ("header", "row_tail", "expected_label"),
+    [
+        ("age\tage_unit", ("5\tMa", "6\tMa"), "Age (Ma)"),
+        ("age", ("5", "6"), "Age"),
+    ],
+)
+def test_strip_magic_age_axis_label_with_optional_unit(
+    header, row_tail, expected_label, tmp_path, monkeypatch
+):
+    from programs import strip_magic
+
+    (tmp_path / "sites.txt").write_text(
+        f"tab\tsites\nsite\t{header}\tdir_dec\nS1\t{row_tail[0]}\t10\nS2\t{row_tail[1]}\t20\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        sys, "argv",
+        ["strip_magic", "-f", "sites.txt", "-x", "age", "-y", "dec", "-sav"],
+    )
+    labels = []
+    monkeypatch.setattr(strip_magic.pmagplotlib, "isServer", False)
+    monkeypatch.setattr(strip_magic.pmagplotlib, "plot_init", lambda *args: None)
+    monkeypatch.setattr(strip_magic.pmagplotlib, "plot_strat",
+                        lambda fig, data, lab: labels.append(lab[0]))
+    monkeypatch.setattr(strip_magic.pmagplotlib, "save_plots", lambda *args: None)
+
+    strip_magic.main()
+
+    assert labels == [expected_label]
+
+
 @pytest.mark.parametrize("interactive", [False, True])
 def test_combine_magic_dm3(interactive, tmp_path, monkeypatch):
     from programs import combine_magic

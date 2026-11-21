@@ -216,7 +216,9 @@ def main():
         print('desired X axis  information not found')
         sys.exit()
     if xaxis == 'age':
-        age_unit = Results[0][Xunits[0]]
+        # the unit column is optional (e.g. samples tables with ages but no age_unit)
+        age_unit = next((rec[Xunits[0]] for rec in Results
+                         if rec.get(Xunits[0], '').strip()), '')
     if len(Xplots) > 1:
         print('multiple X axis  keys found, using: ', Xplots[xplotind])
     for ykey in ykeys:
@@ -249,7 +251,7 @@ def main():
     if xaxis == 'pos':
         xlab = "Stratigraphic Height (meters)"
     else:
-        xlab = "Age ("+age_unit+")"
+        xlab = "Age ("+age_unit+")" if age_unit else "Age"
     Xkey = Xplots[xplotind]
     Ykey = Yplots[yplotind]
     ylab = Ykey
