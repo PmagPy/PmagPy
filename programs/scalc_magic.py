@@ -16,9 +16,8 @@ def main():
         scalc_magic -h [command line options]
 
     INPUT
-       takes magic formatted pmag_results (2.5) or sites (3.0) table
-       pmag_result_name (2.5)  must start with "VGP: Site"
-       must have average_lat (2.5)  or lat (3.0) if spin axis is reference
+       takes a MagIC Data Model 3 sites table
+       must have lat if spin axis is reference
 
     OPTIONS
         -h prints help message and quits
@@ -32,7 +31,7 @@ def main():
         -p: do relative to principle axis
         -b: do bootstrap confidence bounds
         -n: set minimum n for samples (specimens) per site
-        -dm: data model [3.0 is default, otherwise, 2.5]
+        -dm: data model 3 (only supported model)
         -mm97: correct for within site scatter (McElhinny & McFadden, 1997)
     NOTES
         if kappa, N_site, lat supplied, will consider within site scatter
@@ -48,20 +47,20 @@ def main():
     nb, anti, spin, v, boot = 1000, 0, 0, 0, 0
     data_model = 3
     rev = 0
-    if '-dm' in sys.argv:
-        ind = sys.argv.index("-dm")
-        data_model = int(sys.argv[ind+1])
-    if data_model == 2:
-        coord_key = 'tilt_correction'
-        in_file = 'pmag_results.txt'
-        k_key, n_key, lat_key = 'average_k', 'average_nn', 'average_lat'
-    else:
-        coord_key = 'dir_tilt_correction'
-        in_file = 'sites.txt'
-        k_key, n_key, lat_key = 'dir_k', 'dir_n_samples`', 'lat'
     if '-h' in sys.argv:
         print(main.__doc__)
         sys.exit()
+    if '-dm' in sys.argv:
+        ind = sys.argv.index("-dm")
+        data_model = float(sys.argv[ind+1])
+    if data_model != 3:
+        raise SystemExit(
+            "-E- scalc_magic supports MagIC Data Model 3 only. "
+            "Convert Data Model 2 files to Data Model 3 before calculating."
+        )
+    coord_key = 'dir_tilt_correction'
+    in_file = 'sites.txt'
+    k_key, n_key, lat_key = 'dir_k', 'dir_n_samples', 'lat'
     if '-f' in sys.argv:
         ind = sys.argv.index("-f")
         in_file = sys.argv[ind + 1]
@@ -109,10 +108,6 @@ def main():
         if key not in vgp_df.columns:
             vgp_df[key] = 0
     vgp_df = vgp_df[vgp_df[coord_key] == coord]
-    if data_model != 3:  # convert
-        vgp_df['dir_k'] = vgp_df[k_key]
-        vgp_df['dir_n_samples'] = vgp_df[n_key]
-        vgp_df['lat'] = vgp_df[lat_key]
     N, S_B, low, high, cutoff = pmag.scalc_vgp_df(
         vgp_df, anti=anti, rev=rev, cutoff=cutoff, kappa=kappa, n=n, spin=spin, v=v, boot=boot, mm97=mm97)
     if high != 0:

@@ -32,7 +32,7 @@ def main():
 
     OPTIONS
         -h prints help message and quits
-        -f FILE: specify input file, default is 'specimens.txt', ('pmag_specimens.txt' for legacy data model 2)
+        -f FILE: specify input file, default is 'specimens.txt'
         -fsa FILE: specify samples file, required to plot by site for data model 3 (otherwise will plot by sample)
                 default is 'samples.txt'
         -crd [s,g,t]: specify coordinate system, [s]pecimen, [g]eographic, [t]ilt adjusted
@@ -42,25 +42,25 @@ def main():
         -P: do not plot
         -F FILE, specify output file of dec, inc, alpha95 data for plotting with plotdi_a and plotdi_e
         -exc use criteria in criteria table # NOT IMPLEMENTED
-        -DM NUMBER MagIC data model (2 or 3, default 3)
+        -DM NUMBER MagIC data model (3 only)
     """
     if '-h' in sys.argv:
         print(main.__doc__)
         sys.exit()
     dir_path = pmag.get_named_arg("-WD", ".")
-    data_model = int(float(pmag.get_named_arg("-DM", 3)))
+    data_model = float(pmag.get_named_arg("-DM", 3))
+    if data_model != 3:
+        raise SystemExit(
+            "-E- lnp_magic supports MagIC Data Model 3 only. "
+            "Convert Data Model 2 files to Data Model 3 before plotting."
+        )
     fmt = pmag.get_named_arg("-fmt", 'svg')
-    if data_model == 2:
-        in_file = pmag.get_named_arg('-f', 'pmag_specimens.txt')
-        crit_file = "pmag_criteria.txt"
-    else:
-        in_file = pmag.get_named_arg('-f', 'specimens.txt')
-        samp_file = pmag.get_named_arg('-fsa', 'samples.txt')
-        crit_file = "criteria.txt"
+    in_file = pmag.get_named_arg('-f', 'specimens.txt')
+    samp_file = pmag.get_named_arg('-fsa', 'samples.txt')
+    crit_file = "criteria.txt"
     in_file = pmag.resolve_file_name(in_file, dir_path)
     dir_path = os.path.split(in_file)[0]
-    if data_model == 3:
-        samp_file = pmag.resolve_file_name(samp_file, dir_path)
+    samp_file = pmag.resolve_file_name(samp_file, dir_path)
     if '-crd' in sys.argv:
         ind = sys.argv.index("-crd")
         crd = sys.argv[ind+1]
@@ -88,32 +88,26 @@ def main():
 #
 
 
-    if data_model == 2:
-        Specs, file_type = pmag.magic_read(in_file)
-        if 'specimens' not in file_type:
-            print('Error opening ', in_file, file_type)
-            sys.exit()
+    fnames = {'specimens': in_file, 'samples': samp_file}
+    con = cb.Contribution(dir_path, read_tables=['samples', 'specimens'],
+                          custom_filenames=fnames)
+    con.propagate_name_down('site', 'specimens')
+    if 'site' in con.tables['specimens'].df.columns:
+        site_col = 'site'
     else:
-        fnames = {'specimens': in_file, 'samples': samp_file}
-        con = cb.Contribution(dir_path, read_tables=['samples', 'specimens'],
-                              custom_filenames=fnames)
-        con.propagate_name_down('site', 'specimens')
-        if 'site' in con.tables['specimens'].df.columns:
-            site_col = 'site'
-        else:
-            site_col = 'sample'
-        tilt_corr_col = "dir_tilt_correction"
-        mad_col = "dir_mad_free"
-        alpha95_col = "dir_alpha95"
-        site_alpha95_col = "dir_alpha95"
-        dec_col = "dir_dec"
-        inc_col = "dir_inc"
-        num_meas_col = "dir_n_measurements"
-        k_col = "dir_k"
-        cols = [site_col, tilt_corr_col, mad_col, alpha95_col, dec_col, inc_col]
-        con.tables['specimens'].front_and_backfill(cols)
-        con.tables['specimens'].df = con.tables['specimens'].df.where(con.tables['specimens'].df.notnull(), "")
-        Specs = con.tables['specimens'].convert_to_pmag_data_list()
+        site_col = 'sample'
+    tilt_corr_col = "dir_tilt_correction"
+    mad_col = "dir_mad_free"
+    alpha95_col = "dir_alpha95"
+    site_alpha95_col = "dir_alpha95"
+    dec_col = "dir_dec"
+    inc_col = "dir_inc"
+    num_meas_col = "dir_n_measurements"
+    k_col = "dir_k"
+    cols = [site_col, tilt_corr_col, mad_col, alpha95_col, dec_col, inc_col]
+    con.tables['specimens'].front_and_backfill(cols)
+    con.tables['specimens'].df = con.tables['specimens'].df.where(con.tables['specimens'].df.notnull(), "")
+    Specs = con.tables['specimens'].convert_to_pmag_data_list()
 
 
     ## using criteria file was never fully implemented
@@ -137,18 +131,6 @@ def main():
     FIG = {}  # plot dictionary
     FIG['eqarea'] = 1  # eqarea is figure 1
     M, N, acutoff, kcutoff = 180., 1, 180., 0.
-
-    if data_model == 2:
-        site_col = 'er_site_name'
-        tilt_corr_col = "specimen_tilt_correction"
-        mad_col = "specimen_mad"
-        alpha95_col = 'specimen_alpha95'
-        dec_col = "specimen_dec"
-        inc_col = "specimen_inc"
-        num_meas_col = "specimen_n"
-        site_alpha95_col = "site_alpha95"
-    else: # data model 3
-        pass
 
     for rec in Specs:
         if rec[site_col] not in sitelist:

@@ -32,13 +32,13 @@ def main():
         -h prints help message and quits
         -f FILE: specify input measurments format file
         -fsum FILE: specify input LIMS database (IODP) core summary csv file
-        -fwig FILE: specify input depth,wiggle to plot, in magic format with sample_core_depth key for depth
-        -fsa FILE: specify input er_samples format file from magic for depth
+        -fwig FILE: specify input depth,wiggle to plot, in magic format with core_depth key for depth
+        -fsa FILE: specify input samples format file from magic for depth
         -fa FILE: specify input ages format file from magic for age
               NB: must have either -fsa OR -fa (not both)
-        -fsp FILE sym size: specify input zeq_specimen format file from magic, sym and size
+        -fsp FILE sym size: specify input specimens format file from magic, sym and size
               NB: PCAs will have specified color, while fisher means will be white with specified color as the edgecolor
-        -fres FILE specify input pmag_results file from magic, sym and size
+        -fres FILE specify input results file from magic, sym and size
         -LP [AF,T,ARM,IRM, X] step [in mT,C,mT,mT, mass/vol] to plot
         -S do not plot blanket treatment data (if this is set, you don't need the -LP)
         -sym SYM SIZE, symbol, size for continuous points (e.g., ro 5, bs 10, g^ 10 for red dot, blue square, green triangle), default is blue dot at 5 pt
@@ -48,13 +48,14 @@ def main():
         -L do not connect dots with a line
         -I do not plot inclination
         -d min max [in m] depth range to plot
-        -n normalize by weight in er_specimen table
+        -n normalize by weight in specimens table
         -Iex: plot the expected inc at lat - only available for results with lat info in file
         -ts TS amin amax: plot the GPTS for the time interval between amin and amax (numbers in Ma)
            TS: [ck95, gts04, gts12]
         -ds [mbsf,mcd] specify depth scale, mbsf default
         -fmt [svg, eps, pdf, png] specify output format for plot (default: svg)
         -sav save plot silently
+        -DM 3: MagIC Data Model 3 is the only supported model
 
      DEFAULTS:
          Measurements file: measurements.txt
@@ -85,6 +86,12 @@ def main():
     checked_args = extractor.extract_and_check_args(args, dataframe)
     meas_file, sum_file, wig_file, samp_file, age_file, spc_file, res_file, fmt, meth, norm, depth, timescale, dir_path, pltLine, pltSus, pltDec, pltInc, pltMag, logit, depth_scale, symbol, input_dir, save, data_model_num = extractor.get_vars(
         ['f', 'fsum', 'fwig', 'fsa', 'fa', 'fsp', 'fres', 'fmt',  'LP', 'n', 'd', 'ts', 'WD', 'L', 'S', 'D', 'I', 'M', 'log', 'ds', 'sym', 'ID', 'sav', 'DM'], checked_args)
+    if float(data_model_num) != 3:
+        raise SystemExit(
+            "-E- core_depthplot supports MagIC Data Model 3 only. "
+            "Convert Data Model 2 files to Data Model 3 before plotting."
+        )
+    data_model_num = 3
 
     # format some variables
     # format symbol/size

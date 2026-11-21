@@ -6,6 +6,7 @@
 import wx
 import wx.grid
 import os
+import shlex
 import subprocess
 import sys
 from pmagpy import pmag
@@ -234,11 +235,10 @@ class combine_magic_dialog(wx.Frame):
     def on_okButton(self,event):
         os.chdir(self.WD) # make sure OS is working in self.WD (Windows issue)
         files_text=self.bSizer0.file_paths.GetValue()
-        files=files_text.strip('\n').replace(" ","")
-        if files:
-            files = files.split('\n')
-            files = [os.path.join(self.WD, f) for f in files]
-        COMMAND="combine_magic.py -F measurements.txt -f %s"%(" ".join(files) )
+        # one path per line; spaces within a path are significant
+        files = [f.strip() for f in files_text.splitlines() if f.strip()]
+        files = [os.path.join(self.WD, f) for f in files]
+        COMMAND="combine_magic.py -F measurements.txt -f %s"%(" ".join(shlex.quote(f) for f in files))
 
         if ipmag.combine_magic(files, 'measurements.txt', data_model=3.0):
             MSG="%i file are merged to one MagIC format file:\n measurements.txt.\n\nSee Terminal/message window for errors"%(len(files))
@@ -355,10 +355,9 @@ class combine_everything_dialog(wx.Frame):
         for bSizer in self.file_dias:
             full_list = bSizer.file_paths.GetValue()
             file_name = bSizer.text
-            files = full_list.strip('\n').replace(" ", "")
-            if files:
-                files = files.split('\n')
-            else:
+            # one path per line; spaces within a path are significant
+            files = [f.strip() for f in full_list.splitlines() if f.strip()]
+            if not files:
                 print('No files of {} type found, skipping'.format(file_name))
                 continue
             res = ipmag.combine_magic(files, file_name, data_model=3.0)
