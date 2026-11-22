@@ -62,8 +62,10 @@ def main():
     spec_infile = pmag.get_named_arg("-fsp", "specimens.txt")
 
 
-    ipmag.atrm_magic(meas_file, dir_path, input_dir_path,
-                     spec_infile, spec_outfile)
+    ran, message = ipmag.atrm_magic(meas_file, dir_path, input_dir_path,
+                                    spec_infile, spec_outfile)
+    if not ran:
+        sys.exit(1)
 
 
 
