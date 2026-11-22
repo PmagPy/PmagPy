@@ -8403,6 +8403,24 @@ def curie(path_to_file='.', file_name='', magic=False,
     plt.show()
 
 
+def _criterion_value(value):
+    """
+    Convert a selection criterion read from a table to a number if it is one.
+
+    Parameters:
+        value : str
+            the criterion value as read from the criteria table
+
+    Returns:
+        float, or the value unchanged if it is not a number (e.g. 'l' for a
+        direction type)
+    """
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return value
+
+
 def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file="",
                          age_file="", latex=False, grade=False, WD="."):
     """
@@ -8498,7 +8516,8 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
             if key not in AllowedKeys:
                 del(crit[key])
         for key in list(crit.keys()):
-            if (not crit[key]) or (eval(crit[key]) > 1000) or (eval(crit[key]) == 0):
+            value = _criterion_value(crit[key])
+            if (not crit[key]) or (isinstance(value, float) and (value > 1000 or value == 0)):
                 # get rid of all blank or too big ones or too little ones
                 del(crit[key])
         CritKeys = list(crit.keys())
@@ -8587,29 +8606,29 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
     Soutstring, Doutstring, Ioutstring, Spoutstring, Croutstring = "", "", "", "", ""
     for k in range(len(SiteCols)):
         Soutstring = Soutstring + SiteCols[k] + sep
-    Soutstring = Soutstring.strip(sep)
+    Soutstring = Soutstring[:-len(sep)]
     Soutstring = Soutstring + end + '\n'
     sf.write(Soutstring)
     for k in range(len(DirCols)):
         Doutstring = Doutstring + DirCols[k] + sep
-    Doutstring = Doutstring.strip(sep)
+    Doutstring = Doutstring[:-len(sep)]
     Doutstring = Doutstring + end + '\n'
     f.write(Doutstring)
     for k in range(len(IntCols)):
         Ioutstring = Ioutstring + IntCols[k] + sep
-    Ioutstring = Ioutstring.strip(sep)
+    Ioutstring = Ioutstring[:-len(sep)]
     Ioutstring = Ioutstring + end + '\n'
     fI.write(Ioutstring)
     if crit_file:
         for k in range(len(CritKeys)):
             Croutstring = Croutstring + CritKeys[k] + sep
-        Croutstring = Croutstring.strip(sep)
+        Croutstring = Croutstring[:-len(sep)]
         Croutstring = Croutstring + end + '\n'
         cr.write(Croutstring)
     if spec_file:
         for k in range(len(SpecCols)):
             Spoutstring = Spoutstring + SpecCols[k] + sep
-        Spoutstring = Spoutstring.strip(sep)
+        Spoutstring = Spoutstring[:-len(sep)]
         Spoutstring = Spoutstring + end + "\n"
         fsp.write(Spoutstring)
     if latex:  # put in a horizontal line in latex file
@@ -8626,7 +8645,7 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
             Croutstring = ""
             for key in CritKeys:
                 Croutstring = Croutstring + crit[key] + sep
-            Croutstring = Croutstring.strip(sep) + end
+            Croutstring = Croutstring[:-len(sep)] + end
             cr.write(Croutstring + '\n')
  # do directions
     # get all results with VGPs
@@ -8651,12 +8670,12 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
                     Soutstring = Soutstring + site[key] + sep
                 else:
                     Soutstring = Soutstring + " " + sep
-            Soutstring = Soutstring.strip(sep) + end
+            Soutstring = Soutstring[:-len(sep)] + end
             sf.write(Soutstring + '\n')
             for key in DirKeys:
                 if key in list(site.keys()):
                     Doutstring = Doutstring + site[key] + sep
-            Doutstring = Doutstring.strip(sep) + end
+            Doutstring = Doutstring[:-len(sep)] + end
             f.write(Doutstring + '\n')
 # now do intensities
     VADMs = pmag.get_dictitem(Sites, 'vadm', '', 'F')
@@ -8669,7 +8688,7 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
                     Soutstring = Soutstring + site[key] + sep
                 else:
                     Soutstring = Soutstring + " " + sep
-            Soutstring = Soutstring.strip(sep) + end
+            Soutstring = Soutstring[:-len(sep)] + end
             sf.write(Soutstring + '\n')
         if len(site['er_site_names'].split(":")) == 1 and site['data_type'] == 'i':
             if 'average_int_sigma_perc' not in list(site.keys()):
@@ -8692,7 +8711,7 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
             if key not in list(site.keys()):
                 site[key] = ""
             outstring = outstring + site[key] + sep
-        outstring = outstring.strip(sep) + end + '\n'
+        outstring = outstring[:-len(sep)] + end + '\n'
         fI.write(outstring)
 #    VDMs=pmag.get_dictitem(Sites,'vdm','','F') # get non-blank VDMs
 #    for site in VDMs: # do results level stuff
@@ -8730,7 +8749,7 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
                 if key in Zeta:
                     spec[key] = '%7.1f' % (float(spec[key]) * 1e-21)
                 outstring = outstring + spec[key] + sep
-            fsp.write(outstring.strip(sep) + end + '\n')
+            fsp.write(outstring[:-len(sep)] + end + '\n')
     #
     if latex:  # write out the tail stuff
         f.write('\\hline\n')
@@ -13662,6 +13681,25 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
     return True, saved
 
 
+def _plot_file_name_part(name):
+    """
+    Make a name (e.g. location names joined with ':') safe for a plot file name.
+
+    pmagplotlib.save_plots replaces ':' with '_' and '/' with '-' when it
+    writes a file outside the MagIC server, so a file name built with this
+    function is the name of the file actually written, and image records
+    that use it name that file.
+
+    Parameters:
+        name : str
+            the text to go into the file name
+
+    Returns:
+        str, with ':' replaced by '_' and '/' by '-'
+    """
+    return name.replace(':', '_').replace('/', '-')
+
+
 def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd="",
                   sym='ro', symsize=40, rsym='g^', rsymsize=40,
                   fmt="pdf", res="c", proj="ortho",
@@ -13935,6 +13973,8 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
 
 
     # truncate location names so that ultra long filenames are not created
+    # (the image record keeps all of them)
+    all_locations = locations
     if len(locations) > 50:
         locations = locations[:50]
     if pmagplotlib.isServer:
@@ -13949,17 +13989,8 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
             # no contribution id available
             files['map'] = 'LO:_' + locations + '_TY:_POLE_map_{}.{}'.format(crd, fmt)
     else:
-        # use readable naming convention for non-database use;
-        # ':' between location names is not allowed in file names
-        # (save_plots would replace it), so use '_'
-        files['map'] = '{}_POLE_map_{}.{}'.format(locations.replace(':', '_'), crd, fmt)
-
-    if image_records:
-        image_rec = {'location': locations, 'file': files['map'], 'type': 'Pole Map',
-                     'title': 'Pole map ' + locations,
-                     'timestamp': date.today().isoformat(),
-                     'software_packages': version.version}
-        image_recs.append(image_rec)
+        # use readable naming convention for non-database use
+        files['map'] = '{}_POLE_map_{}.{}'.format(_plot_file_name_part(locations), crd, fmt)
 
 
     #
@@ -14021,9 +14052,17 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
             save_plots = True
         else:
             print("Good bye")
-            return
+            if image_records:
+                return True, [], image_recs
+            return True, []
     if save_plots:
         saved = pmagplotlib.save_plots(FIG, files)
+        if image_records:
+            image_rec = {'location': all_locations, 'file': files['map'], 'type': 'Pole Map',
+                         'title': 'Pole map ' + all_locations,
+                         'timestamp': date.today().isoformat(),
+                         'software_packages': version.version}
+            image_recs.append(image_rec)
     if image_records:
         return True, saved, image_recs
     return True, saved
@@ -14626,9 +14665,8 @@ def vgpmap_magic(dir_path=".", results_file="sites.txt", crd="",
                 files[key] = 'MC:_' + con_id + '_TY:_VGP_map.' + fmt
             else:
                 files[key] = 'LO:_' + location + '_TY:_VGP_map.' + fmt
-        else:  # use more readable naming convention, with '_' for the ':'
-            # between location names that save_plots would replace
-            files[key] = '{}_VGP_map.{}'.format(location.replace(':', '_'), fmt)
+        else:  # use more readable naming convention
+            files[key] = '{}_VGP_map.{}'.format(_plot_file_name_part(location), fmt)
 
 
     if pmagplotlib.isServer:

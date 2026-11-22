@@ -237,3 +237,39 @@ class TestPmagResultsExtract:
         ok, outfiles = ipmag.pmag_results_extract(WD=str(results_dir), latex=True)
         for fname in outfiles:
             assert not re.search(r'\\n(?![a-z])|\\n\\', open(fname).read()), fname
+
+    @pytest.mark.parametrize('out_file, column, n_columns', [
+        ('SiteNfo.txt', 'average_age_unit', 7),
+        ('Directions.txt', 'vgp_lon', 12),
+    ])
+    def test_blank_last_value_keeps_its_column(self, results_dir, out_file, column, n_columns):
+        """a blank value in the last column is written as an empty field, not dropped"""
+        path = results_dir / 'pmag_results.txt'
+        lines = path.read_text().splitlines()
+        col = lines[1].split('\t').index(column)
+        row = lines[2].split('\t')
+        assert row[lines[1].split('\t').index('er_site_names')] == 'sr01'
+        row[col] = ''
+        lines[2] = '\t'.join(row)
+        path.write_text('\n'.join(lines) + '\n')
+        ipmag.pmag_results_extract(WD=str(results_dir))
+        rows = {line.split(' \t ')[0]: line.split(' \t ')
+                for line in (results_dir / out_file).read_text().splitlines()}
+        assert len(rows['sr01']) == n_columns
+        assert rows['sr01'][-1] == ''
+        assert len(rows['sr03']) == n_columns
+
+    def test_criteria_table(self, results_dir):
+        """numeric criteria of 0 or above 1000 are left out; others, numeric or not, are kept"""
+        (results_dir / 'pmag_criteria.txt').write_text(
+            'tab\tpmag_criteria\n'
+            'pmag_criteria_code\tspecimen_mad\tspecimen_direction_type\t'
+            'specimen_alpha95\tspecimen_int_n\tspecimen_n\n'
+            'DE-SPEC\t5\tl\t0\t2000\t3\n')
+        ok, outfiles = ipmag.pmag_results_extract(WD=str(results_dir),
+                                                  crit_file='pmag_criteria.txt')
+        assert ok and os.path.basename(outfiles[-1]) == 'Criteria.txt'
+        lines = [line.split(' \t ') for line in
+                 (results_dir / 'Criteria.txt').read_text().splitlines()]
+        assert lines == [['specimen_mad', 'specimen_direction_type', 'specimen_n'],
+                         ['5', 'l', '3']]

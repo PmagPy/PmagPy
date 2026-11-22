@@ -142,14 +142,15 @@ def test_vgpmap_magic_several_locations(work_dir):
     with open(path) as f:
         header = f.readline()
     sites = read_table(path)
-    sites.loc[sites['site'] < 'mc20', 'location'] = 'McMurdo North'
+    # save_plots writes ':' as '_' and '/' as '-' in file names
+    sites.loc[sites['site'] < 'mc20', 'location'] = 'McMurdo North/East'
     with open(path, 'w') as f:
         f.write(header)
         sites.to_csv(f, sep='\t', index=False)
     ok, saved, image_recs = ipmag.vgpmap_magic(d, fmt='png', image_records=True)
     assert ok
     assert list(saved) == saved_images(d) == [rec['file'] for rec in image_recs]
-    assert ':' not in list(saved)[0]
+    assert list(saved) == ['McMurdo North-East_McMurdo_VGP_map.png']
 
 
 def test_vgpmap_magic_interactive_quit_with_image_records(work_dir, monkeypatch):
@@ -160,6 +161,41 @@ def test_vgpmap_magic_interactive_quit_with_image_records(work_dir, monkeypatch)
     monkeypatch.setattr('builtins.input', lambda prompt='': '')
     assert ipmag.vgpmap_magic(d, interactive=True, image_records=True) == (True, [], [])
     assert saved_images(d) == []
+
+
+@pytest.mark.parametrize('image_records, expected', [(True, (True, [], [])),
+                                                     (False, (True, []))])
+def test_polemap_magic_interactive_quit(work_dir, monkeypatch, image_records, expected):
+    """quitting without saving returns the same tuple shape as the other paths"""
+    pytest.importorskip('cartopy')
+    d = work_dir('3_0/McMurdo', ['locations.txt'])
+    monkeypatch.setattr(ipmag.pmagplotlib, 'draw_figs', lambda figs: figs)
+    monkeypatch.setattr('builtins.input', lambda prompt='': '')
+    assert ipmag.polemap_magic(dir_path=d, interactive=True,
+                               image_records=image_records) == expected
+    assert saved_images(d) == []
+
+
+def test_polemap_magic_no_image_records_without_saved_plots(work_dir):
+    pytest.importorskip('cartopy')
+    d = work_dir('polemap_magic', ['locations.txt'])
+    assert ipmag.polemap_magic(dir_path=d, save_plots=False, image_records=True) == (
+        True, [], [])
+
+
+def test_polemap_magic_image_record_lists_every_location(work_dir):
+    """the file name is truncated, but the record names all the locations plotted"""
+    pytest.importorskip('cartopy')
+    d = work_dir('polemap_magic', ['locations.txt'])
+    ok, saved, image_recs = ipmag.polemap_magic(dir_path=d, fmt='png', image_records=True)
+    locs = read_table(os.path.join(d, 'locations.txt'))
+    # the tilt-corrected poles are the ones plotted
+    locs = locs.dropna(subset=['pole_lat', 'pole_lon'])
+    locs = locs[locs['dir_tilt_correction'] == 100]
+    assert len(image_recs) == 1
+    assert image_recs[0]['location'] == ':'.join(locs['location'].unique())
+    assert len(image_recs[0]['location']) > 50
+    assert image_recs[0]['file'] == saved[0]
 
 
 def run_with_image_records(name, d):
