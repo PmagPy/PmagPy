@@ -133,6 +133,95 @@ class TestSiteMeans:
         assert os.path.isfile(os.path.join(str(out), 'site_means.txt'))
         assert not ipmag.site_means_magic(dir_path=str(study), components=['other'], write=False).shape[0]
 
+    def test_sample_weighted_means_and_missing_sample(self, tmp_path):
+        specimens = [
+            {'specimen': name, 'sample': sample, 'site': 'S', 'dir_comp': 'C',
+             'dir_dec': dec, 'dir_inc': 0, 'dir_tilt_correction': 0, 'method_codes': 'DE-BFL'}
+            for name, sample, dec in [('a1', 'a', 0), ('a2', 'a', 0),
+                                      ('a3', 'a', 0), ('b1', 'b', 90)]
+        ]
+        write(tmp_path, 'specimens', specimens)
+        direct = ipmag.site_means_magic(dir_path=str(tmp_path), write=False).iloc[0]
+        sampled = ipmag.site_means_magic(dir_path=str(tmp_path), average_by='samples').iloc[0]
+        assert direct['dir_dec'] == pytest.approx(18.4, abs=0.1)
+        assert sampled['dir_dec'] == pytest.approx(45, abs=0.1)
+        assert sampled['dir_n_specimens'] == '4'
+        assert sampled['dir_n_specimens_lines'] == '4'
+        assert sampled['dir_n_samples'] == '2'
+        assert sampled['specimens'] == 'a1:a2:a3:b1' and sampled['samples'] == 'a:b'
+        assert float(read(tmp_path, 'sites').iloc[0]['dir_dec']) == 45
+        ipmag.site_means_magic(dir_path=str(tmp_path), average_by='samples')
+        assert len(read(tmp_path, 'sites')) == 1
+
+        specimens[-1]['sample'] = ''
+        write(tmp_path, 'specimens', specimens)
+        with pytest.raises(ValueError, match='Sample identifiers required.*b1'):
+            ipmag.site_means_magic(dir_path=str(tmp_path), write=False, average_by='samples')
+        with pytest.raises(ValueError, match='average_by'):
+            ipmag.site_means_magic(dir_path=str(tmp_path), average_by='invalid')
+
+    def test_sample_means_use_planes_at_the_correct_level(self, tmp_path):
+        specimens = [
+            {'specimen': name, 'sample': sample, 'site': 'S', 'dir_comp': 'C',
+             'dir_dec': dec, 'dir_inc': inc, 'dir_tilt_correction': 0, 'method_codes': code}
+            for name, sample, dec, inc, code in [
+                ('a1', 'a', 195, -52, 'DE-BFL'), ('a2', 'a', 100, 10, 'DE-BFP'),
+                ('b1', 'b', 190, -48, 'DE-BFL'), ('c1', 'c', 110, 15, 'DE-BFP')]
+        ]
+        write(tmp_path, 'specimens', specimens)
+        result = ipmag.site_means_magic(dir_path=str(tmp_path), write=False, average_by='samples').iloc[0]
+        sample_a = pmag.dolnp([{'dir_dec': 195, 'dir_inc': -52, 'dir_type': 'l'},
+                              {'dir_dec': 100, 'dir_inc': 10, 'dir_type': 'p'}], 'dir_type')
+        expected = pmag.dolnp([{'dir_dec': float(sample_a['dec']), 'dir_inc': float(sample_a['inc']),
+                                'dir_type': 'l'},
+                               {'dir_dec': 190, 'dir_inc': -48, 'dir_type': 'l'},
+                               {'dir_dec': 110, 'dir_inc': 15, 'dir_type': 'p'}], 'dir_type')
+        assert pmag.angle([result['dir_dec'], result['dir_inc']],
+                          [float(expected['dec']), float(expected['inc'])])[0] < 0.1
+        assert result['dir_n_samples'] == '3'
+        assert (result['dir_n_specimens_lines'], result['dir_n_specimens_planes']) == ('2', '2')
+        assert 'DE-FM-LP' in result['method_codes']
+
+    def test_sample_means_keep_coordinate_groups_and_single_planes(self, study):
+        means = ipmag.site_means_magic(dir_path=str(study), write=False, average_by='samples')
+        s1 = means[means['site'] == 'S1']
+        assert set(s1['dir_tilt_correction']) == {'0', '100'}
+        assert set(s1['dir_n_samples']) == {'3'}
+        s2 = means[means['site'] == 'S2'].iloc[0]
+        assert s2['dir_n_samples'] == '3'
+        assert 'DE-FM-LP' in s2['method_codes']
+        assert 'S3' not in set(means['site'])
+
+    def test_vector_mean_fits_are_included(self, tmp_path):
+        write(tmp_path, 'specimens', [
+            {'specimen': 'a', 'sample': 'a', 'site': 'S', 'dir_dec': 10, 'dir_inc': 20,
+             'dir_tilt_correction': 0, 'method_codes': 'DE-VM'},
+            {'specimen': 'b', 'sample': 'b', 'site': 'S', 'dir_dec': 30, 'dir_inc': 20,
+             'dir_tilt_correction': 0, 'method_codes': 'DE-BFL'},
+        ])
+        result = ipmag.site_means_magic(dir_path=str(tmp_path), write=False).iloc[0]
+        assert result['dir_n_specimens'] == '2'
+        assert result['specimens'] == 'a:b'
+        assert result['dir_dec'] == pytest.approx(20, abs=0.1)
+
+    @pytest.mark.parametrize('combined', [False, True])
+    def test_same_key_intensity_survives_recalculation(self, study, combined):
+        sites = read(study, 'sites')
+        intensity = {'site': 'S1', 'location': 'Study', 'dir_comp_name': 'ChRM',
+                     'dir_tilt_correction': '0', 'int_abs': '0.00005', 'method_codes': 'LP-PI-TRM'}
+        if combined:
+            intensity.update(dir_dec='250', dir_inc='10')
+        write(study, 'sites', pd.concat([sites, pd.DataFrame([intensity])], ignore_index=True).fillna('').to_dict('records'))
+        for _ in range(2):
+            ipmag.site_means_magic(dir_path=str(study))
+            result = read(study, 'sites')
+            kept = result[result['int_abs'] == '5e-05']
+            assert len(kept) == 1
+            assert kept.iloc[0]['method_codes'] == 'LP-PI-TRM'
+            assert kept.iloc[0]['dir_dec'] == ''
+            assert len(result[(result['site'] == 'S1') & (result['dir_tilt_correction'] == '0') &
+                              (result['dir_dec'] != '')]) == 1
+
 
 class TestLocationMeans:
     def test_sites_are_averaged_in_a_common_polarity(self, study):
@@ -160,6 +249,42 @@ class TestLocationMeans:
 
     def test_no_site_means(self, study):
         assert not len(ipmag.location_means_magic(dir_path=str(study), write=False))
+
+    @pytest.mark.parametrize('same_directions', [False, True])
+    def test_identical_directions_and_poles(self, tmp_path, same_directions):
+        write(tmp_path, 'sites', [
+            {'site': 'a', 'location': 'L', 'dir_comp_name': 'C', 'dir_tilt_correction': 0,
+             'dir_dec': 0, 'dir_inc': 0, 'vgp_lon': 0, 'vgp_lat': 90},
+            {'site': 'b', 'location': 'L', 'dir_comp_name': 'C', 'dir_tilt_correction': 0,
+             'dir_dec': 0 if same_directions else 20, 'dir_inc': 0, 'vgp_lon': 0, 'vgp_lat': 90},
+        ])
+        result = ipmag.location_means_magic(dir_path=str(tmp_path), write=False).iloc[0]
+        assert result['pole_alpha95'] == 0
+        assert 'pole_k' not in result.index
+        if same_directions:
+            assert result['dir_alpha95'] == 0
+            assert 'dir_k' not in result.index
+        else:
+            assert result['dir_k'] > 0
+
+    def test_location_intensity_survives_recalculation(self, tmp_path):
+        write(tmp_path, 'sites', [
+            {'site': 'a', 'location': 'L', 'dir_comp_name': 'C', 'dir_tilt_correction': 0,
+             'dir_dec': 10, 'dir_inc': 20},
+            {'site': 'b', 'location': 'L', 'dir_comp_name': 'C', 'dir_tilt_correction': 0,
+             'dir_dec': 30, 'dir_inc': 20},
+        ])
+        write(tmp_path, 'locations', [
+            {'location': 'L', 'pole_comp_name': 'C', 'dir_tilt_correction': 0,
+             'dir_dec': 200, 'dir_inc': 30, 'int_abs': 0.00005, 'method_codes': 'LP-PI-TRM'},
+        ])
+        for _ in range(2):
+            ipmag.location_means_magic(dir_path=str(tmp_path))
+            result = read(tmp_path, 'locations')
+            intensity = result[result['int_abs'] != '']
+            assert len(intensity) == 1 and float(intensity.iloc[0]['int_abs']) == 0.00005
+            assert intensity.iloc[0]['dir_dec'] == ''
+            assert len(result[result['dir_dec'] != '']) == 1
 
 
 def test_the_site_means_of_megiddo_are_reproduced(tmp_path):
