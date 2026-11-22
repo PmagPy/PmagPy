@@ -710,6 +710,7 @@ class Contribution(object):
         # make sure source table is read in
         if source_df_name not in self.tables:
             self.add_magic_table(source_df_name)
+        if source_df_name not in self.tables:
             print("-W- Couldn't read in {} table".format(source_df_name))
             return
         # make sure col_names are all available in source table
@@ -764,7 +765,8 @@ class Contribution(object):
             return target_df
         if down:
             # do merge
-            target_df[add_name] = target_df[add_name].astype(str)
+            # names as text for the merge; a blank link stays blank
+            target_df[add_name] = names_as_text(target_df[add_name])
             target_df = target_df.merge(source_df[col_names], how='left',
                                         left_on=add_name, right_index=True,
                                         suffixes=["_target", "_source"])
@@ -772,7 +774,7 @@ class Contribution(object):
         else:
             # do merge
             col_names.append(add_name)
-            source_df[add_name] = source_df[add_name].astype(str)
+            source_df[add_name] = names_as_text(source_df[add_name])
             target_df = target_df.merge(source_df[col_names],
                                         how='left', left_index=True,
                                         right_on=add_name,
@@ -855,7 +857,8 @@ class Contribution(object):
             return target_df
         source_df.front_and_backfill([target_name])
         # group source df by target_name
-        grouped = source_df.df.groupby(source_df.df[target_name])
+        # group by the names as text, to match the index of target_df
+        grouped = source_df.df.groupby(names_as_text(source_df.df[target_name]))
         if not len(grouped):
             print("-W- Couldn't propagate from {} to {}".format(source_df_name, target_df_name))
             return target_df
@@ -952,7 +955,8 @@ class Contribution(object):
                 # make sure is numeric
                 source_df.df[col] = pd.to_numeric(source_df.df[col], errors='coerce')
 
-        grouped = source_df.df[cols + [target_name]].groupby(target_name)[cols].mean()
+        # group by the names as text, to match the index of target_df
+        grouped = source_df.df[cols].groupby(names_as_text(source_df.df[target_name])).mean()
         
         if grouped.empty:
             print("-W- Something went wrong -- can't find data for the following columns: {}".format(", ".join(cols)))
@@ -1046,7 +1050,8 @@ class Contribution(object):
             # make sure source is appropriately filled
             source = source_df.front_and_backfill([col], inplace=False)
             # add target_name back into front/backfilled source
-            source[target_name] = source_df.df[target_name]
+            # as text, to match the index of target_df
+            source[target_name] = names_as_text(source_df.df[target_name])
             grouped = source[[col, target_name]].groupby(target_name)
             if len(grouped):
                 minimum, maximum = grouped.min(), grouped.max()
@@ -1408,7 +1413,8 @@ class MagicDataFrame(object):
             #
             if len(self.df) and self.dtype != 'ages':
                 try:
-                    self.df.index = self.df[name].astype(str)
+                    # numeric names without a '.0' (a name column with a blank is read as floats)
+                    self.df.index = names_as_text(self.df[name]).astype(str)
                 except KeyError as ex:
                     print("-W- File {} is incomplete and will be ignored".format(magic_file))
                     self.dtype = 'empty'
@@ -2012,13 +2018,15 @@ class MagicDataFrame(object):
         # once you have the slice, fix up the data
         # tilt correction must match
         if not ignore_tilt:
+            # compare as numbers, so that 0, 0.0 and '0' all match
+            tilt_values = pd.to_numeric(df_slice['dir_tilt_correction'], errors='coerce')
             if tilt_corr != 0:
-                df_slice = df_slice[df_slice['dir_tilt_correction'] == tilt_corr]
+                df_slice = df_slice[tilt_values == tilt_corr]
             else:
                 # if geographic ("0"),
                 # use records with no tilt_corr and assume geographic
                 cond1 = missing_mask(df_slice['dir_tilt_correction'])
-                cond2 = df_slice['dir_tilt_correction'] == tilt_corr
+                cond2 = tilt_values == tilt_corr
                 df_slice = df_slice[cond1 | cond2]
         # exclude data with unwanted codes
         if excl:
@@ -2385,6 +2393,27 @@ def missing_mask(values):
         pandas.Series or pandas.DataFrame: boolean, True where a cell is missing
     """
     return values.isnull() | values.isin([''])
+
+
+def names_as_text(names):
+    """
+    Write a column of item names (e.g. the site column of a samples table) as text.
+
+    Names are matched against the table index, which is text. A column of
+    numeric names with a blank in it is read as floats, so a whole number is
+    written without its '.0' (1.0 -> '1'); blanks stay blank.
+
+    Args:
+        names (pandas.Series): item names
+
+    Returns:
+        pandas.Series: the names as text, with blanks left as they were
+    """
+    def name_as_text(name):
+        if isinstance(name, float) and name.is_integer():
+            return str(int(name))
+        return str(name)
+    return names.where(missing_mask(names), names.map(name_as_text))
 
 
 def get_intensity_col(data):
