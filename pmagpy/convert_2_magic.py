@@ -4611,6 +4611,11 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
     # just in case, check if the specimen file is in the input directory instead
     if not os.path.exists(spec_file):
         spec_file = pmag.resolve_file_name(os.path.split(spec_file)[1], input_dir_path)
+    if not os.path.exists(spec_file):
+        print('-W- specimens table not found:', spec_file)
+        print('you must download and process the samples table from LORE before importing an SRM discrete file')
+        print('see convert_2_magic.iodp_samples_csv for help')
+        return False, "you must download and process the samples table from LORE before importing an SRM discrete file"
     specimens_df=pd.read_csv(spec_file,sep='\t',header=1)
     if len(specimens_df)==0:
         print ('you must download and process the samples table from LORE prior to using this')
@@ -4812,6 +4817,11 @@ def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False
                        'external_database_ids','treat_step_num','meas_n_orient']
     jr6_file = pmag.resolve_file_name(jr6_file, input_dir_path)
     spec_file = pmag.resolve_file_name(spec_file, dir_path)
+    if not os.path.exists(spec_file):
+        print('-W- specimens table not found:', spec_file)
+        print('you must download and process the samples table from LORE before importing a JR6 file')
+        print('see convert_2_magic.iodp_samples_csv for help')
+        return False, "you must download and process the samples table from LORE before importing a JR6 file"
     specimens_df=pd.read_csv(spec_file,sep='\t',header=1)
     if len(specimens_df)==0:
         print ('you must download and process the samples table from LORE prior to using this')
@@ -4942,9 +4952,9 @@ def iodp_kly4s_lore(kly4s_file, meas_out='measurements.txt',
                       'treat_dc_field_phi','treat_dc_field_theta','meas_temp',\
                       'dir_dec','dir_inc','magn_moment','magn_volume',\
                        'description','timestamp','software_packages',\
-                       'external_database_ids','experiments','treat_step_num']
+                       'external_database_ids','treat_step_num']
     spec_reqd_columns=['specimen','sample','result_quality','method_codes','volume',\
-                       'specimen_name_alternatives','citations',\
+                       'specimen_alternatives','citations',\
                       'aniso_type','aniso_s_n_measurements',\
                       'azimuth','dip','aniso_s_sigma',\
                       'aniso_s_unit','aniso_tilt_correction',]
@@ -5022,7 +5032,7 @@ def iodp_kly4s_lore(kly4s_file, meas_out='measurements.txt',
     measurements_df['susc_chi_volume']=in_df['Bulk susceptibility(SI)']*factor
     measurements_df['external_database_ids']='LORE['+in_df['Test No.'].astype('str')+']'
 # parse specimen data into columns
-    specimens_df['specimen_name_alternatives']=in_df['Text ID']
+    specimens_df['specimen_alternatives']=in_df['Text ID']
     specimens_df['volume']=actual_volume
     s1=in_df['Normalized tensor K11']
     s2=in_df['Normalized tensor K22']
@@ -5268,8 +5278,9 @@ def iodp_jr6(mag_file, dir_path=".", input_dir_path="",
             MeasRec["treat_dc_field"] = '%8.3e' % (
                 treat*1e-3)  # convert from mT to tesla
         else:
-            print('unknown treatment type for ', row)
-            return False, 'unknown treatment type for ', row
+            message = 'unknown treatment type {} for specimen {}'.format(step, specimen)
+            print(message)
+            return False, message
 
         MeasRec['method_codes'] = meas_type
         MeasRecs.append(MeasRec.copy())
@@ -5295,10 +5306,14 @@ def iodp_jr6(mag_file, dir_path=".", input_dir_path="",
 
 
 def iodp_samples(samp_file, output_samp_file=None, output_dir_path='.',
-                 input_dir_path='', data_model_num=3):
+                 input_dir_path='', data_model_num=3, spec_file="specimens.txt",
+                 site_file="sites.txt", loc_file="locations.txt"):
     """
     Convert IODP samples data file into MagIC samples file.
     Default is to overwrite samples.txt in your working directory.
+    With data model 3, the specimen volumes, the site depths and locations and
+    the expedition go into specimens, sites and locations tables; records
+    already in those tables are kept unless a new record has the same name.
 
     Parameters
     ----------
@@ -5312,6 +5327,12 @@ def iodp_samples(samp_file, output_samp_file=None, output_dir_path='.',
         input file directory IF different from output_dir_path, default ""
     data_model_num : int
         MagIC data model [2, 3], default 3
+    spec_file : str
+        output specimens file name (data model 3), default "specimens.txt"
+    site_file : str
+        output sites file name (data model 3), default "sites.txt"
+    loc_file : str
+        output locations file name (data model 3), default "locations.txt"
 
     Returns
     --------
@@ -5325,7 +5346,7 @@ def iodp_samples(samp_file, output_samp_file=None, output_dir_path='.',
     site_name = "site"
     expedition_name = "expedition_name"
     location_name = "location"
-    citation_name = "citation"
+    citation_name = "citations"
     dip = "dip"
     azimuth = "azimuth"
     core_depth = "core_depth"
@@ -5357,21 +5378,21 @@ def iodp_samples(samp_file, output_samp_file=None, output_dir_path='.',
     Samps = []
     samp_out = os.path.join(output_dir_path, samp_file_name)
     if output_samp_file:
-        if os.path.exists(output_samp_file):
-            samp_out = os.path.join(output_dir_path, output_samp_file)
+        samp_out = os.path.join(output_dir_path, output_samp_file)
+        if os.path.exists(samp_out):
             Samps, file_type = pmag.magic_read(samp_out)
             print(len(Samps), ' read in from: ', samp_out)
     fin = open(samp_file, "r")
     file_input = fin.readlines()
     fin.close()
     keys = file_input[0].replace('\n', '').split(',')
+    keys = [key.strip('"').strip("'") for key in keys]
     if "CSF-B Top (m)" in keys:
         comp_depth_key = "CSF-B Top (m)"
     elif "Top depth CSF-B (m)" in keys:
         comp_depth_key = "Top depth CSF-B (m)"
     # incorporate changes to LIMS data model, while maintaining backward
     # compatibility
-    keys = [key.strip('"').strip("'") for key in keys]
     if "Top Depth (m)" in keys:
         depth_key = "Top Depth (m)"
     elif "CSF-A Top (m)" in keys:
@@ -5401,6 +5422,7 @@ def iodp_samples(samp_file, output_samp_file=None, output_dir_path='.',
     if not text_key:
         return False, "Could not extract the necessary data from your input file.\nPlease make sure you are providing a correctly formatted IODP samples csv file."
     ErSamples, samples, file_format = [], [], 'old'
+    SpecRecs, SiteRecs, LocRecs = [], [], []
     for line in file_input[1:]:
         if line[0] != '0':
             ODPRec, SampRec = {}, {}
@@ -5467,6 +5489,26 @@ def iodp_samples(samp_file, output_samp_file=None, output_dir_path='.',
                 else:
                     date = ""
                 SampRec[timestamp] = date
+                if data_model_num == 3:
+                    # MagIC 3 keeps these in the specimens, sites and locations tables
+                    volume = SampRec.pop('sample_volume')
+                    if ODPRec[volume_key] == "":
+                        volume = ""  # unknown
+                    SpecRecs.append({'specimen': SampRec[sample_name],
+                                     'sample': SampRec[sample_name],
+                                     'volume': volume, 'citations': "This study"})
+                    SiteRec = {'site': SampRec[site_name],
+                               'location': SampRec.pop(location_name),
+                               'core_depth': SampRec.pop(core_depth),
+                               'citations': "This study"}
+                    if composite_depth in SampRec:
+                        SiteRec['composite_depth'] = SampRec.pop(composite_depth)
+                    SiteRecs.append(SiteRec)
+                    expedition = SampRec.pop(expedition_name)
+                    if SiteRec['location'] not in [rec['location'] for rec in LocRecs]:
+                        LocRecs.append({'location': SiteRec['location'],
+                                        'expedition_name': expedition,
+                                        'citations': "This study"})
                 ErSamples.append(SampRec)
                 samples.append(SampRec[sample_name])
     if len(Samps) > 0:
@@ -5476,6 +5518,18 @@ def iodp_samples(samp_file, output_samp_file=None, output_dir_path='.',
     Recs, keys = pmag.fillkeys(ErSamples)
     pmag.magic_write(samp_out, Recs, file_type)
     print('sample information written to: ', samp_out)
+    if data_model_num == 3:
+        for recs, fname, dtype in [(SpecRecs, spec_file, 'specimens'),
+                                   (SiteRecs, site_file, 'sites'),
+                                   (LocRecs, loc_file, 'locations')]:
+            out = os.path.join(output_dir_path, fname)
+            name = dtype[:-1]
+            if os.path.exists(out):  # keep the records of other names
+                new_names = [rec[name] for rec in recs]
+                old_recs, _ = pmag.magic_read(out)
+                recs = recs + [rec for rec in old_recs if rec.get(name) not in new_names]
+            recs, _ = pmag.fillkeys(recs)
+            pmag.magic_write(out, recs, dtype)
     return True, samp_out
 
 
@@ -5562,9 +5616,9 @@ def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samp
     """
     # define required columns for samples, sites, locations (holes).
     spec_reqd_columns=['specimen','sample','result_quality','method_codes','volume',\
-                       'specimen_name_alternatives','citations']
+                       'specimen_alternatives','citations']
     samp_reqd_columns=['sample','site','result_type','result_quality',\
-                       'azimuth','dip','azimuth_correction','method_codes','citations']
+                       'azimuth','dip','azimuth_dec_correction','method_codes','citations']
     site_reqd_columns=['site','location','lat','lon','result_type','result_quality','method_codes',\
                        'core_depth','composite_depth',\
                        'geologic_types','geologic_classes','lithologies',\
@@ -5583,8 +5637,12 @@ def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samp
     loc_out = os.path.join(output_dir_path, loc_file)
     # read in the data from the downloaded .csv file
     iodp_sample_data=pd.read_csv(samp_file_name)
+    name_columns=['Hole','Type','Sect','Top offset (cm)','Top depth CSF-A (m)','A/W']
+    missing=[col for col in name_columns if col not in iodp_sample_data.columns]
+    if missing:
+        return False, "Could not find the columns {} in your input file.\nFor older LIMS sample files use convert_2_magic.iodp_samples".format(missing)
     # get rid of incomplete sample rows
-    iodp_sample_data.dropna(subset=['Hole','Type','Sect','Top offset (cm)','Top depth CSF-A (m)','A/W'],
+    iodp_sample_data.dropna(subset=name_columns,
                             inplace=True)
 
     # replace the 'nan' values with blanks
@@ -5599,12 +5657,16 @@ def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samp
     # set some column headers for the sample master .csv file
     depth_key = "Top depth CSF-A (m)"
     text_key = "Text ID"
+    if text_key not in iodp_sample_data.columns:
+        text_key = "Text identifier" # LIMS exports of about 2015
     date_key = "Date sample logged"
     volume_key = 'Volume (cm3)'
     if volume_key not in iodp_sample_data.columns:
         volume_key = 'Sample volume (CC)'
     if volume_key not in iodp_sample_data.columns:
         volume_key = 'Sample volume (cm3)'
+    if volume_key not in iodp_sample_data.columns:
+        volume_key = 'Volume (cc)' # LIMS exports of about 2015
     # convert the meta data in the sample master to MagIC datamodel 3
     # construct the sample name
     holes,specimens=iodp_sample_names(iodp_sample_data)
@@ -5643,7 +5705,7 @@ def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samp
     sites_df['result_type']='i'
     sites_df['result_quality']='g'
     sites_df['method_codes']='FS-C-DRILL-IODP'
-    sites_df['location']=hole
+    sites_df['location']=holes
     sites_df['citations']="This study"
     if comp_depth_key: sites_df['composite_depth']=iodp_sample_data[comp_depth_key]
     # now do the samples
@@ -5651,14 +5713,14 @@ def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samp
     samples_df['method_codes']='FS-C-DRILL-IODP:SP-SS-C:SO-V' # could put in sampling tool...
     samples_df['site']=specimens # same as sample and specimen name
     samples_df['result_type']='i'
-    samples_df['result_type']='g'
+    samples_df['result_quality']='g'
     samples_df['azimuth']='0'
     samples_df['dip']='0'
     samples_df['citations']='This study'
 
     # NEED TO ADD TIMESTAMP FROM TIMESTAMP KEY SOMEDAY
     # and the specimens
-    specimens_df['specimen_name_alternatives']=iodp_sample_data[text_key]
+    specimens_df['specimen_alternatives']=iodp_sample_data[text_key]
     specimens_df['result_quality']='g'
     specimens_df['method_codes']='FS-C-DRILL-IODP:SP-SS-C:SO-V'
     iodp_sample_data[volume_key] = iodp_sample_data[volume_key].replace(r'^\s*$', 7, regex=True) #Hard coded default, seems as if volume not passed in. Need to check later.
@@ -5670,10 +5732,10 @@ def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samp
     specimens_df.index = specimens_df['specimen']
     specimens_df.index.name = 'specimen name'
     # combine with old specimen records if available
-    if os.path.exists(spec_file):
-        old_specimens = cb.MagicDataFrame(spec_file)
+    if os.path.exists(spec_out):
+        old_specimens = cb.MagicDataFrame(spec_out)
         old_specimens.df = old_specimens.merge_dfs(specimens_df)
-        old_specimens.write_magic_file(spec_file)
+        old_specimens.write_magic_file(spec_out)
     else:
         spec_dicts = specimens_df.to_dict('records')
         pmag.magic_write(spec_out, spec_dicts, 'specimens')
@@ -5727,9 +5789,9 @@ def iodp_samples_srm(df, spec_file='specimens.txt',samp_file="samples.txt",site_
     """
     # define required columns for samples, sites, locations (holes).
     spec_reqd_columns=['specimen','sample','result_quality','method_codes','volume',\
-                       'specimen_name_alternatives','citations']
+                       'specimen_alternatives','citations']
     samp_reqd_columns=['sample','site','result_type','result_quality',\
-                       'azimuth','dip','azimuth_correction','method_codes','citations','core_depth','composite_depth']
+                       'azimuth','dip','azimuth_dec_correction','method_codes','citations']
     site_reqd_columns=['site','location','lat','lon','result_type','result_quality','method_codes',\
                        'core_depth','composite_depth',\
                        'geologic_types','geologic_classes','lithologies',\
@@ -5760,8 +5822,6 @@ def iodp_samples_srm(df, spec_file='specimens.txt',samp_file="samples.txt",site_
     specimens_df['sample']=specimens
     samples_df['sample']=specimens
     samples_df['site']=specimens
-    samples_df['core_depth']=df[depth_key]
-    if comp_depth_key: samples_df['composite_depth']=df[comp_depth_key]
 
     # add in the rest to the sites table
     sites_df['site']=specimens
@@ -5779,7 +5839,7 @@ def iodp_samples_srm(df, spec_file='specimens.txt',samp_file="samples.txt",site_
     samples_df['method_codes']='FS-C-DRILL-IODP:SP-SS-C:SO-V' # could put in sampling tool...
     samples_df['site']=specimens # same as sample and specimen name
     samples_df['result_type']='i'
-    samples_df['result_type']='g'
+    samples_df['result_quality']='g'
     samples_df['azimuth']='0'
     samples_df['dip']='0'
     samples_df['citations']='This study'
@@ -5789,6 +5849,10 @@ def iodp_samples_srm(df, spec_file='specimens.txt',samp_file="samples.txt",site_
     specimens_df['result_quality']='g'
     specimens_df['method_codes']='FS-C-DRILL-IODP'
     specimens_df['citations']='This study'
+    # df has a row per measurement: keep one row per specimen, sample and site
+    specimens_df = specimens_df.drop_duplicates(subset='specimen')
+    samples_df = samples_df.drop_duplicates(subset='sample')
+    sites_df = sites_df.drop_duplicates(subset='site')
     # fill in the np.nan with blanks
     specimens_df = specimens_df.astype(object).fillna("")
     samples_df = samples_df.astype(object).fillna("")
@@ -5849,8 +5913,18 @@ def iodp_srm_lore(srm_file, dir_path=".", input_dir_path="",noave=False,comp_dep
     srm_file = pmag.resolve_file_name(srm_file, input_dir_path)
     spec_file = pmag.resolve_file_name(spec_file, dir_path)
     in_df=pd.read_csv(srm_file,header=0)
+    lore_columns=['Timestamp (UTC)','Treatment Type','Treatment Value','Test No.',
+                  'Declination background & drift corrected (deg)',
+                  'Inclination background & drift corrected (deg)',
+                  'Intensity background & drift corrected (A/m)']
+    missing=[col for col in lore_columns if col not in in_df.columns]
+    if missing:
+        print('-W- missing columns:', missing)
+        return False, 'Could not find the LORE columns {} in {}; for older LIMS files use convert_2_magic.iodp_srm'.format(missing, srm_file)
     in_df.drop_duplicates(inplace=True)
-    in_df.sort_values(by='Treatment Value',inplace=True)
+    # keep the order of measurement, so that only consecutive measurements of a
+    # position at the same step are averaged, not those of different runs
+    in_df.sort_values(by='Timestamp (UTC)',key=pd.to_datetime,kind='stable',inplace=True)
     if len(in_df)==0:
         print ('you must download a csv file from the LIMS database and place it in your input_dir_path')
         return False, 'you must download a csv file from the LIMS database and place it in your input_dir_path'
@@ -5908,6 +5982,23 @@ def iodp_srm_lore(srm_file, dir_path=".", input_dir_path="",noave=False,comp_dep
     meas_dicts=pmag.measurements_methods3(meas_dicts,noave=noave)
     pmag.magic_write(meas_out, meas_dicts, 'measurements')
     return True, meas_out
+
+
+def iodp_header_label(label):
+    """
+    Spell the degree sign in a column label of an IODP LIMS export as 'deg'.
+
+    LIMS exports give the unit of an angle as (deg) or (\u00b0), and a UTF-8 file
+    read as Latin-1 or cp1252 gives (\u00c2\u00b0); iodp_srm looks the columns up by
+    their (deg) spelling.
+
+    Args:
+        label (str): column label as read from the file
+
+    Returns:
+        str: the label with each degree sign replaced by 'deg'
+    """
+    return label.replace('\u00c2\u00b0', 'deg').replace('\u00b0', 'deg')
 
 
 ### IODP_srm_magic conversion (old)
@@ -6016,7 +6107,7 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
             full_file.close()
             keys = file_input[0].replace('\n', '').split(
                 ',')  # splits on underscores
-            keys = [k.strip('"') for k in keys]
+            keys = [iodp_header_label(k.strip('"')) for k in keys]
             if "Interval Top (cm) on SHLF" in keys:
                 interval_key = "Interval Top (cm) on SHLF"
             elif " Interval Bot (cm) on SECT" in keys:
@@ -6025,6 +6116,7 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
                 interval_key = "Offset (cm)"
             else:
                 print("couldn't find interval or offset amount")
+                return False, "couldn't find interval or offset amount in " + f
             # get depth key
             if "Top Depth (m)" in keys:
                 depth_key = "Top Depth (m)"
@@ -6034,6 +6126,7 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
                 depth_key = "Depth CSF-A (m)"
             else:
                 print("couldn't find depth")
+                return False, "couldn't find depth in " + f
             # get comp depth key
             if "CSF-B Top (m)" in keys:
                 comp_depth_key = "CSF-B Top (m)"  # use this model if available
@@ -6050,32 +6143,26 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
                 demag_key = "Treatment Value"
             else:
                 print("couldn't find demag type")
+                return False, "couldn't find demag type in " + f
             # Get inclination key
             if "Inclination (Tray- and Bkgrd-Corrected) (deg)" in keys:
                 inc_key = "Inclination (Tray- and Bkgrd-Corrected) (deg)"
             elif "Inclination background + tray corrected  (deg)" in keys:
                 inc_key = "Inclination background + tray corrected  (deg)"
-            elif "Inclination background + tray corrected  (\xc2\xb0)" in keys:
-                inc_key = "Inclination background + tray corrected  (\xc2\xb0)"
             elif "Inclination background &amp; tray corrected (deg)" in keys:
                 inc_key = "Inclination background &amp; tray corrected (deg)"
             elif "Inclination background & tray corrected (deg)" in keys:
                 inc_key = "Inclination background & tray corrected (deg)"
             elif "Inclination background & drift corrected (deg)" in keys:
                 inc_key = "Inclination background & drift corrected (deg)"
-            elif "Inclination background + tray corrected  (\n{DEGREE SIGN})" in keys:
-                inc_key = "Inclination background + tray corrected  (\n{DEGREE SIGN})"
             else:
                 print("couldn't find inclination")
+                return False, "couldn't find inclination in " + f
             # get declination key
             if "Declination (Tray- and Bkgrd-Corrected) (deg)" in keys:
                 dec_key = "Declination (Tray- and Bkgrd-Corrected) (deg)"
-            elif "Declination background + tray corrected (\n{DEGREE SIGN})" in keys:
-                dec_key = "Declination background + tray corrected (\n{DEGREE SIGN})"
             elif "Declination background + tray corrected (deg)" in keys:
                 dec_key = "Declination background + tray corrected (deg)"
-            elif "Declination background + tray corrected (\xc2\xb0)" in keys:
-                dec_key = "Declination background + tray corrected (\xc2\xb0)"
             elif "Declination background &amp; tray corrected (deg)" in keys:
                 dec_key = "Declination background &amp; tray corrected (deg)"
             elif "Declination background & tray corrected (deg)" in keys:
@@ -6084,6 +6171,7 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
                 dec_key = "Declination background & drift corrected (deg)"
             else:
                 print("couldn't find declination")
+                return False, "couldn't find declination in " + f
             if "Intensity (Tray- and Bkgrd-Corrected) (A/m)" in keys:
                 int_key = "Intensity (Tray- and Bkgrd-Corrected) (A/m)"
             elif "Intensity background + tray corrected  (A/m)" in keys:
@@ -6096,17 +6184,20 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
                 int_key = "Intensity background & drift corrected (A/m)"
             else:
                 print("couldn't find magnetic moment")
+                return False, "couldn't find magnetic moment in " + f
             if "Core Type" in keys:
                 core_type = "Core Type"
             elif "Type" in keys:
                 core_type = "Type"
             else:
                 print("couldn't find core type")
+                return False, "couldn't find core type in " + f
             if 'Run Number' in keys:
                 run_number_key = 'Run Number'
             elif 'Test No.' in keys:
                 run_number_key = 'Test No.'
             else:
+                run_number_key = ""
                 print("couldn't find run number")
             if 'Test Changed On' in keys:
                 date_key = 'Test Changed On'
@@ -6114,24 +6205,28 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
                 date_key = "Timestamp (UTC)"
             else:
                 print("couldn't find timestamp")
+                return False, "couldn't find timestamp in " + f
             if "Section" in keys:
                 sect_key = "Section"
             elif "Sect" in keys:
                 sect_key = "Sect"
             else:
                 print("couldn't find section number")
+                return False, "couldn't find section number in " + f
             if 'Section Half' in keys:
                 half_key = 'Section Half'
             elif "A/W" in keys:
                 half_key = "A/W"
             else:
                 print("couldn't find half number")
+                return False, "couldn't find half number in " + f
             if "Text ID" in keys:
                 text_id = "Text ID"
             elif "Text Id" in keys:
                 text_id = "Text Id"
             else:
                 print("couldn't find ID number")
+                return False, "couldn't find ID number in " + f
             for line in file_input[1:]:
                 InRec = {}
                 test = 0
@@ -6176,7 +6271,7 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
                     SpecRec['specimen'] = specimen
                     SpecRec['sample'] = sample
                     SpecRec['citations'] = citations
-                    SpecRec['volume'] = volume
+                    SpecRec['volume'] = float(volume) * 1e-6  # convert from cc to m^3
                     SpecRec['specimen_alternatives'] = InRec[text_id]
                     SpecRecs.append(SpecRec)
                 if sample != "" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
@@ -6185,10 +6280,6 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
                     SampRec['citations'] = citations
                     SampRec['azimuth'] = '0'
                     SampRec['dip'] = '0'
-                    SampRec['core_depth'] = InRec[depth_key]
-                    if comp_depth_key != '':
-                        SampRec['composite_depth'] = InRec[comp_depth_key]
-                        SiteRec['composite_depth'] = InRec[comp_depth_key]
                     if "SHLF" not in InRec[text_id]:
                         SampRec['method_codes'] = 'FS-C-DRILL-IODP:SP-SS-C:SO-V'
                     else:
@@ -6200,8 +6291,10 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
                     SiteRec['citations'] = citations
                     SiteRec['lat'] = lat
                     SiteRec['lon'] = lon
-                    SiteRecs.append(SiteRec)
                     SiteRec['core_depth'] = InRec[depth_key]
+                    if comp_depth_key != '':
+                        SiteRec['composite_depth'] = InRec[comp_depth_key]
+                    SiteRecs.append(SiteRec)
                 if location != "" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
                     LocRec['location'] = location
                     LocRec['citations'] = citations
@@ -6287,7 +6380,7 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
                         except KeyError:
                             try:
                                 treatment_value = float(
-                                    InRec["Treatment value<br> (mT or \n{DEGREE SIGN}C)"]) + 273
+                                    InRec["Treatment value<br> (mT or degC)"]) + 273
                             except KeyError:
                                 print([k for k in InRec.keys() if 'treat' in k.lower()])
                                 print("-W- Couldn't find column for Treatment Value")

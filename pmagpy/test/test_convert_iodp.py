@@ -173,23 +173,27 @@ def lore_out(tmp_path_factory):
 
 SRM_ARCHIVE = os.path.join(U999A_DIR, 'SRM_archive_data', 'srmsection_17_5_2019.csv')
 # one archive-half position (core 1H, section 1, offset 0 cm) measured in two
-# runs, so its NRM appears twice
+# AF demagnetization sequences, in January and in March, so its NRM appears twice
 ONE_POSITION = '"999","U999","A","1","H","1","A","0.0",'
+# a position (core 1H, section 3, offset 0 cm) with steps repeated one after
+# the other: 15 mT twice and 10 mT three times
+REPEATS_POSITION = '"999","U999","A","1","H","3","A","0.0",'
 
 
-def run_srm_lore(out_dir, noave):
+def run_srm_lore(out_dir, noave, position=ONE_POSITION):
     """
-    Run iodp_srm_lore on the rows of ONE_POSITION.
+    Run iodp_srm_lore on the rows of one position.
 
     Args:
         out_dir (pathlib.Path): directory for the input subset and the output
         noave (bool): True to keep replicate measurements separate
+        position (str): start of the lines of the position
 
     Returns:
         tuple: the converter's return value, and the raw rows as a DataFrame
     """
     subset = write_subset(SRM_ARCHIVE, str(out_dir / 'srm.csv'),
-                          lambda line: line.startswith(ONE_POSITION))
+                          lambda line: line.startswith(position))
     result = convert.iodp_srm_lore('srm.csv', input_dir_path=str(out_dir), dir_path=str(out_dir),
                                    noave=noave, lat=HOLE_LAT, lon=HOLE_LON)
     return result, pd.read_csv(subset)
@@ -243,7 +247,12 @@ class TestIodpSrm:
         samples = read_table(os.path.join(out, names['samp_file']))
         locations = read_table(os.path.join(out, names['loc_file']))
         assert set(meas.specimen) == set(specimens.specimen)
+        assert specimens.volume.values == pytest.approx(15.59e-6)  # m^3
         assert len(samples) == raw[['Core', 'Type']].drop_duplicates().shape[0]
+        sites = read_table(os.path.join(out, names['site_file']))
+        assert list(sites.site) == ['312-U1256D']
+        assert sites.core_depth[0] == pytest.approx(float(raw['Depth CSF-A (m)'].iloc[0]))
+        assert sites.composite_depth[0] == pytest.approx(float(raw['Depth CSF-B (m)'].iloc[0]))
         assert list(locations.location) == ['U1256D']
         assert locations.lat_n[0] == pytest.approx(HOLE_LAT)
 
@@ -269,22 +278,44 @@ class TestIodpSrm:
             row['Inclination background &amp; tray corrected (deg)']))
         assert rec.timestamp == '2015-04-10T06:45:00Z'
 
-    @pytest.mark.xfail(strict=True, raises=UnboundLocalError,
-                       reason='iodp_srm only knows the degree-sign headers as the mis-decoded '
-                              'byte string (\\xc2\\xb0) or the typo (\\n{DEGREE SIGN}), so the UTF-8 (°) headers of newer LIMS exports '
-                              'leave dec_key unset')
     def test_degree_sign_headers(self, tmp_path):
-        """a LIMS export with (°) in the direction headers converts"""
+        """
+        a LIMS export with (°) in the direction headers converts; rows
+        without a direction are skipped
+        """
         write_subset(os.path.join(SRM_DIR, 'SRM_318_U1359_B_A.csv'), str(tmp_path / 'srm.csv'),
                      lambda line: line.startswith('318-U1359B-3H-2-A,'))
         ran, meas_file = convert.iodp_srm(csv_file='srm.csv', input_dir_path=str(tmp_path),
                                           dir_path=str(tmp_path))
         assert ran
-        raw = pd.read_csv(tmp_path / 'srm.csv')
+        raw = pd.read_csv(tmp_path / 'srm.csv', dtype=str)
+        dec_key = 'Declination background + tray corrected (°)'
+        inc_key = 'Inclination background + tray corrected  (°)'
+        with_direction = raw.dropna(subset=[dec_key, inc_key])
         meas = read_table(os.path.join(tmp_path, meas_file))
-        assert len(meas) == len(raw)
-        assert meas.dir_dec.iloc[0] == pytest.approx(
-            raw['Declination background + tray corrected (°)'].iloc[0])
+        assert len(meas) == len(with_direction)
+        meas.index = meas.specimen
+        for _, row in with_direction.iterrows():
+            rec = meas.loc['318-U1359B-003H_2A-' + row[' Interval Bot (cm) on SECT']]
+            assert rec.dir_dec == pytest.approx(float(row[dec_key]))
+            assert rec.dir_inc == pytest.approx(float(row[inc_key]))
+
+    @pytest.mark.parametrize('label', ['Declination background + tray corrected (°)',
+                                       'Declination background + tray corrected (Â°)',
+                                       'Declination background + tray corrected (deg)'])
+    def test_header_label(self, label):
+        """the degree sign, also as read with the wrong encoding, is spelled deg"""
+        assert convert.iodp_header_label(label) == 'Declination background + tray corrected (deg)'
+
+    def test_missing_column(self, tmp_path):
+        """a file without a declination column returns False rather than raising"""
+        raw = pd.read_csv(os.path.join(SRM_DIR, 'IODP_Janus_312_U1256.csv'), nrows=5)
+        raw.drop(columns=['Declination background & tray corrected (deg)']).to_csv(
+            tmp_path / 'srm.csv', index=False)
+        ran, message = convert.iodp_srm(csv_file='srm.csv', input_dir_path=str(tmp_path),
+                                        dir_path=str(tmp_path))
+        assert ran is False
+        assert 'declination' in message
 
 
 # ------------------------------------------------------------------ iodp_jr6
@@ -363,9 +394,6 @@ class TestIodpJr6:
             assert rec.treat_dc_field == pytest.approx(dc_field)
             assert rec.treat_temp == pytest.approx(temp)
 
-    @pytest.mark.xfail(strict=True, raises=NameError,
-                       reason='the unknown-treatment branch of iodp_jr6 refers to an '
-                              'undefined variable `row`')
     def test_unknown_treatment(self, tmp_path):
         """a treatment label iodp_jr6 does not know returns False"""
         with open(tmp_path / 'bad.jr6', 'w') as f:
@@ -382,7 +410,8 @@ class TestIodpSamples:
         """
         one sample per row with an interval in its label, named
         exp-SiteHole-CoreType-Sect-Half-interval with the core padded to four
-        characters, and the volume converted from cc to m^3
+        characters; a specimen of the same name with the volume converted from
+        cc to m^3, and a site with the depth in the hole as location
         """
         (ran, samp_file), out = samples_out
         assert ran
@@ -390,15 +419,54 @@ class TestIodpSamples:
         raw = pd.read_csv(os.path.join(SRM_DIR, 'samples_318_U1359_B.csv'), dtype=str)
         with_interval = raw[raw['Label Id'].str.split().str.len() > 1]
         samples = read_table(samp_file)
-        assert len(samples) == len(with_interval)
+        specimens = read_table(os.path.join(out, 'specimens.txt'))
+        sites = read_table(os.path.join(out, 'sites.txt'))
+        locations = read_table(os.path.join(out, 'locations.txt'))
+        assert len(samples) == len(specimens) == len(sites) == len(with_interval)
         row = with_interval.iloc[0]   # 318-U1359B-2H-1-W 40/42-Tauxe
         rec = samples.iloc[0]
         assert rec['sample'] == '318-U1359B-002H-1-W-40'
         assert rec.site == rec['sample']
         assert rec.sample_alternatives == row['Text Id']
-        assert rec.core_depth == pytest.approx(float(row['Top Depth (m)']))
-        assert rec.sample_volume == pytest.approx(float(row['Volume (cc)']) * 1e-6)
         assert rec.method_codes == 'FS-C-DRILL-IODP:SP-SS-C:SO-V'
+        assert rec.citations == 'This study'
+        spec = specimens.iloc[0]
+        assert spec.specimen == spec['sample'] == rec['sample']
+        assert spec.volume == pytest.approx(float(row['Volume (cc)']) * 1e-6)
+        site = sites.iloc[0]
+        assert site.site == rec['sample']
+        assert site.core_depth == pytest.approx(float(row['Top Depth (m)']))
+        assert site.location == 'U1359B'
+        assert list(locations.location) == ['U1359B']
+        assert locations.expedition_name[0] == 318
+
+    def test_keeps_other_records(self, tmp_path):
+        """
+        records already in the specimens, sites and locations tables are kept,
+        and the samples go into output_samp_file in the output directory
+        """
+        (tmp_path / 'specimens.txt').write_text('tab\tspecimens\nspecimen\tsample\nold-spec\told-samp\n')
+        (tmp_path / 'sites.txt').write_text('tab\tsites\nsite\tlocation\nold-site\told-loc\n')
+        ran, samp_file = convert.iodp_samples('samples_318_U1359_B.csv', input_dir_path=SRM_DIR,
+                                              output_dir_path=str(tmp_path),
+                                              output_samp_file='lims_samples.txt')
+        assert ran
+        assert samp_file == os.path.join(str(tmp_path), 'lims_samples.txt')
+        assert '318-U1359B-002H-1-W-40' in read_table(samp_file)['sample'].values
+        specimens = read_table(tmp_path / 'specimens.txt')
+        assert {'old-spec', '318-U1359B-002H-1-W-40'} <= set(specimens.specimen)
+        sites = read_table(tmp_path / 'sites.txt')
+        assert {'old-site', '318-U1359B-002H-1-W-40'} <= set(sites.site)
+
+    def test_quoted_headers(self, tmp_path):
+        """the composite depth of a LORE export with quoted headers reaches the sites"""
+        ran, _ = convert.iodp_samples('samples_17_5_2019.csv', input_dir_path=U999A_DIR,
+                                      output_dir_path=str(tmp_path))
+        assert ran
+        raw = pd.read_csv(os.path.join(U999A_DIR, 'samples_17_5_2019.csv'))
+        sites = read_table(tmp_path / 'sites.txt')
+        assert len(sites) == len(raw)
+        assert sites.composite_depth.values == pytest.approx(raw['Top depth CSF-B (m)'].values)
 
 
 # --------------------------------------------------------- the LORE workflow
@@ -433,10 +501,6 @@ class TestIodpSamplesCsv:
         assert list(locations.location) == ['U999A']
         assert locations.lat_s[0] == pytest.approx(HOLE_LAT)
 
-    @pytest.mark.xfail(strict=True,
-                       reason='iodp_samples_csv looks for an existing specimens file '
-                              'relative to the working directory, not dir_path, so the '
-                              'one in dir_path is overwritten')
     def test_keeps_existing_specimens(self, tmp_path):
         """specimens already in dir_path are kept when new ones are added"""
         out = tmp_path / 'out'
@@ -444,11 +508,50 @@ class TestIodpSamplesCsv:
         (out / 'specimens.txt').write_text('tab\tspecimens\nspecimen\tsample\nold-spec\told-samp\n')
         convert.iodp_samples_csv('samples_17_5_2019.csv', input_dir_path=U999A_DIR,
                                  dir_path=str(out))
-        assert 'old-spec' in read_table(out / 'specimens.txt').specimen.values
+        specimens = read_table(out / 'specimens.txt').specimen.values
+        assert 'old-spec' in specimens
+        assert '999-U999A-1H-1-W-10.0' in specimens
 
-    @pytest.mark.xfail(strict=True,
-                       reason="samples tables from iodp_samples_csv and iodp_srm_lore set "
-                              "result_type twice ('i', then 'g') and never set result_quality")
+    def test_location_of_each_hole(self, tmp_path):
+        """the sites of a file with two holes are in the location of their own hole"""
+        raw = pd.read_csv(os.path.join(U999A_DIR, 'samples_17_5_2019.csv'))
+        raw.loc[raw['Sect'] == 1, 'Hole'] = 'B'
+        raw.to_csv(tmp_path / 'two_holes.csv', index=False)
+        ran, _ = convert.iodp_samples_csv('two_holes.csv', input_dir_path=str(tmp_path),
+                                          dir_path=str(tmp_path))
+        assert ran
+        sites = read_table(tmp_path / 'sites.txt')
+        assert set(sites.location) == {'U999A', 'U999B'}
+        for _, site in sites.iterrows():
+            assert site.site.split('-')[1] == site.location
+        assert set(read_table(tmp_path / 'locations.txt').location) == {'U999A', 'U999B'}
+
+    def test_2015_layout(self, tmp_path):
+        """
+        a LIMS sample export of about 2015 (Text identifier, Volume (cc))
+        converts, with the volume in m^3
+        """
+        ran, _ = convert.iodp_samples_csv('samples-XXX-UTEST-A.csv',
+                                          input_dir_path=os.path.join(WD, 'data_files', 'UTESTA'),
+                                          dir_path=str(tmp_path))
+        assert ran
+        raw = pd.read_csv(os.path.join(WD, 'data_files', 'UTESTA', 'samples-XXX-UTEST-A.csv'))
+        specimens = read_table(tmp_path / 'specimens.txt')
+        assert list(specimens.specimen) == [lore_specimen_name(row, 'Top offset (cm)')
+                                            for _, row in raw.iterrows()]
+        assert list(specimens.specimen_alternatives) == list(raw['Text identifier'])
+        assert specimens.volume.values == pytest.approx(raw['Volume (cc)'].values * 1e-6)
+
+    def test_older_layout(self, tmp_path):
+        """
+        a LIMS sample export of 2010 (Label Id, Section, ...) returns False
+        and points to iodp_samples
+        """
+        ran, message = convert.iodp_samples_csv('samples_318_U1359_B.csv', input_dir_path=SRM_DIR,
+                                                dir_path=str(tmp_path))
+        assert ran is False
+        assert 'iodp_samples' in message
+
     @pytest.mark.parametrize('converter', ['samples_csv', 'srm_lore'])
     def test_sample_result_quality(self, converter, lore_out, srm_lore_out):
         """samples are written with result_type 'i' and result_quality 'g'"""
@@ -595,37 +698,69 @@ class TestIodpSrmLore:
         assert sites.composite_depth.iloc[0] == pytest.approx(raw['Depth CSF-B (m)'].iloc[0])
         assert sites.lat.iloc[0] == pytest.approx(HOLE_LAT)
 
-    def test_replicates_are_averaged(self, tmp_path):
+    def test_older_layout(self, tmp_path):
         """
-        by default the two NRM measurements of the position become one record,
-        the vector mean of their moments, marked DE-VM
+        an older LIMS section export returns False, points to iodp_srm and
+        writes nothing
+        """
+        write_subset(os.path.join(UTESTA_SRM_DIR, 'srmsection-XXX-UTEST-A.csv'),
+                     str(tmp_path / 'section.csv'), lambda line: line.startswith('XXX,UTEST,A,1,H,1,'))
+        out = tmp_path / 'out'
+        out.mkdir()
+        ran, message = convert.iodp_srm_lore('section.csv', input_dir_path=str(tmp_path),
+                                             dir_path=str(out))
+        assert ran is False
+        assert 'iodp_srm' in message
+        assert os.listdir(out) == []
+
+    def test_runs_are_kept_apart(self, tmp_path):
+        """
+        by default the two NRMs of the position, measured two months apart
+        with AF steps in between, stay two records in the order of measurement
         """
         (ran, meas_file), raw = run_srm_lore(tmp_path, noave=False)
         assert ran
         meas = read_table(meas_file)
-        nrm_rows = raw[raw['Treatment Type'] == 'NRM']
+        assert len(meas) == len(raw)
+        assert not meas.method_codes.str.contains('DE-VM').any()
+        nrm_rows = raw[raw['Treatment Type'] == 'NRM'].sort_values('Timestamp (UTC)')
         assert len(nrm_rows) == 2
-        assert len(meas) == len(raw) - 1
         nrm = meas[meas.method_codes.str.split(':').str[0] == 'LT-NO']
-        assert len(nrm) == 1
-        assert 'DE-VM' in nrm.method_codes.iloc[0].split(':')
-        decs = np.radians(nrm_rows['Declination background & drift corrected (deg)'].values)
-        incs = np.radians(nrm_rows['Inclination background & drift corrected (deg)'].values)
-        moments = np.linalg.norm(nrm_rows[['Magnetic moment x (Am²)', 'Magnetic moment y (Am²)',
-                                           'Magnetic moment z (Am²)']].values, axis=1)
-        mean = (moments[:, None] * np.column_stack([np.cos(incs) * np.cos(decs),
-                                                    np.cos(incs) * np.sin(decs),
-                                                    np.sin(incs)])).mean(axis=0)
-        norm = np.linalg.norm(mean)
-        assert nrm.dir_dec.iloc[0] == pytest.approx(np.degrees(np.arctan2(mean[1], mean[0])) % 360,
-                                                    abs=0.1)
-        assert nrm.dir_inc.iloc[0] == pytest.approx(np.degrees(np.arcsin(mean[2] / norm)), abs=0.1)
-        assert nrm.magn_moment.iloc[0] == pytest.approx(norm, rel=1e-3)
+        assert list(nrm.dir_dec) == pytest.approx(
+            list(nrm_rows['Declination background & drift corrected (deg)']))
+        assert list(nrm.dir_inc) == pytest.approx(
+            list(nrm_rows['Inclination background & drift corrected (deg)']))
 
-    @pytest.mark.xfail(strict=True,
-                       reason='iodp_srm_lore writes one specimen, sample and site row per '
-                              'measurement row, so a position measured several times is '
-                              'repeated in those tables')
+    def test_replicates_are_averaged(self, tmp_path):
+        """
+        by default measurements of the same step one after the other become one
+        record, the vector mean of their moments, marked DE-VM
+        """
+        (ran, meas_file), raw = run_srm_lore(tmp_path, noave=False, position=REPEATS_POSITION)
+        assert ran
+        meas = read_table(meas_file)
+        raw = raw.sort_values('Timestamp (UTC)')
+        # consecutive measurements at the same step
+        groups = [group for _, group in raw.groupby(
+            (raw['Treatment Value'] != raw['Treatment Value'].shift()).cumsum())]
+        assert sorted(len(group) for group in groups if len(group) > 1) == [2, 3]
+        assert len(meas) == len(groups)
+        for (_, rec), group in zip(meas.iterrows(), groups):
+            assert rec.treat_ac_field == pytest.approx(group['Treatment Value'].iloc[0] * 1e-3)
+            decs = np.radians(group['Declination background & drift corrected (deg)'].values)
+            incs = np.radians(group['Inclination background & drift corrected (deg)'].values)
+            moments = np.linalg.norm(group[['Magnetic moment x (Am²)', 'Magnetic moment y (Am²)',
+                                            'Magnetic moment z (Am²)']].values, axis=1)
+            mean = (moments[:, None] * np.column_stack([np.cos(incs) * np.cos(decs),
+                                                        np.cos(incs) * np.sin(decs),
+                                                        np.sin(incs)])).mean(axis=0)
+            norm = np.linalg.norm(mean)
+            assert ('DE-VM' in rec.method_codes.split(':')) == (len(group) > 1)
+            assert rec.dir_dec == pytest.approx(np.degrees(np.arctan2(mean[1], mean[0])) % 360,
+                                                abs=0.1)
+            assert rec.dir_inc == pytest.approx(np.degrees(np.arcsin(mean[2] / norm)), abs=0.1)
+            assert rec.magn_moment == pytest.approx(norm, rel=1e-3)
+
     def test_one_row_per_specimen(self, srm_lore_out):
         """the specimens, samples and sites tables list each name once"""
         _, out, _ = srm_lore_out
@@ -636,15 +771,7 @@ class TestIodpSrmLore:
 
 # -------------------------------------------------- shared failure behaviour
 
-@pytest.mark.parametrize('converter', [
-    pytest.param('kly4s'),
-    pytest.param('dscr', marks=pytest.mark.xfail(
-        strict=True, raises=FileNotFoundError,
-        reason='iodp_dscr_lore reads the specimens table without checking it exists')),
-    pytest.param('jr6', marks=pytest.mark.xfail(
-        strict=True, raises=FileNotFoundError,
-        reason='iodp_jr6_lore reads the specimens table without checking it exists')),
-])
+@pytest.mark.parametrize('converter', ['kly4s', 'dscr', 'jr6'])
 def test_lore_converters_need_a_specimens_table(converter, tmp_path):
     """
     without the specimens table from iodp_samples_csv the LORE measurement
@@ -664,16 +791,10 @@ def test_lore_converters_need_a_specimens_table(converter, tmp_path):
 
 # ------------------------------------------------- columns in the data model
 
-def not_in_model(reason):
-    """xfail mark for an output file with columns that are not in the data model"""
-    return pytest.mark.xfail(strict=True, reason=reason)
-
-
 @pytest.mark.parametrize('fixture_name, fname', [
     ('srm_janus', 'srm_measurements.txt'),
     ('srm_janus', 'srm_specimens.txt'),
-    pytest.param('srm_janus', 'srm_samples.txt', marks=not_in_model(
-        'iodp_srm puts core_depth and composite_depth, site columns, in samples')),
+    ('srm_janus', 'srm_samples.txt'),
     ('srm_janus', 'srm_sites.txt'),
     ('srm_janus', 'srm_locations.txt'),
     ('jr6_out', 'measurements.txt'),
@@ -681,27 +802,21 @@ def not_in_model(reason):
     ('jr6_out', 'samples.txt'),
     ('jr6_out', 'sites.txt'),
     ('jr6_out', 'locations.txt'),
-    pytest.param('samples_out', 'samples.txt', marks=not_in_model(
-        'iodp_samples writes citation, core_depth, expedition_name, location and '
-        'sample_volume, none of them samples columns')),
-    pytest.param('lore_out', 'specimens.txt', marks=not_in_model(
-        'iodp_samples_csv writes specimen_name_alternatives for specimen_alternatives')),
-    pytest.param('lore_out', 'samples.txt', marks=not_in_model(
-        'iodp_samples_csv writes azimuth_correction for azimuth_dec_correction')),
+    ('samples_out', 'samples.txt'),
+    ('samples_out', 'specimens.txt'),
+    ('samples_out', 'sites.txt'),
+    ('samples_out', 'locations.txt'),
+    ('lore_out', 'specimens.txt'),
+    ('lore_out', 'samples.txt'),
     ('lore_out', 'sites.txt'),
     ('lore_out', 'locations.txt'),
     ('lore_out', 'dscr_measurements.txt'),
     ('lore_out', 'jr6_measurements.txt'),
-    pytest.param('lore_out', 'kly4s_measurements.txt', marks=not_in_model(
-        'iodp_kly4s_lore writes experiments, a specimens column, in measurements')),
-    pytest.param('lore_out', 'kly4s_specimens.txt', marks=not_in_model(
-        'iodp_kly4s_lore writes specimen_name_alternatives for specimen_alternatives')),
+    ('lore_out', 'kly4s_measurements.txt'),
+    ('lore_out', 'kly4s_specimens.txt'),
     ('srm_lore_out', 'srm_arch_measurements.txt'),
-    pytest.param('srm_lore_out', 'srm_arch_specimens.txt', marks=not_in_model(
-        'iodp_srm_lore writes specimen_name_alternatives for specimen_alternatives')),
-    pytest.param('srm_lore_out', 'srm_arch_samples.txt', marks=not_in_model(
-        'iodp_srm_lore puts core_depth and composite_depth (sites columns) in samples, and '
-        'azimuth_correction for azimuth_dec_correction')),
+    ('srm_lore_out', 'srm_arch_specimens.txt'),
+    ('srm_lore_out', 'srm_arch_samples.txt'),
     ('srm_lore_out', 'srm_arch_sites.txt'),
 ])
 def test_output_columns_are_in_the_data_model(fixture_name, fname, request):
