@@ -1,7 +1,7 @@
 """
 Tests of the convert_2_magic converters of remanence (demagnetization) data:
-_2g_bin, bgc, generic, huji, huji_sample, jr6_txt, jr6_jr6, ldeo, livdb, mini,
-pmd, sio and utrecht. (cit and tdt have their own test files; the IODP
+bgc, generic, huji, huji_sample, jr6_txt, jr6_jr6, ldeo, livdb, mini, pmd, sio
+and utrecht. (_2g_bin, cit, rs3 and tdt have their own test files; the IODP
 converters are in test_convert_iodp.py.)
 
 Expected values are read off the input files in data_files/convert_2_magic and
@@ -52,60 +52,6 @@ def run(tmp_path_factory):
         assert result[0] is True, result
         return out_dir
     return _run
-
-
-class Test2gBin:
-    """
-    2G binary files (mn001-1a.dat). The values of each measurement are stored
-    as text in the file: for the NRM, dec/inc 121.7/-55.2 in specimen and
-    165.2/-19.0 in geographic coordinates, moment 9.537e-06 emu, 9.537e-07 emu/cc,
-    X -2.864e-06 +- 9.111e-08, Y +4.632e-06 +- 7.385e-08, Z -7.829e-06 +- 3.381e-08;
-    the header has the core azimuth 17, core dip 42, bedding strike 341 and dip 7,
-    declination correction -0.9, and a volume of 10 cc.
-    """
-
-    @pytest.fixture(scope='class')
-    def out(self, run):
-        return run('2g', lambda out: convert._2g_bin(
-            mag_file='mn001-1a.dat', input_dir=in_dir('2g_bin_magic', 'mn1'), dir_path=out))
-
-    def test_measurements(self, out):
-        meas = read_table(os.path.join(out, 'measurements.txt'))
-        assert len(meas) == 24
-        assert set(meas['specimen']) == {'mn001-1a'}
-        nrm, step_100 = meas.iloc[0], meas.iloc[1]
-        assert nrm['method_codes'].startswith('LT-NO')
-        assert nrm['treat_temp'] == 273
-        assert (nrm['dir_dec'], nrm['dir_inc']) == (121.7, -55.2)
-        assert nrm['magn_moment'] == pytest.approx(9.537e-9)
-        assert step_100['method_codes'].startswith('LT-T-Z')
-        assert step_100['treat_temp'] == 373
-        assert read_table(os.path.join(out, 'specimens.txt'))['volume'][0] == pytest.approx(1e-5)
-
-    @pytest.mark.xfail(strict=True, reason='magn_volume is the emu/cc value times 1e-3 divided '
-                                           'by the volume again, ten times too small')
-    def test_magnetization(self, out):
-        nrm = read_table(os.path.join(out, 'measurements.txt')).iloc[0]
-        assert nrm['magn_volume'] == pytest.approx(9.537e-9 / 1e-5)
-
-    @pytest.mark.xfail(strict=True, reason='magn_x/y/z_sigma are taken from the columns of '
-                                           'X, sigma X and Y, not of the three sigmas')
-    def test_moment_uncertainties(self, out):
-        nrm = read_table(os.path.join(out, 'measurements.txt')).iloc[0]
-        assert nrm['magn_x_sigma'] == pytest.approx(9.111e-11)
-        assert nrm['magn_y_sigma'] == pytest.approx(7.385e-11)
-        assert nrm['magn_z_sigma'] == pytest.approx(3.381e-11)
-
-    @pytest.mark.xfail(strict=True, reason='the header fields are read one position off, giving '
-                                           'azimuth 42, dip -251 and bedding 7/0 instead of '
-                                           'azimuth 17 (16.1 with the declination correction), '
-                                           'dip -48 and bedding 71/7')
-    def test_orientation(self, out):
-        """the orientation rotates the specimen direction onto the geographic one in the file"""
-        sample = read_table(os.path.join(out, 'samples.txt')).iloc[0]
-        assert -90 <= sample['dip'] <= 90
-        assert_geographic(121.7, -55.2, sample['azimuth'], sample['dip'], (165.2, -19.0), 1)
-        assert (sample['bed_dip_direction'], sample['bed_dip']) == (71, 7)
 
 
 class TestBgc:

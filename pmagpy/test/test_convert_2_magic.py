@@ -129,7 +129,6 @@ def converted(request, tmp_path_factory):
 
 
 @pytest.mark.parametrize('converted', known_defect({
-    '_2g_bin': 'reads samples.txt from the working directory into its samples table',
     'kly4s': 'writes samples.txt and sites.txt into the working directory',
     'mini': 'writes all of its tables into the working directory, not into dir_path',
 }, 'a converter should only use its output directory'), indirect=True)
