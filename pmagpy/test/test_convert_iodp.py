@@ -17,6 +17,8 @@ converters: they start to pass, and so fail the suite, once the defect is
 fixed, which is the reminder to remove the mark.
 """
 import os
+import subprocess
+import sys
 
 import numpy as np
 import pandas as pd
@@ -243,6 +245,7 @@ class TestIodpSrm:
                 row['Intensity background & tray corrected (A/m)']) * 15.59e-6, rel=1e-3)
             expected_code = 'LT-NO' if field == 0 else 'LT-AF-Z'
             assert rec.method_codes.split(':')[0] == expected_code
+            assert rec.external_database_ids == 'LIMS[{}]'.format(row['Test No.'])
         specimens = read_table(os.path.join(out, names['spec_file']))
         samples = read_table(os.path.join(out, names['samp_file']))
         locations = read_table(os.path.join(out, names['loc_file']))
@@ -299,6 +302,46 @@ class TestIodpSrm:
             rec = meas.loc['318-U1359B-003H_2A-' + row[' Interval Bot (cm) on SECT']]
             assert rec.dir_dec == pytest.approx(float(row[dec_key]))
             assert rec.dir_inc == pytest.approx(float(row[inc_key]))
+
+    @pytest.mark.parametrize('treatment', ['Alternating Frequency Demagnetization',
+                                           'Thermal Demagnetization'])
+    def test_lims_discrete_steps(self, tmp_path, treatment):
+        """
+        a LIMS discrete export whose levels are in 'Treatment type' and
+        'Treatment Value (mT or °C)' (its demag level is 0) gives one record
+        per step: offline AF steps in tesla, thermal steps in kelvin (the
+        thermal case relabels the AF steps and adds 100 to their levels)
+        """
+        position = '"344","U1414","A","1","H","2","","37.0",'
+        write_subset(os.path.join(SRM_DIR, 'IODP_LIMS_SRMdiscrete_344_1414A.csv'),
+                     str(tmp_path / 'srm.csv'), lambda line: line.startswith(position))
+        if treatment.startswith('Thermal'):
+            subset = pd.read_csv(tmp_path / 'srm.csv', dtype=str, keep_default_na=False)
+            stepped = subset['Treatment type'] != ''
+            subset.loc[stepped, 'Treatment type'] = treatment
+            subset.loc[stepped, 'Treatment Value (mT or °C)'] = [
+                str(float(value) + 100) for value in subset.loc[stepped, 'Treatment Value (mT or °C)']]
+            subset.drop(columns=['Unnamed: 32']).to_csv(tmp_path / 'srm.csv', index=False)
+        ran, meas_file = convert.iodp_srm(csv_file='srm.csv', input_dir_path=str(tmp_path),
+                                          dir_path=str(tmp_path))
+        assert ran
+        raw = pd.read_csv(tmp_path / 'srm.csv')
+        meas = read_table(os.path.join(tmp_path, meas_file)).fillna(0)
+        assert len(raw) == 12
+        assert len(meas) == len(raw)
+        assert not meas.method_codes.str.contains('DE-VM').any()
+        for (_, rec), (_, row) in zip(meas.iterrows(), raw.iterrows()):
+            assert rec.dir_dec == pytest.approx(row['Declination background & tray corrected (deg)'])
+            code = rec.method_codes.split(':')[0]
+            if pd.isna(row['Treatment type']):
+                assert code == 'LT-NO'
+            elif treatment.startswith('Alternating'):
+                assert code == 'LT-AF-Z'
+                assert rec.treat_ac_field == pytest.approx(row['Treatment Value (mT or °C)'] * 1e-3)
+                assert rec.instrument_codes == 'IODP-SRM:IODP-DTECH'
+            else:
+                assert code == 'LT-T-Z'
+                assert rec.treat_temp == pytest.approx(row['Treatment Value (mT or °C)'] + 273)
 
     @pytest.mark.parametrize('label', ['Declination background + tray corrected (°)',
                                        'Declination background + tray corrected (Â°)',
@@ -591,6 +634,40 @@ class TestIodpDscrLore:
             expected_code = 'LT-AF-Z' if row['Treatment Type'] == 'IN-LINE AF DEMAG' else 'LT-NO'
             assert rec.method_codes.split(':')[0] == expected_code
 
+    def test_order_of_measurement(self, lore_out):
+        """
+        the steps of each specimen follow the timestamps, which here differ
+        from the order of the test numbers (70 mT and 75 mT of 1H-1-W-26.0)
+        """
+        results, out = lore_out
+        meas = read_table(results['dscr'][1])
+        raw = pd.read_csv(os.path.join(U999A_DIR, 'SRM_discrete_data', 'srmdiscrete_17_5_2019.csv'))
+        for specimen, recs in meas.groupby('specimen', sort=False):
+            assert list(recs.treat_ac_field) == sorted(recs.treat_ac_field), specimen
+            assert list(recs.sequence) == sorted(recs.sequence), specimen
+        cube = raw[raw['Offset (cm)'] == 26.0].set_index('Treatment Value')
+        assert cube.loc[75, 'Test No.'] < cube.loc[70, 'Test No.']
+
+    def test_older_layout(self, tmp_path):
+        """an older LIMS discrete export returns False and points to iodp_srm"""
+        convert.iodp_samples_csv('samples_17_5_2019.csv', input_dir_path=U999A_DIR,
+                                 dir_path=str(tmp_path))
+        ran, message = convert.iodp_dscr_lore('IODP_LIMS_SRMdiscrete_344_1414A.csv',
+                                              input_dir_path=SRM_DIR, dir_path=str(tmp_path))
+        assert ran is False
+        assert 'iodp_srm' in message
+        assert not os.path.exists(tmp_path / 'measurements.txt')
+
+    def test_command_line_failure(self, tmp_path):
+        """iodp_dscr_magic.py prints the message and exits with status 1 on failure"""
+        script = os.path.join(WD, 'programs', 'conversion_scripts', 'iodp_dscr_magic.py')
+        result = subprocess.run([sys.executable, script, '-f', 'srmdiscrete_17_5_2019.csv',
+                                 '-ID', os.path.join(U999A_DIR, 'SRM_discrete_data'),
+                                 '-WD', str(tmp_path)],
+                                capture_output=True, text=True, env=dict(os.environ, PYTHONPATH=WD))
+        assert result.returncode == 1, result.stdout + result.stderr
+        assert 'samples table' in result.stdout
+
     def test_warns_about_unknown_specimens(self, tmp_path, capsys):
         """a specimen that is not in the specimens table is named in a warning"""
         convert.iodp_samples_csv('samples_17_5_2019.csv', input_dir_path=U999A_DIR,
@@ -767,6 +844,18 @@ class TestIodpSrmLore:
         assert read_table(os.path.join(out, 'srm_arch_specimens.txt')).specimen.is_unique
         assert read_table(os.path.join(out, 'srm_arch_samples.txt'))['sample'].is_unique
         assert read_table(os.path.join(out, 'srm_arch_sites.txt')).site.is_unique
+
+    def test_specimen_volume_and_text_id(self, srm_lore_out):
+        """
+        the specimen gets the Text ID of its section half and, as volume, the
+        raw moment over the raw intensity that LIMS used
+        """
+        _, out, raw = srm_lore_out
+        spec = read_table(os.path.join(out, 'srm_arch_specimens.txt')).iloc[0]
+        assert spec.specimen_alternatives == raw['Text ID'].iloc[0]
+        raw_moment = np.linalg.norm(raw[['Magnetic moment x (Am²)', 'Magnetic moment y (Am²)',
+                                         'Magnetic moment z (Am²)']].values, axis=1)
+        assert spec.volume == pytest.approx(np.median(raw_moment / raw['Intensity raw (A/m)']))
 
 
 # -------------------------------------------------- shared failure behaviour

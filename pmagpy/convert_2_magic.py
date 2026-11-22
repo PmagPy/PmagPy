@@ -4623,6 +4623,14 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
         return False, ""
     LORE_specimens=list(specimens_df.specimen.unique())
     in_df=pd.read_csv(dscr_file)
+    lore_columns=['Timestamp (UTC)','Treatment Type','Treatment Value','Test No.','Comments',
+                  'Declination background & drift corrected (deg)',
+                  'Inclination background & drift corrected (deg)',
+                  'Intensity background & drift corrected (A/m)']
+    missing=[col for col in lore_columns if col not in in_df.columns]
+    if missing:
+        print('-W- missing columns:', missing)
+        return False, 'Could not find the LORE columns {} in {}; for older LIMS files use convert_2_magic.iodp_srm'.format(missing, dscr_file)
     in_df['offline_treatment']=""
     if dscr_ex_file:
         ex_df=pd.read_csv(dscr_ex_file)
@@ -4636,8 +4644,12 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
     if len(in_df)==0:
         print ('you must download a csv file from the LIMS database and place it in your input_dir_path')
         return False, ""
-    in_df.sort_values(by='Test No.',inplace=True)
+    in_df.drop_duplicates(subset='Test No.',inplace=True)
+    # keep the order of measurement (test numbers are not always in that
+    # order), so that only consecutive measurements at the same step are averaged
+    in_df.sort_values(by='Timestamp (UTC)',key=pd.to_datetime,kind='stable',inplace=True)
     in_df.reset_index(inplace=True)
+    in_df['sequence']=range(1,len(in_df)+1)
     measurements_df=pd.DataFrame(columns=meas_reqd_columns)
     meas_out = os.path.join(output_dir_path, meas_file)
     if offline_meas_file:
@@ -4654,7 +4666,7 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
     measurements_df['specimen']=srm_specimens
     measurements_df['comment']=in_df['Comments'] # temporary column
     measurements_df['offline_treatment']=in_df['offline_treatment']
-    measurements_df['sequence']=in_df['Test No.']
+    measurements_df['sequence']=in_df['sequence']
     measurements_df['offline_list']=""
     measurements_df['quality']='g'
     measurements_df['citations']='This study'
@@ -5849,6 +5861,15 @@ def iodp_samples_srm(df, spec_file='specimens.txt',samp_file="samples.txt",site_
     specimens_df['result_quality']='g'
     specimens_df['method_codes']='FS-C-DRILL-IODP'
     specimens_df['citations']='This study'
+    if text_key in df.columns:
+        specimens_df['specimen_alternatives']=df[text_key]
+    moment_keys=['Magnetic moment x (Am²)','Magnetic moment y (Am²)','Magnetic moment z (Am²)']
+    if 'Intensity raw (A/m)' in df.columns and all(key in df.columns for key in moment_keys):
+        # the volume (m^3) LIMS used between moment and intensity: raw moment / raw
+        # intensity, the median of the measurements of each specimen
+        raw_moment=np.sqrt((df[moment_keys]**2).sum(axis=1))
+        volume=(raw_moment/df['Intensity raw (A/m)']).replace([np.inf,-np.inf],np.nan)
+        specimens_df['volume']=volume.groupby(specimens).transform('median')
     # df has a row per measurement: keep one row per specimen, sample and site
     specimens_df = specimens_df.drop_duplicates(subset='specimen')
     samples_df = samples_df.drop_duplicates(subset='sample')
@@ -6227,6 +6248,14 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
             else:
                 print("couldn't find ID number")
                 return False, "couldn't find ID number in " + f
+            # treatment type and value columns, where the file has them
+            # ("Treatment Type", "Treatment type", "Treatment Value (mT or degC)", ...)
+            treat_type_key, treat_value_key = "", ""
+            for k in keys:
+                if k.lower() == 'treatment type':
+                    treat_type_key = k
+                elif k.lower().startswith('treatment value') and not treat_value_key:
+                    treat_value_key = k
             for line in file_input[1:]:
                 InRec = {}
                 test = 0
@@ -6363,42 +6392,36 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
                         year_warning = False
                 MeasRec['timestamp'] = utc_dt.strftime("%Y-%m-%dT%H:%M:%S")+"Z"
                 MeasRec["method_codes"] = 'LT-NO'
-                if 'Treatment Type' in list(InRec.keys()) and InRec['Treatment Type'] != "":
-                    if "AF" in InRec['Treatment Type'].upper():
-                        MeasRec['method_codes'] = 'LT-AF-Z'
-                        inst = inst+':IODP-SRM-AF'  # measured on shipboard in-line 2G AF
-                        treatment_value = float(
-                            InRec[demag_key].strip('"'))*1e-3  # convert mT => T
-                        # AF demag in treat mT => T
-                        MeasRec["treat_ac_field"] = treatment_value
-                    elif "T" in InRec['Treatment Type'].upper():
-                        MeasRec['method_codes'] = 'LT-T-Z'
-                        inst = inst+':IODP-TDS'  # measured on shipboard Schonstedt thermal demagnetizer
-                        try:
-                            treatment_value = float(
-                                InRec['Treatment Value'])+273  # convert C => K
-                        except KeyError:
-                            try:
-                                treatment_value = float(
-                                    InRec["Treatment value<br> (mT or degC)"]) + 273
-                            except KeyError:
-                                print([k for k in InRec.keys() if 'treat' in k.lower()])
-                                print("-W- Couldn't find column for Treatment Value")
-                                treatment_value = ""
-                        MeasRec["treat_temp"] = str(treatment_value)
-                    elif 'Alternating Frequency' in InRec['Treatment Type']:
+                treat_type = InRec[treat_type_key].upper() if treat_type_key else ""
+                # the level is in the treatment value column where there is one,
+                # else in the demag level column
+                has_value = treat_value_key != "" and InRec[treat_value_key] != ""
+                value_key = treat_value_key if has_value else demag_key
+                if treat_type != "":
+                    # test for AF before thermal: "Alternating Frequency" contains a T
+                    if 'ALTERNATING FREQUENCY' in treat_type:
                         MeasRec['method_codes'] = 'LT-AF-Z'
                         inst = inst+':IODP-DTECH'  # measured on shipboard Dtech D2000
                         treatment_value = float(
-                            InRec[demag_key])*1e-3  # convert mT => T
+                            InRec[value_key])*1e-3  # convert mT => T
                         # AF demag in treat mT => T
                         MeasRec["treat_ac_field"] = treatment_value
-                    elif 'Thermal' in InRec['Treatment Type']:
+                    elif "AF" in treat_type:
+                        MeasRec['method_codes'] = 'LT-AF-Z'
+                        inst = inst+':IODP-SRM-AF'  # measured on shipboard in-line 2G AF
+                        treatment_value = float(
+                            InRec[value_key].strip('"'))*1e-3  # convert mT => T
+                        # AF demag in treat mT => T
+                        MeasRec["treat_ac_field"] = treatment_value
+                    elif "T" in treat_type:
                         MeasRec['method_codes'] = 'LT-T-Z'
                         inst = inst+':IODP-TDS'  # measured on shipboard Schonstedt thermal demagnetizer
-                        treatment_value = float(
-                            InRec[demag_key])+273  # convert C => K
-                        MeasRec["treat_temp"] = '%8.3e' % (treatment_value)
+                        if not has_value:
+                            print("-W- Couldn't find column for Treatment Value")
+                            treatment_value = ""
+                        else:
+                            treatment_value = float(InRec[value_key])+273  # convert C => K
+                        MeasRec["treat_temp"] = str(treatment_value)
                 elif InRec[demag_key] != "0":
                     MeasRec['method_codes'] = 'LT-AF-Z'
                     inst = inst+':IODP-SRM-AF'  # measured on shipboard in-line 2G AF
@@ -6414,7 +6437,7 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
                 MeasRec["standard"] = 'u'  # assume all data are "good"
                 vol = float(volume)*1e-6  # convert from cc to m^3
                 if run_number != "":
-                    MeasRec['external_database_ids'] = {'LIMS': run_number}
+                    MeasRec['external_database_ids'] = 'LIMS[' + run_number + ']'
                 else:
                     MeasRec['external_database_ids'] = ""
                 MeasRec['dir_inc'] = InRec[inc_key]

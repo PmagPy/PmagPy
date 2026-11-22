@@ -75,7 +75,10 @@ def main():
         kwargs['lon'] = sys.argv[ind+1]
     kwargs['comp_depth_key'] = pmag.get_named_arg("-key", 'Depth CSF-B (m)')
     # do conversion
-    convert.iodp_srm_lore(**kwargs)
+    ran, message = convert.iodp_srm_lore(**kwargs)
+    if not ran:
+        print("-W- " + message)
+        sys.exit(1)
 
 
 if __name__ == '__main__':

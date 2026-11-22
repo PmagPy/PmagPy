@@ -71,7 +71,10 @@ def main():
         kwargs['volume'] = sys.argv[ind+1]
     kwargs['dc_field'] = pmag.get_named_arg('-dc', default_val=50e-6)
     # do conversion
-    convert.iodp_jr6_lore(**kwargs)
+    ran, message = convert.iodp_jr6_lore(**kwargs)
+    if not ran:
+        print("-W- " + message)
+        sys.exit(1)
 
 
 if __name__ == '__main__':

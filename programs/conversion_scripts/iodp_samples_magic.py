@@ -23,6 +23,7 @@ def main():
                                           input_dir_path=input_dir_path)
     if not ran:
         print("-W- " + error)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
