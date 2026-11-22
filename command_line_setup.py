@@ -50,7 +50,7 @@ setup(
         'maps': ['pmagpy[maps]'],
     },
 
-    packages=find_packages(exclude=['pmagpy', 'pmag_env', 'pmagpy_tests']),
+    packages=find_packages(exclude=['pmagpy', 'pmag_env']),
     include_package_data=True,
 
     scripts=['bin/pmag_gui_anaconda', 'bin/magic_gui_anaconda',

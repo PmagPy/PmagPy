@@ -6,7 +6,7 @@ As an open-source, community project, we welcome improvements and feedback!  The
 
 1. If you want to report a bug or request a new feature, you can click here to create a [Github issue](https://github.com/PmagPy/PmagPy/issues).  If you are reporting a bug, please provide as much detail as possible about how you discovered the bug.  For a full explanation of how to create a new issue, and what information to include, see [Github documentation](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-an-issue).
 
-2. If you want to add a new feature yourself or fix a bug yourself, that's great too.  The process for adding a feature looks like this: fork the PmagPy repository, create a branch for your feature or bugfix, make some changes, and then submit a pull request.  Don't worry if you don't know how to do all of those steps!  If you aren't familiar with git, Github, or the details of this process, you will find this short [tutorial](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project) helpful.  If you're still stuck after that but want to contribute, you can create a [Github issue](https://github.com/PmagPy/PmagPy/issues) and we will help get you sorted.  Depending on what kind of contribution you are making, you may also want to add some tests.  See our [testing README](https://github.com/PmagPy/PmagPy/blob/master/pmagpy_tests/README.md) for details on making and running PmagPy tests.
+2. If you want to add a new feature yourself or fix a bug yourself, that's great too.  The process for adding a feature looks like this: fork the PmagPy repository, create a branch for your feature or bugfix, make some changes, and then submit a pull request.  Don't worry if you don't know how to do all of those steps!  If you aren't familiar with git, Github, or the details of this process, you will find this short [tutorial](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project) helpful.  If you're still stuck after that but want to contribute, you can create a [Github issue](https://github.com/PmagPy/PmagPy/issues) and we will help get you sorted.  Depending on what kind of contribution you are making, you may also want to add some tests.  See the [testing guidelines](#testing-guidelines) below for details on making and running PmagPy tests.
 
 If you will be making significant contributions via git, we have some additional guidelines for [good git protocols](#git-protocols).
 
@@ -25,7 +25,7 @@ pytest pmagpy/test
 
 This is the suite that GitHub Actions runs on every pull request (Python 3.10 and 3.12). New tests belong here: one file per module or topic (for example `test_pmag_directions.py`, `test_rockmag_hysteresis.py`), plain pytest classes and functions, and analytical or reference values where the science allows. Tests that need cartopy or Bokeh should skip cleanly when those optional packages are missing (`pytest.importorskip`).
 
-`pmagpy_tests/` is the legacy unittest suite. It is not run in CI, needs the unlisted `scripttest` dependency to import, and is kept only until its remaining useful cases (mainly the converter tests in `test_imports3.py`) are ported to `pmagpy/test/`. Do not add tests there.
+The converters in `convert_2_magic.py` are tested in `test_convert_*.py`: `test_convert_2_magic.py` checks what every converter should do (handle a missing file, write only into its output directory, write MagIC 3 columns), and the other files check the converted values against the input files in `data_files/convert_2_magic`. Converters write into `tmp_path`, never into `data_files`. A known defect is recorded as a test of the correct behavior marked `pytest.mark.xfail(strict=True, reason=...)`; once the defect is fixed the test passes, which fails the suite as a reminder to remove the mark.
 
 
 ## Directory structure
@@ -94,8 +94,6 @@ Here is a visual representation of the directory structure:
 │   ├── field_models
 │   ├── mapping
 │   └── test
-├── pmagpy_tests
-│   └── examples
 ├── programs
 │   ├── conversion_scripts
 │   ├── conversion_scripts2
