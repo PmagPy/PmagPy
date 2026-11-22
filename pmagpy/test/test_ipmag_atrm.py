@@ -240,6 +240,23 @@ def test_perfect_fit_has_zero_sigma(monkeypatch):
                                [0.625, 0.25, 0.125, 0, 0, 0], atol=1e-7)
 
 
+@pytest.mark.parametrize('diagonal', [(1., 1., 1.), (2., 1., 1.), (1., 1., 2.)],
+                         ids=['isotropic', 'uniaxial-oblate', 'uniaxial-prolate'])
+def test_tensor_with_equal_eigenvalues(diagonal):
+    """an isotropic or uniaxial tensor gives its eigenvalues, largest first"""
+    chi = np.diag(diagonal)
+    fields = np.array([pmag.dir2cart([phi, theta, 1.]) for phi, theta in POSITIONS])
+    K = (fields @ chi).ravel()
+    pars = ipmag.calculate_aniso_parameters(K, n_pos=6)
+    taus = [eigen_parameters(pars[col])[0] for col in ('aniso_v1', 'aniso_v2', 'aniso_v3')]
+    np.testing.assert_allclose(taus, sorted(np.array(diagonal) / sum(diagonal), reverse=True),
+                               atol=1e-6)
+    # V1 of the prolate tensor (2 along Z) is vertical
+    if diagonal == (1., 1., 2.):
+        assert abs(eigen_parameters(pars['aniso_v1'])[2]) == pytest.approx(90, abs=0.1)
+    assert float(pars['aniso_p']) == pytest.approx(max(diagonal) / min(diagonal), rel=1e-5)
+
+
 def test_measurements_without_atrm_data(tmp_path):
     """a measurements table with no LP-AN-TRM records is reported, not written"""
     with open(tmp_path / 'measurements.txt', 'w') as f:

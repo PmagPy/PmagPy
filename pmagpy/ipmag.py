@@ -11620,16 +11620,10 @@ def calculate_aniso_parameters(K,n_pos=6):
     s_vec=[s1,s2,s3,s4,s5,s6]
     # calculate eigen vector,
     t, evectors = eig(s_matrix)
-    # sort vectors
-    t = list(t)
-    t1 = max(t)
-    ix_1 = t.index(t1)
-    t3 = min(t)
-    ix_3 = t.index(t3)
-    for tt in range(3):
-        if t[tt] != t1 and t[tt] != t3:
-            t2 = t[tt]
-            ix_2 = t.index(t2)
+    # sort vectors, from the largest eigenvalue to the smallest (equal
+    # eigenvalues, as in a uniaxial or isotropic tensor, keep their eig order)
+    ix_1, ix_2, ix_3 = np.argsort(-t.real, kind='stable')
+    t1, t2, t3 = t[ix_1], t[ix_2], t[ix_3]
     v1 = [evectors[0][ix_1], evectors[1][ix_1], evectors[2][ix_1]]
     v2 = [evectors[0][ix_2], evectors[1][ix_2], evectors[2][ix_2]]
     v3 = [evectors[0][ix_3], evectors[1][ix_3], evectors[2][ix_3]]
