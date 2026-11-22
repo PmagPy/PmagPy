@@ -90,11 +90,8 @@ def known_defect(names, reason):
 
 
 @pytest.mark.parametrize('name', known_defect({
-    'huji_sample': 'raises FileNotFoundError',
     'jr6_jr6': 'raises FileNotFoundError',
     'jr6_txt': 'returns None',
-    'livdb': 'raises FileNotFoundError',
-    'utrecht': 'raises FileNotFoundError',
 }, 'a missing input file should give (False, message)'))
 def test_missing_input_file(name, tmp_path):
     """a missing input file gives (False, message), not an exception, and no tables"""
@@ -129,8 +126,6 @@ def converted(request, tmp_path_factory):
 
 
 @pytest.mark.parametrize('converted', known_defect({
-    'kly4s': 'writes samples.txt and sites.txt into the working directory',
-    'mini': 'writes all of its tables into the working directory, not into dir_path',
 }, 'a converter should only use its output directory'), indirect=True)
 def test_uses_only_the_output_directory(converted):
     """nothing is written to, or read from, the working directory"""
@@ -144,12 +139,8 @@ def test_uses_only_the_output_directory(converted):
 
 
 @pytest.mark.parametrize('converted', known_defect({
-    'huji_sample': 'samples: location; sites: class, definition, lithology, type',
     'k15': 'measurements: experiments, location, sample, site; samples: location, specimen; '
            'specimens: location, site',
-    'kly4s': 'measurements: location, sample, site; specimens: location, site',
-    'mst': 'measurements: location, sample, site',
-    's_magic': 'specimens: location, site',
 }, 'every column should be in the MagIC 3 data model'), indirect=True)
 def test_columns_are_in_the_data_model(converted):
     """every column of every table written is a column of that table in MagIC 3"""

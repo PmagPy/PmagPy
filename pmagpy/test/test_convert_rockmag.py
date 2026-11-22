@@ -93,7 +93,11 @@ class TestMst:
         raw = data_lines(os.path.join(CONVERT_DIR, 'mst_magic', 'curie_example.dat'))
         assert len(meas) == len(raw)
         assert set(meas['specimen']) == {'abcde'}
-        assert set(meas['location']) == {'place'}
+        # the sample, site and location are in their own tables
+        specimens = read_table(os.path.join(out, 'specimens.txt')).set_index('specimen')
+        sample = specimens.loc['abcde', 'sample']
+        site = read_table(os.path.join(out, 'samples.txt')).set_index('sample').loc[sample, 'site']
+        assert read_table(os.path.join(out, 'sites.txt')).set_index('site').loc[site, 'location'] == 'place'
         assert list(meas['meas_temp']) == pytest.approx([temp + 273 for temp, _ in raw], abs=0.1)
         assert list(meas['magn_uncal']) == pytest.approx([mag for _, mag in raw], rel=1e-3)
         assert list(meas['treat_dc_field']) == pytest.approx([0.5] * len(raw))
@@ -108,3 +112,14 @@ class TestMst:
                 expected.append(None)
         codes = [code if isinstance(code, str) else None for code in meas['method_codes']]
         assert codes == expected
+
+    def test_measurements_file_name(self, run):
+        """a measurements file with another name is the one the other tables are made from"""
+        meas_file, out = run('mst_name', lambda out: convert.mst(
+            'curie_example.dat', spec_name='abcde', meas_file='curie.txt',
+            input_dir_path=os.path.join(CONVERT_DIR, 'mst_magic'), dir_path=out))
+        assert meas_file == os.path.join(out, 'curie.txt')
+        assert sorted(os.listdir(out)) == ['curie.txt', 'locations.txt', 'samples.txt',
+                                           'sites.txt', 'specimens.txt']
+        assert 'sample' not in read_table(meas_file).columns
+        assert list(read_table(os.path.join(out, 'specimens.txt'))['specimen']) == ['abcde']

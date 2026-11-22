@@ -82,6 +82,46 @@ class TestKly4s:
         assert row['aniso_s_sigma'] == pytest.approx(2.284e-4)
         assert row['aniso_type'] == 'AMS'
 
+    def test_samples_and_sites(self, out):
+        """the sample, site and location of each specimen are in the samples and sites tables"""
+        specimens = read_table(os.path.join(out, 'specimens.txt')).drop_duplicates('specimen')
+        assert specimens.set_index('specimen').loc[self.SPECIMEN, 'sample'] == self.SPECIMEN
+        samples = read_table(os.path.join(out, 'samples.txt')).set_index('sample')
+        assert len(samples) == 26
+        # naming convention 1: the site is the sample name without its last character
+        assert samples.loc[self.SPECIMEN, 'site'] == self.SPECIMEN[:-1]
+        sites = read_table(os.path.join(out, 'sites.txt'))
+        assert sites['site'].is_unique
+        assert set(sites['site']) == set(samples['site'])
+        assert set(sites['location']) == {'unknown'}
+
+    def test_azdip_orientation(self, tmp_path):
+        """the orientation in an AZDIP file goes to the samples table in the output directory"""
+        with open(os.path.join(in_dir('kly4s_magic'), 'KLY4S_magic_example.dat')) as f:
+            lines = f.readlines()[:2]
+        in_dir_path = tmp_path / 'in'
+        in_dir_path.mkdir()
+        with open(str(in_dir_path / 'kly4s.dat'), 'w') as f:
+            f.writelines(lines)
+        # name, azimuth and hade of the drill direction, bedding strike and dip
+        with open(str(in_dir_path / 'azdip.txt'), 'w') as f:
+            f.write('{} 40 30 100 20\n'.format(self.SPECIMEN))
+        result, out_dir, cwd = convert_into(tmp_path, lambda out: convert.kly4s(
+            'kly4s.dat', azdip_infile='azdip.txt', input_dir_path=str(in_dir_path), dir_path=out))
+        assert result[0] is True, result
+        assert os.listdir(cwd) == []
+        samples = read_table(os.path.join(out_dir, 'samples.txt')).set_index('sample')
+        assert len(samples) == 2
+        # orientation convention 3: dip = 90 - hade
+        oriented = samples.loc[self.SPECIMEN]
+        assert (oriented['azimuth'], oriented['dip']) == (40, 60)
+        # the bedding dip direction is not checked: the converter writes strike - 90,
+        # which is the dip direction only if the dip is to the left of the strike
+        assert oriented['bed_dip'] == 20 and not np.isnan(oriented['bed_dip_direction'])
+        assert samples.loc['318-U1359B-011H-2-W-76', ['azimuth', 'dip']].isnull().all()
+        specimens = read_table(os.path.join(out_dir, 'specimens.txt'))
+        assert set(ams_rows(specimens, self.SPECIMEN).index) == {-1, 0, 100}
+
 
 class TestK15:
     """

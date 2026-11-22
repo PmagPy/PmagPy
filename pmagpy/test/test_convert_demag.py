@@ -169,7 +169,7 @@ class TestHujiSample:
     def test_samples_and_sites(self, run, ignore_dip, azimuth):
         out = run('huji_sample', lambda out: convert.huji_sample(
             'magdelkrum_datafile.txt', input_dir_path=in_dir('huji_magic'), dir_path=out,
-            ignore_dip=ignore_dip))
+            ignore_dip=ignore_dip, location_name='Magdelkrum'))
         samples = read_table(os.path.join(out, 'samples.txt'))
         assert len(samples) == 57
         # mk118  22  21  0  0  35.23788  32.92075
@@ -179,6 +179,8 @@ class TestHujiSample:
         assert (mk118['lat'], mk118['lon']) == (35.23788, 32.92075)
         sites = read_table(os.path.join(out, 'sites.txt'))
         assert 'mk11' in set(sites['site'])
+        # the location is in the sites table
+        assert set(sites['location']) == {'Magdelkrum'}
 
 
 class TestJr6Txt:
@@ -352,10 +354,9 @@ class TestMini:
         result, out_dir, cwd = convert_into(tmp_path, lambda out: convert.mini(
             'Peru_rev1.txt', input_dir_path=in_dir('mini_magic'), dir_path=out, methcode='AF'))
         assert result[0] is True
-        # mini writes into the working directory, not dir_path (an xfail in
-        # test_convert_2_magic.py); the tables are read from wherever they are
-        table_dir = out_dir if os.listdir(out_dir) else cwd
-        meas = read_table(os.path.join(table_dir, 'measurements.txt'))
+        assert result[1] == os.path.join(out_dir, 'measurements.txt')
+        assert os.listdir(cwd) == []
+        meas = read_table(os.path.join(out_dir, 'measurements.txt'))
         assert len(meas) == 103
         cup = meas[meas['specimen'] == 'Cup-1-1']
         assert list(cup['treat_ac_field']) == pytest.approx([0.05, 0.10, 0.15, 0.20, 0.25])
@@ -364,7 +365,7 @@ class TestMini:
         assert (first['dir_dec'], first['dir_inc']) == (126.9, 34.3)
         # default volume 12 cc; the moment is written with four digits
         assert first['magn_moment'] == pytest.approx(4.393e-3 * 12e-6, rel=1e-3)
-        samples = read_table(os.path.join(table_dir, 'samples.txt')).set_index('sample')
+        samples = read_table(os.path.join(out_dir, 'samples.txt')).set_index('sample')
         assert samples.loc['Cup-1-1', 'site'] == 'Cup-1'
 
 
@@ -475,10 +476,45 @@ class TestUtrecht:
         first = samples.iloc[0]
         assert (first['azimuth'], first['dip'], first['bed_dip_direction']) == (288, -51, 169)
 
-    @pytest.mark.xfail(strict=True, reason="the bed_dip of the first specimen keeps the line "
-                                           "ending ('15\\n'), which splits the samples table")
     def test_bed_dip(self, out):
         with open(os.path.join(out, 'samples.txt')) as f:
             lines = f.read().splitlines()
         # a header line, the column names, and one line per sample
-        assert len(lines) == 2 + len(read_table(os.path.join(out, 'samples.txt')))
+        samples = read_table(os.path.join(out, 'samples.txt'))
+        assert len(lines) == 2 + len(samples)
+        assert samples.iloc[0]['bed_dip'] == 15
+
+    def test_timestamps(self, out):
+        """the times are on a 12-hour clock in Utrecht (UTC+2 in summer)"""
+        meas = read_table(os.path.join(out, 'measurements.txt'))
+        first = meas.groupby('specimen', sort=False)['timestamp'].first()
+        # KO_86.1: 0,-1.48E+03,4.58E+02,2.82E+03,0.99,5/31/2007,4:09:48 PM
+        assert first['KO_86.1'] == '2007-05-31T14:09:48Z'
+        # KO_86.3: 0.0, 2.0363E+3, 6.0421E+2, 2.8818E+3,0.99,6/9/2007,8:22:55 AM
+        assert first['KO_86.3'] == '2007-06-09T06:22:55Z'
+
+    @pytest.mark.parametrize('end', ['"END"\r\n', ''])
+    def test_line_endings_and_white_space(self, tmp_path, end):
+        """Windows line endings, white space and blank lines, and no END line"""
+        in_dir_path = tmp_path / 'in'
+        in_dir_path.mkdir()
+        with open(str(in_dir_path / 'example.th'), 'w', newline='') as f:
+            f.write('"ROBOT", "2G DC"\r\n'
+                    '"AB1.1", 1586, 288, 39, 10.5, 169, 15 \r\n'
+                    '0, -1.48E+03, 4.58E+02, 2.82E+03, 0.99, 5/31/2007, 16:09:48\r\n'
+                    ' 100.0, -1.59E+03, 2.42E+01, 2.79E+03, 0.99, 5/31/2007, 16:30:00\r\n'
+                    '9999 \r\n'
+                    '\r\n'
+                    '"AB2.1", 1586, 200, 30, 10.5, 169, 25\r\n'
+                    '0, -1.48E+03, 4.58E+02, 2.82E+03, 0.99, 5/31/2007, 12:05:00 AM\r\n'
+                    '9999\r\n' + end)
+        result, out_dir, cwd = convert_into(tmp_path, lambda out: convert.utrecht(
+            'example.th', input_dir_path=str(in_dir_path), dir_path=out, specnum=0))
+        assert result[0] is True, result
+        samples = read_table(os.path.join(out_dir, 'samples.txt'))
+        assert list(zip(samples['azimuth'], samples['bed_dip'])) == [(288, 15), (200, 25)]
+        meas = read_table(os.path.join(out_dir, 'measurements.txt'))
+        assert list(meas['timestamp']) == ['2007-05-31T14:09:48Z', '2007-05-31T14:30:00Z',
+                                           '2007-05-30T22:05:00Z']
+        assert list(meas['treat_temp']) == pytest.approx([273, 373, 273])
+        assert set(meas['instrument_codes']) == {'Utrecht_2G DC'}
