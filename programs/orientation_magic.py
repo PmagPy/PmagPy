@@ -18,9 +18,9 @@ def main():
 
     OPTIONS
         -f FILE: specify input file, default is: orient.txt
-        -Fsa FILE: specify output file, default is: er_samples.txt
-        -Fsi FILE: specify output site location file, default is: er_sites.txt
-        -app  append/update these data in existing er_samples.txt, er_sites.txt files
+        -Fsa FILE: specify output file, default is: samples.txt
+        -Fsi FILE: specify output site location file, default is: sites.txt
+        -app  append/update these data in existing samples.txt, sites.txt files
         -ocn OCON:  specify orientation convention, default is #1 below
         -dcn DCON [DEC]: specify declination convention, default is #1 below
             if DCON = 2, you must supply the declination correction
@@ -35,11 +35,11 @@ def main():
              FS-LOC-MAP  field location done with map
              SO-POM   a Pomeroy orientation device was used
              SO-ASC   an ASC orientation device was used
-        -DM: specify data model (2 or 3).  Default: 3.  Will output to the appropriate format.
+        -DM 3: MagIC Data Model 3 is the only supported output model.
 
 
         Orientation convention:
-            Samples are oriented in the field with a "field arrow" and measured in the laboratory with a "lab arrow". The lab arrow is the positive X direction of the right handed coordinate system of the specimen measurements. The lab and field arrows may  not be the same. In the MagIC database, we require the orientation (azimuth and plunge) of the X direction of the measurements (lab arrow). Here are some popular conventions that convert the field arrow azimuth (mag_azimuth in the orient.txt file) and dip (field_dip in orient.txt) to the azimuth and plunge  of the laboratory arrow (sample_azimuth and sample_dip in er_samples.txt). The two angles, mag_azimuth and field_dip are explained below.
+            Samples are oriented in the field with a "field arrow" and measured in the laboratory with a "lab arrow". The lab arrow is the positive X direction of the right handed coordinate system of the specimen measurements. The lab and field arrows may  not be the same. In the MagIC database, we require the orientation (azimuth and plunge) of the X direction of the measurements (lab arrow). Here are some popular conventions that convert the field arrow azimuth (mag_azimuth in the orient.txt file) and dip (field_dip in orient.txt) to the azimuth and plunge of the laboratory arrow (azimuth and dip in samples.txt). The two angles, mag_azimuth and field_dip are explained below.
 
             [1] Standard Pomeroy convention of azimuth and hade (degrees from vertical down)
                  of the drill direction (field arrow).  lab arrow azimuth= sample_azimuth = mag_azimuth;
@@ -78,7 +78,7 @@ def main():
             NB: all others you will have to either customize your
                 self or e-mail ltauxe@ucsd.edu for help.
     OUTPUT
-            output saved in er_samples.txt and er_sites.txt (or samples.txt and sites.txt if using data model 3.0)
+            output saved in samples.txt and sites.txt
             - this will overwrite any existing files
     """
     args = sys.argv
@@ -96,6 +96,12 @@ def main():
         dataframe = extractor.command_line_dataframe(info)
         checked_args = extractor.extract_and_check_args(args, dataframe)
         output_dir_path, input_dir_path, orient_file, append, or_con, dec_correction_con, bed_correction, samp_con, hours_from_gmt, method_codes, average_bedding, samp_file, site_file, data_model = extractor.get_vars(['WD', 'ID', 'f', 'app', 'ocn', 'dcn', 'BCN', 'ncn', 'gmt', 'mcd', 'a', 'Fsa', 'Fsi', 'DM'], checked_args)
+        if float(data_model) != 3:
+            raise SystemExit(
+                "-E- orientation_magic supports MagIC Data Model 3 only. "
+                "Convert Data Model 2 files to Data Model 3 before use."
+            )
+        data_model = 3
         if input_dir_path == '.':
             input_dir_path = output_dir_path
 

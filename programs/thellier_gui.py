@@ -5745,7 +5745,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     'lab_cooling_rate' in list(self.Data[self.s]['cooling_rate_data'].keys()):
                 ancient_cooling_rate = self.Data[self.s]['cooling_rate_data']['ancient_cooling_rate']
                 lab_cooling_rate = self.Data[self.s]['cooling_rate_data']['lab_cooling_rate']
-                x0 = np.math.log(lab_cooling_rate / ancient_cooling_rate)
+                x0 = np.log(lab_cooling_rate / ancient_cooling_rate)
                 y0 = 1. / \
                     self.Data[self.s]['cooling_rate_data']['CR_correction_factor']
                 lan_cooling_rates = self.Data[self.s]['cooling_rate_data']['lan_cooling_rates']
@@ -7068,7 +7068,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     beta_0 = 2e4
                     popt, pcov = curve_fit(
                         tan_h, B_NLT, M_NLT, p0=(alpha_0, beta_0))
-                    M_lab = popt[0] * np.math.tanh(labfield * popt[1])
+                    M_lab = popt[0] * np.tanh(labfield * popt[1])
 
                     # Now  fit tanh function to the normalized curve
                     M_NLT_norm = M_NLT / M_lab
@@ -7152,14 +7152,14 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 lab_fast_cr_moments = []
                 lan_cooling_rates = []
                 for pair in cooling_rate_data['pairs']:
-                    lan_cooling_rates.append(np.math.log(
+                    lan_cooling_rates.append(np.log(
                         cooling_rate_data['lab_cooling_rate'] / pair[0]))
                     moments.append(pair[1])
                     if pair[0] == cooling_rate_data['lab_cooling_rate']:
                         lab_fast_cr_moments.append(pair[1])
                 #print (s, cooling_rate_data['alteration_check'])
                 #print (cooling_rate_data['lab_cooling_rate'],cooling_rate_data['alteration_check']) # DELETE
-                lan_cooling_rates.append(np.math.log(
+                lan_cooling_rates.append(np.log(
                     cooling_rate_data['lab_cooling_rate'] / cooling_rate_data['alteration_check'][0]))
                 lab_fast_cr_moments.append(
                     cooling_rate_data['alteration_check'][1])
@@ -7169,7 +7169,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 moment_norm = np.array(moments) / lab_fast_cr_moment
                 (a, b) = np.polyfit(lan_cooling_rates, moment_norm, 1)
                 # ancient_cooling_rate=0.41
-                x0 = np.math.log(
+                x0 = np.log(
                     cooling_rate_data['lab_cooling_rate'] / ancient_cooling_rate)
                 y0 = a * x0 + b
                 MAX = max(lab_fast_cr_moments)

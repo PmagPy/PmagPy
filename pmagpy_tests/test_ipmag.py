@@ -606,8 +606,8 @@ class TestSitesExtract(unittest.TestCase):
             'custom_specimens.txt', 'er_samples.txt', 'my_er_samples.txt',
             'er_sites.txt', 'rmag_anisotropy.txt']
 
-        patterns = [os.path.join(self.WD_0, "*.tex"), os.path.join(self.WD_0, "*.xls"),
-                    os.path.join(self.WD_1, "*.tex"), os.path.join(self.WD_1, "*.xls"),
+        patterns = [os.path.join(self.WD_0, "*.tex"), os.path.join(self.WD_0, "*.xlsx"),
+                    os.path.join(self.WD_1, "*.tex"), os.path.join(self.WD_1, "*.xlsx"),
                     os.path.join(self.WD_0, "*.aux"), os.path.join(self.WD_0, "*.dvi"),
                     os.path.join(self.WD_1, "*.aux"), os.path.join(self.WD_1, "*.dvi"),
                     os.path.join(self.WD_0, "*.gz"), os.path.join(self.WD_1, "*.gz")]
@@ -642,8 +642,8 @@ class TestSpecimensExtract(unittest.TestCase):
             'custom_specimens.txt', 'er_samples.txt', 'my_er_samples.txt',
             'er_sites.txt', 'rmag_anisotropy.txt']
 
-        patterns = [os.path.join(self.WD_0, "*.tex"), os.path.join(self.WD_0, "*.xls"),
-                    os.path.join(self.WD_1, "*.tex"), os.path.join(self.WD_1, "*.xls"),
+        patterns = [os.path.join(self.WD_0, "*.tex"), os.path.join(self.WD_0, "*.xlsx"),
+                    os.path.join(self.WD_1, "*.tex"), os.path.join(self.WD_1, "*.xlsx"),
                     os.path.join(self.WD_0, "*.aux"), os.path.join(self.WD_0, "*.dvi"),
                     os.path.join(self.WD_1, "*.aux"), os.path.join(self.WD_1, "*.dvi"),
                     os.path.join(self.WD_0, "*.gz"), os.path.join(self.WD_1, "*.gz")]
@@ -679,8 +679,8 @@ class TestCriteriaExtract(unittest.TestCase):
             'custom_specimens.txt', 'er_samples.txt', 'my_er_samples.txt',
             'er_sites.txt', 'rmag_anisotropy.txt']
 
-        patterns = [os.path.join(self.WD_0, "*.tex"), os.path.join(self.WD_0, "*.xls"),
-                    os.path.join(self.WD_1, "*.tex"), os.path.join(self.WD_1, "*.xls"),
+        patterns = [os.path.join(self.WD_0, "*.tex"), os.path.join(self.WD_0, "*.xlsx"),
+                    os.path.join(self.WD_1, "*.tex"), os.path.join(self.WD_1, "*.xlsx"),
                     os.path.join(self.WD_0, "*.aux"), os.path.join(self.WD_0, "*.dvi"),
                     os.path.join(self.WD_1, "*.aux"), os.path.join(self.WD_1, "*.dvi"),
                     os.path.join(self.WD_0, "*.gz"), os.path.join(self.WD_1, "*.gz")]
