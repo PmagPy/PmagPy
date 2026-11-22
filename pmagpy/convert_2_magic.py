@@ -7030,7 +7030,7 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
     loc_file : str
         output location file name, default "locations.txt"
     specnum : int
-        number of characters to designate a specimen, default 0
+        number of characters to designate a specimen, default 1
     samp_con : str
         sample/site naming convention, default '1', see info below
     location : str
@@ -7070,6 +7070,16 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
         [6] site is entered under a separate column -- NOT CURRENTLY SUPPORTED
         [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
 
+    Orientation:
+        Each line gives the sample azimuth and dip, the bedding (foliation)
+        and the AGICO orientation parameters P1-P4, which are read as in rs3:
+        P3 and P2 give the azimuth and dip of the specimen X axis; P4 is 0 if
+        the first bedding field is the dip direction, 90 if it is the strike
+        (right-hand rule, dip direction = strike + 90). A bedding dip of 0 is
+        read as no bedding (REMA6 writes 0 0 when none was entered) and
+        bed_dip_direction and bed_dip are left blank. The sample takes the
+        orientation and bedding of its first line; a warning is printed for
+        a specimen whose lines differ from it.
 
     """
 
@@ -7096,8 +7106,11 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
         meth_code = meth_code.strip(":")
         samp_con = '5'
 
+    if not os.path.exists(mag_file):
+        print("-E- could not find the input file {}".format(mag_file))
+        return False, "could not find the input file {}".format(mag_file)
+
     # format variables
-    tmp_file = mag_file.split(os.extsep)[0]+os.extsep+'tmp'
     mag_file = pmag.resolve_file_name(mag_file, input_dir_path)
     if samp_con.startswith("4"):
         if "-" not in samp_con:
@@ -7177,6 +7190,7 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
 
     # put data into magic tables
     MagRecs, SpecRecs, SampRecs, SiteRecs, LocRecs = [], [], [], [], []
+    orientations, warned = {}, []
     for rowNum, row in data.iterrows():
         MeasRec, SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}, {}
         specimen = row['specimen']
@@ -7185,8 +7199,33 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
         else:
             sample = specimen
         site = pmag.parse_site(sample, samp_con, Z)
-        #azimuth=float(row['azimuth'])
-        #dip=float(row['dip'])
+        if row['param3']==3:
+            row['azimuth']=(row['azimuth']-90)%360
+        if row['param3']==6:
+            row['azimuth']=(row['azimuth']+180)%360
+        if row['param3']==9:
+            row['azimuth']=(row['azimuth']+90)%360
+        if row['param3']==12:
+            row['azimuth']=row['azimuth']
+        if row['param2']==90:
+            row['dip']=row['dip']-90
+        if row['param2']==0:
+            row['dip']=-row['dip']
+        # bedding: P4 = 0 if the first foliation field is the dip direction, 90 if it
+        # is the strike (right-hand rule); a dip of 0 is no bedding, as in REMA6 and Remasoft
+        bed_dip_direction, bed_dip = "", ""
+        if row['foliation_dip'] != 0:
+            if row['param4'] == 0:
+                bed_dip_direction = float(row['foliation_azimuth_of_dip']) % 360.
+            elif row['param4'] == 90:
+                bed_dip_direction = (float(row['foliation_azimuth_of_dip']) + 90.) % 360.
+            else:
+                message = '{}: orientation parameter P4 = {} is not supported'.format(
+                    specimen, row['param4'])
+                print(message)
+                return False, message
+            bed_dip = float(row['foliation_dip'])
+        orientation = (float(row['azimuth']), float(row['dip']), bed_dip_direction, bed_dip)
         if specimen != "" and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else "" for x in SpecRecs]:
             SpecRec['specimen'] = specimen
             SpecRec['sample'] = sample
@@ -7199,24 +7238,17 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
             SampRec['site'] = site
             SampRec["citations"] = "This study"
             SampRec["analysts"] = user
-            if row['param3']==3:
-                row['azimuth']=(row['azimuth']-90)%360
-            if row['param3']==6:
-                row['azimuth']=(row['azimuth']+180)%360
-            if row['param3']==9:
-                row['azimuth']=(row['azimuth']+90)%360
-            if row['param3']==12:
-                row['azimuth']=row['azimuth']
-            if row['param2']==90:
-                row['dip']=row['dip']-90
-            if row['param2']==0:
-                row['dip']=-row['dip']
             SampRec['azimuth'] = row['azimuth']
             SampRec['dip'] = row['dip']
-            SampRec['bed_dip_direction'] = row['azimuth']
-            SampRec['bed_dip'] = row['dip']
+            SampRec['bed_dip_direction'] = bed_dip_direction
+            SampRec['bed_dip'] = bed_dip
             SampRec['method_codes'] = meth_code
             SampRecs.append(SampRec)
+            orientations[sample] = orientation
+        elif sample in orientations and orientations[sample] != orientation and specimen not in warned:
+            warned.append(specimen)
+            print('-W- {} has a different orientation or bedding from an earlier line of sample {}; '
+                  'the sample keeps the first'.format(specimen, sample))
         if site != "" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
             SiteRec['site'] = site
             SiteRec['location'] = location
@@ -7307,11 +7339,6 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
     con.tables['locations'].write_magic_file(custom_name=loc_file)
     con.tables['measurements'].write_magic_file(custom_name=meas_file)
 
-    try:
-        os.remove(tmp_file)
-    except (OSError, IOError) as e:
-        print("couldn't remove temperary fixed JR6 file %s" % tmp_file)
-
     return True, meas_file
 
 
@@ -7401,12 +7428,15 @@ def jr6_txt(mag_file, dir_path=".", input_dir_path="",
     # create data holders
     MeasRecs, SpecRecs, SampRecs, SiteRecs, LocRecs = [], [], [], [], []
 
+    if not os.path.exists(mag_file):
+        print("-E- could not find the input file {}".format(mag_file))
+        return False, "could not find the input file {}".format(mag_file)
     data = pmag.open_file(mag_file)
     # remove garbage/blank lines
     data = [i for i in data if len(i) >= 5]
     if not len(data):
         print('No data')
-        return
+        return False, "no data in {}".format(mag_file)
 
     n = 0
     end = False
@@ -7421,7 +7451,7 @@ def jr6_txt(mag_file, dir_path=".", input_dir_path="",
         if not third_line[0].startswith('SPEC.ANGLES'):
             print('third line of a block should start with SPEC.ANGLES')
             print(third_line)
-            return
+            return False, "third line of a block should start with SPEC.ANGLES: {}".format(data[n].strip())
         specimenAngleDec = third_line[1]
         specimenAngleInc = third_line[2]
         n += 4
@@ -7435,7 +7465,7 @@ def jr6_txt(mag_file, dir_path=".", input_dir_path="",
         precision_line = data[n].split()
         if not precision_line[0].startswith('Modulus'):
             print('precision line should start with "Modulus"')
-            return
+            return False, 'precision line should start with "Modulus": {}'.format(data[n].strip())
         splitExp = precision_line[2].split('A')
         intensityVolStr = precision_line[1] + splitExp[0]
         intensityVol = float(intensityVolStr)
@@ -7571,7 +7601,7 @@ def jr6_txt(mag_file, dir_path=".", input_dir_path="",
 
         # ignore all the rest of the special characters. Some data files not consistently formatted.
         n += 1
-        while ((len(data[n]) <= 5 and data[n] != '') or data[n].startswith('----')):
+        while n < len(data) and ((len(data[n]) <= 5 and data[n] != '') or data[n].startswith('----')):
             n += 1
             if n >= len(data):
                 break
@@ -7603,7 +7633,7 @@ def k15(k15file, dir_path='.', input_dir_path='',
         meas_file='measurements.txt', aniso_outfile='specimens.txt',
         samp_file="samples.txt", result_file ="rmag_anisotropy.txt",
         specnum=0, sample_naming_con='1', location="unknown",
-        data_model_num=3):
+        data_model_num=3, site_file="sites.txt"):
     """
     converts .k15 format data to MagIC  format.
     assumes Jelinek Kappabridge measurement scheme.
@@ -7632,6 +7662,8 @@ def k15(k15file, dir_path='.', input_dir_path='',
         location name, default "unknown"
     data_model_num : int
         MagIC data model [2, 3], default 3
+    site_file : str
+        output site file name, default "sites.txt", data model 3 only
 
     Returns
     --------
@@ -7775,17 +7807,26 @@ def k15(k15file, dir_path='.', input_dir_path='',
 
 # pick off stuff from command line
     Z = ""
-    if "4" in sample_naming_con:
+    sample_naming_con = str(sample_naming_con)
+    if sample_naming_con.startswith("4"):
         if "-" not in sample_naming_con:
             print("option [4] must be in form 4-Z where Z is an integer")
             return False, "option [4] must be in form 4-Z where Z is an integer"
         else:
             Z = sample_naming_con.split("-")[1]
             sample_naming_con = "4"
+    elif sample_naming_con.startswith("7"):
+        if "-" not in sample_naming_con:
+            print("option [7] must be in form 7-Z where Z is an integer")
+            return False, "option [7] must be in form 7-Z where Z is an integer"
+        else:
+            Z = sample_naming_con.split("-")[1]
+            sample_naming_con = "7"
     if sample_naming_con == '6':
         Samps, filetype = pmag.magic_read(
             os.path.join(input_dir_path, samp_table_name + ".txt"))
     samp_file = pmag.resolve_file_name(samp_file, output_dir_path)
+    site_file = pmag.resolve_file_name(site_file, output_dir_path)
     meas_file = pmag.resolve_file_name(meas_file, output_dir_path)
     aniso_outfile = pmag.resolve_file_name(aniso_outfile, output_dir_path)
     result_file = pmag.resolve_file_name(result_file, output_dir_path)
@@ -7802,6 +7843,10 @@ def k15(k15file, dir_path='.', input_dir_path='',
                 samplist.append(samp[samp_name_col])
     except IOError:
         SampRecs = []
+    SiteRecs, sitelist = [], []
+    if data_model_num == 3:
+        SiteRecs, filetype = pmag.magic_read(site_file)  # append new records to existing
+        sitelist = [site.get(site_name_col) for site in SiteRecs]
     # measurement directions for Jelinek 1977 protocol:
     Decs = [315, 225, 180, 135, 45, 90, 270, 270, 270, 90, 180, 180, 0, 0, 0]
     Incs = [0, 0, 0, 0, 0, -45, -45, 0, 45, 45, 45, -45, -90, -45, 45]
@@ -7840,9 +7885,9 @@ def k15(k15file, dir_path='.', input_dir_path='',
             AnisRec[citation_col] = "This study"
             ResRec[citation_col] = "This study"
             MeasRec[spec_name_col] = rec[0]
-            MeasRec[experiment_col] = rec[0] + ":LP-AN-MS"
-            AnisRec[experiment_col] = rec[0] + ":AMS"
-            ResRec[experiment_col] = rec[0] + ":AMS"
+            # the experiment of the measurements, which the anisotropy records refer to
+            AnisRec[experiment_col] = rec[0] + ":LP-AN-MS"
+            ResRec[experiment_col] = rec[0] + ":LP-AN-MS"
             SpecRec[spec_name_col] = rec[0]
             AnisRec[spec_name_col] = rec[0]
             SampRec[spec_name_col] = rec[0]
@@ -7884,6 +7929,8 @@ def k15(k15file, dir_path='.', input_dir_path='',
             AnisRec[loc_name_col] = MeasRec[loc_name_col]
             if data_model_num == 2 :
                 ResRec[loc_name_col + "s"] = MeasRec[loc_name_col]
+            # a specimen without orientation or bedding has no geographic or tilt corrected tensor
+            igeo, itilt = 0, 0
             if len(rec) >= 3:
                 SampRec[azimuth_col], SampRec[samp_dip_col] = rec[1], rec[2]
                 az, pl, igeo = float(rec[1]), float(rec[2]), 1
@@ -7910,13 +7957,25 @@ def k15(k15file, dir_path='.', input_dir_path='',
                     NewMeas[chi_vol_col] = '%12.10f' % (k15[i])
                     NewMeas[meas_name_col] = '%i' % (i + 1)
                     if data_model_num == 2:
-                        NewMeas["magic_experiment_name"] = rec[0] + ":LP-AN-MS"
+                        NewMeas["magic_experiment_name"] = MeasRec[spec_name_col] + ":LP-AN-MS"
                     else:
-                        NewMeas["experiment"] = rec[0] + ":LP-AN-MS"
+                        NewMeas["experiment"] = MeasRec[spec_name_col] + ":LP-AN-MS"
+                        # in data model 3 the sample, site and location are
+                        # in the specimens, samples and sites tables
+                        for key in (samp_name_col, site_name_col, loc_name_col):
+                            NewMeas.pop(key)
                     MeasRecs.append(NewMeas)
                 if SampRec[samp_name_col] not in samplist:
+                    if data_model_num == 3:
+                        SampRec.pop(spec_name_col)
+                        SampRec.pop(loc_name_col)
                     SampRecs.append(SampRec)
                     samplist.append(SampRec[samp_name_col])
+                if data_model_num == 3 and MeasRec[site_name_col] not in sitelist:
+                    SiteRecs.append({site_name_col: MeasRec[site_name_col],
+                                     loc_name_col: MeasRec[loc_name_col],
+                                     citation_col: citation})
+                    sitelist.append(MeasRec[site_name_col])
                 SpecRecs.append(SpecRec)
                 AnisRec[aniso_type_col] = "AMS"
                 ResRec[aniso_type_col] = "AMS"
@@ -7951,9 +8010,9 @@ def k15(k15file, dir_path='.', input_dir_path='',
                 ResRec[aniso_tilt_corr_col] = '-1'
 
                 if data_model_num == 3:
-                    aniso_v1 = ':'.join([str(i) for i in (hpars['t1'], hpars['v1_dec'], hpars['v1_inc'],  hpars['v2_dec'], hpars['v2_inc'], hpars['e12'], hpars['v3_dec'], hpars['v3_inc'], hpars['e13'])])
-                    aniso_v2 = ':'.join([str(i) for i in (hpars['t2'], hpars['v2_dec'], hpars['v2_inc'], hpars['v1_dec'], hpars['v1_inc'], hpars['e12'], hpars['v3_dec'], hpars['v3_inc'], hpars['e23'])])
-                    aniso_v3 = ':'.join([str(i) for i in (hpars['t3'], hpars['v3_dec'], hpars['v3_inc'], hpars['v1_dec'], hpars['v1_inc'], hpars['e13'], hpars['v2_dec'], hpars['v2_inc'], hpars['e23'])])
+                    aniso_v1 = ':'.join([str(float(np.real(i))) for i in (hpars['t1'], hpars['v1_dec'], hpars['v1_inc'],  hpars['v2_dec'], hpars['v2_inc'], hpars['e12'], hpars['v3_dec'], hpars['v3_inc'], hpars['e13'])])
+                    aniso_v2 = ':'.join([str(float(np.real(i))) for i in (hpars['t2'], hpars['v2_dec'], hpars['v2_inc'], hpars['v1_dec'], hpars['v1_inc'], hpars['e12'], hpars['v3_dec'], hpars['v3_inc'], hpars['e23'])])
+                    aniso_v3 = ':'.join([str(float(np.real(i))) for i in (hpars['t3'], hpars['v3_dec'], hpars['v3_inc'], hpars['v1_dec'], hpars['v1_inc'], hpars['e13'], hpars['v2_dec'], hpars['v2_inc'], hpars['e23'])])
                     ResRec['aniso_v1'] = aniso_v1
                     ResRec['aniso_v2'] = aniso_v2
                     ResRec['aniso_v3'] = aniso_v3
@@ -8016,9 +8075,9 @@ def k15(k15file, dir_path='.', input_dir_path='',
                     ResRecG[aniso_tilt_corr_col] = '0'
 
                     if data_model_num == 3:
-                        aniso_v1 = ':'.join([str(i) for i in (hparsg['t1'], hparsg['v1_dec'], hparsg['v1_inc'],  hparsg['v2_dec'], hparsg['v2_inc'], hparsg['e12'], hparsg['v3_dec'], hparsg['v3_inc'], hparsg['e13'])])
-                        aniso_v2 = ':'.join([str(i) for i in (hparsg['t2'], hparsg['v2_dec'], hparsg['v2_inc'], hparsg['v1_dec'], hparsg['v1_inc'], hparsg['e12'], hparsg['v3_dec'], hparsg['v3_inc'], hparsg['e23'])])
-                        aniso_v3 = ':'.join([str(i) for i in (hparsg['t3'], hparsg['v3_dec'], hparsg['v3_inc'], hparsg['v1_dec'], hparsg['v1_inc'], hparsg['e13'], hparsg['v2_dec'], hparsg['v2_inc'], hparsg['e23'])])
+                        aniso_v1 = ':'.join([str(float(np.real(i))) for i in (hparsg['t1'], hparsg['v1_dec'], hparsg['v1_inc'],  hparsg['v2_dec'], hparsg['v2_inc'], hparsg['e12'], hparsg['v3_dec'], hparsg['v3_inc'], hparsg['e13'])])
+                        aniso_v2 = ':'.join([str(float(np.real(i))) for i in (hparsg['t2'], hparsg['v2_dec'], hparsg['v2_inc'], hparsg['v1_dec'], hparsg['v1_inc'], hparsg['e12'], hparsg['v3_dec'], hparsg['v3_inc'], hparsg['e23'])])
+                        aniso_v3 = ':'.join([str(float(np.real(i))) for i in (hparsg['t3'], hparsg['v3_dec'], hparsg['v3_inc'], hparsg['v1_dec'], hparsg['v1_inc'], hparsg['e13'], hparsg['v2_dec'], hparsg['v2_inc'], hparsg['e23'])])
                         ResRecG['aniso_v1'] = aniso_v1
                         ResRecG['aniso_v2'] = aniso_v2
                         ResRecG['aniso_v3'] = aniso_v3
@@ -8054,9 +8113,11 @@ def k15(k15file, dir_path='.', input_dir_path='',
                     AnisRecT = copy.copy(AnisRec)
                     ResRecT = copy.copy(ResRec)
                     if data_model_num == 3:
-                        aniso_v1 = ':'.join([str(i) for i in (hparst['t1'], hparst['v1_dec'], hparst['v1_inc'],  hparst['v2_dec'], hparst['v2_inc'], hparst['e12'], hparst['v3_dec'], hparst['v3_inc'], hparst['e13'])])
-                        aniso_v2 = ':'.join([str(i) for i in (hparst['t2'], hparst['v2_dec'], hparst['v2_inc'], hparst['v1_dec'], hparst['v1_inc'], hparst['e12'], hparst['v3_dec'], hparst['v3_inc'], hparst['e23'])])
-                        aniso_v3 = ':'.join([str(i) for i in (hparst['t3'], hparst['v3_dec'], hparst['v3_inc'], hparst['v1_dec'], hparst['v1_inc'], hparst['e13'], hparst['v2_dec'], hparst['v2_inc'], hparst['e23'])])
+                        AnisRecT["aniso_s"] = ":".join('{:12.10f}'.format(i) for i in sbart)
+                        AnisRecT[aniso_tilt_corr_col] = '100'
+                        aniso_v1 = ':'.join([str(float(np.real(i))) for i in (hparst['t1'], hparst['v1_dec'], hparst['v1_inc'],  hparst['v2_dec'], hparst['v2_inc'], hparst['e12'], hparst['v3_dec'], hparst['v3_inc'], hparst['e13'])])
+                        aniso_v2 = ':'.join([str(float(np.real(i))) for i in (hparst['t2'], hparst['v2_dec'], hparst['v2_inc'], hparst['v1_dec'], hparst['v1_inc'], hparst['e12'], hparst['v3_dec'], hparst['v3_inc'], hparst['e23'])])
+                        aniso_v3 = ':'.join([str(float(np.real(i))) for i in (hparst['t3'], hparst['v3_dec'], hparst['v3_inc'], hparst['v1_dec'], hparst['v1_inc'], hparst['e13'], hparst['v2_dec'], hparst['v2_inc'], hparst['e23'])])
                         ResRecT['aniso_v1'] = aniso_v1
                         ResRecT['aniso_v2'] = aniso_v2
                         ResRecT['aniso_v3'] = aniso_v3
@@ -8095,7 +8156,7 @@ def k15(k15file, dir_path='.', input_dir_path='',
                     ResRecs.append(ResRecT)
                     AnisRecs.append(AnisRecT)
                 k15, linecnt = [], 0
-                MeasRec, SpecRec, SampRec, SiteRec, AnisRec = {}, {}, {}, {}, {}
+                MeasRec, SpecRec, SampRec, SiteRec, AnisRec, ResRec = {}, {}, {}, {}, {}, {}
 
     # samples
     pmag.magic_write(samp_file, SampRecs, samp_table_name)
@@ -8103,9 +8164,14 @@ def k15(k15file, dir_path='.', input_dir_path='',
     if data_model_num == 3:
         AnisRecs.extend(ResRecs)
         SpecRecs = AnisRecs.copy()
+        # the site and location of a specimen are in the samples and sites tables
+        for SpecRec in SpecRecs:
+            for key in (site_name_col, loc_name_col):
+                SpecRec.pop(key, None)
         SpecRecs, keys = pmag.fillkeys(SpecRecs)
         pmag.magic_write(aniso_outfile, SpecRecs, 'specimens')
-        flist = [meas_file, aniso_outfile, samp_file]
+        pmag.magic_write(site_file, SiteRecs, site_table_name)
+        flist = [meas_file, aniso_outfile, samp_file, site_file]
     else:
         pmag.magic_write(aniso_outfile, AnisRecs, 'rmag_anisotropy')  # add to specimens?
         pmag.magic_write(result_file, ResRecs, 'rmag_results') # added to specimens (NOT sites)

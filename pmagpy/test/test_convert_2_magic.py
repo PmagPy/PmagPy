@@ -90,8 +90,6 @@ def known_defect(names, reason):
 
 
 @pytest.mark.parametrize('name', known_defect({
-    'jr6_jr6': 'raises FileNotFoundError',
-    'jr6_txt': 'returns None',
 }, 'a missing input file should give (False, message)'))
 def test_missing_input_file(name, tmp_path):
     """a missing input file gives (False, message), not an exception, and no tables"""
@@ -139,8 +137,6 @@ def test_uses_only_the_output_directory(converted):
 
 
 @pytest.mark.parametrize('converted', known_defect({
-    'k15': 'measurements: experiments, location, sample, site; samples: location, specimen; '
-           'specimens: location, site',
 }, 'every column should be in the MagIC 3 data model'), indirect=True)
 def test_columns_are_in_the_data_model(converted):
     """every column of every table written is a column of that table in MagIC 3"""
@@ -171,10 +167,7 @@ WITH_NAMING_CONVENTION = {
 
 
 @pytest.mark.parametrize('name, con', [
-    pytest.param('k15', '7', marks=pytest.mark.xfail(
-        strict=True, reason='k15 does not check convention 7 and raises ValueError'))
-    if (name, con) == ('k15', '7') else (name, con)
-    for name in WITH_NAMING_CONVENTION for con in ('4', '7')])
+    (name, con) for name in WITH_NAMING_CONVENTION for con in ('4', '7')])
 def test_naming_convention_needs_a_number(name, con, tmp_path):
     """conventions 4 and 7 need the number of characters, as 4-Z or 7-Z"""
     call = WITH_NAMING_CONVENTION[name]
