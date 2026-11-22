@@ -264,6 +264,17 @@ class TestJr6Txt:
         assert result[0] is False
         assert 'SPEC.ANGLES' in result[1]
 
+    def test_sample_with_blocks_of_different_orientations(self, tmp_path, capsys):
+        # the block AP12-06B / A160 gives the specimen angles of AP12-03 (117
+        # 13), not the 160 17 of every other block of AP12-06: the sample keeps
+        # the first and a warning says so
+        result = convert.jr6_txt('AP12.txt', input_dir_path=in_dir('jr6_magic'), dir_path=str(tmp_path))
+        assert result[0] is True
+        assert '-W- AP12-06B has a different orientation' in capsys.readouterr().out
+        samples = read_table(os.path.join(str(tmp_path), 'samples.txt')).set_index('sample')
+        # P2 = 0: the dip is minus the specimen angle
+        assert (samples.loc['AP12-06', 'azimuth'], samples.loc['AP12-06', 'dip']) == (160, -17)
+
 
 class TestJr6Jr6:
     """
@@ -346,6 +357,40 @@ class TestJr6Jr6:
         assert '-W- ST11 has a different orientation' in capsys.readouterr().out
         samples = read_table(os.path.join(str(tmp_path), 'samples.txt')).set_index('sample')
         assert (samples.loc['ST1', 'azimuth'], samples.loc['ST1', 'dip']) == (57, -22)
+
+    def test_joides_resolution_layout(self, tmp_path):
+        # JR=True: the same fields, with the moment written as -z, y, x
+        with open(str(tmp_path / 'jr.jr6'), 'w') as f:
+            f.write('BR14B     NRM      -1.01  1.02 -6.95  -1 342  28   0   0   0   0 12 90 12  0   1\n')
+        result, out, cwd = convert_into(tmp_path, lambda out: convert.jr6_jr6(
+            'jr.jr6', input_dir_path=str(tmp_path), dir_path=out, JR=True))
+        assert result[0] is True, result
+        nrm = read_table(os.path.join(out, 'measurements.txt')).iloc[0]
+        dec, inc, intensity = direction(-6.95, 1.02, 1.01)
+        assert nrm['dir_dec'] == pytest.approx(dec, abs=1e-3)
+        assert nrm['dir_inc'] == pytest.approx(inc, abs=1e-3)
+        assert nrm['magn_volume'] == pytest.approx(intensity * 0.1, rel=1e-5)
+
+    def test_step_labels_with_a_unit(self, tmp_path, capsys):
+        # SML07.JR6 labels its thermal steps '20 C', '100 C', ... (REMA6 can
+        # write the unit after the value)
+        result = convert.jr6_jr6('SML07.JR6', input_dir_path=in_dir('jr6_magic'), dir_path=str(tmp_path),
+                                 specnum=0)
+        assert result[0] is True, result
+        sml0701 = read_table(os.path.join(str(tmp_path), 'measurements.txt')).set_index('specimen').loc['SML0701']
+        assert list(sml0701['treat_temp'][:3]) == pytest.approx([293, 373, 473])
+        assert sml0701['method_codes'].iloc[1].startswith('LT-T-Z')
+        # and no line is printed for each step
+        assert '20 C False' not in capsys.readouterr().out
+
+    def test_thermal_method_code_with_labelled_steps(self, tmp_path):
+        # with meth_code='LP-DIR-T', labels such as A10 and T100 used to be
+        # read as numbers and raised ValueError
+        result = convert.jr6_jr6('TRM.jr6', input_dir_path=in_dir('jr6_magic'), dir_path=str(tmp_path),
+                                 meth_code='LP-DIR-T')
+        assert result[0] is True, result
+        meas = read_table(os.path.join(str(tmp_path), 'measurements.txt'))
+        assert meas['treat_temp'].max() > 773
 
     def test_files_beside_the_input_folder_are_kept(self, tmp_path):
         # jr6_jr6 used to delete '<path up to the first dot>.tmp', which for an

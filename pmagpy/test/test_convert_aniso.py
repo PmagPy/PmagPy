@@ -286,6 +286,14 @@ class TestK15:
         assert sorted(sites['site']) == ['tr245', 'tr245i']
         assert set(sites['location']) == {'unknown'}
 
+    def test_units_and_measurement_names(self, out):
+        specimens = read_table(os.path.join(out, 'specimens.txt'))
+        # the tensors are normalized by their trace (see test_tensor)
+        assert set(specimens['aniso_s_unit'].dropna()) == {'Normalized by trace'}
+        meas = read_table(os.path.join(out, 'measurements.txt'))
+        assert meas['measurement'].is_unique
+        assert meas['measurement'].iloc[0] == 'tr245f:LP-AN-MS-1'
+
     def test_naming_convention_7(self, run):
         """7-Z: the site is the first Z characters of the sample name"""
         out = run('k15_7', lambda out: convert.k15('k15_example.dat', input_dir_path=in_dir('k15_magic'),

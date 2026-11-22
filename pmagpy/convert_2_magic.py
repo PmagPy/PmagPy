@@ -7130,9 +7130,11 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
         Z = 1
 
     with open(mag_file,"r") as fin:
+        # the same fixed-width fields in both layouts; on the JOIDES Resolution
+        # the three moment components are written as -z, y, x
+        char_count= [10,8,6,6,6,4,4,4,4,4,4,4,3,3,3,3,4]
+        data_type = [str,str,np.float32,np.float32,np.float32,np.int8,np.float32,np.float32,np.float32,np.float32,np.float32,np.float32,np.int8,np.int8,np.int8,np.int8,np.float32]
         if not JR:
-            char_count= [10,8,6,6,6,4,4,4,4,4,4,4,3,3,3,3,4]
-            data_type = [str,str,np.float32,np.float32,np.float32,np.int8,np.float32,np.float32,np.float32,np.float32,np.float32,np.float32,np.int8,np.int8,np.int8,np.int8,np.float32]
             data_dict = {'specimen':[], #10 character
                          'step':[], #8 character
                          'x':[], #6 character
@@ -7276,10 +7278,16 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
         MeasRec["standard"] = 'u'
         MeasRec["treat_step_num"] = 0
         MeasRec["treat_ac_field"] = '0'
-        print(row['step'],str(row['step'])[0:1] == 'TD')
+        # step labels with a unit after the value (20 C, 100 mT), which REMA6
+        # writes when set to do so, are read as T20, A100
+        step = str(row['step'])
+        if step.endswith('mT') and step[:-2].strip().replace('.', '', 1).isdigit():
+            row['step'] = 'A' + step[:-2].strip()
+        elif step.endswith('C') and step[:-1].rstrip(' \xb0').replace('.', '', 1).isdigit():
+            row['step'] = 'T' + step[:-1].rstrip(' \xb0')
         if row['step'] == 'NRM' or row['step']=='0':
             meas_type = "LT-NO"
-        elif 'step_unit' in row and row['step_unit'] == 'C' or meth_code=='LP-DIR-T':
+        elif meth_code=='LP-DIR-T' and str(row['step']).replace('.', '', 1).isdigit():
             meas_type = "LT-T-Z"
             treat = float(row['step'])
             MeasRec["treat_temp"] = '%8.3e' % (treat+273.)  # temp in kelvin
@@ -7308,7 +7316,7 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
                 treat*1e-3)  # convert from mT to tesla
         else:  # need to add IRM, and ARM options
             print("measurement type unknown", row['step'])
-            return False, "measurement type unknown"
+            return False, "measurement type unknown: {}".format(row['step'])
         MeasRec["magn_moment"] = str(row['magn_moment'])
         MeasRec["magn_volume"] = str(row['magn_volume'])
         if row['param1']==3: 
@@ -7440,6 +7448,7 @@ def jr6_txt(mag_file, dir_path=".", input_dir_path="",
 
     n = 0
     end = False
+    orientations, warned = {}, []
     # loop through records
     while not end:
         first_line = data[n].split()
@@ -7518,7 +7527,13 @@ def jr6_txt(mag_file, dir_path=".", input_dir_path="",
             SpecRec["analysts"] = user
             SpecRec['volume'] = volume
             SpecRecs.append(SpecRec)
+        orientation = (float(specimenAngleDec), float(specimenAngleInc), orient_param2, orient_param3)
+        if sample in orientations and orientations[sample] != orientation and specimen not in warned:
+            warned.append(specimen)
+            print('-W- {} has a different orientation from an earlier block of sample {}; '
+                  'the sample keeps the first'.format(specimen, sample))
         if sample != "" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
+            orientations[sample] = orientation
             SampRec['sample'] = sample
             SampRec['site'] = site
             SampRec["citations"] = "This study"
@@ -7834,10 +7849,10 @@ def k15(k15file, dir_path='.', input_dir_path='',
     if not os.path.exists(k15file):
         print(k15file)
         return False, "You must provide a valid k15 format file"
+    samplist = []
     try:
         SampRecs, filetype = pmag.magic_read(
             samp_file)  # append new records to existing
-        samplist = []
         for samp in SampRecs:
             if samp[samp_name_col] not in samplist:
                 samplist.append(samp[samp_name_col])
@@ -7960,6 +7975,8 @@ def k15(k15file, dir_path='.', input_dir_path='',
                         NewMeas["magic_experiment_name"] = MeasRec[spec_name_col] + ":LP-AN-MS"
                     else:
                         NewMeas["experiment"] = MeasRec[spec_name_col] + ":LP-AN-MS"
+                        # measurement names are unique in a MagIC 3 contribution
+                        NewMeas[meas_name_col] = '{}-{}'.format(NewMeas["experiment"], i + 1)
                         # in data model 3 the sample, site and location are
                         # in the specimens, samples and sites tables
                         for key in (samp_name_col, site_name_col, loc_name_col):
@@ -8001,7 +8018,8 @@ def k15(k15file, dir_path='.', input_dir_path='',
                 AnisRec[aniso_sigma_col] = '%12.10f' % (sigma)
                 AnisRec[aniso_mean_col] = '{:12.10f}'.format(bulk)
                 AnisRec[aniso_sigma_col] = '{:12.10f}'.format(sigma)
-                AnisRec[aniso_unit_col] = 'SI'
+                # dok15_s returns the tensor normalized by its trace
+                AnisRec[aniso_unit_col] = 'Normalized by trace'
                 AnisRec[aniso_n_col] = '15'
                 AnisRec[aniso_tilt_corr_col] = '-1'
                 AnisRec[method_col] = 'LP-X:AE-H:LP-AN-MS'
