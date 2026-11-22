@@ -1,7 +1,6 @@
 tab	samples
 sample	site	azimuth	bed_dip	bed_dip_direction	dip	method_codes
-KO_86.1	KO_86	288	"15
-"	169	-51.0	LP-NO
+KO_86.1	KO_86	288	15	169	-51.0	LP-NO
 KO_86.2	KO_86	293	15	169	-42.0	LP-NO
 KO_86.3	KO_86	293	15	169	-42.0	LP-NO
 KO_86.4	KO_86	212	15	169	-57.0	LP-NO

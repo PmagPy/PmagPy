@@ -181,6 +181,27 @@ class TestHujiSample:
         assert 'mk11' in set(sites['site'])
         # the location is in the sites table
         assert set(sites['location']) == {'Magdelkrum'}
+        # one row per site
+        assert sites['site'].is_unique
+        assert set(sites['site']) == set(samples['site'])
+
+    def test_bedding(self, tmp_path):
+        """the file gives the bedding strike; the dip direction is 90 degrees to its right"""
+        in_dir_path = tmp_path / 'in'
+        in_dir_path.mkdir()
+        with open(str(in_dir_path / 'orient.txt'), 'w') as f:
+            f.write('Sample ID\tAlpha (azi)\tBetha(dip)\tStrike\tdip\tLat\tLong\n'
+                    'ab11\t22\t21\t30\t20\t35.2\t32.9\n'
+                    'ab12\t30\t15\t300\t10\t35.2\t32.9\n')
+        result, out_dir, cwd = convert_into(tmp_path, lambda out: convert.huji_sample(
+            'orient.txt', input_dir_path=str(in_dir_path), dir_path=out))
+        assert result[0] is True, result
+        samples = read_table(os.path.join(out_dir, 'samples.txt')).set_index('sample')
+        assert list(samples['bed_dip_direction']) == [120, 30]
+        assert list(samples['bed_dip']) == [20, 10]
+        sites = read_table(os.path.join(out_dir, 'sites.txt'))
+        assert list(sites['site']) == ['ab1']
+        assert (sites.iloc[0]['bed_dip_direction'], sites.iloc[0]['bed_dip']) == (120, 20)
 
 
 class TestJr6Txt:
@@ -333,9 +354,11 @@ class TestLivdb:
         ({}, 'ATPIPV04-1A', 'ATPIPV04-1A'),
         ({'samp_name_con': 2, 'samp_num_chars': 1}, 'ATPIPV04-1', 'ATPIPV04-1'),
         ({'samp_name_con': 3, 'samp_num_chars': '-'}, 'ATPIPV04', 'ATPIPV04'),
+        ({'samp_name_con': 2, 'samp_num_chars': 1, 'site_name_con': 3, 'site_num_chars': '-'},
+         'ATPIPV04-1', 'ATPIPV04'),
     ])
     def test_naming(self, run, options, sample, site):
-        """sample names from the specimen name minus some characters, or up to a delimiter"""
+        """sample (and site) names from the specimen (sample) name minus some characters, or up to a delimiter"""
         out = run('livdb_naming', lambda out: convert.livdb(
             os.path.join(in_dir('livdb_magic'), 'TH_IZZI+'), output_dir_path=out, **options))
         specimens = read_table(os.path.join(out, 'specimens.txt')).set_index('specimen')
@@ -367,6 +390,14 @@ class TestMini:
         assert first['magn_moment'] == pytest.approx(4.393e-3 * 12e-6, rel=1e-3)
         samples = read_table(os.path.join(out_dir, 'samples.txt')).set_index('sample')
         assert samples.loc['Cup-1-1', 'site'] == 'Cup-1'
+        # J-99-1_2_50: specimen J-99-1_2 (a '_' in the name, like J-99-1-3) at 50 mT
+        j99 = meas[meas['specimen'] == 'J-99-1_2']
+        assert list(j99['treat_ac_field']) == pytest.approx([0.05])
+        assert (j99.iloc[0]['dir_dec'], j99.iloc[0]['dir_inc']) == (305.1, -36.4)
+        specimens = read_table(os.path.join(out_dir, 'specimens.txt')).set_index('specimen')
+        assert len(specimens) == 35
+        assert specimens.loc['J-99-1_2', 'sample'] == 'J-99-1'
+        assert samples.loc['J-99-1', 'site'] == 'J-99'
 
 
 class TestPmd:
@@ -518,3 +549,22 @@ class TestUtrecht:
                                            '2007-05-30T22:05:00Z']
         assert list(meas['treat_temp']) == pytest.approx([273, 373, 273])
         assert set(meas['instrument_codes']) == {'Utrecht_2G DC'}
+
+    def test_lines_without_date(self, tmp_path):
+        """a measurement line may end before the date and time"""
+        in_dir_path = tmp_path / 'in'
+        in_dir_path.mkdir()
+        with open(str(in_dir_path / 'example.af'), 'w') as f:
+            f.write('ROBOT,2G DC\n'
+                    'AB1.1,1586,288,39,10.5,169,15\n'
+                    '0,-1.48E+03,4.58E+02,2.82E+03,0.99\n'
+                    '5,-1.59E+03,2.42E+01,2.79E+03,0.99,5/31/2007,4:09:48 PM\n'
+                    '9999\nEND\n')
+        result, out_dir, cwd = convert_into(tmp_path, lambda out: convert.utrecht(
+            'example.af', input_dir_path=str(in_dir_path), dir_path=out, specnum=0))
+        assert result[0] is True, result
+        meas = read_table(os.path.join(out_dir, 'measurements.txt'))
+        assert len(meas) == 2
+        assert meas['timestamp'].isnull().iloc[0]
+        assert meas['timestamp'].iloc[1] == '2007-05-31T14:09:48Z'
+        assert list(meas['dir_csd']) == [0.99, 0.99]

@@ -123,3 +123,11 @@ class TestMst:
                                            'sites.txt', 'specimens.txt']
         assert 'sample' not in read_table(meas_file).columns
         assert list(read_table(os.path.join(out, 'specimens.txt'))['specimen']) == ['abcde']
+
+    def test_naming_convention_7(self, run):
+        """with convention 7-3 the site is the first three characters of the sample"""
+        meas_file, out = run('mst_7', lambda out: convert.mst(
+            'curie_example.dat', spec_name='abc12', samp_con='7-3',
+            input_dir_path=os.path.join(CONVERT_DIR, 'mst_magic'), dir_path=out))
+        samples = read_table(os.path.join(out, 'samples.txt')).set_index('sample')
+        assert samples.loc['abc12', 'site'] == 'abc'

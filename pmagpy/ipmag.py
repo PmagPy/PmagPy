@@ -7644,8 +7644,8 @@ def azdip_magic(orient_file='orient.txt', samp_file="samples.txt", samp_con="1",
             labaz, labdip = pmag.orient(float(orec[1]), float(orec[2]), or_con)
             bed_dip = float(orec[4])
             if bed_dip != 0:
-                bed_dip_dir = float(orec[3]) - \
-                    90.  # assume dip to right of strike
+                # assume dip to right of strike (right-hand rule)
+                bed_dip_dir = (float(orec[3]) + 90.) % 360.
             else:
                 bed_dip_dir = float(orec[3])  # assume dip to right of strike
             MagRec = {}
