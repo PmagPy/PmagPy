@@ -11475,7 +11475,8 @@ def aarm_magic(meas_file, dir_path=".", input_dir_path="",
             output specimen file name, default "specimens.txt"
 
     Returns:
-            True or False indicating if conversion was successful and output file name written
+        Tuple : (True or False indicating if conversion was successful, output file name written
+        or, if unsuccessful, an error message)
 
     Info:
         Input for is a series of baseline, ARM pairs.
@@ -11509,7 +11510,7 @@ def aarm_magic(meas_file, dir_path=".", input_dir_path="",
             print(
                 "-E- {} is not a valid measurements file, {}".format(meas_file, file_type))
             print ('if you are using data model 2.0 please upgrade to data model 3.0')
-            return False
+            return False, "{} is not a valid measurements file".format(meas_file)
     old_specs=False
     old_spec_recs, file_type = pmag.magic_read(input_spec_file)
     if file_type != 'specimens':
@@ -11546,7 +11547,7 @@ def aarm_magic(meas_file, dir_path=".", input_dir_path="",
 
         if n_pos!= 6 and n_pos != 9 and n_pos != 15:
             print( 'aarm_magic only available for n=6,9,15')
-            return
+            return False, "{} has {} in-field (LT-AF-I) steps; aarm_magic is only available for n=6,9,15".format(spec, n_pos)
         else:
             aarm_df=meas_df[meas_df['method_codes'].str.contains('LP-AN-ARM')]
             aarm_df['treat_step_num']=range(len(aarm_df))
@@ -11598,6 +11599,7 @@ def aarm_magic(meas_file, dir_path=".", input_dir_path="",
     old_spec_df = old_spec_df.astype(object).fillna("")
     spec_dicts=old_spec_df.to_dict('records')
     pmag.magic_write(output_spec_file,spec_dicts,'specimens')
+    return True, output_spec_file
 
 
 def calculate_aniso_parameters(K,n_pos=6):
@@ -11658,8 +11660,7 @@ def calculate_aniso_parameters(K,n_pos=6):
             d = K[i] / trace - comp[i]  # del values
             S += d * d
         nf = float(n_pos * 3 - 6)  # number of degrees of freedom
-        if S > 0:
-            sigma = np.sqrt(S / nf)
+        sigma = np.sqrt(S / nf)  # 0 if the tensor fits the measurements exactly
         hpars = pmag.dohext(nf, sigma, [s1, s2, s3, s4, s5, s6])
         aniso_parameters['aniso_tilt_correction']=-1
         aniso_parameters['aniso_s_sigma'] = "%f" % sigma

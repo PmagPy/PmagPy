@@ -15,6 +15,7 @@ import pandas as pd
 import pytest
 
 from pmagpy import ipmag, pmag
+from programs import atrm_magic
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                         os.pardir, os.pardir, 'data_files', 'atrm_magic')
@@ -218,6 +219,27 @@ class TestSyntheticExperiment:
                 expected[0, 1], expected[1, 2], expected[0, 2]], atol=2e-3)
 
 
+def test_perfect_fit_has_zero_sigma(monkeypatch):
+    """six-position data that a tensor fits exactly give sigma 0, not an error"""
+    # the field directions of get_matrix come from dir2cart, so they carry
+    # ~1e-16 rounding (cos 90) that keeps the misfit above zero; rounding them
+    # makes an exact fit possible
+    get_matrix = ipmag.get_matrix
+
+    def exact_matrix(n_pos):
+        return {key: np.round(value, 12) for key, value in get_matrix(n_pos).items()}
+
+    monkeypatch.setattr(ipmag, 'get_matrix', exact_matrix)
+    # eigenvalues 5:2:1 (trace 8), so the normalized tensor is exact in binary
+    chi = np.diag([5., 2., 1.])
+    fields = np.array([pmag.dir2cart([phi, theta, 1.]) for phi, theta in POSITIONS])
+    K = np.round(fields @ chi, 12).ravel()
+    pars = ipmag.calculate_aniso_parameters(K, n_pos=6)
+    assert float(pars['aniso_s_sigma']) == 0
+    np.testing.assert_allclose(np.array(pars['aniso_s'].split(':'), dtype=float),
+                               [0.625, 0.25, 0.125, 0, 0, 0], atol=1e-7)
+
+
 def test_measurements_without_atrm_data(tmp_path):
     """a measurements table with no LP-AN-TRM records is reported, not written"""
     with open(tmp_path / 'measurements.txt', 'w') as f:
@@ -252,9 +274,6 @@ class TestCommandLine:
         """Run programs/atrm_magic.py main() in work_dir."""
         monkeypatch.chdir(work_dir)
         monkeypatch.setattr('sys.argv', ['atrm_magic.py', *args])
-        # imported after sys.argv is set: programs/__init__.py acts on a '-v'
-        # in sys.argv (e.g. pytest -v) when it is first imported
-        from programs import atrm_magic
         atrm_magic.main()
 
     def test_writes_specimens_table(self, tmp_path, monkeypatch):
