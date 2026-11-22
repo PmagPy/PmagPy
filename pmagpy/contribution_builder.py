@@ -286,14 +286,14 @@ class Contribution(object):
                                 # save any changes to file
                                 self.write_table_to_file(child_name)
                     else: # if there is no child table, create it if necessary
-                        if children:
+                        if parent_of_child:
                             # create a child_df with the names you got from the parent
                             print("-I- Creating new {} table with data from {} table".format(child_name, table_name))
                             # old way to make new table:
                             #child_df = pd.DataFrame(columns=[table_name[:-1]], index=children)
                             # new way to make new table
                             children_list = sorted(parent_of_child.keys())
-                            children_data = [[child_name, parent_of_child[c_name]] for c_name in children_list]
+                            children_data = [[c_name, parent_of_child[c_name]] for c_name in children_list]
                             child_df = pd.DataFrame(index=children_list, columns=[child_name[:-1], table_name[:-1]], data=children_data)
 
                             self.tables[child_name] = MagicDataFrame(dtype=child_name, df=child_df)
@@ -441,7 +441,7 @@ class Contribution(object):
         for col in cols:
             if col not in self.tables['sites'].df.columns:
                 self.tables['sites'].df[col] = None
-        if not all(self.tables['sites'].df[cols].values.ravel()):
+        if missing_mask(self.tables['sites'].df[cols]).values.any():
             print('-I- Propagating values up from samples to sites...')
             self.propagate_cols_up(cols, 'sites', 'samples')
 
@@ -787,7 +787,7 @@ class Contribution(object):
             # if there has been a previous merge, consolidate and delete data
             if col + "_target" in target_df.columns:
                 # prioritize values from target df
-                new_arr = np.where(target_df[col + "_target"],
+                new_arr = np.where(~missing_mask(target_df[col + "_target"]),
                                    target_df[col + "_target"],
                                    target_df[col + "_source"])
                 target_df.rename(columns={col + "_target": col}, inplace=True)
@@ -835,6 +835,7 @@ class Contribution(object):
         # make sure source table is read in
         if source_df_name not in self.tables:
             self.add_magic_table(source_df_name)
+        if source_df_name not in self.tables:
             print("-W- Couldn't read in {} table".format(source_df_name))
             return
         target_df = self.tables[target_df_name]
@@ -870,7 +871,7 @@ class Contribution(object):
         for col in cols:
             res = grouped.apply(func, col)
             target_df.df['new_' + col] = res
-            target_df.df[col] = np.where(target_df.df[col], target_df.df[col], target_df.df['new_' + col])
+            target_df.df[col] = np.where(~missing_mask(target_df.df[col]), target_df.df[col], target_df.df['new_' + col])
             target_df.df.drop(['new_' + col], axis='columns', inplace=True)
         # set table
         self.tables[target_df_name] = target_df
@@ -958,8 +959,8 @@ class Contribution(object):
             return target_df
         for col in cols:
             target_df.df['new_' + col] = grouped[col]
-            # use custom not_null
-            mask = [not_null(val) for val in target_df.df[col]]
+            # keep existing values, including 0
+            mask = ~missing_mask(target_df.df[col])
             target_df.df[col] = np.where(mask, #target_df.df[col].notnull(),
                                          target_df.df[col],
                                          target_df.df['new_' + col])
@@ -1052,8 +1053,8 @@ class Contribution(object):
                 minimum = minimum.reindex(target_df.df.index)
                 maximum = maximum.reindex(target_df.df.index)
                 # update target_df without overwriting existing values
-                cond_min = target_df.df[min_col].apply(not_null)
-                cond_max = target_df.df[max_col].apply(not_null)
+                cond_min = ~missing_mask(target_df.df[min_col])
+                cond_max = ~missing_mask(target_df.df[max_col])
                 #
                 target_df.df[min_col] = np.where(cond_min,
                                                  target_df.df[min_col],
@@ -1142,7 +1143,7 @@ class Contribution(object):
             # fill in table with values gleaned from ages
             new_df = pd.DataFrame(data=list(res.values), index=res.index,
                                   columns=available_age_headers)
-            age_values = np.where(self.tables[table_name].df[available_age_headers],
+            age_values = np.where(~missing_mask(self.tables[table_name].df[available_age_headers]),
                                   self.tables[table_name].df[available_age_headers],
                                   new_df)
             self.tables[table_name].df[available_age_headers] = age_values
@@ -1592,10 +1593,21 @@ class MagicDataFrame(object):
             for col_label in self.df.columns:
                 if col_label not in list(row_data.keys()):
                     row_data[col_label] = None
-        try:
-            self.df.iloc[ind] = pd.Series(row_data)
-        except IndexError:
+        if not -len(self.df) <= ind < len(self.df):
             return False
+        # assign by column name, not by the order of the keys in row_data
+        try:
+            self.df.iloc[ind] = [row_data[col_label] for col_label in self.df.columns]
+        except (TypeError, ValueError):
+            # pandas 3 will not put a value into a column of another dtype
+            # (e.g. a string into a float column), where pandas 2 changed the
+            # column to object; do that here, one column at a time
+            for col_ind, col_label in enumerate(self.df.columns):
+                try:
+                    self.df.iloc[ind, col_ind] = row_data[col_label]
+                except (TypeError, ValueError):
+                    self.df[col_label] = self.df[col_label].astype(object)
+                    self.df.iloc[ind, col_ind] = row_data[col_label]
         return self.df
 
     def add_row(self, label, row_data, columns=""):
@@ -2005,7 +2017,7 @@ class MagicDataFrame(object):
             else:
                 # if geographic ("0"),
                 # use records with no tilt_corr and assume geographic
-                cond1 = df_slice['dir_tilt_correction'] == None
+                cond1 = missing_mask(df_slice['dir_tilt_correction'])
                 cond2 = df_slice['dir_tilt_correction'] == tilt_corr
                 df_slice = df_slice[cond1 | cond2]
         # exclude data with unwanted codes
@@ -2356,6 +2368,23 @@ def is_null(val, zero_as_null=True):
     Convenience function for ! not_null
     """
     return not not_null(val, zero_as_null)
+
+
+def missing_mask(values):
+    """
+    Find the missing cells of a Series or DataFrame.
+
+    A cell is missing if it is NaN, None or an empty string. Blank cells read
+    from a file are NaN (and, under pandas 3, so are blank text cells), while
+    the GUIs hold blanks as ''. Zero is a value, not a blank.
+
+    Args:
+        values (pandas.Series or pandas.DataFrame): values to test
+
+    Returns:
+        pandas.Series or pandas.DataFrame: boolean, True where a cell is missing
+    """
+    return values.isnull() | values.isin([''])
 
 
 def get_intensity_col(data):
