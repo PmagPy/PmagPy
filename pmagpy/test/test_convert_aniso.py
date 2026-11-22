@@ -128,8 +128,9 @@ class TestK15:
         rows = ams_rows(specimens, 'tr245f')
         assert sorted(rows.index) == [-1, 0, 100]
 
-    @pytest.mark.xfail(strict=True, reason="the eigenvalues in aniso_v1-3 are written as complex "
-                                           "numbers, e.g. '(0.33521363+0j)'")
+    # not strict: whether the eigenvalues come out complex depends on the NumPy version
+    @pytest.mark.xfail(strict=False, reason="the eigenvalues in aniso_v1-3 are written as complex "
+                                            "numbers, e.g. '(0.33521363+0j)', with some NumPy versions")
     def test_eigenvectors(self, out):
         specimens = read_table(os.path.join(out, 'specimens.txt'))
         for value in specimens['aniso_v1'].dropna():

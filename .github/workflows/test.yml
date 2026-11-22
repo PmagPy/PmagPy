@@ -4,6 +4,8 @@ on:
    pull_request:
     branches:
       - master
+      - port-legacy-tests
+      - 'fix/**'
    push:
     branches:
       - master
