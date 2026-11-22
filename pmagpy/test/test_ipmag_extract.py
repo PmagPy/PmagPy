@@ -92,6 +92,8 @@ class TestSitesExtract:
         assert [os.path.basename(f) for f in outfiles] == ['site_info.tex', 'directions.tex']
         text = open(outfiles[1]).read()
         assert '\\begin{longtable}' in text and '\\end{document}' in text
+        # an unescaped % would comment out the rest of the header row
+        assert 'TC (\\%)' in text
         n_sites = read_table(os.path.join(MEGIDDO, 'sites.txt')).dropna(
             subset=['dir_dec'])['site'].nunique()
         assert len(re.findall(r'^mg\w+ &', text, flags=re.M)) == n_sites
@@ -144,10 +146,6 @@ class TestCriteriaExtract:
         assert float(table.loc[table['Statistic'] == 'int_frac', 'Threshold'].item()) == 0.7
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "the header strings are raw strings, so '\\n' is written as a backslash and "
-    "an n, e.g. \\documentclass{article}\\n\\usepackage{booktabs}, which LaTeX "
-    "stops on as an undefined control sequence"))
 @pytest.mark.parametrize('function, kwargs', [
     (ipmag.sites_extract, {'directions_file': 'directions.tex', 'info_file': 'info.tex'}),
     (ipmag.specimens_extract, {'output_file': 'specimens.tex'}),
@@ -162,9 +160,6 @@ def test_latex_has_no_literal_newlines(tmp_path, function, kwargs):
         assert not re.search(r'\\n(?![a-z])|\\n\\', open(fname).read()), fname
 
 
-@pytest.mark.xfail(strict=True, raises=FileNotFoundError, reason=(
-    "the try/except IOError is around pmag.resolve_file_name, which does not "
-    "open the file; pd.read_csv then raises FileNotFoundError"))
 @pytest.mark.parametrize('function, message', [
     (ipmag.sites_extract, 'bad site file name'),
     (ipmag.specimens_extract, 'bad specimen file name'),
@@ -174,6 +169,29 @@ def test_missing_input_table(tmp_path, function, message):
     """a missing input table is reported as (False, message)"""
     assert function(input_dir_path=str(tmp_path), output_dir_path=str(tmp_path)) == (
         False, message)
+
+
+@pytest.mark.parametrize('function, fname, text', [
+    (ipmag.sites_extract, 'sites.txt',
+     'tab\tsites\nsite\tlocation\tlat\tlon\tdir_dec\tdir_inc\tint_abs\n'),
+    (ipmag.specimens_extract, 'specimens.txt', 'tab\tspecimens\nspecimen\tsample\tint_abs\n'),
+    (ipmag.criteria_extract, 'criteria.txt',
+     'tab\tcriteria\ntable_column\tcriterion_value\tcriterion_operation\n'),
+], ids=['sites', 'specimens', 'criteria'])
+def test_table_without_rows(tmp_path, function, fname, text):
+    """a table with column names but no rows writes no files"""
+    (tmp_path / fname).write_text(text)
+    assert function(input_dir_path=str(tmp_path), output_dir_path=str(tmp_path)) == (True, [])
+    assert os.listdir(tmp_path) == [fname]
+
+
+def test_specimens_without_intensities(tmp_path):
+    """a specimens table of directions only writes no paleointensity table"""
+    (tmp_path / 'specimens.txt').write_text(
+        'tab\tspecimens\nspecimen\tsample\tdir_dec\tdir_inc\tint_abs\n'
+        'mc01a\tmc01\t10\t-80\t\n')
+    assert ipmag.specimens_extract(input_dir_path=str(tmp_path),
+                                   output_dir_path=str(tmp_path)) == (True, [])
 
 
 class TestPmagResultsExtract:
@@ -200,9 +218,6 @@ class TestPmagResultsExtract:
         sr01a1 = sr01a1.iloc[0] if isinstance(sr01a1, pd.DataFrame) else sr01a1
         assert float(table['sr01a1'][b_col]) == pytest.approx(1e6 * sr01a1['specimen_int'], abs=0.05)
 
-    @pytest.mark.xfail(strict=True, reason=(
-        "SiteNfo has a Location column, but the rows are written without the "
-        "location, so latitude falls under Location"))
     def test_site_info_rows_fill_the_header(self, results_dir):
         ipmag.pmag_results_extract(WD=str(results_dir))
         lines = open(results_dir / 'SiteNfo.txt').read().splitlines()
@@ -216,12 +231,8 @@ class TestPmagResultsExtract:
             'Directions.tex', 'Intensities.tex', 'SiteNfo.tex']
         text = open(results_dir / 'Directions.tex').read()
         assert '\\begin{longtable}' in text
-        # not anchored to the line start: see test_latex_has_no_literal_newlines
-        assert len(re.findall(r'sr\d+ & ', text)) == 21
+        assert len(re.findall(r'^sr\d+ & ', text, flags=re.M)) == 21
 
-    @pytest.mark.xfail(strict=True, reason=(
-        "the row separators are raw strings, so '\\hline\\n' is written with a "
-        "backslash and an n, which LaTeX stops on as an undefined control sequence"))
     def test_latex_has_no_literal_newlines(self, results_dir):
         ok, outfiles = ipmag.pmag_results_extract(WD=str(results_dir), latex=True)
         for fname in outfiles:

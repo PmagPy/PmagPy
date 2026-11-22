@@ -8454,8 +8454,8 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
         Crits = []
     SiteCols = ["Site", "Location",
                 "Lat. (N)", "Long. (E)", "Age ", "Age sigma", "Units"]
-    SiteKeys = ["er_site_names", "average_lat", "average_lon", "average_age",
-                "average_age_sigma", "average_age_unit"]
+    SiteKeys = ["er_site_names", "er_location_names", "average_lat", "average_lon",
+                "average_age", "average_age_sigma", "average_age_unit"]
     DirCols = ["Site", 'Comp.', "perc TC", "Dec.", "Inc.", "Nl", "Np", "k    ", "R", "a95",
                "PLat", "PLong"]
     DirKeys = ["er_site_names", "pole_comp_name", "tilt_correction", "average_dec", "average_inc",
@@ -8557,29 +8557,29 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
         for k in range(len(SiteCols)):
             fstring = fstring + 'r'
         sf.write(fstring + '}\n')
-        sf.write(r'\hline\n')
+        sf.write('\\hline\n')
         fstring = tabstring
         for k in range(len(DirCols)):
             fstring = fstring + 'r'
         f.write(fstring + '}\n')
-        f.write(r'\hline\n')
+        f.write('\\hline\n')
         fstring = tabstring
         for k in range(len(IntCols)):
             fstring = fstring + 'r'
         fI.write(fstring + '}\n')
-        fI.write(r'\hline\n')
+        fI.write('\\hline\n')
         fstring = tabstring
         if crit_file:
             for k in range(len(CritKeys)):
                 fstring = fstring + 'r'
             cr.write(fstring + '}\n')
-            cr.write(r'\hline\n')
+            cr.write('\\hline\n')
         if spec_file:
             fstring = tabstring
             for k in range(len(SpecCols)):
                 fstring = fstring + 'r'
             fsp.write(fstring + '}\n')
-            fsp.write(r'\hline\n')
+            fsp.write('\\hline\n')
     else:   # just set the tab and line endings for tab delimited
         sep = ' \t '
         end = ''
@@ -8613,13 +8613,13 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
         Spoutstring = Spoutstring + end + "\n"
         fsp.write(Spoutstring)
     if latex:  # put in a horizontal line in latex file
-        f.write(r'\hline\n')
-        sf.write(r'\hline\n')
-        fI.write(r'\hline\n')
+        f.write('\\hline\n')
+        sf.write('\\hline\n')
+        fI.write('\\hline\n')
         if crit_file:
-            cr.write(r'\hline\n')
+            cr.write('\\hline\n')
         if spec_file:
-            fsp.write(r'\hline\n')
+            fsp.write('\\hline\n')
  # do criteria
     if crit_file:
         for crit in Crits:
@@ -8649,6 +8649,8 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
             for key in SiteKeys:
                 if key in list(site.keys()):
                     Soutstring = Soutstring + site[key] + sep
+                else:
+                    Soutstring = Soutstring + " " + sep
             Soutstring = Soutstring.strip(sep) + end
             sf.write(Soutstring + '\n')
             for key in DirKeys:
@@ -8731,23 +8733,23 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
             fsp.write(outstring.strip(sep) + end + '\n')
     #
     if latex:  # write out the tail stuff
-        f.write(r'\hline\n')
-        sf.write(r'\hline\n')
-        fI.write(r'\hline\n')
-        f.write(r'\end{longtable}\n')
-        sf.write(r'\end{longtable}\n')
-        fI.write(r'\end{longtable}\n')
-        f.write(r'\end{document}\n')
-        sf.write(r'\end{document}\n')
-        fI.write(r'\end{document}\n')
+        f.write('\\hline\n')
+        sf.write('\\hline\n')
+        fI.write('\\hline\n')
+        f.write('\\end{longtable}\n')
+        sf.write('\\end{longtable}\n')
+        fI.write('\\end{longtable}\n')
+        f.write('\\end{document}\n')
+        sf.write('\\end{document}\n')
+        fI.write('\\end{document}\n')
         if spec_file:
-            fsp.write(r'\hline\n')
-            fsp.write(r'\end{longtable}\n')
-            fsp.write(r'\end{document}\n')
+            fsp.write('\\hline\n')
+            fsp.write('\\end{longtable}\n')
+            fsp.write('\\end{document}\n')
         if crit_file:
-            cr.write(r'\hline\n')
-            cr.write(r'\end{longtable}\n')
-            cr.write(r'\end{document}\n')
+            cr.write('\\hline\n')
+            cr.write('\\end{longtable}\n')
+            cr.write('\\end{document}\n')
     f.close()
     sf.close()
     fI.close()
@@ -12032,20 +12034,10 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
             'LT-NO')]  # get the NRM data
         spec_df_th = spec_df[spec_df.method_codes.str.contains(
             'LT-T-Z')]  # zero field thermal demag steps
-        try:
-            cond = spec_df.method_codes.str.contains(r'(^|[\s\:])LT-PTRM')
-            spec_df_th = spec_df_th[-cond]  # get rid of some pTRM steps
-        except ValueError:
-            keep_inds = []
-            n = 0
-            for ind, row in spec_df_th.copy().iterrows():
-                if 'LT-PTRM' in row['method_codes'] and 'ALT-PTRM' not in row['method_codes']:
-                    keep_inds.append(n)
-                else:
-                    pass
-                n += 1
-            if len(keep_inds) < n:
-                spec_df_th = spec_df_th.iloc[keep_inds]
+        # get rid of pTRM checks among the zero field steps; the mask is built on
+        # spec_df_th itself because measurement names (the index) can repeat
+        cond = spec_df_th.method_codes.str.contains(r'(?:^|[\s\:])LT-PTRM')
+        spec_df_th = spec_df_th[~cond]
         spec_df_af = spec_df[spec_df.method_codes.str.contains('LT-AF-Z')]
         this_spec_meas_df = None
         datablock = None
@@ -12921,25 +12913,25 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xlsx',
     """
     # initialize outfile names
     input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, output_dir_path)
+    fname = pmag.resolve_file_name(site_file, input_dir_path)
     try:
-        fname = pmag.resolve_file_name(site_file, input_dir_path)
+        sites_df = pd.read_csv(fname, sep='\t', header=1)
     except IOError:
         print("bad site file name")
         return False, "bad site file name"
-    sites_df = pd.read_csv(fname, sep='\t', header=1)
     dir_df = map_magic.convert_site_dm3_table_directions(sites_df)
     dir_file = pmag.resolve_file_name(directions_file, output_dir_path)
     if len(dir_df):
         if latex:
             dir_file = _latex_file_name(dir_file)
             directions_out = open(dir_file, 'w+', errors="backslashreplace")
-            directions_out.write(r'\documentclass{article}\n')
+            directions_out.write('\\documentclass{article}\n')
             directions_out.write('\\usepackage{booktabs}\n')
             directions_out.write('\\usepackage{longtable}\n')
             directions_out.write('\\begin{document}')
             directions_out.write(dir_df.to_latex(
-                index=False, longtable=True, multicolumn=False))
-            directions_out.write(r'\end{document}\n')
+                index=False, longtable=True, escape=True, multicolumn=False))
+            directions_out.write('\\end{document}\n')
             directions_out.close()
         else:
             dir_file = _excel_file_name(dir_file)
@@ -12954,13 +12946,13 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xlsx',
             intensity_file = _latex_file_name(intensity_file)
             intensities_out = open(intensity_file, 'w+',
                                    errors="backslashreplace")
-            intensities_out.write(r'\documentclass{article}\n')
+            intensities_out.write('\\documentclass{article}\n')
             intensities_out.write('\\usepackage{booktabs}\n')
             intensities_out.write('\\usepackage{longtable}\n')
             intensities_out.write('\\begin{document}')
             intensities_out.write(int_df.to_latex(
-                index=False, longtable=True, multicolumn=False))
-            intensities_out.write(r'\end{document}\n')
+                index=False, longtable=True, escape=True, multicolumn=False))
+            intensities_out.write('\\end{document}\n')
             intensities_out.close()
         else:
             intensity_file = _excel_file_name(intensity_file)
@@ -12992,13 +12984,13 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xlsx',
         if latex:
             info_file = _latex_file_name(info_file)
             info_out = open(info_file, 'w+', errors="backslashreplace")
-            info_out.write(r'\documentclass{article}\n')
+            info_out.write('\\documentclass{article}\n')
             info_out.write('\\usepackage{booktabs}\n')
             info_out.write('\\usepackage{longtable}\n')
             info_out.write('\\begin{document}')
             info_out.write(nfo_df.to_latex(
-                index=False, longtable=True, multicolumn=False))
-            info_out.write(r'\end{document}\n')
+                index=False, longtable=True, escape=True, multicolumn=False))
+            info_out.write('\\end{document}\n')
             info_out.close()
         else:
             info_file = _excel_file_name(info_file)
@@ -13040,22 +13032,22 @@ def specimens_extract(spec_file='specimens.txt', output_file='specimens.xlsx', l
         writes Excel (.xlsx) or latex formatted tables for use in publications
     """
     input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, output_dir_path)
+    fname = pmag.resolve_file_name(spec_file, input_dir_path)
     try:
-        fname = pmag.resolve_file_name(spec_file, input_dir_path)
+        spec_df = pd.read_csv(fname, sep='\t', header=1)
     except IOError:
         print("bad specimen file name")
         return False, "bad specimen file name"
-    spec_df = pd.read_csv(fname, sep='\t', header=1)
     spec_df.dropna(axis='columns', how='all', inplace=True)
     if 'int_abs' in spec_df.columns:
         spec_df.dropna(subset=['int_abs'], inplace=True)
-    if len(spec_df) > 0:
+    if len(spec_df) > 0 and 'int_abs' in spec_df.columns:
         table_df = map_magic.convert_specimen_dm3_table(spec_df)
         out_file = pmag.resolve_file_name(output_file, output_dir_path)
         if latex:
             out_file = _latex_file_name(out_file)
             info_out = open(out_file, 'w+', errors="backslashreplace")
-            info_out.write(r'\documentclass{article}\n')
+            info_out.write('\\documentclass{article}\n')
             info_out.write('\\usepackage{booktabs}\n')
             if landscape:
                 info_out.write('\\usepackage{lscape}')
@@ -13067,8 +13059,8 @@ def specimens_extract(spec_file='specimens.txt', output_file='specimens.xlsx', l
             info_out.write(table_df.to_latex(index=False, longtable=longtable,
                                              escape=True, multicolumn=False))
             if landscape:
-                info_out.write(r'\end{landscape}\n')
-            info_out.write(r'\end{document}\n')
+                info_out.write('\\end{landscape}\n')
+            info_out.write('\\end{document}\n')
             info_out.close()
         else:
             out_file = _excel_file_name(out_file)
@@ -13076,6 +13068,7 @@ def specimens_extract(spec_file='specimens.txt', output_file='specimens.xlsx', l
 
     else:
         print("No specimen data for output.")
+        return True, []
     return True, [out_file]
 
 
@@ -13105,12 +13098,12 @@ def criteria_extract(crit_file='criteria.txt', output_file='criteria.xlsx',
         writes Excel (.xlsx) or latex formatted tables for use in publications
     """
     input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, output_dir_path)
+    fname = pmag.resolve_file_name(crit_file, input_dir_path)
     try:
-        fname = pmag.resolve_file_name(crit_file, input_dir_path)
+        crit_df = pd.read_csv(fname, sep='\t', header=1)
     except IOError:
         print("bad criteria file name")
         return False, "bad criteria file name"
-    crit_df = pd.read_csv(fname, sep='\t', header=1)
     if len(crit_df) > 0:
         out_file = pmag.resolve_file_name(output_file, output_dir_path)
 
@@ -13130,7 +13123,7 @@ def criteria_extract(crit_file='criteria.txt', output_file='criteria.xlsx',
                 '>'), 'operation'] = 'minimum'
             crit_df.loc[crit_df['Operation'] == '=', 'operation'] = 'equal to'
             info_out = open(out_file, 'w+', errors="backslashreplace")
-            info_out.write(r'\documentclass{article}\n')
+            info_out.write('\\documentclass{article}\n')
             info_out.write('\\usepackage{booktabs}\n')
             # info_out.write('\\usepackage{longtable}\n')
             # T1 will ensure that symbols like '<' are formatted correctly
@@ -13138,7 +13131,7 @@ def criteria_extract(crit_file='criteria.txt', output_file='criteria.xlsx',
             info_out.write('\\begin{document}')
             info_out.write(crit_df.to_latex(index=False, longtable=False,
                                             escape=True, multicolumn=False))
-            info_out.write(r'\end{document}\n')
+            info_out.write('\\end{document}\n')
             info_out.close()
         else:
             out_file = _excel_file_name(out_file)
@@ -13146,6 +13139,7 @@ def criteria_extract(crit_file='criteria.txt', output_file='criteria.xlsx',
 
     else:
         print("No criteria for output.")
+        return True, []
     return True, [out_file]
 
 
@@ -13955,8 +13949,10 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
             # no contribution id available
             files['map'] = 'LO:_' + locations + '_TY:_POLE_map_{}.{}'.format(crd, fmt)
     else:
-        # use readable naming convention for non-database use
-        files['map'] = '{}_POLE_map_{}.{}'.format(locations, crd, fmt)
+        # use readable naming convention for non-database use;
+        # ':' between location names is not allowed in file names
+        # (save_plots would replace it), so use '_'
+        files['map'] = '{}_POLE_map_{}.{}'.format(locations.replace(':', '_'), crd, fmt)
 
     if image_records:
         image_rec = {'location': locations, 'file': files['map'], 'type': 'Pole Map',
@@ -14630,8 +14626,9 @@ def vgpmap_magic(dir_path=".", results_file="sites.txt", crd="",
                 files[key] = 'MC:_' + con_id + '_TY:_VGP_map.' + fmt
             else:
                 files[key] = 'LO:_' + location + '_TY:_VGP_map.' + fmt
-        else:  # use more readable naming convention
-            files[key] = '{}_VGP_map.{}'.format(location, fmt)
+        else:  # use more readable naming convention, with '_' for the ':'
+            # between location names that save_plots would replace
+            files[key] = '{}_VGP_map.{}'.format(location.replace(':', '_'), fmt)
 
 
     if pmagplotlib.isServer:
@@ -14648,7 +14645,7 @@ def vgpmap_magic(dir_path=".", results_file="sites.txt", crd="",
             save_plots = True
         else:
             print("Good bye")
-            if image_recs:
+            if image_records:
                 return True, [], image_recs
             return True, []
     if save_plots:
@@ -14660,7 +14657,7 @@ def vgpmap_magic(dir_path=".", results_file="sites.txt", crd="",
                              'keywords': "", 'software_packages': version_num,
                              'timestamp': date.today().isoformat()}
                 image_recs.append(image_rec)
-            return True, files.values, image_recs
+            return True, files.values(), image_recs
         return True, files.values()
 
 

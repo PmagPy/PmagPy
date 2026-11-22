@@ -86,11 +86,6 @@ def test_chi_magic_plots_chi_against_temperature(work_dir):
         np.testing.assert_allclose(line.get_ydata(), 1e6 * this_freq['susc_chi_volume'])
 
 
-@pytest.mark.xfail(strict=True, raises=IndexError, reason=(
-    "make_plots in zeq_magic builds the zero-field mask on all of the specimen's "
-    "steps and applies it to the thermal subset ('spec_df_th[-cond]'); with "
-    "duplicate measurement names, as McMurdo mc15a has, pandas raises "
-    "IndexError, which the except ValueError does not catch"))
 def test_zeq_magic_specimen_with_duplicate_measurement_names(work_dir):
     """a Thellier specimen with pTRM checks and repeated measurement names plots"""
     d = work_dir('3_0/McMurdo', MCMURDO_TABLES)
@@ -101,6 +96,29 @@ def test_zeq_magic_specimen_with_duplicate_measurement_names(work_dir):
         'mc15a_demag.png', 'mc15a_eqarea.png', 'mc15a_zijd.png']
 
 
+def test_zeq_magic_plots_the_zero_field_steps_of_a_thellier_specimen(work_dir, monkeypatch):
+    """the NRM and the LT-T-Z steps are plotted, not the in-field steps or pTRM checks"""
+    d = work_dir('3_0/McMurdo', MCMURDO_TABLES)
+    datablocks = []
+    plot_zed = ipmag.pmagplotlib.plot_zed
+
+    def record_plot_zed(ZED, datablock, *args, **kwargs):
+        datablocks.append(datablock)
+        return plot_zed(ZED, datablock, *args, **kwargs)
+    monkeypatch.setattr(ipmag.pmagplotlib, 'plot_zed', record_plot_zed)
+    ok, _ = ipmag.zeq_magic(input_dir_path=d, dir_path=d, spec_file='specimens.txt',
+                            specimen='mc15a', fmt='png')
+    assert ok and len(datablocks) == 1
+    meas = read_table(os.path.join(d, 'measurements.txt'))
+    meas = meas[meas['specimen'] == 'mc15a']
+    nrm = meas[meas['method_codes'].str.startswith('LT-NO')]
+    zero_field = meas[meas['method_codes'].str.startswith('LT-T-Z')]
+    assert len(zero_field) == 14
+    expected = pd.concat([nrm, zero_field])
+    np.testing.assert_allclose([row[0] for row in datablocks[0]], expected['treat_temp'])
+    np.testing.assert_allclose([row[3] for row in datablocks[0]], expected['magn_moment'])
+
+
 def test_vgpmap_magic_saves_a_map(work_dir):
     pytest.importorskip('cartopy')
     d = work_dir('3_0/McMurdo', ['sites.txt', 'locations.txt'])
@@ -109,14 +127,39 @@ def test_vgpmap_magic_saves_a_map(work_dir):
     assert list(saved) == saved_images(d) == ['McMurdo_VGP_map.png']
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "vgpmap_magic returns files.values, the method, instead of "
-    "files.values(), when image_records=True"))
 def test_vgpmap_magic_with_image_records(work_dir):
     pytest.importorskip('cartopy')
     d = work_dir('3_0/McMurdo', ['sites.txt', 'locations.txt'])
     ok, saved, image_recs = ipmag.vgpmap_magic(d, fmt='png', image_records=True)
     assert list(saved) == ['McMurdo_VGP_map.png']
+
+
+def test_vgpmap_magic_several_locations(work_dir):
+    """the image record names the file saved for VGPs from several locations"""
+    pytest.importorskip('cartopy')
+    d = work_dir('3_0/McMurdo', ['sites.txt'])
+    path = os.path.join(d, 'sites.txt')
+    with open(path) as f:
+        header = f.readline()
+    sites = read_table(path)
+    sites.loc[sites['site'] < 'mc20', 'location'] = 'McMurdo North'
+    with open(path, 'w') as f:
+        f.write(header)
+        sites.to_csv(f, sep='\t', index=False)
+    ok, saved, image_recs = ipmag.vgpmap_magic(d, fmt='png', image_records=True)
+    assert ok
+    assert list(saved) == saved_images(d) == [rec['file'] for rec in image_recs]
+    assert ':' not in list(saved)[0]
+
+
+def test_vgpmap_magic_interactive_quit_with_image_records(work_dir, monkeypatch):
+    """quitting without saving still returns the (ok, files, records) triple"""
+    pytest.importorskip('cartopy')
+    d = work_dir('3_0/McMurdo', ['sites.txt', 'locations.txt'])
+    monkeypatch.setattr(ipmag.pmagplotlib, 'draw_figs', lambda figs: figs)
+    monkeypatch.setattr('builtins.input', lambda prompt='': '')
+    assert ipmag.vgpmap_magic(d, interactive=True, image_records=True) == (True, [], [])
+    assert saved_images(d) == []
 
 
 def run_with_image_records(name, d):
@@ -145,10 +188,7 @@ def run_with_image_records(name, d):
     ('eqarea_magic', 'eqarea_magic', ['sites.txt'], 1),
     ('polemap_magic', '3_0/McMurdo', ['locations.txt'], 1),
     pytest.param('polemap_magic', 'polemap_magic', ['locations.txt'], 1,
-                 id='polemap_magic-several-locations',
-                 marks=pytest.mark.xfail(strict=True, reason=(
-                     "the image record keeps the ':' between location names, "
-                     "which save_plots replaces with '_' in the file name"))),
+                 id='polemap_magic-several-locations'),
 ])
 def test_saves_plots_and_image_records(work_dir, name, subdir, files, n_images):
     """each wrapper saves its plots and an images-table record naming each file"""
