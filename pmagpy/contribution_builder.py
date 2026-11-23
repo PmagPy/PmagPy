@@ -221,7 +221,8 @@ class Contribution(object):
             parent_name, child_name = self.get_parent_and_child(table_name)
             if parent_name:
                 if parent_name[:-1] in df.columns:
-                    parents = sorted(set(df[parent_name[:-1]].dropna().values.astype(str)))
+                    # names as text, to match the index of the parent table
+                    parents = sorted(set(names_as_text(df[parent_name[:-1]].dropna()).astype(str)))
                     if parent_name in self.tables: # if there is a parent table, update it
                         parent_df = self.tables[parent_name].df
                         missing_parents = set(parents) - set(parent_df.index)
@@ -1049,6 +1050,10 @@ class Contribution(object):
                 return
             # make sure source is appropriately filled
             source = source_df.front_and_backfill([col], inplace=False)
+            # compare as numbers: ages held as text (written out, or from
+            # the GUI grids) would otherwise be compared as strings, or mixed
+            # with floats so that min/max raise a TypeError
+            source[col] = pd.to_numeric(source[col], errors='coerce')
             # add target_name back into front/backfilled source
             # as text, to match the index of target_df
             source[target_name] = names_as_text(source_df.df[target_name])

@@ -437,6 +437,15 @@ class TestContributionMissingItems:
         assert sorted(samples.index) == ['a', 'b']
         assert list(samples['site']) == ['s1', 's1']
 
+    def test_numeric_parent_names_with_a_blank_link(self, tmp_path):
+        """A blank in the samples' site column (read as floats) adds no site '1.0'."""
+        write_table(tmp_path, 'sites', [{'site': 1, 'location': 'L'}, {'site': 2, 'location': 'L'}])
+        write_table(tmp_path, 'samples', [{'sample': 'a', 'site': 1}, {'sample': 'b', 'site': 2},
+                                          {'sample': 'c', 'site': ''}])
+        con = cb.Contribution(str(tmp_path), read_tables=['sites', 'samples'])
+        con.propagate_all_tables_info(write=False)
+        assert sorted(con.tables['sites'].df.index) == ['1', '2']
+
     def test_children_from_a_list_of_names_fill_an_existing_table(self, tmp_path):
         write_table(tmp_path, 'sites', [{'site': 's1', 'location': 'L', 'samples': 'a:b'}])
         write_table(tmp_path, 'samples', [{'sample': 'a', 'site': 's1'}])
@@ -686,6 +695,20 @@ class TestContributionPropagation:
         con = cb.Contribution(study)
         con.propagate_ages()
         assert con.tables['sites'].df.loc['s3', 'age'] == 50
+
+    def test_propagate_ages_from_text_ages(self, study):
+        """
+        Ages held as text (the GUI grids, or an ages table already written
+        out) fill a blank site age read from file; the location bounds are
+        then compared as numbers, not as text.
+        """
+        con = cb.Contribution(study)
+        con.tables['ages'].df['age'] = ['50', '111']
+        con.tables['sites'].df.loc['s1', 'age'] = np.nan
+        con.propagate_ages()
+        assert con.tables['sites'].df.loc['s1', 'age'] == '111'
+        assert (con.tables['locations'].df.loc['L1', 'age_low'],
+                con.tables['locations'].df.loc['L1', 'age_high']) == (111, 300)
 
 
 # ----------------------------------------------------------------------------
