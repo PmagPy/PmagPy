@@ -194,10 +194,13 @@ def test_polemap_magic_image_record_lists_every_location(work_dir):
     # the tilt-corrected poles are the ones plotted
     locs = locs.dropna(subset=['pole_lat', 'pole_lon'])
     locs = locs[locs['dir_tilt_correction'] == 100]
+    assert ok
     assert len(image_recs) == 1
     assert image_recs[0]['location'] == ':'.join(locs['location'].unique())
     assert len(image_recs[0]['location']) > 50
     assert image_recs[0]['file'] == saved[0]
+    # the truncated file name is the file written
+    assert saved_images(d) == [os.path.basename(saved[0])]
 
 
 def run_with_image_records(name, d):
