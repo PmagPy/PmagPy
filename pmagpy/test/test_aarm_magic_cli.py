@@ -9,7 +9,7 @@ import pandas as pd
 import pytest
 
 from programs import aarm_magic
-from pmagpy import pmag
+from pmagpy import ipmag, pmag
 
 DATA_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "..", "..", "data_files"
@@ -110,3 +110,43 @@ class TestAarmMagicCli:
         np.testing.assert_allclose(
             s, [expected[0, 0], expected[1, 1], expected[2, 2],
                 expected[0, 1], expected[1, 2], expected[0, 2]], atol=1e-3)
+
+
+class TestReturnValue:
+    """ipmag.aarm_magic returns (True, output file) or (False, message)."""
+
+    def test_success(self, tmp_path):
+        shutil.copy(AARM_MEASUREMENTS, tmp_path)
+        result = ipmag.aarm_magic("aarm_measurements.txt", dir_path=str(tmp_path),
+                                  output_spec_file="out.txt")
+        assert result[0] is True
+        assert os.path.basename(result[1]) == "out.txt"
+        assert os.path.exists(tmp_path / "out.txt")
+
+    def test_not_a_measurements_file(self, tmp_path):
+        write_specimens(tmp_path / "aarm_measurements.txt", ["specimen", "sample"],
+                        [["a1", "a"]])
+        ran, message = ipmag.aarm_magic("aarm_measurements.txt", dir_path=str(tmp_path))
+        assert ran is False
+        assert "not a valid measurements file" in message
+
+    def test_unsupported_number_of_positions(self, tmp_path):
+        """four in-field steps: no tensor, (False, message) and no table"""
+        with open(tmp_path / "aarm_measurements.txt", "w") as f:
+            f.write("tab\tmeasurements\n")
+            f.write("specimen\tmethod_codes\tdir_dec\tdir_inc\tmagn_moment\n")
+            for dec in (0, 90, 180, 270):
+                f.write("a1\tLT-AF-Z:LP-AN-ARM\t0\t0\t0\n")
+                f.write("a1\tLT-AF-I:LP-AN-ARM\t%i\t0\t1e-8\n" % dec)
+        ran, message = ipmag.aarm_magic("aarm_measurements.txt", dir_path=str(tmp_path))
+        assert ran is False
+        assert "n=6,9,15" in message
+        assert not os.path.exists(tmp_path / "specimens.txt")
+
+    def test_program_exits_with_error(self, tmp_path, monkeypatch):
+        """the command-line program exits with status 1 when aarm_magic fails"""
+        write_specimens(tmp_path / "aarm_measurements.txt", ["specimen", "sample"],
+                        [["a1", "a"]])
+        with pytest.raises(SystemExit) as excinfo:
+            run_aarm_magic(monkeypatch, tmp_path, "-f", "aarm_measurements.txt")
+        assert excinfo.value.code == 1

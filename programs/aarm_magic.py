@@ -76,8 +76,10 @@ def main():
     spec_infile = pmag.get_named_arg("-fsp", "specimens.txt")
     spec_outfile = pmag.get_named_arg(
         "-Fsp", pmag.get_named_arg("-Fsi", "specimens.txt"))
-    ipmag.aarm_magic(infile, dir_path, input_dir_path,
-                     spec_infile, spec_outfile)
+    ran, message = ipmag.aarm_magic(infile, dir_path, input_dir_path,
+                                    spec_infile, spec_outfile)
+    if not ran:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

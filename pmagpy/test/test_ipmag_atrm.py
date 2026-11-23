@@ -15,6 +15,7 @@ import pandas as pd
 import pytest
 
 from pmagpy import ipmag, pmag
+from programs import atrm_magic
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                         os.pardir, os.pardir, 'data_files', 'atrm_magic')
@@ -136,10 +137,6 @@ class TestExampleData:
                             sep='\t', header=1).set_index('specimen')
         assert (example_results['sample'] == specs.loc[example_results.index, 'sample']).all()
 
-    @pytest.mark.xfail(strict=True, reason=(
-        "atrm_magic does not subtract the zero-field (LT-T-Z) baseline from the "
-        "in-field steps, so the residual remanence is counted as misfit: sigma "
-        "is inflated and F is about 0.86 instead of 15.8 for ak01a"))
     def test_f_statistic_matches_reference(self, example_results, reference_results):
         """the Hext F statistic agrees with PmagPy 3.22, which removed the baseline"""
         np.testing.assert_allclose(
@@ -161,11 +158,6 @@ class TestSyntheticExperiment:
                 expected[0, 1], expected[1, 2], expected[0, 2]], atol=2e-3)
         assert spec['method_codes'] == 'LP-AN-TRM'
 
-    # not strict: NumPy before 2.5 only warns when the one-element array is
-    # formatted with '%5.2f', so the test passes there
-    @pytest.mark.xfail(raises=TypeError, strict=False, reason=(
-        "atrm_magic takes the alteration percent as a one-element array "
-        "(values[0] of a one-column frame), which '%5.2f' cannot format in NumPy 2.5"))
     def test_alteration_check(self, tmp_path):
         """aniso_alt is the percent difference of the check and the +X step"""
         moments = write_atrm_measurements(tmp_path / 'measurements.txt',
@@ -175,9 +167,28 @@ class TestSyntheticExperiment:
         expected = 100 * abs(plus_x - check) / np.mean([plus_x, check])
         assert spec['aniso_alt'] == pytest.approx(expected, abs=0.01)
 
-    @pytest.mark.xfail(strict=True, reason=(
-        "atrm_magic does not subtract the zero-field (LT-T-Z) baseline, so a "
-        "remanence carried through the experiment inflates sigma"))
+    def test_alteration_check_with_baseline(self, tmp_path):
+        """aniso_alt compares the check and +X step after subtracting the baseline vector"""
+        write_atrm_measurements(tmp_path / 'measurements.txt',
+                                baseline=(2e-9, -1e-9, 3e-9), alteration_factor=1.04)
+        meas = pd.read_csv(tmp_path / 'measurements.txt', sep='\t', header=1)
+
+        def vector(code, phi=0, theta=0):
+            row = meas[meas['method_codes'].str.startswith(code)
+                       & (meas['treat_dc_field_phi'] == phi)
+                       & (meas['treat_dc_field_theta'] == theta)].iloc[0]
+            return np.array(pmag.dir2cart([row['dir_dec'], row['dir_inc'], row['magn_moment']]))
+
+        baseline, plus_x, check = vector('LT-T-Z'), vector('LT-T-I'), vector('LT-PTRM-I')
+        trm_plus_x = np.linalg.norm(plus_x - baseline)
+        trm_check = np.linalg.norm(check - baseline)
+        expected = 100 * abs(trm_plus_x - trm_check) / np.mean([trm_plus_x, trm_check])
+        raw = 100 * abs(np.linalg.norm(plus_x) - np.linalg.norm(check)) / np.mean(
+            [np.linalg.norm(plus_x), np.linalg.norm(check)])
+        assert abs(expected - raw) > 0.3  # the baseline matters for this check
+        spec = run_atrm(tmp_path).loc['syn01a']
+        assert spec['aniso_alt'] == pytest.approx(expected, abs=0.01)
+
     def test_baseline_does_not_change_sigma(self, tmp_path):
         """a remanence present in every step leaves the fit and its sigma unchanged"""
         clean_dir = tmp_path / 'clean'
@@ -192,6 +203,59 @@ class TestSyntheticExperiment:
         assert float(offset['aniso_s_sigma']) == pytest.approx(
             float(clean['aniso_s_sigma']), rel=0.05)
 
+    def test_missing_baseline_is_reported(self, tmp_path, capsys):
+        """without a zero-field step the in-field steps are fit as measured, with a warning"""
+        write_atrm_measurements(tmp_path / 'measurements.txt')
+        with open(tmp_path / 'measurements.txt') as f:
+            lines = [line for line in f if 'LT-T-Z' not in line]
+        with open(tmp_path / 'measurements.txt', 'w') as f:
+            f.writelines(lines)
+        spec = run_atrm(tmp_path).loc['syn01a']
+        assert 'no zero-field (LT-T-Z) baseline step' in capsys.readouterr().out
+        expected = CHI / np.trace(CHI)
+        s = np.array(spec['aniso_s'].split(':'), dtype=float)
+        np.testing.assert_allclose(
+            s, [expected[0, 0], expected[1, 1], expected[2, 2],
+                expected[0, 1], expected[1, 2], expected[0, 2]], atol=2e-3)
+
+
+def test_perfect_fit_has_zero_sigma(monkeypatch):
+    """six-position data that a tensor fits exactly give sigma 0, not an error"""
+    # the field directions of get_matrix come from dir2cart, so they carry
+    # ~1e-16 rounding (cos 90) that keeps the misfit above zero; rounding them
+    # makes an exact fit possible
+    get_matrix = ipmag.get_matrix
+
+    def exact_matrix(n_pos):
+        return {key: np.round(value, 12) for key, value in get_matrix(n_pos).items()}
+
+    monkeypatch.setattr(ipmag, 'get_matrix', exact_matrix)
+    # eigenvalues 5:2:1 (trace 8), so the normalized tensor is exact in binary
+    chi = np.diag([5., 2., 1.])
+    fields = np.array([pmag.dir2cart([phi, theta, 1.]) for phi, theta in POSITIONS])
+    K = np.round(fields @ chi, 12).ravel()
+    pars = ipmag.calculate_aniso_parameters(K, n_pos=6)
+    assert float(pars['aniso_s_sigma']) == 0
+    np.testing.assert_allclose(np.array(pars['aniso_s'].split(':'), dtype=float),
+                               [0.625, 0.25, 0.125, 0, 0, 0], atol=1e-7)
+
+
+@pytest.mark.parametrize('diagonal', [(1., 1., 1.), (2., 1., 1.), (1., 1., 2.)],
+                         ids=['isotropic', 'uniaxial-oblate', 'uniaxial-prolate'])
+def test_tensor_with_equal_eigenvalues(diagonal):
+    """an isotropic or uniaxial tensor gives its eigenvalues, largest first"""
+    chi = np.diag(diagonal)
+    fields = np.array([pmag.dir2cart([phi, theta, 1.]) for phi, theta in POSITIONS])
+    K = (fields @ chi).ravel()
+    pars = ipmag.calculate_aniso_parameters(K, n_pos=6)
+    taus = [eigen_parameters(pars[col])[0] for col in ('aniso_v1', 'aniso_v2', 'aniso_v3')]
+    np.testing.assert_allclose(taus, sorted(np.array(diagonal) / sum(diagonal), reverse=True),
+                               atol=1e-6)
+    # V1 of the prolate tensor (2 along Z) is vertical
+    if diagonal == (1., 1., 2.):
+        assert abs(eigen_parameters(pars['aniso_v1'])[2]) == pytest.approx(90, abs=0.1)
+    assert float(pars['aniso_p']) == pytest.approx(max(diagonal) / min(diagonal), rel=1e-5)
+
 
 def test_measurements_without_atrm_data(tmp_path):
     """a measurements table with no LP-AN-TRM records is reported, not written"""
@@ -203,9 +267,6 @@ def test_measurements_without_atrm_data(tmp_path):
     assert not os.path.exists(tmp_path / 'specimens.txt')
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "atrm_magic returns None after writing the table, not the documented "
-    "(True, output file name)"))
 def test_returns_status_and_output_file(tmp_path):
     """the documented return value: (True, output specimens file)"""
     write_atrm_measurements(tmp_path / 'measurements.txt')
@@ -213,3 +274,38 @@ def test_returns_status_and_output_file(tmp_path):
                               output_spec_file='out.txt')
     assert result[0] is True
     assert os.path.basename(result[1]) == 'out.txt'
+
+
+def test_not_a_measurements_file(tmp_path):
+    """a table that is not a measurements table gives (False, message)"""
+    with open(tmp_path / 'measurements.txt', 'w') as f:
+        f.write('tab\tspecimens\nspecimen\tsample\na1\ta\n')
+    ran, message = ipmag.atrm_magic('measurements.txt', dir_path=str(tmp_path))
+    assert ran is False
+    assert 'not a valid measurements file' in message
+
+
+class TestCommandLine:
+
+    def run_main(self, monkeypatch, work_dir, *args):
+        """Run programs/atrm_magic.py main() in work_dir."""
+        monkeypatch.chdir(work_dir)
+        monkeypatch.setattr('sys.argv', ['atrm_magic.py', *args])
+        atrm_magic.main()
+
+    def test_writes_specimens_table(self, tmp_path, monkeypatch):
+        """the program writes specimens.txt and returns normally"""
+        write_atrm_measurements(tmp_path / 'atrm_measurements.txt')
+        self.run_main(monkeypatch, tmp_path)
+        specs = pd.read_csv(tmp_path / 'specimens.txt', sep='\t', header=1)
+        assert list(specs['specimen']) == ['syn01a']
+
+    def test_exits_with_error_without_atrm_data(self, tmp_path, monkeypatch):
+        """no LP-AN-TRM records: exit status 1 and no table"""
+        with open(tmp_path / 'atrm_measurements.txt', 'w') as f:
+            f.write('tab\tmeasurements\nspecimen\tmethod_codes\tdir_dec\tdir_inc\tmagn_moment\n')
+            f.write('a1\tLT-AF-Z:LP-DIR-AF\t10\t20\t1e-8\n')
+        with pytest.raises(SystemExit) as excinfo:
+            self.run_main(monkeypatch, tmp_path)
+        assert excinfo.value.code == 1
+        assert not os.path.exists(tmp_path / 'specimens.txt')

@@ -13,11 +13,8 @@ def main():
 
     DESCRIPTION
         Converts ATRM  data to best-fit tensor (6 elements plus sigma)
-         Original program ARMcrunch written to accomodate ARM anisotropy data
-          collected from 6 axial directions (+X,+Y,+Z,-X,-Y,-Z) using the
-          off-axis remanence terms to construct the tensor. A better way to
-          do the anisotropy of ARMs is to use 9,12 or 15 measurements in
-          the Hext rotational scheme.
+          from TRMs acquired along 6 axial directions (+X,+Y,+Z,-X,-Y,-Z),
+          using the off-axis remanence terms to construct the tensor.
 
     SYNTAX
         atrm_magic.py [-h][command line options]
@@ -27,13 +24,27 @@ def main():
         -f FILE: specify input file, default is atrm_measurements.txt
         -fsp FILE: specimen input file, default is specimens.txt (optional)
         -Fsp FILE: specify output file, default is specimens.txt (optional)
+        -WD DIR: output directory, default is current directory
+        -ID DIR: input directory, default is the output directory
 
     INPUT
-        Input for the present program is a TRM acquisition data with an optional baseline.
-      The order of the measurements is:
-    Decs=[0,90,0,180,270,0,0,90,0]
-    Incs=[0,0,90,0,0,-90,0,0,90]
-     The last two measurements are optional
+        A MagIC 3 measurements table with, for each specimen, records with
+        method code LP-AN-TRM:
+            optional: a zero-field step (LT-T-Z), the baseline, which is
+                subtracted from each in-field step; if there is more than
+                one, their mean is used
+            six in-field steps (LT-T-I) heated to the same temperature, with
+                the lab field (treat_dc_field_phi, treat_dc_field_theta) along
+                +X (0, 0), +Y (90, 0), +Z (0, 90), -X (180, 0), -Y (270, 0)
+                and -Z (0, -90); they may be in any order
+            optional: an alteration check (LT-PTRM-I) repeating one of the
+                in-field positions, reported as aniso_alt, the percent
+                difference of the two TRMs (baseline subtracted)
+
+    OUTPUT
+        The tensors (aniso_type ATRM, specimen coordinates) are merged into
+        the specimens table. Exits with status 1 if the input is not a
+        measurements table or has no LP-AN-TRM records.
 
     """
     # initialize some parameters
@@ -62,8 +73,10 @@ def main():
     spec_infile = pmag.get_named_arg("-fsp", "specimens.txt")
 
 
-    ipmag.atrm_magic(meas_file, dir_path, input_dir_path,
-                     spec_infile, spec_outfile)
+    ran, message = ipmag.atrm_magic(meas_file, dir_path, input_dir_path,
+                                    spec_infile, spec_outfile)
+    if not ran:
+        sys.exit(1)
 
 
 
