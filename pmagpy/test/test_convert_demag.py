@@ -169,7 +169,7 @@ class TestHujiSample:
     def test_samples_and_sites(self, run, ignore_dip, azimuth):
         out = run('huji_sample', lambda out: convert.huji_sample(
             'magdelkrum_datafile.txt', input_dir_path=in_dir('huji_magic'), dir_path=out,
-            ignore_dip=ignore_dip))
+            ignore_dip=ignore_dip, location_name='Magdelkrum'))
         samples = read_table(os.path.join(out, 'samples.txt'))
         assert len(samples) == 57
         # mk118  22  21  0  0  35.23788  32.92075
@@ -179,6 +179,29 @@ class TestHujiSample:
         assert (mk118['lat'], mk118['lon']) == (35.23788, 32.92075)
         sites = read_table(os.path.join(out, 'sites.txt'))
         assert 'mk11' in set(sites['site'])
+        # the location is in the sites table
+        assert set(sites['location']) == {'Magdelkrum'}
+        # one row per site
+        assert sites['site'].is_unique
+        assert set(sites['site']) == set(samples['site'])
+
+    def test_bedding(self, tmp_path):
+        """the file gives the bedding strike; the dip direction is 90 degrees to its right"""
+        in_dir_path = tmp_path / 'in'
+        in_dir_path.mkdir()
+        with open(str(in_dir_path / 'orient.txt'), 'w') as f:
+            f.write('Sample ID\tAlpha (azi)\tBetha(dip)\tStrike\tdip\tLat\tLong\n'
+                    'ab11\t22\t21\t30\t20\t35.2\t32.9\n'
+                    'ab12\t30\t15\t300\t10\t35.2\t32.9\n')
+        result, out_dir, cwd = convert_into(tmp_path, lambda out: convert.huji_sample(
+            'orient.txt', input_dir_path=str(in_dir_path), dir_path=out))
+        assert result[0] is True, result
+        samples = read_table(os.path.join(out_dir, 'samples.txt')).set_index('sample')
+        assert list(samples['bed_dip_direction']) == [120, 30]
+        assert list(samples['bed_dip']) == [20, 10]
+        sites = read_table(os.path.join(out_dir, 'sites.txt'))
+        assert list(sites['site']) == ['ab1']
+        assert (sites.iloc[0]['bed_dip_direction'], sites.iloc[0]['bed_dip']) == (120, 20)
 
 
 class TestJr6Txt:
@@ -331,9 +354,11 @@ class TestLivdb:
         ({}, 'ATPIPV04-1A', 'ATPIPV04-1A'),
         ({'samp_name_con': 2, 'samp_num_chars': 1}, 'ATPIPV04-1', 'ATPIPV04-1'),
         ({'samp_name_con': 3, 'samp_num_chars': '-'}, 'ATPIPV04', 'ATPIPV04'),
+        ({'samp_name_con': 2, 'samp_num_chars': 1, 'site_name_con': 3, 'site_num_chars': '-'},
+         'ATPIPV04-1', 'ATPIPV04'),
     ])
     def test_naming(self, run, options, sample, site):
-        """sample names from the specimen name minus some characters, or up to a delimiter"""
+        """sample (and site) names from the specimen (sample) name minus some characters, or up to a delimiter"""
         out = run('livdb_naming', lambda out: convert.livdb(
             os.path.join(in_dir('livdb_magic'), 'TH_IZZI+'), output_dir_path=out, **options))
         specimens = read_table(os.path.join(out, 'specimens.txt')).set_index('specimen')
@@ -352,10 +377,9 @@ class TestMini:
         result, out_dir, cwd = convert_into(tmp_path, lambda out: convert.mini(
             'Peru_rev1.txt', input_dir_path=in_dir('mini_magic'), dir_path=out, methcode='AF'))
         assert result[0] is True
-        # mini writes into the working directory, not dir_path (an xfail in
-        # test_convert_2_magic.py); the tables are read from wherever they are
-        table_dir = out_dir if os.listdir(out_dir) else cwd
-        meas = read_table(os.path.join(table_dir, 'measurements.txt'))
+        assert result[1] == os.path.join(out_dir, 'measurements.txt')
+        assert os.listdir(cwd) == []
+        meas = read_table(os.path.join(out_dir, 'measurements.txt'))
         assert len(meas) == 103
         cup = meas[meas['specimen'] == 'Cup-1-1']
         assert list(cup['treat_ac_field']) == pytest.approx([0.05, 0.10, 0.15, 0.20, 0.25])
@@ -364,8 +388,16 @@ class TestMini:
         assert (first['dir_dec'], first['dir_inc']) == (126.9, 34.3)
         # default volume 12 cc; the moment is written with four digits
         assert first['magn_moment'] == pytest.approx(4.393e-3 * 12e-6, rel=1e-3)
-        samples = read_table(os.path.join(table_dir, 'samples.txt')).set_index('sample')
+        samples = read_table(os.path.join(out_dir, 'samples.txt')).set_index('sample')
         assert samples.loc['Cup-1-1', 'site'] == 'Cup-1'
+        # J-99-1_2_50: specimen J-99-1_2 (a '_' in the name, like J-99-1-3) at 50 mT
+        j99 = meas[meas['specimen'] == 'J-99-1_2']
+        assert list(j99['treat_ac_field']) == pytest.approx([0.05])
+        assert (j99.iloc[0]['dir_dec'], j99.iloc[0]['dir_inc']) == (305.1, -36.4)
+        specimens = read_table(os.path.join(out_dir, 'specimens.txt')).set_index('specimen')
+        assert len(specimens) == 35
+        assert specimens.loc['J-99-1_2', 'sample'] == 'J-99-1'
+        assert samples.loc['J-99-1', 'site'] == 'J-99'
 
 
 class TestPmd:
@@ -441,7 +473,7 @@ class TestSio:
 class TestUtrecht:
     """
     Utrecht files (Utrecht_Example.af). The header of KO_86.1 has the azimuth
-    288, dip 39, volume 10.5 cc, and bedding dip direction 169 and dip 15; the
+    288, dip 39, volume 10.5 cc, and bedding strike 169 and dip 15 (dip direction 259); the
     measurements are A, B, C in pAm^2 (MagIC x = -B, y = C, z = -A).
     """
 
@@ -473,12 +505,70 @@ class TestUtrecht:
         """
         samples = read_table(os.path.join(out, 'samples.txt'))
         first = samples.iloc[0]
-        assert (first['azimuth'], first['dip'], first['bed_dip_direction']) == (288, -51, 169)
+        assert (first['azimuth'], first['dip'], first['bed_dip_direction']) == (288, -51, 259)
+        # by default each specimen is its own sample and keeps its own header
+        # orientation (specnum=1 would merge KO_86.10-KO_86.19 into one sample)
+        assert len(samples) == 25
+        assert samples.set_index('sample').loc['KO_86.4', 'azimuth'] == 212
 
-    @pytest.mark.xfail(strict=True, reason="the bed_dip of the first specimen keeps the line "
-                                           "ending ('15\\n'), which splits the samples table")
     def test_bed_dip(self, out):
         with open(os.path.join(out, 'samples.txt')) as f:
             lines = f.read().splitlines()
         # a header line, the column names, and one line per sample
-        assert len(lines) == 2 + len(read_table(os.path.join(out, 'samples.txt')))
+        samples = read_table(os.path.join(out, 'samples.txt'))
+        assert len(lines) == 2 + len(samples)
+        assert samples.iloc[0]['bed_dip'] == 15
+
+    def test_timestamps(self, out):
+        """the times are on a 12-hour clock in Utrecht (UTC+2 in summer)"""
+        meas = read_table(os.path.join(out, 'measurements.txt'))
+        first = meas.groupby('specimen', sort=False)['timestamp'].first()
+        # KO_86.1: 0,-1.48E+03,4.58E+02,2.82E+03,0.99,5/31/2007,4:09:48 PM
+        assert first['KO_86.1'] == '2007-05-31T14:09:48Z'
+        # KO_86.3: 0.0, 2.0363E+3, 6.0421E+2, 2.8818E+3,0.99,6/9/2007,8:22:55 AM
+        assert first['KO_86.3'] == '2007-06-09T06:22:55Z'
+
+    @pytest.mark.parametrize('end', ['"END"\r\n', ''])
+    def test_line_endings_and_white_space(self, tmp_path, end):
+        """Windows line endings, white space and blank lines, and no END line"""
+        in_dir_path = tmp_path / 'in'
+        in_dir_path.mkdir()
+        with open(str(in_dir_path / 'example.th'), 'w', newline='') as f:
+            f.write('"ROBOT", "2G DC"\r\n'
+                    '"AB1.1", 1586, 288, 39, 10.5, 169, 15 \r\n'
+                    '0, -1.48E+03, 4.58E+02, 2.82E+03, 0.99, 5/31/2007, 16:09:48\r\n'
+                    ' 100.0, -1.59E+03, 2.42E+01, 2.79E+03, 0.99, 5/31/2007, 16:30:00\r\n'
+                    '9999 \r\n'
+                    '\r\n'
+                    '"AB2.1", 1586, 200, 30, 10.5, 169, 25\r\n'
+                    '0, -1.48E+03, 4.58E+02, 2.82E+03, 0.99, 5/31/2007, 12:05:00 AM\r\n'
+                    '9999\r\n' + end)
+        result, out_dir, cwd = convert_into(tmp_path, lambda out: convert.utrecht(
+            'example.th', input_dir_path=str(in_dir_path), dir_path=out, specnum=0))
+        assert result[0] is True, result
+        samples = read_table(os.path.join(out_dir, 'samples.txt'))
+        assert list(zip(samples['azimuth'], samples['bed_dip'])) == [(288, 15), (200, 25)]
+        meas = read_table(os.path.join(out_dir, 'measurements.txt'))
+        assert list(meas['timestamp']) == ['2007-05-31T14:09:48Z', '2007-05-31T14:30:00Z',
+                                           '2007-05-30T22:05:00Z']
+        assert list(meas['treat_temp']) == pytest.approx([273, 373, 273])
+        assert set(meas['instrument_codes']) == {'Utrecht_2G DC'}
+
+    def test_lines_without_date(self, tmp_path):
+        """a measurement line may end before the date and time"""
+        in_dir_path = tmp_path / 'in'
+        in_dir_path.mkdir()
+        with open(str(in_dir_path / 'example.af'), 'w') as f:
+            f.write('ROBOT,2G DC\n'
+                    'AB1.1,1586,288,39,10.5,169,15\n'
+                    '0,-1.48E+03,4.58E+02,2.82E+03,0.99\n'
+                    '5,-1.59E+03,2.42E+01,2.79E+03,0.99,5/31/2007,4:09:48 PM\n'
+                    '9999\nEND\n')
+        result, out_dir, cwd = convert_into(tmp_path, lambda out: convert.utrecht(
+            'example.af', input_dir_path=str(in_dir_path), dir_path=out, specnum=0))
+        assert result[0] is True, result
+        meas = read_table(os.path.join(out_dir, 'measurements.txt'))
+        assert len(meas) == 2
+        assert meas['timestamp'].isnull().iloc[0]
+        assert meas['timestamp'].iloc[1] == '2007-05-31T14:09:48Z'
+        assert list(meas['dir_csd']) == [0.99, 0.99]

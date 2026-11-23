@@ -87,9 +87,12 @@ def main():
     #if "-n" in sys.argv:
     #    name = 1
     coord_type = pmag.get_named_arg("-crd", 's')
-    convert.s_magic(sfile, anisfile, dir_path, atype,
+    program_ran, message = convert.s_magic(sfile, anisfile, dir_path, atype,
             coord_type, sigma, samp_con, specnum,
             location, spec, sitename, user, data_model_num, name)
+    if not program_ran:
+        print("-E-", message)
+        sys.exit(1)
     #
 
 

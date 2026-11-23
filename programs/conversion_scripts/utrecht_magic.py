@@ -30,7 +30,7 @@ OPTIONS
         [5] site name = sample name
         [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
         [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
-    -spc: number of characters to remove to generate sample names from specimen names
+    -spc: number of characters to remove to generate sample names from specimen names (default 0: each specimen is its own sample, as for names like KO_86.1)
     -loc LOCNAME : specify location/study name
     -lat LAT: latitude of site (also used as bounding latitude for location)
     -lon LON: longitude of site (also used as bounding longitude for location)
@@ -110,7 +110,10 @@ def main():
     if '-dmy' in sys.argv:
         kwargs['dmy_flag'] = True
 
-    convert.utrecht(**kwargs)
+    program_ran, message = convert.utrecht(**kwargs)
+    if not program_ran:
+        print("-E-", message)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

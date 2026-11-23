@@ -4470,10 +4470,10 @@ def huji_sample(orient_file, meths='FS-FD:SO-POM:SO-SUN', location_name='unknown
         site_col = "site"
         samp_col = "sample"
         citation_col = "citations"
-        class_col = "class"
-        lithology_col = "lithology"
-        definition_col = "definition"
-        type_col = "type"
+        class_col = "geologic_classes"
+        lithology_col = "lithologies"
+        definition_col = ""  # site_definition has no equivalent in data model 3
+        type_col = "geologic_types"
         sample_bed_dip_direction_col = 'bed_dip_direction'
         sample_bed_dip_col = 'bed_dip'
         site_bed_dip_direction_col = 'bed_dip_direction'
@@ -4495,33 +4495,40 @@ def huji_sample(orient_file, meths='FS-FD:SO-POM:SO-SUN', location_name='unknown
     #
     # read in file to convert
     #
-    with open(orient_file, 'r') as azfile:
-        AzDipDat = azfile.readlines()
+    try:
+        with open(orient_file, 'r') as azfile:
+            AzDipDat = azfile.readlines()
+    except OSError as ex:
+        print("-W- Could not read {}: {}".format(orient_file, ex))
+        return False, "Could not read {}: {}".format(orient_file, ex)
     SampOut = []
     SiteOut = []
     for line in AzDipDat[1:]:
         orec = line.split()
         if len(orec) > 1:
             labaz, labdip = pmag.orient(float(orec[1]), float(orec[2]), '3')
-            bed_dip_dir = (orec[3])
-            bed_dip = (orec[4])
             SampRec = {}
             SiteRec = {}
-            SampRec[loc_col] = location_name
+            if data_model_num == 2:
+                # in data model 3 the location of a sample is in the sites table
+                SampRec[loc_col] = location_name
             SampRec[citation_col] = "This study"
             SiteRec[loc_col] = location_name
             SiteRec[citation_col] = "This study"
             SiteRec[class_col] = ""
             SiteRec[lithology_col] = ""
             SiteRec[type_col] = ""
-            SiteRec[definition_col] = "s"
+            if definition_col:
+                SiteRec[definition_col] = "s"
     #
     # parse information common to all orientation methods
     #
             SampRec[samp_col] = orec[0]
-            SampRec[sample_bed_dip_direction_col] = orec[3]
+            # the file gives the strike; the dip is to its right (right-hand rule)
+            bed_dip_dir = '%7.1f' % ((float(orec[3]) + 90.) % 360.)
+            SampRec[sample_bed_dip_direction_col] = bed_dip_dir
             SampRec[sample_bed_dip_col] = orec[4]
-            SiteRec[site_bed_dip_direction_col] = orec[3]
+            SiteRec[site_bed_dip_direction_col] = bed_dip_dir
             SiteRec[site_bed_dip_col] = orec[4]
             if not ignore_dip:
                 SampRec[sample_dip_col] = '%7.1f' % (labdip)
@@ -4541,7 +4548,9 @@ def huji_sample(orient_file, meths='FS-FD:SO-POM:SO-SUN', location_name='unknown
             SiteRec[site_col] = site
             SiteRec[software_col] = version_num
             SampOut.append(SampRec)
-            SiteOut.append(SiteRec)
+            # one row per site, from its first sample
+            if site not in [rec[site_col] for rec in SiteOut]:
+                SiteOut.append(SiteRec)
     if data_model_num == 2:
         pmag.magic_write(samp_file, SampOut, "er_samples")
         pmag.magic_write(site_file, SiteOut, "er_sites")
@@ -8355,6 +8364,8 @@ def kly4s(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
         samp_infile = os.path.join(input_dir_path, samp_infile)
     measfile = os.path.join(output_dir_path, measfile)
     anisfile = os.path.join(output_dir_path, aniso_outfile)
+    samp_outfile = os.path.join(output_dir_path, samp_outfile)
+    site_outfile = os.path.join(output_dir_path, site_outfile)
 
     # set column names for MagIC 3
     spec_name_col = 'specimen'  #
@@ -8472,6 +8483,10 @@ def kly4s(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
     samps = []
     if samp_infile:
         samps, file_type = pmag.magic_read(samp_infile)
+        if file_type == 'samples':
+            # pmag.find_samp_rec reads data model 2 column names
+            samps = [pmag.map_magic.mapping(rec, pmag.map_magic.samp_magic3_2_magic2_map)
+                     for rec in samps]
         SO_methods = []
         for rec in samps:
             if "magic_method_codes" in list(rec.keys()):
@@ -8511,8 +8526,8 @@ def kly4s(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
                     if orec[0].upper() in specname.upper():  # we have a match
                         labaz, labdip = pmag.orient(
                             float(orec[1]), float(orec[2]), or_con)
-                        bed_dip_direction = float(
-                            orec[3]) - 90.  # assume dip to right of strike
+                        # assume dip to right of strike (right-hand rule)
+                        bed_dip_direction = (float(orec[3]) + 90.) % 360.
                         bed_dip = float(orec[4])
                         break
                 if labaz == "":  # found no exact match - now look at sample level
@@ -8521,8 +8536,8 @@ def kly4s(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
                         if orec[0].upper() == sampname.upper():  # we have a match
                             labaz, labdip = pmag.orient(
                                 float(orec[1]), float(orec[2]), or_con)
-                            bed_dip_direction = float(
-                                orec[3]) - 90.  # assume dip to right of strike
+                            # assume dip to right of strike (right-hand rule)
+                            bed_dip_direction = (float(orec[3]) + 90.) % 360.
                             bed_dip = float(orec[4])
                             break
                 if labaz == "":  # found no exact match - now look at sample level
@@ -8539,21 +8554,24 @@ def kly4s(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
                     SampRec[bed_dip_col] = '%7.1f' % (bed_dip)
                     SampRecs.append(SampRec)
             elif samp_infile:
+                # the orientation from pmag.find_samp_rec, in data model 2 column names
+                or_az_col, or_dip_col = 'sample_azimuth', 'sample_dip'
+                or_bed_dip_direction_col, or_bed_dip_col = 'sample_bed_dip_direction', 'sample_bed_dip'
                 redo, p = 1, 0
                 orient = {}
                 if len(SO_methods) == 1:
                     az_type = SO_methods[0]
                     orient = pmag.find_samp_rec(
                         AniRec[samp_name_col], samps, az_type)
-                    if orient[azimuth_col] != "":
+                    if orient[or_az_col] != "":
                         method_codes.append(az_type)
                     else:
                         print("no orientation data for ",
                               AniRec[samp_name_col], labaz)
-                        orient[azimuth_col] = ""
-                        orient[dip_col] = ""
-                        orient[bed_dip_direction_col] = ""
-                        orient[dip_col] = ""
+                        orient[or_az_col] = ""
+                        orient[or_dip_col] = ""
+                        orient[or_bed_dip_direction_col] = ""
+                        orient[or_bed_dip_col] = ""
                         noorient = 1
                         method_codes.append("SO-NO")
                         redo = 0
@@ -8562,10 +8580,10 @@ def kly4s(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
                     if p >= len(SO_priorities):
                         print("no orientation data for ",
                               AniRec[samp_name_col], labaz)
-                        orient[azimuth_col] = ""
-                        orient[dip_col] = ""
-                        orient[bed_dip_direction_col] = ""
-                        orient[bed_dip_col] = ""
+                        orient[or_az_col] = ""
+                        orient[or_dip_col] = ""
+                        orient[or_bed_dip_direction_col] = ""
+                        orient[or_bed_dip_col] = ""
                         noorient = 1
                         method_codes.append("SO-NO")
                         redo = 0
@@ -8574,20 +8592,27 @@ def kly4s(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
                             SO_priorities[p])]
                         orient = pmag.find_samp_rec(
                             AniRec[samp_name_col], samps, az_type)
-                        if orient[azimuth_col] != "":
+                        if orient[or_az_col] != "":
                             method_codes.append(az_type)
                             redo = 0
                         noorient = 0
                     p += 1
-                if orient[azimuth_col] != "":
-                    labaz = float(orient[azimuth_col])
-                if orient[dip_col] != "":
-                    labdip = float(orient[dip_col])
-                if dip_direction_col in list(orient.keys()) and orient[dip_direction_col] != "":
-                    bed_dip_direction = float(
-                        orient[dip_direction_col])
-                if dip_col in list(orient.keys()) and orient[dip_col] != "":
-                    sample_bed_dip = float(orient[dip_col])
+                if orient[or_az_col] != "" and orient[or_dip_col] != "":
+                    labaz = float(orient[or_az_col])
+                    labdip = float(orient[or_dip_col])
+                if orient.get(or_bed_dip_direction_col, "") != "" and orient.get(or_bed_dip_col, "") != "":
+                    bed_dip_direction = float(orient[or_bed_dip_direction_col])
+                    bed_dip = float(orient[or_bed_dip_col])
+                if labaz != "":
+                    # keep the orientation for the samples table
+                    for key in list(AniRec.keys()):
+                        SampRec[key] = AniRec[key]
+                    SampRec[azimuth_col] = '%7.1f' % (labaz)
+                    SampRec[samp_dip_col] = '%7.1f' % (labdip)
+                    if bed_dip != "":
+                        SampRec[bed_dip_direction_col] = '%7.1f' % (bed_dip_direction)
+                        SampRec[bed_dip_col] = '%7.1f' % (bed_dip)
+                    SampRecs.append(SampRec)
             for key in list(AniRec.keys()):
                 SpecRec[key] = AniRec[key]
             for key in list(AniRec.keys()):
@@ -8652,11 +8677,7 @@ def kly4s(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
                 speclist.append(SpecRec[spec_name_col])
                 SpecRecs.append(SpecRec)
             MeasRecs.append(MeasRec)
-            methods = ""
-            for meth in method_codes:
-                methods = methods + meth + ":"
-            # get rid of annoying spaces in Anthony's export files
-            AniRec[method_col] = methods.strip()
+            AniRec[method_col] = ":".join(meth.strip() for meth in method_codes)
             AniRecs.append(AniRec)
             if labaz != "":  # have orientation info
                 AniRecG, AniRecT = {}, {}
@@ -8704,6 +8725,10 @@ def kly4s(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
     # for MagIC 3, anisotropy records go in specimens
     else:
         full_SpecRecs = []
+        # orientations read from the AZDIP file, by sample
+        orient_recs = {}
+        for rec in SampRecs:
+            orient_recs.setdefault(rec[samp_name_col], rec)
         SampRecs = []
         SiteRecs = []
         spec_list = []
@@ -8720,9 +8745,23 @@ def kly4s(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
                 full_SpecRecs.extend(ani_recs)
                 if (samp_name not in samp_list) and (samp_name):
                     samp_list.append(samp_name)
-                    SampRecs.append({samp_name_col: samp_name, site_name_col: site_name})
+                    SampRec = {samp_name_col: samp_name, site_name_col: site_name}
+                    if samp_name in orient_recs:
+                        for key in [azimuth_col, samp_dip_col, bed_dip_direction_col, bed_dip_col]:
+                            SampRec[key] = orient_recs[samp_name].get(key, '')
+                    SampRecs.append(SampRec)
                     if (site_name not in site_list) and (site_name):
+                        site_list.append(site_name)
                         SiteRecs.append({site_name_col: site_name, loc_name_col: loc_name})
+        SampRecs, keys = pmag.fillkeys(SampRecs)
+        # the site and location are in the samples and sites tables, and are not
+        # columns of the specimens and measurements tables in data model 3
+        for rec in full_SpecRecs:
+            for key in [site_name_col, loc_name_col]:
+                rec.pop(key, None)
+        for rec in MeasRecs:
+            for key in [samp_name_col, site_name_col, loc_name_col]:
+                rec.pop(key, None)
         full_SpecRecs, keys = pmag.fillkeys(full_SpecRecs)
         SpecRecs = full_SpecRecs
         print('anisotropy data added to specimen records')
@@ -8734,14 +8773,16 @@ def kly4s(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
         print('specimen information written to new file: {}'.format(spec_outfile))
     pmag.magic_write(measfile, MeasRecs, meas_table_name)
     print('measurement data saved in ', measfile)
-    if azdip_infile:
-        sampfile = 'er_samples.txt'
+    if azdip_infile and data_model_num == 2:
+        sampfile = os.path.join(output_dir_path, 'er_samples.txt')
         pmag.magic_write(sampfile, SampRecs, samp_table_name)
         print('sample data saved in ', sampfile)
     if data_model_num == 3:
-        if not azdip_infile:
-            if SampRecs:
-                pmag.magic_write(samp_outfile, SampRecs, samp_table_name)
+        if samp_infile and os.path.realpath(samp_infile) == os.path.realpath(samp_outfile):
+            print('-I- {} is the samples file read in; it is not overwritten'.format(samp_outfile))
+        elif SampRecs:
+            pmag.magic_write(samp_outfile, SampRecs, samp_table_name)
+            print('sample data saved in ', samp_outfile)
         if SiteRecs:
             pmag.magic_write(site_outfile, SiteRecs, site_table_name)
     return True, measfile
@@ -9262,7 +9303,7 @@ def livdb(input_dir_path, output_dir_path=".", meas_out="measurements.txt",
         elif site_naming_convention[0] == "character delimited":
             d = site_naming_convention[1]
             site_splitted = sample.split(d)
-            if len(site_splitted == 1):
+            if len(site_splitted) == 1:
                 site = site_splitted[0]
             else:
                 site = d.join(site_splitted[:-1])
@@ -9357,6 +9398,9 @@ def livdb(input_dir_path, output_dir_path=".", meas_out="measurements.txt",
     measurement_headers = []
     ErRecs = []
     input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, output_dir_path)
+    if not os.path.isdir(input_dir_path):
+        print("-W- No such input directory: {}".format(input_dir_path))
+        return False, "No such input directory: {}".format(input_dir_path)
 
     samp_name_cons = {1: 'sample=specimen', 2: 'no. of terminate characters', 3: 'character delimited'}
     if samp_name_con not in samp_name_cons.values():
@@ -10008,6 +10052,7 @@ def mini(magfile, dir_path='.', meas_file='measurements.txt',
     version_num = pmag.get_version()
     input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     magfile = pmag.resolve_file_name(magfile, input_dir_path)
+    meas_file = pmag.resolve_file_name(meas_file, dir_path)
     input_dir_path = os.path.split(magfile)[0]
     try:
         with open(magfile, 'r') as finput:
@@ -10070,11 +10115,13 @@ def mini(magfile, dir_path='.', meas_file='measurements.txt',
         rec = line.split(',')
         if len(rec) > 1:
             MagRec = {}
-            IDs = rec[0].split('_')
+            # location-site-specimen_dmagstep; the step is after the last '_',
+            # and a '_' in the specimen name (J-99-1_2) separates names like a '-'
+            IDs = rec[0].rsplit('_', 1)
             treat = IDs[1]
             MagRec[spec_col] = IDs[0]
             # print(MagRec[spec_col])
-            sids = IDs[0].split('-')
+            sids = IDs[0].replace('_', '-').split('-')
             MagRec[loc_col] = sids[0]
             MagRec[site_col] = sids[0]+'-'+sids[1]
             if len(sids) == 2:
@@ -10209,6 +10256,7 @@ def mst(infile, spec_name='unknown', dir_path=".", input_dir_path="",
         Samps = []
 
     # parse out samp_con
+    Z = 1
     if "4" in samp_con:
         if "-" not in samp_con:
             print("option [4] must be in form 4-Z where Z is an integer")
@@ -10226,7 +10274,6 @@ def mst(infile, spec_name='unknown', dir_path=".", input_dir_path="",
 
     # initialize some stuff
     specnum = - int(specnum)
-    Z = "0"
     citation = 'This study'
     measnum = 1
     MagRecs, specs = [], []
@@ -10354,13 +10401,15 @@ def mst(infile, spec_name='unknown', dir_path=".", input_dir_path="",
     pmag.magic_write(meas_file, new_MagRecs, meas_file_type)
     print("results put in ", meas_file)
     # try to extract location/site/sample/specimen info into tables
-    con = cb.Contribution(dir_path)
+    con = cb.Contribution(dir_path, custom_filenames={'measurements': meas_file})
     con.propagate_measurement_info()
     for table in con.tables:
-        if table in ['samples', 'sites', 'locations']:
+        if table in ['measurements', 'samples', 'sites', 'locations']:
             # add in location name by hand
             if table == 'sites':
                 con.tables['sites'].df['location'] = location
+            # write_table_to_file leaves out the sample, site and location
+            # columns, which are not in the data model 3 measurements table
             con.write_table_to_file(table)
 
     return True, meas_file
@@ -12155,7 +12204,7 @@ def s_magic(sfile, anisfile="specimens.txt", dir_path=".", atype="AMS",
                 samp_con = "4"
         if samp_con == '6':
             print("option [6] is not currently supported")
-            return
+            return False, "naming convention option [6] is not currently supported"
     else:
         samp_con = con
 
@@ -12254,9 +12303,12 @@ def s_magic(sfile, anisfile="specimens.txt", dir_path=".", atype="AMS",
         if sigma:
             AnisRec[sigma_col] = '%10.8e' % (
                 float(rec[k+6]) / trace)
-            AnisRec[unit_col] = 'SI'
-            AnisRec[tilt_corr_col] = coord
-            AnisRec[method_col] = 'LP-' + atype
+        # the tensor is divided by its trace
+        AnisRec[unit_col] = 'Normalized by trace'
+        AnisRec[tilt_corr_col] = coord
+        # the method codes the other anisotropy converters (kly4s, k15) write
+        AnisRec[method_col] = {'AMS': 'LP-X:AE-H:LP-AN-MS', 'AARM': 'LP-AN-ARM',
+                               'ATRM': 'LP-AN-TRM'}.get(atype, 'LP-AN')
         AnisRecs.append(AnisRec)
     pmag.magic_write(anisfile, AnisRecs, outfile_type)
     print('data saved in ', anisfile)
@@ -12264,10 +12316,13 @@ def s_magic(sfile, anisfile="specimens.txt", dir_path=".", atype="AMS",
     con = cb.Contribution(dir_path, custom_filenames={"specimens": anisfile})
     con.propagate_all_tables_info()
     for table in con.tables:
-        if table in ['samples', 'sites', 'locations']:
+        if table in ['samples', 'sites', 'locations'] or \
+                (table == 'specimens' and data_model_num == 3):
             # add in location name by hand
             if table == 'sites':
                 con.tables['sites'].df['location'] = location
+            # write_table_to_file leaves out the site and location columns,
+            # which are not in the data model 3 specimens table
             con.write_table_to_file(table)
     return True, anisfile
 
@@ -13906,13 +13961,83 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
 
 ### Utrecht conversion
 
+def _utrecht_line(data):
+    """
+    The next line of a Utrecht file that is not blank.
+
+    Args:
+        data (file): the Utrecht file, open for reading
+
+    Returns:
+        str: the line without white space or line ending at either end, or ''
+            at the end of the file
+    """
+    line = data.readline()
+    while line and not line.strip():
+        line = data.readline()
+    return line.strip()
+
+
+def _utrecht_timestamp(date, time, dmy_flag=False):
+    """
+    The UTC timestamp of the date and the local (Utrecht) time of a
+    measurement in a Utrecht file.
+
+    Args:
+        date (str): month/day/year (day/month/year with dmy_flag) or
+            year-month-day, with '/' or '-'
+        time (str): on a 24-hour (16:09:48) or a 12-hour (4:09:48 PM) clock;
+            the seconds may be left out
+        dmy_flag (bool): the day comes before the month
+
+    Returns:
+        str: e.g. 2007-05-31T14:09:48Z
+
+    Raises:
+        ValueError: if the date or time cannot be read
+    """
+    date = date.strip('"').replace(' ', '')
+    if date.count("-") > 0:
+        date = date.split("-")
+    elif date.count("/") > 0:
+        date = date.split("/")
+    else:
+        print("date format separator cannot be identified")
+    time = time.strip().strip('"').upper()
+    am_pm = time[-2:] if time.endswith(("AM", "PM")) else ""
+    time = time[:len(time) - len(am_pm)].strip().split(":")
+    hour = time[0]
+    if am_pm and hour.isdigit():
+        hour = str(int(hour) % 12 + (12 if am_pm == "PM" else 0))
+    second = time[2] if len(time) > 2 else "0"
+    dt = date[0] + ":" + date[1] + ":" + date[2] + \
+        ":" + hour + ":" + time[1] + ":" + second
+    local = pytz.timezone("Europe/Amsterdam")
+    try:
+        if dmy_flag:
+            naive = datetime.datetime.strptime(dt, "%d:%m:%Y:%H:%M:%S")
+        else:
+            naive = datetime.datetime.strptime(dt, "%m:%d:%Y:%H:%M:%S")
+    except ValueError:
+        naive = datetime.datetime.strptime(dt, "%Y:%m:%d:%H:%M:%S")
+    local_dt = local.localize(naive, is_dst=None)
+    utc_dt = local_dt.astimezone(pytz.utc)
+    return utc_dt.strftime("%Y-%m-%dT%H:%M:%S")+"Z"
+
+
 def utrecht(mag_file, dir_path=".",  input_dir_path="", meas_file="measurements.txt",
             spec_file="specimens.txt", samp_file="samples.txt", site_file="sites.txt",
             loc_file="locations.txt", location="unknown", lat="", lon="", dmy_flag=False,
-            noave=False, meas_n_orient=8, meth_code="LP-NO", specnum=1, samp_con='2',
+            noave=False, meas_n_orient=8, meth_code="LP-NO", specnum=0, samp_con='2',
             labfield=0, phi=0, theta=0):
     """
     Converts Utrecht magnetometer data files to MagIC files
+
+    Each specimen block starts with a header line: name, a number, the sample
+    azimuth and plunge (dip = plunge - 90), the volume in cm^3, and the bedding
+    strike and dip. The strike follows the right-hand rule, so the dip
+    direction written to the samples table is strike + 90; a bedding of 0, 0
+    is taken as not recorded and left blank.
 
     Parameters
     ----------
@@ -13948,7 +14073,12 @@ def utrecht(mag_file, dir_path=".",  input_dir_path="", meas_file="measurements.
         sample method codes, default "LP-NO"
         e.g. [SO-MAG, SO-SUN, SO-SIGHT, ...]
     specnum : int
-        number of characters to designate a specimen, default 0
+        number of trailing characters of the specimen name that designate the
+        specimen; they are stripped to make the sample name. Default 0: each
+        specimen is its own sample, which suits Utrecht names of the form
+        site.specimen (KO_86.1) and keeps the orientation each header line
+        gives its specimen. A fixed count would merge, for example,
+        KO_86.10-KO_86.19 into one sample with the orientation of the first.
     samp_con : str
         sample/site naming convention, default '2', see info below
     labfield : float
@@ -14022,22 +14152,27 @@ def utrecht(mag_file, dir_path=".",  input_dir_path="", meas_file="measurements.
 
     # Open up the Utrecht file and read the header information
     AF_or_T = mag_file.split('.')[-1]
-    data = open(mag_file, 'r')
-    line = data.readline()
+    try:
+        data = open(mag_file, 'r')
+    except OSError as ex:
+        print('-W- Could not open {}: {}'.format(mag_file, ex))
+        return False, 'Could not open {}: {}'.format(mag_file, ex)
+    line = data.readline().strip()
     line_items = line.split(',')
     operator = line_items[0]
-    operator = operator.replace("\"", "")
-    machine = line_items[1]
-    machine = machine.replace("\"", "")
-    machine = machine.rstrip('\n')
+    operator = operator.replace("\"", "").strip()
+    machine = line_items[1] if len(line_items) > 1 else ""
+    machine = machine.replace("\"", "").strip()
 #    print("operator=", operator)
 #    print("machine=", machine)
 
     # read in measurement data
-    line = data.readline()
-    while line != "END" and line != '"END"':
+    # every line is stripped of white space and its line ending, so that
+    # none ends up in a header value (e.g. the bedding dip of the first specimen)
+    line = _utrecht_line(data)
+    while line and line.strip('"') != "END":
         SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}
-        line_items = line.split(',')
+        line_items = [item.strip() for item in line.split(',')]
         spec_name = line_items[0]
         spec_name = spec_name.replace("\"", "")
 #        print("spec_name=", spec_name)
@@ -14071,8 +14206,14 @@ def utrecht(mag_file, dir_path=".",  input_dir_path="", meas_file="measurements.
             SampRec['sample'] = sample_name
             SampRec['azimuth'] = dec
             SampRec['dip'] = str(float(inc)-90)
-            SampRec['bed_dip_direction'] = bed_plane
-            SampRec['bed_dip'] = bed_dip
+            # the header gives the bedding as strike and dip (right-hand rule,
+            # as Paleomagnetism.org reads it); MagIC wants the dip direction
+            if bed_plane.strip() != "" and bed_dip.strip() != "":
+                if float(bed_plane) == 0 and float(bed_dip) == 0:
+                    pass  # no bedding recorded
+                else:
+                    SampRec['bed_dip_direction'] = '%g' % ((float(bed_plane) + 90.) % 360.)
+                    SampRec['bed_dip'] = bed_dip
             SampRec['method_codes'] = meth_code
             SampRec['site'] = site
             SampRecs.append(SampRec)
@@ -14091,11 +14232,10 @@ def utrecht(mag_file, dir_path=".",  input_dir_path="", meas_file="measurements.
             LocRecs.append(LocRec)
 
         # measurement data
-        line = data.readline()
-        line = line.rstrip("\n")
+        line = _utrecht_line(data)
         items = line.split(",")
-        while line != '9999':
-            step = items[0]
+        while line and line != '9999':
+            step = items[0].strip()
             step = step.split('.')
             step_value = step[0]
             step_type = ""
@@ -14121,37 +14261,15 @@ def utrecht(mag_file, dir_path=".",  input_dir_path="", meas_file="measurements.
                 magn_volume = direction[2] * 1.0e-12 / volume
 #            print("magn_moment=", magn_moment)
 #            print("magn_volume=", magn_volume)
-            error = items[4]
-            date = items[5]
-            date = date.strip('"').replace(' ', '')
-            if date.count("-") > 0:
-                date = date.split("-")
-            elif date.count("/") > 0:
-                date = date.split("/")
-            else:
-                print("date format separator cannot be identified")
-#            print(date)
-            time = items[6]
-            time = time.strip('"').replace(' ', '')
-            time = time.split(":")
-#            print(time)
-            dt = date[0] + ":" + date[1] + ":" + date[2] + \
-                ":" + time[0] + ":" + time[1] + ":" + "0"
-            local = pytz.timezone("Europe/Amsterdam")
-            try:
-                if dmy_flag:
-                    naive = datetime.datetime.strptime(dt, "%d:%m:%Y:%H:%M:%S")
-                else:
-                    naive = datetime.datetime.strptime(dt, "%m:%d:%Y:%H:%M:%S")
-            except ValueError:
+            error = items[4] if len(items) > 4 else ""
+            # a line may end before the date and time
+            timestamp = ""
+            if len(items) > 6 and items[5].strip('" '):
                 try:
-                    naive = datetime.datetime.strptime(dt, "%Y:%m:%d:%H:%M:%S")
-                except ValueError:
+                    timestamp = _utrecht_timestamp(items[5], items[6], dmy_flag)
+                except (ValueError, IndexError):
                     print('-W- Could not parse date format')
                     return False, 'Could not parse date format'
-            local_dt = local.localize(naive, is_dst=None)
-            utc_dt = local_dt.astimezone(pytz.utc)
-            timestamp = utc_dt.strftime("%Y-%m-%dT%H:%M:%S")+"Z"
 #            print(timestamp)
 
             MeasRec = {}
@@ -14206,11 +14324,9 @@ def utrecht(mag_file, dir_path=".",  input_dir_path="", meas_file="measurements.
 #            print(MeasRec)
             MeasRecs.append(MeasRec)
 
-            line = data.readline()
-            line = line.rstrip("\n")
+            line = _utrecht_line(data)
             items = line.split(",")
-        line = data.readline()
-        line = line.rstrip("\n")
+        line = _utrecht_line(data)
         items = line.split(",")
 
     data.close()

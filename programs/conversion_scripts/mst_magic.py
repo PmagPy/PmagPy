@@ -74,8 +74,11 @@ def main():
         ind = args.index("-ncn")
         samp_con = sys.argv[ind+1]
     data_model_num = int(pmag.get_named_arg("-DM", 3))
-    convert.mst(infile, specimen_name, dir_path, "", meas_file, samp_file,
+    program_ran, message = convert.mst(infile, specimen_name, dir_path, "", meas_file, samp_file,
         user, specnum, samp_con, labfield, location, syn, data_model_num)
+    if not program_ran:
+        print("-E-", message)
+        sys.exit(1)
 
 
 

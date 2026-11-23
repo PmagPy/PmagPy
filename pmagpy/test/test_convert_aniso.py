@@ -81,6 +81,89 @@ class TestKly4s:
                                                             -0.0006608, 0.0000948, 0.0023186])
         assert row['aniso_s_sigma'] == pytest.approx(2.284e-4)
         assert row['aniso_type'] == 'AMS'
+        assert row['method_codes'] == 'LP-X:AE-H:LP-AN-MS'
+
+    def test_samples_and_sites(self, out):
+        """the sample, site and location of each specimen are in the samples and sites tables"""
+        specimens = read_table(os.path.join(out, 'specimens.txt')).drop_duplicates('specimen')
+        assert specimens.set_index('specimen').loc[self.SPECIMEN, 'sample'] == self.SPECIMEN
+        samples = read_table(os.path.join(out, 'samples.txt')).set_index('sample')
+        assert len(samples) == 26
+        # naming convention 1: the site is the sample name without its last character
+        assert samples.loc[self.SPECIMEN, 'site'] == self.SPECIMEN[:-1]
+        sites = read_table(os.path.join(out, 'sites.txt'))
+        assert sites['site'].is_unique
+        assert set(sites['site']) == set(samples['site'])
+        assert set(sites['location']) == {'unknown'}
+
+    def test_azdip_orientation(self, tmp_path):
+        """the orientation in an AZDIP file goes to the samples table in the output directory"""
+        with open(os.path.join(in_dir('kly4s_magic'), 'KLY4S_magic_example.dat')) as f:
+            lines = f.readlines()[:2]
+        in_dir_path = tmp_path / 'in'
+        in_dir_path.mkdir()
+        with open(str(in_dir_path / 'kly4s.dat'), 'w') as f:
+            f.writelines(lines)
+        # name, azimuth and hade of the drill direction, bedding strike and dip
+        with open(str(in_dir_path / 'azdip.txt'), 'w') as f:
+            f.write('{} 40 30 100 20\n'.format(self.SPECIMEN))
+        result, out_dir, cwd = convert_into(tmp_path, lambda out: convert.kly4s(
+            'kly4s.dat', azdip_infile='azdip.txt', input_dir_path=str(in_dir_path), dir_path=out))
+        assert result[0] is True, result
+        assert os.listdir(cwd) == []
+        samples = read_table(os.path.join(out_dir, 'samples.txt')).set_index('sample')
+        assert len(samples) == 2
+        # orientation convention 3: dip = 90 - hade; the dip is to the right of the
+        # strike (right-hand rule), so the dip direction is the strike + 90
+        oriented = samples.loc[self.SPECIMEN]
+        assert (oriented['azimuth'], oriented['dip']) == (40, 60)
+        assert (oriented['bed_dip_direction'], oriented['bed_dip']) == (190, 20)
+        assert samples.loc['318-U1359B-011H-2-W-76', ['azimuth', 'dip']].isnull().all()
+        specimens = read_table(os.path.join(out_dir, 'specimens.txt'))
+        assert set(ams_rows(specimens, self.SPECIMEN).index) == {-1, 0, 100}
+
+    def write_input(self, in_dir_path):
+        """the first two lines of the example, and a samples table orienting the first"""
+        with open(os.path.join(in_dir('kly4s_magic'), 'KLY4S_magic_example.dat')) as f:
+            lines = f.readlines()[:2]
+        with open(os.path.join(in_dir_path, 'kly4s.dat'), 'w') as f:
+            f.writelines(lines)
+        with open(os.path.join(in_dir_path, 'samples.txt'), 'w') as f:
+            f.write('tab\tsamples\n'
+                    'sample\tsite\tazimuth\tdip\tbed_dip_direction\tbed_dip\tmethod_codes\n'
+                    '{}\tsite1\t40\t60\t120\t20\tSO-MAG\n'.format(self.SPECIMEN))
+        return [float(value) for value in lines[0].split()[1:7]]
+
+    def test_samples_file_orientation(self, tmp_path):
+        """the orientation in a samples table rotates the tensor to geographic and tilt corrected"""
+        in_dir_path = str(tmp_path / 'in')
+        os.makedirs(in_dir_path)
+        s = self.write_input(in_dir_path)
+        result, out_dir, cwd = convert_into(tmp_path, lambda out: convert.kly4s(
+            'kly4s.dat', samp_infile='samples.txt', input_dir_path=in_dir_path, dir_path=out))
+        assert result[0] is True, result
+        specimens = read_table(os.path.join(out_dir, 'specimens.txt'))
+        rows = ams_rows(specimens, self.SPECIMEN)
+        geographic = pmag.dosgeo(s, 40, 60)
+        np.testing.assert_allclose(tensor(rows.loc[0, 'aniso_s']), geographic, atol=1e-6)
+        np.testing.assert_allclose(tensor(rows.loc[100, 'aniso_s']),
+                                   pmag.dostilt(geographic, 120, 20), atol=1e-6)
+        assert 'SO-MAG' in rows.loc[0, 'method_codes'].split(':')
+        samples = read_table(os.path.join(out_dir, 'samples.txt')).set_index('sample')
+        assert (samples.loc[self.SPECIMEN, 'azimuth'], samples.loc[self.SPECIMEN, 'dip']) == (40, 60)
+
+    def test_samples_file_is_not_overwritten(self, tmp_path):
+        """a samples table read in from the output directory is left as it is"""
+        out_dir = str(tmp_path / 'work')
+        os.makedirs(out_dir)
+        self.write_input(out_dir)
+        with open(os.path.join(out_dir, 'samples.txt')) as f:
+            before = f.read()
+        result, _, cwd = convert_into(tmp_path, lambda out: convert.kly4s(
+            'kly4s.dat', samp_infile='samples.txt', dir_path=out_dir))
+        assert result[0] is True, result
+        with open(os.path.join(out_dir, 'samples.txt')) as f:
+            assert f.read() == before
 
 
 class TestK15:
@@ -166,6 +249,24 @@ class TestSMagic:
         assert set(zip(samples['sample'], samples['site'])) == {('abcd-ef', 'abcd')}
         sites = read_table(os.path.join(out, 'sites.txt'))
         assert list(sites['location']) == ['place']
+
+    def test_coordinates_and_method_codes(self, run):
+        """the coordinate system, unit and method codes are written also without sigma"""
+        out = run('s_magic_coord', lambda out: convert.s_magic(
+            's_magic_example.dat', input_dir_path=in_dir('s_magic'), dir_path=out,
+            coord_type='g'))
+        specimens = read_table(os.path.join(out, 'specimens.txt'))
+        assert set(specimens['aniso_tilt_correction']) == {0}
+        assert set(specimens['method_codes']) == {'LP-X:AE-H:LP-AN-MS'}
+        assert set(specimens['aniso_s_unit']) == {'Normalized by trace'}
+
+    def test_naming_convention_6(self, tmp_path):
+        """convention 6 is not supported, which gives (False, message)"""
+        result, out_dir, cwd = convert_into(tmp_path, lambda out: convert.s_magic(
+            's_magic_example.dat', input_dir_path=in_dir('s_magic'), dir_path=out, samp_con='6'))
+        assert result[0] is False
+        assert '6' in result[1]
+        assert os.listdir(out_dir) == []
 
 
 class TestSufar4:
