@@ -39,6 +39,34 @@ def ams_row(specimens, specimen, tilt_correction):
     return rows.loc[[tilt_correction]].iloc[0]
 
 
+def tensor_matrix(s):
+    """the 3x3 matrix of the six tensor elements s11, s22, s33, s12, s23, s13"""
+    return np.array([[s[0], s[3], s[5]], [s[3], s[1], s[4]], [s[5], s[4], s[2]]])
+
+
+def max_eigenvalue(s):
+    """the largest eigenvalue of a tensor"""
+    return np.linalg.eigvalsh(tensor_matrix(s))[-1]
+
+
+def eigenvector(s):
+    """
+    The direction of the eigenvector of the largest eigenvalue of a tensor,
+    with x north, y east and z down.
+
+    Returns:
+        tuple: (dec, inc)
+    """
+    x, y, z = np.linalg.eigh(tensor_matrix(s))[1][:, -1]
+    return np.degrees(np.arctan2(y, x)) % 360, np.degrees(np.arcsin(z / np.sqrt(x**2 + y**2 + z**2)))
+
+
+def axial_angle(dir1, dir2):
+    """the angle in degrees between two axes given as (dec, inc)"""
+    angle = pmag.angle(list(dir1), list(dir2))[0]
+    return min(angle, 180 - angle)
+
+
 @pytest.fixture(scope='module')
 def run(tmp_path_factory):
     """runs a converter into a new temporary directory and returns the output directory"""
@@ -82,6 +110,8 @@ class TestKly4s:
         assert row['aniso_s_sigma'] == pytest.approx(2.284e-4)
         assert row['aniso_type'] == 'AMS'
         assert row['method_codes'] == 'LP-X:AE-H:LP-AN-MS'
+        # specimens.experiments is a colon-separated list, so no colon in the name
+        assert row['experiments'] == self.SPECIMEN + '_LP-AN-MS'
 
     def test_samples_and_sites(self, out):
         """the sample, site and location of each specimen are in the samples and sites tables"""
@@ -202,28 +232,91 @@ class TestK15:
         s_geographic = tensor(ams_row(specimens, 'tr245f', 0)['aniso_s'])
         np.testing.assert_allclose(s_geographic, pmag.dosgeo(s_specimen, 80, -46), atol=1e-8)
 
-    @pytest.mark.xfail(strict=True, reason='the data model 3 branch for the tilt corrected record '
-                                           'never sets aniso_s or the tilt correction, so the '
-                                           'specimen coordinate tensor is written twice and the '
-                                           'tilt corrected one is missing')
     def test_one_tensor_per_coordinate_system(self, out):
         specimens = read_table(os.path.join(out, 'specimens.txt'))
         rows = ams_rows(specimens, 'tr245f')
         assert sorted(rows.index) == [-1, 0, 100]
 
-    # not strict: whether the eigenvalues come out complex depends on the NumPy version
-    @pytest.mark.xfail(strict=False, reason="the eigenvalues in aniso_v1-3 are written as complex "
-                                            "numbers, e.g. '(0.33521363+0j)', with some NumPy versions")
+    def test_tilt_corrected_tensor(self, out):
+        """the eigenvectors of the tilt-corrected tensor are those of the
+        geographic tensor rotated with the bedding (dip direction 294, dip 25)"""
+        specimens = read_table(os.path.join(out, 'specimens.txt'))
+        for name in specimens['specimen'].unique():
+            rows = ams_rows(specimens, name)
+            v1_geographic = eigenvector(tensor(rows.loc[0, 'aniso_s']))
+            v1_tilt = eigenvector(tensor(rows.loc[100, 'aniso_s']))
+            expected = pmag.dotilt(v1_geographic[0], v1_geographic[1], 294, 25)
+            assert axial_angle(v1_tilt, expected) < 0.01, name
+
     def test_eigenvectors(self, out):
         specimens = read_table(os.path.join(out, 'specimens.txt'))
         for value in specimens['aniso_v1'].dropna():
             [float(part) for part in value.split(':')]
 
-    @pytest.mark.xfail(strict=True, reason='the experiment name is made from the last line of '
-                                           "susceptibilities, e.g. '998.:LP-AN-MS'")
+    def test_one_result_per_specimen_and_coordinate_system(self, out):
+        """each specimen has its own eigenvalues and eigenvectors in each
+        coordinate system, from its own tensor"""
+        specimens = read_table(os.path.join(out, 'specimens.txt'))
+        results = specimens[specimens['aniso_v1'].notnull()]
+        assert results.groupby('specimen')['aniso_tilt_correction'].apply(sorted).to_dict() == {
+            name: [-1, 0, 100] for name in specimens['specimen'].unique()}
+        for (name, tilt_correction), row in results.set_index(
+                ['specimen', 'aniso_tilt_correction']).iterrows():
+            s = tensor(ams_row(specimens, name, tilt_correction)['aniso_s'])
+            v1 = [float(part) for part in row['aniso_v1'].split(':')]
+            assert v1[0] == pytest.approx(max_eigenvalue(s), abs=1e-6), (name, tilt_correction)
+            assert axial_angle(v1[1:3], eigenvector(s)) < 0.1, (name, tilt_correction)
+
     def test_experiment_name(self, out):
         meas = read_table(os.path.join(out, 'measurements.txt'))
-        assert set(meas.loc[meas['specimen'] == 'tr245f', 'experiment']) == {'tr245f:LP-AN-MS'}
+        assert set(meas.loc[meas['specimen'] == 'tr245f', 'experiment']) == {'tr245f_LP-AN-MS'}
+        # the anisotropy records refer to the experiment of the measurements
+        specimens = read_table(os.path.join(out, 'specimens.txt'))
+        assert set(specimens.loc[specimens['specimen'] == 'tr245f', 'experiments']) == {
+            'tr245f_LP-AN-MS'}
+
+    def test_samples_sites_and_locations(self, out):
+        """the sample, site and location of each specimen are in the specimens,
+        samples and sites tables (naming convention 1: the site is the sample
+        name without its last character)"""
+        specimens = read_table(os.path.join(out, 'specimens.txt'))
+        assert set(zip(specimens['specimen'], specimens['sample'])) == {
+            (name, name) for name in specimens['specimen'].unique()}
+        samples = read_table(os.path.join(out, 'samples.txt'))
+        assert set(samples['site']) == {'tr245', 'tr245i'}
+        sites = read_table(os.path.join(out, 'sites.txt'))
+        assert sorted(sites['site']) == ['tr245', 'tr245i']
+        assert set(sites['location']) == {'unknown'}
+
+    def test_units_and_measurement_names(self, out):
+        specimens = read_table(os.path.join(out, 'specimens.txt'))
+        # the tensors are normalized by their trace (see test_tensor)
+        assert set(specimens['aniso_s_unit'].dropna()) == {'Normalized by trace'}
+        meas = read_table(os.path.join(out, 'measurements.txt'))
+        assert meas['measurement'].is_unique
+        assert meas['measurement'].iloc[0] == 'tr245f_LP-AN-MS-1'
+
+    def test_naming_convention_7(self, run):
+        """7-Z: the site is the first Z characters of the sample name"""
+        out = run('k15_7', lambda out: convert.k15('k15_example.dat', input_dir_path=in_dir('k15_magic'),
+                                                   dir_path=out, sample_naming_con='7-4'))
+        samples = read_table(os.path.join(out, 'samples.txt'))
+        assert set(samples['site']) == {'tr24'}
+
+    def test_specimen_without_orientation(self, tmp_path):
+        """a specimen without orientation has only a specimen coordinate tensor,
+        even after one with orientation and bedding"""
+        with open(os.path.join(in_dir('k15_magic'), 'k15_example.dat')) as f:
+            lines = f.readlines()[:8]
+        lines[4] = 'unoriented\n'
+        with open(str(tmp_path / 'two.k15'), 'w') as f:
+            f.writelines(lines)
+        result, out, cwd = convert_into(tmp_path, lambda out: convert.k15(
+            'two.k15', input_dir_path=str(tmp_path), dir_path=out))
+        assert result[0] is True, result
+        specimens = read_table(os.path.join(out, 'specimens.txt'))
+        assert sorted(ams_rows(specimens, 'tr245f').index) == [-1, 0, 100]
+        assert sorted(ams_rows(specimens, 'unoriented').index) == [-1]
 
 
 class TestSMagic:
