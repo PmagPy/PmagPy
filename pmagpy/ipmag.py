@@ -5984,6 +5984,9 @@ def upload_to_private_contribution(contribution_id, upload_file,username="",pass
         response['method']='PUT'
         response['errors'] : str
             if unsuccessful, error message
+        response['id'] : int
+            if successful, ID of the private contribution uploaded to (a new
+            one when contribution_id is that of a public contribution)
     """
     api = 'https://api.earthref.org/v1/MagIC/{}'
     response={}
@@ -6007,9 +6010,10 @@ def upload_to_private_contribution(contribution_id, upload_file,username="",pass
         # the API creates a new private contribution when the ID given is a
         # public one, and returns the new ID
         try:
-            response['id']=upload_response.json().get('id', contribution_id)
+            body=upload_response.json()
         except ValueError:
-            response['id']=contribution_id
+            body=None
+        response['id']=body.get('id', contribution_id) if isinstance(body, dict) else contribution_id
     else:
         response['errors']=_earthref_error(upload_response)
     return response
