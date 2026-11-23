@@ -97,7 +97,6 @@ Here is a visual representation of the directory structure:
 ├── programs
 │   ├── conversion_scripts
 │   ├── conversion_scripts2
-│   ├── deprecated
 │   └── images
 └── setup_scripts
 ```
