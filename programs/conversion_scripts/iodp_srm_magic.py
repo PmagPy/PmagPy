@@ -18,7 +18,6 @@ OPTIONS
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
     -Fsa FILE: specify output samples.txt file, default is samples.txt
     -Fsi FILE: specify output sites.txt file, default is sites.txt
-    -Flo FILE: specify output locations.txt file, default is locations.txt
     -lat LAT: latitude of site (also used as bounding latitude for location)
     -lon LON: longitude of site (also used as bounding longitude for location)
     -A: don't average replicate measurements
@@ -64,9 +63,6 @@ def main():
     if '-Fsa' in sys.argv:
         ind = sys.argv.index("-Fsa")
         kwargs['samp_file'] = sys.argv[ind+1]
-    if '-Flo' in sys.argv:
-        ind = sys.argv.index("-Flo")
-        kwargs['loc_file'] = sys.argv[ind+1]
     if "-lat" in sys.argv:
         ind = sys.argv.index("-lat")
         kwargs['lat'] = sys.argv[ind+1]
@@ -75,7 +71,10 @@ def main():
         kwargs['lon'] = sys.argv[ind+1]
     kwargs['comp_depth_key'] = pmag.get_named_arg("-key", 'Depth CSF-B (m)')
     # do conversion
-    convert.iodp_srm_lore(**kwargs)
+    ran, message = convert.iodp_srm_lore(**kwargs)
+    if not ran:
+        print("-W- " + message)
+        sys.exit(1)
 
 
 if __name__ == '__main__':
