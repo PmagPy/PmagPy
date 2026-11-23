@@ -13900,7 +13900,7 @@ def _utrecht_timestamp(date, time, dmy_flag=False):
 def utrecht(mag_file, dir_path=".",  input_dir_path="", meas_file="measurements.txt",
             spec_file="specimens.txt", samp_file="samples.txt", site_file="sites.txt",
             loc_file="locations.txt", location="unknown", lat="", lon="", dmy_flag=False,
-            noave=False, meas_n_orient=8, meth_code="LP-NO", specnum=1, samp_con='2',
+            noave=False, meas_n_orient=8, meth_code="LP-NO", specnum=0, samp_con='2',
             labfield=0, phi=0, theta=0):
     """
     Converts Utrecht magnetometer data files to MagIC files
@@ -13945,7 +13945,12 @@ def utrecht(mag_file, dir_path=".",  input_dir_path="", meas_file="measurements.
         sample method codes, default "LP-NO"
         e.g. [SO-MAG, SO-SUN, SO-SIGHT, ...]
     specnum : int
-        number of characters to designate a specimen, default 0
+        number of trailing characters of the specimen name that designate the
+        specimen; they are stripped to make the sample name. Default 0: each
+        specimen is its own sample, which suits Utrecht names of the form
+        site.specimen (KO_86.1) and keeps the orientation each header line
+        gives its specimen. A fixed count would merge, for example,
+        KO_86.10-KO_86.19 into one sample with the orientation of the first.
     samp_con : str
         sample/site naming convention, default '2', see info below
     labfield : float

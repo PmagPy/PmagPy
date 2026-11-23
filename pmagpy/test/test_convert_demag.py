@@ -506,6 +506,10 @@ class TestUtrecht:
         samples = read_table(os.path.join(out, 'samples.txt'))
         first = samples.iloc[0]
         assert (first['azimuth'], first['dip'], first['bed_dip_direction']) == (288, -51, 259)
+        # by default each specimen is its own sample and keeps its own header
+        # orientation (specnum=1 would merge KO_86.10-KO_86.19 into one sample)
+        assert len(samples) == 25
+        assert samples.set_index('sample').loc['KO_86.4', 'azimuth'] == 212
 
     def test_bed_dip(self, out):
         with open(os.path.join(out, 'samples.txt')) as f:
