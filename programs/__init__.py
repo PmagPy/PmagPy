@@ -29,5 +29,5 @@ if "-v" in sys.argv:
         try:
             version = importlib_metadata.version(package)
             print(f"{package} version: {version}")
-        except importlib_metadata.version.PackageNotFoundError:
+        except importlib_metadata.PackageNotFoundError:
             pass
