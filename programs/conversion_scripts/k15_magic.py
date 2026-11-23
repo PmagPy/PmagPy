@@ -23,6 +23,7 @@ def main():
         -f KFILE: specify .k15 format input file
         -F MFILE: specify measurement output file
         -Fsa SFILE, specify sample file for output
+        -Fsi SITEFILE, specify site file for output [data model 3 only]
         -Fa AFILE, specify specimen file for output [rmag_anisotropy for data model 2 only]
     #-ins INST: specify instrument that measurements were made on # not implemented
         -spc NUM: specify number of digits for specimen ID, default is 0
@@ -44,6 +45,7 @@ def main():
     DEFAULTS
         MFILE: measurements.txt
         SFILE: samples.txt
+        SITEFILE: sites.txt
         AFILE: specimens.txt
 
     INPUT
@@ -58,13 +60,14 @@ def main():
 
     # def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unknown", measfile='magic_measurements.txt', sampfile="er_samples.txt", aniso_outfile='rmag_anisotropy.txt', result_file="rmag_results.txt", input_dir_path='.', output_dir_path='.'):
 
-    dataframe = extractor.command_line_dataframe([['f', True, ''], ['F', False, 'measurements.txt'], ['Fsa', False, 'samples.txt'], ['Fa', False, 'specimens.txt'], [
+    dataframe = extractor.command_line_dataframe([['f', True, ''], ['F', False, 'measurements.txt'], ['Fsa', False, 'samples.txt'], ['Fsi', False, 'sites.txt'], ['Fa', False, 'specimens.txt'], [
                                                  'Fr', False, 'rmag_results.txt'], ['spc', False, 0], ['ncn', False, '1'], ['loc', False, 'unknown'], ['WD', False, '.'], ['ID', False, '.'], ['DM', False, 3]])
     checked_args = extractor.extract_and_check_args(args, dataframe)
-    k15file, measfile, sampfile, aniso_outfile, result_file, specnum, sample_naming_con, location_name, output_dir_path, input_dir_path, data_model_num = extractor.get_vars(
-        ['f', 'F', 'Fsa', 'Fa', 'Fr', 'spc', 'ncn', 'loc', 'WD', 'ID', 'DM'], checked_args)
+    k15file, measfile, sampfile, sitefile, aniso_outfile, result_file, specnum, sample_naming_con, location_name, output_dir_path, input_dir_path, data_model_num = extractor.get_vars(
+        ['f', 'F', 'Fsa', 'Fsi', 'Fa', 'Fr', 'spc', 'ncn', 'loc', 'WD', 'ID', 'DM'], checked_args)
     program_ran, error_message = convert.k15(k15file, specnum=specnum, sample_naming_con=sample_naming_con, location=location_name, meas_file=measfile,
-                                                 samp_file=sampfile, aniso_outfile=aniso_outfile, result_file=result_file, input_dir_path=input_dir_path, dir_path=output_dir_path, data_model_num=data_model_num)
+                                                 samp_file=sampfile, aniso_outfile=aniso_outfile, result_file=result_file, input_dir_path=input_dir_path, dir_path=output_dir_path, data_model_num=data_model_num,
+                                                 site_file=sitefile)
 
 
 def do_help():

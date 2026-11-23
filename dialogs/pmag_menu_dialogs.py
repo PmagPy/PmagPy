@@ -534,13 +534,15 @@ class ImportK15(wx.Frame):
         aniso_outfile = infile + '_specimens.txt'
         # result file is only used in data model 3, otherwise ignored
         aniso_results_file = infile + '_rmag_results.txt'
-        COMMAND = "k15_magic.py -WD {} -f {} -F {} -ncn {} -spc {} {} -ID {} -Fsa {} -Fa {} -Fr {}".format(WD, infile, outfile, ncn, specnum, loc, ID, samp_outfile, aniso_outfile, aniso_results_file)
+        site_outfile = infile[:infile.find('.')] + "_sites.txt"
+        COMMAND = "k15_magic.py -WD {} -f {} -F {} -ncn {} -spc {} {} -ID {} -Fsa {} -Fsi {} -Fa {} -Fr {}".format(WD, infile, outfile, ncn, specnum, loc, ID, samp_outfile, site_outfile, aniso_outfile, aniso_results_file)
         program_ran, error_message = convert.k15(infile, WD, ID, outfile, aniso_outfile, samp_outfile,
-                                                 aniso_results_file, specnum, ncn, location)
+                                                 aniso_results_file, specnum, ncn, location,
+                                                 site_file=site_outfile)
         print(COMMAND)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
-            outfiles = [f for f in [outfile, samp_outfile, aniso_outfile] if f]
+            outfiles = [f for f in [outfile, samp_outfile, site_outfile, aniso_outfile] if f]
             pw.simple_warning('You have created the following files: {}\nMake sure to go to Pmag GUI step 1 to combine and rename them before proceeding to analysis or upload!'.format(", ".join(outfiles)))
         else:
             pw.simple_warning(error_message)

@@ -236,6 +236,45 @@ class TestJr6Txt:
         # the geographic direction in the file is given to the nearest degree
         assert_geographic(344, -15, 19, -7, (2, -21), 1)
 
+    def test_file_ending_with_the_geographic_direction(self, tmp_path):
+        # a file whose last block is not followed by a line of dashes (as the
+        # REMA6 printouts of IODP Exp. 402) used to raise IndexError
+        with open(os.path.join(in_dir('jr6_magic'), 'AP12.txt'), newline='', encoding='latin-1') as f:
+            text = f.read()
+        text = text[:text.rindex('GEOGR.S.')] + 'GEOGR.S.              244          48\r\n'
+        with open(str(tmp_path / 'ap12.txt'), 'w', newline='', encoding='latin-1') as f:
+            f.write(text)
+        result, out, cwd = convert_into(tmp_path, lambda out: convert.jr6_txt(
+            'ap12.txt', input_dir_path=str(tmp_path), dir_path=out))
+        assert result[0] is True, result
+        assert len(read_table(os.path.join(out, 'measurements.txt'))) == 69
+
+    def test_block_that_cannot_be_read(self, tmp_path):
+        # REMA6 printouts with a tilt-corrected direction (TILT Corr.) are not
+        # read yet; the conversion stops with a message instead of returning None
+        with open(os.path.join(in_dir('jr6_magic'), 'AP12.txt'), newline='', encoding='latin-1') as f:
+            text = f.read()
+        # after the geographic direction of the first block
+        end_of_line = text.index('\n', text.index('GEOGR.S.')) + 1
+        text = text[:end_of_line] + 'TILT Corr.              2         -21\r\r\n' + text[end_of_line:]
+        with open(str(tmp_path / 'ap12.txt'), 'w', newline='', encoding='latin-1') as f:
+            f.write(text)
+        result, out, cwd = convert_into(tmp_path, lambda out: convert.jr6_txt(
+            'ap12.txt', input_dir_path=str(tmp_path), dir_path=out))
+        assert result[0] is False
+        assert 'SPEC.ANGLES' in result[1]
+
+    def test_sample_with_blocks_of_different_orientations(self, tmp_path, capsys):
+        # the block AP12-06B / A160 gives the specimen angles of AP12-03 (117
+        # 13), not the 160 17 of every other block of AP12-06: the sample keeps
+        # the first and a warning says so
+        result = convert.jr6_txt('AP12.txt', input_dir_path=in_dir('jr6_magic'), dir_path=str(tmp_path))
+        assert result[0] is True
+        assert '-W- AP12-06B has a different orientation' in capsys.readouterr().out
+        samples = read_table(os.path.join(str(tmp_path), 'samples.txt')).set_index('sample')
+        # P2 = 0: the dip is minus the specimen angle
+        assert (samples.loc['AP12-06', 'azimuth'], samples.loc['AP12-06', 'dip']) == (160, -17)
+
 
 class TestJr6Jr6:
     """
@@ -268,11 +307,103 @@ class TestJr6Jr6:
         # P2 = 90: the dip of the X axis is the plunge minus 90
         assert (samples.loc['BR14', 'azimuth'], samples.loc['BR14', 'dip']) == (342, -62)
 
-    @pytest.mark.xfail(strict=True, reason='bed_dip_direction and bed_dip are copied from the '
-                                           'sample azimuth and dip')
     def test_bedding(self, out):
+        # the bedding fields are 0 0, which REMA6 writes when no bedding was
+        # entered (Remasoft then gives no tilt-corrected direction): no bedding
         samples = read_table(os.path.join(out, 'samples.txt')).set_index('sample')
-        assert samples.loc['BR14', 'bed_dip'] == 0
+        assert samples['bed_dip'].isnull().all()
+        assert samples['bed_dip_direction'].isnull().all()
+
+    # BM351 from Staneczek, Szaniawski and Marynowski, Zenodo
+    # 10.5281/zenodo.12594184 (CC BY 4.0), BM3.jr6, with its step label U7 (an
+    # AARM position) replaced by NRM: sample azimuth 25, dip 45, bedding 70 30,
+    # P1-P4 = 6 0 6 0. For this measurement REMA6 printed (BM3.txt) the
+    # geographic direction 67/35 and the tilt-corrected direction 67/5.
+    BM351 = 'BM351     NRM       2.27  1.48 -0.06  -1  25  45  70  30   0   0  6  0  6  0   1\n'
+
+    @pytest.mark.parametrize('line', [
+        BM351,
+        # the same bedding given as its strike (right-hand rule), P4 = 90
+        BM351.replace('  70  30', ' 340  30').replace('  6  0  6  0', '  6  0  6 90')],
+        ids=['dip_direction', 'strike'])
+    def test_bedding_from_the_foliation_fields(self, line, tmp_path):
+        with open(str(tmp_path / 'bm3.jr6'), 'w') as f:
+            f.write(line)
+        result, out, cwd = convert_into(tmp_path, lambda out: convert.jr6_jr6(
+            'bm3.jr6', input_dir_path=str(tmp_path), dir_path=out, specnum=0))
+        assert result[0] is True, result
+        sample = read_table(os.path.join(out, 'samples.txt')).set_index('sample').loc['BM351']
+        assert (sample['bed_dip_direction'], sample['bed_dip']) == (70, 30)
+        meas = read_table(os.path.join(out, 'measurements.txt')).iloc[0]
+        geo = pmag.dogeo(meas['dir_dec'], meas['dir_inc'], sample['azimuth'], sample['dip'])
+        assert pmag.angle(list(geo), [67, 35])[0] < 1
+        tilt = pmag.dotilt(geo[0], geo[1], sample['bed_dip_direction'], sample['bed_dip'])
+        assert pmag.angle(list(tilt), [67, 5])[0] < 1
+
+    def test_unknown_bedding_convention(self, tmp_path):
+        with open(str(tmp_path / 'bm3.jr6'), 'w') as f:
+            f.write(self.BM351.replace('  6  0  6  0', '  6  0  6 45'))
+        result, out, cwd = convert_into(tmp_path, lambda out: convert.jr6_jr6(
+            'bm3.jr6', input_dir_path=str(tmp_path), dir_path=out, specnum=0))
+        assert result[0] is False
+        assert 'P4 = 45' in result[1]
+
+    def test_sample_with_specimens_of_different_orientations(self, tmp_path, capsys):
+        # with the default specnum=1, ST15 and ST11 are both sample ST1, but
+        # their lines give different orientations: the sample keeps the first
+        # (ST15, azimuth 57, plunge 68 with P2 = 90) and a warning says so
+        result = convert.jr6_jr6('AF.jr6', input_dir_path=in_dir('jr6_magic'), dir_path=str(tmp_path))
+        assert result[0] is True
+        assert '-W- ST11 has a different orientation' in capsys.readouterr().out
+        samples = read_table(os.path.join(str(tmp_path), 'samples.txt')).set_index('sample')
+        assert (samples.loc['ST1', 'azimuth'], samples.loc['ST1', 'dip']) == (57, -22)
+
+    def test_joides_resolution_layout(self, tmp_path):
+        # JR=True: the same fields, with the moment written as -z, y, x
+        with open(str(tmp_path / 'jr.jr6'), 'w') as f:
+            f.write('BR14B     NRM      -1.01  1.02 -6.95  -1 342  28   0   0   0   0 12 90 12  0   1\n')
+        result, out, cwd = convert_into(tmp_path, lambda out: convert.jr6_jr6(
+            'jr.jr6', input_dir_path=str(tmp_path), dir_path=out, JR=True))
+        assert result[0] is True, result
+        nrm = read_table(os.path.join(out, 'measurements.txt')).iloc[0]
+        dec, inc, intensity = direction(-6.95, 1.02, 1.01)
+        assert nrm['dir_dec'] == pytest.approx(dec, abs=1e-3)
+        assert nrm['dir_inc'] == pytest.approx(inc, abs=1e-3)
+        assert nrm['magn_volume'] == pytest.approx(intensity * 0.1, rel=1e-5)
+
+    def test_step_labels_with_a_unit(self, tmp_path, capsys):
+        # SML07.JR6 labels its thermal steps '20 C', '100 C', ... (REMA6 can
+        # write the unit after the value)
+        result = convert.jr6_jr6('SML07.JR6', input_dir_path=in_dir('jr6_magic'), dir_path=str(tmp_path),
+                                 specnum=0)
+        assert result[0] is True, result
+        sml0701 = read_table(os.path.join(str(tmp_path), 'measurements.txt')).set_index('specimen').loc['SML0701']
+        assert list(sml0701['treat_temp'][:3]) == pytest.approx([293, 373, 473])
+        assert sml0701['method_codes'].iloc[1].startswith('LT-T-Z')
+        # and no line is printed for each step
+        assert '20 C False' not in capsys.readouterr().out
+
+    def test_thermal_method_code_with_labelled_steps(self, tmp_path):
+        # with meth_code='LP-DIR-T', labels such as A10 and T100 used to be
+        # read as numbers and raised ValueError
+        result = convert.jr6_jr6('TRM.jr6', input_dir_path=in_dir('jr6_magic'), dir_path=str(tmp_path),
+                                 meth_code='LP-DIR-T')
+        assert result[0] is True, result
+        meas = read_table(os.path.join(str(tmp_path), 'measurements.txt'))
+        assert meas['treat_temp'].max() > 773
+
+    def test_files_beside_the_input_folder_are_kept(self, tmp_path):
+        # jr6_jr6 used to delete '<path up to the first dot>.tmp', which for an
+        # input folder with a dot in its name is a file outside that folder
+        in_dir_dotted = tmp_path / 'site.v2'
+        in_dir_dotted.mkdir()
+        with open(os.path.join(in_dir('jr6_magic'), 'AP12.jr6')) as f:
+            (in_dir_dotted / 'AP12.jr6').write_text(f.read())
+        (tmp_path / 'site.tmp').write_text('kept')
+        result, out, cwd = convert_into(tmp_path, lambda out: convert.jr6_jr6(
+            'AP12.jr6', input_dir_path=str(in_dir_dotted), dir_path=out))
+        assert result[0] is True, result
+        assert (tmp_path / 'site.tmp').read_text() == 'kept'
 
 
 class TestLdeo:
