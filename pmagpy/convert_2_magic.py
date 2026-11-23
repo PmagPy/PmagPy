@@ -8475,7 +8475,9 @@ def kly4s(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
             AniRec[citation_col] = "This study"
             AniRec[instrument_col] = inst
             method_codes = ['LP-X', 'AE-H', 'LP-AN-MS']
-            AniRec[experiment_col] = specname + ":" + "LP-AN-MS"
+            # no colon in a data model 3 experiment name: specimens.experiments
+            # is a colon-separated list
+            AniRec[experiment_col] = specname + (":" if data_model_num == 2 else "_") + "LP-AN-MS"
             AniRec[analyst_col] = user
             AniRec[site_name_col] = site
             AniRec[samp_name_col] = sampname

@@ -110,6 +110,8 @@ class TestKly4s:
         assert row['aniso_s_sigma'] == pytest.approx(2.284e-4)
         assert row['aniso_type'] == 'AMS'
         assert row['method_codes'] == 'LP-X:AE-H:LP-AN-MS'
+        # specimens.experiments is a colon-separated list, so no colon in the name
+        assert row['experiments'] == self.SPECIMEN + '_LP-AN-MS'
 
     def test_samples_and_sites(self, out):
         """the sample, site and location of each specimen are in the samples and sites tables"""
