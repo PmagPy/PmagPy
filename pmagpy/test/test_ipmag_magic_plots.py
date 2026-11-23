@@ -6,7 +6,9 @@ zeq_magic, eqarea_magic, quick_hyst, polemap_magic and vgpmap_magic.
 The science these functions plot is tested where it is computed (pmag, ipmag.zeq,
 rockmag, ...), so the coverage here is: one check that a function plots the
 values it reads (chi_magic), one smoke test per function that it saves its
-files and describes them in images-table records, and records of known defects.
+files and describes them in images-table records, and regression tests for
+fixed defects (zeq_magic's choice of zero-field steps, the file names, return
+values and image records of polemap_magic and vgpmap_magic).
 
 Each test copies its input tables into a temporary directory and runs there,
 because reading a measurements table without a 'measurement' column makes
@@ -223,8 +225,6 @@ def run_with_image_records(name, d):
     ('quick_hyst', 'quick_hyst', ['hysteresis_magic_example3.dat'], 2),
     ('eqarea_magic', 'eqarea_magic', ['sites.txt'], 1),
     ('polemap_magic', '3_0/McMurdo', ['locations.txt'], 1),
-    pytest.param('polemap_magic', 'polemap_magic', ['locations.txt'], 1,
-                 id='polemap_magic-several-locations'),
 ])
 def test_saves_plots_and_image_records(work_dir, name, subdir, files, n_images):
     """each wrapper saves its plots and an images-table record naming each file"""
