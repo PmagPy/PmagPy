@@ -8,10 +8,9 @@ expected result can be worked out by eye. data_files is used only where the
 real files matter. Name propagation down the hierarchy is covered in
 test_contribution_builder_propagation.py.
 
-Several methods fill missing values with np.where(target, target, new), which
-treats NaN as present. Blank cells read from a file are NaN in numeric columns
-(and, under pandas 3, in text columns as well), so those blanks are never
-filled. The tests for that behavior are marked xfail until it is fixed.
+Blank cells read from a file are NaN in numeric columns (and, under pandas 3,
+in text columns as well), while the GUIs hold blanks as ''. The propagation
+tests cover both.
 """
 import os
 
@@ -20,12 +19,6 @@ import pandas as pd
 import pytest
 
 from pmagpy import contribution_builder as cb
-
-PANDAS_3 = int(pd.__version__.split('.')[0]) >= 3
-
-NAN_IS_PRESENT = ("np.where(target, target, new) treats NaN as a value (propagate_cols, "
-                  "propagate_cols_up and propagate_ages), so a blank that is NaN is never "
-                  "filled; propagate_average_up and propagate_min_max_up use a not_null mask")
 
 
 @pytest.fixture(autouse=True)
@@ -116,6 +109,12 @@ class TestMagicDataFrameInit:
         fname = write_table(tmp_path, 'sites', [{'site': 1, 'lat': 10.}, {'site': 2, 'lat': 11.}])
         assert list(cb.MagicDataFrame(fname).df.index) == ['1', '2']
 
+    def test_integer_names_with_a_blank_name(self, tmp_path):
+        """A blank in the name column makes pandas read it as floats; names stay '1', not '1.0'."""
+        fname = write_table(tmp_path, 'sites', [{'site': 1, 'lat': 10.}, {'site': 2, 'lat': 11.},
+                                                {'site': '', 'lat': 12.}])
+        assert list(cb.MagicDataFrame(fname).df.index)[:2] == ['1', '2']
+
     def test_empty_file(self, tmp_path):
         fname = tmp_path / 'sites.txt'
         fname.write_text('')
@@ -150,9 +149,6 @@ class TestMagicDataFrameEdit:
         assert 'blank' in sites.df.index
         assert sites.df.loc['blank'].isnull().all()
 
-    @pytest.mark.xfail(strict=True, reason="update_row assigns the values of row_data "
-                       "in key order, not by column name: misplaced under pandas 2, "
-                       "a TypeError under pandas 3")
     def test_update_row_by_column_name(self):
         magic_df = cb.MagicDataFrame(dtype='sites', data=[
             {'site': 'a', 'lat': 1.0, 'lithologies': 'Basalt'},
@@ -162,6 +158,21 @@ class TestMagicDataFrameEdit:
         row = magic_df.df.iloc[1]
         assert (row['site'], row['lat'], row['lithologies'], row['new_col']) == \
             ('b', 2.5, 'Diabase', 'new_val')
+
+    def test_update_row_with_text_from_the_grid(self, sites):
+        """The GUI grids give every value as text, also for a numeric column."""
+        row_data = {col: '' for col in sites.df.columns}
+        row_data.update({'site': 's2', 'location': 'L', 'lat': '6.5', 'dir_dec': '31'})
+        sites.update_row(2, row_data)
+        row = sites.df.iloc[2]
+        assert (row['site'], row['lat'], row['dir_dec'], row['method_codes']) == \
+            ('s2', '6.5', '31', '')
+        assert sites.df.iloc[1]['dir_dec'] == 15.
+
+    def test_update_row_out_of_range(self, sites):
+        """A row number past the end changes nothing and gives False, as the grid expects."""
+        assert sites.update_row(4, {'site': 's4'}) is False
+        assert len(sites.df) == 4
 
     def test_delete_row_by_position(self, sites):
         sites.delete_row(2)
@@ -266,9 +277,17 @@ class TestMagicDataFrameQueries:
             [[10., 20.], [15., 25.]]
         assert sites.get_di_block(do_index=True, item_names=['s1'], tilt_corr='0') == [[10., 20.]]
 
-    @pytest.mark.xfail(strict=True, reason="the test for a blank tilt correction is "
-                       "`column == None`, which is never true")
     def test_get_di_block_geographic_includes_blank_tilt_correction(self, sites):
+        assert sites.get_di_block(df_slice='all', tilt_corr='0') == [[10., 20.], [30., 40.]]
+
+    def test_get_di_block_geographic_includes_empty_string_tilt_correction(self, sites):
+        blank_to_empty_string(sites, ['dir_tilt_correction'])
+        assert sites.get_di_block(df_slice='all', tilt_corr='0') == [[10., 20.], [30., 40.]]
+
+    def test_get_di_block_with_tilt_correction_as_text(self, sites):
+        """The GUIs hold dir_tilt_correction as text: '0' and '100' match 0 and 100."""
+        sites.df['dir_tilt_correction'] = ['0', '100', '', '100']
+        assert sites.get_di_block(df_slice='all') == [[15., 25.]]
         assert sites.get_di_block(df_slice='all', tilt_corr='0') == [[10., 20.], [30., 40.]]
 
     def test_get_records_for_code(self, sites):
@@ -410,10 +429,6 @@ class TestContributionMissingItems:
         assert len(cb.MagicDataFrame(os.path.join(str(tmp_path), 'locations.txt')).df) == 1
         assert len(cb.MagicDataFrame(os.path.join(str(tmp_path), 'sites.txt')).df) == 2
 
-    @pytest.mark.xfail(strict=True, reason="a child table made from a colon-delimited list "
-                       "names every row after the table (child_name for c_name in "
-                       "propagate_all_tables_info, which also tests the stale loop "
-                       "variable 'children')")
     def test_child_table_from_a_list_of_names(self, tmp_path):
         write_table(tmp_path, 'sites', [{'site': 's1', 'location': 'L', 'samples': 'a:b'}])
         con = cb.Contribution(str(tmp_path))
@@ -421,6 +436,15 @@ class TestContributionMissingItems:
         samples = con.tables['samples'].df
         assert sorted(samples.index) == ['a', 'b']
         assert list(samples['site']) == ['s1', 's1']
+
+    def test_numeric_parent_names_with_a_blank_link(self, tmp_path):
+        """A blank in the samples' site column (read as floats) adds no site '1.0'."""
+        write_table(tmp_path, 'sites', [{'site': 1, 'location': 'L'}, {'site': 2, 'location': 'L'}])
+        write_table(tmp_path, 'samples', [{'sample': 'a', 'site': 1}, {'sample': 'b', 'site': 2},
+                                          {'sample': 'c', 'site': ''}])
+        con = cb.Contribution(str(tmp_path), read_tables=['sites', 'samples'])
+        con.propagate_all_tables_info(write=False)
+        assert sorted(con.tables['sites'].df.index) == ['1', '2']
 
     def test_children_from_a_list_of_names_fill_an_existing_table(self, tmp_path):
         write_table(tmp_path, 'sites', [{'site': 's1', 'location': 'L', 'samples': 'a:b'}])
@@ -466,6 +490,29 @@ class TestContributionPropagation:
         assert list(coords.loc['s2']) == [45.0, 10.0]
         assert not {'new_lat', 'new_lon'} & set(con.tables['sites'].df.columns)
 
+    def test_propagate_average_up_keeps_zero(self, tmp_path):
+        """A site at lat 0 keeps it; only its blank lon is the mean of its samples."""
+        write_table(tmp_path, 'sites', [{'site': 's1', 'location': 'L', 'lat': 0.0, 'lon': ''}])
+        write_table(tmp_path, 'samples', [{'sample': 'a', 'site': 's1', 'lat': 10.0, 'lon': 20.0}])
+        con = cb.Contribution(str(tmp_path), read_tables=['sites', 'samples'])
+        con.propagate_average_up()
+        assert list(con.tables['sites'].df.loc['s1', ['lat', 'lon']]) == [0.0, 20.0]
+
+    def test_propagate_average_up_with_numeric_site_names(self, tmp_path):
+        """Sites named 1 and 2 take the mean of samples whose site column is float."""
+        write_table(tmp_path, 'sites', [{'site': 1, 'location': 'L', 'lat': '', 'lon': ''},
+                                        {'site': 2, 'location': 'L', 'lat': '', 'lon': ''}])
+        write_table(tmp_path, 'samples', [
+            {'sample': 'a', 'site': 1, 'lat': 10.0, 'lon': 20.0},
+            {'sample': 'b', 'site': 1, 'lat': 20.0, 'lon': 40.0},
+            {'sample': 'c', 'site': 2, 'lat': 30.0, 'lon': 50.0},
+            {'sample': 'd', 'site': '', 'lat': 80.0, 'lon': 80.0}])
+        con = cb.Contribution(str(tmp_path), read_tables=['sites', 'samples'])
+        con.propagate_average_up()
+        coords = con.tables['sites'].df[['lat', 'lon']]
+        assert list(coords.loc['1']) == [15.0, 30.0]
+        assert list(coords.loc['2']) == [30.0, 50.0]
+
     def test_propagate_average_up_cannot_run(self, study):
         """Tables that are not neighbours, or samples without a site column, change nothing."""
         con = cb.Contribution(study, read_tables=['sites', 'samples'])
@@ -486,11 +533,28 @@ class TestContributionPropagation:
         assert dict(con.tables['sites'].df['lithologies']) == \
             {'s1': 'Basalt:Diabase', 's2': 'Gabbro', 's3': 'Basalt'}
 
-    @pytest.mark.xfail(strict=True, reason=NAN_IS_PRESENT)
     def test_propagate_cols_up_blank_from_file(self, study):
         con = cb.Contribution(study, read_tables=['sites', 'samples'])
         con.propagate_cols_up(['lithologies'], 'sites', 'samples')
         assert con.tables['sites'].df.loc['s1', 'lithologies'] == 'Basalt:Diabase'
+
+    def test_propagate_cols_up_reads_the_source_table(self, study):
+        """A source table not yet read is read from the directory and used."""
+        con = cb.Contribution(study, read_tables=['sites'])
+        con.propagate_cols_up(['lithologies'], 'sites', 'samples')
+        assert con.tables['sites'].df.loc['s1', 'lithologies'] == 'Basalt:Diabase'
+
+    def test_propagate_cols_up_with_numeric_site_names(self, tmp_path):
+        """Sites named 1 and 2 take the lithologies of samples whose site column is float."""
+        write_table(tmp_path, 'sites', [{'site': 1, 'location': 'L', 'lithologies': ''},
+                                        {'site': 2, 'location': 'L', 'lithologies': ''}])
+        write_table(tmp_path, 'samples', [
+            {'sample': 'a', 'site': 1, 'lithologies': 'basalt'},
+            {'sample': 'b', 'site': 2, 'lithologies': 'gabbro'},
+            {'sample': 'c', 'site': '', 'lithologies': 'diabase'}])
+        con = cb.Contribution(str(tmp_path), read_tables=['sites', 'samples'])
+        con.propagate_cols_up(['lithologies'], 'sites', 'samples')
+        assert dict(con.tables['sites'].df['lithologies']) == {'1': 'Basalt', '2': 'Gabbro'}
 
     def test_propagate_cols_up_without_a_link(self, study):
         """Samples without a site column leave the sites table as it was."""
@@ -512,12 +576,62 @@ class TestContributionPropagation:
         specimens = con.tables['specimens'].df
         assert dict(specimens['geologic_types']) == {'a1': 'Lava Flow', 'c1': 'Intrusion'}
 
-    @pytest.mark.xfail(PANDAS_3, strict=True, reason="under pandas 3 blank text cells are "
-                       "read as NaN; " + NAN_IS_PRESENT)
     def test_propagate_lithology_cols_blank_from_file(self, study):
         con = cb.Contribution(study, read_tables=['sites', 'samples', 'specimens'])
         con.propagate_lithology_cols()
         assert con.tables['samples'].df.loc['c', 'lithologies'] == 'Gabbro'
+
+    def test_propagate_lithology_cols_up_to_a_blank_site(self, study):
+        """A site with a blank lithology read from file takes those of its samples."""
+        con = cb.Contribution(study, read_tables=['sites', 'samples', 'specimens'])
+        con.propagate_lithology_cols()
+        assert con.tables['sites'].df.loc['s1', 'lithologies'] == 'Basalt:Diabase'
+
+    def test_propagate_cols_leaves_a_blank_link_blank(self, tmp_path):
+        """A sample without a site keeps a blank site, not the text 'None' or 'nan'."""
+        write_table(tmp_path, 'sites', [{'site': 's1', 'location': 'L', 'lithologies': 'Basalt'}])
+        write_table(tmp_path, 'samples', [{'sample': 'a', 'site': 's1', 'lithologies': ''},
+                                          {'sample': 'b', 'site': '', 'lithologies': ''}])
+        con = cb.Contribution(str(tmp_path), read_tables=['sites', 'samples'])
+        con.propagate_cols(['lithologies'], 'samples', 'sites')
+        samples = con.tables['samples'].df
+        assert samples.loc['a', 'lithologies'] == 'Basalt'
+        assert pd.isnull(samples.loc['b', 'site'])
+
+    def test_propagate_cols_reads_the_source_table(self, study):
+        """A source table not yet read is read from the directory and used."""
+        con = cb.Contribution(study, read_tables=['samples'])
+        con.propagate_cols(['lithologies'], 'samples', 'sites')
+        assert con.tables['samples'].df.loc['c', 'lithologies'] == 'Gabbro'
+
+    def test_propagate_cols_with_numeric_site_names(self, tmp_path):
+        """
+        Sites named 1 and 2: a blank in the samples' site column makes it a
+        float column (1.0), which must still match the site named '1'.
+        """
+        write_table(tmp_path, 'sites', [
+            {'site': 1, 'location': 'L', 'lithologies': 'Basalt'},
+            {'site': 2, 'location': 'L', 'lithologies': 'Gabbro'}])
+        write_table(tmp_path, 'samples', [
+            {'sample': 'a', 'site': 1, 'lithologies': ''},
+            {'sample': 'b', 'site': 2, 'lithologies': ''},
+            {'sample': 'c', 'site': '', 'lithologies': ''}])
+        con = cb.Contribution(str(tmp_path), read_tables=['sites', 'samples'])
+        con.propagate_cols(['lithologies'], 'samples', 'sites')
+        samples = con.tables['samples'].df
+        assert (samples.loc['a', 'lithologies'], samples.loc['b', 'lithologies']) == \
+            ('Basalt', 'Gabbro')
+        assert list(samples['site'][:2]) == ['1', '2']
+        assert pd.isnull(samples.loc['c', 'site'])
+
+    def test_propagate_cols_keeps_zero(self, tmp_path):
+        """A depth of zero is a value: only blank depths take the depth of the site."""
+        write_table(tmp_path, 'sites', [{'site': 's1', 'location': 'L', 'core_depth': 5.0}])
+        write_table(tmp_path, 'samples', [{'sample': 'a', 'site': 's1', 'core_depth': 0.0},
+                                          {'sample': 'b', 'site': 's1', 'core_depth': ''}])
+        con = cb.Contribution(str(tmp_path), read_tables=['sites', 'samples'])
+        con.propagate_cols(['core_depth'], 'samples', 'sites')
+        assert dict(con.tables['samples'].df['core_depth'].astype(float)) == {'a': 0., 'b': 5.}
 
     def test_propagate_min_max_up(self, study):
         """Location age bounds from its sites, without replacing a bound already given."""
@@ -529,6 +643,30 @@ class TestContributionPropagation:
         con.propagate_min_max_up(min_suffix='lowest', max_suffix='highest')
         assert locations.loc['L1', 'age_lowest'] == 100
         assert con.propagate_min_max_up(source_df_name='samples') is None
+
+    def test_propagate_min_max_up_keeps_zero(self, tmp_path):
+        """A location with age_low 0 keeps it; only its blank age_high comes from the sites."""
+        write_table(tmp_path, 'locations', [{'location': 'L1', 'age_low': 0, 'age_high': ''}])
+        write_table(tmp_path, 'sites', [{'site': 's1', 'location': 'L1', 'age': 100},
+                                        {'site': 's2', 'location': 'L1', 'age': 300}])
+        con = cb.Contribution(str(tmp_path), read_tables=['sites', 'locations'])
+        con.propagate_min_max_up()
+        locations = con.tables['locations'].df
+        assert (locations.loc['L1', 'age_low'], locations.loc['L1', 'age_high']) == (0, 300)
+
+    def test_propagate_min_max_up_with_numeric_site_names(self, tmp_path):
+        """Sites named 1 and 2 take the age bounds of samples whose site column is float."""
+        write_table(tmp_path, 'sites', [{'site': 1, 'location': 'L'}, {'site': 2, 'location': 'L'}])
+        write_table(tmp_path, 'samples', [
+            {'sample': 'a', 'site': 1, 'age': 100},
+            {'sample': 'b', 'site': 1, 'age': 300},
+            {'sample': 'c', 'site': 2, 'age': 50},
+            {'sample': 'd', 'site': '', 'age': 999}])
+        con = cb.Contribution(str(tmp_path), read_tables=['sites', 'samples'])
+        con.propagate_min_max_up(target_df_name='sites', source_df_name='samples')
+        sites = con.tables['sites'].df
+        assert (sites.loc['1', 'age_low'], sites.loc['1', 'age_high']) == (100, 300)
+        assert (sites.loc['2', 'age_low'], sites.loc['2', 'age_high']) == (50, 50)
 
     def test_get_age_levels(self, tmp_path):
         """An age belongs to the lowest level named in its row."""
@@ -553,11 +691,24 @@ class TestContributionPropagation:
         assert sites.loc['s3', 'age_unit'] == 'Ma'
         assert con.tables['locations'].df.loc['L2', 'age_low'] == 50
 
-    @pytest.mark.xfail(strict=True, reason=NAN_IS_PRESENT)
     def test_propagate_ages_blank_from_file(self, study):
         con = cb.Contribution(study)
         con.propagate_ages()
         assert con.tables['sites'].df.loc['s3', 'age'] == 50
+
+    def test_propagate_ages_from_text_ages(self, study):
+        """
+        Ages held as text (the GUI grids, or an ages table already written
+        out) fill a blank site age read from file; the location bounds are
+        then compared as numbers, not as text.
+        """
+        con = cb.Contribution(study)
+        con.tables['ages'].df['age'] = ['50', '111']
+        con.tables['sites'].df.loc['s1', 'age'] = np.nan
+        con.propagate_ages()
+        assert con.tables['sites'].df.loc['s1', 'age'] == '111'
+        assert (con.tables['locations'].df.loc['L1', 'age_low'],
+                con.tables['locations'].df.loc['L1', 'age_high']) == (111, 300)
 
 
 # ----------------------------------------------------------------------------
