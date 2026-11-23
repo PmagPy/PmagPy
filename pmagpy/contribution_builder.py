@@ -1053,7 +1053,13 @@ class Contribution(object):
             # compare as numbers: ages held as text (written out, or from
             # the GUI grids) would otherwise be compared as strings, or mixed
             # with floats so that min/max raise a TypeError
-            source[col] = pd.to_numeric(source[col], errors='coerce')
+            numeric = pd.to_numeric(source[col], errors='coerce')
+            dropped = source[col][numeric.isna() & ~missing_mask(source[col])]
+            if len(dropped):
+                print('-W- {} values of {} in the {} table are not numbers and are left out of the {} bounds: {}'.format(
+                    len(dropped), col, source_df_name, target_df_name,
+                    ', '.join(sorted(set(dropped.astype(str))))))
+            source[col] = numeric
             # add target_name back into front/backfilled source
             # as text, to match the index of target_df
             source[target_name] = names_as_text(source_df.df[target_name])
