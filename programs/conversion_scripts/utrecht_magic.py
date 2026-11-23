@@ -110,7 +110,10 @@ def main():
     if '-dmy' in sys.argv:
         kwargs['dmy_flag'] = True
 
-    convert.utrecht(**kwargs)
+    program_ran, message = convert.utrecht(**kwargs)
+    if not program_ran:
+        print("-E-", message)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -90,7 +90,10 @@ def main():
     else:
         ignore = 1
 
-    convert.huji_sample(orient_file, meths, location_name, samp_con, ignore)
+    program_ran, message = convert.huji_sample(orient_file, meths, location_name, samp_con, ignore)
+    if not program_ran:
+        print("-E-", message)
+        sys.exit(1)
 
 
 

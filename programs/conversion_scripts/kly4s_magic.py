@@ -80,13 +80,16 @@ def main():
                                                   ['ID', False, '.'], ['DM', False, 3 ]])
     checked_args = extractor.extract_and_check_args(args, dataframe)
     infile, azdip_infile, samp_infile, spec_infile, spec_outfile, measfile, aniso_outfile, or_con, user, locname, inst, specnum, samp_con, output_dir_path, input_dir_path, data_model_num = extractor.get_vars(['f', 'fad', 'fsa', 'fsp', 'Fsp', 'F', 'Fa', 'ocn', 'usr', 'loc', 'ins', 'spc', 'ncn', 'WD', 'ID', 'DM'], checked_args)
-    convert.kly4s(infile, specnum=specnum, locname=locname, inst=inst,
+    program_ran, message = convert.kly4s(infile, specnum=specnum, locname=locname, inst=inst,
                   user=user, measfile=measfile,or_con=or_con,
                       samp_con=samp_con, aniso_outfile=aniso_outfile,
                       samp_infile=samp_infile, spec_infile=spec_infile,
                       spec_outfile=spec_outfile, azdip_infile=azdip_infile,
                       dir_path=output_dir_path, input_dir_path=input_dir_path,
                       data_model_num=data_model_num)
+    if not program_ran:
+        print("-E-", message)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
