@@ -5,13 +5,10 @@ import glob
 from pmagpy import version
 
 version_num = version.version.strip('pmagpy-')
-packages = find_packages(exclude=['programs', 'pmagpy_tests',
+packages = find_packages(exclude=['programs',
                                   'programs.conversion_scripts',
                                   'programs.conversion_scripts2',
-                                  'pmagpy_tests.examples', 'pmag_env',
-                                  'pmagpy_tests.examples.my_project',
-                                  'pmagpy_tests.examples.empty_dir',
-                                  'pmagpy_tests.examples.my_project_with_errors'])
+                                  'pmag_env'])
 packages.append('pmag_env')
 
 
