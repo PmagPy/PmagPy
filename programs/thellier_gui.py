@@ -7132,6 +7132,10 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 try:
                     ancient_cooling_rate = float(
                         self.Data_info["er_samples"][sample]['sample_cooling_rate'])
+                    # np.log gives nan or -inf where math.log raised, so
+                    # reject rates that have no logarithm here
+                    if not np.isfinite(ancient_cooling_rate) or ancient_cooling_rate <= 0:
+                        raise ValueError(ancient_cooling_rate)
                     ancient_cooling_rate = ancient_cooling_rate / \
                         (1e6 * 365. * 24. * 60.)  # change to K/minute
                 except:

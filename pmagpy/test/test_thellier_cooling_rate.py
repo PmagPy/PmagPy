@@ -84,7 +84,7 @@ def load_measured_specimen(tmp_path):
     records = map_magic.convert_meas_df_thellier_gui(
         pd.DataFrame(selected), output=2).to_dict('records')
 
-    def load(change=None):
+    def load(change=None, sample_cooling_rate='4.38e11'):
         measurements = copy.deepcopy(records)
         if change:
             change(measurements)
@@ -93,7 +93,7 @@ def load_measured_specimen(tmp_path):
         frame = SimpleNamespace(
             WD=str(tmp_path), MagIC_directories_list=[], data_model=2,
             magic_file=filename, GUI_log=io.StringIO(),
-            Data_info={'er_samples': {'mgf10a': {'sample_cooling_rate': '4.38e11'}}})
+            Data_info={'er_samples': {'mgf10a': {'sample_cooling_rate': sample_cooling_rate}}})
         frame.sortarai = MethodType(thellier_gui.Arai_GUI.sortarai, frame)
         data, _ = thellier_gui.Arai_GUI.get_data(frame)
         return data['mgf10a01'], frame.GUI_log.getvalue()
@@ -136,3 +136,10 @@ def test_loader_uses_only_measured_rates_in_the_fit(load_measured_specimen, posi
     assert result['CR_correction_factor'] == control['cooling_rate_data']['CR_correction_factor']
     for key in ['pairs', 'alteration_check', 'moment_norm', 'polyfit']:
         np.testing.assert_array_equal(result[key], control['cooling_rate_data'][key])
+
+
+@pytest.mark.parametrize('rate', ['-4.38e11', '0', 'inf', 'nan'])
+def test_loader_skips_ancient_cooling_rate_without_a_logarithm(load_measured_specimen, rate):
+    actual, log = load_measured_specimen(sample_cooling_rate=rate)
+    assert 'cooling_rate_data' not in actual
+    assert "Can't find ancient cooling rate estimation for sample mgf10a" in log
