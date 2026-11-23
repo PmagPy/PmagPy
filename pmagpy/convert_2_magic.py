@@ -7073,7 +7073,11 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
     Orientation:
         Each line gives the sample azimuth and dip, the bedding (foliation)
         and the AGICO orientation parameters P1-P4, which are read as in rs3:
-        P3 and P2 give the azimuth and dip of the specimen X axis; P4 is 0 if
+        P3 and P2 give the azimuth and dip of the 12 o'clock line of the core,
+        which are written as the sample azimuth and dip; for P1 other than 12
+        the declinations in specimen coordinates are rotated by 30 * P1 so
+        that they refer to that line (rs3 instead turns the azimuth and dip
+        to the fiducial mark; the geographic directions are the same); P4 is 0 if
         the first bedding field is the dip direction, 90 if it is the strike
         (right-hand rule, dip direction = strike + 90). A bedding dip of 0 is
         read as no bedding (REMA6 writes 0 0 when none was entered) and
@@ -7900,9 +7904,12 @@ def k15(k15file, dir_path='.', input_dir_path='',
             AnisRec[citation_col] = "This study"
             ResRec[citation_col] = "This study"
             MeasRec[spec_name_col] = rec[0]
-            # the experiment of the measurements, which the anisotropy records refer to
-            AnisRec[experiment_col] = rec[0] + ":LP-AN-MS"
-            ResRec[experiment_col] = rec[0] + ":LP-AN-MS"
+            # the experiment of the measurements, which the anisotropy records
+            # refer to; no colon, since specimens.experiments is a colon-
+            # separated list in data model 3
+            experiment_sep = ':' if data_model_num == 2 else '_'
+            AnisRec[experiment_col] = rec[0] + experiment_sep + "LP-AN-MS"
+            ResRec[experiment_col] = rec[0] + experiment_sep + "LP-AN-MS"
             SpecRec[spec_name_col] = rec[0]
             AnisRec[spec_name_col] = rec[0]
             SampRec[spec_name_col] = rec[0]
@@ -7974,7 +7981,7 @@ def k15(k15file, dir_path='.', input_dir_path='',
                     if data_model_num == 2:
                         NewMeas["magic_experiment_name"] = MeasRec[spec_name_col] + ":LP-AN-MS"
                     else:
-                        NewMeas["experiment"] = MeasRec[spec_name_col] + ":LP-AN-MS"
+                        NewMeas["experiment"] = MeasRec[spec_name_col] + "_LP-AN-MS"
                         # measurement names are unique in a MagIC 3 contribution
                         NewMeas[meas_name_col] = '{}-{}'.format(NewMeas["experiment"], i + 1)
                         # in data model 3 the sample, site and location are

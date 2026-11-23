@@ -267,11 +267,11 @@ class TestK15:
 
     def test_experiment_name(self, out):
         meas = read_table(os.path.join(out, 'measurements.txt'))
-        assert set(meas.loc[meas['specimen'] == 'tr245f', 'experiment']) == {'tr245f:LP-AN-MS'}
+        assert set(meas.loc[meas['specimen'] == 'tr245f', 'experiment']) == {'tr245f_LP-AN-MS'}
         # the anisotropy records refer to the experiment of the measurements
         specimens = read_table(os.path.join(out, 'specimens.txt'))
         assert set(specimens.loc[specimens['specimen'] == 'tr245f', 'experiments']) == {
-            'tr245f:LP-AN-MS'}
+            'tr245f_LP-AN-MS'}
 
     def test_samples_sites_and_locations(self, out):
         """the sample, site and location of each specimen are in the specimens,
@@ -292,7 +292,7 @@ class TestK15:
         assert set(specimens['aniso_s_unit'].dropna()) == {'Normalized by trace'}
         meas = read_table(os.path.join(out, 'measurements.txt'))
         assert meas['measurement'].is_unique
-        assert meas['measurement'].iloc[0] == 'tr245f:LP-AN-MS-1'
+        assert meas['measurement'].iloc[0] == 'tr245f_LP-AN-MS-1'
 
     def test_naming_convention_7(self, run):
         """7-Z: the site is the first Z characters of the sample name"""
