@@ -473,7 +473,7 @@ class TestSio:
 class TestUtrecht:
     """
     Utrecht files (Utrecht_Example.af). The header of KO_86.1 has the azimuth
-    288, dip 39, volume 10.5 cc, and bedding dip direction 169 and dip 15; the
+    288, dip 39, volume 10.5 cc, and bedding strike 169 and dip 15 (dip direction 259); the
     measurements are A, B, C in pAm^2 (MagIC x = -B, y = C, z = -A).
     """
 
@@ -505,7 +505,7 @@ class TestUtrecht:
         """
         samples = read_table(os.path.join(out, 'samples.txt'))
         first = samples.iloc[0]
-        assert (first['azimuth'], first['dip'], first['bed_dip_direction']) == (288, -51, 169)
+        assert (first['azimuth'], first['dip'], first['bed_dip_direction']) == (288, -51, 259)
 
     def test_bed_dip(self, out):
         with open(os.path.join(out, 'samples.txt')) as f:

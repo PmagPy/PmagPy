@@ -13905,6 +13905,12 @@ def utrecht(mag_file, dir_path=".",  input_dir_path="", meas_file="measurements.
     """
     Converts Utrecht magnetometer data files to MagIC files
 
+    Each specimen block starts with a header line: name, a number, the sample
+    azimuth and plunge (dip = plunge - 90), the volume in cm^3, and the bedding
+    strike and dip. The strike follows the right-hand rule, so the dip
+    direction written to the samples table is strike + 90; a bedding of 0, 0
+    is taken as not recorded and left blank.
+
     Parameters
     ----------
     mag_file : str
@@ -14067,8 +14073,14 @@ def utrecht(mag_file, dir_path=".",  input_dir_path="", meas_file="measurements.
             SampRec['sample'] = sample_name
             SampRec['azimuth'] = dec
             SampRec['dip'] = str(float(inc)-90)
-            SampRec['bed_dip_direction'] = bed_plane
-            SampRec['bed_dip'] = bed_dip
+            # the header gives the bedding as strike and dip (right-hand rule,
+            # as Paleomagnetism.org reads it); MagIC wants the dip direction
+            if bed_plane.strip() != "" and bed_dip.strip() != "":
+                if float(bed_plane) == 0 and float(bed_dip) == 0:
+                    pass  # no bedding recorded
+                else:
+                    SampRec['bed_dip_direction'] = '%g' % ((float(bed_plane) + 90.) % 360.)
+                    SampRec['bed_dip'] = bed_dip
             SampRec['method_codes'] = meth_code
             SampRec['site'] = site
             SampRecs.append(SampRec)
