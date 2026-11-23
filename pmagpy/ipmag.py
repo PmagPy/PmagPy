@@ -6004,6 +6004,12 @@ def upload_to_private_contribution(contribution_id, upload_file,username="",pass
     if upload_response.status_code==202:
         response['status_code']=True
         response['errors']='None'
+        # the API creates a new private contribution when the ID given is a
+        # public one, and returns the new ID
+        try:
+            response['id']=upload_response.json().get('id', contribution_id)
+        except ValueError:
+            response['id']=contribution_id
     else:
         response['errors']=_earthref_error(upload_response)
     return response
@@ -6021,6 +6027,8 @@ def _earthref_error(api_response):
         "HTTP <status code>" if the body has no such message (e.g. it is
         empty or not JSON)
     """
+    if api_response.status_code == 204:
+        return 'No private contribution with that ID in your private workspace (HTTP 204)'
     try:
         return api_response.json()['errors'][0]['message']
     except (ValueError, KeyError, IndexError, TypeError):
