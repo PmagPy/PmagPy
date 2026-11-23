@@ -19,8 +19,6 @@ OPTIONS
     -WD: directory to output files to (default : current directory)
     -F FILE: specify output  measurements file, default is measurements.txt
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
-    -lat LAT: latitude of site (also used as bounding latitude for location)
-    -lon LON: longitude of site (also used as bounding longitude for location)
     -A: don't average replicate measurements
     -v NUM: volume in cc, will be used if there is no volume in the input data (default : 12cc (rounded one inch diameter core, one inch length))
     -dc FLOAT: if ARM measurements are in the file, this was the DC bias field applied
@@ -60,12 +58,6 @@ def main():
         kwargs['jr6_file'] = sys.argv[ind+1]
     if "-A" in sys.argv:
         kwargs['noave'] = True
-    if "-lat" in sys.argv:
-        ind = sys.argv.index("-lat")
-        kwargs['lat'] = sys.argv[ind+1]
-    if "-lon" in sys.argv:
-        ind = sys.argv.index("-lon")
-        kwargs['lon'] = sys.argv[ind+1]
     if "-v" in sys.argv:
         ind = sys.argv.index("-v")
         kwargs['volume'] = sys.argv[ind+1]

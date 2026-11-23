@@ -4606,6 +4606,9 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
                        'description','timestamp','software_packages',\
                        'external_database_ids','treat_step_num','meas_n_orient']
     dscr_file = pmag.resolve_file_name(dscr_file, input_dir_path)
+    if not os.path.isfile(dscr_file):
+        print('-W- input file not found:', dscr_file)
+        return False, 'input file not found: ' + dscr_file
     if dscr_ex_file:dscr_ex_file = pmag.resolve_file_name(dscr_ex_file, input_dir_path)
     spec_file = pmag.resolve_file_name(spec_file, dir_path)
     # just in case, check if the specimen file is in the input directory instead
@@ -4828,6 +4831,9 @@ def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False
                        'description','timestamp','software_packages',\
                        'external_database_ids','treat_step_num','meas_n_orient']
     jr6_file = pmag.resolve_file_name(jr6_file, input_dir_path)
+    if not os.path.isfile(jr6_file):
+        print('-W- input file not found:', jr6_file)
+        return False, 'input file not found: ' + jr6_file
     spec_file = pmag.resolve_file_name(spec_file, dir_path)
     if not os.path.exists(spec_file):
         print('-W- specimens table not found:', spec_file)
@@ -5642,6 +5648,9 @@ def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samp
     input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
     # find the input sample file name downloaded from LORE
     samp_file_name = pmag.resolve_file_name(lims_sample_file, input_dir_path)
+    if not os.path.isfile(samp_file_name):
+        print('-W- input file not found:', samp_file_name)
+        return False, 'input file not found: ' + samp_file_name
     # set the output file names
     spec_out = os.path.join(output_dir_path, spec_file)
     samp_out = os.path.join(output_dir_path, samp_file)
@@ -5932,6 +5941,9 @@ def iodp_srm_lore(srm_file, dir_path=".", input_dir_path="",noave=False,comp_dep
                        'description','timestamp','software_packages',\
                        'external_database_ids','treat_step_num','meas_n_orient']
     srm_file = pmag.resolve_file_name(srm_file, input_dir_path)
+    if not os.path.isfile(srm_file):
+        print('-W- input file not found:', srm_file)
+        return False, 'input file not found: ' + srm_file
     spec_file = pmag.resolve_file_name(spec_file, dir_path)
     in_df=pd.read_csv(srm_file,header=0)
     lore_columns=['Timestamp (UTC)','Treatment Type','Treatment Value','Test No.',

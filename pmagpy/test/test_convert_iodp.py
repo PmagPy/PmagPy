@@ -12,9 +12,7 @@ Two families are covered:
 Expected values are computed from the rows of the input files (unit
 conversions, naming conventions, method codes) rather than copied from the
 converter output. Every converter writes into a temporary directory, never
-into data_files. Tests marked xfail(strict=True) record known defects in the
-converters: they start to pass, and so fail the suite, once the defect is
-fixed, which is the reminder to remove the mark.
+into data_files.
 """
 import os
 import subprocess
@@ -876,6 +874,16 @@ def test_lore_converters_need_a_specimens_table(converter, tmp_path):
         result = convert.iodp_jr6_lore('spinner_17_5_2019.csv', dir_path=str(tmp_path),
                                        input_dir_path=os.path.join(U999A_DIR, 'JR6_data'))
     assert result[0] is False
+
+
+@pytest.mark.parametrize('converter', [convert.iodp_samples_csv, convert.iodp_srm_lore,
+                                       convert.iodp_dscr_lore, convert.iodp_jr6_lore])
+def test_missing_input_file(converter, tmp_path):
+    """a missing input file returns False and a message rather than raising"""
+    ran, message = converter('missing.csv', input_dir_path=str(tmp_path), dir_path=str(tmp_path))
+    assert ran is False
+    assert 'missing.csv' in message
+    assert os.listdir(tmp_path) == []
 
 
 # ------------------------------------------------- columns in the data model
