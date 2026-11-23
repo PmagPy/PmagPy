@@ -6413,6 +6413,86 @@ def check_F(AniSpec):
     return chi, chi_inv
 
 
+
+def doaniscorr(spec_rec, aniso_rec=None, lab_field_dec=0., lab_field_inc=-90.):
+    """
+    Correct a specimen's paleointensity direction and intensity for remanence
+    anisotropy, using data model 3 columns.
+
+    The tensor goes through check_F first: when aniso_s_sigma and
+    aniso_s_n_measurements are present and the Hext F test is not significant,
+    the tensor is treated as isotropic and the direction and intensity are
+    returned unchanged (method code DA-AC-NN, tested but none needed). Otherwise
+    the remanence is multiplied by the inverse tensor to recover the ancient
+    field direction, and the intensity is scaled by the ratio of the tensor's
+    response along the laboratory field to its response along that ancient
+    field direction (Selkin et al., 2000). Without a sigma, the correction is
+    applied regardless and check_F prints a warning.
+
+    Args:
+        spec_rec (dict or pandas.Series): specimens row with 'dir_dec',
+            'dir_inc' and 'int_abs' in specimen coordinates (the coordinates
+            of the tensor), and optionally 'method_codes'.
+        aniso_rec (dict or pandas.Series): row holding the tensor: 'aniso_s'
+            (colon-delimited c11, c22, c33, c12, c23, c13, normalized so that
+            c11 + c22 + c33 = 1 as in MagIC), 'aniso_type' (AMS, AARM, ATRM,
+            AIRM) and, for the F test, 'aniso_s_sigma' and
+            'aniso_s_n_measurements'. Default: spec_rec itself, since data
+            model 3 keeps the tensor on the specimen's row.
+        lab_field_dec, lab_field_inc (float): direction of the laboratory
+            field in specimen coordinates; default along -z (0, -90), the
+            common convention for TRM acquisition along the specimen axis.
+
+    Returns:
+        dict: a copy of spec_rec with 'dir_dec', 'dir_inc' and 'int_abs'
+        corrected (floats), 'int_corr' set to 'c', 'int_corr_aniso' the
+        factor applied to the intensity (1.0 when none was needed), and
+        DA-AC-<aniso_type>, or DA-AC-NN, added to 'method_codes'.
+    """
+    if aniso_rec is None:
+        aniso_rec = spec_rec
+    out = dict(spec_rec)
+    aniso_type = str(aniso_rec['aniso_type']).strip()
+    s = [float(v) for v in str(aniso_rec['aniso_s']).split(':')]
+    if len(s) != 6:
+        raise ValueError('aniso_s must hold six colon-delimited values, got {!r}'.format(aniso_rec['aniso_s']))
+    # check_F takes the data model 2.5 keys
+    ani = {'anisotropy_s{}'.format(k + 1): s[k] for k in range(6)}
+    ani['anisotropy_type'] = aniso_type
+    sigma = aniso_rec.get('aniso_s_sigma', None) if hasattr(aniso_rec, 'get') else None
+    n_meas = aniso_rec.get('aniso_s_n_measurements', None) if hasattr(aniso_rec, 'get') else None
+    if sigma not in (None, '') and n_meas not in (None, '') and sigma == sigma and n_meas == n_meas:
+        ani['anisotropy_sigma'] = float(sigma)
+        ani['anisotropy_n'] = int(float(n_meas))
+    chi, chi_inv = check_F(ani)
+    dec, inc, intensity = float(spec_rec['dir_dec']), float(spec_rec['dir_inc']), float(spec_rec['int_abs'])
+    if np.allclose(chi, np.identity(3)):  # F test not passed: isotropic
+        new_dec, new_inc, factor = dec, inc, 1.
+        aniso_code = 'DA-AC-NN'
+    else:
+        remanence = dir2cart([dec, inc, 1.])
+        ancient = np.dot(chi_inv, remanence)  # unit tensor applied to the NRM gives the field
+        ancient_dir = cart2dir(ancient)
+        ancient_unit = ancient / ancient_dir[2]
+        lab_unit = dir2cart([lab_field_dec, lab_field_inc, 1.])
+        # magnitude of the TRM acquired along each field direction
+        ancient_response = cart2dir(np.dot(chi, ancient_unit))[2]
+        lab_response = cart2dir(np.dot(chi, lab_unit))[2]
+        factor = lab_response / ancient_response
+        new_dec, new_inc = ancient_dir[0] % 360., ancient_dir[1]
+        aniso_code = 'DA-AC-' + aniso_type
+    out['dir_dec'] = new_dec
+    out['dir_inc'] = new_inc
+    out['int_abs'] = intensity * factor
+    out['int_corr'] = 'c'
+    out['int_corr_aniso'] = factor
+    codes = str(out.get('method_codes', '') or '')
+    if codes in ('', 'nan'):
+        out['method_codes'] = aniso_code
+    else:
+        out['method_codes'] = codes.strip(':') + ':' + aniso_code
+    return out
+
 def vfunc(pars_1, pars_2):
     """
     Calculate the Watson Vw test statistic. Calculated as 2*(Sw-Rw)
