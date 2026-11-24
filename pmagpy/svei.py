@@ -1357,7 +1357,7 @@ def plotmap(sp, sn,GGP,lat,dx,dy):
     plt.plot(0,0,'+',c='k')
     plt.axis('off', aspect='equal')
     plt.contour(X,Y,sp,levels=np.linspace(minimo,maximo,8), zorder = 5020)
-    plt.text(0.0,0.92,'Lat=%i$^\circ$'%lat,horizontalalignment='center')
+    plt.text(0.0,0.92,r'Lat=%i$^\circ$'%lat,horizontalalignment='center')
     plt.text(0.0,0.85,name,horizontalalignment='center')
     plt.text(0.0,0.78,'Positive inclination', horizontalalignment='center')
                 
@@ -1368,7 +1368,7 @@ def plotmap(sp, sn,GGP,lat,dx,dy):
     plt.plot(0,0,'+',c='k')
     plt.axis('off', aspect='equal')
     plt.contour(X,Y,sn,levels=np.linspace(minimo,maximo,8),zorder = 5020)
-    plt.text(0.0,0.92,'Lat=%i$^\circ$'%lat,horizontalalignment='center')
+    plt.text(0.0,0.92,r'Lat=%i$^\circ$'%lat,horizontalalignment='center')
     plt.text(0.0,0.85,name,horizontalalignment='center')
     plt.text(0.0,0.78,'Negative inclination', horizontalalignment='center')         
      
@@ -1811,7 +1811,7 @@ def AD_test(Ds,Is,GGPmodel,lat,degree,plot=False,cite="",saveto=False): #perform
         
         levels = np.linspace(np.min(sp),np.max(sp),24)[1::4] #produce contour levels
         ipmag.plot_di(dec=Ds,inc=Is,color='green') #plot data
-        plt.contour(XX,YY,sp,levels=levels,colors='grey',linestyle='dotted',linewidth=.1) #plot contours
+        plt.contour(XX,YY,sp,levels=levels,colors='grey',linestyles='dotted',linewidths=.1) #plot contours
         #if H:
         #    plt.title(cite+': '+GGPmodel['name']+' : rejected')
         #else:
@@ -1931,8 +1931,8 @@ def AD_test_w_kappa(Ds,Is,GGPmodel,degree=8,lat=False,kappa=-1,plot=False,cite="
         
         levels = np.linspace(np.min(sp),np.max(sp),24)[1::4] #produce contour levels
         ipmag.plot_di(dec=Ds,inc=Is,color='green') #plot data
-        plt.contour(XX,YY,sp,levels=levels,colors='grey',linestyle='dotted',linewidth=.1) #plot contours
-        plt.title('lat='+str(np.round(lat,1))+'; $\kappa$: '+str(kappa))
+        plt.contour(XX,YY,sp,levels=levels,colors='grey',linestyles='dotted',linewidths=.1) #plot contours
+        plt.title('lat='+str(np.round(lat,1))+r'; $\kappa$: '+str(kappa))
         I0 = np.linspace(-90,90,180)
         D0 = np.linspace(-180,180,360)
         
@@ -2368,7 +2368,7 @@ def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50
             ax4.axvline(goodflats[-1],color='black',linestyle='dotted')
         else:
             ax5.set_title('Original - no passing f')
-        txtstring='$\kappa$: '+kap+'; model:'+model_name
+        txtstring=r'$\kappa$: '+kap+'; model:'+model_name
         ax1.set_title(txtstring)
         ax1.text(.05, .92,'a)',transform=ax1.transAxes)
         ax2.text(.05,.92,'b)',transform=ax2.transAxes)
@@ -2580,7 +2580,7 @@ def svei_test(di_block,model_name='TK03_GAD',degree=8,lat=False,kappa=-1,plot=Fa
             kap='Inf'
         else:
             kap=str(kappa)
-        txtstring='a) Lat.: '+str(np.round(lat,1))+'; $\kappa$: '+kap 
+        txtstring='a) Lat.: '+str(np.round(lat,1))+r'; $\kappa$: '+kap 
         ax1.text(-1,1.1,txtstring,fontsize=14)
         ax1.text(-.7,-1.2,'model:'+model_name,fontsize=14)
         ipmag.plot_net(tick_spacing=30) #create net
@@ -2588,8 +2588,8 @@ def svei_test(di_block,model_name='TK03_GAD',degree=8,lat=False,kappa=-1,plot=Fa
         ipmag.plot_di(dec=Ds,inc=Is,color='green',markersize=10) #plot data
         #levels = np.linspace(np.min(sp),np.max(sp),24)[1::4] #produce contour levels
         levels = np.linspace(np.min(sp),np.max(sp),12)[1::4] #produce contour levels
-        plt.contour(XX,YY,sp,levels=levels,colors='grey',linestyle='dotted',linewidth=.1) #plot contours
-        #plt.title('lat='+str(np.round(lat,1))+'; $\kappa$: '+kap+'; model:'+model_name ) # replace -1 with inf
+        plt.contour(XX,YY,sp,levels=levels,colors='grey',linestyles='dotted',linewidths=.1) #plot contours
+        #plt.title('lat='+str(np.round(lat,1))+r'; $\kappa$: '+kap+'; model:'+model_name ) # replace -1 with inf
         I0 = np.linspace(-90,90,180)
         D0 = np.linspace(-180,180,360)
         
