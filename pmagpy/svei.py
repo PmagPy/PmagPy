@@ -1355,7 +1355,8 @@ def plotmap(sp, sn,GGP,lat,dx,dy):
     plt.plot(xb,ybn, '--',c='0.5')
     plt.plot(xb,ybp,'--',c='0.5')
     plt.plot(0,0,'+',c='k')
-    plt.axis('off', aspect='equal')
+    plt.axis('off')
+    plt.gca().set_aspect('equal')
     plt.contour(X,Y,sp,levels=np.linspace(minimo,maximo,8), zorder = 5020)
     plt.text(0.0,0.92,r'Lat=%i$^\circ$'%lat,horizontalalignment='center')
     plt.text(0.0,0.85,name,horizontalalignment='center')
@@ -1366,7 +1367,8 @@ def plotmap(sp, sn,GGP,lat,dx,dy):
     plt.plot(xb,ybn, '--',c='0.5')
     plt.plot(xb,ybp,'--',c='0.5')
     plt.plot(0,0,'+',c='k')
-    plt.axis('off', aspect='equal')
+    plt.axis('off')
+    plt.gca().set_aspect('equal')
     plt.contour(X,Y,sn,levels=np.linspace(minimo,maximo,8),zorder = 5020)
     plt.text(0.0,0.92,r'Lat=%i$^\circ$'%lat,horizontalalignment='center')
     plt.text(0.0,0.85,name,horizontalalignment='center')
@@ -1811,7 +1813,7 @@ def AD_test(Ds,Is,GGPmodel,lat,degree,plot=False,cite="",saveto=False): #perform
         
         levels = np.linspace(np.min(sp),np.max(sp),24)[1::4] #produce contour levels
         ipmag.plot_di(dec=Ds,inc=Is,color='green') #plot data
-        plt.contour(XX,YY,sp,levels=levels,colors='grey',linestyles='dotted',linewidths=.1) #plot contours
+        plt.contour(XX,YY,sp,levels=levels,colors='grey') #plot contours
         #if H:
         #    plt.title(cite+': '+GGPmodel['name']+' : rejected')
         #else:
@@ -1922,7 +1924,6 @@ def AD_test_w_kappa(Ds,Is,GGPmodel,degree=8,lat=False,kappa=-1,plot=False,cite="
     #plot ecdf comparison if desired
     if plot:
     #plot stereonet with contours if desired
-        print ('lat: ',lat)#DEBUG
         fig=plt.figure(figsize=(8,4))
         ax1=fig.add_subplot(121)
         sp,sn, XX, YY = prediction_map_GGP_su(lat,GGPmodel,degree=degree,dx=0.01,dy=0.01) #map out pdf
@@ -1931,7 +1932,7 @@ def AD_test_w_kappa(Ds,Is,GGPmodel,degree=8,lat=False,kappa=-1,plot=False,cite="
         
         levels = np.linspace(np.min(sp),np.max(sp),24)[1::4] #produce contour levels
         ipmag.plot_di(dec=Ds,inc=Is,color='green') #plot data
-        plt.contour(XX,YY,sp,levels=levels,colors='grey',linestyles='dotted',linewidths=.1) #plot contours
+        plt.contour(XX,YY,sp,levels=levels,colors='grey') #plot contours
         plt.title('lat='+str(np.round(lat,1))+r'; $\kappa$: '+str(kappa))
         I0 = np.linspace(-90,90,180)
         D0 = np.linspace(-180,180,360)
@@ -2588,7 +2589,7 @@ def svei_test(di_block,model_name='TK03_GAD',degree=8,lat=False,kappa=-1,plot=Fa
         ipmag.plot_di(dec=Ds,inc=Is,color='green',markersize=10) #plot data
         #levels = np.linspace(np.min(sp),np.max(sp),24)[1::4] #produce contour levels
         levels = np.linspace(np.min(sp),np.max(sp),12)[1::4] #produce contour levels
-        plt.contour(XX,YY,sp,levels=levels,colors='grey',linestyles='dotted',linewidths=.1) #plot contours
+        plt.contour(XX,YY,sp,levels=levels,colors='grey') #plot contours
         #plt.title('lat='+str(np.round(lat,1))+r'; $\kappa$: '+kap+'; model:'+model_name ) # replace -1 with inf
         I0 = np.linspace(-90,90,180)
         D0 = np.linspace(-180,180,360)
