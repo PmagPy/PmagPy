@@ -66,6 +66,52 @@ class TestRs3Magic(unittest.TestCase):
         self.assertEqual(len(rows), 1)
         return rows.iloc[0]
 
+    def test_rs3_line_flag_o(self):
+        """
+        The flag O alone: GTX0105A (Vernet et al., 2026) stores the line
+        anchored to the origin, amf1201 (Svalbard) the free line with the
+        origin added as a point; PRG6-2A stores a line that starts before its
+        first limit, which is not reproduced from the steps between the limits
+        """
+        import contextlib
+        import io
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            program_ran, outfile = convert.rs3(input_dir_path=self.garrotxa_dir, mag_file='GTX0105A.rs3')
+        self.assertTrue(program_ran)
+        self.assertIn('-W- GTX0105A.rs3: fit C1 is flagged O (origin included) but is the line anchored to '
+                      'the origin; written as DE-BFL-A', output.getvalue())
+        for tilt_correction in (-1, 0):
+            row = self.fit('GTX0105A', 'C1', tilt_correction)
+            self.assertTrue(row['method_codes'].startswith('DE-BFL-A:LP-DIR-T'))
+            self.assertAlmostEqual(float(row['dir_mad_anc']), 9.2)
+            self.assertTrue(str(row.get('dir_mad_free', '')) in ('', 'nan', 'None'))
+            self.assertIn('Remasoft flag O, but the stored line is the one anchored to the origin',
+                          row['description'])
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            program_ran, outfile = convert.rs3(input_dir_path=os.path.join(self.input_dir, 'svalbard'),
+                                               mag_file='amf1201.rs3')
+        self.assertTrue(program_ran)
+        self.assertNotIn('flagged O', output.getvalue())
+        row = self.fit('amf1201', 'Caf2', -1)
+        self.assertTrue(row['method_codes'].startswith('DE-BFL-O:LP-DIR-AF'))
+        self.assertAlmostEqual(float(row['dir_mad_free']), 21.5)
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            program_ran, outfile = convert.rs3(input_dir_path=self.input_dir, mag_file='PRG6-2A.rs3')
+        self.assertTrue(program_ran)
+        self.assertIn('-W- PRG6-2A.rs3: fit CA is not reproduced', output.getvalue())
+        self.assertIn('the stored direction is not reproduced from the steps between its limits',
+                      self.fit('PRG6-2A', 'CA', 0)['description'])
+        # the other files of the folder are reproduced
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            program_ran, outfile = convert.rs3(input_dir_path=self.input_dir,
+                                               mag_file=['PRG1-6B.rs3', 'PRG7-8A.rs3', 'BO6-6-3.rs3'])
+        self.assertTrue(program_ran)
+        self.assertNotIn('not reproduced', output.getvalue())
+
     def test_rs3_with_no_files(self):
         # a directory without .rs3 files
         input_dir = os.path.join(WD, 'data_files', 'convert_2_magic', 'pmd_magic')

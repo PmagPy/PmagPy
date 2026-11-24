@@ -10925,6 +10925,39 @@ def _rs3_average_repeats(rows):
     return out
 
 
+def _rs3_line_calculations(steps, fit, angle_tolerance=0.2, mad_tolerance=0.11):
+    """
+    Which principal component calculations give a stored line (Kirschvink, 1980).
+
+    The line is recalculated in specimen coordinates from the steps between its
+    limits as a free line, a line anchored to the origin, and a free line with
+    the origin added as a point.
+
+    Returns
+    ---------
+    dict of calculation ('free', 'anchored', 'origin') to (angle between the
+    calculated and stored directions in degrees, calculated MAD), and the list
+    of calculations that give the stored direction within angle_tolerance and
+    the stored MAD (Prec) within mad_tolerance (MADs are written to 0.1 degree)
+    """
+    X = np.array([pmag.dir2cart([s['Dsp'], s['Isp'], float(s['M'])]) for s in steps])
+    results, matches = {}, []
+    for mode in ('free', 'anchored', 'origin'):
+        Y = np.vstack([X, np.zeros(3)]) if mode == 'origin' else X
+        if mode != 'anchored':
+            Y = Y - Y.mean(axis=0)
+        values, vectors = np.linalg.eigh(Y.T @ Y)
+        direction = vectors[:, -1]
+        dec, inc, _ = pmag.cart2dir(direction)
+        misfit = pmag.angle([dec, inc], [fit['Dsp'], fit['Isp']])[0]
+        misfit = min(misfit, 180. - misfit)
+        mad = np.degrees(np.arctan(np.sqrt(max(values[0] + values[1], 0.) / values[2])))
+        results[mode] = (misfit, mad)
+        if misfit <= angle_tolerance and abs(mad - fit['Prec']) <= mad_tolerance:
+            matches.append(mode)
+    return results, matches
+
+
 def rs3(mag_file="", dir_path=".", input_dir_path="",
         meas_file="measurements.txt", spec_file="specimens.txt",
         samp_file="samples.txt", site_file="sites.txt", loc_file="locations.txt",
@@ -11066,13 +11099,19 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
         geographic and (with bedding) tilt-corrected coordinates:
             C row              DE-BFL    (MAD in dir_mad_free)
             C row flagged OA   DE-BFL-A  (anchored to the origin; MAD in dir_mad_anc)
-            C row flagged O    DE-BFL-O  (origin included as a point)
+            C row flagged O    DE-BFL-O  (origin included as a point), or DE-BFL-A (see below)
             C row flagged A    DE-BFL    (anchored to the last step; said in the description)
             G row              DE-BFP    (direction is the pole of the plane)
         Remasoft offers "Include ORIGIN" and "Anchor to last point" for a line,
-        and both together anchor it to the origin. Files with the flag OA have
-        been checked by re-fitting; the flags O and A alone are read by analogy
-        and have not been seen in a file. The great-circle window can also save
+        and both together anchor it to the origin. Each line flagged OA, O or
+        not flagged is recalculated in specimen coordinates from the steps
+        between its limits. The flag O alone has been found both for free
+        lines with the origin added as a point and for lines anchored to the
+        origin: a line flagged O that is the anchored one is written as
+        DE-BFL-A (MAD in dir_mad_anc), with a warning and a description. A
+        line that is not reproduced (e.g. because steps inside its range were
+        left out of the fit) is said in its description, with a warning. The
+        flag A alone has not been seen in a file. The great-circle window can also save
         the Fisher mean of the selected steps; how the file marks that is not
         known, and every G row is written as a plane.
         The file records only the first and last step of a fit, as labels.
@@ -11420,6 +11459,7 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
                 SpecRec['analysts'] = user
             SpecRecs.append(SpecRec)
             continue
+        flag_o_anchored, not_reproduced = [], []
         for fit in fits:
             FitRec = {'specimen': specimen, 'sample': sample, 'citations': 'This study',
                       'experiments': experiment,
@@ -11483,6 +11523,26 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
                     n_steps -= sum(1 for k in range(first + 1, last + 1)
                                    if (steps[k]['ID'], steps[k]['Step']) == (steps[k - 1]['ID'], steps[k - 1]['Step']))
                 FitRec['dir_n_measurements'] = str(n_steps)
+                # check the line type against the measurements: the flag O alone has been
+                # found both for free lines with the origin added and for lines anchored to it
+                expected = {'': 'free', 'OA': 'anchored', 'O': 'origin'}.get(fit['flag'])
+                if fit['ID'] == 'C' and expected and last > first:
+                    results, matches = _rs3_line_calculations(steps[first:last + 1], fit)
+                    if expected in matches:
+                        pass
+                    elif fit['flag'] == 'O' and 'anchored' in matches:
+                        fit_code = 'DE-BFL-A'
+                        FitRec['dir_mad_anc'] = FitRec.pop('dir_mad_free')
+                        descriptions.append('Remasoft flag O, but the stored line is the one anchored to the '
+                                            'origin (recalculated from the steps between its limits)')
+                        flag_o_anchored.append(fit['name'])
+                    else:
+                        descriptions.append('the stored direction is not reproduced from the steps between its '
+                                            'limits ({:.1f} degrees from the {} line); steps may have been left out '
+                                            'of the fit'.format(results[expected][0], {
+                                                'free': 'free', 'anchored': 'anchored',
+                                                'origin': 'origin-included'}[expected]))
+                        not_reproduced.append(fit['name'])
             else:
                 print('-W- {}: the limits of fit {} ({} to {}) were not found among the steps'.format(
                     file_name, fit['name'], fit['Limit1'], fit['Limit2']))
@@ -11505,6 +11565,12 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
                 SpecRec['method_codes'] = ':'.join(
                     code for code in (fit_code, lab_code, coordinate_code) if code)
                 SpecRecs.append(SpecRec)
+        if flag_o_anchored:
+            print('-W- {}: fit {} is flagged O (origin included) but is the line anchored to the origin; '
+                  'written as DE-BFL-A'.format(file_name, ', '.join(flag_o_anchored)))
+        if not_reproduced:
+            print('-W- {}: fit {} is not reproduced from the steps between its limits (see the '
+                  'description)'.format(file_name, ', '.join(not_reproduced)))
 
     if not MeasRecs:
         print('no measurements found in the .rs3 files')
