@@ -153,6 +153,32 @@ class TestCitOrientationRange:
         assert float(samp_df.loc['BL9001-1', 'bed_dip']) == pytest.approx(20.0)
 
 
+class TestCitMethodCodesAndInstrument:
+    """Sample method codes keep the user's codes; the line-end text is a timestamp, not an instrument code."""
+
+    def test_sample_method_codes_include_user_codes(self, tmp_cwd):
+        _run_bl9(methods='SO-SUN')
+        codes = cb.MagicDataFrame('samples.txt').df['method_codes']
+        assert (codes == 'SO-CMD-NORTH:SO-SUN').all()
+
+    def test_default_sample_method_code_unchanged(self, tmp_cwd):
+        _run_bl9(methods='SO-MAG')
+        codes = cb.MagicDataFrame('samples.txt').df['method_codes']
+        assert (codes == 'SO-CMD-NORTH').all()
+
+    def test_instrument_codes_are_the_given_code(self, tmp_cwd):
+        _run_bl9(instrument='LAB-mag')
+        meas_df = cb.MagicDataFrame('measurements.txt').df
+        assert (meas_df['instrument_codes'] == 'LAB-mag').all()
+
+    def test_instrument_codes_blank_by_default_and_timestamp_set(self, tmp_cwd):
+        _run_bl9()
+        meas_df = cb.MagicDataFrame('measurements.txt').df
+        assert 'instrument_codes' not in meas_df.columns or meas_df['instrument_codes'].fillna('').eq('').all()
+        stamps = meas_df['timestamp'].dropna()
+        assert len(stamps) and stamps.str.match(r'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d$').all()
+
+
 class TestCitFailureModes:
     """convert.cit reports actionable failures for invalid inputs rather than raising."""
 

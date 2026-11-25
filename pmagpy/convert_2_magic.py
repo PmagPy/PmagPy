@@ -1588,7 +1588,7 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
         site_file="sites.txt", loc_file="locations.txt", locname="unknown",
         sitename="", sampname="", methods=['SO-MAG'], specnum=0, samp_con='3',
         norm='cc', noave=False, meas_n_orient='8',
-        labfield=0, phi=0, theta=0, oersted=True):
+        labfield=0, phi=0, theta=0, oersted=True, instrument=""):
     """
     Converts CIT formatted Magnetometer data into MagIC format for Analysis and contribution to the MagIC database
 
@@ -1628,6 +1628,8 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
         (Gauss; numerically equivalent to Oersted); False if they are recorded in
         milliTesla (default : True, matching the standard CIT format convention where
         e.g. an AF step of 10 means 10 G = 1 mT).
+    instrument : instrument code (e.g. LAB-instrument) written to instrument_codes of every
+        measurement (default : "", left blank)
 
     Returns
     -----------
@@ -1839,10 +1841,13 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
         SampRec['geologic_classes'] = ''
         SampRec['geologic_types'] = ''
         SampRec['lithologies'] = ''
-        if Cdec != 0 or Cdec != "":
-            SampRec['method_codes'] = 'SO-CMD-NORTH'
-        else:
-            SampRec['method_codes'] = 'SO-MAG'
+        # the declination correction applies to every sample (e.g. a sun compass reading),
+        # so SO-CMD-NORTH is always set; any user method codes (e.g. SO-SUN) are kept too
+        sample_codes = ['SO-CMD-NORTH']
+        user_codes = methods.split(':') if isinstance(methods, str) else list(methods)
+        if user_codes != ['SO-MAG']:  # SO-MAG alone is the unset default
+            sample_codes += [code for code in user_codes if code and code not in sample_codes]
+        SampRec['method_codes'] = ':'.join(sample_codes)
         for line in Lines[2:len(Lines)]:
             if line == '\n':
                 continue
@@ -2039,8 +2044,14 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
             MeasRec['dir_csd'] = '%7.1f' % (eval(line[41:46]))
             MeasRec["meas_n_orient"] = meas_n_orient
             MeasRec['standard'] = 'u'
+            if instrument:
+                MeasRec['instrument_codes'] = instrument
             if len(line) > 60:
-                MeasRec['instrument_codes'] = line[85:].strip('\n \r \t "')
+                # the end of the line is the instrument name (truncated) and the measurement
+                # date and time; neither is an instrument code
+                stamp = line[85:].split()
+                if len(stamp) >= 3:
+                    MeasRec['timestamp'] = '{}T{}'.format(stamp[-2], stamp[-1])
                 MeasRec['magn_x_sigma'] = '%8.2e' % (
                     float(line[58:67])*1e-8)  # (convert e-5emu to Am2)
                 MeasRec['magn_y_sigma'] = '%8.2e' % (float(line[67:76])*1e-8)
