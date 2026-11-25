@@ -14947,6 +14947,12 @@ def vftb(vftb_file, dir_path=".", input_dir_path="",
     # field in tesla, rounded to remove the binary residue of the conversion
     # (-55.2 Oe is -0.00552 T, not -0.005520000000000001)
     field=np.round(df['B'].values*field_factor, 10)
+    if experiment_type == 'thermomagnetic':
+        # a thermomagnetic curve whose field was not recorded gives the field as
+        # -999 on every line (the missing value of the VFTB software); it is left
+        # empty rather than read as -999 Oe (a step of a back-field curve can be a
+        # real -999 Oe, so only these curves are checked)
+        field = np.where(df['B'].values == -999, np.nan, field)
     temperature=np.round(df['T'].values+temperature_offset, 10) # temperature in kelvin
     #if mass:
     #    meas_df['magn_moment']=meas_df['magn_mass']*mass

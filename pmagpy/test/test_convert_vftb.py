@@ -110,6 +110,37 @@ class TestVftbMagic(unittest.TestCase):
         self.assertEqual(set(df['treat_dc_field'].astype(float)), {0})
         self.assertTrue('treat_temp' not in df.columns or df['treat_temp'].isna().all())
 
+    def test_vftb_thermomagnetic_field_not_recorded(self):
+        """a thermal-stability cycle whose field column is -999 on every line, the missing value of
+        the VFTB software (La Garrotxa, OLO106_250.rmp, see garrotxa/README.md): meas_field_dc is
+        left empty, not written as -0.0999 T"""
+        self.input_dir = os.path.join(self.input_dir, 'garrotxa')
+        df = self.convert('OLO106_250.rmp')
+        self.assertEqual(len(df), 82)  # two sets of points, heating and cooling
+        self.assertTrue(df['meas_field_dc'].isna().all())
+        self.assertEqual(float(df['meas_temp'].astype(float).max()), 251 + 273)
+        self.assertAlmostEqual(float(df.iloc[0]['magn_mass']), 1.183626663)
+        self.assertEqual(df.iloc[0]['method_codes'], 'LP-IMT:LP-MW')
+        self.assertEqual(df.iloc[-1]['method_codes'], 'LP-IMT:LP-MC')
+
+    def test_vftb_minus_999_back_field_step(self):
+        """-999 Oe is read as a field in a back-field curve, where it can be a real step"""
+        import shutil
+        import tempfile
+        with open(os.path.join(self.input_dir, 'PRG1-2.coe'), encoding='latin-1') as f:
+            lines = f.read().splitlines()
+        k = [n for n, line in enumerate(lines) if line.startswith('-55.2\t')][0]
+        lines[k] = '-999.' + lines[k][len('-55.2'):]
+        tmp_dir = tempfile.mkdtemp()
+        try:
+            with open(os.path.join(tmp_dir, 'PRG1-2.coe'), 'w', encoding='latin-1') as f:
+                f.write('\n'.join(lines) + '\n')
+            self.input_dir = tmp_dir
+            df = self.convert('PRG1-2.coe')
+            self.assertAlmostEqual(float(df.iloc[1]['treat_dc_field']), -0.0999)
+        finally:
+            shutil.rmtree(tmp_dir)
+
     def test_vftb_measurement_names(self):
         # every measurement has a name, from its experiment and step number
         df = self.convert('PRG1-2.irm')
