@@ -13382,6 +13382,15 @@ def sufar4_dm2(ascfile, meas_output='measurements.txt', aniso_output='rmag_aniso
     return True, meas_output
 
 
+def _is_number(text):
+    """True if text reads as a number (e.g. "4.116564E-02")."""
+    try:
+        float(text)
+        return True
+    except ValueError:
+        return False
+
+
 def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements.txt",
         spec_file_name="specimens.txt", samp_file_name="samples.txt",
         site_file_name="sites.txt", loc_file_name="locations.txt",
@@ -13418,7 +13427,9 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
     lab_inc: int
         default 90
     moment_units : str
-        must be one of: ["mA/m", "emu", "Am^2"], default "mA/m"
+        must be one of: ["mA/m", "A/m", "emu", "Am^2"], default "mA/m".
+        "mA/m" is converted to a moment (magn_moment) with the volume; "A/m" is
+        written as a magnetization (magn_volume), unchanged, and needs no volume
     spec_name_con : int 
         1 : specimen=spec_name, where "spec_name" is the first column in the file
         2 : specimen=filename, where filename is the name of the file without the extension '.tdt' of 'TDT'
@@ -13490,6 +13501,19 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
     #
 
 
+    def magnitude(value, experiment):
+        """The moment or magnetization of a data row, in the MagIC column of its unit."""
+        units = experiment['moment_units']
+        if units == 'mA/m':  # converted to Am^2 with the volume
+            return {"magn_moment": "%5e" % (float(value) * 1e-3 * float(experiment['volume']))}
+        if units == 'emu':
+            return {"magn_moment": "%5e" % (float(value) * 1e-3)}  # converted to Am^2
+        if units == 'Am^2':
+            return {"magn_moment": "%5e" % (float(value))}
+        if units == 'A/m':  # a magnetization: the volume of the specimen is not needed
+            return {"magn_volume": "%5e" % (float(value))}
+        raise ValueError("moment_units must be one of mA/m, A/m, emu, Am^2, not {!r}".format(units))
+
     def get_sample_name(specimen, sample_naming_convention):
         if sample_naming_convention[0] == "sample=specimen":
             sample = specimen
@@ -13522,6 +13546,10 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
 
     ## format some variables
 
+    if moment_units not in ("mA/m", "A/m", "emu", "Am^2"):
+        message = "moment_units must be one of mA/m, A/m, emu, Am^2, not {!r}".format(moment_units)
+        print(message)
+        return False, message
     # convert volume from cc to m^3
     volume = float(volume) * 1e-6
     if not output_dir_path:
@@ -13556,8 +13584,10 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
     # First, read all files and sort data by specimen and by Experiment type
     # -----------------------------------
 
-    for files in os.listdir(input_dir_path):
-        if files.endswith(".tdt"):
+    # the files in name order, so that the output does not depend on the order of the directory;
+    # the extension is .tdt or .TDT
+    for files in sorted(os.listdir(input_dir_path)):
+        if files.lower().endswith(".tdt"):
             fname = os.path.join(input_dir_path, files)
             if verbose:print("Open file: ", fname)
             fin = open(fname, 'r')
@@ -13586,27 +13616,42 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                 if line.strip() == "":
                     continue
 
-                this_line = line.strip('\n').split()
+                # fields are separated by tabs, and a specimen name can hold a space
+                # (e.g. "45. GTX02061"); a file without tabs is split on spaces
+                if '\t' in line:
+                    this_line = [field.strip() for field in line.strip('\r\n').split('\t') if field.strip()]
+                    # a data row whose fields are separated partly by spaces (e.g. a space between
+                    # name and step, or a stray tab at the end of a space-separated row) is split on
+                    # whitespace, as a file without tabs is
+                    if line_number != 0 and len(this_line) < 5 and len(line.split()) >= 5:
+                        this_line = line.strip('\n').split()
+                    # a step, moment or direction field with a space in it holds two values (e.g. a
+                    # moment written "4.116564E-02 1"); splitting it on the space would shift the
+                    # declination and inclination by one column, so the file is not converted. A
+                    # field that does not start with a number (a row of column names) is left to
+                    # the check of the data rows below.
+                    elif line_number != 0 and len(this_line) >= 5:
+                        for column, field in zip(('treatment', 'moment', 'declination', 'inclination'),
+                                                 this_line[1:5]):
+                            if len(field.split()) > 1 and _is_number(field.split()[0]):
+                                message = ('{}: the {} field of this data row holds more than one value ({!r}), '
+                                           'so its values cannot be told apart: {}').format(
+                                               files, column, field, line.strip())
+                                print(message)
+                                return False, message
+                else:
+                    this_line = line.strip('\n').split()
 
                 # the header line can have empty fields (e.g. 40, two tabs, 0 0 0),
                 # so it is the first line after the title however many fields it has
+                # a row of fewer than five fields is not a measurement: one with the specimen name
+                # only (as in some ThellierTool 4 files) is left out, any other with a warning (e.g.
+                # numbers written together, "0.9-12.3")
                 if len(this_line) < 5 and line_number != 0:
+                    if len(this_line) > 1:
+                        print("-W- {}: a row of fewer than five fields is left out: {}".format(
+                            files, line.strip()))
                     continue
-
-                # ---------------------------------------------------
-                # fix muxworthy funky data format
-                # ---------------------------------------------------
-                if len(this_line) < 5 and line_number != 0:
-                    new_line = []
-                    for i in range(len(this_line)):
-                        if i > 1 and "-" in this_line[i]:
-                            tmp = this_line[i].replace("-", " -")
-                            tmp1 = tmp.split()
-                            for i in range(len(tmp1)):
-                                new_line.append(tmp1[i])
-                        else:
-                            new_line.append(this_line[i])
-                    this_line = list(copy(new_line))
 
                 # -------------------------------
                 # Read information from Header and body
@@ -13669,11 +13714,18 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                         specimen = os.path.splitext(os.path.basename(fname))[0]
                     line_number += 1
 
+            if not tmp_body:
+                message = "{}: no data rows (a specimen name, a step, the moment, declination and inclination)".format(files)
+                print(message)
+                return False, message
             if specimen not in list(Data.keys()):
                 Data[specimen] = {}
             Experiment_Type = experiment_name
             if Experiment_Type not in list(Data[specimen].keys()):
                 Data[specimen][Experiment_Type] = {}
+            else:
+                print("-W- {}: specimen {} is also in an earlier file, whose measurements are replaced by "
+                      "these".format(files, specimen))
             Data[specimen][Experiment_Type]['meas_data'] = tmp_body
             Data[specimen][Experiment_Type]['header_data'] = tmp_header_data
             Data[specimen][Experiment_Type]['sample_naming_convention'] = [samp_name_con, samp_name_chars]
@@ -13772,7 +13824,9 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                     if specimen != "" and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else "" for x in SpecRecs]:
                         SpecRec['specimen'] = specimen
                         SpecRec['sample'] = sample
-                        SpecRec['volume'] = Data[specimen][Experiment_Type]['volume']
+                        if Data[specimen][Experiment_Type]['moment_units'] != 'A/m':
+                            # the volume given (default 12 cc), with which mA/m is converted
+                            SpecRec['volume'] = Data[specimen][Experiment_Type]['volume']
                         SpecRec['citations'] = "This study"
                         SpecRec['analysts'] = Data[specimen][Experiment_Type]['user_name']
                         SpecRecs.append(SpecRec)
@@ -13805,15 +13859,7 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                     MeasRec["treat_step_num"] = "%i" % measurement_running_number
                     MeasRec["dir_dec"] = meas_line['dec']
                     MeasRec["dir_inc"] = meas_line['inc']
-                    if Data[specimen][Experiment_Type]['moment_units'] == 'mA/m':
-                        MeasRec["magn_moment"] = "%5e" % (float(meas_line['moment'])*1e-3*float(
-                            Data[specimen][Experiment_Type]['volume']))  # converted to Am^2
-                    if Data[specimen][Experiment_Type]['moment_units'] == 'emu':
-                        MeasRec["magn_moment"] = "%5e" % (
-                            float(meas_line['moment'])*1e-3)  # converted to Am^2
-                    if Data[specimen][Experiment_Type]['moment_units'] == 'Am^2':
-                        MeasRec["magn_moment"] = "%5e" % (
-                            float(meas_line['moment']))  # converted to Am^2
+                    MeasRec.update(magnitude(meas_line['moment'], Data[specimen][Experiment_Type]))
                     MeasRec["meas_temp"] = '273.'  # room temp in kelvin
 
                     # Date and time
@@ -14051,8 +14097,7 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                     MeasRec["treat_step_num"] = "%i" % measurement_running_number
                     MeasRec["dir_dec"] = meas_line['dec']
                     MeasRec["dir_inc"] = meas_line['inc']
-                    MeasRec["magn_moment"] = "%5e" % (float(meas_line['moment'])*1e-3*float(
-                        Data[specimen][Experiment_Type]['volume']))  # converted to Am^2
+                    MeasRec.update(magnitude(meas_line['moment'], Data[specimen][Experiment_Type]))
                     MeasRec["meas_temp"] = '273.'  # room temp in kelvin
 
                     treatments = meas_line['treatment'].split(".")

@@ -9857,6 +9857,31 @@ def measurements_methods(meas_data, noave):
     return SpecOuts
 
 
+def _keep_tail_check_marks_of_whole_runs(records):
+    """
+    For measurements_methods3: leave the "_tail_check" mark only on runs of
+    consecutive records with the same treatment (the replicates vspec_magic3
+    averages) in which every record is marked.
+    """
+    if not records:
+        return
+    keys = [key for key in ["treat_temp", "treat_temp_decay_rate", "treat_temp_dc_on", "treat_temp_dc_off",
+                            "treat_ac_field", "treat_ac_field_decay_rate", "treat_ac_field_dc_on",
+                            "treat_ac_field_dc_off", "treat_dc_field", "treat_dc_field_decay_rate",
+                            "treat_dc_field_ac_on", "treat_dc_field_ac_off", "treat_dc_field_phi",
+                            "treat_dc_field_theta", 'description'] if key in records[0]]
+    state = lambda rec: tuple(str(rec.get(key, "")).strip() for key in keys)
+    run = [records[0]]
+    for rec in records[1:] + [None]:
+        if rec is not None and state(rec) == state(run[-1]):
+            run.append(rec)
+            continue
+        if not all(r.get("_tail_check") for r in run):
+            for r in run:
+                r.pop("_tail_check", None)
+        run = [rec]
+
+
 def measurements_methods3(meas_data, noave,savelast=False):
     """
     Add necessary method codes, experiment names, sequence, etc.
@@ -9886,6 +9911,12 @@ def measurements_methods3(meas_data, noave,savelast=False):
             if 'quality' not in list(rec.keys()):
                 rec['quality'] = 'g'
             tmpmeths = rec['method_codes'].split(":")
+            # a pTRM tail check coded by the converter: the passes below tell tail checks from
+            # the order of the steps, and miss one that does not follow the in-field step at
+            # its temperature (e.g. after an additivity check, as in the MT4 protocol of
+            # ThellierTool); it is marked here and given its code after them
+            if "LT-PTRM-MD" in tmpmeths:
+                rec["_tail_check"] = True
             meths = []
             if 'LP-HYS' in tmpmeths:
                 HYS = 1  # catch these!
@@ -10009,6 +10040,10 @@ def measurements_methods3(meas_data, noave,savelast=False):
         if savelast:
             NewSpecs=NewSpecs[-1] # just keep thelast one
         elif not noave:
+            # vspec_magic3 averages each run of consecutive records with the same treatment and
+            # keeps the last record of the run; it is a tail check only if every record of the
+            # run is one (a zero-field step and the tail check after it are averaged together)
+            _keep_tail_check_marks_of_whole_runs(NewSpecs)
             # averages replicate measurements, returns treatment keys that are
             # being used
             vdata, treatkeys = vspec_magic3(NewSpecs)
@@ -10250,8 +10285,10 @@ def measurements_methods3(meas_data, noave,savelast=False):
     #
     # check if this start a new temperature step of a infield/zerofield pair
     #
-                    # new pair?
-                    if float(rec["treat_temp"]) > float(rec_bak["treat_temp"]) and "LT-PTRM-I" not in methbak:
+                    # new pair? (a tail check coded by the converter is not one)
+                    if rec.get("_tail_check"):
+                        pass
+                    elif float(rec["treat_temp"]) > float(rec_bak["treat_temp"]) and "LT-PTRM-I" not in methbak:
                         if "LT-T-I" in meths:  # infield of this pair
                             IZorZI = "LP-PI-TRM-IZ"
                             IZ = 1  # at least one IZ pair
@@ -10278,6 +10315,10 @@ def measurements_methods3(meas_data, noave,savelast=False):
                             methcodes = methcodes + "LT-PTRM-MD"
                             meths = methcodes.split(":")
                             MD = 1
+                    if rec.pop("_tail_check", False) and "LT-PTRM-MD" not in meths:
+                        # a tail check that the order of the steps did not show, coded as one is above
+                        meths = ["LT-PTRM-MD"]
+                        MD = 1
     # fix method codes
                     if "LT-PTRM-I" not in meths and "LT-PTRM-MD" not in meths and IZorZI not in meths:
                         meths.append(IZorZI)
@@ -10397,6 +10438,8 @@ def measurements_methods3(meas_data, noave,savelast=False):
         rec['measurement']=newex+'-'+str(num)
         num+=1
         SpecOutsNoColons.append(rec)
+    for rec in SpecOutsNoColons:
+        rec.pop("_tail_check", None)  # a mark not used (e.g. outside a Thellier experiment)
     return SpecOutsNoColons
 
 

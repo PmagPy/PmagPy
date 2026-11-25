@@ -11,7 +11,7 @@ SYNTAX
     tdt_magic.py -WD <PATH>
 
 INPUT:
-    TDT formatted files with suffix .tdt
+    TDT formatted files with suffix .tdt or .TDT
 
 OUTPUT:
     combined measurement file saved in <PATH>
@@ -64,9 +64,9 @@ class convert_tdt_files_to_MagIC(wx.Frame):
 
         TEXT1 = "Instructions:\n"
         TEXT2 = "1. Put all individual tdt files from the same location in one folder.\n"
-        TEXT3 = "   Each tdt file file should end with '.tdt'\n"
+        TEXT3 = "   Each tdt file should end with '.tdt' or '.TDT'\n"
         TEXT4 = "2. If there are more than one location use multiple folders. One folder for each location.\n"
-        TEXT5 = "3. If the magnetization in in units are mA/m (as in the original TT program) volume is required to convert to moment.\n\n"
+        TEXT5 = "3. If the magnetization is in mA/m (as in the original TT program), the volume is required to convert it to a moment; in A/m it is entered as a magnetization.\n\n"
         TEXT6 = "For more information check the help menubar option.\n"
 
         TEXT7 = "(for support contact ron.shaar@mail.huji.ac.il)"
@@ -156,7 +156,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         bSizer1c = wx.StaticBoxSizer(wx.StaticBox(
             self.panel, wx.ID_ANY, ""), wx.VERTICAL)
         bSizer1c.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_TOP)
-        self.moment_units_names = ['mA/m', 'emu', 'Am^2']
+        self.moment_units_names = ['mA/m', 'A/m', 'emu', 'Am^2']
         bSizer1c.AddSpacer(5)
         self.moment_units = {}
         for i in range(self.max_files):
