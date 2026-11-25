@@ -7135,10 +7135,10 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     # np.log gives nan or -inf where math.log raised, so
                     # reject rates that have no logarithm here
                     if not np.isfinite(ancient_cooling_rate) or ancient_cooling_rate <= 0:
-                        raise ValueError(ancient_cooling_rate)
+                        raise ValueError(f"invalid cooling rate: {ancient_cooling_rate}")
                     ancient_cooling_rate = ancient_cooling_rate / \
                         (1e6 * 365. * 24. * 60.)  # change to K/minute
-                except:
+                except (KeyError, TypeError, ValueError):
                     self.GUI_log.write(
                         "-W- Can't find ancient cooling rate estimation for sample %s\n" % sample)
                     continue
