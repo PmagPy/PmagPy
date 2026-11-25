@@ -23,7 +23,7 @@ The active test suite lives in `pmagpy/test/` and uses pytest. Run it from the r
 pytest pmagpy/test
 ```
 
-This is the suite that GitHub Actions runs on every pull request (Python 3.10 and 3.12). New tests belong here: one file per module or topic (for example `test_pmag_directions.py`, `test_rockmag_hysteresis.py`), plain pytest classes and functions, and analytical or reference values where the science allows. Tests that need cartopy, Bokeh or openpyxl should skip cleanly when those optional packages are missing (`pytest.importorskip`).
+This is the suite that GitHub Actions runs on every pull request (only Python 3.12 as of #1056). New tests belong here: one file per module or topic (for example `test_pmag_directions.py`, `test_rockmag_hysteresis.py`), plain pytest classes and functions, and analytical or reference values where the science allows. Tests that need cartopy, Bokeh or openpyxl should skip cleanly when those optional packages are missing (`pytest.importorskip`).
 
 The converters in `convert_2_magic.py` are tested in `test_convert_*.py`: `test_convert_2_magic.py` checks what every converter should do (handle a missing file, write only into its output directory, write MagIC 3 columns), and the other files check the converted values against the input files in `data_files/convert_2_magic` (and, for the IODP converters, `data_files/iodp_magic` and `data_files/UTESTA`). Converters write into `tmp_path`, never into `data_files`. A known defect is recorded as a test of the correct behavior marked `pytest.mark.xfail(strict=True, reason=...)`; once the defect is fixed the test passes, which fails the suite as a reminder to remove the mark.
 
