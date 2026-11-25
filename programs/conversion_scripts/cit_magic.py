@@ -97,8 +97,6 @@ def main():
     if '-mcd' in sys.argv:
         ind = sys.argv.index("-mcd")
         kwargs['methods'] = sys.argv[ind+1]
-    else:
-        kwargs['methods'] = 'SO-MAG'
     if '-spc' in sys.argv:
         ind = sys.argv.index("-spc")
         kwargs['specnum'] = sys.argv[ind+1]

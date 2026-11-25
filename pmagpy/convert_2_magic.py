@@ -1586,7 +1586,7 @@ def bgc(mag_file, dir_path=".", input_dir_path="",
 def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measurements.txt",
         spec_file="specimens.txt", samp_file="samples.txt",
         site_file="sites.txt", loc_file="locations.txt", locname="unknown",
-        sitename="", sampname="", methods=['SO-MAG'], specnum=0, samp_con='3',
+        sitename="", sampname="", methods="", specnum=0, samp_con='3',
         norm='cc', noave=False, meas_n_orient='8',
         labfield=0, phi=0, theta=0, oersted=True, instrument=""):
     """
@@ -1606,7 +1606,7 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
     locname : location name
     sitename : site name set by user instead of using samp_con
     sampname : sample name set by user instead of using samp_con
-    methods : colon delimited list of sample method codes. full list here (https://www2.earthref.org/MagIC/method-codes) (default : SO-MAG)
+    methods : colon delimited list of sample method codes. full list here (https://www2.earthref.org/MagIC/method-codes) (default : none, SO-CMD-NORTH is always added; e.g. SO-MAG:SO-SUN)
     specnum : number of terminal characters that identify a specimen
     norm : is volume or mass normalization using cgs or si units (options : cc,m3,g,kg) (default : cc)
     noave : average measurement data or not. False is average, True is don't average. (default : False)
@@ -1845,8 +1845,7 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
         # so SO-CMD-NORTH is always set; any user method codes (e.g. SO-SUN) are kept too
         sample_codes = ['SO-CMD-NORTH']
         user_codes = methods.split(':') if isinstance(methods, str) else list(methods)
-        if user_codes != ['SO-MAG']:  # SO-MAG alone is the unset default
-            sample_codes += [code for code in user_codes if code and code not in sample_codes]
+        sample_codes += [code for code in user_codes if code and code not in sample_codes]
         SampRec['method_codes'] = ':'.join(sample_codes)
         for line in Lines[2:len(Lines)]:
             if line == '\n':

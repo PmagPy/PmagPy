@@ -161,10 +161,25 @@ class TestCitMethodCodesAndInstrument:
         codes = cb.MagicDataFrame('samples.txt').df['method_codes']
         assert (codes == 'SO-CMD-NORTH:SO-SUN').all()
 
-    def test_default_sample_method_code_unchanged(self, tmp_cwd):
-        _run_bl9(methods='SO-MAG')
+    def test_default_sample_method_code_is_declination_only(self, tmp_cwd):
+        _run_bl9(methods='')
         codes = cb.MagicDataFrame('samples.txt').df['method_codes']
         assert (codes == 'SO-CMD-NORTH').all()
+
+    def test_sun_compass_only_does_not_add_magnetic_compass(self, tmp_cwd):
+        _run_bl9(methods='SO-SUN')
+        codes = cb.MagicDataFrame('samples.txt').df['method_codes']
+        assert (codes == 'SO-CMD-NORTH:SO-SUN').all()
+
+    def test_magnetic_and_sun_compass_both_kept(self, tmp_cwd):
+        _run_bl9(methods='SO-MAG:SO-SUN')
+        codes = cb.MagicDataFrame('samples.txt').df['method_codes']
+        assert (codes == 'SO-CMD-NORTH:SO-MAG:SO-SUN').all()
+
+    def test_lone_magnetic_compass_is_kept(self, tmp_cwd):
+        _run_bl9(methods='SO-MAG')
+        codes = cb.MagicDataFrame('samples.txt').df['method_codes']
+        assert (codes == 'SO-CMD-NORTH:SO-MAG').all()
 
     def test_instrument_codes_are_the_given_code(self, tmp_cwd):
         _run_bl9(instrument='LAB-mag')
