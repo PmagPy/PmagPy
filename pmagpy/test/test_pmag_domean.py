@@ -281,9 +281,11 @@ class TestDomeanBFP:
 class TestDomeanBFLO:
     """Tests for domean with calculation_type='DE-BFL-O'.
 
-    DE-BFL-O forces the best-fit line through the origin, appropriate when
-    NRM is completely overprinted and the demagnetization path should trend
-    toward the origin.
+    DE-BFL-O is a free best-fit line through the selected steps with the
+    origin added as a point (Kirschvink, 1980): unlike an anchored line
+    (DE-BFL-A) it need not pass through the origin, but the origin pulls it
+    toward itself. The centre of mass is the mean of the N steps and the
+    origin, N + 1 points (#1047).
     """
 
     def test_returns_direction(self):
@@ -309,6 +311,48 @@ class TestDomeanBFLO:
         assert mpars['specimen_mad'] < 1.0
         assert_allclose(mpars['specimen_dec'], 0.0, atol=2.0)
         assert_allclose(mpars['specimen_inc'], 45.0, atol=2.0)
+
+    @staticmethod
+    def _origin_line(decs, incs, ints):
+        """Independent calculation: principal axis and MAD of the steps and the origin, centred on
+        their mean (N + 1 points)."""
+        X = np.array([pmag.dir2cart([d, i, m]) for d, i, m in zip(decs, incs, ints)] + [[0., 0., 0.]])
+        Y = X - X.mean(axis=0)
+        values, vectors = np.linalg.eigh(Y.T @ Y)
+        dec, inc, _ = pmag.cart2dir(vectors[:, -1])
+        mad = np.degrees(np.arctan(np.sqrt((values[0] + values[1]) / values[2])))
+        return dec, inc, mad
+
+    @staticmethod
+    def _axis_angle(dec1, inc1, dec2, inc2):
+        """Angle between two lines, whatever their sense."""
+        a = pmag.angle([dec1, inc1], [dec2, inc2])[0]
+        return min(a, 180. - a)
+
+    def test_origin_is_one_of_the_points(self):
+        """Direction and MAD are those of a principal component fit to the steps and the origin."""
+        decs = [212., 220., 229., 236., 242.]
+        incs = [-30., -33., -34., -37., -34.]
+        ints = [0.039, 0.036, 0.032, 0.030, 0.028]
+        data = _make_datablock(decs, incs, ints)
+        mpars = pmag.domean(data, 0, 4, 'DE-BFL-O')
+        dec, inc, mad = self._origin_line(decs, incs, ints)
+        assert self._axis_angle(mpars['specimen_dec'], mpars['specimen_inc'], dec, inc) < 1e-6
+        assert_allclose(mpars['specimen_mad'], mad, rtol=1e-9)
+
+    def test_line_stored_by_remasoft(self):
+        """A line "including the origin" stored by Remasoft (AGICO) is reproduced.
+
+        amf1601.rs3, fit Cpca3 (flag O, 450-525 °C, three steps), from Michalski, K., Manby, G. M.,
+        Nejbert, K., Domańska-Siuda, J., & Burzyński, M. (2022), figshare,
+        https://doi.org/10.6084/m9.figshare.21641594.v1 (CC BY 4.0). The steps are in specimen
+        coordinates, as in the file. Remasoft stored 247.8 / -28.8, MAD 18.6; with the centre of
+        mass of the steps alone (before #1047) the line was 2.5 degrees away and the MAD 1.2 too low.
+        """
+        decs, incs, ints = [244.5, 242.9, 215.2], [-28.4, -23.7, -6.4], [0.02365, 0.01989, 0.01287]
+        mpars = pmag.domean(_make_datablock(decs, incs, ints), 0, 2, 'DE-BFL-O')
+        assert self._axis_angle(mpars['specimen_dec'], mpars['specimen_inc'], 247.8, -28.8) < 0.1
+        assert abs(mpars['specimen_mad'] - 18.6) < 0.06
 
     def test_n_includes_origin_point(self):
         """specimen_n includes the added origin point."""

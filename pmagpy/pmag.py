@@ -2721,7 +2721,11 @@ def domean(data, start, end, calculation_type):
     tensor. Free lines point along the vector removed between the first and
     last steps. Anchored lines point toward the selected steps (along their
     vector sum), whichever of the first and last steps is the larger.
-    'specimen_dang' is not returned for anchored lines. A vector mean
+    'specimen_dang' is not returned for anchored lines. A line with the
+    origin ('DE-BFL-O') is a free line fit to the selected steps and the
+    origin, which is added as a point: the line passes through the centre of
+    mass of the N steps and the origin, the mean of N + 1 points, and the
+    origin counts in 'specimen_n'. A vector mean
     ('DE-VM') is the direction of the sum of the selected steps, including
     their intensities; it has no MAD, and its 'specimen_dang' is -1.
     """
@@ -2769,7 +2773,9 @@ def domean(data, start, end, calculation_type):
         X.append(cart)
     if calculation_type == 'DE-BFL-O':  # include origin as point
         X.append([0., 0., 0.])
-        # pass
+        # the origin is one of the points: the centre of mass is the mean of
+        # the selected steps and the origin (#1047)
+        Nrec += 1.
     if calculation_type == 'DE-FM':  # for fisher means
         fpars = fisher_mean(fdata)
         mpars["specimen_direction_type"] = 'l'
