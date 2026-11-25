@@ -307,7 +307,7 @@ class TestDomeanBFLO:
     origin added as a point (Kirschvink, 1980): unlike an anchored line
     (DE-BFL-A) it need not pass through the origin, but the origin pulls it
     toward itself. The centre of mass is the mean of the N steps and the
-    origin, N + 1 points (#1047).
+    origin, N + 1 points.
     """
 
     def test_returns_direction(self):
@@ -369,7 +369,8 @@ class TestDomeanBFLO:
         Nejbert, K., Domańska-Siuda, J., & Burzyński, M. (2022), figshare,
         https://doi.org/10.6084/m9.figshare.21641594.v1 (CC BY 4.0). The steps are in specimen
         coordinates, as in the file. Remasoft stored 247.8 / -28.8, MAD 18.6; with the centre of
-        mass of the steps alone (before #1047) the line was 2.5 degrees away and the MAD 1.2 too low.
+        mass of the steps alone (as domean once took it) the line was 2.5 degrees away and the MAD 1.2
+        too low.
         """
         decs, incs, ints = [244.5, 242.9, 215.2], [-28.4, -23.7, -6.4], [0.02365, 0.01989, 0.01287]
         mpars = pmag.domean(_make_datablock(decs, incs, ints), 0, 2, 'DE-BFL-O')

@@ -2426,6 +2426,88 @@ def sanitize_hyst_inputs(field, magnetization, drop_nonfinite=True):
 
     return field, magnetization
 
+def drop_hyst_initial_curve(field, magnetization):
+    """Leave out an initial magnetization curve measured before the loop.
+
+    Some instruments (e.g. a variable field translation balance) record the
+    initial curve, from near zero field up to the peak field, before the two
+    branches of the loop. The first sweep is taken to be an initial curve
+    when it starts within 10 percent of the peak field from zero, ends at a
+    field extreme, and is followed by two more sweeps; it is then left out,
+    and the loop starts at the field extreme.
+
+    Parameters
+    ----------
+    field, magnetization : array_like
+        The measurements in measurement order.
+
+    Returns
+    -------
+    field, magnetization : numpy.ndarray
+        The loop without the initial curve, or the input unchanged.
+    dropped : int
+        The number of measurements left out.
+    """
+    field = np.asarray(field, dtype=float)
+    magnetization = np.asarray(magnetization, dtype=float)
+    steps = np.diff(field)
+    moving = np.flatnonzero(steps != 0)
+    if moving.size < 3:
+        return field, magnetization, 0
+    signs = np.sign(steps[moving])
+    reversals = moving[np.flatnonzero(signs[:-1] * signs[1:] < 0)] + 1
+    peak = np.max(np.abs(field))
+    if reversals.size < 2 or abs(field[0]) > 0.1 * peak:
+        return field, magnetization, 0
+    first = int(reversals[0])
+    if abs(field[first]) < 0.9 * peak:
+        return field, magnetization, 0
+    return field[first:], magnetization[first:], first
+
+
+# below this number of grid points between zero and the peak field, a loop is
+# too coarsely sampled for the gridding and the corrections of process_hyst_loop
+SPARSE_HYST_GRID_POINTS = 25
+
+
+def warn_sparse_hyst_grid(grid_field, specimen_name=''):
+    """Warn when a gridded loop has few points between zero and the peak field.
+
+    `process_hyst_loop` resamples a loop on an even grid whose step is the
+    median field step of the measurements (`build_symmetric_hyst_grid`). A
+    loop measured at few, widely or unevenly spaced fields, such as one from
+    a variable field translation balance (about 20 points a branch), gives a
+    grid with no points where Mr and Bc are measured, and too few points for
+    the drift correction and the high-field tests; its Mr and Bc can be far
+    off. Dense loops have 70 or more grid points from zero to the peak
+    field.
+
+    Parameters
+    ----------
+    grid_field : array_like
+        The gridded field values (`grid_hyst_loop`).
+    specimen_name : str, optional
+        Named in the warning.
+
+    Returns
+    -------
+    int
+        The number of grid points between zero and the peak field.
+    """
+    grid_field = np.asarray(grid_field, dtype=float)
+    peak = np.max(np.abs(grid_field))
+    n_points = int(np.sum((grid_field[:len(grid_field) // 2] > 0)))
+    if n_points < SPARSE_HYST_GRID_POINTS:
+        step = np.median(np.abs(np.diff(grid_field[:len(grid_field) // 2])))
+        warnings.warn(
+            f'{specimen_name + ": " if specimen_name else ""}the loop is gridded at a field step of '
+            f'{step:.3g} T, {n_points} points between zero and the peak field of {peak:.3g} T (fewer than '
+            f'{SPARSE_HYST_GRID_POINTS}); for a loop measured at so few fields (e.g. on a variable field '
+            'translation balance) Mr, Bc and the drift and high-field corrections are unreliable; read '
+            'them from the measured branches instead', stacklevel=3)
+    return n_points
+
+
 def split_hyst_loop(field, magnetization):
     '''
     function to split a hysteresis loop into upper and lower branches
@@ -5211,6 +5293,11 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
     # clean the inputs (accepts lists/Series/text columns, drops non-finite
     # pairs, warns on apparent non-tesla field units)
     field, magnetization = sanitize_hyst_inputs(field, magnetization)
+    # an initial magnetization curve measured before the loop is not part of it
+    field, magnetization, n_initial = drop_hyst_initial_curve(field, magnetization)
+    if n_initial:
+        print(f'-I- {specimen_name}: the first {n_initial} measurements, an initial magnetization curve '
+              'up to the peak field, are left out')
     magn_unit = _normalize_magn_unit(magn_unit)
     # record the original sweep order before gridding canonicalizes it: the
     # drift correction is time-order sensitive and needs to know whether the
@@ -5219,6 +5306,7 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
 
     # first grid the data into symmetric field values
     grid_fields, grid_magnetizations = grid_hyst_loop(field, magnetization)
+    warn_sparse_hyst_grid(grid_fields, specimen_name)
 
     # test linearity of the gridded loop before centering: for a loop with
     # no ferromagnetic signal the horizontal and vertical offsets cannot be
@@ -8469,7 +8557,8 @@ def process_backfield_data(experiment, field='treat_dc_field', magnetization='ma
         Fraction of the data to be used for LOWESS smoothing, value must be between 0 and 1
     drop_first : bool
         Whether to drop the first data point or not
-        in some cases you may want to drop the first data point to avoid negative log values
+        in some cases you may want to drop the first data point to avoid negative log values.
+        The first point is always dropped when its field is zero or positive.
     
     Returns
     -------
@@ -8481,8 +8570,9 @@ def process_backfield_data(experiment, field='treat_dc_field', magnetization='ma
     assert isinstance(drop_first, bool), 'drop_first must be a boolean'
     
     experiment = experiment.reset_index(drop=True)
-    # check and make sure to force drop first row if the first treat field is in the wrong direction
-    if experiment[field].iloc[0] > 0:
+    # drop the first row if its field is in the wrong direction, or zero: a curve that starts with
+    # the saturation remanence at zero field (as from a VFTB) has no logarithm of the field there
+    if experiment[field].iloc[0] >= 0:
         drop_first = True
     if drop_first:
         experiment = experiment.iloc[1:].reset_index(drop=1)
