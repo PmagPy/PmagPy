@@ -14959,10 +14959,13 @@ def vftb(vftb_file, dir_path=".", input_dir_path="",
     meas_df['experiment'] = specimen + '_' + meth
     meas_df['specimen']=specimen
     if experiment_type == 'thermomagnetic':
-        # induced magnetization as a function of temperature
-        meas_df['treat_dc_field']=field
-        meas_df['treat_temp']=temperature
-        Ts=meas_df['treat_temp'].values
+        # induced magnetization measured in the field and at the temperature of each point
+        # (meas_field_dc and meas_temp, as for hysteresis loops and for the low-temperature
+        # curves that pmagpy.rockmag reads)
+        meas_df['meas_field_dc']=field
+        meas_df['meas_temp']=temperature
+        meas_df['treat_dc_field']=0
+        Ts=meas_df['meas_temp'].values
         maxT=Ts.max()
         Tmax_indices=np.where(Ts==maxT)
         meas_df.loc[0:Tmax_indices[0][0],'method_codes']='LP-IMT:LP-MW'
