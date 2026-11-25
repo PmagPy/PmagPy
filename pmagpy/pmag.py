@@ -2834,8 +2834,13 @@ def domean(data, start, end, calculation_type):
         print("Error in calculation")
         return mpars
     v1, v3 = V[0], V[2]
+    # eigenvalues that are zero can come out slightly negative from rounding: for a free line
+    # through two steps the centred points are collinear and the second and third are zero, and
+    # a negative sum would make the MAD NaN instead of 0
     if t[2] < 0:
         t[2] = 0  # make positive
+    if t[1] < 0:
+        t[1] = 0
     if calculation_type == 'DE-BFL-A':
         # anchored line: the principal eigenvector of the orientation tensor
         # taken about the origin (Kirschvink, 1980). The line passes through

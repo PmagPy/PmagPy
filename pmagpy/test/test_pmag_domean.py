@@ -278,6 +278,28 @@ class TestDomeanBFP:
 # DE-BFL-O: origin-anchored best-fit line
 # ---------------------------------------------------------------------------
 
+class TestDomeanTwoSteps:
+    """A free line through two steps: the MAD is 0, not NaN."""
+
+    def test_two_step_lines_have_zero_mad(self):
+        """Two thermal steps of GTX0102A.rs3 (150 and 200 °C, specimen coordinates) of the La Garrotxa
+        archive (Vernet Tarragó, 2026, Zenodo, https://doi.org/10.5281/zenodo.20326424, CC BY 4.0), for
+        which rounding made an eigenvalue that should be 0 slightly negative and the free-line MAD NaN."""
+        import warnings
+        data = _make_datablock([186.1, 167.7], [62.4, 49.8], [0.316, 0.3072], [150, 200])
+        with warnings.catch_warnings():
+            warnings.simplefilter('error', RuntimeWarning)
+            mpars = pmag.domean([list(r) for r in data], 0, 1, 'DE-BFL')
+            assert np.isfinite(mpars['specimen_mad'])
+            assert mpars['specimen_mad'] < 1e-3
+            # an anchored line, or one with the origin as a point, is fit to points that are not
+            # collinear (the origin with the two steps): a MAD, but not 0
+            for calculation_type in ('DE-BFL-A', 'DE-BFL-O'):
+                mpars = pmag.domean([list(r) for r in data], 0, 1, calculation_type)
+                assert np.isfinite(mpars['specimen_mad'])
+                assert mpars['specimen_mad'] > 1
+
+
 class TestDomeanBFLO:
     """Tests for domean with calculation_type='DE-BFL-O'.
 
