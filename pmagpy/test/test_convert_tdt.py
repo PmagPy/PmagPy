@@ -141,3 +141,79 @@ class TestTdtHeaderAndArai(unittest.TestCase):
             self.assertIn('lab field', message)
         finally:
             shutil.rmtree(tmp_dir)
+
+
+class TestTdtGarrotxa(unittest.TestCase):
+    """
+    Two files of Vernet et al. (2026), La Garrotxa: the extension .TDT, a
+    specimen name with a space, moments in A/m, and the published Arai fits
+    (Table III of the paper) recalculated from the converted measurements.
+    """
+
+    def setUp(self):
+        import tempfile
+        self.input_dir = os.path.join(WD, 'data_files', 'convert_2_magic', 'tdt_magic', 'garrotxa')
+        self.out_dir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        import shutil
+        shutil.rmtree(self.out_dir)
+        os.chdir(WD)
+
+    def convert(self, **kwargs):
+        res, outfile = convert.tdt(self.input_dir, output_dir_path=self.out_dir, lab_dec=0, lab_inc=-90,
+                                   **kwargs)
+        self.assertTrue(res, outfile)
+        return cb.MagicDataFrame(outfile).df
+
+    def file_rows(self, name):
+        with open(os.path.join(self.input_dir, name), encoding='latin-1') as f:
+            return [line for line in f.read().splitlines()[2:] if line.strip()]
+
+    def test_files_with_the_extension_in_capitals(self):
+        """both .TDT files are read, each specimen named after its file"""
+        df = self.convert(spec_name_con=2)
+        self.assertEqual(sorted(df['specimen'].unique()), ['GTX0206B1', 'LTD_GTX02061'])
+        for name in ('GTX0206B1', 'LTD_GTX02061'):
+            self.assertEqual((df['specimen'] == name).sum(), len(self.file_rows(name + '.TDT')))
+
+    def test_specimen_name_with_a_space(self):
+        """the name column "45. GTX02061" is one field, and the step, moment and direction follow it"""
+        df = self.convert(spec_name_con=1)
+        self.assertIn('45. GTX02061', set(df['specimen']))
+        rows = df[df['specimen'] == '45. GTX02061']
+        fields = self.file_rows('LTD_GTX02061.TDT')[3].split('\t')
+        self.assertEqual(len(rows), len(self.file_rows('LTD_GTX02061.TDT')))
+        self.assertAlmostEqual(float(rows['dir_dec'].iloc[3]), float(fields[3]))
+        self.assertAlmostEqual(float(rows['dir_inc'].iloc[3]), float(fields[4]))
+        self.assertEqual(float(rows['treat_temp'].iloc[3]), float(fields[1].split('.')[0]) + 273)
+        self.assertIn('LT-T-I', rows['method_codes'].iloc[2])
+
+    def test_moments_in_a_per_m(self):
+        """moment_units="A/m": the values go to magn_volume unchanged, and no volume is assumed"""
+        df = self.convert(spec_name_con=2, moment_units='A/m')
+        rows = df[df['specimen'] == 'GTX0206B1']
+        self.assertTrue('magn_moment' not in df.columns or df['magn_moment'].isna().all())
+        values = [float(line.split('\t')[2]) for line in self.file_rows('GTX0206B1.TDT')]
+        self.assertEqual([float(v) for v in rows['magn_volume']], values)
+        specimens = cb.MagicDataFrame(os.path.join(self.out_dir, 'specimens.txt')).df
+        self.assertTrue('volume' not in specimens.columns or specimens['volume'].isna().all())
+
+    def test_published_arai_fits(self):
+        """B, N, beta, f and q of Table III of the paper, from the converted measurements"""
+        df = self.convert(spec_name_con=2, moment_units='A/m')
+        published = {'GTX0206B1': (200, 540, 12, 30.10, 0.074, 0.71, 8.29),
+                     'LTD_GTX02061': (200, 520, 11, 26.91, 0.037, 0.78, 17.61)}
+        for specimen, (t_min, t_max, n, b, beta, f, q) in published.items():
+            block = df[df['specimen'] == specimen]
+            araiblock, field = pmag.sortarai(block, specimen, 0, version=3)
+            zijdblock, _ = pmag.find_dmag_rec(specimen, block, version=3)
+            self.assertAlmostEqual(field, 40e-6)
+            temperatures = [step[0] - 273 for step in araiblock[0]]
+            start, end = temperatures.index(t_min), temperatures.index(t_max)
+            pars, _ = pmag.PintPars(block, araiblock, zijdblock, start, end, {}, version=3)
+            self.assertEqual(pars['int_n_measurements'], n)
+            self.assertAlmostEqual(abs(pars['int_b']) * field * 1e6, b, delta=0.01)
+            self.assertAlmostEqual(pars['int_b_beta'], beta, delta=0.0005)
+            self.assertAlmostEqual(pars['int_f'], f, delta=0.005)
+            self.assertAlmostEqual(pars['int_q'], q, delta=0.005)

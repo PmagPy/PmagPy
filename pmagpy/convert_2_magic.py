@@ -13418,7 +13418,9 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
     lab_inc: int
         default 90
     moment_units : str
-        must be one of: ["mA/m", "emu", "Am^2"], default "mA/m"
+        must be one of: ["mA/m", "A/m", "emu", "Am^2"], default "mA/m".
+        "mA/m" is converted to a moment (magn_moment) with the volume; "A/m" is
+        written as a magnetization (magn_volume), unchanged, and needs no volume
     spec_name_con : int 
         1 : specimen=spec_name, where "spec_name" is the first column in the file
         2 : specimen=filename, where filename is the name of the file without the extension '.tdt' of 'TDT'
@@ -13556,8 +13558,10 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
     # First, read all files and sort data by specimen and by Experiment type
     # -----------------------------------
 
-    for files in os.listdir(input_dir_path):
-        if files.endswith(".tdt"):
+    # the files in name order, so that the output does not depend on the order of the directory;
+    # the extension is .tdt or .TDT
+    for files in sorted(os.listdir(input_dir_path)):
+        if files.lower().endswith(".tdt"):
             fname = os.path.join(input_dir_path, files)
             if verbose:print("Open file: ", fname)
             fin = open(fname, 'r')
@@ -13586,7 +13590,12 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                 if line.strip() == "":
                     continue
 
-                this_line = line.strip('\n').split()
+                # fields are separated by tabs, and a specimen name can hold a space
+                # (e.g. "45. GTX02061"); a file without tabs is split on spaces
+                if '\t' in line:
+                    this_line = [field.strip() for field in line.strip('\r\n').split('\t') if field.strip()]
+                else:
+                    this_line = line.strip('\n').split()
 
                 # the header line can have empty fields (e.g. 40, two tabs, 0 0 0),
                 # so it is the first line after the title however many fields it has
@@ -13772,7 +13781,9 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                     if specimen != "" and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else "" for x in SpecRecs]:
                         SpecRec['specimen'] = specimen
                         SpecRec['sample'] = sample
-                        SpecRec['volume'] = Data[specimen][Experiment_Type]['volume']
+                        if Data[specimen][Experiment_Type]['moment_units'] != 'A/m':
+                            # the volume given (default 12 cc), with which mA/m is converted
+                            SpecRec['volume'] = Data[specimen][Experiment_Type]['volume']
                         SpecRec['citations'] = "This study"
                         SpecRec['analysts'] = Data[specimen][Experiment_Type]['user_name']
                         SpecRecs.append(SpecRec)
@@ -13814,6 +13825,9 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                     if Data[specimen][Experiment_Type]['moment_units'] == 'Am^2':
                         MeasRec["magn_moment"] = "%5e" % (
                             float(meas_line['moment']))  # converted to Am^2
+                    if Data[specimen][Experiment_Type]['moment_units'] == 'A/m':
+                        # a magnetization: the volume of the specimen is not needed
+                        MeasRec["magn_volume"] = "%5e" % (float(meas_line['moment']))
                     MeasRec["meas_temp"] = '273.'  # room temp in kelvin
 
                     # Date and time
