@@ -232,11 +232,48 @@ class TestTdtFieldWithTwoValues(unittest.TestCase):
         import tempfile
         out = tempfile.mkdtemp()
         try:
-            input_dir = os.path.join(WD, 'data_files', 'convert_2_magic', 'tdt_magic', 'nawrocki')
+            input_dir = tempfile.mkdtemp(dir=out)
+            shutil.copy(os.path.join(WD, 'data_files', 'convert_2_magic', 'tdt_magic', 'nawrocki', 'BOA3A.tdt'),
+                        input_dir)
             res, message = convert.tdt(input_dir, output_dir_path=out)
             self.assertFalse(res)
             self.assertIn('BOA3A.tdt: the moment field of this data row holds more than one value', message)
             self.assertIn("'4.116564E-02 1'", message)
             self.assertFalse(os.path.exists(os.path.join(out, 'measurements.txt')))
+        finally:
+            shutil.rmtree(out)
+
+
+class TestTdtTailChecksOfMT4(unittest.TestCase):
+    """
+    BIE2A.tdt (Nawrocki, 2023, CC BY 4.0), the MT4 protocol of ThellierTool: each
+    pTRM tail check (.13) follows an additivity check (.14) at a lower
+    temperature rather than the in-field step at its own. The tail checks keep
+    the code the converter gives them (pmag.measurements_methods3 used to tell
+    them from the order of the steps and made them LT-T-Z).
+    """
+
+    def test_tail_checks_after_additivity_checks(self):
+        import shutil
+        import tempfile
+        out = tempfile.mkdtemp()
+        try:
+            input_dir = tempfile.mkdtemp(dir=out)
+            shutil.copy(os.path.join(WD, 'data_files', 'convert_2_magic', 'tdt_magic', 'nawrocki', 'BIE2A.tdt'),
+                        input_dir)
+            res, outfile = convert.tdt(input_dir, output_dir_path=out)
+            self.assertTrue(res, outfile)
+            df = cb.MagicDataFrame(outfile).df.reset_index(drop=True)
+            first = df['method_codes'].str.split(':').str[0]
+            tails = df[first == 'LT-PTRM-MD']
+            self.assertEqual(sorted(tails['treat_temp'].astype(float) - 273), [200, 300, 400, 500, 600])
+            self.assertEqual((first == 'LT-PTRM-AC').sum(), 5)
+            for k in tails.index:
+                self.assertTrue(df.loc[k - 1, 'method_codes'].startswith('LT-PTRM-AC'))
+            self.assertTrue(df['experiment'].str.contains('LP-PI-BT-MD').all())
+            # the Arai plot has the five tail checks, and the same zero-field steps as before
+            araiblock, field = pmag.sortarai(df, df['specimen'].iloc[0], 0, version=3)
+            self.assertEqual(len(araiblock[3]), 5)
+            self.assertEqual(len(araiblock[0]), (first.isin(['LT-NO', 'LT-T-Z'])).sum())
         finally:
             shutil.rmtree(out)

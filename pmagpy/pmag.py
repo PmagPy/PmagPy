@@ -9886,6 +9886,12 @@ def measurements_methods3(meas_data, noave,savelast=False):
             if 'quality' not in list(rec.keys()):
                 rec['quality'] = 'g'
             tmpmeths = rec['method_codes'].split(":")
+            # a pTRM tail check coded by the converter: the passes below tell tail checks from
+            # the order of the steps, and miss one that does not follow the in-field step at
+            # its temperature (e.g. after an additivity check, as in the MT4 protocol of
+            # ThellierTool); it is marked here and given its code after them
+            if "LT-PTRM-MD" in tmpmeths:
+                rec["_tail_check"] = True
             meths = []
             if 'LP-HYS' in tmpmeths:
                 HYS = 1  # catch these!
@@ -10278,6 +10284,10 @@ def measurements_methods3(meas_data, noave,savelast=False):
                             methcodes = methcodes + "LT-PTRM-MD"
                             meths = methcodes.split(":")
                             MD = 1
+                    if rec.pop("_tail_check", False) and "LT-PTRM-MD" not in meths:
+                        # a tail check that the order of the steps did not show, coded as one is above
+                        meths = ["LT-PTRM-MD"]
+                        MD = 1
     # fix method codes
                     if "LT-PTRM-I" not in meths and "LT-PTRM-MD" not in meths and IZorZI not in meths:
                         meths.append(IZorZI)
@@ -10397,6 +10407,8 @@ def measurements_methods3(meas_data, noave,savelast=False):
         rec['measurement']=newex+'-'+str(num)
         num+=1
         SpecOutsNoColons.append(rec)
+    for rec in SpecOutsNoColons:
+        rec.pop("_tail_check", None)  # a mark not used (e.g. outside a Thellier experiment)
     return SpecOutsNoColons
 
 
