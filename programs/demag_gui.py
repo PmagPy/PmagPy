@@ -7112,14 +7112,28 @@ class Demag_GUI(wx.Frame):
             # fix index names
             spmdf.df.index.name = "specimen_name"
             ndf3_0.index.name = "specimen_name"
-            # pull out directional/non-directional data
+            # pull out directional/non-directional data. A specimen row that only
+            # holds converter metadata (no method codes, or just LP-NOMAG) is not
+            # separate data: it is merged into that specimen's interpretations,
+            # or else every specimen with a fit would be listed twice
             if 'method_codes' not in spmdf.df:
                 spmdf.df['method_codes'] = ''
-            directional = spmdf.df['method_codes'].str.contains('LP-DIR').astype(bool)
+            codes = spmdf.df['method_codes'].fillna('').astype(str)
+            placeholder = codes.apply(
+                lambda x: set(x.split(':')) <= {'', 'LP-NOMAG'})
+            nomag_specimens = set(spmdf.df.index[codes.str.contains('LP-NOMAG')])
+            directional = (codes.str.contains('LP-DIR') | placeholder).astype(bool)
             non_directional_df = spmdf.df[~directional]
             spmdf.df = spmdf.df[directional]
             # merge new interpretations with old specimen information
             directional_df = spmdf.merge_dfs(ndf3_0)
+            if nomag_specimens:
+                for spec in nomag_specimens.intersection(directional_df.index):
+                    rows = directional_df.index == spec
+                    directional_df.loc[rows, 'method_codes'] = [
+                        x if 'LP-NOMAG' in str(x) else
+                        ':'.join([c for c in [str(x), 'LP-NOMAG'] if c not in ('', 'nan', 'None')])
+                        for x in directional_df.loc[rows, 'method_codes']]
             # add any missing columns to non_directional_df
             for col in directional_df.columns:
                 if col not in non_directional_df.columns:
