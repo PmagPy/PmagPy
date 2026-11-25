@@ -2479,8 +2479,8 @@ def warn_sparse_hyst_grid(grid_field, specimen_name=''):
     a variable field translation balance (about 20 points a branch), gives a
     grid with no points where Mr and Bc are measured, and too few points for
     the drift correction and the high-field tests; its Mr and Bc can be far
-    off (issue #1048). Dense loops have 70 or more grid points from zero to
-    the peak field.
+    off. Dense loops have 70 or more grid points from zero to the peak
+    field.
 
     Parameters
     ----------
@@ -2503,8 +2503,8 @@ def warn_sparse_hyst_grid(grid_field, specimen_name=''):
             f'{specimen_name + ": " if specimen_name else ""}the loop is gridded at a field step of '
             f'{step:.3g} T, {n_points} points between zero and the peak field of {peak:.3g} T (fewer than '
             f'{SPARSE_HYST_GRID_POINTS}); for a loop measured at so few fields (e.g. on a variable field '
-            'translation balance) Mr, Bc and the drift and high-field corrections are unreliable '
-            '(PmagPy issue #1048)', stacklevel=3)
+            'translation balance) Mr, Bc and the drift and high-field corrections are unreliable; read '
+            'them from the measured branches instead', stacklevel=3)
     return n_points
 
 

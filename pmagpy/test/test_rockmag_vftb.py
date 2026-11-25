@@ -1,8 +1,9 @@
 """
 pmagpy.rockmag on variable field translation balance (VFTB) curves converted
 with convert_2_magic.vftb: a back-field curve that starts at zero field
-(issue #1049) and a hysteresis loop that begins with the initial
-magnetization curve (issue #1048). The files are in
+and a hysteresis loop that begins with the initial magnetization curve,
+both of which stopped the functions, and the warning for a loop measured at
+too few fields. The files are in
 data_files/convert_2_magic/vftb_magic/garrotxa (see the README there).
 """
 import contextlib
@@ -89,7 +90,7 @@ class TestVftbRockmag(unittest.TestCase):
         messages = [str(w.message) for w in caught if 'points between zero and the peak field' in str(w.message)]
         self.assertEqual(len(messages), 1)
         self.assertIn('GTX0208B', messages[0])
-        self.assertIn('#1048', messages[0])
+        self.assertIn('unreliable', messages[0])
 
     def test_dense_loop_no_warning(self):
         """a loop measured densely (McMurdo example, about 250 points a branch) gives no such warning"""
