@@ -2775,7 +2775,7 @@ def domean(data, start, end, calculation_type):
     if calculation_type == 'DE-BFL-O':  # include origin as point
         X.append([0., 0., 0.])
         # the origin is one of the points: the centre of mass is the mean of
-        # the selected steps and the origin (#1047)
+        # the selected steps and the origin (not of the steps alone)
         Nrec += 1.
     if calculation_type == 'DE-FM':  # for fisher means
         fpars = fisher_mean(fdata)
