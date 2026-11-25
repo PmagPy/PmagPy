@@ -10934,29 +10934,26 @@ def _rs3_line_calculations(steps, fit, angle_tolerance=0.2, mad_tolerance=0.11):
     """
     Which principal component calculations give a stored line (Kirschvink, 1980).
 
-    The line is recalculated in specimen coordinates from the steps between its
-    limits as a free line, a line anchored to the origin, and a free line with
-    the origin added as a point.
+    The line is recalculated with pmag.domean in specimen coordinates from the
+    steps between its limits as a free line (DE-BFL), a line anchored to the
+    origin (DE-BFL-A), and a free line with the origin added as a point
+    (DE-BFL-O).
 
     Returns
     ---------
     dict of calculation ('free', 'anchored', 'origin') to (angle between the
-    calculated and stored directions in degrees, calculated MAD), and the list
-    of calculations that give the stored direction within angle_tolerance and
-    the stored MAD (Prec) within mad_tolerance (MADs are written to 0.1 degree)
+    calculated and stored lines in degrees, whatever their sense, and the
+    calculated MAD), and the list of calculations that give the stored
+    direction within angle_tolerance and the stored MAD (Prec) within
+    mad_tolerance (MADs are written to 0.1 degree)
     """
-    X = np.array([pmag.dir2cart([s['Dsp'], s['Isp'], float(s['M'])]) for s in steps])
     results, matches = {}, []
-    for mode in ('free', 'anchored', 'origin'):
-        Y = np.vstack([X, np.zeros(3)]) if mode == 'origin' else X
-        if mode != 'anchored':
-            Y = Y - Y.mean(axis=0)
-        values, vectors = np.linalg.eigh(Y.T @ Y)
-        direction = vectors[:, -1]
-        dec, inc, _ = pmag.cart2dir(direction)
-        misfit = pmag.angle([dec, inc], [fit['Dsp'], fit['Isp']])[0]
+    for mode, code in _RS3_LINE_CODES.items():
+        block = [[k, s['Dsp'], s['Isp'], float(s['M']), 1, 'g'] for k, s in enumerate(steps)]
+        mpars = pmag.domean(block, 0, len(block) - 1, code)
+        misfit = pmag.angle([mpars['specimen_dec'], mpars['specimen_inc']], [fit['Dsp'], fit['Isp']])[0]
         misfit = min(misfit, 180. - misfit)
-        mad = np.degrees(np.arctan(np.sqrt(max(values[0] + values[1], 0.) / values[2])))
+        mad = float(mpars['specimen_mad'])
         results[mode] = (misfit, mad)
         if misfit <= angle_tolerance and abs(mad - fit['Prec']) <= mad_tolerance:
             matches.append(mode)
