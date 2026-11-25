@@ -321,6 +321,17 @@ class TestTdtRows(unittest.TestCase):
             self.assertEqual(len(df), len(STEPS), case)
             self.assertEqual(list(df['dir_inc'].astype(float)), [float(s[3]) for s in STEPS], case)
 
+    def test_short_rows(self):
+        """a row with the specimen name only is left out quietly; another short row with a warning"""
+        rows = ['AB1\t' + '\t'.join(s) for s in STEPS]
+        rows.insert(0, 'AB1\t\t\t\t')                  # the name only
+        rows[5] = 'AB1\t200.11\t0.8-14\t44'                # numbers written together
+        res, df, printed = _convert_text({'AB1.tdt': HEADER + '\n'.join(rows) + '\n'})
+        self.assertTrue(res)
+        self.assertEqual(len(df), len(STEPS) - 1)
+        self.assertEqual(printed.count('a row of fewer than five fields is left out'), 1)
+        self.assertIn('0.8-14', printed)
+
     def test_file_without_data_rows(self):
         res, message, _ = _convert_text({'AB1.tdt': HEADER})
         self.assertFalse(res)

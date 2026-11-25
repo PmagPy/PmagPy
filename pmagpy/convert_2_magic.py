@@ -13644,23 +13644,14 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
 
                 # the header line can have empty fields (e.g. 40, two tabs, 0 0 0),
                 # so it is the first line after the title however many fields it has
+                # a row of fewer than five fields is not a measurement: one with the specimen name
+                # only (as in some ThellierTool 4 files) is left out, any other with a warning (e.g.
+                # numbers written together, "0.9-12.3")
                 if len(this_line) < 5 and line_number != 0:
+                    if len(this_line) > 1:
+                        print("-W- {}: a row of fewer than five fields is left out: {}".format(
+                            files, line.strip()))
                     continue
-
-                # ---------------------------------------------------
-                # fix muxworthy funky data format
-                # ---------------------------------------------------
-                if len(this_line) < 5 and line_number != 0:
-                    new_line = []
-                    for i in range(len(this_line)):
-                        if i > 1 and "-" in this_line[i]:
-                            tmp = this_line[i].replace("-", " -")
-                            tmp1 = tmp.split()
-                            for i in range(len(tmp1)):
-                                new_line.append(tmp1[i])
-                        else:
-                            new_line.append(this_line[i])
-                    this_line = list(copy(new_line))
 
                 # -------------------------------
                 # Read information from Header and body
