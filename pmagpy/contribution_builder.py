@@ -2427,7 +2427,7 @@ def names_as_text(names):
     return names.where(missing_mask(names), names.map(name_as_text))
 
 
-def get_intensity_col(data):
+def get_intensity_col(data, require_complete=False):
     """
     Check measurement dataframe for intensity columns 'magn_moment', 'magn_volume', 'magn_mass','magn_uncal'.
     Return the first intensity column that is in the dataframe AND has data.
@@ -2435,6 +2435,13 @@ def get_intensity_col(data):
     Parameters
     ----------
     data : pandas DataFrame
+    require_complete : bool, default False
+        if True, return the first column, in the order 'magn_moment', 'magn_volume',
+        'magn_mass', 'magn_uncal', that has a value in every row of data, and only if
+        none does, the first column that has data. Use it on the measurements of one
+        specimen: in a table that combines experiments or laboratories, one specimen
+        can have only 'magn_volume' and another only 'magn_moment', so a column chosen
+        for the whole table leaves out the measurements of some specimens.
 
     Returns
     ---------
@@ -2443,6 +2450,12 @@ def get_intensity_col(data):
     """
     # possible intensity columns
     intlist = ['magn_moment', 'magn_volume', 'magn_mass','magn_uncal']
+    if require_complete and len(data):
+        for col_name in intlist:
+            if col_name in data.columns:
+                values = data[col_name]
+                if (values.notnull() & (values.astype(str).str.strip() != "")).all():
+                    return col_name
     # intensity columns that are in the data
     int_meths = [col_name for col_name in data.columns if col_name in intlist]
     # drop fully null columns
