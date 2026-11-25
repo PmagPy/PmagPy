@@ -22,8 +22,10 @@ OPTIONS
     -spc NUM : specify number of characters to designate a  specimen, default = 1
     -loc LOCNAME : specify location/study name
     -A: don't average replicate measurements
-    -dmg TYPE: set default demag type ('t' for thermal, 'af' for AF demag) if not 
-               specified in pmd file
+    -dmg TYPE: demag type ('t' for thermal, 'af' for AF demag) of every step after
+               the NRM; by default the type is read from the step labels (H020, A020,
+               20mT: AF; T350, 350C: thermal), and steps labelled with a number alone
+               are read as thermal in PAL files
     -ncn NCON: specify naming convention
     Sample naming convention:
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
