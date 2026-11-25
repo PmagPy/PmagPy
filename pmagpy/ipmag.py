@@ -11700,45 +11700,62 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
         datablock = None
         if (not len(spec_df_th.index) > 1) and (not len(spec_df_af.index) > 1):
             return False, False
+        # the magnetization column of this specimen: a table can combine specimens that have
+        # magn_moment with specimens that have only magn_volume or magn_mass
+        int_key = cb.get_intensity_col(pd.concat([spec_df_nrm, spec_df_th, spec_df_af]), require_complete=True)
+        if not int_key:
+            print('-W- No magnetization data for specimen {}, skipping'.format(s))
+            return False, False
+        # geographic or tilt-corrected coordinates need the sample's azimuth and dip; without them the
+        # specimen is drawn in specimen coordinates, with one warning
+        rotate = coord != "-1"
+        if rotate:
+            oriented = len(samp_df) > 0 and all(
+                col in samp_df.columns and samp_df[col].apply(cb.not_null, args=(False,)).any()
+                for col in ('azimuth', 'dip'))
+            if not oriented:
+                print('-W- No orientation for sample {} of specimen {}: plotted in specimen coordinates'.format(
+                    samp if len(samp_df) else '(none)', s))
+                rotate = False
         if len(spec_df_th.index) > 1:  # this is a thermal run
             this_spec_meas_df = pd.concat([spec_df_nrm, spec_df_th])
             # make sure all decs/incs are filled in
             n_rows = len(this_spec_meas_df)
-            this_spec_meas_df = this_spec_meas_df.dropna(how='any', subset=['dir_dec', 'dir_inc', 'magn_moment'])
+            this_spec_meas_df = this_spec_meas_df.dropna(how='any', subset=['dir_dec', 'dir_inc', int_key])
             if n_rows > len(this_spec_meas_df):
                 print('-W- Some dec/inc/moment data were missing for specimen {}, so {} measurement row(s) were excluded'.format(s, n_rows - len(this_spec_meas_df)))
             # geographic transformation
-            if coord != "-1" and len(samp_df):
+            if rotate:
                 this_spec_meas_df = transform_to_geographic(this_spec_meas_df, samp_df, samp, coord)
             units = 'K'  # units are kelvin
             try:
-                this_spec_meas_df['magn_moment'] = this_spec_meas_df['magn_moment'].astype(float)
+                this_spec_meas_df[int_key] = this_spec_meas_df[int_key].astype(float)
                 this_spec_meas_df['treat_temp'] = this_spec_meas_df['treat_temp'].astype(float)
             except (ValueError, KeyError):
                 print('-W- There are malformed or missing data for specimen {}, skipping'.format(spec))
                 return False, False
             datablock = this_spec_meas_df[['treat_temp', 'dir_dec', 'dir_inc',
-                                 'magn_moment', 'blank', 'quality']].values.tolist()
+                                 int_key, 'blank', 'quality']].values.tolist()
             ZED = pmagplotlib.plot_zed(ZED, datablock, angle, s, units)
         if len(spec_df_af.index) > 1:  # this is an af run
             this_spec_meas_df = pd.concat([spec_df_nrm, spec_df_af])
             # make sure all decs/incs are filled in
             n_rows = len(this_spec_meas_df)
-            this_spec_meas_df = this_spec_meas_df.dropna(how='any', subset=['dir_dec', 'dir_inc', 'magn_moment'])
+            this_spec_meas_df = this_spec_meas_df.dropna(how='any', subset=['dir_dec', 'dir_inc', int_key])
             if n_rows > len(this_spec_meas_df):
                 print('-W- Some dec/inc/moment data were missing for specimen {}, so {} measurement row(s) were excluded'.format(s, n_rows - len(this_spec_meas_df)))
             # geographic transformation
-            if coord != "-1" and len(samp_df):
+            if rotate:
                 this_spec_meas_df = transform_to_geographic(this_spec_meas_df, samp_df, samp, coord)
             units = 'T'  # these are AF data
             try:
-                this_spec_meas_df['magn_moment'] = this_spec_meas_df['magn_moment'].astype(float)
+                this_spec_meas_df[int_key] = this_spec_meas_df[int_key].astype(float)
                 this_spec_meas_df['treat_ac_field'] = this_spec_meas_df['treat_ac_field'].astype(float)
             except Exception:
                 print('-W- There are malformed or missing data for specimen {}, skipping'.format(spec))
                 return False, False
             datablock = this_spec_meas_df[['treat_ac_field', 'dir_dec', 'dir_inc',
-                                 'magn_moment', 'blank', 'quality']].values.tolist()
+                                 int_key, 'blank', 'quality']].values.tolist()
             ZED = pmagplotlib.plot_zed(ZED, datablock, angle, s, units)
         return plot_interpretations(ZED, spec_container, s, this_spec_meas_df, datablock, coord)
 
@@ -11804,16 +11821,15 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
             return False, [], []
         return False, []
     # check measurement table for req'd fields
-    missing = []
-    reqd_cols_present = meas_df.columns.intersection(['dir_dec', 'dir_inc', 'magn_moment'])
-    for col in ['dir_dec', 'dir_inc', 'magn_moment']:
-        if col not in reqd_cols_present:
-            missing.append(col)
-        if missing:
-            print('-W- Missing required column(s) {}, cannot run zeq_magic'.format(', '.join(missing)))
-            if image_records:
-                return False, [], []
-            return False, []
+    # directions, and a magnetization column (chosen for each specimen in make_plots)
+    missing = [col for col in ['dir_dec', 'dir_inc'] if col not in meas_df.columns]
+    if not cb.get_intensity_col(meas_df):
+        missing.append('magn_moment, magn_volume, magn_mass or magn_uncal')
+    if missing:
+        print('-W- Missing required column(s) {}, cannot run zeq_magic'.format(', '.join(missing)))
+        if image_records:
+            return False, [], []
+        return False, []
 
     cnt = fignum
     if n_plots != "all":
@@ -11829,7 +11845,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
         if not ZED:
             if pmagplotlib.verbose:
                 print('No plots could be created for specimen:', s)
-                continue
+            continue
         titles = {key: s + "_" + key + "." + fmt for key in ZED}
         # try to get the full hierarchy for plot names
         df_slice = meas_container.df[meas_container.df['specimen'] == s]
@@ -11894,6 +11910,8 @@ def transform_to_geographic(this_spec_meas_df, samp_df, samp, coord="0"):
     # transform geographic
     decs = this_spec_meas_df['dir_dec'].values.tolist()
     incs = this_spec_meas_df['dir_inc'].values.tolist()
+    if not len(decs):
+        return this_spec_meas_df
     or_info, az_type = pmag.get_orient(samp_df,samp,data_model=3)
     if 'azimuth' in or_info.keys() and cb.not_null(or_info['azimuth'], False):
         azimuths=len(decs)*[or_info['azimuth']]
@@ -11981,6 +11999,15 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
         #cnt += 4  # increment the figure counter
         spec_df = thel_data[thel_data.specimen ==
                             this_specimen]  # get data for this specimen
+        # the magnetization column of this specimen: a table can combine specimens that have
+        # magn_moment with specimens that have only magn_volume or magn_mass. The other
+        # magnetization columns are left out, so that sortarai and find_dmag_rec read this one.
+        int_key = cb.get_intensity_col(spec_df, require_complete=True)
+        if not int_key:
+            return zed
+        spec_df = spec_df[spec_df[int_key].notnull() & (spec_df[int_key].astype(str).str.strip() != "")]
+        spec_df = spec_df.drop(columns=[col for col in ['magn_moment', 'magn_volume', 'magn_mass', 'magn_uncal']
+                                        if col in spec_df.columns and col != int_key])
         # get the data block for Arai plot
         if len(spec_df) >= 3:
             # just skip specimen if arai data is malformed
@@ -12035,16 +12062,12 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
     # try to get contribution id for server plotting
     if pmagplotlib.isServer:
         con_id = contribution.get_con_id()
-    # get key for intensity records
-    int_key = cb.get_intensity_col(meas_df)
     # list for saved figs
     saved = []
-    # get all the records with measurement data
-    meas_data = meas_df[meas_df[int_key].notnull()]
-    # get all the Thellier data
-    thel_data = meas_data.dropna(subset=['method_codes'])
+    # get all the Thellier data; the magnetization column is chosen for each specimen (make_plots)
+    thel_data = meas_df.dropna(subset=['method_codes'])
     thel_data = thel_data[thel_data['method_codes'].str.contains('LP-PI-TRM')]
-    specimens = meas_data.specimen.unique()  # list of specimen names
+    specimens = thel_data.specimen.unique()  # list of specimen names
     if len(specimens) == 0:
         print('there are no data for plotting')
         if image_records:
