@@ -92,6 +92,10 @@ def test_get_intensity_col_require_complete():
     # blank strings are not values
     data = pd.DataFrame({'magn_moment': ['1e-5', ' '], 'magn_mass': ['1', '2']})
     assert cb.get_intensity_col(data, require_complete=True) == 'magn_mass'
+    # magn_uncal, which fewer functions read, is not preferred to a column that has some values
+    data = pd.DataFrame({'magn_moment': [1e-5, np.nan], 'magn_uncal': [1.0, 2.0]})
+    assert cb.get_intensity_col(data, require_complete=True) == 'magn_moment'
+    assert cb.get_intensity_col(data[['magn_uncal']], require_complete=True) == 'magn_uncal'
     # no column is complete: the first column with any value
     data = pd.DataFrame({'magn_moment': [np.nan, 1e-5], 'magn_volume': [1.0, np.nan]})
     assert cb.get_intensity_col(data, require_complete=True) == 'magn_moment'
@@ -99,48 +103,66 @@ def test_get_intensity_col_require_complete():
 
 
 @pytest.mark.parametrize('crd', ['s', 'g'])
-def test_zeq_magic_specimen_with_magn_volume_only(mixed_table, crd):
+def test_zeq_magic_specimen_with_magn_volume_only(mixed_table, crd, monkeypatch):
     """the .rs3 specimen is drawn although other specimens of the table have magn_moment; in
     geographic coordinates zeq_magic stopped with an IndexError, all its rows having been left out"""
-    os.chdir(mixed_table)
+    monkeypatch.chdir(mixed_table)
     ok, files = ipmag.zeq_magic(spec_file='specimens.txt', specimen='OL01-2B', crd=crd, save_plots=True,
                                 fmt='png', n_plots=1)
     assert ok
     assert 'OL01-2B_zijd.png' in files
 
 
-def test_zeq_magic_specimen_with_magn_moment(mixed_table):
+def test_zeq_magic_specimen_with_magn_moment(mixed_table, monkeypatch):
     """the 2G specimen is drawn as before"""
-    os.chdir(mixed_table)
+    monkeypatch.chdir(mixed_table)
     ok, files = ipmag.zeq_magic(spec_file='specimens.txt', specimen='GTX080201A', crd='g', save_plots=True,
                                 fmt='png', n_plots=1)
     assert ok
     assert 'GTX080201A_zijd.png' in files
 
 
-def test_zeq_magic_table_with_magn_volume_only(mixed_table):
+def test_zeq_magic_table_with_magn_volume_only(mixed_table, monkeypatch):
     """a table without magn_moment can be drawn"""
     meas = _read(mixed_table / 'measurements.txt')
     _write(meas[meas.specimen == 'OL01-2B'].drop(columns='magn_moment'), mixed_table / 'measurements.txt',
            'measurements')
-    os.chdir(mixed_table)
+    monkeypatch.chdir(mixed_table)
     ok, files = ipmag.zeq_magic(spec_file='specimens.txt', specimen='OL01-2B', save_plots=True, fmt='png',
                                 n_plots=1)
     assert ok
     assert 'OL01-2B_zijd.png' in files
 
 
-def test_zeq_magic_warns_without_orientation(mixed_table, capsys):
-    """geographic coordinates for a sample without orientation: drawn in specimen coordinates, with a
-    warning (there was none)"""
+def test_zeq_magic_warns_without_orientation(mixed_table, capsys, monkeypatch):
+    """geographic coordinates for a sample without azimuth and dip: drawn in specimen coordinates, with one
+    warning for the specimen"""
     samples = _read(mixed_table / 'samples.txt')
     samples.loc[samples['sample'] == 'OL01-2B', ['azimuth', 'dip']] = np.nan
     _write(samples, mixed_table / 'samples.txt', 'samples')
-    os.chdir(mixed_table)
+    monkeypatch.chdir(mixed_table)
     ok, files = ipmag.zeq_magic(spec_file='specimens.txt', specimen='OL01-2B', crd='g', save_plots=True,
                                 fmt='png', n_plots=1)
     assert ok
-    assert 'No orientation for sample OL01-2B: plotted in specimen coordinates' in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert out.count('No orientation for sample OL01-2B of specimen OL01-2B: plotted in specimen coordinates') == 1
+    assert 'no orientation data for sample' not in out
+
+
+def test_zeq_magic_specimen_without_magnetization(mixed_table, capsys, monkeypatch):
+    """a specimen whose measurements have no magnetization is skipped, also when pmagplotlib.verbose is
+    False (the loop went on to the next lines and stopped with a TypeError), and the others are drawn"""
+    from pmagpy import pmagplotlib
+    meas = _read(mixed_table / 'measurements.txt')
+    meas.loc[meas.specimen == 'OL01-2B', ['magn_moment', 'magn_volume']] = np.nan
+    _write(meas, mixed_table / 'measurements.txt', 'measurements')
+    monkeypatch.chdir(mixed_table)
+    monkeypatch.setattr(pmagplotlib, 'verbose', False)
+    ok, files = ipmag.zeq_magic(spec_file='specimens.txt', save_plots=True, fmt='png', n_plots='all')
+    assert ok
+    assert 'No magnetization data for specimen OL01-2B' in capsys.readouterr().out
+    assert 'GTX080201A_zijd.png' in files
+    assert not any(f.startswith('OL01-2B_') for f in files)
 
 
 def test_thellier_magic_specimen_with_magn_volume_only(mixed_table):

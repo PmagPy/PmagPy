@@ -2437,11 +2437,12 @@ def get_intensity_col(data, require_complete=False):
     data : pandas DataFrame
     require_complete : bool, default False
         if True, return the first column, in the order 'magn_moment', 'magn_volume',
-        'magn_mass', 'magn_uncal', that has a value in every row of data, and only if
-        none does, the first column that has data. Use it on the measurements of one
-        specimen: in a table that combines experiments or laboratories, one specimen
-        can have only 'magn_volume' and another only 'magn_moment', so a column chosen
-        for the whole table leaves out the measurements of some specimens.
+        'magn_mass', that has a value in every row of data, and only if none does, the
+        column chosen without the option (which can be 'magn_uncal', read by fewer
+        functions than the others). Use it on the measurements of one specimen: in a
+        table that combines experiments or laboratories, one specimen can have only
+        'magn_volume' and another only 'magn_moment', so a column chosen for the whole
+        table leaves out the measurements of some specimens.
 
     Returns
     ---------
@@ -2451,7 +2452,7 @@ def get_intensity_col(data, require_complete=False):
     # possible intensity columns
     intlist = ['magn_moment', 'magn_volume', 'magn_mass','magn_uncal']
     if require_complete and len(data):
-        for col_name in intlist:
+        for col_name in intlist[:3]:
             if col_name in data.columns:
                 values = data[col_name]
                 if (values.notnull() & (values.astype(str).str.strip() != "")).all():

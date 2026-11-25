@@ -11706,8 +11706,17 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
         if not int_key:
             print('-W- No magnetization data for specimen {}, skipping'.format(s))
             return False, False
-        if coord != "-1" and not len(samp_df):
-            print('-W- No sample orientation for specimen {}: plotted in specimen coordinates'.format(s))
+        # geographic or tilt-corrected coordinates need the sample's azimuth and dip; without them the
+        # specimen is drawn in specimen coordinates, with one warning
+        rotate = coord != "-1"
+        if rotate:
+            oriented = len(samp_df) > 0 and all(
+                col in samp_df.columns and samp_df[col].apply(cb.not_null, args=(False,)).any()
+                for col in ('azimuth', 'dip'))
+            if not oriented:
+                print('-W- No orientation for sample {} of specimen {}: plotted in specimen coordinates'.format(
+                    samp if len(samp_df) else '(none)', s))
+                rotate = False
         if len(spec_df_th.index) > 1:  # this is a thermal run
             this_spec_meas_df = pd.concat([spec_df_nrm, spec_df_th])
             # make sure all decs/incs are filled in
@@ -11716,7 +11725,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
             if n_rows > len(this_spec_meas_df):
                 print('-W- Some dec/inc/moment data were missing for specimen {}, so {} measurement row(s) were excluded'.format(s, n_rows - len(this_spec_meas_df)))
             # geographic transformation
-            if coord != "-1" and len(samp_df):
+            if rotate:
                 this_spec_meas_df = transform_to_geographic(this_spec_meas_df, samp_df, samp, coord)
             units = 'K'  # units are kelvin
             try:
@@ -11736,7 +11745,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
             if n_rows > len(this_spec_meas_df):
                 print('-W- Some dec/inc/moment data were missing for specimen {}, so {} measurement row(s) were excluded'.format(s, n_rows - len(this_spec_meas_df)))
             # geographic transformation
-            if coord != "-1" and len(samp_df):
+            if rotate:
                 this_spec_meas_df = transform_to_geographic(this_spec_meas_df, samp_df, samp, coord)
             units = 'T'  # these are AF data
             try:
@@ -11815,7 +11824,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
     # directions, and a magnetization column (chosen for each specimen in make_plots)
     missing = [col for col in ['dir_dec', 'dir_inc'] if col not in meas_df.columns]
     if not cb.get_intensity_col(meas_df):
-        missing.append('magn_moment, magn_volume or magn_mass')
+        missing.append('magn_moment, magn_volume, magn_mass or magn_uncal')
     if missing:
         print('-W- Missing required column(s) {}, cannot run zeq_magic'.format(', '.join(missing)))
         if image_records:
@@ -11836,7 +11845,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
         if not ZED:
             if pmagplotlib.verbose:
                 print('No plots could be created for specimen:', s)
-                continue
+            continue
         titles = {key: s + "_" + key + "." + fmt for key in ZED}
         # try to get the full hierarchy for plot names
         df_slice = meas_container.df[meas_container.df['specimen'] == s]
@@ -11910,7 +11919,6 @@ def transform_to_geographic(this_spec_meas_df, samp_df, samp, coord="0"):
     # if azimuth/dip is missing, or orientation is bad,
     # stick with specimen coordinates
     else:
-        print('-W- No orientation for sample {}: plotted in specimen coordinates'.format(samp))
         return this_spec_meas_df
     dirs = [decs, incs, azimuths, dips]
     dirs_geo = np.array(list(map(list, list(zip(*dirs)))))
