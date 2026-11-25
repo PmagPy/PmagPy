@@ -2465,6 +2465,49 @@ def drop_hyst_initial_curve(field, magnetization):
     return field[first:], magnetization[first:], first
 
 
+# below this number of grid points between zero and the peak field, a loop is
+# too coarsely sampled for the gridding and the corrections of process_hyst_loop
+SPARSE_HYST_GRID_POINTS = 25
+
+
+def warn_sparse_hyst_grid(grid_field, specimen_name=''):
+    """Warn when a gridded loop has few points between zero and the peak field.
+
+    `process_hyst_loop` resamples a loop on an even grid whose step is the
+    median field step of the measurements (`build_symmetric_hyst_grid`). A
+    loop measured at few, widely or unevenly spaced fields, such as one from
+    a variable field translation balance (about 20 points a branch), gives a
+    grid with no points where Mr and Bc are measured, and too few points for
+    the drift correction and the high-field tests; its Mr and Bc can be far
+    off (issue #1048). Dense loops have 70 or more grid points from zero to
+    the peak field.
+
+    Parameters
+    ----------
+    grid_field : array_like
+        The gridded field values (`grid_hyst_loop`).
+    specimen_name : str, optional
+        Named in the warning.
+
+    Returns
+    -------
+    int
+        The number of grid points between zero and the peak field.
+    """
+    grid_field = np.asarray(grid_field, dtype=float)
+    peak = np.max(np.abs(grid_field))
+    n_points = int(np.sum((grid_field[:len(grid_field) // 2] > 0)))
+    if n_points < SPARSE_HYST_GRID_POINTS:
+        step = np.median(np.abs(np.diff(grid_field[:len(grid_field) // 2])))
+        warnings.warn(
+            f'{specimen_name + ": " if specimen_name else ""}the loop is gridded at a field step of '
+            f'{step:.3g} T, {n_points} points between zero and the peak field of {peak:.3g} T (fewer than '
+            f'{SPARSE_HYST_GRID_POINTS}); for a loop measured at so few fields (e.g. on a variable field '
+            'translation balance) Mr, Bc and the drift and high-field corrections are unreliable '
+            '(PmagPy issue #1048)', stacklevel=3)
+    return n_points
+
+
 def split_hyst_loop(field, magnetization):
     '''
     function to split a hysteresis loop into upper and lower branches
@@ -5263,6 +5306,7 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
 
     # first grid the data into symmetric field values
     grid_fields, grid_magnetizations = grid_hyst_loop(field, magnetization)
+    warn_sparse_hyst_grid(grid_fields, specimen_name)
 
     # test linearity of the gridded loop before centering: for a loop with
     # no ferromagnetic signal the horizontal and vertical offsets cannot be

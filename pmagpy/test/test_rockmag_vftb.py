@@ -77,5 +77,36 @@ class TestVftbRockmag(unittest.TestCase):
         self.assertTrue(np.array_equal(same_field, loop_field))
 
 
+    def test_sparse_loop_warning(self):
+        """a VFTB loop (about 20 points a branch) is gridded too coarsely, and process_hyst_loop warns"""
+        import warnings
+        df = converted('GTX0208B.hys')
+        field, magnetization = df['meas_field_dc'].astype(float).values, df['magn_mass'].astype(float).values
+        with contextlib.redirect_stdout(io.StringIO()), warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter('always')
+            rockmag.process_hyst_loop(field, magnetization, 'GTX0208B', show_results_table=False,
+                                      show_plot=False, n_bootstrap=0)
+        messages = [str(w.message) for w in caught if 'points between zero and the peak field' in str(w.message)]
+        self.assertEqual(len(messages), 1)
+        self.assertIn('GTX0208B', messages[0])
+        self.assertIn('#1048', messages[0])
+
+    def test_dense_loop_no_warning(self):
+        """a loop measured densely (McMurdo example, about 250 points a branch) gives no such warning"""
+        import warnings
+        import pandas as pd
+        meas = pd.read_csv(os.path.join(WD, 'data_files', '3_0', 'McMurdo', 'measurements.txt'), sep='\t',
+                           header=1, low_memory=False)
+        loops = meas[meas['method_codes'].fillna('').str.contains('LP-HYS')]
+        experiment, loop = next(iter(loops.groupby('experiment')))
+        field, moment = loop['meas_field_dc'].astype(float).values, loop['magn_moment'].astype(float).values
+        grid, _ = rockmag.grid_hyst_loop(*rockmag.sanitize_hyst_inputs(field, moment))
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter('always')
+            n_points = rockmag.warn_sparse_hyst_grid(grid, experiment)
+        self.assertGreaterEqual(n_points, 70)
+        self.assertFalse([w for w in caught if 'points between zero and the peak field' in str(w.message)])
+
+
 if __name__ == '__main__':
     unittest.main()
