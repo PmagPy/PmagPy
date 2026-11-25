@@ -86,7 +86,7 @@ class TestRs3Magic(unittest.TestCase):
             self.assertTrue(row['method_codes'].startswith('DE-BFL-A:LP-DIR-T'))
             self.assertAlmostEqual(float(row['dir_mad_anc']), 9.2)
             self.assertTrue(str(row.get('dir_mad_free', '')) in ('', 'nan', 'None'))
-            self.assertIn('Remasoft flag O, but the stored line is the one anchored to the origin',
+            self.assertIn('Remasoft flag O, but the stored line is the line anchored to the origin',
                           row['description'])
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
@@ -102,8 +102,11 @@ class TestRs3Magic(unittest.TestCase):
             program_ran, outfile = convert.rs3(input_dir_path=self.input_dir, mag_file='PRG6-2A.rs3')
         self.assertTrue(program_ran)
         self.assertIn('-W- PRG6-2A.rs3: fit CA is not reproduced', output.getvalue())
-        self.assertIn('the stored direction is not reproduced from the steps between its limits',
-                      self.fit('PRG6-2A', 'CA', 0)['description'])
+        # the description says that no calculation gives it, and which comes closest, without a cause
+        description = self.fit('PRG6-2A', 'CA', 0)['description']
+        self.assertIn('the stored line (flag OA) is not reproduced from the steps between its limits', description)
+        self.assertIn('closest: the ', description)
+        self.assertNotIn('left out', description)
         # the other files of the folder are reproduced
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
@@ -112,6 +115,33 @@ class TestRs3Magic(unittest.TestCase):
         self.assertTrue(program_ran)
         self.assertNotIn('not reproduced', output.getvalue())
 
+
+    def test_rs3_line_matched_by_another_calculation(self):
+        """
+        a line without a flag that is the line anchored to the origin
+        (am10305.rs3, NE Svalbard, fit Cpca23) is written as DE-BFL-A
+        """
+        import contextlib
+        import io
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            program_ran, outfile = convert.rs3(input_dir_path=os.path.join(self.input_dir, 'svalbard'),
+                                               mag_file='am10305.rs3')
+        self.assertTrue(program_ran)
+        self.assertIn('-W- am10305.rs3: fit Cpca23 has no flag but is the line anchored to the origin; written as '
+                      'DE-BFL-A', output.getvalue())
+        self.assertNotIn('not reproduced', output.getvalue())
+        for tilt_correction in (-1, 0):
+            row = self.fit('am10305', 'Cpca23', tilt_correction)
+            self.assertTrue(row['method_codes'].startswith('DE-BFL-A'))
+            self.assertAlmostEqual(float(row['dir_mad_anc']), 7.9)
+            self.assertTrue(str(row.get('dir_mad_free', '')) in ('', 'nan', 'None'))
+            self.assertIn('Remasoft no flag, but the stored line is the line anchored to the origin',
+                          row['description'])
+        # the other line of the file, without a flag, is the free line it is written as
+        row = self.fit('am10305', 'Cpca1', -1)
+        self.assertTrue(row['method_codes'].startswith('DE-BFL:'))
+        self.assertAlmostEqual(float(row['dir_mad_free']), 4.1)
     def test_rs3_with_no_files(self):
         # a directory without .rs3 files
         input_dir = os.path.join(WD, 'data_files', 'convert_2_magic', 'pmd_magic')

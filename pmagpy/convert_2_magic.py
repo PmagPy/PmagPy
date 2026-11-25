@@ -10925,6 +10925,11 @@ def _rs3_average_repeats(rows):
     return out
 
 
+_RS3_LINE_CODES = {'free': 'DE-BFL', 'anchored': 'DE-BFL-A', 'origin': 'DE-BFL-O'}
+_RS3_LINE_NAMES = {'free': 'free line', 'anchored': 'line anchored to the origin',
+                   'origin': 'free line with the origin as a point'}
+
+
 def _rs3_line_calculations(steps, fit, angle_tolerance=0.2, mad_tolerance=0.11):
     """
     Which principal component calculations give a stored line (Kirschvink, 1980).
@@ -11105,15 +11110,22 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
         Remasoft offers "Include ORIGIN" and "Anchor to last point" for a line,
         and both together anchor it to the origin. Each line flagged OA, O or
         not flagged is recalculated in specimen coordinates from the steps
-        between its limits. The flag O alone has been found both for free
-        lines with the origin added as a point and for lines anchored to the
-        origin: a line flagged O that is the anchored one is written as
-        DE-BFL-A (MAD in dir_mad_anc), with a warning and a description. A
-        line that is not reproduced (e.g. because steps inside its range were
-        left out of the fit) is said in its description, with a warning. The
-        flag A alone has not been seen in a file. The great-circle window can also save
-        the Fisher mean of the selected steps; how the file marks that is not
-        known, and every G row is written as a plane.
+        between its limits, as a free line, a line anchored to the origin and
+        a free line with the origin as a point. The flag O alone has been
+        found both for free lines with the origin added and for lines
+        anchored to the origin. When the calculation the flag names does not
+        give the stored direction and MAD and exactly one other does, the
+        line is written as that one (e.g. a line flagged O that is the
+        anchored one as DE-BFL-A, MAD in dir_mad_anc), with a warning and a
+        description. When none does (e.g. if the fit starts before its first
+        limit, skips steps, or the steps were changed after the fit), or two
+        others do, the codes of the flag are kept and the description and a
+        warning say so. When the flagged calculation and another both give
+        the stored line, the flag decides. The flag A alone has not been
+        seen in a file.
+        The great-circle window can also save the Fisher mean of the
+        selected steps; how the file marks that is not known, and every G
+        row is written as a plane.
         The file records only the first and last step of a fit, as labels.
         A limit written as a number alone (250) is in the unit of the steps
         of the file (degrees C for T rows, mT for A rows).
@@ -11459,7 +11471,7 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
                 SpecRec['analysts'] = user
             SpecRecs.append(SpecRec)
             continue
-        flag_o_anchored, not_reproduced = [], []
+        recoded, not_reproduced = [], []
         for fit in fits:
             FitRec = {'specimen': specimen, 'sample': sample, 'citations': 'This study',
                       'experiments': experiment,
@@ -11528,20 +11540,32 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
                 expected = {'': 'free', 'OA': 'anchored', 'O': 'origin'}.get(fit['flag'])
                 if fit['ID'] == 'C' and expected and last > first:
                     results, matches = _rs3_line_calculations(steps[first:last + 1], fit)
+                    flag_text = 'flag {}'.format(fit['flag']) if fit['flag'] else 'no flag'
                     if expected in matches:
+                        # the calculation the flag names; if another one also gives the stored
+                        # line within the tolerances, the flag decides
                         pass
-                    elif fit['flag'] == 'O' and 'anchored' in matches:
-                        fit_code = 'DE-BFL-A'
-                        FitRec['dir_mad_anc'] = FitRec.pop('dir_mad_free')
-                        descriptions.append('Remasoft flag O, but the stored line is the one anchored to the '
-                                            'origin (recalculated from the steps between its limits)')
-                        flag_o_anchored.append(fit['name'])
+                    elif len(matches) == 1:
+                        # one other calculation gives the stored direction and MAD: that one is written
+                        found = matches[0]
+                        fit_code = _RS3_LINE_CODES[found]
+                        mad = FitRec.pop('dir_mad_anc' if 'dir_mad_anc' in FitRec else 'dir_mad_free')
+                        FitRec['dir_mad_anc' if found == 'anchored' else 'dir_mad_free'] = mad
+                        descriptions.append('Remasoft {}, but the stored line is the {} (recalculated from the '
+                                            'steps between its limits)'.format(flag_text, _RS3_LINE_NAMES[found]))
+                        recoded.append((fit['name'], flag_text, found))
                     else:
-                        descriptions.append('the stored direction is not reproduced from the steps between its '
-                                            'limits ({:.1f} degrees from the {} line); steps may have been left out '
-                                            'of the fit'.format(results[expected][0], {
-                                                'free': 'free', 'anchored': 'anchored',
-                                                'origin': 'origin-included'}[expected]))
+                        if matches:
+                            text = 'given by both the {} and the {}'.format(
+                                *[_RS3_LINE_NAMES[m] for m in matches[:2]])
+                        else:
+                            closest = min(results, key=lambda m: results[m][0])
+                            text = ('not reproduced from the steps between its limits by a free, an anchored or '
+                                    'an origin-included line (closest: the {}, {:.1f} degrees from the stored '
+                                    'direction, MAD {:.1f} against {:.1f})').format(
+                                        _RS3_LINE_NAMES[closest], results[closest][0], results[closest][1],
+                                        fit['Prec'])
+                        descriptions.append('the stored line ({}) is {}'.format(flag_text, text))
                         not_reproduced.append(fit['name'])
             else:
                 print('-W- {}: the limits of fit {} ({} to {}) were not found among the steps'.format(
@@ -11565,12 +11589,17 @@ def rs3(mag_file="", dir_path=".", input_dir_path="",
                 SpecRec['method_codes'] = ':'.join(
                     code for code in (fit_code, lab_code, coordinate_code) if code)
                 SpecRecs.append(SpecRec)
-        if flag_o_anchored:
-            print('-W- {}: fit {} is flagged O (origin included) but is the line anchored to the origin; '
-                  'written as DE-BFL-A'.format(file_name, ', '.join(flag_o_anchored)))
+        for name, flag_text, found in recoded:
+            if flag_text == 'flag O' and found == 'anchored':
+                print('-W- {}: fit {} is flagged O (origin included) but is the line anchored to the origin; '
+                      'written as DE-BFL-A'.format(file_name, name))
+            else:
+                print('-W- {}: fit {} has {} but is the {}; written as {}'.format(
+                    file_name, name, flag_text, _RS3_LINE_NAMES[found], _RS3_LINE_CODES[found]))
         if not_reproduced:
-            print('-W- {}: fit {} is not reproduced from the steps between its limits (see the '
-                  'description)'.format(file_name, ', '.join(not_reproduced)))
+            print('-W- {}: {} {} not reproduced by the calculation its flag names (see the description)'.format(
+                file_name, ('fit ' if len(not_reproduced) == 1 else 'fits ') + ', '.join(not_reproduced),
+                'is' if len(not_reproduced) == 1 else 'are'))
 
     if not MeasRecs:
         print('no measurements found in the .rs3 files')
