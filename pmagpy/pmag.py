@@ -9857,6 +9857,31 @@ def measurements_methods(meas_data, noave):
     return SpecOuts
 
 
+def _keep_tail_check_marks_of_whole_runs(records):
+    """
+    For measurements_methods3: leave the "_tail_check" mark only on runs of
+    consecutive records with the same treatment (the replicates vspec_magic3
+    averages) in which every record is marked.
+    """
+    if not records:
+        return
+    keys = [key for key in ["treat_temp", "treat_temp_decay_rate", "treat_temp_dc_on", "treat_temp_dc_off",
+                            "treat_ac_field", "treat_ac_field_decay_rate", "treat_ac_field_dc_on",
+                            "treat_ac_field_dc_off", "treat_dc_field", "treat_dc_field_decay_rate",
+                            "treat_dc_field_ac_on", "treat_dc_field_ac_off", "treat_dc_field_phi",
+                            "treat_dc_field_theta", 'description'] if key in records[0]]
+    state = lambda rec: tuple(str(rec.get(key, "")).strip() for key in keys)
+    run = [records[0]]
+    for rec in records[1:] + [None]:
+        if rec is not None and state(rec) == state(run[-1]):
+            run.append(rec)
+            continue
+        if not all(r.get("_tail_check") for r in run):
+            for r in run:
+                r.pop("_tail_check", None)
+        run = [rec]
+
+
 def measurements_methods3(meas_data, noave,savelast=False):
     """
     Add necessary method codes, experiment names, sequence, etc.
@@ -10015,6 +10040,10 @@ def measurements_methods3(meas_data, noave,savelast=False):
         if savelast:
             NewSpecs=NewSpecs[-1] # just keep thelast one
         elif not noave:
+            # vspec_magic3 averages each run of consecutive records with the same treatment and
+            # keeps the last record of the run; it is a tail check only if every record of the
+            # run is one (a zero-field step and the tail check after it are averaged together)
+            _keep_tail_check_marks_of_whole_runs(NewSpecs)
             # averages replicate measurements, returns treatment keys that are
             # being used
             vdata, treatkeys = vspec_magic3(NewSpecs)
@@ -10256,8 +10285,10 @@ def measurements_methods3(meas_data, noave,savelast=False):
     #
     # check if this start a new temperature step of a infield/zerofield pair
     #
-                    # new pair?
-                    if float(rec["treat_temp"]) > float(rec_bak["treat_temp"]) and "LT-PTRM-I" not in methbak:
+                    # new pair? (a tail check coded by the converter is not one)
+                    if rec.get("_tail_check"):
+                        pass
+                    elif float(rec["treat_temp"]) > float(rec_bak["treat_temp"]) and "LT-PTRM-I" not in methbak:
                         if "LT-T-I" in meths:  # infield of this pair
                             IZorZI = "LP-PI-TRM-IZ"
                             IZ = 1  # at least one IZ pair

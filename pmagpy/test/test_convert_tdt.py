@@ -277,3 +277,132 @@ class TestTdtTailChecksOfMT4(unittest.TestCase):
             self.assertEqual(len(araiblock[0]), (first.isin(['LT-NO', 'LT-T-Z'])).sum())
         finally:
             shutil.rmtree(out)
+
+
+def _convert_text(files, **kwargs):
+    """Convert .tdt files given as {name: text}; return (result, message or table, printed output)."""
+    import contextlib
+    import io
+    import shutil
+    import tempfile
+    tmp = tempfile.mkdtemp()
+    try:
+        for name, text in files.items():
+            with open(os.path.join(tmp, name), 'w') as f:
+                f.write(text)
+        log = io.StringIO()
+        with contextlib.redirect_stdout(log):
+            res, out = convert.tdt(tmp, output_dir_path=tmp, **kwargs)
+        table = cb.MagicDataFrame(out).df.reset_index(drop=True) if res else out
+        return res, table, log.getvalue()
+    finally:
+        shutil.rmtree(tmp)
+
+
+HEADER = 'Thellier-tdt\n40\t0\t0\t0\t0\n'
+STEPS = [('0.00', '1.0', '10', '40'), ('100.00', '0.9', '11', '41'), ('100.11', '1.1', '12', '42'),
+         ('200.00', '0.8', '13', '43'), ('200.11', '0.8', '14', '44'), ('300.00', '0.6', '15', '45'),
+         ('300.11', '1.0', '16', '46')]
+
+
+class TestTdtRows(unittest.TestCase):
+    """Separators, empty files, column names, units and specimens in two files."""
+
+    def test_rows_with_mixed_separators(self):
+        """a row with a space where a tab would be, or a stray tab, is split on whitespace, not skipped"""
+        rows = ['AB1\t' + '\t'.join(s) for s in STEPS]
+        rows[4] = 'AB1 ' + '\t'.join(STEPS[4])  # one row: a space between name and step
+        cases = {'one row': rows,
+                 'every row': ['AB1 ' + '\t'.join(s) for s in STEPS],
+                 'stray tab': ['AB1 ' + ' '.join(s) + '\t' for s in STEPS]}
+        for case, lines in cases.items():
+            res, df, _ = _convert_text({'AB1.tdt': HEADER + '\n'.join(lines) + '\n'})
+            self.assertTrue(res, case)
+            self.assertEqual(len(df), len(STEPS), case)
+            self.assertEqual(list(df['dir_inc'].astype(float)), [float(s[3]) for s in STEPS], case)
+
+    def test_file_without_data_rows(self):
+        res, message, _ = _convert_text({'AB1.tdt': HEADER})
+        self.assertFalse(res)
+        self.assertIn('no data rows', message)
+
+    def test_row_of_column_names(self):
+        """a row of column names is not taken for a field with two values"""
+        text = HEADER + 'Sample name\tStep\tMoment (mA/m)\tDec\tInc\n' + 'AB1\t' + '\t'.join(STEPS[0]) + '\n'
+        res, message, _ = _convert_text({'AB1.tdt': text})
+        self.assertFalse(res)
+        self.assertIn('data row not understood', message)
+        self.assertNotIn('more than one value', message)
+
+    def test_unknown_moment_units(self):
+        res, message, _ = _convert_text({'AB1.tdt': HEADER + 'AB1\t' + '\t'.join(STEPS[0]) + '\n'},
+                                        moment_units='mT')
+        self.assertFalse(res)
+        self.assertIn('moment_units', message)
+
+    def test_specimen_in_two_files(self):
+        text = HEADER + '\n'.join('AB1\t' + '\t'.join(s) for s in STEPS) + '\n'
+        res, df, printed = _convert_text({'AB1.tdt': text, 'AB1_copy.tdt': text})
+        self.assertTrue(res)
+        self.assertIn('specimen AB1 is also in an earlier file', printed)
+        self.assertEqual(len(df), len(STEPS))
+
+    def test_atrm_in_a_per_m(self):
+        """the ATRM path writes the magnetization in A/m to magn_volume, as the Thellier path does"""
+        steps = ['0.00\t1.0\t10\t40'] + ['600.{}\t{}\t0\t0'.format(k, 0.5 + 0.1 * k) for k in range(7)]
+        text = HEADER + '\n'.join('AB1\t' + s for s in steps) + '\n'
+        res, df, _ = _convert_text({'AB1.tdt': text}, experiment_name='ATRM 6 positions', moment_units='A/m')
+        self.assertTrue(res, df)
+        self.assertTrue('magn_moment' not in df.columns or df['magn_moment'].isna().all())
+        self.assertEqual(list(df['magn_volume'].astype(float)), [1.0] + [0.5 + 0.1 * k for k in range(7)])
+
+
+class TestMeasurementsMethods3TailChecks(unittest.TestCase):
+    """pmag.measurements_methods3 on records whose tail checks the converter has coded."""
+
+    @staticmethod
+    def rec(temperature, code, field, dec=10.):
+        return {'specimen': 'a', 'treat_temp': '%.2f' % (temperature + 273), 'meas_temp': '273',
+                'treat_dc_field': field, 'treat_dc_field_phi': '0', 'treat_dc_field_theta': '90',
+                'treat_ac_field': '0', 'method_codes': code + ':LP-PI-TRM', 'magn_moment': '1e-05',
+                'dir_dec': str(dec), 'dir_inc': '40', 'description': ''}
+
+    def run_mm3(self, records, noave):
+        import contextlib
+        import io
+        with contextlib.redirect_stdout(io.StringIO()):
+            out = pmag.measurements_methods3(records, noave)
+        self.assertFalse(any('_tail_check' in r for r in out))
+        return [(round(float(r['treat_temp']) - 273), r['method_codes'].split(':')[0]) for r in out], out
+
+    def test_tail_check_averaged_with_its_zero_field_step(self):
+        """averaged with the zero-field step before it, the record stays the zero-field step"""
+        F = '4e-05'
+        recs = [self.rec(20, 'LT-NO', '0'), self.rec(100, 'LT-T-I', F), self.rec(100, 'LT-T-Z', '0'),
+                self.rec(100, 'LT-PTRM-MD', '0'), self.rec(200, 'LT-T-I', F), self.rec(200, 'LT-T-Z', '0')]
+        steps, _ = self.run_mm3(recs, noave=False)
+        self.assertIn((100, 'LT-T-Z'), steps)
+        self.assertNotIn((100, 'LT-PTRM-MD'), steps)
+
+    def test_replicate_tail_checks_averaged(self):
+        """two tail checks averaged together are a tail check"""
+        F = '4e-05'
+        recs = [self.rec(20, 'LT-NO', '0'), self.rec(100, 'LT-T-Z', '0'), self.rec(100, 'LT-T-I', F),
+                self.rec(200, 'LT-T-Z', '0'), self.rec(200, 'LT-T-I', F), self.rec(100, 'LT-PTRM-I', F),
+                self.rec(200, 'LT-PTRM-MD', '0'), self.rec(200, 'LT-PTRM-MD', '0', dec=12.),
+                self.rec(300, 'LT-T-Z', '0')]
+        steps, _ = self.run_mm3(recs, noave=False)
+        self.assertEqual(steps.count((200, 'LT-PTRM-MD')), 1)
+
+    def test_tail_check_out_of_sequence_does_not_start_a_pair(self):
+        """in an all in-field-first (IZ) experiment, a tail check after a pTRM check does not make it IZZI"""
+        F = '4e-05'
+        recs = [self.rec(20, 'LT-NO', '0'), self.rec(100, 'LT-T-I', F), self.rec(100, 'LT-T-Z', '0'),
+                self.rec(200, 'LT-T-I', F), self.rec(200, 'LT-T-Z', '0'), self.rec(100, 'LT-PTRM-I', F),
+                self.rec(200, 'LT-PTRM-MD', '0'), self.rec(300, 'LT-T-I', F), self.rec(300, 'LT-T-Z', '0')]
+        steps, out = self.run_mm3(recs, noave=True)
+        self.assertIn((200, 'LT-PTRM-MD'), steps)
+        experiment = out[0]['experiment']
+        self.assertIn('LP-PI-BT-MD', experiment)
+        self.assertNotIn('IZZI', experiment)
+        self.assertFalse(any('LP-PI-TRM-ZI' in r['method_codes'] for r in out))
