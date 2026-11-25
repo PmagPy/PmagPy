@@ -44,7 +44,9 @@ class TestVftbRockmag(unittest.TestCase):
         df = converted('GTX0208B.coe')
         curve = df[['treat_dc_field', 'magn_mass']].astype(float)
         self.assertEqual(curve['treat_dc_field'].iloc[0], 0)
-        experiment, bcr = rockmag.process_backfield_data(curve.copy())
+        # spline smoothing, so that the test does not need the optional statsmodels (LOWESS); Bcr is
+        # the zero crossing of the curve whatever the smoothing
+        experiment, bcr = rockmag.process_backfield_data(curve.copy(), smooth_mode='spline')
         # the zero crossing of the measured curve, by linear interpolation
         field, moment = -curve['treat_dc_field'].values, curve['magn_mass'].values
         k = int(np.flatnonzero(np.diff(np.sign(moment)) != 0)[0])
@@ -53,7 +55,8 @@ class TestVftbRockmag(unittest.TestCase):
         self.assertAlmostEqual(bcr * 1e3, 23.60, places=2)
         self.assertEqual(len(experiment), len(curve) - 1)
         # the same as dropping the first step by hand
-        self.assertEqual(bcr, rockmag.process_backfield_data(curve.copy(), drop_first=True)[1])
+        self.assertEqual(bcr, rockmag.process_backfield_data(curve.copy(), smooth_mode='spline',
+                                                             drop_first=True)[1])
 
     def test_hysteresis_loop_with_initial_curve(self):
         """the initial curve before the loop is left out, and the loop is processed"""
