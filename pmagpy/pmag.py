@@ -2724,8 +2724,9 @@ def domean(data, start, end, calculation_type):
     'specimen_dang' is not returned for anchored lines. A line with the
     origin ('DE-BFL-O') is a free line fit to the selected steps and the
     origin, which is added as a point: the line passes through the centre of
-    mass of the N steps and the origin, the mean of N + 1 points, and the
-    origin counts in 'specimen_n'. A vector mean
+    mass of the N steps and the origin, the mean of N + 1 points.
+    'specimen_n' is the number of steps, N: the origin is not a
+    measurement, and the method code says it was used. A vector mean
     ('DE-VM') is the direction of the sum of the selected steps, including
     their intensities; it has no MAD, and its 'specimen_dang' is -1.
     """
@@ -2909,8 +2910,9 @@ def domean(data, start, end, calculation_type):
     mpars["specimen_dec"] = Dir[0]
     mpars["specimen_inc"] = Dir[1]
     mpars["specimen_mad"] = MAD
-    # mpars["specimen_n"]=int(Nrec)
-    mpars["specimen_n"] = len(X)
+    # the number of steps in the fit: for DE-BFL-O the origin is not a measurement (its use is
+    # given by the method code)
+    mpars["specimen_n"] = len(fdata)
     mpars["specimen_dang"] = dang[0]
     mpars["measurement_step_min"] = indata[start0][0]
     mpars["measurement_step_max"] = indata[end0][0]

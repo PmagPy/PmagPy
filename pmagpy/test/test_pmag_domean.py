@@ -354,12 +354,12 @@ class TestDomeanBFLO:
         assert self._axis_angle(mpars['specimen_dec'], mpars['specimen_inc'], 247.8, -28.8) < 0.1
         assert abs(mpars['specimen_mad'] - 18.6) < 0.06
 
-    def test_n_includes_origin_point(self):
-        """specimen_n includes the added origin point."""
+    def test_n_counts_the_steps_not_the_origin(self):
+        """specimen_n (dir_n_measurements) is the number of steps; the origin is not a measurement."""
         data = _make_datablock([0, 0, 0], [45, 45, 45], [1.0, 0.5, 0.1])
         mpars = pmag.domean(data, 0, 2, 'DE-BFL-O')
-        # DE-BFL-O adds origin as extra point, so n = 3 data + 1 origin = 4
-        assert mpars['specimen_n'] == 4
+        assert mpars['specimen_n'] == 3
+        assert mpars['specimen_n'] == pmag.domean(data, 0, 2, 'DE-BFL')['specimen_n']
 
 
 # ---------------------------------------------------------------------------
