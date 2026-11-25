@@ -13594,6 +13594,18 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                 # (e.g. "45. GTX02061"); a file without tabs is split on spaces
                 if '\t' in line:
                     this_line = [field.strip() for field in line.strip('\r\n').split('\t') if field.strip()]
+                    # a step, moment or direction field with a space in it holds two values (e.g. a
+                    # moment written "4.116564E-02 1"); splitting it on the space would shift the
+                    # declination and inclination by one column, so the file is not converted
+                    if line_number != 0 and len(this_line) >= 5:
+                        for column, field in zip(('treatment', 'moment', 'declination', 'inclination'),
+                                                 this_line[1:5]):
+                            if len(field.split()) > 1:
+                                message = ('{}: the {} field of this data row holds more than one value ({!r}), '
+                                           'so its values cannot be told apart: {}').format(
+                                               files, column, field, line.strip())
+                                print(message)
+                                return False, message
                 else:
                     this_line = line.strip('\n').split()
 

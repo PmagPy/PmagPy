@@ -217,3 +217,26 @@ class TestTdtGarrotxa(unittest.TestCase):
             self.assertAlmostEqual(pars['int_b_beta'], beta, delta=0.0005)
             self.assertAlmostEqual(pars['int_f'], f, delta=0.005)
             self.assertAlmostEqual(pars['int_q'], q, delta=0.005)
+
+
+class TestTdtFieldWithTwoValues(unittest.TestCase):
+    """
+    BOA3A.tdt (Nawrocki, 2023, CC BY 4.0): tab-separated, and the moment field
+    of some rows holds two values ("4.116564E-02 1"). Split on spaces the
+    declination would be 1 and the inclination the declination, so the
+    converter stops with a message naming the field.
+    """
+
+    def test_field_with_two_values_stops_the_conversion(self):
+        import shutil
+        import tempfile
+        out = tempfile.mkdtemp()
+        try:
+            input_dir = os.path.join(WD, 'data_files', 'convert_2_magic', 'tdt_magic', 'nawrocki')
+            res, message = convert.tdt(input_dir, output_dir_path=out)
+            self.assertFalse(res)
+            self.assertIn('BOA3A.tdt: the moment field of this data row holds more than one value', message)
+            self.assertIn("'4.116564E-02 1'", message)
+            self.assertFalse(os.path.exists(os.path.join(out, 'measurements.txt')))
+        finally:
+            shutil.rmtree(out)
