@@ -91,10 +91,24 @@ class TestVftbMagic(unittest.TestCase):
         # heating to the highest temperature (709 C, the 290th of 577 rows), then cooling
         self.assertEqual(df.iloc[0]['method_codes'], 'LP-IMT:LP-MW')
         self.assertEqual(df.iloc[-1]['method_codes'], 'LP-IMT:LP-MC')
-        self.assertAlmostEqual(float(df['treat_temp'].astype(float).max()), 709 + 273)
-        self.assertEqual(int(df['treat_temp'].astype(float).values.argmax()), 289)
-        self.assertAlmostEqual(float(df.iloc[0]['treat_dc_field']), 84e-4)
+        # measured at temperature in the field: meas_temp and meas_field_dc
+        self.assertAlmostEqual(float(df['meas_temp'].astype(float).max()), 709 + 273)
+        self.assertEqual(int(df['meas_temp'].astype(float).values.argmax()), 289)
+        self.assertAlmostEqual(float(df.iloc[0]['meas_field_dc']), 84e-4)
+        self.assertTrue('treat_temp' not in df.columns or df['treat_temp'].isna().all())
         self.assertAlmostEqual(float(df.iloc[0]['magn_mass']), 0.1803644476)
+
+    def test_vftb_thermal_stability_cycle(self):
+        """a partial heating and cooling cycle (La Garrotxa, GTX0308B_500.rmp, see garrotxa/README.md)"""
+        self.input_dir = os.path.join(self.input_dir, 'garrotxa')
+        df = self.convert('GTX0308B_500.rmp')
+        temperature = df['meas_temp'].astype(float).values
+        self.assertEqual(temperature.max(), 499 + 273)
+        self.assertEqual(df.iloc[0]['method_codes'], 'LP-IMT:LP-MW')
+        self.assertEqual(df.iloc[-1]['method_codes'], 'LP-IMT:LP-MC')
+        self.assertAlmostEqual(float(df.iloc[0]['meas_field_dc']), 347e-4)
+        self.assertEqual(set(df['treat_dc_field'].astype(float)), {0})
+        self.assertTrue('treat_temp' not in df.columns or df['treat_temp'].isna().all())
 
     def test_vftb_measurement_names(self):
         # every measurement has a name, from its experiment and step number
