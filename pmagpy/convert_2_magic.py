@@ -1028,9 +1028,12 @@ def _2g_tab_read(mag_file_path):
     The first line names the columns, which depend on the export settings of
     the laboratory. Rows with another number of fields than the header are
     not read: an interrupted measurement (repeated on the next row) has fewer
-    fields, and two rows written on one line have more. Some exports repeat a
-    column (e.g. X corr); the first is read, and a repeat with other values is
-    reported.
+    fields. Two rows written on one line, with the line break between them
+    missing, have one field fewer than twice the header, and the field where
+    they meet ends with the Sample ID that begins the line; they are split
+    into their two rows. Other lines with more fields are not read. Some
+    exports repeat a column (e.g. X corr); the first is read, and a repeat
+    with other values is reported.
 
     Parameters
     ----------
@@ -1045,6 +1048,7 @@ def _2g_tab_read(mag_file_path):
     bad_lines : list of (line number, number of fields, number of fields of
         the header), the rows not read
     repeated : list of str, the columns that are repeated with other values
+    split_lines : list of int, the line numbers of lines read as two rows
     """
     with open(mag_file_path, 'rb') as f:
         text = f.read().decode('latin-1')
@@ -1055,21 +1059,50 @@ def _2g_tab_read(mag_file_path):
     first = {}
     for k, name in enumerate(header):
         first.setdefault(name, k)
-    rows, bad_lines, repeated = [], [], []
+    rows, bad_lines, repeated, split_lines = [], [], [], []
+    n = len(header)
     for number, line in enumerate(lines[1:], start=2):
         if not line.strip():
             continue
         fields = line.split('\t')
-        if len(fields) != len(header):
-            bad_lines.append((number, len(fields), len(header)))
+        parts = [fields]
+        if len(fields) == 2 * n - 1 and header[0] == 'Sample ID':
+            name, joined = fields[0], fields[n - 1]
+            if name.strip() and joined.endswith(name) and len(joined) > len(name):
+                parts = [fields[:n - 1] + [joined[:-len(name)]], [name] + fields[n:]]
+                split_lines.append(number)
+        if any(len(part) != n for part in parts):
+            bad_lines.append((number, len(fields), n))
             continue
-        row = {name: fields[k].strip() for name, k in first.items()}
-        for k, name in enumerate(header):
-            if k != first[name] and fields[k].strip() != row[name] and name not in repeated:
-                repeated.append(name)
-        row['line'] = number
-        rows.append(row)
-    return list(first), rows, bad_lines, repeated
+        for part in parts:
+            row = {name: part[k].strip() for name, k in first.items()}
+            for k, name in enumerate(header):
+                if k != first[name] and part[k].strip() != row[name] and name not in repeated:
+                    repeated.append(name)
+            row['line'] = number
+            rows.append(row)
+    return list(first), rows, bad_lines, repeated, split_lines
+
+
+def _2g_tab_times(rows):
+    """
+    The Sample Timestamp of each row as a datetime, or None if the rows
+    cannot all be read with one date format. The 2G software writes the date
+    in the format of the computer's settings (e.g. 07/22/20 1956 or 20/12/13
+    2137), so month/day/year, year/month/day and day/month/year are tried,
+    and one is used only if it is the only one that reads every row.
+    """
+    import datetime
+    stamps = [row.get('Sample Timestamp', '').strip() for row in rows]
+    if not all(stamps):
+        return None
+    readings = []
+    for fmt in ('%m/%d/%y %H%M', '%y/%m/%d %H%M', '%d/%m/%y %H%M'):
+        try:
+            readings.append([datetime.datetime.strptime(stamp, fmt) for stamp in stamps])
+        except ValueError:
+            continue
+    return readings[0] if len(readings) == 1 else None
 
 
 def _2g_tab_treatment(row):
@@ -1118,7 +1151,8 @@ def _2g_tab(mag_file="", dir_path=".", input_dir_path="",
             meas_file="measurements.txt", spec_file="specimens.txt",
             samp_file="samples.txt", site_file="sites.txt", loc_file="locations.txt",
             specnum=0, samp_con='2', location="unknown", lat="", lon="",
-            volume="", noave=True, meth_code="", instrument="", user="", tolerance=0.5):
+            volume="", noave=True, meth_code="", instrument="", user="", tolerance=0.5,
+            untreated="skip"):
     """
     Convert tab-delimited exports (.DAT) of the 2G Enterprises magnetometer
     software to MagIC format files.
@@ -1179,6 +1213,13 @@ def _2g_tab(mag_file="", dir_path=".", input_dir_path="",
         the same direction calculated by the converter (from the X/Y/Z corr
         components, or from the converted orientation and bedding) before a
         warning is printed, default 0.5
+    untreated : str
+        what to do with a row that has a direction but no treatment value (no
+        temperature or field, e.g. Temp C NA): "skip" (default) leaves it out
+        with a warning; "next" gives it the treatment of the next row of the
+        specimen when that row is a thermal or alternating field step, as for
+        a measurement made after the heating or demagnetization of that step
+        before its value was entered; the description says so
 
     Returns
     ---------
@@ -1202,13 +1243,17 @@ def _2g_tab(mag_file="", dir_path=".", input_dir_path="",
     dir_dec and dir_inc are the Declination and Inclination: Unrotated
     columns (specimen coordinates). A row whose direction differs from that
     of its X/Y/Z corr components by more than tolerance, or whose Intensity
-    is not the moment divided by the volume, is reported, and the
-    description of the measurement says so.
+    is not the moment of the components divided by the volume (as in the
+    specimen's other rows), is reported. Its Declination, Inclination and
+    Intensity are entered as one set (the moment is the Intensity times the
+    volume implied by the specimen's other rows), and the description gives
+    the direction and moment of the components.
 
     Rows:
         A row with another number of fields than the header (an interrupted
-        measurement that was repeated on the next row, or two rows written on
-        one line) is left out, with a warning giving its line number. Rows
+        measurement that was repeated on the next row) is left out, with a
+        warning giving its line number. Two rows written on one line, with
+        the line break missing, are split, with a warning. Rows
         without a direction (e.g. susceptibility rows written between the
         thermal steps) are left out and counted. Long-core (continuous)
         measurements are not converted.
@@ -1216,8 +1261,9 @@ def _2g_tab(mag_file="", dir_path=".", input_dir_path="",
         Names in one file that differ only in case (SYJLCk-4 and SYJLCK-4)
         are one specimen, with the first spelling, and a warning. A specimen
         in several files (e.g. measured in two sessions) is converted from
-        all of them, in the order of the files given, with a warning; give
-        the files in the order of the measurements.
+        all of them, with a warning: its rows in the order of their Sample
+        Timestamp when every row has one in a date format that can be read
+        unambiguously, and otherwise in the order of the files given.
 
     Treatments:
         The Treatment Type column, when the file has one, gives the kind of
@@ -1228,12 +1274,14 @@ def _2g_tab(mag_file="", dir_path=".", input_dir_path="",
         thermal step. A row at 0 Oe, at 30 degrees C or less (the 2G
         software writes the room temperature, e.g. 20 or 25, for the NRM),
         or with Treatment Type None and no field, is the NRM (LT-NO). Rows
-        with IRM or ARM treatments, with no temperature or field (NA; e.g. a
-        measurement whose temperature was not entered, between two thermal
-        steps), with a temperature below 0 C, or with both a field and a
-        temperature are left out with a warning. The experiment of a specimen
+        with IRM or ARM treatments, with a temperature below 0 C, or with
+        both a field and a temperature are left out with a warning, and so
+        are rows with no temperature or field (NA; e.g. a measurement whose
+        temperature was not entered, between two thermal steps) unless
+        untreated is "next". The experiment of a specimen
         is LP-DIR-T, LP-DIR-AF, or both. The Sample Timestamp is not
-        converted (its date format depends on the computer's settings).
+        converted (its date format depends on the computer's settings); it
+        orders the rows of a specimen in several files.
 
     Orientation:
         Sample Azimiuth and Sample Dip are converted with convention 5 of the
@@ -1276,6 +1324,10 @@ def _2g_tab(mag_file="", dir_path=".", input_dir_path="",
         print(message)
         return False, message
     default_volume = _2g_tab_number(volume)
+    if untreated not in ('skip', 'next'):
+        message = 'untreated must be "skip" or "next", not {}'.format(untreated)
+        print(message)
+        return False, message
 
     # input files
     if isinstance(mag_file, (list, tuple)):
@@ -1296,7 +1348,7 @@ def _2g_tab(mag_file="", dir_path=".", input_dir_path="",
     for path in mag_files:
         file_name = os.path.basename(path)
         try:
-            columns, rows, bad_lines, repeated = _2g_tab_read(path)
+            columns, rows, bad_lines, repeated, split_lines = _2g_tab_read(path)
         except (IOError, ValueError) as ex:
             message = '{}: {}'.format(file_name, ex)
             print(message)
@@ -1320,6 +1372,9 @@ def _2g_tab(mag_file="", dir_path=".", input_dir_path="",
             print('-W- {}: line {} has {} fields, not {} as the header ({}); it is left out'.format(
                 file_name, number, n_fields, n_header,
                 'an interrupted measurement?' if n_fields < n_header else 'two rows on one line?'))
+        for number in split_lines:
+            print('-W- {}: line {} holds two rows, with the line break between them missing; it is read as '
+                  'two rows'.format(file_name, number))
         for name in repeated:
             print('-W- {}: the column {} is repeated with other values; the first is read'.format(
                 file_name, name))
@@ -1364,8 +1419,15 @@ def _2g_tab(mag_file="", dir_path=".", input_dir_path="",
             if row['file'] not in files:
                 files.append(row['file'])
         if len(files) > 1:
-            print('-W- specimen {} is in {} files ({}); the rows of all are converted, in that order'.format(
-                specimen, len(files), ', '.join(files)))
+            times = _2g_tab_times(rows)
+            if times:
+                rows = [row for _, k, row in sorted((t, k, row) for k, (t, row) in enumerate(zip(times, rows)))]
+                print('-W- specimen {} is in {} files ({}); the rows of all are converted, in the order of '
+                      'their Sample Timestamp'.format(specimen, len(files), ', '.join(files)))
+            else:
+                print('-W- specimen {} is in {} files ({}); the rows of all are converted, in that order (the '
+                      'Sample Timestamp cannot be read unambiguously)'.format(specimen, len(files),
+                                                                             ', '.join(files)))
         sample = specimen[:specnum] if specnum != 0 else specimen
         site = pmag.parse_site(sample, samp_con, Z)
 
@@ -1434,8 +1496,18 @@ def _2g_tab(mag_file="", dir_path=".", input_dir_path="",
 
         # measurements
         records, off_direction, off_intensity, off_geo, off_tilt = [], [], [], [], []
-        for row in rows:
-            kind, value = _2g_tab_treatment(row)
+        treatments = [_2g_tab_treatment(row) for row in rows]
+        for k, row in enumerate(rows):
+            kind, value = treatments[k]
+            untreated_note = None
+            if kind == 'skip' and value.startswith(('no treatment value', 'no temperature')) and untreated == 'next':
+                following = treatments[k + 1] if k + 1 < len(rows) else ('skip', '')
+                if following[0] in ('T', 'AF'):
+                    kind, value = following
+                    untreated_note = ('no temperature or field in the file; entered with the treatment of the '
+                                      'next row (untreated="next")')
+                    print('-W- {}: line {} of {} has no treatment value; it is given that of the next row'.format(
+                        specimen, row['line'], row['file']))
             if kind == 'skip':
                 skipped.setdefault((row['file'], value), 0)
                 skipped[(row['file'], value)] += 1
@@ -1446,14 +1518,13 @@ def _2g_tab(mag_file="", dir_path=".", input_dir_path="",
             # the Intensity column is the moment divided by the volume set in the software (1 if none)
             row_volume = _2g_tab_number(row.get('Volume', '')) or 1.
             corr = [_2g_tab_number(row.get(axis + ' corr', '')) for axis in 'XYZ']
-            notes = []
+            notes = [untreated_note] if untreated_note else []
+            off = False
             if all(c is not None for c in corr):
                 moment = math.sqrt(sum(c ** 2 for c in corr))  # emu
                 if moment > 0:
                     off_direction.append(pmag.angle([dec, inc], pmag.cart2dir(corr)[:2])[0])
-                    if off_direction[-1] > tolerance:
-                        notes.append('the direction of the X/Y/Z corr components is {:.2f} degrees from the '
-                                     'Declination and Inclination: Unrotated columns'.format(off_direction[-1]))
+                    off = off_direction[-1] > tolerance
                 if intensity:
                     off_intensity.append((moment / intensity, row_volume))
             elif intensity is not None and _2g_tab_number(row.get('Volume', '')):
@@ -1491,7 +1562,9 @@ def _2g_tab(mag_file="", dir_path=".", input_dir_path="",
             if notes:
                 MeasRec['description'] = '; '.join(notes)
             if all(c is not None for c in corr) and intensity:
-                MeasRec['implied_volume'] = moment / intensity  # checked below, then removed
+                # checked below against the specimen's other rows, then removed
+                MeasRec.update(implied_volume=moment / intensity, intensity=intensity, corr=corr,
+                               corr_moment=moment, off_direction=off)
             if instrument:
                 MeasRec['instrument_codes'] = instrument
             if user:
@@ -1508,18 +1581,29 @@ def _2g_tab(mag_file="", dir_path=".", input_dir_path="",
         if off_volume:
             print('-W- {}: in {} row(s) the Intensity column is the moment of the X/Y/Z corr components '
                   'divided by about {:.3g} cm3, not by the volume of the file ({} cm3; 1 if none); '
-                  'magn_moment is from the components'.format(
+                  'these rows are entered with the Intensity column'.format(
                       specimen, len(off_volume), np.median([v[0] for v in off_volume]),
                       '%g' % off_volume[0][1]))
-        if off_intensity:
-            usual = np.median([implied for implied, expected in off_intensity])
-            for MeasRec in records:
-                implied = MeasRec.pop('implied_volume', None)
-                if implied is not None and abs(implied / usual - 1) > 0.01:
-                    note = ('the moment of the X/Y/Z corr components is {:.3f} times that of the Intensity '
-                            'column'.format(implied / usual))
-                    MeasRec['description'] = '; '.join(
-                        [x for x in (MeasRec.get('description'), note) if x])
+        usual = np.median([implied for implied, expected in off_intensity]) if off_intensity else None
+        for MeasRec in records:
+            implied = MeasRec.pop('implied_volume', None)
+            intensity = MeasRec.pop('intensity', None)
+            corr = MeasRec.pop('corr', None)
+            corr_moment = MeasRec.pop('corr_moment', None)
+            off = MeasRec.pop('off_direction', False)
+            if implied is None or not (off or abs(implied / usual - 1) > 0.01):
+                continue
+            # the Declination, Inclination and Intensity columns are entered as one set, and the components
+            # are given in the description
+            MeasRec['magn_moment'] = '%.4e' % (intensity * usual * 1e-3)  # Am^2 from emu
+            corr_dec, corr_inc = pmag.cart2dir(corr)[:2]
+            note = ('the X/Y/Z corr components give {:.2f}/{:.2f} and {:.4e} Am2, {:.2f} degrees from the '
+                    'Declination and Inclination columns and {:.3f} times the moment of the Intensity column, '
+                    'which are entered'.format(
+                        corr_dec, corr_inc, corr_moment * 1e-3,
+                        pmag.angle([float(MeasRec['dir_dec']), float(MeasRec['dir_inc'])], [corr_dec, corr_inc])[0],
+                        implied / usual))
+            MeasRec['description'] = '; '.join([x for x in (MeasRec.get('description'), note) if x])
         if off_geo and max(off_geo) > tolerance:
             print('-W- {}: the geographic directions calculated from the sample orientation differ from the '
                   'Sample Rotated columns by up to {:.2f} degrees'.format(specimen, max(off_geo)))

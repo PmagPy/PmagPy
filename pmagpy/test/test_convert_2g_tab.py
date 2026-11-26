@@ -48,11 +48,21 @@ def run(tmp_path, mag_file, input_dir_path=HAN, **kwargs):
 
 
 def raw_rows(path):
-    """the rows of a 2G export with as many fields as the header, as dicts"""
+    """the rows of a 2G export, as dicts; a line holding two rows (one field fewer than twice the header,
+    the second Sample ID joined to the last field of the first row) is split"""
     with open(path, 'rb') as f:
         lines = [line for line in f.read().decode('latin-1').splitlines() if line.strip()]
     head = lines[0].split('\t')
-    return [dict(zip(head, line.split('\t'))) for line in lines[1:] if len(line.split('\t')) == len(head)]
+    rows = []
+    for line in lines[1:]:
+        fields = line.split('\t')
+        if len(fields) == len(head):
+            rows.append(dict(zip(head, fields)))
+        elif len(fields) == 2 * len(head) - 1:
+            name = fields[0]
+            rows.append(dict(zip(head, fields[:len(head) - 1] + [fields[len(head) - 1][:-len(name)]])))
+            rows.append(dict(zip(head, [name] + fields[len(head):])))
+    return rows
 
 
 def write_export(path, columns, rows):
@@ -70,8 +80,8 @@ def test_units_directions_and_method_codes(tmp_path):
     assert ok, message
     meas = read_table(os.path.join(out, 'measurements.txt'))
     raw = raw_rows(os.path.join(HAN, 'SYJLC3-29.DAT'))
-    # 25 rows, one of which holds two steps on one line and is left out
-    assert len(raw) == 24 and len(meas) == 24
+    # 25 lines, one of which holds two steps (585 and 600 C) with the line break missing: 26 rows
+    assert len(raw) == 26 and len(meas) == 26
     assert list(meas.specimen.unique()) == ['SYJLC3-29']
     for (_, m), r in zip(meas.iterrows(), raw):
         corr = [float(r[axis + ' corr']) for axis in 'XYZ']
@@ -92,12 +102,14 @@ def test_units_directions_and_method_codes(tmp_path):
             assert m.treat_temp == pytest.approx(temp + 273)
         assert m.treat_ac_field == 0
     assert (meas.method_codes == 'LT-NO:LP-DIR-T').sum() == 2
-    # the two steps on line 17 are left out, with a warning
-    assert 'line 17 has 23 fields, not 12 as the header (two rows on one line?)' in printed
-    assert not set(meas.treat_temp.round()) & {585 + 273, 600 + 273}
+    # the two steps on line 17 are split, with a warning
+    assert 'line 17 holds two rows, with the line break between them missing' in printed
+    assert (meas.treat_temp.round() == 585 + 273).sum() == 1 and (meas.treat_temp.round() == 600 + 273).sum() == 1
+    split = meas[meas.treat_temp.round().isin([585 + 273, 600 + 273])]
+    assert list(split.dir_dec) == pytest.approx([258.18, 262.86])
     # repeated steps are kept (noave=True): three rows at 80 C
     assert (meas.treat_temp.round() == 353).sum() == 3
-    assert list(meas.treat_step_num) == list(range(1, 25))
+    assert list(meas.treat_step_num) == list(range(1, 27))
     # no volume, so no magn_volume
     assert 'magn_volume' not in meas.columns or meas.magn_volume.isnull().all()
     spec = read_table(os.path.join(out, 'specimens.txt'))
@@ -135,17 +147,37 @@ def test_specimen_in_two_files_and_row_without_temperature(tmp_path):
     ok, message, printed, out = run(tmp_path, files)
     assert ok, message
     assert 'specimen SYTJG5-179 is in 2 files (SYTJG5-179.DAT, SYTJG5-179 .DAT)' in printed
+    assert 'in the order of their Sample Timestamp' in printed
     # the row with Temp C NA between 350 and 400 C is not taken for an NRM
     assert 'SYTJG5-179.DAT: 1 row(s) with no treatment value (no temperature or field) left out' in printed
     meas = read_table(os.path.join(out, 'measurements.txt'))
     assert list(meas.specimen.unique()) == ['SYTJG5-179']  # without the trailing space
     temps = list((meas.treat_temp - 273).round())
-    # the rows of the files in the order given: the first file to 400 C, the second from its NRM
-    assert temps[:9] == [0, 80, 150, 200, 250, 300, 350, 400, 0]
+    # in the order of the timestamps: the NRM of the second file (07/23/20) after that of the first (07/22/20),
+    # and 450 C (07/31/20) after 400 C (07/29/20)
+    assert temps[:9] == [0, 0, 80, 150, 200, 250, 300, 350, 400]
     assert temps[9] == 450 and temps[-1] == 690
     assert len(meas) == 8 + 16
     assert (meas.method_codes == 'LT-NO:LP-DIR-T').sum() == 2
     assert list(meas.treat_step_num) == list(range(1, 25))
+
+
+def test_row_without_temperature_given_that_of_the_next(tmp_path):
+    files = ['SYTJG5-179.DAT', 'SYTJG5-179 .DAT']
+    ok, message, printed, out = run(tmp_path, files, untreated='next')
+    assert ok, message
+    assert 'has no treatment value; it is given that of the next row' in printed
+    meas = read_table(os.path.join(out, 'measurements.txt'))
+    at_400 = meas[meas.treat_temp.round() == 400 + 273]
+    # the row of 07/29/20 2032 (Temp C NA), 11 minutes before the 400 C row, measured after the 400 C heating
+    assert len(at_400) == 2 and len(meas) == 25
+    assert 'no temperature or field in the file' in at_400.description.iloc[0]
+    assert list(at_400.method_codes) == ['LT-T-Z:LP-DIR-T'] * 2
+
+
+def test_untreated_option_checked(tmp_path):
+    ok, message, printed, out = run(tmp_path, 'SYJLC3-29.DAT', untreated='first')
+    assert not ok and 'untreated must be' in message
 
 
 def test_components_that_disagree_with_the_directions(tmp_path):
@@ -154,10 +186,14 @@ def test_components_that_disagree_with_the_directions(tmp_path):
     assert 'SYDBG4g-2-1: 1 row(s) have a direction more than 0.5 degrees from that of their X/Y/Z corr' in printed
     meas = read_table(os.path.join(out, 'measurements.txt'))
     row = meas[meas.treat_temp.round() == 620 + 273].iloc[0]
-    # the direction is the one in the file; the description says how far the components are from it
+    raw = [r for r in raw_rows(os.path.join(HAN, 'SYDBG4G-2-1.DAT')) if r['Temp C'] == '620.00'][0]
+    # the Declination, Inclination and Intensity columns as one set; the components in the description
     assert row.dir_dec == pytest.approx(231.88) and row.dir_inc == pytest.approx(-71.02)
-    assert 'the direction of the X/Y/Z corr components is 26.05 degrees' in row.description
-    assert 'times that of the Intensity column' in row.description
+    assert row.magn_moment == pytest.approx(float(raw['Intensity']) * 1e-3, rel=1e-3)
+    corr = [float(raw[axis + ' corr']) for axis in 'XYZ']
+    corr_dec, corr_inc, corr_moment = pmag.cart2dir(corr)
+    assert 'the X/Y/Z corr components give {:.2f}/{:.2f}'.format(corr_dec, corr_inc) in row.description
+    assert '26.05 degrees from the Declination and Inclination columns' in row.description
     others = meas[meas.treat_temp.round() != 620 + 273]
     assert 'description' not in meas.columns or others.description.isnull().all()
 
@@ -167,7 +203,7 @@ def test_average_repeats(tmp_path):
     assert ok, message
     meas = read_table(os.path.join(out, 'measurements.txt'))
     # two NRM rows and three rows at 80 C are each averaged
-    assert len(meas) == 24 - 1 - 2
+    assert len(meas) == 26 - 1 - 2
     raw = raw_rows(os.path.join(HAN, 'SYJLC3-29.DAT'))
     at_80 = [r for r in raw if r['Temp C'] == '80.00']
     mean = np.mean([[float(r[axis + ' corr']) for axis in 'XYZ'] for r in at_80], axis=0)

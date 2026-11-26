@@ -6,11 +6,11 @@ The files are unmodified copies from the archive (folder `Thermal Demag RawData/
 
 | File | What it tests |
 | --- | --- |
-| `SYJLC3-29.DAT` | line 17 holds two rows (585 and 600 °C) on one line; two NRM rows and three rows at 80 °C |
+| `SYJLC3-29.DAT` | line 17 holds two rows (585 and 600 °C) with the line break between them missing, which are split; two NRM rows and three rows at 80 °C |
 | `SYTJG5-205.DAT` | line 4 is an interrupted measurement (9 of 12 fields), repeated on line 5 |
 | `SYJLCK-4.DAT` | the specimen is named `SYJLCk-4` in some rows and `SYJLCK-4` in others |
-| `SYTJG5-179.DAT`, `SYTJG5-179 .DAT` | one specimen in two files (to 400 °C, and from 450 °C; `Sample ID` with a trailing space in the second); a row with `Temp C` NA between 350 and 400 °C |
-| `SYDBG4G-2-1.DAT` | the 620 °C row (line 16, a run of 07/20/20) whose declination, inclination and intensity are not those of its `X/Y/Z corr` components (26° apart) |
+| `SYTJG5-179.DAT`, `SYTJG5-179 .DAT` | one specimen in two files (to 400 °C, and an NRM and 450 °C on; `Sample ID` with a trailing space in the second), ordered by their timestamps; a row with `Temp C` NA, 11 minutes before the 400 °C row (`untreated`) |
+| `SYDBG4G-2-1.DAT` | the 620 °C row (line 16, a run of 07/20/20) whose declination, inclination and intensity are not those of its `X/Y/Z corr` components (26° apart): the columns are entered as one set |
 
 ## Source
 
