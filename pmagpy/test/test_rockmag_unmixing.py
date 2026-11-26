@@ -1143,17 +1143,30 @@ class TestBayesianUnmixing:
     def test_spectrum_space_recovers_truth(self):
         """space='spectrum' fits the finite-difference spectrum and should
         recover the same synthetic components as the curve-space fit, with no
-        offset parameter."""
+        offset parameter.
+
+        Differencing amplifies the noise, and with the 50 live points of
+        FAST_BAYES the sampler often misses the broad component: it parks one
+        component outside the data, or fits the broad one too wide and centred
+        above the narrow one, depending on the seed and the dynesty version.
+        With 150 live points dynesty 3.2 found both components for each of
+        40 seeds tried."""
         x, curve = synthetic_curve(noise=0.003, n=BAYES_N)
         result = rmag.unmix_coercivity_bayes(x, curve, n_components=2,
                                              space='spectrum', random_seed=6,
-                                             **FAST_BAYES)
+                                             nlive=150, dlogz=1.0)
         assert result['space'] == 'spectrum'
         assert result['offset'] == 0.0
-        params = result['params'].sort_values('location')
-        truth = TWO_COMPONENT_TRUTH.sort_values('location')
+        # tell the components apart by width, not by location: a missed broad
+        # component can sit above the narrow one
+        params = result['params'].sort_values('dp')
+        truth = TWO_COMPONENT_TRUTH.sort_values('dp')
+        assert params['location'].iloc[0] == pytest.approx(
+            truth['location'].iloc[0], abs=0.05)
         assert params['location'].iloc[1] == pytest.approx(
-            truth['location'].iloc[1], abs=0.15)
+            truth['location'].iloc[1], abs=0.25)
+        assert params['proportion'].iloc[0] == pytest.approx(
+            truth['contribution'].iloc[0], abs=0.12)
         assert result['params']['proportion'].sum() == pytest.approx(1.0)
         # the fitted spectrum data are the finite differences (n-1 points)
         assert len(result['x']) == BAYES_N - 1
