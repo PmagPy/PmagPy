@@ -991,6 +991,10 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
         TEXT="Number of measurement orientations (default=8)"
         self.bSizer9 = pw.labeled_text_field(pnl, TEXT)
 
+        #---sizer 10 ----
+        TEXT="Instrument code (optional, e.g. LAB-instrument):"
+        self.bSizer10 = pw.labeled_text_field(pnl, TEXT)
+
         #---buttons ---
         hboxok = pw.btn_panel(self, pnl)
 
@@ -1007,6 +1011,7 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
         vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer9, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer10, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.AddSpacer(10)
         vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
@@ -1092,7 +1097,12 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
             except ValueError:
                 pw.simple_warning("value for number of measured orienations must be a positive integer")
 
-        COMMAND = "cit_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} -Fsp {} -Fsa {} -Fsi {} -Flo {} {} {} {} -mno {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, ID, spec_outfile, samp_outfile, site_outfile, loc_outfile, replicate, dc_flag, dc_params, meas_n_orient)
+        instrument = self.bSizer10.return_value()
+        if instrument:
+            options_dict['instrument'] = instrument
+            instrument = "-inst " + instrument
+
+        COMMAND = "cit_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} -Fsp {} -Fsa {} -Fsi {} -Flo {} {} {} {} -mno {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, ID, spec_outfile, samp_outfile, site_outfile, loc_outfile, replicate, dc_flag, dc_params, meas_n_orient, instrument)
         # to run as module:
         program_ran, error_message = convert.cit(**options_dict)
         if program_ran:

@@ -2231,18 +2231,18 @@ class MagicDataFrame(object):
         else:
             print('-I- writing {} records to {}'.format(self.dtype, fname))
             mode = "w"
-        f = open(fname, mode)
+        # newline='' and a "\n" only body: on Windows pandas ends rows with
+        # "\r\n", which text mode would turn into "\r\r\n" (blank rows when read back)
+        f = open(fname, mode, newline='')
         if append:
             header = False
             if multi_type:
                 header = True
                 f.write('tab\t{}\n'.format(self.dtype))
-            f.flush()
-            df.to_csv(f, sep="\t", header=header, index=False, mode='a')
+            f.write(df.to_csv(sep="\t", header=header, index=False).replace('\r\n', '\n'))
         else:
             f.write('tab\t{}\n'.format(self.dtype))
-            f.flush()
-            df.to_csv(f, sep="\t", header=True, index=False, mode='a')
+            f.write(df.to_csv(sep="\t", header=True, index=False).replace('\r\n', '\n'))
         print('-I- {} records written to {} file'.format(len(df), self.dtype))
         f.close()
         return fname

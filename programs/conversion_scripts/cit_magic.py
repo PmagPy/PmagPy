@@ -34,6 +34,7 @@ OPTIONS
     -dc B PHI THETA: dc lab field (in microTesla), phi,and theta (in degrees) must be spaced after flag (i.e -dc 30 0 -90)
     -ac B : peak AF field (in mT) for ARM acquisition, default is none
     -mno: specify measurement orientation number (meas_n_orient in data model 3.0) (default = 8)
+    -inst CODE: instrument code (e.g. LAB-instrument) for instrument_codes, default is blank
 
 INPUT
     Best to put separate experiments (all AF, thermal, thellier, trm aquisition, Shaw, etc.)
@@ -96,8 +97,6 @@ def main():
     if '-mcd' in sys.argv:
         ind = sys.argv.index("-mcd")
         kwargs['methods'] = sys.argv[ind+1]
-    else:
-        kwargs['methods'] = 'SO-MAG'
     if '-spc' in sys.argv:
         ind = sys.argv.index("-spc")
         kwargs['specnum'] = sys.argv[ind+1]
@@ -127,6 +126,9 @@ def main():
     if '-mno' in sys.argv:
         ind = sys.argv.index('-mno')
         kwargs['meas_n_orient'] = sys.argv[ind+1]
+    if '-inst' in sys.argv:
+        ind = sys.argv.index('-inst')
+        kwargs['instrument'] = sys.argv[ind+1]
     if '-sn' in sys.argv:
         ind = sys.argv.index('-sn')
         kwargs['sitename'] = sys.argv[ind+1]

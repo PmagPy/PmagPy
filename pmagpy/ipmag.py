@@ -5709,7 +5709,7 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
                 print(
                     '-I- dropping these columns: {} from the {} table'.format(', '.join(DropKeys), file_type))
                 df.drop(DropKeys, axis=1, inplace=True)
-            ftype=file_type.split('/')[-1].split('.')[0]
+            ftype = os.path.splitext(os.path.basename(file_type))[0]
             if ftype in list(extra_RmKeys.keys()):
                 DropKeys = list(extra_RmKeys[ftype])
                 DropKeys = set(DropKeys).intersection(df.columns)
@@ -5764,7 +5764,6 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
                 df.replace('-9999','',inplace=True)
                 #for col in df.columns:
                 #    df.loc[df[col]=='-9999',col]=""
-                ftype=file_type.split('/')[-1].split('.')[0] #
                 if first_file:
                     pmag.magic_write(up, df, ftype, dataframe=True)
                     first_file=False
