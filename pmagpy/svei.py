@@ -2522,7 +2522,11 @@ def svei_test(di_block,model_name='TK03_GAD',degree=8,lat=False,kappa=-1,plot=Fa
         
     #plot ecdf comparison if desired
 
-    V2dec,E=pars['V2dec'],pars['tau2']/pars['tau3']
+    # V2dec in the frame of the simulations, which have a north-pointing mean: take it from
+    # the data rotated so that V1 points north, with reverse directions flipped
+    # (Tauxe et al., 2024, section 3.2). E does not depend on the rotation.
+    rpars=pmag.doprinc(di_block)
+    V2dec,E=rpars['V2dec'],rpars['tau2']/rpars['tau3']
     if (V2dec<90) or (V2dec>270):V2dec=(V2dec-180)%360 #flip to south
     N=pars['N']
     if verbose:
