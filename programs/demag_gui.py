@@ -7121,7 +7121,7 @@ class Demag_GUI(wx.Frame):
             codes = spmdf.df['method_codes'].fillna('').astype(str)
             placeholder = codes.apply(
                 lambda x: set(x.split(':')) <= {'', 'LP-NOMAG'})
-            nomag_specimens = set(spmdf.df.index[codes.str.contains('LP-NOMAG')])
+            nomag_specimens = set(spmdf.df.index[placeholder])
             directional = (codes.str.contains('LP-DIR') | placeholder).astype(bool)
             non_directional_df = spmdf.df[~directional]
             spmdf.df = spmdf.df[directional]
