@@ -1253,7 +1253,6 @@ class ExportResults2(wx.Frame):
         res, outfiles = ipmag.pmag_results_extract(res_file, crit_file, spec_file, age_file,
                                                    latex, grade, WD)
         outfiles = [os.path.split(f)[1] for f in outfiles]
-        ipmag.pmag_results_extract(res_file, crit_file, spec_file, age_file, latex, grade, WD)
         pw.close_window(self, COMMAND, ", ".join(outfiles))
         #pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
 
