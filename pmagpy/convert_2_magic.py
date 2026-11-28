@@ -1002,7 +1002,720 @@ def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
     return True, os.path.join(dir_path, meas_file)
 
 
-    
+# 2G tab-delimited export (.DAT) conversion
+
+# a temperature at or below this (degrees C), with no field applied, is the untreated NRM:
+# the 2G software writes the room temperature (20 or 25) in the Temp C column of the NRM row
+_2G_TAB_ROOM_TEMP = 30.
+
+
+def _2g_tab_number(value):
+    """the number in a field of a 2G tab-delimited export, or None if it is empty or NA"""
+    value = str(value).strip().strip('"')
+    if value in ('', 'NA'):
+        return None
+    try:
+        return float(value)
+    except ValueError:
+        return None
+
+
+def _2g_tab_read(mag_file_path):
+    """
+    Read a tab-delimited export (.DAT) of the 2G Enterprises magnetometer
+    software.
+
+    The first line names the columns, which depend on the export settings of
+    the laboratory. Rows with another number of fields than the header are
+    not read: an interrupted measurement (repeated on the next row) has fewer
+    fields. Two rows written on one line, with the line break between them
+    missing, have one field fewer than twice the header, and the field where
+    they meet ends with the Sample ID that begins the line; they are split
+    into their two rows. Other lines with more fields are not read. Some
+    exports repeat a column (e.g. X corr); the first is read, and a repeat
+    with other values is reported.
+
+    Parameters
+    ----------
+    mag_file_path : str
+        path to the file
+
+    Returns
+    -------
+    columns : list of str, the column names, without repeats
+    rows : list of dict, one per row read: the fields by column name, with
+        'line', the line number in the file
+    bad_lines : list of (line number, number of fields, number of fields of
+        the header), the rows not read
+    repeated : list of str, the columns that are repeated with other values
+    split_lines : list of int, the line numbers of lines read as two rows
+    """
+    with open(mag_file_path, 'rb') as f:
+        text = f.read().decode('latin-1')
+    lines = text.replace('\r\n', '\n').replace('\r', '\n').split('\n')
+    header = [name.strip().strip('"') for name in lines[0].split('\t')]
+    if 'Sample ID' not in header:
+        raise ValueError('not a 2G tab-delimited export: the first line has no Sample ID column')
+    first = {}
+    for k, name in enumerate(header):
+        first.setdefault(name, k)
+    rows, bad_lines, repeated, split_lines = [], [], [], []
+    n = len(header)
+    for number, line in enumerate(lines[1:], start=2):
+        if not line.strip():
+            continue
+        fields = line.split('\t')
+        parts = [fields]
+        if len(fields) == 2 * n - 1 and header[0] == 'Sample ID':
+            name, joined = fields[0], fields[n - 1]
+            if name.strip() and joined.endswith(name) and len(joined) > len(name):
+                parts = [fields[:n - 1] + [joined[:-len(name)]], [name] + fields[n:]]
+                split_lines.append(number)
+        if any(len(part) != n for part in parts):
+            bad_lines.append((number, len(fields), n))
+            continue
+        for part in parts:
+            row = {name: part[k].strip() for name, k in first.items()}
+            for k, name in enumerate(header):
+                if k != first[name] and part[k].strip() != row[name] and name not in repeated:
+                    repeated.append(name)
+            row['line'] = number
+            rows.append(row)
+    return list(first), rows, bad_lines, repeated, split_lines
+
+
+def _2g_tab_times(rows):
+    """
+    The Sample Timestamp of each row as a datetime, or None if the rows
+    cannot all be read with one date format. The 2G software writes the date
+    in the format of the computer's settings (e.g. 07/22/20 1956 or 20/12/13
+    2137), so month/day/year, year/month/day and day/month/year are tried,
+    and one is used only if it is the only one that reads every row.
+    """
+    import datetime
+    stamps = [row.get('Sample Timestamp', '').strip() for row in rows]
+    if not all(stamps):
+        return None
+    readings = []
+    for fmt in ('%m/%d/%y %H%M', '%y/%m/%d %H%M', '%d/%m/%y %H%M'):
+        try:
+            readings.append([datetime.datetime.strptime(stamp, fmt) for stamp in stamps])
+        except ValueError:
+            continue
+    return readings[0] if len(readings) == 1 else None
+
+
+def _2g_tab_treatment(row):
+    """
+    The treatment of a row of a 2G tab-delimited export: (kind, value), with
+    kind 'NRM', 'AF' (value in tesla) or 'T' (value in kelvin), or
+    ('skip', reason) for a row that is not a step of a demagnetization.
+    """
+    treatment = row.get('Treatment Type', '').strip().strip('"').lower()
+    fields = [_2g_tab_number(row.get(name, '')) for name in ('AF X', 'AF Y', 'AF Z')]
+    fields = [field for field in fields if field is not None]
+    field = max(fields) if fields else 0.  # Oe
+    temp = _2g_tab_number(row.get('Temp C', ''))
+    if (treatment.startswith('degauss') and 'arm' in treatment) or treatment == 'irm':
+        return 'skip', 'treatment type {}'.format(row['Treatment Type'])
+    if treatment.startswith('degauss'):
+        return ('AF', field * 1e-4) if field > 0 else ('NRM', 0.)  # Oe to tesla
+    if treatment.startswith('thermal'):
+        if temp is None:
+            return 'skip', 'no temperature'
+        if temp < 0:
+            return 'skip', 'temperature below 0 C'
+        return ('T', temp + 273.) if temp > _2G_TAB_ROOM_TEMP else ('NRM', 0.)
+    if treatment not in ('', 'none'):
+        return 'skip', 'treatment type {}'.format(row['Treatment Type'])
+    # no treatment type: from the fields
+    for name in ('IRM Gauss', 'ARM Gauss'):
+        if (_2g_tab_number(row.get(name, '')) or 0) > 0:
+            return 'skip', 'an {} field'.format(name.split()[0])
+    if temp is None and not fields:
+        # e.g. a row whose temperature was not entered, between two thermal steps
+        return 'skip', 'no treatment value (no temperature or field)'
+    if temp is not None and temp < 0:
+        return 'skip', 'temperature below 0 C'
+    heated = temp is not None and temp > _2G_TAB_ROOM_TEMP
+    if field > 0 and heated:
+        return 'skip', 'both an alternating field and a temperature'
+    if field > 0:
+        return 'AF', field * 1e-4
+    if heated:
+        return 'T', temp + 273.
+    return 'NRM', 0.
+
+
+def _2g_tab(mag_file="", dir_path=".", input_dir_path="",
+            meas_file="measurements.txt", spec_file="specimens.txt",
+            samp_file="samples.txt", site_file="sites.txt", loc_file="locations.txt",
+            specnum=0, samp_con='2', location="unknown", lat="", lon="",
+            volume="", noave=True, meth_code="", instrument="", user="", tolerance=0.5,
+            untreated="skip"):
+    """
+    Convert tab-delimited exports (.DAT) of the 2G Enterprises magnetometer
+    software to MagIC format files.
+
+    The 2G software exports measurements as a text file with a header row
+    of column names ('Sample ID', 'Declination: Unrotated', 'Intensity',
+    'X corr', 'AF Z', 'Temp C', 'Sample Azimiuth' [sic], ...). The columns
+    present depend on the export settings of each laboratory, so they are
+    read by name. A file can hold several specimens. This is not the 2G
+    binary file (convert._2g_bin), which also has the extension .dat, nor
+    its ascii export (convert._2g_asc).
+
+    Parameters
+    ----------
+    mag_file : str or list of str
+        input file name, or a list of file names; default "" converts every
+        .dat file in input_dir_path
+    dir_path : str
+        output directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    meas_file : str
+        output measurement file name, default "measurements.txt"
+    spec_file : str
+        output specimen file name, default "specimens.txt"
+    samp_file: str
+        output sample file name, default "samples.txt"
+    site_file : str
+        output site file name, default "sites.txt"
+    loc_file : str
+        output location file name, default "locations.txt"
+    specnum : int
+        number of characters to designate a specimen, default 0
+    samp_con : str
+        sample/site naming convention, default '2', see info below
+    location : str
+        location name, default "unknown"
+    lat : float or str
+        latitude of the sites, default ""
+    lon : float or str
+        longitude of the sites, default ""
+    volume : float or str
+        specimen volume in cm^3, for the specimens of files without a Volume
+        column, default "" (no volume, and no magn_volume)
+    noave : bool
+        do not average repeated measurements of a step, default True (every
+        row is kept); with False, consecutive rows of a specimen with the
+        same treatment are averaged as vectors (DE-VM)
+    meth_code : str
+        colon-delimited sample orientation method codes, default "" (written
+        as SO-NO), e.g. FS-FD:SO-MAG
+    instrument : str
+        instrument code for the measurements, default ""
+    user : str
+        analyst, default ""
+    tolerance : float
+        largest angle in degrees allowed between a direction in the file and
+        the same direction calculated by the converter (from the X/Y/Z corr
+        components, or from the converted orientation and bedding) before a
+        warning is printed, default 0.5
+    untreated : str
+        what to do with a row that has a direction but no treatment value (no
+        temperature or field, e.g. Temp C NA): "skip" (default) leaves it out
+        with a warning; "next" gives it the treatment of the next row of the
+        specimen when that row is a thermal or alternating field step, as for
+        a measurement made after the heating or demagnetization of that step
+        before its value was entered; the description says so
+
+    Returns
+    ---------
+    Tuple : (True or False indicating if conversion was successful, path of
+        the measurements file written, or an error message)
+
+    Info
+    ----------
+    Units, as written by the 2G software (and checked against the files):
+        X corr, Y corr, Z corr   the moment in specimen coordinates, in emu
+                                 (drift and tray corrected); magn_moment is
+                                 their vector sum, in Am^2 (emu x 1e-3)
+        Intensity                the moment divided by the volume set in the
+                                 software (cm^3; 1 if none was set), in emu/cm^3;
+                                 used, times the Volume column, only when the
+                                 file has no X/Y/Z corr columns
+        Volume                   specimen volume in cm^3; magn_volume (A/m) is
+                                 the moment divided by it
+        AF X, AF Y, AF Z         peak alternating field in Oe (0.1 mT)
+        Temp C                   temperature in degrees C
+    dir_dec and dir_inc are the Declination and Inclination: Unrotated
+    columns (specimen coordinates). A row whose direction differs from that
+    of its X/Y/Z corr components by more than tolerance, or whose Intensity
+    is not the moment of the components divided by the volume (as in the
+    specimen's other rows), is reported. Its Declination, Inclination and
+    Intensity are entered as one set (the moment is the Intensity times the
+    volume implied by the specimen's other rows), and the description gives
+    the direction and moment of the components.
+
+    Rows:
+        A row with another number of fields than the header (an interrupted
+        measurement that was repeated on the next row) is left out, with a
+        warning giving its line number. Two rows written on one line, with
+        the line break missing, are split, with a warning. Rows
+        without a direction (e.g. susceptibility rows written between the
+        thermal steps) are left out and counted. Long-core (continuous)
+        measurements are not converted.
+        Names in the Sample ID column are used without surrounding spaces.
+        Names in one file that differ only in case (SYJLCk-4 and SYJLCK-4)
+        are one specimen, with the first spelling, and a warning. A specimen
+        in several files (e.g. measured in two sessions) is converted from
+        all of them, with a warning: its rows in the order of their Sample
+        Timestamp when every row has one in a date format that can be read
+        unambiguously, and otherwise in the order of the files given.
+
+    Treatments:
+        The Treatment Type column, when the file has one, gives the kind of
+        step: Degauss X, Y, & Z or Degauss Z is an alternating field step
+        (LT-AF-Z) at the largest of AF X, AF Y and AF Z, and Thermal Demag a
+        thermal step (LT-T-Z) at Temp C. Without it (or with None), a row with
+        an alternating field is an AF step and a row with a temperature a
+        thermal step. A row at 0 Oe, at 30 degrees C or less (the 2G
+        software writes the room temperature, e.g. 20 or 25, for the NRM),
+        or with Treatment Type None and no field, is the NRM (LT-NO). Rows
+        with IRM or ARM treatments, with a temperature below 0 C, or with
+        both a field and a temperature are left out with a warning, and so
+        are rows with no temperature or field (NA; e.g. a measurement whose
+        temperature was not entered, between two thermal steps) unless
+        untreated is "next". The experiment of a specimen
+        is LP-DIR-T, LP-DIR-AF, or both. The Sample Timestamp is not
+        converted (its date format depends on the computer's settings); it
+        orders the rows of a specimen in several files.
+
+    Orientation:
+        Sample Azimiuth and Sample Dip are converted with convention 5 of the
+        2G software (MagIC dip = Sample Dip - 90); Mag Dev, when not 0, is
+        added to the azimuth and the bedding dip direction (as in the 2G
+        binary files; no text export with a non-zero Mag Dev has been seen).
+        Formation Dip Azimuth and Formation Dip are the bedding dip direction
+        and dip. The geographic and tilt-corrected directions calculated with
+        them are compared with the Sample Rotated and Formation Rotated
+        columns, when the file has them, and differences larger than tolerance
+        are reported. A sample orientation of 0 and Sample Dip 90 (the
+        default of the 2G software, with which the rotated directions are
+        those in specimen coordinates) is written as it is, with a warning.
+        Files without these columns hold directions in specimen coordinates
+        only, and the samples are written without an orientation.
+
+    Sample naming convention:
+        [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+            is the single character sample designation.  e.g., TG001a is the
+            first sample from site TG001.
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length) [default]
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+        [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+        [5] site name = sample name
+        [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
+    """
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
+    specnum = -int(specnum)
+    samp_con = str(samp_con) if samp_con else '2'
+    Z = 1
+    if samp_con.startswith('4') or samp_con.startswith('7'):
+        if '-' not in samp_con:
+            message = 'naming convention option [{}] must be in form {}-Z where Z is an integer'.format(
+                samp_con[0], samp_con[0])
+            print(message)
+            return False, message
+        samp_con, Z = samp_con.split('-')[:2]
+    if samp_con not in ('1', '2', '3', '4', '5', '7'):
+        message = 'naming convention option [{}] is not supported'.format(samp_con)
+        print(message)
+        return False, message
+    default_volume = _2g_tab_number(volume)
+    if untreated not in ('skip', 'next'):
+        message = 'untreated must be "skip" or "next", not {}'.format(untreated)
+        print(message)
+        return False, message
+
+    # input files
+    if isinstance(mag_file, (list, tuple)):
+        mag_files = [pmag.resolve_file_name(f, input_dir_path) for f in mag_file]
+    elif mag_file:
+        mag_files = [pmag.resolve_file_name(mag_file, input_dir_path)]
+    elif os.path.isdir(input_dir_path):
+        mag_files = sorted(os.path.join(input_dir_path, f) for f in os.listdir(input_dir_path)
+                           if f.lower().endswith('.dat'))
+    else:
+        mag_files = []
+    if not mag_files:
+        print('no .dat files found in', input_dir_path)
+        return False, 'no .dat files found'
+
+    # read the rows of each specimen, in the order of the files
+    specimens = {}  # name: list of (file name, row)
+    for path in mag_files:
+        file_name = os.path.basename(path)
+        try:
+            columns, rows, bad_lines, repeated, split_lines = _2g_tab_read(path)
+        except (IOError, ValueError) as ex:
+            message = '{}: {}'.format(file_name, ex)
+            print(message)
+            return False, message
+        if any('CONTINUOUS' in row.get('Meas. type', '').upper() for row in rows):
+            message = '{}: long-core (continuous) measurements are not converted'.format(file_name)
+            print(message)
+            return False, message
+        if 'Declination: Unrotated' not in columns or 'Inclination: Unrotated' not in columns:
+            message = '{}: the file has no Declination: Unrotated and Inclination: Unrotated columns'.format(
+                file_name)
+            print(message)
+            return False, message
+        corr_columns = all(axis + ' corr' in columns for axis in 'XYZ')
+        if not corr_columns and not ('Intensity' in columns and 'Volume' in columns):
+            message = ('{}: the file has neither the X/Y/Z corr columns nor the Intensity and Volume '
+                       'columns, so the moment cannot be read').format(file_name)
+            print(message)
+            return False, message
+        for number, n_fields, n_header in bad_lines:
+            print('-W- {}: line {} has {} fields, not {} as the header ({}); it is left out'.format(
+                file_name, number, n_fields, n_header,
+                'an interrupted measurement?' if n_fields < n_header else 'two rows on one line?'))
+        for number in split_lines:
+            print('-W- {}: line {} holds two rows, with the line break between them missing; it is read as '
+                  'two rows'.format(file_name, number))
+        for name in repeated:
+            print('-W- {}: the column {} is repeated with other values; the first is read'.format(
+                file_name, name))
+        no_direction, not_sample, file_names = 0, 0, {}
+        for row in rows:
+            data_type = row.get('Data type', '').upper()
+            if data_type not in ('', 'SAMPLE', 'NA'):
+                not_sample += 1
+                continue
+            if (_2g_tab_number(row['Declination: Unrotated']) is None
+                    or _2g_tab_number(row['Inclination: Unrotated']) is None):
+                no_direction += 1
+                continue
+            name = row['Sample ID'].strip().strip('"')
+            # names in one file that differ only in case are one specimen
+            name = file_names.setdefault(name.upper(), name)
+            row['file'] = file_name
+            specimens.setdefault(name, []).append(row)
+        if no_direction:
+            print('-I- {}: {} row(s) without a direction (e.g. susceptibility) left out'.format(
+                file_name, no_direction))
+        if not_sample:
+            print('-W- {}: {} row(s) of another data type than SAMPLE left out'.format(file_name, not_sample))
+        spellings = {}
+        for row in rows:
+            name = row['Sample ID'].strip().strip('"')
+            spellings.setdefault(name.upper(), set()).add(name)
+        for key, names in spellings.items():
+            if len(names) > 1:
+                print('-W- {}: the names {} differ only in case and are read as one specimen, {}'.format(
+                    file_name, ', '.join(sorted(names)), file_names.get(key, sorted(names)[0])))
+    if not specimens:
+        print('no measurements found in the 2G files')
+        return False, 'no measurements found in the 2G files'
+
+    SpecRecs, SampRecs, SiteRecs, MeasRecs = [], [], [], []
+    orientations, site_names = {}, []
+    skipped, default_orientation, rotated_only = {}, [], []
+    for specimen, rows in specimens.items():
+        files = []
+        for row in rows:
+            if row['file'] not in files:
+                files.append(row['file'])
+        if len(files) > 1:
+            times = _2g_tab_times(rows)
+            if times:
+                rows = [row for _, k, row in sorted((t, k, row) for k, (t, row) in enumerate(zip(times, rows)))]
+                print('-W- specimen {} is in {} files ({}); the rows of all are converted, in the order of '
+                      'their Sample Timestamp'.format(specimen, len(files), ', '.join(files)))
+            else:
+                print('-W- specimen {} is in {} files ({}); the rows of all are converted, in that order (the '
+                      'Sample Timestamp cannot be read unambiguously)'.format(specimen, len(files),
+                                                                             ', '.join(files)))
+        sample = specimen[:specnum] if specnum != 0 else specimen
+        site = pmag.parse_site(sample, samp_con, Z)
+
+        # volume (cm^3), from the first row that gives one
+        volumes = [_2g_tab_number(row.get('Volume', '')) for row in rows]
+        volumes = [v for v in volumes if v]
+        vol_cc = volumes[0] if volumes else default_volume
+        if len(set(volumes)) > 1:
+            print('-W- {}: the rows give different volumes ({}); {} cm3 is used'.format(
+                specimen, ', '.join('%g' % v for v in sorted(set(volumes))), '%g' % vol_cc))
+
+        # orientation and bedding, from the first row that gives them
+        def first_orientation(names):
+            for row in rows:
+                values = [_2g_tab_number(row.get(name, '')) for name in names]
+                if all(v is not None for v in values):
+                    return values, row
+            return None, None
+        azimuth_name = 'Sample Azimiuth' if 'Sample Azimiuth' in rows[0] else 'Sample Azimuth'
+        sample_values, orientation_row = first_orientation([azimuth_name, 'Sample Dip'])
+        bed_values, bedding_row = first_orientation(['Formation Dip Azimuth', 'Formation Dip'])
+        mag_dev = (_2g_tab_number(orientation_row.get('Mag Dev', '')) or 0.) if orientation_row else 0.
+        azimuth, dip, bed_dip_direction, bed_dip = "", "", "", ""
+        if sample_values:
+            azimuth = (sample_values[0] + mag_dev) % 360.
+            dip = sample_values[1] - 90.  # convention 5
+            if sample_values[0] == 0 and sample_values[1] == 90:
+                default_orientation.append(specimen)
+            changed = ['line {} of {}'.format(row['line'], row['file']) for row in rows
+                       if _2g_tab_number(row.get(azimuth_name, '')) not in (None, sample_values[0])
+                       or _2g_tab_number(row.get('Sample Dip', '')) not in (None, sample_values[1])]
+            if changed:
+                print('-W- {}: the sample orientation changes between rows ({}); that of line {} of {} is '
+                      'used'.format(specimen, ', '.join(changed[:5]) + (', ...' if len(changed) > 5 else ''),
+                                    orientation_row['line'], orientation_row['file']))
+        elif any(_2g_tab_number(row.get('Declination: Sample Rotated', '')) is not None for row in rows):
+            rotated_only.append(specimen)
+        if bed_values:
+            bed_dip_direction = (bed_values[0] + mag_dev) % 360.
+            bed_dip = bed_values[1]
+
+        # samples and sites
+        if sample not in orientations:
+            orientations[sample] = (azimuth, dip, bed_dip_direction, bed_dip)
+            SampRec = {'sample': sample, 'site': site, 'citations': 'This study',
+                       'method_codes': meth_code if meth_code else 'SO-NO'}
+            if azimuth != "":
+                SampRec['azimuth'] = '%7.2f' % (azimuth)
+                SampRec['dip'] = '%7.2f' % (dip)
+                SampRec['azimuth_dec_correction'] = '%7.2f' % (mag_dev)
+                if mag_dev != 0 and 'SO-CMD-NORTH' not in SampRec['method_codes']:
+                    SampRec['method_codes'] += ':SO-CMD-NORTH'
+            if bed_dip_direction != "":
+                SampRec['bed_dip_direction'] = '%7.2f' % (bed_dip_direction)
+                SampRec['bed_dip'] = '%7.2f' % (bed_dip)
+            if user:
+                SampRec['analysts'] = user
+            SampRecs.append(SampRec)
+        elif orientations[sample] != (azimuth, dip, bed_dip_direction, bed_dip):
+            print('-W- specimen {} has a different orientation or bedding from an earlier specimen of '
+                  'sample {}; the sample keeps the first'.format(specimen, sample))
+        if site not in site_names:
+            site_names.append(site)
+            SiteRecs.append({'site': site, 'location': location, 'lat': lat, 'lon': lon,
+                             'citations': 'This study'})
+
+        # measurements
+        records, off_direction, off_intensity, off_geo, off_tilt = [], [], [], [], []
+        treatments = [_2g_tab_treatment(row) for row in rows]
+        for k, row in enumerate(rows):
+            kind, value = treatments[k]
+            untreated_note = None
+            if kind == 'skip' and value.startswith(('no treatment value', 'no temperature')) and untreated == 'next':
+                following = treatments[k + 1] if k + 1 < len(rows) else ('skip', '')
+                if following[0] in ('T', 'AF'):
+                    kind, value = following
+                    untreated_note = ('no temperature or field in the file; entered with the treatment of the '
+                                      'next row (untreated="next")')
+                    print('-W- {}: line {} of {} has no treatment value; it is given that of the next row'.format(
+                        specimen, row['line'], row['file']))
+            if kind == 'skip':
+                skipped.setdefault((row['file'], value), 0)
+                skipped[(row['file'], value)] += 1
+                continue
+            dec = _2g_tab_number(row['Declination: Unrotated'])
+            inc = _2g_tab_number(row['Inclination: Unrotated'])
+            intensity = _2g_tab_number(row.get('Intensity', ''))
+            # the Intensity column is the moment divided by the volume set in the software (1 if none)
+            row_volume = _2g_tab_number(row.get('Volume', '')) or 1.
+            corr = [_2g_tab_number(row.get(axis + ' corr', '')) for axis in 'XYZ']
+            notes = [untreated_note] if untreated_note else []
+            off = False
+            if all(c is not None for c in corr):
+                moment = math.sqrt(sum(c ** 2 for c in corr))  # emu
+                if moment > 0:
+                    off_direction.append(pmag.angle([dec, inc], pmag.cart2dir(corr)[:2])[0])
+                    off = off_direction[-1] > tolerance
+                if intensity:
+                    off_intensity.append((moment / intensity, row_volume))
+            elif intensity is not None and _2g_tab_number(row.get('Volume', '')):
+                moment = intensity * row_volume
+            else:
+                skipped.setdefault((row['file'], 'no moment'), 0)
+                skipped[(row['file'], 'no moment')] += 1
+                continue
+            if azimuth != "":
+                geo = pmag.dogeo(dec, inc, azimuth, dip)
+                stored = [_2g_tab_number(row.get(name, '')) for name in
+                          ('Declination: Sample Rotated', 'Inclination: Sample Rotated')]
+                if None not in stored:
+                    off_geo.append(pmag.angle(geo, stored)[0])
+                if bed_dip_direction != "":
+                    tilt = pmag.dotilt(geo[0], geo[1], bed_dip_direction, bed_dip)
+                    stored = [_2g_tab_number(row.get(name, '')) for name in
+                              ('Declination: Formation Rotated', 'Inclination: Formation Rotated')]
+                    if None not in stored:
+                        off_tilt.append(pmag.angle(tilt, stored)[0])
+            MeasRec = {'specimen': specimen, 'citations': 'This study', 'quality': 'g', 'standard': 'u',
+                       'meas_temp': '273', 'treat_temp': '273', 'treat_ac_field': '0',
+                       'treat_dc_field': '0', 'treat_dc_field_phi': '0', 'treat_dc_field_theta': '0',
+                       'dir_dec': '%.2f' % (dec), 'dir_inc': '%.2f' % (inc),
+                       'magn_moment': '%.4e' % (moment * 1e-3),  # Am^2 from emu
+                       'software_packages': pmag.get_version()}
+            if kind == 'AF':
+                MeasRec['treat_ac_field'] = '%.4e' % (value)
+                MeasRec['method_codes'] = 'LT-AF-Z'
+            elif kind == 'T':
+                MeasRec['treat_temp'] = '%.2f' % (value)
+                MeasRec['method_codes'] = 'LT-T-Z'
+            else:
+                MeasRec['method_codes'] = 'LT-NO'
+            if notes:
+                MeasRec['description'] = '; '.join(notes)
+            if all(c is not None for c in corr) and intensity:
+                # checked below against the specimen's other rows, then removed
+                MeasRec.update(implied_volume=moment / intensity, intensity=intensity, corr=corr,
+                               corr_moment=moment, off_direction=off)
+            if instrument:
+                MeasRec['instrument_codes'] = instrument
+            if user:
+                MeasRec['analysts'] = user
+            records.append(MeasRec)
+        if off_direction and max(off_direction) > tolerance:
+            print('-W- {}: {} row(s) have a direction more than {} degrees from that of their X/Y/Z corr '
+                  'components (up to {:.2f})'.format(specimen, sum(a > tolerance for a in off_direction),
+                                                    tolerance, max(off_direction)))
+        # the Intensity column should be the moment of the components divided by the volume of the
+        # file; a volume set in the software but not exported shows as the same ratio in every row
+        off_volume = [(implied, expected) for implied, expected in off_intensity
+                      if abs(implied / expected - 1) > 0.01]
+        if off_volume:
+            print('-W- {}: in {} row(s) the Intensity column is the moment of the X/Y/Z corr components '
+                  'divided by about {:.3g} cm3, not by the volume of the file ({} cm3; 1 if none); '
+                  'these rows are entered with the Intensity column'.format(
+                      specimen, len(off_volume), np.median([v[0] for v in off_volume]),
+                      '%g' % off_volume[0][1]))
+        usual = np.median([implied for implied, expected in off_intensity]) if off_intensity else None
+        for MeasRec in records:
+            implied = MeasRec.pop('implied_volume', None)
+            intensity = MeasRec.pop('intensity', None)
+            corr = MeasRec.pop('corr', None)
+            corr_moment = MeasRec.pop('corr_moment', None)
+            off = MeasRec.pop('off_direction', False)
+            if implied is None or not (off or abs(implied / usual - 1) > 0.01):
+                continue
+            # the Declination, Inclination and Intensity columns are entered as one set, and the components
+            # are given in the description
+            MeasRec['magn_moment'] = '%.4e' % (intensity * usual * 1e-3)  # Am^2 from emu
+            corr_dec, corr_inc = pmag.cart2dir(corr)[:2]
+            note = ('the X/Y/Z corr components give {:.2f}/{:.2f} and {:.4e} Am2, {:.2f} degrees from the '
+                    'Declination and Inclination columns and {:.3f} times the moment of the Intensity column, '
+                    'which are entered'.format(
+                        corr_dec, corr_inc, corr_moment * 1e-3,
+                        pmag.angle([float(MeasRec['dir_dec']), float(MeasRec['dir_inc'])], [corr_dec, corr_inc])[0],
+                        implied / usual))
+            MeasRec['description'] = '; '.join([x for x in (MeasRec.get('description'), note) if x])
+        if off_geo and max(off_geo) > tolerance:
+            print('-W- {}: the geographic directions calculated from the sample orientation differ from the '
+                  'Sample Rotated columns by up to {:.2f} degrees'.format(specimen, max(off_geo)))
+        if off_tilt and max(off_tilt) > tolerance:
+            print('-W- {}: the tilt-corrected directions calculated from the bedding differ from the '
+                  'Formation Rotated columns by up to {:.2f} degrees'.format(specimen, max(off_tilt)))
+        if not records:
+            print('-W- {}: no demagnetization steps; the specimen is left out'.format(specimen))
+            continue
+        if not noave:
+            records = _2g_tab_average_repeats(records)
+
+        # the experiment: thermal, alternating field, or both
+        types = [rec['method_codes'] for rec in records]
+        protocols = [code for meas_type, code in (('LT-T-Z', 'LP-DIR-T'), ('LT-AF-Z', 'LP-DIR-AF'))
+                     if meas_type in types] or ['LP-NO']  # LP-NO: the NRM only
+        experiment = specimen + '_' + '_'.join(protocols)
+        for k, MeasRec in enumerate(records):
+            MeasRec['method_codes'] = ':'.join([MeasRec['method_codes']] + protocols + (
+                ['DE-VM'] if MeasRec.pop('averaged', False) else []))
+            if vol_cc:
+                MeasRec['magn_volume'] = '%.4e' % (float(MeasRec['magn_moment']) / (vol_cc * 1e-6))  # A/m
+            MeasRec['experiment'] = experiment
+            MeasRec['measurement'] = '{}-{}'.format(experiment, k + 1)
+            MeasRec['treat_step_num'] = str(k + 1)
+            MeasRec['sequence'] = str(len(MeasRecs) + 1)
+            MeasRecs.append(MeasRec)
+        SpecRec = {'specimen': specimen, 'sample': sample, 'citations': 'This study',
+                   'experiments': experiment, 'method_codes': ':'.join(protocols)}
+        if vol_cc:
+            SpecRec['volume'] = '%.4e' % (vol_cc * 1e-6)  # m^3 from cm^3
+        if user:
+            SpecRec['analysts'] = user
+        SpecRecs.append(SpecRec)
+
+    for (file_name, reason), count in skipped.items():
+        print('-W- {}: {} row(s) with {} left out'.format(file_name, count, reason))
+    if default_orientation:
+        print('-W- the sample orientation of {} specimen(s) ({}) is azimuth 0 and Sample Dip 90, the '
+              'default of the 2G software; check that it was set'.format(
+                  len(default_orientation), ', '.join(default_orientation[:5]) +
+                  (', ...' if len(default_orientation) > 5 else '')))
+    if rotated_only:
+        print('-W- the files of {} specimen(s) ({}) give Sample Rotated directions but not the sample '
+              'orientation (Sample Azimiuth and Sample Dip columns); the samples are written without an '
+              'orientation'.format(len(rotated_only), ', '.join(rotated_only[:5]) +
+                                   (', ...' if len(rotated_only) > 5 else '')))
+    if not MeasRecs:
+        print('no measurements found in the 2G files')
+        return False, 'no measurements found in the 2G files'
+    print('-I- {} measurements of {} specimens from {} file(s)'.format(
+        len(MeasRecs), len(SpecRecs), len(mag_files)))
+
+    LocRec = {'location': location, 'citations': 'This study'}
+    if str(lat).strip() != "" and str(lon).strip() != "":
+        LocRec['lat_n'], LocRec['lat_s'], LocRec['lon_e'], LocRec['lon_w'] = lat, lat, lon, lon
+    con = cb.Contribution(output_dir_path, read_tables=[])
+    con.add_magic_table_from_data(dtype='measurements', data=MeasRecs)
+    con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
+    con.add_magic_table_from_data(dtype='samples', data=SampRecs)
+    con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
+    con.add_magic_table_from_data(dtype='locations', data=[LocRec])
+    con.write_table_to_file('measurements', custom_name=meas_file)
+    con.write_table_to_file('specimens', custom_name=spec_file)
+    con.write_table_to_file('samples', custom_name=samp_file)
+    con.write_table_to_file('sites', custom_name=site_file)
+    con.write_table_to_file('locations', custom_name=loc_file)
+    return True, os.path.join(output_dir_path, meas_file)
+
+
+def _2g_tab_average_repeats(records):
+    """
+    Average consecutive measurement records of one specimen with the same
+    treatment as a vector mean (for noave=False).
+
+    Parameters
+    ----------
+    records : list of dicts
+        measurement records of one specimen, with method_codes holding the
+        treatment code only, and dir_dec, dir_inc and magn_moment
+
+    Returns
+    ---------
+    list of dicts : the records, with each run of repeats replaced by one
+        record with the mean direction and moment, a description and
+        averaged=True (for the DE-VM method code)
+    """
+    def step_key(rec):
+        return rec['method_codes'], rec['treat_temp'], rec['treat_ac_field']
+    out, k = [], 0
+    while k < len(records):
+        j = k
+        while j + 1 < len(records) and step_key(records[j + 1]) == step_key(records[k]):
+            j += 1
+        if j == k:
+            out.append(records[k])
+        else:
+            group = records[k:j + 1]
+            vectors = [pmag.dir2cart([float(r['dir_dec']), float(r['dir_inc']), float(r['magn_moment'])])
+                       for r in group]
+            dec, inc, moment = pmag.cart2dir(np.mean(vectors, axis=0))
+            rec = dict(group[0])
+            notes = ['mean of {} measurements'.format(len(group))] + [
+                r['description'] for r in group if r.get('description')]
+            rec.update(dir_dec='%.2f' % (dec), dir_inc='%.2f' % (inc), magn_moment='%.4e' % (moment),
+                       description='; '.join(notes), averaged=True)
+            out.append(rec)
+        k = j + 1
+    return out
+
+
+
 
 
 
