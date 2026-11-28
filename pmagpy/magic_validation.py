@@ -7,7 +7,9 @@ contribution that passes here passes the validation run on MagIC:
     https://github.com/earthref/MagIC
         lib/modules/magic/parse_contribution.js      reading a MagIC text file
         lib/modules/magic/validate_contribution.js   the validation
-    (ported from commit 6b6f229, 2026-11-10)
+    (ported from commit 6b6f229, 2026-11-10: MAGIC_PORTED_COMMIT; the weekly
+    workflow .github/workflows/magic-rules-sync.yml opens an issue when MagIC
+    changes these files)
 
 MagIC validates in two places: the website (the code above, which validates a
 private contribution) and the EarthRef API (api.earthref.org/v1/MagIC/validate,
@@ -81,6 +83,9 @@ from pmag_env import set_env
 DATA_MODEL_URL = "https://earthref.org/MagIC/data-models/3.0.json"
 METHOD_CODES_URL = "https://www2.earthref.org/MagIC/method-codes.json"
 MAGIC_SOURCE_URL = "https://raw.githubusercontent.com/earthref/MagIC/main/"
+# the commit of earthref/MagIC this module's parser and validator are ported from
+MAGIC_PORTED_COMMIT = "6b6f229cc0f947a1deefe751620706270730231a"
+MAGIC_VALIDATOR_FILES = ("lib/modules/magic/parse_contribution.js", "lib/modules/magic/validate_contribution.js")
 # where each resource is downloaded from, how it is read, and its cached file
 RESOURCES = {
     "data_model": (DATA_MODEL_URL, "json", "data_model.json"),

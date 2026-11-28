@@ -1,0 +1,97 @@
+name: magic-rules-sync
+
+# Weekly: refresh the MagIC rules cached in pmagpy/data_model (the data model,
+# method codes and vocabularies that DataModel, Vocabulary and
+# magic_validation read offline). If they changed, open or update a pull
+# request whose description summarizes the changes and the test results. If
+# MagIC changed the parser or validator that pmagpy/magic_validation.py
+# ports, open an issue. See .github/scripts/sync_magic_rules.py.
+#
+# Pull requests opened with GITHUB_TOKEN do not trigger the run-tests
+# workflow, so the tests run here and their result goes in the description.
+# Opening the pull request needs "Allow GitHub Actions to create and approve
+# pull requests" (Settings > Actions > General), which is on.
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"  # Mondays, 06:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: magic-rules-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.repository == 'PmagPy/PmagPy'
+    runs-on: macos-latest  # as run-tests
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install scipy pandas matplotlib requests jupyter seaborn cartopy pytz
+          pip install -e .
+          pip install pytest
+
+      - name: Refresh the cached rules
+        id: sync
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          python .github/scripts/sync_magic_rules.py
+          --summary "$RUNNER_TEMP/summary.md"
+          --validator-report "$RUNNER_TEMP/validator.md"
+
+      - name: Run the tests on the refreshed rules
+        id: tests
+        if: steps.sync.outputs.changed == 'true'
+        continue-on-error: true
+        run: pytest pmagpy -q -p no:cacheprovider 2>&1 | tail -n 40 > "$RUNNER_TEMP/tests.txt"
+
+      - name: Add the test results to the summary
+        if: steps.sync.outputs.changed == 'true'
+        env:
+          OUTCOME: ${{ steps.tests.outcome }}
+        run: |
+          {
+            echo "## Tests"
+            echo
+            echo "\`pytest pmagpy\` on the refreshed rules: **$OUTCOME** (the end of its output below)."
+            echo
+            echo '```'
+            cat "$RUNNER_TEMP/tests.txt"
+            echo '```'
+          } >> "$RUNNER_TEMP/summary.md"
+
+      - name: Open or update the pull request
+        if: steps.sync.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: magic-rules-sync
+          add-paths: pmagpy/data_model/*.json
+          commit-message: Refresh the cached MagIC data model, method codes and vocabularies
+          title: Refresh the cached MagIC data model, method codes and vocabularies
+          body-path: ${{ runner.temp }}/summary.md
+          delete-branch: true
+
+      - name: Open an issue if MagIC's validator changed
+        if: steps.sync.outputs.validator_changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          title="MagIC's validator changed since the PmagPy port"
+          open=$(gh issue list --state open --search "in:title \"$title\"" --json number --jq 'length')
+          if [ "$open" = "0" ]; then
+            gh issue create --title "$title" --body-file "$RUNNER_TEMP/validator.md"
+          fi
