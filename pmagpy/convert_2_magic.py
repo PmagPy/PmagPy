@@ -10521,6 +10521,105 @@ def mst(infile, spec_name='unknown', dir_path=".", input_dir_path="",
 
 ### PMD_magic conversion
 
+def _pmd_header(line):
+    """
+    Read the specimen name, orientation and bedding from the second line of a PMD file.
+
+    The line holds the specimen name followed by fields written as key=value:
+    a (core azimuth), b (core hade), s (bedding strike), d (bedding dip) and
+    v (volume), then the date and time, e.g.
+
+        ss0207a   a=282.6   b= 68.5   s=  0.0   d=  0.0   v=11.0E-6m3  06/18/2003 12:00
+
+    Programs write this line differently: names of any length, with no space
+    before the first key when the name is long; the Greek letters alpha and
+    beta for a and b; and, in files written as "Output from PaleoMac", an
+    upper-case V without the unit, followed by a strati= field instead of the
+    date and time. The first four values are therefore read by position, as
+    a, b, s and d, whatever their keys.
+
+    Parameters
+    ----------
+    line : str
+        the second line of the file
+
+    Returns
+    ---------
+    Tuple : (specimen name, [a, b, s, d] as floats, date, time); date and time
+        are empty strings when the line does not end with them
+
+    Raises
+    ---------
+    ValueError
+        if the line does not hold the name and four values
+    """
+    number = r'[-+]?(?:\d+\.?\d*|\.\d+)(?:E[-+]?\d+)?'
+    fields = list(re.finditer(r'(\S)\s*=\s*(' + number + ')', line, re.I))
+    if len(fields) < 4:
+        raise ValueError('could not read the PMD header line: ' + line.strip())
+    # the name ends where the key of the first field begins
+    specimen = line[:fields[0].start()].strip()
+    if not specimen:
+        raise ValueError('no specimen name in the PMD header line: ' + line.strip())
+    values = [float(field.group(2)) for field in fields[:4]]
+    # date and time follow the volume and its unit, m3
+    date_time = re.search(r'm3\s+(\S+)\s+(\S+)\s*$', line)
+    date, time = date_time.groups() if date_time else ('', '')
+    return specimen, values, date, time
+
+
+def _pmd_step(label):
+    """
+    Read the type and value of a demagnetization step from its label in a PMD file.
+
+    Programs label the steps differently. Recognized forms are:
+    NRM, or N followed by a number (N000), for the NRM;
+    H, M or A followed by a number (H020, M020, A020) for alternating field, in mT;
+    T followed by a number (T350) for thermal, in degrees C;
+    a number followed by mT, MT or M (20mT) for alternating field;
+    a number followed by C or a degree sign and C (350C) for thermal;
+    and a number alone (20), whose type is not given by the label.
+    A step of 0 (0, 0mT, H000) is the NRM.
+
+    Parameters
+    ----------
+    label : str
+        the step label as written in the file
+
+    Returns
+    ---------
+    Tuple : (type, value) where type is 'NRM', 'af', 't' or '' (not given by the
+        label) and value is the field in mT or the temperature in degrees C
+        (0 for the NRM)
+
+    Raises
+    ---------
+    ValueError
+        if the label is not one of these forms
+    """
+    text = label.strip().upper()
+    # the degree sign, also as written in other code pages and read as Latin-1
+    # (the ordinal sign, and o-slash for the degree sign of DOS code page 437)
+    for degree in '\xb0\xba\xd8':
+        text = text.replace(degree, '')
+    if text == 'NRM':
+        return 'NRM', 0.
+    value = r'(\d+\.?\d*|\.\d+)'
+    prefix = re.match(r'([NHMAT])\s*' + value + '$', text)
+    suffix = re.match(value + r'\s*(MT|M|C)?$', text)
+    if prefix:
+        step_type = {'N': 'NRM', 'H': 'af', 'M': 'af', 'A': 'af', 'T': 't'}[prefix.group(1)]
+        number = float(prefix.group(2))
+    elif suffix:
+        step_type = {'MT': 'af', 'M': 'af', 'C': 't', None: ''}[suffix.group(2)]
+        number = float(suffix.group(1))
+    else:
+        raise ValueError('unknown PMD step label: ' + label.strip())
+    if step_type == 'NRM' or number == 0:
+        return 'NRM', 0.
+    return step_type, number
+
+
 def pmd(mag_file, dir_path=".", input_dir_path="",
         meas_file="measurements.txt", spec_file='specimens.txt',
         samp_file='samples.txt', site_file="sites.txt", loc_file="locations.txt",
@@ -10562,7 +10661,14 @@ def pmd(mag_file, dir_path=".", input_dir_path="",
         default "LP-NO"
         e.g. [SO-MAG, SO-SUN, SO-SIGHT, ...]
     dmg : str
-       specify the type of demagnetization if not specified in the pmd file ('t' or 'af'), defaut ""
+       type of demagnetization ('t' or 'af') of every step after the NRM, default "".
+       By default the type is read from each step label (H020, A020, 20mT: alternating
+       field in mT; T350, 350C: thermal in degrees C). Steps labelled with a number
+       alone need dmg, except in files whose column header begins with PAL, where
+       they are read as thermal unless dmg is given. When dmg is given it applies to
+       every step after the NRM, also to steps whose labels give another type, and a
+       warning names those labels; the values are kept as written (mT read as degrees C,
+       or the reverse).
 
     Returns
     ---------
@@ -10571,6 +10677,19 @@ def pmd(mag_file, dir_path=".", input_dir_path="",
 
     Info
     --------
+    The second line of the file gives the core azimuth (a) and hade (b), and the
+    bedding strike (s) and dip (d), with the dip to the right of the strike. They
+    are written to the samples table as azimuth = a, dip = -b,
+    bed_dip_direction = s + 90 and bed_dip = d, the convention under which
+    pmag.dogeo and pmag.dotilt reproduce the geographic (Dg, Ig) and tilt-corrected
+    (Ds, Is) directions stored in the file.
+
+    The file is read as Latin-1, so that any single-byte text can be read (a
+    degree sign, alpha and beta for a and b), and lines may end with a carriage
+    return, a line feed or both. Measurement lines are found by their four
+    numbers in exponential notation (X, Y, Z in Am^2 and the magnetization in A/m),
+    which may follow a long step label without a space.
+
     Sample naming convention:
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
@@ -10604,8 +10723,15 @@ def pmd(mag_file, dir_path=".", input_dir_path="",
         else:
             Z = samp_con.split("-")[1]
             samp_con = "7"
+    elif samp_con == "6":
+        print("naming convention option [6] is not supported")
+        return False, "naming convention option [6] is not supported"
     else:
         Z = 1
+    dmg = str(dmg).strip().lower()
+    if dmg not in ("", "af", "t"):
+        print("dmg must be 't' or 'af', not " + dmg)
+        return False, "dmg must be 't' or 'af', not " + dmg
 
     # format variables
     mag_file = pmag.resolve_file_name(mag_file, input_dir_path)
@@ -10616,44 +10742,35 @@ def pmd(mag_file, dir_path=".", input_dir_path="",
 
     # parse data
     try:
-        with open(mag_file, 'r') as f:
+        # Latin-1 reads every byte as one character; reading as text also ends
+        # lines at the carriage returns of files written on old Macs
+        with open(mag_file, 'r', encoding='latin-1') as f:
             data = f.readlines()
     except IOError:
         print('mag_file field is required option')
         return False, 'mag_file field is required option'
+    if len(data) < 3:
+        print('-W- not a PMD file: ' + mag_file)
+        return False, 'not a PMD file: ' + mag_file
     comment = data[0]
-    line = data[1].strip()
-    line = line.replace("=", "= ")  # make finding orientations easier
-    rec = line.split()  # read in sample orientation, etc.
-    specimen = rec[0]
+    try:
+        specimen, (azimuth, hade, strike, bed_dip), date, time = _pmd_header(data[1])
+    except ValueError as ex:
+        print('-W- ' + str(ex))
+        return False, str(ex)
     SpecRecs, SampRecs, SiteRecs, LocRecs, MeasRecs = [], [], [], [], []
     SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}  # make a  sample record
     if specnum != 0:
-        sample = rec[0][:specnum]
+        sample = specimen[:specnum]
     else:
-        sample = rec[0]
-    if int(samp_con) < 6:
-        site = pmag.parse_site(sample, samp_con, Z)
-    else:
-        if 'site' in list(SampRec.keys()):
-            site = ErSampREc['site']
-        if 'location' in list(SampRec.keys()):
-            location = ErSampREc['location']
-    az_ind = rec.index('a=')+1
+        sample = specimen
+    site = pmag.parse_site(sample, samp_con, Z)
     SampRec['sample'] = sample
-    SampRec['description'] = comment.replace('\n', '').replace('\t', '')
-    SampRec['azimuth'] = rec[az_ind]
-    dip_ind = rec.index('b=')+1
-    dip = -float(rec[dip_ind])
-    SampRec['dip'] = '%7.1f' % (dip)
-    strike_ind = rec.index('s=')+1
-    SampRec['bed_dip_direction'] = '%7.1f' % (float(rec[strike_ind])+90.)
-    bd_ind = rec.index('d=')+1
-    SampRec['bed_dip'] = rec[bd_ind]
-    v_ind = rec.index('v=')+1
-    vol = rec[v_ind][:-3]
-    date = rec[-2]
-    time = rec[-1]
+    SampRec['description'] = comment.replace('\t', '').strip()
+    SampRec['azimuth'] = '{:g}'.format(azimuth % 360.)  # e.g. 363 is written as 3
+    SampRec['dip'] = '%7.1f' % (-hade)
+    SampRec['bed_dip_direction'] = '%7.1f' % ((strike + 90.) % 360.)
+    SampRec['bed_dip'] = '{:g}'.format(bed_dip)
     SampRec['site'] = site
     SampRec['citations'] = 'This study'
     if meth_code: SampRec['method_codes'] = meth_code
@@ -10681,67 +10798,81 @@ def pmd(mag_file, dir_path=".", input_dir_path="",
     SiteRecs.append(SiteRec)
     LocRecs.append(LocRec)
 
-    head=data[2]
-    file_type=head[0:5]  
-    if file_type==" PAL ":
-        file_type="PAL"
-        dmg="t"
-    print("file_type=",file_type)
-    print("dmg=",dmg)
-
-    for k in range(3, len(data)):  # read in data
-        line = data[k]
-        rec = line.split()
-        print("rec=",rec)
-        if len(rec) > 1:  # skip blank lines at bottom
-            MeasRec = {}
+    # The column header (STEP or PAL) is the third line, or comes after further
+    # header lines (Slat=, Slon=, ... in files written as "Output from PaleoMac").
+    # PAL files label steps with numbers alone, read as thermal unless dmg is given.
+    first = 2
+    while first < len(data) and data[first].upper().split()[:1] not in (['STEP'], ['PAL']):
+        first += 1
+    if first == len(data):
+        print('-W- no column header (STEP or PAL) in ' + mag_file)
+        return False, 'no column header (STEP or PAL) in ' + mag_file
+    number_only_type = dmg
+    if data[first].upper().split()[0] == 'PAL' and not dmg:
+        number_only_type = 't'
+        print('-I- steps labelled with a number alone are read as thermal; '
+              "set dmg='af' if they are alternating field steps")
+    # X, Y and Z (Am^2) and the magnetization (A/m) in exponential notation, with
+    # one digit before the decimal point, or two where a value was rounded up
+    # (10.00E-10); the step label is the text before them
+    moment = r'([-+]?\d*\.\d+E[-+]?\d+)'
+    measurement = re.compile(r'\s*'.join([moment] * 4), re.I)
+    overridden = []
+    for line in data[first + 1:]:
+        match = measurement.search(line)
+        if not match:  # lines without measurements, such as blank lines at the end
+            continue
+        label = line[:match.start()].strip()
+        X = [float(match.group(1)), float(match.group(2)), float(match.group(3))]
+        try:
+            step_type, treat = _pmd_step(label)
+        except ValueError as ex:
+            print('-W- ' + str(ex))
+            return False, str(ex)
+        if step_type != 'NRM':
+            if dmg:
+                if step_type and step_type != dmg:
+                    overridden.append(label)
+                step_type = dmg
+            elif not step_type:
+                step_type = number_only_type
+            if not step_type:
+                message = ("step label {} does not give the type of demagnetization; "
+                           "set dmg to 'af' or 't'").format(label)
+                print('-W- ' + message)
+                return False, message
+        meas_type = {'NRM': 'LT-NO', 'af': 'LT-AF-Z', 't': 'LT-T-Z'}[step_type]
+        MeasRec = {}
+        if date:
             MeasRec['description'] = 'Date: '+date+' '+time
-            MeasRec["citations"] = "This study"
-            MeasRec['software_packages'] = version_num
-            MeasRec["treat_temp"] = '%8.3e' % (273)  # room temp in kelvin
-            MeasRec["meas_temp"] = '%8.3e' % (273)  # room temp in kelvin
-            MeasRec["quality"] = 'g'
-            MeasRec["standard"] = 'u'
-            MeasRec["treat_step_num"] = 0
-            MeasRec["specimen"] = specimen
-            print("rec[0]=",rec[0])
-            if rec[0] == 'NRM':
-                meas_type = "LT-NO"
-            elif rec[0] == '0':
-                meas_type = "LT-NO"
-            elif rec[0][0] == 'M' or rec[0][0] == 'H':
-                meas_type = "LT-AF-Z"
-            elif rec[0][0] == 'T':
-                meas_type = "LT-T-Z"
-            elif dmg == "af":
-                meas_type = "LT-AF-Z"
-            elif dmg == "t":
-                meas_type = "LT-T-Z"
-            else:
-                print("measurement type unknown")
-                return False, "measurement type unknown"
-            X = [float(rec[1]), float(rec[2]), float(rec[3])]
-            Vec = pmag.cart2dir(X)
-            MeasRec["magn_moment"] = '%10.3e' % (Vec[2])  # Am^2
-            MeasRec["magn_volume"] = rec[4]  # A/m
-            MeasRec["dir_dec"] = '%7.1f' % (Vec[0])
-            MeasRec["dir_inc"] = '%7.1f' % (Vec[1])
-            MeasRec["treat_ac_field"] = '0'
-            if meas_type != 'LT-NO':
-                if file_type == "PAL":
-                    treat = float(rec[0][0:])
-                else:
-                    treat = float(rec[0][1:])
-            else:
-                treat = 0
-            if meas_type == "LT-AF-Z":
-                MeasRec["treat_ac_field"] = '%8.3e' % (
-                    treat*1e-3)  # convert from mT to tesla
-            elif meas_type == "LT-T-Z":
-                MeasRec["treat_temp"] = '%8.3e' % (
-                    treat+273.)  # temp in kelvin
-            MeasRec['method_codes'] = meas_type
-            MeasRecs.append(MeasRec)
+        MeasRec["citations"] = "This study"
+        MeasRec['software_packages'] = version_num
+        MeasRec["treat_temp"] = '%8.3e' % (273)  # room temp in kelvin
+        MeasRec["meas_temp"] = '%8.3e' % (273)  # room temp in kelvin
+        MeasRec["quality"] = 'g'
+        MeasRec["standard"] = 'u'
+        MeasRec["treat_step_num"] = 0
+        MeasRec["specimen"] = specimen
+        Vec = pmag.cart2dir(X)
+        MeasRec["magn_moment"] = '%10.3e' % (Vec[2])  # Am^2
+        MeasRec["magn_volume"] = match.group(4)  # A/m
+        MeasRec["dir_dec"] = '%7.1f' % (Vec[0])
+        MeasRec["dir_inc"] = '%7.1f' % (Vec[1])
+        MeasRec["treat_ac_field"] = '0'
+        if meas_type == "LT-AF-Z":
+            MeasRec["treat_ac_field"] = '%8.3e' % (
+                treat*1e-3)  # convert from mT to tesla
+        elif meas_type == "LT-T-Z":
+            MeasRec["treat_temp"] = '%8.3e' % (
+                treat+273.)  # temp in kelvin
+        MeasRec['method_codes'] = meas_type
+        MeasRecs.append(MeasRec)
+    if not MeasRecs:
+        print('-W- no measurements in ' + mag_file)
+        return False, 'no measurements in ' + mag_file
+    if overridden:
+        print("-W- {}: steps {} read as {} because dmg='{}'".format(
+            specimen, ', '.join(overridden), {'af': 'alternating field', 't': 'thermal'}[dmg], dmg))
 
     con = cb.Contribution(output_dir_path, read_tables=[])
 
