@@ -173,3 +173,42 @@ class TestGetSpecs:
         data = [{'specimen': 'only_one'}]
         specs = pmag.get_specs(data)
         assert specs == ['only_one']
+
+
+# ---------------------------------------------------------------------------
+# find_dmag_rec: a specimen's demagnetization steps as a datablock
+# ---------------------------------------------------------------------------
+
+class TestFindDmagRec:
+    """Tests for pmag.find_dmag_rec with data model 3 measurements."""
+
+    @staticmethod
+    def measurements(quality=('g', 'b', 'g'), with_quality=True):
+        import pandas as pd
+        rows = [{'specimen': 's1', 'method_codes': 'LT-NO:LP-DIR-AF', 'treat_temp': 273, 'treat_ac_field': 0,
+                 'dir_dec': 10., 'dir_inc': 20., 'magn_moment': 3e-5},
+                {'specimen': 's1', 'method_codes': 'LT-AF-Z:LP-DIR-AF', 'treat_temp': 273, 'treat_ac_field': 0.01,
+                 'dir_dec': 11., 'dir_inc': 21., 'magn_moment': 2e-5},
+                {'specimen': 's1', 'method_codes': 'LT-AF-Z:LP-DIR-AF', 'treat_temp': 273, 'treat_ac_field': 0.02,
+                 'dir_dec': 12., 'dir_inc': 22., 'magn_moment': 1e-5}]
+        if with_quality:
+            for row, q in zip(rows, quality):
+                row['quality'] = q
+        return pd.DataFrame(rows)
+
+    def test_the_quality_of_each_step_is_read(self):
+        """Data model 3 keeps the good/bad flag in 'quality'."""
+        block, units = pmag.find_dmag_rec('s1', self.measurements(), version=3)
+        assert [rec[5] for rec in block] == ['g', 'b', 'g']
+        assert units == 'T'
+
+    def test_steps_without_a_quality_are_good(self):
+        block, _ = pmag.find_dmag_rec('s1', self.measurements(with_quality=False), version=3)
+        assert [rec[5] for rec in block] == ['g', 'g', 'g']
+        block, _ = pmag.find_dmag_rec('s1', self.measurements(quality=('', None, 'g')), version=3)
+        assert [rec[5] for rec in block] == ['g', 'g', 'g']
+
+    def test_the_nrm_of_an_af_specimen_is_at_zero_field(self):
+        block, _ = pmag.find_dmag_rec('s1', self.measurements(), version=3)
+        assert [rec[0] for rec in block] == [0., 0.01, 0.02]
+        assert [rec[3] for rec in block] == [3e-5, 2e-5, 1e-5]

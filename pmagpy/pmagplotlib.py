@@ -990,7 +990,7 @@ def plot_zij(fignum, datablock, angle, s, norm=True, ax=None, frame=True,
                         annotation_clip=False, **label_at[end])
 
 
-def plot_mag(fignum, datablock, s, num, units, norm):
+def plot_mag(fignum, datablock, s, num, units, norm, ax=None):
     """
     plots magnetization against (de)magnetizing temperature or field
 
@@ -1002,6 +1002,8 @@ def plot_mag(fignum, datablock, s, num, units, norm):
     num : matplotlib figure number, can set to 1
     units : [T,K,U] for tesla, kelvin or arbitrary
     norm : [True,False] if True, normalize
+    ax : matplotlib axis on which to draw, for use as a panel of a larger
+         figure; default None draws on figure fignum
 
     Effects
     ______
@@ -1012,7 +1014,9 @@ def plot_mag(fignum, datablock, s, num, units, norm):
     for plotrec in datablock:
         Ints.append(plotrec[3])
     Ints.sort()
-    plt.figure(num=fignum)
+    if ax is None:
+        plt.figure(num=fignum)
+        ax = plt.gca()
     T, M, Tv, recnum = [], [], [], 0
     Mex, Tex, Vdif = [], [], []
     recbak = []
@@ -1068,7 +1072,7 @@ def plot_mag(fignum, datablock, s, num, units, norm):
             delta = .005 * M[0]
             if num == 1:
                 if recnum % 2 == 0:
-                    plt.text(T[-1] + delta, M[-1],
+                    ax.text(T[-1] + delta, M[-1],
                              (' ' + str(recnum)), fontsize=9)
             recnum += 1
         else:
@@ -1082,32 +1086,32 @@ def plot_mag(fignum, datablock, s, num, units, norm):
         globals.MTlist = T
         globals.MTlisty = M
     if len(Mex) > 0 and len(Tex) > 0:
-        plt.scatter(Tex, Mex, marker='d', color='k')
+        ax.scatter(Tex, Mex, marker='d', color='k')
     if len(Vdif) > 0:
         Vdif.append(vdir[2]/Ints[-1])
         Vdif.append(0)
     if Tv:
         Tv.append(Tv[-1])
-    plt.plot(T, M)
-    plt.plot(T, M, 'ro')
+    ax.plot(T, M)
+    ax.plot(T, M, 'ro')
     if len(Tv) == len(Vdif) and norm:
-        plt.plot(Tv, Vdif, 'g-')
+        ax.plot(Tv, Vdif, 'g-')
     if units == "T":
-        plt.xlabel("Step (mT)")
+        ax.set_xlabel("Step (mT)")
     elif units == "K":
-        plt.xlabel("Step (C)")
+        ax.set_xlabel("Step (C)")
     elif units == "J":
-        plt.xlabel("Step (J)")
+        ax.set_xlabel("Step (J)")
     else:
-        plt.xlabel("Step [mT,C]")
+        ax.set_xlabel("Step [mT,C]")
     if norm == 1:
-        plt.ylabel("Fractional Magnetization")
+        ax.set_ylabel("Fractional Magnetization")
     if norm == 0:
-        plt.ylabel("Magnetization")
-    plt.axvline(0, color='k')
-    plt.axhline(0, color='k')
+        ax.set_ylabel("Magnetization")
+    ax.axvline(0, color='k')
+    ax.axhline(0, color='k')
     tstring = s
-    plt.title(tstring)
+    ax.set_title(tstring)
     plt.draw()
 
 

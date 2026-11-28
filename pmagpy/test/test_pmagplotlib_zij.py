@@ -281,3 +281,23 @@ class TestPlotZijOptions:
         # the arrow points along the direction of the fit
         np.testing.assert_allclose((tip - tail) / np.linalg.norm(tip - tail), direction)
 
+
+
+class TestPlotMagOnAxis:
+    """pmagplotlib.plot_mag draws on the axis it is given, as a panel of a larger figure."""
+
+    def test_it_draws_on_the_axis_given(self):
+        import matplotlib.pyplot as plt
+        from pmagpy import pmagplotlib
+        block = [[0., 10., 20., 3e-5, 1, 'g'], [0.01, 11., 21., 2e-5, 1, 'g'],
+                 [0.02, 12., 22., 1e-5, 1, 'b'], [0.04, 13., 23., 0.5e-5, 1, 'g']]
+        fig, (left, right) = plt.subplots(1, 2)
+        before = plt.get_fignums()
+        pmagplotlib.plot_mag(1, block, 'spec', 0, 'T', 1, ax=right)
+        assert plt.get_fignums() == before                      # no other figure
+        assert right.get_xlabel() == 'Step (mT)' and right.get_title() == 'spec'
+        assert right.get_ylabel() == 'Fractional Magnetization'
+        x, y = right.lines[0].get_data()
+        assert list(x) == [0., 10., 40.] and y[0] == 1.             # the bad step is not on the curve
+        assert not left.lines
+        plt.close(fig)
