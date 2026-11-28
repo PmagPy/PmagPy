@@ -315,3 +315,23 @@ def test_find_flat_saves_summary_when_initial_result_passes(
     assert result[0]['flat'] == 1
     assert result[0]['random_seed'] == 5
     plt.close('all')
+
+
+def test_svei_test_v2dec_does_not_depend_on_mean_declination():
+    """V2dec is compared with simulations that have a north-pointing mean, so a
+    vertical-axis rotation of the data must not change V2dec or its verdict."""
+    model = svei.GGPmodels(model='TK03_GAD')
+    directions = svei.GGPrand(model, 30, 40, 8, random_seed=11)
+    results = []
+    for rotation in (0, 90, 200):
+        rotated = np.column_stack(((directions[:, 0] + rotation) % 360, directions[:, 1]))
+        results.append(svei.svei_test(
+            rotated, model_name='TK03_GAD', num_sims=50, cdf_samples=20000,
+            random_seed=3,
+        ))
+    for result in results[1:]:
+        for key in ('V2dec', 'E', 'V2sim_min', 'V2sim_max', 'A2D', 'A2I'):
+            assert_allclose(result[key], results[0][key], atol=1e-6)
+        assert result['V2_result'] == results[0]['V2_result']
+        assert result['E_result'] == results[0]['E_result']
+    assert 90 <= results[0]['V2dec'] <= 270
